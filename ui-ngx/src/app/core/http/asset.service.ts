@@ -36,7 +36,9 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Asset, AssetInfo, AssetSearchQuery } from '@app/shared/models/asset.models';
+import { Asset, AssetSearchQuery } from '@app/shared/models/asset.models';
+import { map } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -47,7 +49,7 @@ export class AssetService {
     private http: HttpClient
   ) { }
 
-  public getTenantAssetInfos(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<AssetInfo>> {
+/*  public getTenantAssetInfos(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<AssetInfo>> {
     return this.http.get<PageData<AssetInfo>>(`/api/tenant/assetInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
@@ -56,6 +58,17 @@ export class AssetService {
                                config?: RequestConfig): Observable<PageData<AssetInfo>> {
     return this.http.get<PageData<AssetInfo>>(`/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
+  }*/
+
+  public getTenantAssets(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Asset>> {
+    return this.http.get<PageData<Asset>>(`/api/tenant/assets${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerAssets(customerId: string, pageLink: PageLink, type: string = '',
+                               config?: RequestConfig): Observable<PageData<Asset>> {
+    return this.http.get<PageData<Asset>>(`/api/customer/${customerId}/assets${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public getAsset(assetId: string, config?: RequestConfig): Observable<Asset> {
@@ -63,15 +76,26 @@ export class AssetService {
   }
 
   public getAssets(assetIds: Array<string>, config?: RequestConfig): Observable<Array<Asset>> {
-    return this.http.get<Array<Asset>>(`/api/assets?assetIds=${assetIds.join(',')}`, defaultHttpOptionsFromConfig(config));
+    return this.http.get<Array<Asset>>(`/api/assets?assetIds=${assetIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
+      map((assets) => sortEntitiesByIds(assets, assetIds))
+    );
   }
 
-  public getAssetInfo(assetId: string, config?: RequestConfig): Observable<AssetInfo> {
+  public getUserAssets(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Asset>> {
+    return this.http.get<PageData<Asset>>(`/api/user/assets${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+/*  public getAssetInfo(assetId: string, config?: RequestConfig): Observable<AssetInfo> {
     return this.http.get<AssetInfo>(`/api/asset/info/${assetId}`, defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
-  public saveAsset(asset: Asset, config?: RequestConfig): Observable<Asset> {
-    return this.http.post<Asset>('/api/asset', asset, defaultHttpOptionsFromConfig(config));
+  public saveAsset(asset: Asset, entityGroupId?: string, config?: RequestConfig): Observable<Asset> {
+    let url = '/api/asset';
+    if (entityGroupId) {
+      url += `?entityGroupId=${entityGroupId}`;
+    }
+    return this.http.post<Asset>(url, asset, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteAsset(assetId: string, config?: RequestConfig) {
@@ -82,7 +106,7 @@ export class AssetService {
     return this.http.get<Array<EntitySubtype>>('/api/asset/types', defaultHttpOptionsFromConfig(config));
   }
 
-  public makeAssetPublic(assetId: string, config?: RequestConfig): Observable<Asset> {
+/*  public makeAssetPublic(assetId: string, config?: RequestConfig): Observable<Asset> {
     return this.http.post<Asset>(`/api/customer/public/asset/${assetId}`, null, defaultHttpOptionsFromConfig(config));
   }
 
@@ -93,7 +117,7 @@ export class AssetService {
 
   public unassignAssetFromCustomer(assetId: string, config?: RequestConfig) {
     return this.http.delete(`/api/customer/asset/${assetId}`, defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
   public findByQuery(query: AssetSearchQuery,
                      config?: RequestConfig): Observable<Array<Asset>> {

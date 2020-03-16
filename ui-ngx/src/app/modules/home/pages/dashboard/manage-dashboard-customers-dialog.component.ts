@@ -38,7 +38,7 @@ import {AppState} from '@core/core.state';
 import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm} from '@angular/forms';
 import {EntityType} from '@shared/models/entity-type.models';
 import {DashboardService} from '@core/http/dashboard.service';
-import {forkJoin, Observable} from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 
@@ -134,7 +134,7 @@ export class ManageDashboardCustomersDialogComponent extends
   }
 
   private getManageDashboardCustomersTask(dashboardId: string, customerIds: Array<string>): Observable<any> {
-    switch (this.data.actionType) {
+    /*switch (this.data.actionType) {
       case 'assign':
         return this.dashboardService.addDashboardCustomers(dashboardId, customerIds);
         break;
@@ -144,6 +144,7 @@ export class ManageDashboardCustomersDialogComponent extends
       case 'unassign':
         return this.dashboardService.removeDashboardCustomers(dashboardId, customerIds);
         break;
-    }
+    }*/
+    return of(null);
   }
 }

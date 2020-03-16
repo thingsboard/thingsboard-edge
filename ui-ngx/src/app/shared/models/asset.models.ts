@@ -45,10 +45,10 @@ export interface Asset extends BaseData<AssetId> {
   additionalInfo?: any;
 }
 
-export interface AssetInfo extends Asset {
+/*export interface AssetInfo extends Asset {
   customerTitle: string;
   customerIsPublic: boolean;
-}
+}*/
 
 export interface AssetSearchQuery extends EntitySearchQuery {
   assetTypes: Array<string>;

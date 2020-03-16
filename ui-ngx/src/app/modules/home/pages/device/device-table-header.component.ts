@@ -33,7 +33,7 @@ import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
-import {DeviceInfo} from '@app/shared/models/device.models';
+import {Device} from '@app/shared/models/device.models';
 import {EntityType} from '@shared/models/entity-type.models';
 
 @Component({
@@ -41,7 +41,7 @@ import {EntityType} from '@shared/models/entity-type.models';
   templateUrl: './device-table-header.component.html',
   styleUrls: ['./device-table-header.component.scss']
 })
-export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<DeviceInfo> {
+export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Device> {
 
   entityType = EntityType;
 

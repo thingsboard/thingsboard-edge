@@ -194,6 +194,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
               private dashboardService: DashboardService,
               private datasourceService: DatasourceService,
               private utils: UtilsService,
+              private datePipe: DatePipe,
               private raf: RafService,
               private ngZone: NgZone,
               private cd: ChangeDetectorRef) {
@@ -324,6 +325,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     this.subscriptionContext.deviceService = this.deviceService;
     this.subscriptionContext.alarmService = this.alarmService;
     this.subscriptionContext.datasourceService = this.datasourceService;
+    this.subscriptionContext.datePipe = this.datePipe;
     this.subscriptionContext.utils = this.utils;
     this.subscriptionContext.raf = this.raf;
     this.subscriptionContext.widgetUtils = this.widgetContext.utils;

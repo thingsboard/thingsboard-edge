@@ -36,7 +36,8 @@ import { PageComponent } from '@shared/components/page.component';
 import { MenuService } from '@core/services/menu.service';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
-import { HomeSection } from '@core/services/menu.models';
+import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-home-links',
@@ -46,6 +47,11 @@ import { HomeSection } from '@core/services/menu.models';
 export class HomeLinksComponent implements OnInit {
 
   homeSections$ = this.menuService.homeSections();
+  showHomeSections$ = this.homeSections$.pipe(
+    map((sections) => {
+      return sections.filter((section) => this.sectionPlaces(section).length > 0);
+    })
+  );
 
   cols = 2;
 
@@ -70,11 +76,16 @@ export class HomeLinksComponent implements OnInit {
     }
   }
 
+  sectionPlaces(section: HomeSection): HomeSectionPlace[] {
+    return section && section.places ? section.places.filter((place) => !place.disabled) : [];
+  }
+
   sectionColspan(section: HomeSection): number {
     if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm'])) {
       let colspan = this.cols;
-      if (section && section.places && section.places.length <= colspan) {
-        colspan = section.places.length;
+      const places = this.sectionPlaces(section);
+      if (places.length <= colspan) {
+        colspan = places.length;
       }
       return colspan;
     } else {

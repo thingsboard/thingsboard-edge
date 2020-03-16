@@ -61,6 +61,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.TimePaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
+import java.security.acl.Group;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -107,6 +108,20 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         log.trace("Executing findGroupPermissionById [{}]", groupPermissionId);
         validateId(groupPermissionId, INCORRECT_GROUP_PERMISSION_ID + groupPermissionId);
         return groupPermissionDao.findById(tenantId, groupPermissionId.getId());
+    }
+
+    @Override
+    public ListenableFuture<GroupPermissionInfo> findGroupPermissionInfoByIdAsync(TenantId tenantId,
+                                                                                  GroupPermissionId groupPermissionId,
+                                                                                  boolean isUserGroup) {
+        log.trace("Executing findGroupPermissionInfoByIdAsync [{}]", groupPermissionId);
+        validateId(groupPermissionId, INCORRECT_GROUP_PERMISSION_ID + groupPermissionId);
+        GroupPermission groupPermission = groupPermissionDao.findById(tenantId, groupPermissionId.getId());
+        if (isUserGroup) {
+            return fetchUserGroupPermissionInfoAsync(tenantId, groupPermission);
+        } else {
+            return fetchEntityGroupPermissionInfoAsync(tenantId, groupPermission);
+        }
     }
 
     @Override

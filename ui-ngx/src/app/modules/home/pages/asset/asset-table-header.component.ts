@@ -34,14 +34,14 @@ import {Store} from '@ngrx/store';
 import {AppState} from '@core/core.state';
 import {EntityTableHeaderComponent} from '../../components/entity/entity-table-header.component';
 import {EntityType} from '@shared/models/entity-type.models';
-import {AssetInfo} from '@shared/models/asset.models';
+import {Asset} from '@shared/models/asset.models';
 
 @Component({
   selector: 'tb-asset-table-header',
   templateUrl: './asset-table-header.component.html',
   styleUrls: ['./asset-table-header.component.scss']
 })
-export class AssetTableHeaderComponent extends EntityTableHeaderComponent<AssetInfo> {
+export class AssetTableHeaderComponent extends EntityTableHeaderComponent<Asset> {
 
   entityType = EntityType;
 

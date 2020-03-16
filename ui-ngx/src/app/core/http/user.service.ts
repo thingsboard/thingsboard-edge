@@ -37,6 +37,8 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { isDefined } from '@core/utils';
+import { map } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -59,14 +61,35 @@ export class UserService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getAllCustomerUsers(pageLink: PageLink,
+                             config?: RequestConfig): Observable<PageData<User>> {
+    return this.http.get<PageData<User>>(`/api/customer/users${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getUser(userId: string, config?: RequestConfig): Observable<User> {
     return this.http.get<User>(`/api/user/${userId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getUsers(userIds: Array<string>, config?: RequestConfig): Observable<Array<User>> {
+    return this.http.get<Array<User>>(`/api/users?userIds=${userIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
+      map((users) => sortEntitiesByIds(users, userIds))
+    );
+  }
+
+  public getUserUsers(pageLink: PageLink,
+                      config?: RequestConfig): Observable<PageData<User>> {
+    return this.http.get<PageData<User>>(`/api/user/users${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public saveUser(user: User, sendActivationMail: boolean = false,
+                  entityGroupId?: string,
                   config?: RequestConfig): Observable<User> {
-    let url = '/api/user';
-    url += '?sendActivationMail=' + sendActivationMail;
+    let url = `/api/user?sendActivationMail=${sendActivationMail}`;
+    if (entityGroupId) {
+      url += `&entityGroupId=${entityGroupId}`;
+    }
     return this.http.post<User>(url, user, defaultHttpOptionsFromConfig(config));
   }
 

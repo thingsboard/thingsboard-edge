@@ -60,10 +60,10 @@ export interface EntityView extends BaseData<EntityViewId> {
   additionalInfo?: any;
 }
 
-export interface EntityViewInfo extends EntityView {
+/*export interface EntityViewInfo extends EntityView {
   customerTitle: string;
   customerIsPublic: boolean;
-}
+}*/
 
 export interface EntityViewSearchQuery extends EntitySearchQuery {
   entityViewTypes: Array<string>;

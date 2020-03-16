@@ -32,6 +32,8 @@
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
 import { Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { filter, map, share } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-menu-toggle',
@@ -52,11 +54,26 @@ export class MenuToggleComponent implements OnInit {
     return this.router.isActive(this.section.path, false);
   }
 
-  sectionHeight(): string {
+  sectionPages(): Observable<Array<MenuSection>> {
+    return this.section.pages.pipe(
+      map((pages) => {
+          return pages.filter((page) => !page.disabled);
+        }
+      ),
+      share()
+    );
+  }
+
+  sectionHeight(): Observable<string> {
     if (this.router.isActive(this.section.path, false)) {
-      return this.section.height;
+      return this.sectionPages().pipe(
+        map((pages) => {
+          return pages.length * 40 + 'px';
+        }),
+        share()
+      );
     } else {
-      return '0px';
+      return of('0px');
     }
   }
 }

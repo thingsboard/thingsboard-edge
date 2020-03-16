@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -70,6 +71,20 @@ public class GroupPermissionController extends BaseController {
         checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
         try {
             return checkGroupPermissionId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/groupPermission/info/{groupPermissionId}", method = RequestMethod.GET)
+    @ResponseBody
+    public GroupPermissionInfo getGroupPermissionInfoById(
+            @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId,
+            @RequestParam boolean isUserGroup) throws ThingsboardException {
+        checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
+        try {
+            return checkGroupPermissionInfoId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ, isUserGroup);
         } catch (Exception e) {
             throw handleException(e);
         }

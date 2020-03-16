@@ -30,108 +30,35 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
-import org.thingsboard.server.common.data.id.BlobEntityId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_COLUMN_FAMILY_NAME;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = BLOB_ENTITY_COLUMN_FAMILY_NAME)
-public final class BlobEntityInfoEntity extends BaseSqlEntity<BlobEntityInfo> implements SearchTextEntity<BlobEntityInfo> {
-
-    @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)
-    private String tenantId;
-
-    @Column(name = BLOB_ENTITY_CUSTOMER_ID_PROPERTY)
-    private String customerId;
-
-    @Column(name = BLOB_ENTITY_NAME_PROPERTY)
-    private String name;
-
-    @Column(name = BLOB_ENTITY_TYPE_PROPERTY)
-    private String type;
-
-    @Column(name = BLOB_ENTITY_CONTENT_TYPE_PROPERTY)
-    private String contentType;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
-    @Type(type = "json")
-    @Column(name = BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY)
-    private JsonNode additionalInfo;
+public final class BlobEntityInfoEntity extends AbstractBlobEntityInfoEntity<BlobEntityInfo> {
 
     public BlobEntityInfoEntity() {
         super();
     }
 
     public BlobEntityInfoEntity(BlobEntityInfo blobEntityInfo) {
-        if (blobEntityInfo.getId() != null) {
-            this.setId(blobEntityInfo.getId().getId());
-        }
-        if (blobEntityInfo.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(blobEntityInfo.getTenantId().getId());
-        }
-        if (blobEntityInfo.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(blobEntityInfo.getCustomerId().getId());
-        }
-        this.name = blobEntityInfo.getName();
-        this.type = blobEntityInfo.getType();
-        this.contentType = blobEntityInfo.getContentType();
-        this.additionalInfo = blobEntityInfo.getAdditionalInfo();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
+        super(blobEntityInfo);
     }
 
     @Override
     public BlobEntityInfo toData() {
-        BlobEntityInfo blobEntityInfo = new BlobEntityInfo(new BlobEntityId(UUIDConverter.fromString(id)));
-        blobEntityInfo.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
-        if (tenantId != null) {
-            blobEntityInfo.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
-        }
-        if (customerId != null) {
-            blobEntityInfo.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
-        }
-        blobEntityInfo.setName(name);
-        blobEntityInfo.setType(type);
-        blobEntityInfo.setContentType(contentType);
-        blobEntityInfo.setAdditionalInfo(additionalInfo);
-        return blobEntityInfo;
+        return super.toBlobEntityInfo();
     }
 
 }

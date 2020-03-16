@@ -56,6 +56,7 @@ import { EntityAliases } from '@shared/models/alias.models';
 import { EntityInfo } from '@app/shared/models/entity.models';
 import { IDashboardComponent } from '@home/models/dashboard-component.models';
 import * as moment_ from 'moment';
+import { DatePipe } from '@angular/common';
 
 export interface TimewindowFunctions {
   onUpdateTimewindow: (startTimeMs: number, endTimeMs: number, interval?: number) => void;
@@ -128,6 +129,7 @@ export interface StateParams {
   entityLabel?: string;
   targetEntityParamName?: string;
   entityId?: EntityId;
+  entityGroupType?: EntityType;
   [key: string]: any | null;
 }
 
@@ -186,6 +188,7 @@ export class WidgetSubscriptionContext {
   alarmService: AlarmService;
   datasourceService: DatasourceService;
   utils: UtilsService;
+  datePipe: DatePipe;
   raf: RafService;
   widgetUtils: IWidgetUtils;
   getServerTimeDiff: () => Observable<number>;
@@ -284,6 +287,8 @@ export interface IWidgetSubscription {
   subscribe(): void;
 
   isDataResolved(): boolean;
+
+  exportData(): {[key: string]: any}[];
 
   destroy(): void;
 

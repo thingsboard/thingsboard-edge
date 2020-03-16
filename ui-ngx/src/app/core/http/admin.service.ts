@@ -44,8 +44,9 @@ export class AdminService {
     private http: HttpClient
   ) { }
 
-  public getAdminSettings<T>(key: string, config?: RequestConfig): Observable<AdminSettings<T>> {
-    return this.http.get<AdminSettings<T>>(`/api/admin/settings/${key}`, defaultHttpOptionsFromConfig(config));
+  public getAdminSettings<T>(key: string, systemByDefault?: boolean, config?: RequestConfig): Observable<AdminSettings<T>> {
+    return this.http.get<AdminSettings<T>>(`/api/admin/settings/${key}?systemByDefault=${systemByDefault ? 'true': 'false'}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public saveAdminSettings<T>(adminSettings: AdminSettings<T>,

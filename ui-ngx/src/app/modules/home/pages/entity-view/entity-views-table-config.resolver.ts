@@ -65,7 +65,7 @@ import {
   AddEntitiesToCustomerDialogComponent,
   AddEntitiesToCustomerDialogData
 } from '../../dialogs/add-entities-to-customer-dialog.component';
-import {EntityView, EntityViewInfo} from '@app/shared/models/entity-view.models';
+import {EntityView} from '@app/shared/models/entity-view.models';
 import {EntityViewService} from '@core/http/entity-view.service';
 import {EntityViewComponent} from '@modules/home/pages/entity-view/entity-view.component';
 import {EntityViewTableHeaderComponent} from '@modules/home/pages/entity-view/entity-view-table-header.component';
@@ -73,9 +73,9 @@ import {EntityViewId} from '@shared/models/id/entity-view-id';
 import { EntityViewTabsComponent } from '@home/pages/entity-view/entity-view-tabs.component';
 
 @Injectable()
-export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityViewInfo>> {
+export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityView>> {
 
-  private readonly config: EntityTableConfig<EntityViewInfo> = new EntityTableConfig<EntityViewInfo>();
+  private readonly config: EntityTableConfig<EntityView> = new EntityTableConfig<EntityView>();
 
   private customerId: string;
 
@@ -103,14 +103,12 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     this.config.deleteEntitiesTitle = count => this.translate.instant('entity-view.delete-entity-views-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('entity-view.delete-entity-views-text');
 
-    this.config.loadEntity = id => this.entityViewService.getEntityViewInfo(id.id);
+    this.config.loadEntity = id => this.entityViewService.getEntityView(id.id);
     this.config.saveEntity = entityView => {
       return this.entityViewService.saveEntityView(entityView).pipe(
         tap(() => {
           this.broadcast.broadcast('entityViewSaved');
-        }),
-        mergeMap((savedEntityView) => this.entityViewService.getEntityViewInfo(savedEntityView.id.id)
-        ));
+        }));
     };
     this.config.onEntityAction = action => this.onEntityViewAction(action);
     this.config.detailsReadonly = () => this.config.componentsData.entityViewScope === 'customer_user';
@@ -119,7 +117,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
 
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EntityViewInfo>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EntityView>> {
     const routeParams = route.params;
     this.config.componentsData = {
       entityViewScope: route.data.entityViewsType,
@@ -159,39 +157,39 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     );
   }
 
-  configureColumns(entityViewScope: string): Array<EntityTableColumn<EntityViewInfo>> {
-    const columns: Array<EntityTableColumn<EntityViewInfo>> = [
-      new DateEntityTableColumn<EntityViewInfo>('createdTime', 'entity-view.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<EntityViewInfo>('name', 'entity-view.name', '33%'),
-      new EntityTableColumn<EntityViewInfo>('type', 'entity-view.entity-view-type', '33%'),
+  configureColumns(entityViewScope: string): Array<EntityTableColumn<EntityView>> {
+    const columns: Array<EntityTableColumn<EntityView>> = [
+      new DateEntityTableColumn<EntityView>('createdTime', 'entity-view.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<EntityView>('name', 'entity-view.name', '33%'),
+      new EntityTableColumn<EntityView>('type', 'entity-view.entity-view-type', '33%'),
     ];
-    if (entityViewScope === 'tenant') {
+    /*if (entityViewScope === 'tenant') {
       columns.push(
-        new EntityTableColumn<EntityViewInfo>('customerTitle', 'customer.customer', '33%'),
-        new EntityTableColumn<EntityViewInfo>('customerIsPublic', 'entity-view.public', '60px',
+        new EntityTableColumn<EntityView>('customerTitle', 'customer.customer', '33%'),
+        new EntityTableColumn<EntityView>('customerIsPublic', 'entity-view.public', '60px',
           entity => {
             return checkBoxCell(entity.customerIsPublic);
           }, () => ({}), false),
       );
-    }
+    }*/
     return columns;
   }
 
   configureEntityFunctions(entityViewScope: string): void {
     if (entityViewScope === 'tenant') {
       this.config.entitiesFetchFunction = pageLink =>
-        this.entityViewService.getTenantEntityViewInfos(pageLink, this.config.componentsData.entityViewType);
+        this.entityViewService.getTenantEntityViews(pageLink, this.config.componentsData.entityViewType);
       this.config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
     } else {
       this.config.entitiesFetchFunction = pageLink =>
-        this.entityViewService.getCustomerEntityViewInfos(this.customerId, pageLink, this.config.componentsData.entityViewType);
-      this.config.deleteEntity = id => this.entityViewService.unassignEntityViewFromCustomer(id.id);
+        this.entityViewService.getCustomerEntityViews(this.customerId, pageLink, this.config.componentsData.entityViewType);
+      // this.config.deleteEntity = id => this.entityViewService.unassignEntityViewFromCustomer(id.id);
     }
   }
 
-  configureCellActions(entityViewScope: string): Array<CellActionDescriptor<EntityViewInfo>> {
-    const actions: Array<CellActionDescriptor<EntityViewInfo>> = [];
-    if (entityViewScope === 'tenant') {
+  configureCellActions(entityViewScope: string): Array<CellActionDescriptor<EntityView>> {
+    const actions: Array<CellActionDescriptor<EntityView>> = [];
+    /*if (entityViewScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('entity-view.make-public'),
@@ -234,13 +232,13 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
-    }
+    }*/
     return actions;
   }
 
-  configureGroupActions(entityViewScope: string): Array<GroupActionDescriptor<EntityViewInfo>> {
-    const actions: Array<GroupActionDescriptor<EntityViewInfo>> = [];
-    if (entityViewScope === 'tenant') {
+  configureGroupActions(entityViewScope: string): Array<GroupActionDescriptor<EntityView>> {
+    const actions: Array<GroupActionDescriptor<EntityView>> = [];
+    /*if (entityViewScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('entity-view.assign-entity-views'),
@@ -259,13 +257,13 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entities) => this.unassignEntityViewsFromCustomer($event, entities)
         }
       );
-    }
+    }*/
     return actions;
   }
 
   configureAddActions(entityViewScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    if (entityViewScope === 'customer') {
+    /*if (entityViewScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('entity-view.assign-new-entity-view'),
@@ -274,11 +272,11 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event) => this.addEntityViewsToCustomer($event)
         }
       );
-    }
+    }*/
     return actions;
   }
 
-  addEntityViewsToCustomer($event: Event) {
+ /* addEntityViewsToCustomer($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -398,11 +396,11 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         }
       }
     );
-  }
+  }*/
 
-  onEntityViewAction(action: EntityAction<EntityViewInfo>): boolean {
+  onEntityViewAction(action: EntityAction<EntityView>): boolean {
     switch (action.action) {
-      case 'makePublic':
+     /* case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;
       case 'assignToCustomer':
@@ -410,7 +408,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         return true;
       case 'unassignFromCustomer':
         this.unassignFromCustomer(action.event, action.entity);
-        return true;
+        return true;*/
     }
     return false;
   }

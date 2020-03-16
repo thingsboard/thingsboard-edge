@@ -36,9 +36,14 @@ import { EntityInfo } from './entity.models';
 
 export enum AliasFilterType {
   singleEntity = 'singleEntity',
+  entityGroup = 'entityGroup',
   entityList = 'entityList',
   entityName = 'entityName',
+  entityGroupList = 'entityGroupList',
+  entityGroupName = 'entityGroupName',
+  entitiesByGroupName = 'entityGroupName',
   stateEntity = 'stateEntity',
+  stateEntityOwner = 'stateEntityOwner',
   assetType = 'assetType',
   deviceType = 'deviceType',
   entityViewType = 'entityViewType',
@@ -51,9 +56,14 @@ export enum AliasFilterType {
 export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
   [
     [ AliasFilterType.singleEntity, 'alias.filter-type-single-entity' ],
+    [ AliasFilterType.entityGroup, 'alias.filter-type-entity-group' ],
     [ AliasFilterType.entityList, 'alias.filter-type-entity-list' ],
     [ AliasFilterType.entityName, 'alias.filter-type-entity-name' ],
+    [ AliasFilterType.entityGroupList, 'alias.filter-type-entity-group-list' ],
+    [ AliasFilterType.entityGroupName, 'alias.filter-type-entity-group-name' ],
+    [ AliasFilterType.entitiesByGroupName, 'alias.filter-type-entities-by-group-name' ],
     [ AliasFilterType.stateEntity, 'alias.filter-type-state-entity' ],
+    [ AliasFilterType.stateEntityOwner, 'alias.filter-type-state-entity-owner' ],
     [ AliasFilterType.assetType, 'alias.filter-type-asset-type' ],
     [ AliasFilterType.deviceType, 'alias.filter-type-device-type' ],
     [ AliasFilterType.entityViewType, 'alias.filter-type-entity-view-type' ],
@@ -68,6 +78,15 @@ export interface SingleEntityFilter {
   singleEntity?: EntityId;
 }
 
+export interface EntityGroupFilter {
+  groupStateEntity?: boolean;
+  stateEntityParamName?: string;
+  defaultStateGroupType?: EntityType;
+  defaultStateEntityGroup?: string;
+  groupType?: EntityType;
+  entityGroup?: string;
+}
+
 export interface EntityListFilter {
   entityType?: EntityType;
   entityList?: string[];
@@ -78,7 +97,29 @@ export interface EntityNameFilter {
   entityNameFilter?: string;
 }
 
+export interface EntityGroupListFilter {
+  groupType?: EntityType;
+  entityGroupList?: string[];
+}
+
+export interface EntityGroupNameFilter {
+  groupType?: EntityType;
+  entityGroupNameFilter?: string;
+}
+
+export interface EntitiesByGroupNameFilter {
+  groupStateEntity?: boolean;
+  stateEntityParamName?: string;
+  groupType?: EntityType;
+  entityGroupNameFilter?: string;
+}
+
 export interface StateEntityFilter {
+  stateEntityParamName?: string;
+  defaultStateEntity?: EntityId;
+}
+
+export interface StateEntityOwnerFilter {
   stateEntityParamName?: string;
   defaultStateEntity?: EntityId;
 }
@@ -134,9 +175,14 @@ export interface EntityViewSearchQueryFilter extends EntitySearchQueryFilter {
 
 export type EntityFilters =
   SingleEntityFilter &
+  EntityGroupFilter &
   EntityListFilter &
   EntityNameFilter &
+  EntityGroupListFilter &
+  EntityGroupNameFilter &
+  EntitiesByGroupNameFilter &
   StateEntityFilter &
+  StateEntityOwnerFilter &
   AssetTypeFilter &
   DeviceTypeFilter &
   EntityViewFilter &

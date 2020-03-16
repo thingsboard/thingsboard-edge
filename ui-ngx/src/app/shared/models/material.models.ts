@@ -30,6 +30,8 @@
 ///
 
 import * as tinycolor_ from 'tinycolor2';
+import { mergeDeep } from '@core/utils';
+
 const tinycolor = tinycolor_;
 
 export interface MaterialColorItem {
@@ -39,7 +41,9 @@ export interface MaterialColorItem {
   isDark: boolean;
 }
 
-export const materialColorPalette: {[palette: string]: {[spectrum: string]: string}} = {
+export type ColorPalette = {[spectrum: string]: string};
+
+export const materialColorPalette: {[palette: string]: ColorPalette} = {
   red: {
     50: '#ffebee',
     100: '#ffcdd2',
@@ -345,6 +349,15 @@ export const materialColorPalette: {[palette: string]: {[spectrum: string]: stri
     A700: '#455a64'
   }
 };
+
+export function extendDefaultPalette(existingPaletteName: string, palette: ColorPalette) {
+  return extendPalette(materialColorPalette, existingPaletteName, palette);
+}
+
+export function extendPalette(paletteMap: {[palette: string]: ColorPalette}, paletteName: string, palette: ColorPalette) {
+  const existingPalette = paletteMap[paletteName];
+  return mergeDeep({}, existingPalette, palette);
+}
 
 export const materialColors = new Array<MaterialColorItem>();
 

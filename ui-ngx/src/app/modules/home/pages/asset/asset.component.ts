@@ -38,14 +38,14 @@ import {EntityType} from '@shared/models/entity-type.models';
 import {NULL_UUID} from '@shared/models/id/has-uuid';
 import {ActionNotificationShow} from '@core/notification/notification.actions';
 import {TranslateService} from '@ngx-translate/core';
-import {AssetInfo} from '@app/shared/models/asset.models';
+import { Asset } from '@shared/models/asset.models';
 
 @Component({
   selector: 'tb-asset',
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss']
 })
-export class AssetComponent extends EntityComponent<AssetInfo> {
+export class AssetComponent extends EntityComponent<Asset> {
 
   entityType = EntityType;
 
@@ -70,11 +70,11 @@ export class AssetComponent extends EntityComponent<AssetInfo> {
     }
   }
 
-  isAssignedToCustomer(entity: AssetInfo): boolean {
+  isAssignedToCustomer(entity: Asset): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   }
 
-  buildForm(entity: AssetInfo): FormGroup {
+  buildForm(entity: Asset): FormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -89,7 +89,7 @@ export class AssetComponent extends EntityComponent<AssetInfo> {
     );
   }
 
-  updateForm(entity: AssetInfo) {
+  updateForm(entity: Asset) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type});
     this.entityForm.patchValue({label: entity.label});

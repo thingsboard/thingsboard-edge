@@ -29,29 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
-import { select, Store } from '@ngrx/store';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { User } from '@shared/models/user.model';
-import { selectAuth, selectUserDetails } from '@core/auth/auth.selectors';
-import { map } from 'rxjs/operators';
-import { Authority } from '@shared/models/authority.enum';
-import {DeviceInfo} from '@shared/models/device.models';
-import {EntityType} from '@shared/models/entity-type.models';
-import {NULL_UUID} from '@shared/models/id/has-uuid';
-import {ActionNotificationShow} from '@core/notification/notification.actions';
-import {TranslateService} from '@ngx-translate/core';
-import {DeviceService} from '@core/http/device.service';
-import {ClipboardService} from 'ngx-clipboard';
+import { Device } from '@shared/models/device.models';
+import { EntityType } from '@shared/models/entity-type.models';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { TranslateService } from '@ngx-translate/core';
+import { DeviceService } from '@core/http/device.service';
+import { ClipboardService } from 'ngx-clipboard';
 
 @Component({
   selector: 'tb-device',
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss']
 })
-export class DeviceComponent extends EntityComponent<DeviceInfo> {
+export class DeviceComponent extends EntityComponent<Device> {
 
   entityType = EntityType;
 
@@ -78,11 +74,11 @@ export class DeviceComponent extends EntityComponent<DeviceInfo> {
     }
   }
 
-  isAssignedToCustomer(entity: DeviceInfo): boolean {
+  isAssignedToCustomer(entity: Device): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   }
 
-  buildForm(entity: DeviceInfo): FormGroup {
+  buildForm(entity: Device): FormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -98,7 +94,7 @@ export class DeviceComponent extends EntityComponent<DeviceInfo> {
     );
   }
 
-  updateForm(entity: DeviceInfo) {
+  updateForm(entity: Device) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type});
     this.entityForm.patchValue({label: entity.label});

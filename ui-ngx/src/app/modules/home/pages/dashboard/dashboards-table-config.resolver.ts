@@ -181,10 +181,10 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         this.dashboardService.getTenantDashboards(pageLink);
       this.config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
     } else {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.dashboardService.getCustomerDashboards(this.config.componentsData.customerId, pageLink);
-      this.config.deleteEntity = id =>
-        this.dashboardService.unassignDashboardFromCustomer(this.config.componentsData.customerId, id.id);
+      // this.config.entitiesFetchFunction = pageLink =>
+      //  this.dashboardService.getCustomerDashboards(this.config.componentsData.customerId, pageLink);
+      // this.config.deleteEntity = id =>
+      //  this.dashboardService.unassignDashboardFromCustomer(this.config.componentsData.customerId, id.id);
     }
   }
 
@@ -206,7 +206,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-public'),
           icon: 'share',
           isEnabled: (entity) => !isPublicDashboard(entity),
@@ -223,7 +223,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_ind',
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageAssignedCustomers($event, entity)
-        }
+        }*/
       );
     }
     if (dashboardScope === 'customer') {
@@ -234,7 +234,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-private'),
           icon: 'reply',
           isEnabled: (entity) => isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
@@ -245,7 +245,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_return',
           isEnabled: (entity) => !isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity, this.config.componentsData.customerId)
-        }
+        }*/
       );
     }
     return actions;
@@ -253,7 +253,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   configureGroupActions(dashboardScope: string): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
-    if (dashboardScope === 'tenant') {
+   /* if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-dashboards'),
@@ -281,7 +281,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
             this.unassignDashboardsFromCustomer($event, entities.map((entity) => entity.id.id), this.config.componentsData.customerId)
         }
       );
-    }
+    }*/
     return actions;
   }
 
@@ -303,7 +303,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
-    if (dashboardScope === 'customer') {
+    /*if (dashboardScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-new-dashboard'),
@@ -312,7 +312,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event) => this.addDashboardsToCustomer($event)
         }
       );
-    }
+    }*/
     return actions;
   }
 
@@ -344,7 +344,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.exportDashboard(dashboard.id.id);
   }
 
-  addDashboardsToCustomer($event: Event) {
+ /* addDashboardsToCustomer($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -492,7 +492,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       }
     );
-  }
+  }*/
 
   onDashboardAction(action: EntityAction<DashboardInfo>): boolean {
     switch (action.action) {
@@ -502,7 +502,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       case 'export':
         this.exportDashboard(action.event, action.entity);
         return true;
-      case 'makePublic':
+     /* case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;
       case 'makePrivate':
@@ -513,7 +513,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
       case 'unassignFromCustomer':
         this.unassignFromCustomer(action.event, action.entity, this.config.componentsData.customerId);
-        return true;
+        return true;*/
     }
     return false;
   }

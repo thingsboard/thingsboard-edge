@@ -63,7 +63,6 @@ export interface EntityData {
 
 export interface EntityColumn extends DataKey {
   def: string;
-  title: string;
 }
 
 export interface DisplayColumn {

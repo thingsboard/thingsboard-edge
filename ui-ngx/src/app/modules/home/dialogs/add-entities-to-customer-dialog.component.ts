@@ -38,7 +38,7 @@ import {AppState} from '@core/core.state';
 import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {DeviceService} from '@core/http/device.service';
 import {EntityType} from '@shared/models/entity-type.models';
-import {forkJoin, Observable} from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import {AssetService} from '@core/http/asset.service';
 import {EntityViewService} from '@core/http/entity-view.service';
 import {DashboardService} from '@core/http/dashboard.service';
@@ -133,7 +133,7 @@ export class AddEntitiesToCustomerDialogComponent extends
   }
 
   private getAssignToCustomerTask(customerId: string, entityId: string): Observable<any> {
-    switch (this.data.entityType) {
+    /*switch (this.data.entityType) {
       case EntityType.DEVICE:
         return this.deviceService.assignDeviceToCustomer(customerId, entityId);
         break;
@@ -146,7 +146,8 @@ export class AddEntitiesToCustomerDialogComponent extends
       case EntityType.DASHBOARD:
         return this.dashboardService.assignDashboardToCustomer(customerId, entityId);
         break;
-    }
+    }*/
+    return of(null);
   }
 
 }

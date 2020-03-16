@@ -65,19 +65,18 @@ import {
   AddEntitiesToCustomerDialogComponent,
   AddEntitiesToCustomerDialogData
 } from '../../dialogs/add-entities-to-customer-dialog.component';
-import { Asset, AssetInfo } from '@app/shared/models/asset.models';
+import { Asset } from '@app/shared/models/asset.models';
 import { AssetService } from '@app/core/http/asset.service';
 import { AssetComponent } from '@modules/home/pages/asset/asset.component';
 import { AssetTableHeaderComponent } from '@modules/home/pages/asset/asset-table-header.component';
 import { AssetId } from '@app/shared/models/id/asset-id';
 import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { DeviceInfo } from '@shared/models/device.models';
 
 @Injectable()
-export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
+export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asset>> {
 
-  private readonly config: EntityTableConfig<AssetInfo> = new EntityTableConfig<AssetInfo>();
+  private readonly config: EntityTableConfig<Asset> = new EntityTableConfig<Asset>();
 
   private customerId: string;
 
@@ -103,14 +102,12 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     this.config.deleteEntitiesTitle = count => this.translate.instant('asset.delete-assets-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('asset.delete-assets-text');
 
-    this.config.loadEntity = id => this.assetService.getAssetInfo(id.id);
+    this.config.loadEntity = id => this.assetService.getAsset(id.id);
     this.config.saveEntity = asset => {
       return this.assetService.saveAsset(asset).pipe(
         tap(() => {
           this.broadcast.broadcast('assetSaved');
-        }),
-        mergeMap((savedAsset) => this.assetService.getAssetInfo(savedAsset.id.id)
-        ));
+        }));
     };
     this.config.onEntityAction = action => this.onAssetAction(action);
     this.config.detailsReadonly = () => this.config.componentsData.assetScope === 'customer_user';
@@ -119,7 +116,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
 
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<AssetInfo>> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<Asset>> {
     const routeParams = route.params;
     this.config.componentsData = {
       assetScope: route.data.assetsType,
@@ -159,40 +156,40 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     );
   }
 
-  configureColumns(assetScope: string): Array<EntityTableColumn<AssetInfo>> {
-    const columns: Array<EntityTableColumn<AssetInfo>> = [
-      new DateEntityTableColumn<AssetInfo>('createdTime', 'asset.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<AssetInfo>('name', 'asset.name', '25%'),
-      new EntityTableColumn<AssetInfo>('type', 'asset.asset-type', '25%'),
-      new EntityTableColumn<DeviceInfo>('label', 'asset.label', '25%'),
+  configureColumns(assetScope: string): Array<EntityTableColumn<Asset>> {
+    const columns: Array<EntityTableColumn<Asset>> = [
+      new DateEntityTableColumn<Asset>('createdTime', 'asset.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<Asset>('name', 'asset.name', '25%'),
+      new EntityTableColumn<Asset>('type', 'asset.asset-type', '25%'),
+      new EntityTableColumn<Asset>('label', 'asset.label', '25%'),
     ];
-    if (assetScope === 'tenant') {
+    /*if (assetScope === 'tenant') {
       columns.push(
-        new EntityTableColumn<AssetInfo>('customerTitle', 'customer.customer', '25%'),
-        new EntityTableColumn<AssetInfo>('customerIsPublic', 'asset.public', '60px',
+        new EntityTableColumn<Asset>('customerTitle', 'customer.customer', '25%'),
+        new EntityTableColumn<Asset>('customerIsPublic', 'asset.public', '60px',
           entity => {
             return checkBoxCell(entity.customerIsPublic);
           }, () => ({}), false),
       );
-    }
+    }*/
     return columns;
   }
 
   configureEntityFunctions(assetScope: string): void {
     if (assetScope === 'tenant') {
       this.config.entitiesFetchFunction = pageLink =>
-        this.assetService.getTenantAssetInfos(pageLink, this.config.componentsData.assetType);
+        this.assetService.getTenantAssets(pageLink, this.config.componentsData.assetType);
       this.config.deleteEntity = id => this.assetService.deleteAsset(id.id);
     } else {
       this.config.entitiesFetchFunction = pageLink =>
-        this.assetService.getCustomerAssetInfos(this.customerId, pageLink, this.config.componentsData.assetType);
-      this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
+        this.assetService.getCustomerAssets(this.customerId, pageLink, this.config.componentsData.assetType);
+    //  this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
     }
   }
 
-  configureCellActions(assetScope: string): Array<CellActionDescriptor<AssetInfo>> {
-    const actions: Array<CellActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+  configureCellActions(assetScope: string): Array<CellActionDescriptor<Asset>> {
+    const actions: Array<CellActionDescriptor<Asset>> = [];
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.make-public'),
@@ -235,13 +232,13 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
-    }
+    }*/
     return actions;
   }
 
-  configureGroupActions(assetScope: string): Array<GroupActionDescriptor<AssetInfo>> {
-    const actions: Array<GroupActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+  configureGroupActions(assetScope: string): Array<GroupActionDescriptor<Asset>> {
+    const actions: Array<GroupActionDescriptor<Asset>> = [];
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-assets'),
@@ -260,7 +257,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entities) => this.unassignAssetsFromCustomer($event, entities)
         }
       );
-    }
+    }*/
     return actions;
   }
 
@@ -282,7 +279,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
-    if (assetScope === 'customer') {
+    /*if (assetScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-new-asset'),
@@ -291,20 +288,20 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event) => this.addAssetsToCustomer($event)
         }
       );
-    }
+    }*/
     return actions;
   }
 
   importAssets($event: Event) {
-    this.homeDialogs.importEntities(EntityType.ASSET).subscribe((res) => {
+    /*this.homeDialogs.importEntities(EntityType.ASSET).subscribe((res) => {
       if (res) {
         this.broadcast.broadcast('assetSaved');
         this.config.table.updateData();
       }
-    });
+    });*/
   }
 
-  addAssetsToCustomer($event: Event) {
+/* addAssetsToCustomer($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -424,11 +421,11 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       }
     );
-  }
+  }*/
 
-  onAssetAction(action: EntityAction<AssetInfo>): boolean {
+  onAssetAction(action: EntityAction<Asset>): boolean {
     switch (action.action) {
-      case 'makePublic':
+     /* case 'makePublic':
         this.makePublic(action.event, action.entity);
         return true;
       case 'assignToCustomer':
@@ -436,7 +433,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         return true;
       case 'unassignFromCustomer':
         this.unassignFromCustomer(action.event, action.entity);
-        return true;
+        return true;*/
     }
     return false;
   }

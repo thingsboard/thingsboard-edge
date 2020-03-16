@@ -49,11 +49,14 @@ import {
 } from '@home/components/import-export/import-export.models';
 import { ImportEntitiesResultInfo, ImportEntityData } from '@app/shared/models/entity.models';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 export interface ImportDialogCsvData {
   entityType: EntityType;
+  customerId: CustomerId;
   importTitle: string;
   importFileLabel: string;
+  entityGroupId: string;
 }
 
 @Component({
@@ -70,6 +73,8 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
   entityType: EntityType;
   importTitle: string;
   importFileLabel: string;
+  customerId: CustomerId;
+  entityGroupId: string;
 
   delimiters: {key: string, value: string}[] = [{
     key: ',',
@@ -108,6 +113,8 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
     this.entityType = data.entityType;
     this.importTitle = data.importTitle;
     this.importFileLabel = data.importFileLabel;
+    this.customerId = data.customerId;
+    this.entityGroupId = data.entityGroupId;
 
     this.selectFileFormGroup = this.fb.group(
       {
@@ -270,7 +277,7 @@ export class ImportDialogCsvComponent extends DialogComponent<ImportDialogCsvCom
 
     const isUpdate: boolean = this.importParametersFormGroup.get('isUpdate').value;
 
-    this.importExport.importEntities(entitiesData, this.entityType, isUpdate,
+    this.importExport.importEntities(entitiesData, this.customerId, this.entityType, this.entityGroupId, isUpdate,
       createImportEntityCompleted, {ignoreErrors: true, resendRequest: true}).subscribe(
       (result) => {
         this.statistical = result;

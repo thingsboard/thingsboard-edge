@@ -29,22 +29,20 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild} from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Observable, of} from 'rxjs';
-import {PageLink} from '@shared/models/page/page-link';
-import {Direction} from '@shared/models/page/sort-order';
-import {map, mergeMap, startWith, tap} from 'rxjs/operators';
-import {PageData, emptyPageData} from '@shared/models/page/page-data';
-import {DashboardInfo} from '@app/shared/models/dashboard.models';
-import {DashboardId} from '@app/shared/models/id/dashboard-id';
-import {DashboardService} from '@core/http/dashboard.service';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {getCurrentAuthUser} from '@app/core/auth/auth.selectors';
-import {Authority} from '@shared/models/authority.enum';
-import {TranslateService} from '@ngx-translate/core';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { PageLink } from '@shared/models/page/page-link';
+import { Direction } from '@shared/models/page/sort-order';
+import { map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { PageData } from '@shared/models/page/page-data';
+import { DashboardInfo } from '@app/shared/models/dashboard.models';
+import { DashboardService } from '@core/http/dashboard.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Operation } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-dashboard-autocomplete',
@@ -72,13 +70,10 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   placeholder: string;
 
   @Input()
-  dashboardsScope: 'customer' | 'tenant';
+  userId: string;
 
   @Input()
-  tenantId: string;
-
-  @Input()
-  customerId: string;
+  operation: Operation;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -203,29 +198,7 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   }
 
   getDashboards(pageLink: PageLink): Observable<PageData<DashboardInfo>> {
-    let dashboardsObservable: Observable<PageData<DashboardInfo>>;
-    const authUser = getCurrentAuthUser(this.store);
-    if (this.dashboardsScope === 'customer' || authUser.authority === Authority.CUSTOMER_USER) {
-      if (this.customerId) {
-        dashboardsObservable = this.dashboardService.getCustomerDashboards(this.customerId, pageLink,
-          {ignoreLoading: true});
-      } else {
-        dashboardsObservable = of(emptyPageData());
-      }
-    } else {
-      if (authUser.authority === Authority.SYS_ADMIN) {
-        if (this.tenantId) {
-          dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
-            {ignoreLoading: true});
-        } else {
-          dashboardsObservable = of(emptyPageData());
-        }
-      } else {
-        dashboardsObservable = this.dashboardService.getTenantDashboards(pageLink,
-          {ignoreLoading: true});
-      }
-    }
-    return dashboardsObservable;
+    return this.dashboardService.getUserDashboards(this.userId, this.operation, pageLink, {ignoreLoading: true});
   }
 
   clear() {

@@ -39,6 +39,7 @@ import {
   ImportDialogCsvComponent,
   ImportDialogCsvData
 } from '@home/components/import-export/import-dialog-csv.component';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 @Injectable()
 export class HomeDialogsService {
@@ -47,17 +48,18 @@ export class HomeDialogsService {
   ) {
   }
 
-  public importEntities(entityType: EntityType): Observable<boolean> {
+  public importEntities(customerId: CustomerId, entityType: EntityType, entityGroupId: string): Observable<boolean> {
     switch (entityType) {
       case EntityType.DEVICE:
-        return this.openImportDialogCSV(entityType, 'device.import', 'device.device-file');
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId,'device.import', 'device.device-file');
       case EntityType.ASSET:
-        return this.openImportDialogCSV(entityType, 'asset.import', 'asset.asset-file');
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId,'asset.import', 'asset.asset-file');
         break;
     }
   }
 
-  private openImportDialogCSV(entityType: EntityType, importTitle: string, importFileLabel: string): Observable<boolean> {
+  private openImportDialogCSV(customerId: CustomerId, entityType: EntityType,
+                              entityGroupId: string, importTitle: string, importFileLabel: string): Observable<boolean> {
     return this.dialog.open<ImportDialogCsvComponent, ImportDialogCsvData,
       any>(ImportDialogCsvComponent, {
       disableClose: true,
@@ -65,7 +67,9 @@ export class HomeDialogsService {
       data: {
         entityType,
         importTitle,
-        importFileLabel
+        importFileLabel,
+        customerId,
+        entityGroupId
       }
     }).afterClosed();
   }

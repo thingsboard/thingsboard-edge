@@ -38,7 +38,6 @@ import {EntityType} from '@shared/models/entity-type.models';
 import {NULL_UUID} from '@shared/models/id/has-uuid';
 import {ActionNotificationShow} from '@core/notification/notification.actions';
 import {TranslateService} from '@ngx-translate/core';
-import {AssetInfo} from '@app/shared/models/asset.models';
 import {RuleChain} from '@shared/models/rule-chain.models';
 
 @Component({

@@ -32,7 +32,7 @@
 import { Injectable } from '@angular/core';
 import { EMPTY, forkJoin, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { PageLink } from '@shared/models/page/page-link';
+import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -70,8 +70,25 @@ import { EntityRelationService } from '@core/http/entity-relation.service';
 import { isDefined } from '@core/utils';
 import { Asset, AssetSearchQuery } from '@shared/models/asset.models';
 import { Device, DeviceCredentialsType, DeviceSearchQuery } from '@shared/models/device.models';
-import { EntityViewSearchQuery } from '@shared/models/entity-view.models';
+import { EntityView, EntityViewSearchQuery } from '@shared/models/entity-view.models';
 import { AttributeService } from '@core/http/attribute.service';
+import { ConverterService } from '@core/http/converter.service';
+import { IntegrationService } from '@core/http/integration.service';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { BlobEntityService } from '@core/http/blob-entity.service';
+import { RoleService } from '@core/http/role.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { User } from '@shared/models/user.model';
+import { RuleChain } from '@shared/models/rule-chain.models';
+import { Converter } from '@shared/models/converter.models';
+import { Integration } from '@shared/models/integration.models';
+import { SchedulerEvent } from '@shared/models/scheduler-event.models';
+import { Role } from '@shared/models/role.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, resourceByEntityType, RoleType } from '@shared/models/security.models';
+import { EntityGroup } from '@shared/models/entity-group.models';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 @Injectable({
   providedIn: 'root'
@@ -91,6 +108,13 @@ export class EntityService {
     private dashboardService: DashboardService,
     private entityRelationService: EntityRelationService,
     private attributeService: AttributeService,
+    private converterService: ConverterService,
+    private integrationService: IntegrationService,
+    private schedulerEventService: SchedulerEventService,
+    private blobEntityService: BlobEntityService,
+    private roleService: RoleService,
+    private entityGroupService: EntityGroupService,
+    private userPermissionsService: UserPermissionsService,
     private utils: UtilsService
   ) { }
 
@@ -115,7 +139,11 @@ export class EntityService {
         observable = this.customerService.getCustomer(entityId, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.dashboardService.getDashboardInfo(entityId, config);
+        if (config && config.loadEntityDetails) {
+          observable = this.dashboardService.getDashboard(entityId, config);
+        } else {
+          observable = this.dashboardService.getDashboardInfo(entityId, config);
+        }
         break;
       case EntityType.USER:
         observable = this.userService.getUser(entityId, config);
@@ -126,9 +154,79 @@ export class EntityService {
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
         break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.getConverter(entityId, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.getIntegration(entityId, config);
+        break
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.getSchedulerEventInfo(entityId, config);
+        break;
+      case EntityType.BLOB_ENTITY:
+        observable = this.blobEntityService.getBlobEntityInfo(entityId, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.getRole(entityId, config);
+        break;
+      case EntityType.ENTITY_GROUP:
+        observable = this.entityGroupService.getEntityGroup(entityId, config);
+        break;
     }
     return observable;
   }
+
+  private saveEntityObservable(entity: BaseData<EntityId>,
+                               config?: RequestConfig): Observable<BaseData<EntityId>> {
+    let observable: Observable<BaseData<EntityId>>;
+    const entityType = entity.id.entityType;
+    if (!entity.id.id) {
+      delete entity.id;
+    }
+    switch (entityType) {
+      case EntityType.DEVICE:
+        observable = this.deviceService.saveDevice(entity as Device, null, config);
+        break;
+      case EntityType.ASSET:
+        observable = this.assetService.saveAsset(entity as Asset, null, config);
+        break;
+      case EntityType.ENTITY_VIEW:
+        observable = this.entityViewService.saveEntityView(entity as EntityView, null, config);
+        break;
+      case EntityType.TENANT:
+        observable = this.tenantService.saveTenant(entity as Tenant, config);
+        break;
+      case EntityType.CUSTOMER:
+        observable = this.customerService.saveCustomer(entity as Customer, null, config);
+        break;
+      case EntityType.DASHBOARD:
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, null, config);
+        break;
+      case EntityType.USER:
+        observable = this.userService.saveUser(entity as User, false, null, config);
+        break;
+      case EntityType.RULE_CHAIN:
+        observable = this.ruleChainService.saveRuleChain(entity as RuleChain, config);
+        break;
+      case EntityType.ALARM:
+        console.error('Save Alarm Entity is not implemented!');
+        break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.saveConverter(entity as Converter, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.saveIntegration(entity as Integration, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.saveSchedulerEvent(entity as SchedulerEvent, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.saveRole(entity as Role, config);
+        break;
+    }
+    return observable;
+  }
+
   public getEntity(entityType: EntityType, entityId: string,
                    config?: RequestConfig): Observable<BaseData<EntityId>> {
     const entityObservable = this.getEntityObservable(entityType, entityId, config);
@@ -139,7 +237,59 @@ export class EntityService {
     }
   }
 
-  private getEntitiesByIdsObservable(fetchEntityFunction: (entityId: string) => Observable<BaseData<EntityId>>,
+  public saveEntity(entity: BaseData<EntityId>,
+                    config?: RequestConfig): Observable<BaseData<EntityId>> {
+    const entityObservable = this.saveEntityObservable(entity, config);
+    if (entityObservable) {
+      return entityObservable;
+    } else {
+      return throwError(null);
+    }
+  }
+
+  private saveGroupEntityObservable(entity: BaseData<EntityId>,
+                                    entityGroupId: string,
+                                    config?: RequestConfig): Observable<BaseData<EntityId>> {
+    let observable: Observable<BaseData<EntityId>>;
+    const entityType = entity.id.entityType;
+    if (!entity.id.id) {
+      delete entity.id;
+    }
+    switch (entityType) {
+      case EntityType.DEVICE:
+        observable = this.deviceService.saveDevice(entity as Device, entityGroupId, config);
+        break;
+      case EntityType.ASSET:
+        observable = this.assetService.saveAsset(entity as Asset, entityGroupId, config);
+        break;
+      case EntityType.ENTITY_VIEW:
+        observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupId, config);
+        break;
+      case EntityType.CUSTOMER:
+        observable = this.customerService.saveCustomer(entity as Customer, entityGroupId, config);
+        break;
+      case EntityType.DASHBOARD:
+        observable = this.dashboardService.saveDashboard(entity as Dashboard, entityGroupId, config);
+        break;
+      case EntityType.USER:
+        observable = this.userService.saveUser(entity as User, false, entityGroupId, config);
+        break;
+    }
+    return observable;
+  }
+
+  public saveGroupEntity(entity: BaseData<EntityId>,
+                         entityGroupId: string,
+                         config?: RequestConfig): Observable<BaseData<EntityId>> {
+    const entityObservable = this.saveGroupEntityObservable(entity, entityGroupId, config);
+    if (entityObservable) {
+      return entityObservable;
+    } else {
+      return throwError(null);
+    }
+  }
+
+  /*private getEntitiesByIdsObservable(fetchEntityFunction: (entityId: string) => Observable<BaseData<EntityId>>,
                                      entityIds: Array<string>): Observable<Array<BaseData<EntityId>>> {
     const tasks: Observable<BaseData<EntityId>>[] = [];
     entityIds.forEach((entityId) => {
@@ -159,7 +309,7 @@ export class EntityService {
         }
       })
     );
-  }
+  }*/
 
 
   private getEntitiesObservable(entityType: EntityType, entityIds: Array<string>,
@@ -173,32 +323,40 @@ export class EntityService {
         observable = this.assetService.getAssets(entityIds, config);
         break;
       case EntityType.ENTITY_VIEW:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.entityViewService.getEntityView(id, config),
-          entityIds);
+        observable = this.entityViewService.getEntityViews(entityIds, config);
         break;
       case EntityType.TENANT:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.tenantService.getTenant(id, config),
-          entityIds);
+        observable = this.tenantService.getTenantsByIds(entityIds, config);
         break;
       case EntityType.CUSTOMER:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.customerService.getCustomer(id, config),
-          entityIds);
+        observable = this.customerService.getCustomersByIds(entityIds, config);
         break;
       case EntityType.DASHBOARD:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.dashboardService.getDashboardInfo(id, config),
-          entityIds);
+        observable = this.dashboardService.getDashboards(entityIds, config);
         break;
       case EntityType.USER:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.userService.getUser(id, config),
-          entityIds);
+        observable = this.userService.getUsers(entityIds, config);
         break;
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
+        break;
+      case EntityType.ENTITY_GROUP:
+        observable = this.entityGroupService.getEntityGroupsByIds(entityIds, config);
+        break;
+      case EntityType.CONVERTER:
+        observable = this.converterService.getConvertersByIds(entityIds, config);
+        break;
+      case EntityType.INTEGRATION:
+        observable = this.integrationService.getIntegrationsByIds(entityIds, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        observable = this.schedulerEventService.getSchedulerEventsByIds(entityIds, config);
+        break;
+      case EntityType.BLOB_ENTITY:
+        observable = this.blobEntityService.getBlobEntitiesByIds(entityIds, config);
+        break;
+      case EntityType.ROLE:
+        observable = this.roleService.getRolesByIds(entityIds, config);
         break;
     }
     return observable;
@@ -236,57 +394,35 @@ export class EntityService {
     );
   }
 
-  private getSingleCustomerByPageLinkObservable(pageLink: PageLink,
-                                                config?: RequestConfig): Observable<PageData<Customer>> {
-    const authUser = getCurrentAuthUser(this.store);
-    const customerId = authUser.customerId;
-    return this.customerService.getCustomer(customerId, config).pipe(
-      map((customer) => {
-        const result = {
-          data: [],
-          totalPages: 0,
-          totalElements: 0,
-          hasNext: false
-        } as PageData<Customer>;
-        if (customer.title.toLowerCase().startsWith(pageLink.textSearch.toLowerCase())) {
-          result.data.push(customer);
-          result.totalPages = 1;
-          result.totalElements = 1;
-        }
-        return result;
-      })
-    );
-  }
-
   private getEntitiesByPageLinkObservable(entityType: EntityType, pageLink: PageLink, subType: string = '',
                                           config?: RequestConfig): Observable<PageData<BaseData<EntityId>>> {
     let entitiesObservable: Observable<PageData<BaseData<EntityId>>>;
     const authUser = getCurrentAuthUser(this.store);
-    const customerId = authUser.customerId;
+    const isGenericPermission = this.userPermissionsService.hasReadGenericPermission(resourceByEntityType.get(entityType));
     switch (entityType) {
       case EntityType.DEVICE:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.deviceService.getCustomerDeviceInfos(customerId, pageLink, subType, config);
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.deviceService.getTenantDevices(pageLink, subType, config);
         } else {
-          entitiesObservable = this.deviceService.getTenantDeviceInfos(pageLink, subType, config);
+          entitiesObservable = this.deviceService.getUserDevices(pageLink, subType, config);
         }
         break;
       case EntityType.ASSET:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.assetService.getCustomerAssetInfos(customerId, pageLink, subType, config);
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.assetService.getTenantAssets(pageLink, subType, config);
         } else {
-          entitiesObservable = this.assetService.getTenantAssetInfos(pageLink, subType, config);
+          entitiesObservable = this.assetService.getUserAssets(pageLink, subType, config);
         }
         break;
       case EntityType.ENTITY_VIEW:
         pageLink.sortOrder.property = 'name';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.entityViewService.getCustomerEntityViewInfos(customerId, pageLink,
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.entityViewService.getTenantEntityViews(pageLink,
             subType, config);
         } else {
-          entitiesObservable = this.entityViewService.getTenantEntityViewInfos(pageLink, subType, config);
+          entitiesObservable = this.entityViewService.getUserEntityViews(pageLink, subType, config);
         }
         break;
       case EntityType.TENANT:
@@ -299,11 +435,7 @@ export class EntityService {
         break;
       case EntityType.CUSTOMER:
         pageLink.sortOrder.property = 'title';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.getSingleCustomerByPageLinkObservable(pageLink, config);
-        } else {
-          entitiesObservable = this.customerService.getCustomers(pageLink, config);
-        }
+        entitiesObservable = this.customerService.getUserCustomers(pageLink, config);
         break;
       case EntityType.RULE_CHAIN:
         pageLink.sortOrder.property = 'name';
@@ -311,17 +443,46 @@ export class EntityService {
         break;
       case EntityType.DASHBOARD:
         pageLink.sortOrder.property = 'title';
-        if (authUser.authority === Authority.CUSTOMER_USER) {
-          entitiesObservable = this.dashboardService.getCustomerDashboards(customerId, pageLink, config);
-        } else {
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
           entitiesObservable = this.dashboardService.getTenantDashboards(pageLink, config);
+        } else {
+          entitiesObservable = this.dashboardService.getUserDashboards(null, null, pageLink, config);
         }
         break;
       case EntityType.USER:
-        console.error('Get User Entities is not implemented!');
+        pageLink.sortOrder.property = 'email';
+        entitiesObservable = this.userService.getUserUsers(pageLink, config);
         break;
       case EntityType.ALARM:
         console.error('Get Alarm Entities is not implemented!');
+        break;
+      case EntityType.ENTITY_GROUP:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+        break;
+      case EntityType.CONVERTER:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.converterService.getConverters(pageLink, config);
+        break;
+      case EntityType.INTEGRATION:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.integrationService.getIntegrations(pageLink, config);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.schedulerEventService.getSchedulerEvents(null, config).pipe(
+          map((schedulerEvents) => {
+            return pageLink.filterData(schedulerEvents);
+          })
+        );
+        break;
+      case EntityType.BLOB_ENTITY:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.blobEntityService.getBlobEntities(pageLink as TimePageLink, null, config);
+        break;
+      case EntityType.ROLE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.roleService.getRoles(pageLink, subType as RoleType, config);
         break;
     }
     return entitiesObservable;
@@ -375,6 +536,102 @@ export class EntityService {
     }
   }
 
+  private getEntityGroupEntitiesByPageLink(entityGroupId: string, pageLink: PageLink, entityGroupType: EntityType,
+                                          config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    const entitiesObservable: Observable<PageData<BaseData<EntityId>>> =
+      this.entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, entityGroupType, config);
+    if (entitiesObservable) {
+      return entitiesObservable.pipe(
+        expand((data) => {
+          if (data.hasNext) {
+            pageLink.page += 1;
+            return this.entityGroupService.getEntityGroupEntities<BaseData<EntityId>>(entityGroupId, pageLink, entityGroupType, config);
+          } else {
+            return EMPTY;
+          }
+        }),
+        map((data) => data.data),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      return of(null);
+    }
+  }
+
+  public getEntityGroupEntities(entityGroupId: string, entityGroupType: EntityType,
+                                pageSize: number, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    const pageLink = new PageLink(pageSize, 0, null, {
+      property: 'name',
+      direction: Direction.ASC
+    });
+    if (pageSize === -1) { // all
+      pageLink.pageSize = 100;
+      return this.getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, entityGroupType, config).pipe(
+        map((data) => data && data.length ? data : null)
+      );
+    } else {
+      const entitiesObservable: Observable<PageData<BaseData<EntityId>>> =
+        this.entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, entityGroupType, config);
+      if (entitiesObservable) {
+        return entitiesObservable.pipe(
+          map((data) => data && data.data.length ? data.data : null)
+        );
+      } else {
+        return of(null);
+      }
+    }
+  }
+
+  public getEntitiesByGroupName(entityType: EntityType, entityNameFilter: string,
+                                pageSize: number, stateEntityId?: EntityId, config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+    let entityGroupsObservable: Observable<Array<EntityGroup>>;
+    if (isDefined(stateEntityId)) {
+      entityGroupsObservable = this.getEntity(stateEntityId.entityType as EntityType, stateEntityId.id, config).pipe(
+        mergeMap((entity) => {
+          let entityId: EntityId;
+          if (entity.id.entityType === EntityType.CUSTOMER) {
+            entityId = entity.id;
+          } else {
+            entityId = entity.ownerId;
+          }
+          return this.entityGroupService.getEntityGroupsByOwnerId(entityId.entityType as EntityType, entityId.id, entityType, config);
+        }),
+        catchError((err) => {
+          return of(null);
+        })
+      );
+    } else {
+      entityGroupsObservable = this.entityGroupService.getEntityGroups(entityType, config);
+    }
+    return entityGroupsObservable.pipe(
+      map((entityGroups) => {
+        if (entityGroups && entityGroups.length) {
+          for (const entityGroup of entityGroups) {
+            if (entityGroup.name === entityNameFilter) {
+              return entityGroup.id.id;
+            }
+          }
+        }
+        return null;
+      }),
+      catchError((err) => {
+        return of(null as string);
+      })
+    ).pipe(
+      mergeMap((groupId) => {
+        if (groupId) {
+          return this.getEntityGroupEntities(groupId, entityType, pageSize, config);
+        } else {
+          return of(null as Array<BaseData<EntityId>>);
+        }
+      }),
+      catchError((err) => {
+        return of(null as Array<BaseData<EntityId>>);
+      })
+    );
+  }
+
   public getAliasFilterTypesByEntityTypes(entityTypes: Array<EntityType | AliasEntityType>): Array<AliasFilterType> {
     const allAliasFilterTypes: Array<AliasFilterType> = Object.keys(AliasFilterType).map((key) => AliasFilterType[key]);
     if (!entityTypes || !entityTypes.length) {
@@ -394,19 +651,28 @@ export class EntityService {
     if (this.filterAliasFilterTypeByEntityTypes(filter.type, entityTypes)) {
       switch (filter.type) {
         case AliasFilterType.singleEntity:
-          return entityTypes.indexOf(filter.singleEntity.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.singleEntity.entityType) > -1;
+        case AliasFilterType.entityGroup:
+          return entityTypes.indexOf(filter.groupType) > -1;
         case AliasFilterType.entityList:
-          return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.entityName:
-          return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
+          return entityTypes.indexOf(filter.entityType) > -1;
+        case AliasFilterType.entityGroupList:
+          return entityTypes.indexOf(EntityType.ENTITY_GROUP) > -1;
+        case AliasFilterType.entityGroupName:
+          return entityTypes.indexOf(EntityType.ENTITY_GROUP) > -1;
+        case AliasFilterType.entitiesByGroupName:
+          return entityTypes.indexOf(filter.entityType) > -1;
         case AliasFilterType.stateEntity:
+        case AliasFilterType.stateEntityOwner:
           return true;
         case AliasFilterType.assetType:
-          return entityTypes.indexOf(EntityType.ASSET)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ASSET) > -1;
         case AliasFilterType.deviceType:
-          return entityTypes.indexOf(EntityType.DEVICE)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewType:
-          return entityTypes.indexOf(EntityType.ENTITY_VIEW)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
         case AliasFilterType.relationsQuery:
           if (filter.filters && filter.filters.length) {
             let match = false;
@@ -428,11 +694,11 @@ export class EntityService {
             return true;
           }
         case AliasFilterType.assetSearchQuery:
-          return entityTypes.indexOf(EntityType.ASSET)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ASSET) > -1;
         case AliasFilterType.deviceSearchQuery:
-          return entityTypes.indexOf(EntityType.DEVICE)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewSearchQuery:
-          return entityTypes.indexOf(EntityType.ENTITY_VIEW)  > -1 ? true : false;
+          return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
       }
     }
     return false;
@@ -454,11 +720,20 @@ export class EntityService {
     switch (aliasFilterType) {
       case AliasFilterType.singleEntity:
         return true;
+      case AliasFilterType.entityGroup:
+        return true;
       case AliasFilterType.entityList:
         return true;
       case AliasFilterType.entityName:
         return true;
+      case AliasFilterType.entityGroupList:
+        return entityType === EntityType.ENTITY_GROUP;
+      case AliasFilterType.entityGroupName:
+        return entityType === EntityType.ENTITY_GROUP;
+      case AliasFilterType.entitiesByGroupName:
+        return true;
       case AliasFilterType.stateEntity:
+      case AliasFilterType.stateEntityOwner:
         return true;
       case AliasFilterType.assetType:
         return entityType === EntityType.ASSET;
@@ -479,7 +754,7 @@ export class EntityService {
   }
 
   public prepareAllowedEntityTypesList(allowedEntityTypes: Array<EntityType | AliasEntityType>,
-                                       useAliasEntityTypes?: boolean): Array<EntityType | AliasEntityType> {
+                                       useAliasEntityTypes?: boolean, operation?: Operation): Array<EntityType | AliasEntityType> {
     const authUser = getCurrentAuthUser(this.store);
     const entityTypes: Array<EntityType | AliasEntityType> = [];
     switch (authUser.authority) {
@@ -493,6 +768,12 @@ export class EntityService {
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
+        entityTypes.push(EntityType.USER);
+        entityTypes.push(EntityType.CONVERTER);
+        entityTypes.push(EntityType.INTEGRATION);
+        entityTypes.push(EntityType.SCHEDULER_EVENT);
+        entityTypes.push(EntityType.BLOB_ENTITY);
+        entityTypes.push(EntityType.ROLE);
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
         }
@@ -503,6 +784,9 @@ export class EntityService {
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
+        entityTypes.push(EntityType.USER);
+        entityTypes.push(EntityType.SCHEDULER_EVENT);
+        entityTypes.push(EntityType.BLOB_ENTITY);
         if (useAliasEntityTypes) {
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
         }
@@ -512,6 +796,16 @@ export class EntityService {
       for (let index = entityTypes.length - 1; index >= 0; index--) {
         if (allowedEntityTypes.indexOf(entityTypes[index]) === -1) {
           entityTypes.splice(index, 1);
+        }
+      }
+    }
+    if (operation) {
+      for (let index = entityTypes.length - 1; index >= 0; index--) {
+        const resource = resourceByEntityType.get(entityTypes[index] as EntityType);
+        if (resource) {
+          if (!this.userPermissionsService.hasGenericPermission(resource, operation)) {
+            entityTypes.splice(index, 1);
+          }
         }
       }
     }
@@ -647,6 +941,7 @@ export class EntityService {
     }
     const stateEntityInfo = this.getStateEntityInfo(filter, stateParams);
     const stateEntityId = stateEntityInfo.entityId;
+    const stateEntityGroupType = stateEntityInfo.entityGroupType;
     switch (filter.type) {
       case AliasFilterType.singleEntity:
         const aliasEntityId = this.resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
@@ -656,6 +951,28 @@ export class EntityService {
             return result;
           }
         ));
+        break;
+      case AliasFilterType.entityGroup:
+        result.stateEntity = filter.groupStateEntity;
+        let entityGroup: string;
+        let entityType: EntityType;
+        if (result.stateEntity && stateEntityId) {
+          entityGroup = stateEntityId.id;
+          entityType = stateEntityGroupType;
+        } else {
+          entityGroup = filter.entityGroup;
+          entityType = filter.groupType;
+        }
+        return this.getEntityGroupEntities(entityGroup, entityType, maxItems, {ignoreLoading: true, ignoreErrors: true}).pipe(
+          map((entities) => {
+            if (entities && entities.length || !failOnEmpty) {
+              result.entities = this.entitiesToEntitiesInfo(entities);
+              return result;
+            } else {
+              throw new Error();
+            }
+          })
+        );
         break;
       case AliasFilterType.entityList:
         return this.getEntities(filter.entityType, filter.entityList, {ignoreLoading: true, ignoreErrors: true}).pipe(
@@ -683,6 +1000,48 @@ export class EntityService {
           )
         );
         break;
+      case AliasFilterType.entityGroupList:
+        this.getEntities(EntityType.ENTITY_GROUP, filter.entityGroupList, {ignoreLoading: true, ignoreErrors: true}).pipe(
+          map((entities) => {
+              if (entities && entities.length || !failOnEmpty) {
+                result.entities = this.entitiesToEntitiesInfo(entities);
+                return result;
+              } else {
+                throw new Error();
+              }
+            }
+          )
+        );
+        break;
+      case AliasFilterType.entityGroupName:
+        return this.getEntitiesByNameFilter(EntityType.ENTITY_GROUP, filter.entityGroupNameFilter, maxItems,
+          filter.groupType, {ignoreLoading: true, ignoreErrors: true}).pipe(
+          map((entities) => {
+              if (entities && entities.length || !failOnEmpty) {
+                result.entities = this.entitiesToEntitiesInfo(entities);
+                return result;
+              } else {
+                throw new Error();
+              }
+            }
+          )
+        );
+        break;
+      case AliasFilterType.entitiesByGroupName:
+        result.stateEntity = filter.groupStateEntity;
+        this.getEntitiesByGroupName(filter.groupType, filter.entityGroupNameFilter, maxItems, stateEntityId,
+          {ignoreLoading: true, ignoreErrors: true}).pipe(
+          map((entities) => {
+              if (entities && entities.length || !failOnEmpty) {
+                result.entities = this.entitiesToEntitiesInfo(entities);
+                return result;
+              } else {
+                throw new Error();
+              }
+            }
+          )
+        );
+        break;
       case AliasFilterType.stateEntity:
         result.stateEntity = true;
         if (stateEntityId) {
@@ -691,7 +1050,39 @@ export class EntityService {
                 result.entities = this.entitiesToEntitiesInfo([entity]);
                 return result;
               }
-            ));
+            ),
+            catchError((err) => {
+                return of(result);
+              }
+            )
+          );
+        } else {
+          return of(result);
+        }
+        break;
+      case AliasFilterType.stateEntityOwner:
+        result.stateEntity = true;
+        if (stateEntityId) {
+          return this.getEntity(stateEntityId.entityType as EntityType, stateEntityId.id, {ignoreLoading: true, ignoreErrors: true}).pipe(
+            mergeMap((entity) => {
+              return this.getEntity(entity.ownerId.entityType as EntityType, entity.ownerId.id,
+                {ignoreLoading: true, ignoreErrors: true}).pipe(
+                map((ownerEntity) => {
+                    result.entities = this.entitiesToEntitiesInfo([ownerEntity]);
+                    return result;
+                  }
+                ),
+                catchError((err) => {
+                    return of(result);
+                  }
+                ));
+              }
+            ),
+            catchError((err) => {
+                return of(result);
+              }
+            )
+          );
         } else {
           return of(result);
         }
@@ -859,7 +1250,8 @@ export class EntityService {
     );
   }
 
-  public saveEntityParameters(entityType: EntityType, entityData: ImportEntityData, update: boolean,
+  public saveEntityParameters(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
+                              entityData: ImportEntityData, update: boolean,
                               config?: RequestConfig): Observable<ImportEntitiesResultInfo> {
     let saveEntityObservable: Observable<BaseData<EntityId>>;
     switch (entityType) {
@@ -868,6 +1260,7 @@ export class EntityService {
           name: entityData.name,
           type: entityData.type,
           label: entityData.label,
+          customerId,
           additionalInfo: {
             description: entityData.description
           }
@@ -878,18 +1271,19 @@ export class EntityService {
             gateway: entityData.gateway
           };
         }
-        saveEntityObservable = this.deviceService.saveDevice(device, config);
+        saveEntityObservable = this.deviceService.saveDevice(device, entityGroupId, config);
         break;
       case EntityType.ASSET:
         const asset: Asset = {
           name: entityData.name,
           type: entityData.type,
           label: entityData.label,
+          customerId,
           additionalInfo: {
             description: entityData.description
           }
         };
-        saveEntityObservable = this.assetService.saveAsset(asset, config);
+        saveEntityObservable = this.assetService.saveAsset(asset, entityGroupId, config);
         break;
     }
     return saveEntityObservable.pipe(
@@ -930,10 +1324,10 @@ export class EntityService {
                 }
                 switch (result.id.entityType) {
                   case EntityType.DEVICE:
-                    tasks.push(this.deviceService.saveDevice(result, config));
+                    tasks.push(this.deviceService.saveDevice(result, entityGroupId, config));
                     break;
                   case EntityType.ASSET:
-                    tasks.push(this.assetService.saveAsset(result, config));
+                    tasks.push(this.assetService.saveAsset(result, entityGroupId, config));
                     break;
                 }
               }
@@ -1049,24 +1443,35 @@ export class EntityService {
     );
   }
 
-  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): {entityId: EntityId} {
+  private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): {entityId: EntityId, entityGroupType: EntityType} {
     let entityId: EntityId = null;
+    let entityGroupType: EntityType = null;
     if (stateParams) {
       if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
         if (stateParams[filter.stateEntityParamName]) {
           entityId = stateParams[filter.stateEntityParamName].entityId;
+          entityGroupType = stateParams[filter.stateEntityParamName].entityGroupType;
         }
       } else {
         entityId = stateParams.entityId;
+        entityGroupType = stateParams.entityGroupType;
       }
     }
     if (!entityId) {
-      entityId = filter.defaultStateEntity;
+      if (filter.type === AliasFilterType.entityGroup && filter.defaultStateEntityGroup) {
+        entityId = {
+          entityType: EntityType.ENTITY_GROUP,
+          id: filter.defaultStateEntityGroup
+        };
+        entityGroupType = filter.defaultStateGroupType;
+      } else {
+        entityId = filter.defaultStateEntity;
+      }
     }
     if (entityId) {
       entityId = this.resolveAliasEntityId(entityId.entityType, entityId.id);
     }
-    return {entityId};
+    return {entityId, entityGroupType};
   }
 
   private resolveAliasEntityId(entityType: EntityType | AliasEntityType, id: string): EntityId {

@@ -69,6 +69,7 @@ import { ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entit
 import { RequestConfig } from '@core/http/http-utils';
 import { RuleChain, RuleChainImport, RuleChainMetaData } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 // @dynamic
 @Injectable()
@@ -345,7 +346,8 @@ export class ImportExportService {
     );
   }
 
-  public importEntities(entitiesData: ImportEntityData[], entityType: EntityType, updateData: boolean,
+  public importEntities(entitiesData: ImportEntityData[], customerId: CustomerId, entityType: EntityType,
+                        entityGroupId: string, updateData: boolean,
                         importEntityCompleted?: () => void, config?: RequestConfig): Observable<ImportEntitiesResultInfo> {
     let partSize = 100;
     partSize = entitiesData.length > partSize ? partSize : entitiesData.length;
@@ -354,7 +356,7 @@ export class ImportExportService {
     const importEntitiesObservables: Observable<ImportEntitiesResultInfo>[] = [];
     for (let i = 0; i < partSize; i++) {
       const importEntityPromise =
-        this.entityService.saveEntityParameters(entityType, entitiesData[i], updateData, config).pipe(
+        this.entityService.saveEntityParameters(customerId, entityType, entityGroupId, entitiesData[i], updateData, config).pipe(
           tap((res) => {
             if (importEntityCompleted) {
               importEntityCompleted();
@@ -370,7 +372,7 @@ export class ImportExportService {
         }
         entitiesData.splice(0, partSize);
         if (entitiesData.length) {
-          return this.importEntities(entitiesData, entityType, updateData, importEntityCompleted, config).pipe(
+          return this.importEntities(entitiesData, customerId, entityType, entityGroupId, updateData, importEntityCompleted, config).pipe(
             map((response) => {
               return this.sumObject(statisticalInfo, response) as ImportEntitiesResultInfo;
             })

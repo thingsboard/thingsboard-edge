@@ -70,7 +70,7 @@ export class MakeDashboardPublicDialogComponent extends DialogComponent<MakeDash
     super(store, router, dialogRef);
 
     this.dashboard = data.dashboard;
-    this.publicLink = dashboardService.getPublicDashboardLink(this.dashboard);
+   //  this.publicLink = dashboardService.getPublicDashboardLink(this.dashboard);
   }
 
   ngOnInit(): void {

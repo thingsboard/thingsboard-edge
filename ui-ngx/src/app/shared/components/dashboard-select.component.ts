@@ -31,16 +31,14 @@
 
 import { Component, forwardRef, Inject, Input, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { map, share } from 'rxjs/operators';
-import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import { PageData } from '@shared/models/page/page-data';
 import { DashboardInfo } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { getCurrentAuthUser } from '@app/core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { TooltipPosition } from '@angular/material/tooltip';
 import { CdkOverlayOrigin, ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
@@ -53,7 +51,8 @@ import {
   DashboardSelectPanelComponent,
   DashboardSelectPanelData
 } from './dashboard-select-panel.component';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { Operation } from '@shared/models/security.models';
+import { UtilsService } from '@core/services/utils.service';
 
 // @dynamic
 @Component({
@@ -69,10 +68,10 @@ import { NULL_UUID } from '@shared/models/id/has-uuid';
 export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
 
   @Input()
-  dashboardsScope: 'customer' | 'tenant';
+  groupId: string;
 
   @Input()
-  customerId: string;
+  operation: Operation;
 
   @Input()
   tooltipPosition: TooltipPosition = 'above';
@@ -99,6 +98,7 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
 
   constructor(private store: Store<AppState>,
               private dashboardService: DashboardService,
+              private utils: UtilsService,
               private overlay: Overlay,
               private breakpointObserver: BreakpointObserver,
               private viewContainerRef: ViewContainerRef,
@@ -201,6 +201,10 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
     overlayRef.attach(new ComponentPortal(DashboardSelectPanelComponent, this.viewContainerRef, injector));
   }
 
+  public getDashboardTitle(title: string): string {
+    return this.utils.customTranslation(title, title);
+  }
+
   private _createDashboardSelectPanelInjector(overlayRef: OverlayRef, data: DashboardSelectPanelData): PortalInjector {
     const injectionTokens = new WeakMap<any, any>([
       [DASHBOARD_SELECT_PANEL_DATA, data],
@@ -215,16 +219,10 @@ export class DashboardSelectComponent implements ControlValueAccessor, OnInit {
 
   private getDashboards(pageLink: PageLink): Observable<PageData<DashboardInfo>> {
     let dashboardsObservable: Observable<PageData<DashboardInfo>>;
-    const authUser = getCurrentAuthUser(this.store);
-    if (this.dashboardsScope === 'customer' || authUser.authority === Authority.CUSTOMER_USER) {
-      if (this.customerId && this.customerId !== NULL_UUID) {
-        dashboardsObservable = this.dashboardService.getCustomerDashboards(this.customerId, pageLink,
-          {ignoreLoading: true});
-      } else {
-        dashboardsObservable = of(emptyPageData());
-      }
+    if (this.groupId) {
+      dashboardsObservable = this.dashboardService.getGroupDashboards(this.groupId, pageLink, {ignoreLoading: true});
     } else {
-      dashboardsObservable = this.dashboardService.getTenantDashboards(pageLink, {ignoreLoading: true});
+      dashboardsObservable = this.dashboardService.getUserDashboards(null, this.operation, pageLink, {ignoreLoading: true});
     }
     return dashboardsObservable;
   }

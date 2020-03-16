@@ -36,7 +36,9 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { EntityView, EntityViewInfo, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
+import { EntityView, EntityViewSearchQuery } from '@app/shared/models/entity-view.models';
+import { map } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -47,7 +49,7 @@ export class EntityViewService {
     private http: HttpClient
   ) { }
 
-  public getTenantEntityViewInfos(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
+  /* public getTenantEntityViewInfos(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
     return this.http.get<PageData<EntityViewInfo>>(`/api/tenant/entityViewInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
@@ -56,18 +58,45 @@ export class EntityViewService {
                                     config?: RequestConfig): Observable<PageData<EntityViewInfo>> {
     return this.http.get<PageData<EntityViewInfo>>(`/api/customer/${customerId}/entityViewInfos${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
+  } */
+
+  public getTenantEntityViews(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityView>> {
+    return this.http.get<PageData<EntityView>>(`/api/tenant/entityViews${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerEntityViews(customerId: string, pageLink: PageLink, type: string = '',
+                                    config?: RequestConfig): Observable<PageData<EntityView>> {
+    return this.http.get<PageData<EntityView>>(`/api/customer/${customerId}/entityViews${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public getEntityView(entityViewId: string, config?: RequestConfig): Observable<EntityView> {
     return this.http.get<EntityView>(`/api/entityView/${entityViewId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
-    return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
+  public getEntityViews(entityViewIds: Array<string>, config?: RequestConfig): Observable<Array<EntityView>> {
+    return this.http.get<Array<EntityView>>(`/api/entityViews?entityViewIds=${entityViewIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((entityViews) => sortEntitiesByIds(entityViews, entityViewIds))
+    );
   }
 
-  public saveEntityView(entityView: EntityView, config?: RequestConfig): Observable<EntityView> {
-    return this.http.post<EntityView>('/api/entityView', entityView, defaultHttpOptionsFromConfig(config));
+  public getUserEntityViews(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<EntityView>> {
+    return this.http.get<PageData<EntityView>>(`/api/user/entityViews${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  /* public getEntityViewInfo(entityViewId: string, config?: RequestConfig): Observable<EntityViewInfo> {
+    return this.http.get<EntityViewInfo>(`/api/entityView/info/${entityViewId}`, defaultHttpOptionsFromConfig(config));
+  } */
+
+  public saveEntityView(entityView: EntityView, entityGroupId?: string, config?: RequestConfig): Observable<EntityView> {
+    let url = '/api/entityView';
+    if (entityGroupId) {
+      url += `?entityGroupId=${entityGroupId}`;
+    }
+    return this.http.post<EntityView>(url, entityView, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteEntityView(entityViewId: string, config?: RequestConfig) {
@@ -78,7 +107,7 @@ export class EntityViewService {
     return this.http.get<Array<EntitySubtype>>('/api/entityView/types', defaultHttpOptionsFromConfig(config));
   }
 
-  public makeEntityViewPublic(entityViewId: string, config?: RequestConfig): Observable<EntityView> {
+  /* public makeEntityViewPublic(entityViewId: string, config?: RequestConfig): Observable<EntityView> {
     return this.http.post<EntityView>(`/api/customer/public/entityView/${entityViewId}`, null,
       defaultHttpOptionsFromConfig(config));
   }
@@ -91,7 +120,7 @@ export class EntityViewService {
 
   public unassignEntityViewFromCustomer(entityViewId: string, config?: RequestConfig) {
     return this.http.delete(`/api/customer/entityView/${entityViewId}`, defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
   public findByQuery(query: EntityViewSearchQuery,
                      config?: RequestConfig): Observable<Array<EntityView>> {

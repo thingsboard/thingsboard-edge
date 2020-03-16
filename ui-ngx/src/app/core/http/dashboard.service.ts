@@ -39,6 +39,10 @@ import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
 import { WINDOW } from '@core/services/window.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map, publishReplay, refCount } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
+import { Operation } from '@shared/models/security.models';
+import { Customer } from '@shared/models/customer.model';
+import { EntityGroup } from '@shared/models/entity-group.models';
 
 // @dynamic
 @Injectable({
@@ -77,8 +81,28 @@ export class DashboardService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getCustomerDashboards(customerId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
-    return this.http.get<PageData<DashboardInfo>>(`/api/customer/${customerId}/dashboards${pageLink.toQuery()}`,
+  public getDashboards(dashboardIds: string[], config?: RequestConfig): Observable<Array<DashboardInfo>> {
+    return this.http.get<Array<DashboardInfo>>(`/api/dashboards?dashboardIds=${dashboardIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((dashboards) => sortEntitiesByIds(dashboards, dashboardIds))
+    );
+  }
+
+  public getUserDashboards(userId: string, operation: Operation,
+                           pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    let url = `/api/user/dashboards${pageLink.toQuery()}`;
+    if (userId) {
+      url += `&userId=${userId}`;
+    }
+    if (operation) {
+      url += `&operation=${operation}`;
+    }
+    return this.http.get<PageData<DashboardInfo>>(url,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getGroupDashboards(groupId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<DashboardInfo>> {
+    return this.http.get<PageData<DashboardInfo>>(`/api/entityGroup/${groupId}/dashboards${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -90,15 +114,19 @@ export class DashboardService {
     return this.http.get<DashboardInfo>(`/api/dashboard/info/${dashboardId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveDashboard(dashboard: Dashboard, config?: RequestConfig): Observable<Dashboard> {
-    return this.http.post<Dashboard>('/api/dashboard', dashboard, defaultHttpOptionsFromConfig(config));
+  public saveDashboard(dashboard: Dashboard, entityGroupId?: string, config?: RequestConfig): Observable<Dashboard> {
+    let url = '/api/dashboard';
+    if (entityGroupId) {
+      url += `?entityGroupId=${entityGroupId}`;
+    }
+    return this.http.post<Dashboard>(url, dashboard, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteDashboard(dashboardId: string, config?: RequestConfig) {
     return this.http.delete(`/api/dashboard/${dashboardId}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public assignDashboardToCustomer(customerId: string, dashboardId: string,
+/*  public assignDashboardToCustomer(customerId: string, dashboardId: string,
                                    config?: RequestConfig): Observable<Dashboard> {
     return this.http.post<Dashboard>(`/api/customer/${customerId}/dashboard/${dashboardId}`,
       null, defaultHttpOptionsFromConfig(config));
@@ -135,24 +163,17 @@ export class DashboardService {
                                   config?: RequestConfig): Observable<Dashboard> {
     return this.http.post<Dashboard>(`/api/dashboard/${dashboardId}/customers/remove`, customerIds,
       defaultHttpOptionsFromConfig(config));
-  }
+  }*/
 
-  public getPublicDashboardLink(dashboard: DashboardInfo): string | null {
-    if (dashboard && dashboard.assignedCustomers && dashboard.assignedCustomers.length > 0) {
-      const publicCustomers = dashboard.assignedCustomers
-        .filter(customerInfo => customerInfo.public);
-      if (publicCustomers.length > 0) {
-        const publicCustomerId = publicCustomers[0].customerId.id;
-        let url = this.window.location.protocol + '//' + this.window.location.hostname;
-        const port = this.window.location.port;
-        if (port !== '80' && port !== '443') {
-          url += ':' + port;
-        }
-        url += `/dashboard/${dashboard.id.id}?publicId=${publicCustomerId}`;
-        return url;
+  public getPublicDashboardLink(dashboard: DashboardInfo, entityGroup: EntityGroup): string | null {
+      const publicCustomerId = entityGroup.additionalInfo.publicCustomerId;
+      let url = this.window.location.protocol + '//' + this.window.location.hostname;
+      const port = this.window.location.port;
+      if (port !== '80' && port !== '443') {
+        url += ':' + port;
       }
-    }
-    return null;
+      url += `/dashboard/${dashboard.id.id}?publicId=${publicCustomerId}`;
+      return url;
   }
 
   public getServerTimeDiff(): Observable<number> {

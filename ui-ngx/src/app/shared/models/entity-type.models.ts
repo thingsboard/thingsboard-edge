@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {TenantId} from './id/tenant-id';
+import { TenantId } from './id/tenant-id';
 
 ///
 /// Copyright © 2016-2019 The Thingsboard Authors
@@ -55,11 +55,18 @@ export enum EntityType {
   ASSET = 'ASSET',
   DEVICE = 'DEVICE',
   ALARM = 'ALARM',
+  ENTITY_GROUP = 'ENTITY_GROUP',
+  CONVERTER = 'CONVERTER',
+  INTEGRATION = 'INTEGRATION',
   RULE_CHAIN = 'RULE_CHAIN',
   RULE_NODE = 'RULE_NODE',
+  SCHEDULER_EVENT = 'SCHEDULER_EVENT',
+  BLOB_ENTITY = 'BLOB_ENTITY',
   ENTITY_VIEW = 'ENTITY_VIEW',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
-  WIDGET_TYPE = 'WIDGET_TYPE'
+  WIDGET_TYPE = 'WIDGET_TYPE',
+  ROLE = 'ROLE',
+  GROUP_PERMISSION = 'GROUP_PERMISSION'
 }
 
 export enum AliasEntityType {

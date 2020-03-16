@@ -117,6 +117,10 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               }
               return false;
             }
+            if (!authState.lastPublicDashboardId) {
+              this.dialogService.forbidden();
+              return false;
+            }
           }
           const defaultUrl = this.authService.defaultUrl(true, authState, path, params);
           if (defaultUrl) {

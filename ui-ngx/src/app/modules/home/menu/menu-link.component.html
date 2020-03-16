@@ -34,6 +34,6 @@
   <span class="mat-button-wrapper">
     <mat-icon *ngIf="!section.isMdiIcon && section.icon != null" class="material-icons">{{section.icon}}</mat-icon>
     <mat-icon *ngIf="section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
-    <span>{{section.name | translate}}</span>
+    <span>{{section.ignoreTranslate ? section.name : (section.name | translate)}}</span>
   </span>
 </a>

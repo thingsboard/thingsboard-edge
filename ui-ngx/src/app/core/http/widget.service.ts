@@ -45,6 +45,8 @@ import { filter, map, mergeMap, tap } from 'rxjs/operators';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActivationEnd, Router } from '@angular/router';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable({
   providedIn: 'root'
@@ -58,9 +60,12 @@ export class WidgetService {
   private systemWidgetsBundles: Array<WidgetsBundle>;
   private tenantWidgetsBundles: Array<WidgetsBundle>;
 
+  private widgetsBundleCacheSubject = new Subject();
+
   constructor(
     private http: HttpClient,
     private utils: UtilsService,
+    private userPermissionsService: UserPermissionsService,
     private resources: ResourcesService,
     private translate: TranslateService,
     private router: Router
@@ -253,34 +258,50 @@ export class WidgetService {
 
   private loadWidgetsBundleCache(config?: RequestConfig): Observable<any> {
     if (!this.allWidgetsBundles) {
-      const loadWidgetsBundleCacheSubject = new ReplaySubject();
-      this.http.get<Array<WidgetsBundle>>('/api/widgetsBundles',
-        defaultHttpOptionsFromConfig(config)).subscribe(
-        (allWidgetsBundles) => {
-          this.allWidgetsBundles = allWidgetsBundles;
-          this.systemWidgetsBundles = new Array<WidgetsBundle>();
-          this.tenantWidgetsBundles = new Array<WidgetsBundle>();
-          this.allWidgetsBundles = this.allWidgetsBundles.sort((wb1, wb2) => {
-            let res = wb1.title.localeCompare(wb2.title);
-            if (res === 0) {
-              res = wb2.createdTime - wb1.createdTime;
-            }
-            return res;
-          });
-          this.allWidgetsBundles.forEach((widgetsBundle) => {
-            if (widgetsBundle.tenantId.id === NULL_UUID) {
-              this.systemWidgetsBundles.push(widgetsBundle);
-            } else {
-              this.tenantWidgetsBundles.push(widgetsBundle);
-            }
-          });
+      if (this.widgetsBundleCacheSubject) {
+        return this.widgetsBundleCacheSubject.asObservable();
+      } else {
+        const loadWidgetsBundleCacheSubject = new ReplaySubject();
+        this.widgetsBundleCacheSubject = loadWidgetsBundleCacheSubject;
+        if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ)) {
+          this.http.get<Array<WidgetsBundle>>('/api/widgetsBundles',
+            defaultHttpOptionsFromConfig(config)).subscribe(
+            (allWidgetsBundles) => {
+              this.allWidgetsBundles = allWidgetsBundles;
+              this.systemWidgetsBundles = new Array<WidgetsBundle>();
+              this.tenantWidgetsBundles = new Array<WidgetsBundle>();
+              this.allWidgetsBundles = this.allWidgetsBundles.sort((wb1, wb2) => {
+                let res = wb1.title.localeCompare(wb2.title);
+                if (res === 0) {
+                  res = wb2.createdTime - wb1.createdTime;
+                }
+                return res;
+              });
+              this.allWidgetsBundles.forEach((widgetsBundle) => {
+                if (widgetsBundle.tenantId.id === NULL_UUID) {
+                  this.systemWidgetsBundles.push(widgetsBundle);
+                } else {
+                  this.tenantWidgetsBundles.push(widgetsBundle);
+                }
+              });
+              loadWidgetsBundleCacheSubject.next();
+              loadWidgetsBundleCacheSubject.complete();
+              this.widgetsBundleCacheSubject = null;
+            },
+            () => {
+              loadWidgetsBundleCacheSubject.error(null);
+              this.widgetsBundleCacheSubject = null;
+            });
+        } else {
+          this.allWidgetsBundles = [];
+          this.systemWidgetsBundles = [];
+          this.tenantWidgetsBundles = [];
           loadWidgetsBundleCacheSubject.next();
           loadWidgetsBundleCacheSubject.complete();
-        },
-        () => {
-          loadWidgetsBundleCacheSubject.error(null);
-        });
-      return loadWidgetsBundleCacheSubject.asObservable();
+          this.widgetsBundleCacheSubject = null;
+        }
+        return loadWidgetsBundleCacheSubject.asObservable();
+      }
     } else {
       return of(null);
     }

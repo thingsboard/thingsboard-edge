@@ -38,18 +38,18 @@ import {EntityType} from '@shared/models/entity-type.models';
 import {NULL_UUID} from '@shared/models/id/has-uuid';
 import {ActionNotificationShow} from '@core/notification/notification.actions';
 import {TranslateService} from '@ngx-translate/core';
-import {EntityViewInfo} from '@app/shared/models/entity-view.models';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {DataKeyType} from '@shared/models/telemetry/telemetry.models';
 import {EntityId} from '@app/shared/models/id/entity-id';
+import { EntityView } from '@shared/models/entity-view.models';
 
 @Component({
   selector: 'tb-entity-view',
   templateUrl: './entity-view.component.html',
   styleUrls: ['./entity-view.component.scss']
 })
-export class EntityViewComponent extends EntityComponent<EntityViewInfo> {
+export class EntityViewComponent extends EntityComponent<EntityView> {
 
   entityType = EntityType;
 
@@ -86,11 +86,11 @@ export class EntityViewComponent extends EntityComponent<EntityViewInfo> {
     }
   }
 
-  isAssignedToCustomer(entity: EntityViewInfo): boolean {
+  isAssignedToCustomer(entity: EntityView): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   }
 
-  buildForm(entity: EntityViewInfo): FormGroup {
+  buildForm(entity: EntityView): FormGroup {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -119,7 +119,7 @@ export class EntityViewComponent extends EntityComponent<EntityViewInfo> {
     );
   }
 
-  updateForm(entity: EntityViewInfo) {
+  updateForm(entity: EntityView) {
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type});
     this.entityForm.patchValue({entityId: entity.entityId});

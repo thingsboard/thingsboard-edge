@@ -45,10 +45,10 @@ export interface Device extends BaseData<DeviceId> {
   additionalInfo?: any;
 }
 
-export interface DeviceInfo extends Device {
+/*export interface DeviceInfo extends Device {
   customerTitle: string;
   customerIsPublic: boolean;
-}
+}*/
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',

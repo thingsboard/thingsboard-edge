@@ -37,6 +37,7 @@ export interface RequestConfig {
   ignoreLoading?: boolean;
   ignoreErrors?: boolean;
   resendRequest?: boolean;
+  loadEntityDetails?: boolean;
 }
 
 export function defaultHttpOptionsFromConfig(config?: RequestConfig) {

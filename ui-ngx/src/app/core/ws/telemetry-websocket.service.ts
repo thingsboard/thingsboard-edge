@@ -107,7 +107,7 @@ export class TelemetryWebsocketService implements TelemetryService {
     this.telemetryUri += `//${this.window.location.hostname}:${port}/api/ws/plugins/telemetry`;
   }
 
-  public subscribe(subscriber: TelemetrySubscriber) {
+  public subscribe(subscriber: TelemetrySubscriber, skipPublish?: boolean) {
     this.isActive = true;
     subscriber.subscriptionCommands.forEach(
       (subscriptionCommand) => {
@@ -126,10 +126,18 @@ export class TelemetryWebsocketService implements TelemetryService {
       }
     );
     this.subscribersCount++;
-    this.publishCommands();
+    if (!skipPublish) {
+      this.publishCommands();
+    }
   }
 
-  public unsubscribe(subscriber: TelemetrySubscriber) {
+  public batchSubscribe(subscribers: TelemetrySubscriber[]) {
+    subscribers.forEach((subscriber) => {
+      this.subscribe(subscriber, true);
+    });
+  }
+
+  public unsubscribe(subscriber: TelemetrySubscriber, skipPublish?: boolean) {
     if (this.isActive) {
       subscriber.subscriptionCommands.forEach(
         (subscriptionCommand) => {
@@ -149,8 +157,16 @@ export class TelemetryWebsocketService implements TelemetryService {
       );
       this.reconnectSubscribers.delete(subscriber);
       this.subscribersCount--;
-      this.publishCommands();
+      if (!skipPublish) {
+        this.publishCommands();
+      }
     }
+  }
+
+  public batchUnsubscribe(subscribers: TelemetrySubscriber[]) {
+    subscribers.forEach((subscriber) => {
+      this.unsubscribe(subscriber, true);
+    });
   }
 
   private nextCmdId(): number {
@@ -158,7 +174,7 @@ export class TelemetryWebsocketService implements TelemetryService {
     return this.lastCmdId;
   }
 
-  private publishCommands() {
+  public publishCommands() {
     while (this.isOpened && this.cmdsWrapper.hasCommands()) {
       this.dataStream.next(this.cmdsWrapper.preparePublishCommands(MAX_PUBLISH_COMMANDS));
       this.checkToClose();

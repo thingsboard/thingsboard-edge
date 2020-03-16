@@ -29,6 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { Observable } from 'rxjs';
+
 export declare type MenuSectionType = 'link' | 'toggle';
 
 export class MenuSection {
@@ -37,8 +39,9 @@ export class MenuSection {
   path: string;
   icon: string;
   isMdiIcon?: boolean;
-  height?: string;
-  pages?: Array<MenuSection>;
+  pages?: Observable<Array<MenuSection>>;
+  disabled?: boolean;
+  ignoreTranslate?: boolean;
 }
 
 export class HomeSection {
@@ -51,4 +54,5 @@ export class HomeSectionPlace {
   icon: string;
   isMdiIcon?: boolean;
   path: string;
+  disabled?: boolean;
 }

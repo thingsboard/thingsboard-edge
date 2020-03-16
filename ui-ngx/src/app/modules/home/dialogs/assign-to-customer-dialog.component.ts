@@ -39,7 +39,7 @@ import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validat
 import {DeviceService} from '@core/http/device.service';
 import {EntityId} from '@shared/models/id/entity-id';
 import {EntityType} from '@shared/models/entity-type.models';
-import {forkJoin, Observable} from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import {AssetService} from '@core/http/asset.service';
 import {EntityViewService} from '@core/http/entity-view.service';
 import { DialogComponent } from '@shared/components/dialog.component';
@@ -127,7 +127,7 @@ export class AssignToCustomerDialogComponent extends
   }
 
   private getAssignToCustomerTask(customerId: string, entityId: string): Observable<any> {
-    switch (this.data.entityType) {
+    /*switch (this.data.entityType) {
       case EntityType.DEVICE:
         return this.deviceService.assignDeviceToCustomer(customerId, entityId);
         break;
@@ -137,7 +137,8 @@ export class AssignToCustomerDialogComponent extends
       case EntityType.ENTITY_VIEW:
         return this.entityViewService.assignEntityViewToCustomer(customerId, entityId);
         break;
-    }
+    }*/
+    return of(null);
   }
 
 }

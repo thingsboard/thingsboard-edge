@@ -243,6 +243,7 @@ export interface KeyInfo {
 export interface DataKey extends KeyInfo {
   type: DataKeyType;
   pattern?: string;
+  title?: string;
   settings?: any;
   usePostProcessing?: boolean;
   hidden?: boolean;

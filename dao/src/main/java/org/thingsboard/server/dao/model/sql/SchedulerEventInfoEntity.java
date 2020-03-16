@@ -30,107 +30,35 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.UUIDConverter;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = SCHEDULER_EVENT_COLUMN_FAMILY_NAME)
-public final class SchedulerEventInfoEntity extends BaseSqlEntity<SchedulerEventInfo> implements SearchTextEntity<SchedulerEventInfo> {
-
-    @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
-    private String tenantId;
-
-    @Column(name = SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY)
-    private String customerId;
-
-    @Column(name = SCHEDULER_EVENT_NAME_PROPERTY)
-    private String name;
-
-    @Column(name = SCHEDULER_EVENT_TYPE_PROPERTY)
-    private String type;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
-    @Type(type = "json")
-    @Column(name = ModelConstants.SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY)
-    private JsonNode additionalInfo;
-
-    @Type(type = "json")
-    @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
-    private JsonNode schedule;
+public final class SchedulerEventInfoEntity extends AbstractSchedulerEventInfoEntity<SchedulerEventInfo> {
 
     public SchedulerEventInfoEntity() {
         super();
     }
 
     public SchedulerEventInfoEntity(SchedulerEventInfo schedulerEventInfo) {
-        if (schedulerEventInfo.getId() != null) {
-            this.setId(schedulerEventInfo.getId().getId());
-        }
-        if (schedulerEventInfo.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getTenantId().getId());
-        }
-        if (schedulerEventInfo.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getCustomerId().getId());
-        }
-        this.name = schedulerEventInfo.getName();
-        this.type = schedulerEventInfo.getType();
-        this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
-        this.schedule = schedulerEventInfo.getSchedule();
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
-    }
-
-    public String getSearchText() {
-        return searchText;
+        super(schedulerEventInfo);
     }
 
     @Override
     public SchedulerEventInfo toData() {
-        SchedulerEventInfo schedulerEventInfo = new SchedulerEventInfo(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEventInfo.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
-        if (tenantId != null) {
-            schedulerEventInfo.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
-        }
-        if (customerId != null) {
-            schedulerEventInfo.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
-        }
-        schedulerEventInfo.setName(name);
-        schedulerEventInfo.setType(type);
-        schedulerEventInfo.setAdditionalInfo(additionalInfo);
-        schedulerEventInfo.setSchedule(schedule);
-        return schedulerEventInfo;
+        return super.toSchedulerEventInfo();
     }
 
 }

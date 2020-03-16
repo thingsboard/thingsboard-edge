@@ -61,8 +61,8 @@ import {
 import { Observable, ReplaySubject, Subject, throwError } from 'rxjs';
 import { CancelAnimationFrame } from '@core/services/raf.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { AlarmInfo, AlarmSearchStatus } from '@shared/models/alarm.models';
-import { deepClone, isDefined, isEqual } from '@core/utils';
+import { alarmFields, AlarmInfo, AlarmSearchStatus } from '@shared/models/alarm.models';
+import { deepClone, getDescendantProp, isDefined, isEqual } from '@core/utils';
 import { AlarmSourceListener } from '@core/http/alarm.service';
 import { DatasourceListener } from '@core/api/datasource.service';
 import { EntityId } from '@app/shared/models/id/entity-id';
@@ -385,6 +385,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       datasource.dataKeys.forEach((dataKey) => {
         dataKey.hidden = dataKey.settings.hideDataByDefault ? true : false;
         dataKey.inLegend = dataKey.settings.removeFromLegend ? false : true;
+        dataKey.label = this.ctx.utils.customTranslation(dataKey.label, dataKey.label);
         dataKey.pattern = dataKey.label;
         if (this.comparisonEnabled && dataKey.settings.comparisonSettings && dataKey.settings.comparisonSettings.showValuesForComparison) {
           datasourceAdditionalKeysNumber++;
@@ -918,6 +919,90 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   isDataResolved(): boolean {
     return this.hasResolvedData;
+  }
+
+  exportData(): {[key: string]: any}[] {
+    const exportedData: {[key: string]: any}[] = [];
+    if (this.type === widgetType.timeseries || this.type === widgetType.latest) {
+      if (this.data.length) {
+        const tsRows: {[ts: string]: {[key: string]: any}} = {};
+        const allKeys: {[key: string]: boolean} = {};
+        this.data.forEach((datasourceData) => {
+          datasourceData.data.forEach((row) => {
+            let key = datasourceData.dataKey.label;
+            const ts = row[0];
+            const value = row[1];
+            let tsRow = tsRows[ts];
+            if (!tsRow) {
+              tsRow = {};
+              tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
+              tsRows[ts] = tsRow;
+            }
+            key = this.checkProperty(tsRow, key);
+            if (!allKeys[key]) {
+              allKeys[key] = true;
+            }
+            tsRow[key] = value;
+          });
+        });
+        const timestamps = Object.keys(tsRows);
+        const rowKeys = Object.keys(allKeys);
+        timestamps.sort();
+        rowKeys.sort();
+        timestamps.forEach((timestamp) => {
+          const tsRow = tsRows[timestamp];
+          const dataObj: {[key: string]: any} = {};
+          dataObj.Timestamp = tsRow.Timestamp;
+          rowKeys.forEach((key) => {
+            if (isDefined(tsRow[key])) {
+              dataObj[key] = tsRow[key];
+            } else {
+              dataObj[key] = null;
+            }
+          });
+          exportedData.push(dataObj);
+        });
+        if (!exportedData.length) {
+          const dataObj: {[key: string]: any} = {};
+          dataObj.Timestamp = null;
+          this.data.forEach((datasourceData) => {
+            const key = datasourceData.dataKey.label;
+            dataObj[this.checkProperty(dataObj, key)] = null;
+          });
+          exportedData.push(dataObj);
+        }
+      }
+    } else if (this.type === widgetType.alarm) {
+      this.alarms.forEach((alarm) => {
+        const dataObj: {[key: string]: any} = {};
+        this.alarmSource.dataKeys.forEach((dataKey) => {
+          const key = dataKey.title;
+          const alarmField = alarmFields[dataKey.name];
+          const value = getDescendantProp(alarm, alarmField ? alarmField.value : dataKey.name);
+          dataObj[key] = this.ctx.utils.defaultAlarmFieldContent(dataKey, value);
+        });
+        exportedData.push(dataObj);
+      });
+      if (!exportedData.length) {
+        const dataObj: {[key: string]: any} = {};
+        this.alarmSource.dataKeys.forEach((dataKey) => {
+          const key = dataKey.title;
+          dataObj[key] = null;
+        });
+        exportedData.push(dataObj);
+      }
+    }
+    return exportedData;
+  }
+
+  private checkProperty(dataObj: any, key: string): string {
+    let toCheck = key;
+    let count = 1;
+    while (Object.prototype.hasOwnProperty.call(dataObj, toCheck)) {
+      count++;
+      toCheck = key + count;
+    }
+    return toCheck;
   }
 
   destroy(): void {

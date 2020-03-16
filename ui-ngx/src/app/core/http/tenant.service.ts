@@ -36,6 +36,8 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { Tenant } from '@shared/models/tenant.model';
+import { map } from 'rxjs/operators';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +50,12 @@ export class TenantService {
 
   public getTenants(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Tenant>> {
     return this.http.get<PageData<Tenant>>(`/api/tenants${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getTenantsByIds(tenantIds: Array<string>, config?: RequestConfig): Observable<Array<Tenant>> {
+    return this.http.get<Array<Tenant>>(`/api/tenants?tenantIds=${tenantIds.join(',')}`, defaultHttpOptionsFromConfig(config)).pipe(
+      map((tenants) => sortEntitiesByIds(tenants, tenantIds))
+    );
   }
 
   public getTenant(tenantId: string, config?: RequestConfig): Observable<Tenant> {
