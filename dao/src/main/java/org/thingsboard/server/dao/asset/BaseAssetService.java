@@ -355,6 +355,9 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                     case TYPE:
                         entityView.put(key, asset.getType());
                         break;
+                    case LABEL:
+                        entityView.put(key, asset.getLabel());
+                        break;
                 }
             }
             return entityView;
