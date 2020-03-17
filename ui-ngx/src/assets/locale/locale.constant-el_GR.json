@@ -2498,7 +2498,7 @@
     "show-platform-name-version": "Εμφάνιση ονόματος και έκδοσης πλατφόρμας",
     "platform-name": "Όνομα πλατφόρμας",
     "platform-version": "Έκδοση πλατφόρμας",
-    "version-mask": "{{name}} v.{{verion}}",
+    "version-mask": "{{name}} v.{{version}}",
     "position": {
       "label": "Όνομα πλατφόρμας και θέση έκδοσης",
       "under-logo": "Κάτω από το λογότυπο",

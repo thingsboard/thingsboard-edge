@@ -34,12 +34,20 @@
   display: flex;
   flex: 1 1 0%;
   .tb-login-content {
-    margin-top: 36px;
-    margin-bottom: 76px;
     background-color: rgb(250,250,250);
     .tb-login-form {
       @media #{$mat-gt-sm} {
         width: 550px !important;
+      }
+      .version {
+        margin: 5px 15px 0 0;
+        font-size: .75em;
+        text-align: right;
+
+        &.center{
+          margin: 10px 0 0;
+          text-align: center;
+        }
       }
     }
   }

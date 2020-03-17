@@ -154,7 +154,7 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
       }
     } else if (errorResponse.status === 403) {
       if (!ignoreErrors) {
-        this.dialogService.forbidden();
+        this.dialogService.permissionDenied();
       }
     } else if (errorResponse.status === 0 || errorResponse.status === -1) {
         this.showError('Unable to connect');

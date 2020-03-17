@@ -32,7 +32,8 @@
 import { Action } from '@ngrx/store';
 
 export enum SettingsActionTypes {
-  CHANGE_LANGUAGE = '[Settings] Change Language'
+  CHANGE_LANGUAGE = '[Settings] Change Language',
+  CHANGE_WHITE_LABELING = '[Settings] Change White-labeling',
 }
 
 export class ActionSettingsChangeLanguage implements Action {
@@ -41,5 +42,11 @@ export class ActionSettingsChangeLanguage implements Action {
   constructor(readonly payload: { userLang: string }) {}
 }
 
+export class ActionSettingsChangeWhiteLabeling implements Action {
+  readonly type = SettingsActionTypes.CHANGE_WHITE_LABELING;
+
+  constructor(readonly payload: {}) {}
+}
+
 export type SettingsActions =
-  | ActionSettingsChangeLanguage;
+  | ActionSettingsChangeLanguage | ActionSettingsChangeWhiteLabeling;

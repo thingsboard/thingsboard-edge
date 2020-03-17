@@ -115,7 +115,7 @@ export class DialogService {
       }).afterClosed();
   }
 
-  private permissionDenied() {
+  permissionDenied() {
     this.alert(
       this.translate.instant('access.permission-denied'),
       this.translate.instant('access.permission-denied-text'),

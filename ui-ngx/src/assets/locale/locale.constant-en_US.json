@@ -2786,7 +2786,7 @@
         "show-platform-name-version": "Show platform name and version",
         "platform-name": "Platform Name",
         "platform-version": "Platform version",
-        "version-mask": "{{name}} v.{{verion}}",
+        "version-mask": "{{name}} v.{{version}}",
         "position":{
             "label": "Platform name and version position",
             "under-logo": "Under the logo",

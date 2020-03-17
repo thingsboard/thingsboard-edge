@@ -75,3 +75,15 @@ export interface ConverterDebugInput {
   inMsgType: string;
   inIntegrationMetadata: string;
 }
+
+export function getConverterHelpLink (converter: Converter) {
+  let link = 'converters';
+  if (converter && converter.type) {
+    if (converter.type === ConverterType.UPLINK) {
+      link = 'uplinkConverters';
+    } else {
+      link = 'downlinkConverters';
+    }
+  }
+  return link;
+}

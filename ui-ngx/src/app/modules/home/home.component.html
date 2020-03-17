@@ -38,13 +38,16 @@
     <header class="tb-nav-header">
       <mat-toolbar color="primary" class="tb-nav-header-toolbar">
         <div fxFlex="auto" fxLayout="row">
-          <img [src]="logo"
+          <img [src]="wl.logoImageUrl$() | async"
+               [ngStyle]="{height: (wl.logoImageHeight$() | async)+'px'}"
                aria-label="logo" class="tb-logo-title"/>
         </div>
       </mat-toolbar>
     </header>
     <mat-toolbar color="primary" fxFlex="0%" class="tb-side-menu-toolbar" fxLayout="column" role="navigation">
       <tb-side-menu></tb-side-menu>
+      <section class="version"
+               *ngIf="wl.isShowVersion$() | async">{{ platformNameAndVersion$() | async}}</section>
     </mat-toolbar>
   </mat-sidenav>
   <mat-sidenav-content>

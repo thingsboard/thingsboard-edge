@@ -39,31 +39,49 @@ import {
   tbPrimaryPalette,
   WhiteLabelingParams
 } from '@shared/models/white-labeling.models';
-import { Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { ColorPalette, extendPalette, materialColorPalette } from '@shared/models/material.models';
 import { deepClone, isEqual } from '@core/utils';
-import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import { catchError, map, mergeMap, share, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { environment as env } from '@env/environment';
+import {
+  ActionSettingsChangeLanguage,
+  ActionSettingsChangeWhiteLabeling,
+  SettingsActions, SettingsActionTypes
+} from '@core/settings/settings.actions';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Actions, ofType } from '@ngrx/effects';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WhiteLabelingService {
 
-  public currentLoginTheme: string;
-  public loginLogo: string;
-  public loginLogoHeight: number;
-  public loginPageBackgroundColor: string;
-  public loginShowNameVersion: boolean;
-  public showNameBottom: boolean;
-  public platformName: string;
-  public platformVersion: string;
+  private changeWhiteLabelingSubject = new ReplaySubject(1);
 
-  public currentTheme: string;
+  private currentLoginTheme: string;
+  private loginLogo: string;
+  private loginLogoHeight: number;
+  private loginPageBackgroundColor: string;
+  private loginShowNameVersion: boolean;
+  private showNameBottom: boolean;
+  private platformName: string;
+  private platformVersion: string;
 
-  private whiteLabelingChanged: Subject<void> = new Subject();
-  public whiteLabelingChanged$: Observable<void> = this.whiteLabelingChanged.asObservable();
+  private currentTheme: string;
+
+  public currentLoginTheme$ = this.asWhiteLabelingObservable(() => this.currentLoginTheme);
+  public currentTheme$ = this.asWhiteLabelingObservable(() => this.currentTheme);
+
+  public loginLogo$ = this.asWhiteLabelingObservable(() => this.loginLogo);
+  public loginLogoHeight$ = this.asWhiteLabelingObservable(() => this.loginLogoHeight);
+  public loginPageBackgroundColor$ = this.asWhiteLabelingObservable(() => this.loginPageBackgroundColor);
+  public loginShowNameVersion$ = this.asWhiteLabelingObservable(() => this.loginShowNameVersion);
+  public showNameBottom$ = this.asWhiteLabelingObservable(() => this.showNameBottom);
+  public platformName$ = this.asWhiteLabelingObservable(() => this.platformName);
+  public platformVersion$ = this.asWhiteLabelingObservable(() => this.platformVersion);
 
   private currentWLParams: WhiteLabelingParams;
   private currentLoginWLParams: LoginWhiteLabelingParams;
@@ -78,7 +96,8 @@ export class WhiteLabelingService {
   private PALETTES: {[palette: string]: ColorPalette} = deepClone(materialColorPalette);
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private store: Store<AppState>
   ) {
     this.definePalette('tb-primary', tbPrimaryPalette);
     this.definePalette('tb-accent', tbAccentPalette);
@@ -90,20 +109,40 @@ export class WhiteLabelingService {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageUrl : '';
   }
 
+  public logoImageUrl$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.logoImageUrl());
+  }
+
   public logoImageHeight(): number {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageHeight: null;
+  }
+
+  public logoImageHeight$(): Observable<number> {
+    return this.asWhiteLabelingObservable(() => this.logoImageHeight());
   }
 
   public appTitle(): string {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().appTitle : '';
   }
 
+  public appTitle$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.appTitle());
+  }
+
   public faviconUrl(): string {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().favicon.url : '';
   }
 
+  public faviconUrl$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.faviconUrl());
+  }
+
   public faviconType(): string {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().favicon.type : '';
+  }
+
+  public faviconType$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.faviconType());
   }
 
   public getPrimaryPalette(): ColorPalette {
@@ -118,20 +157,40 @@ export class WhiteLabelingService {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().helpLinkBaseUrl : '';
   }
 
+  public getHelpLinkBaseUrl$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.getHelpLinkBaseUrl());
+  }
+
   public isEnableHelpLinks(): boolean {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().enableHelpLinks : true;
+  }
+
+  public isEnableHelpLinks$(): Observable<boolean> {
+    return this.asWhiteLabelingObservable(() => this.isEnableHelpLinks());
   }
 
   public isShowVersion(): boolean {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().showNameVersion : false;
   }
 
+  public isShowVersion$(): Observable<boolean> {
+    return this.asWhiteLabelingObservable(() => this.isShowVersion());
+  }
+
   public getPlatformName(): string {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().platformName : '';
   }
 
+  public getPlatformName$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.getPlatformName());
+  }
+
   public getPlatformVersion(): string {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().platformVersion : '';
+  }
+
+  public getPlatformVersion$(): Observable<string> {
+    return this.asWhiteLabelingObservable(() => this.getPlatformVersion());
   }
 
   public loadLoginWhiteLabelingParams(): Observable<LoginWhiteLabelingParams> {
@@ -157,7 +216,7 @@ export class WhiteLabelingService {
         if (this.setLoginWlParams(this.loginWlParams)) {
           this.applyLoginWlParams(this.currentLoginWLParams);
           this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
-          this.whiteLabelingChanged.next();
+          this.notifyWlChanged();
         }
         return this.loginWlParams;
       }),
@@ -166,7 +225,7 @@ export class WhiteLabelingService {
           if (this.setLoginWlParams(this.loginWlParams)) {
             this.applyLoginWlParams(this.currentLoginWLParams);
             this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
-            this.whiteLabelingChanged.next();
+            this.notifyWlChanged();
           }
           return of(this.loginWlParams);
         } else {
@@ -179,7 +238,7 @@ export class WhiteLabelingService {
   public loadUserWhiteLabelingParams(): Observable<WhiteLabelingParams> {
     const storedLogoImageChecksum = localStorage.getItem('user_logo_image_checksum');
     const storedFaviconChecksum = localStorage.getItem('user_favicon_checksum');
-    let url = '/api/noauth/whiteLabel/whiteLabelParams';
+    let url = '/api/whiteLabel/whiteLabelParams';
     if (storedLogoImageChecksum) {
       url += `?logoImageChecksum=${storedLogoImageChecksum}`;
     }
@@ -267,7 +326,12 @@ export class WhiteLabelingService {
 
   private wlChanged() {
     this.applyThemePalettes(this.currentWLParams.paletteSettings);
-    this.whiteLabelingChanged.next();
+    this.notifyWlChanged();
+  }
+
+  private notifyWlChanged() {
+    this.store.dispatch(new ActionSettingsChangeWhiteLabeling({}));
+    this.changeWhiteLabelingSubject.next();
   }
 
   private getCurrentWlParams(): WhiteLabelingParams {
@@ -432,6 +496,12 @@ export class WhiteLabelingService {
         type: localStorage.getItem(prefix+'_favicon_type'),
       };
     }
+  }
+
+  private asWhiteLabelingObservable<T> (valueSource: () => T): Observable<T> {
+    return this.changeWhiteLabelingSubject.pipe(
+      map(() => valueSource())
+    );
   }
 
 }

@@ -31,6 +31,7 @@
               { "glob": "worker-javascript.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" }
             ],
             "styles": [
+              "src/theme.scss",
               "src/styles.scss",
               "node_modules/jquery.terminal/css/jquery.terminal.min.css",
               "node_modules/tooltipster/dist/css/tooltipster.bundle.min.css",

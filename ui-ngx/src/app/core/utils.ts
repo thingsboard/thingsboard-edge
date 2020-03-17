@@ -95,6 +95,10 @@ export function isUndefined(value: any): boolean {
   return typeof value === 'undefined';
 }
 
+export function isUndefinedOrNull(value: any): boolean {
+  return typeof value === 'undefined' || value === null;
+}
+
 export function isDefined(value: any): boolean {
   return typeof value !== 'undefined';
 }
@@ -121,6 +125,10 @@ export function isNumeric(value: any): boolean {
 
 export function isString(value: any): boolean {
   return typeof value === 'string';
+}
+
+export function isArray(value: any): boolean {
+  return Array.isArray(value);
 }
 
 export function formatValue(value: any, dec?: number, units?: string, showZeroDecimals?: boolean): string | undefined {

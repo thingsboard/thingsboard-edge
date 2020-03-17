@@ -71,6 +71,7 @@ const helpBaseUrl = 'https://thingsboard.io';
 
 export const HelpLinks = {
   linksMap: {
+    docs: helpBaseUrl + '/docs',
     outgoingMailSettings: helpBaseUrl + '/docs/user-guide/ui/mail-settings',
     securitySettings: helpBaseUrl + '/docs/user-guide/ui/security-settings',
     ruleEngine: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/overview/',
@@ -108,6 +109,16 @@ export const HelpLinks = {
     ruleNodeRabbitMq: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rabbitmq-node',
     ruleNodeRestApiCall: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node',
     ruleNodeSendEmail: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
+    ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node',
+    ruleNodeAddToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node',
+    ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node',
+    ruleNodeDuplicateToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node',
+    ruleNodeDuplicateToRelated: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node',
+    ruleNodeGenerateReport: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node',
+    ruleNodeRestCallReply: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#rest-call-reply-node',
+    ruleNodeAggregateLatest: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-latest-node',
+    ruleNodeAggregateStream: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-stream-node',
+    ruleNodeAlarmsCount: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#alarms-count-node',
     tenants: helpBaseUrl + '/docs/user-guide/ui/tenants',
     customers: helpBaseUrl + '/docs/user-guide/customers',
     users: helpBaseUrl + '/docs/user-guide/ui/users',
@@ -123,7 +134,29 @@ export const HelpLinks = {
     widgetsConfigLatest: helpBaseUrl +  '/docs/user-guide/ui/dashboards#latest',
     widgetsConfigRpc: helpBaseUrl +  '/docs/user-guide/ui/dashboards#rpc',
     widgetsConfigAlarm: helpBaseUrl +  '/docs/user-guide/ui/dashboards#alarm',
-    widgetsConfigStatic: helpBaseUrl +  '/docs/user-guide/ui/dashboards#static'
+    widgetsConfigStatic: helpBaseUrl +  '/docs/user-guide/ui/dashboards#static',
+    converters: helpBaseUrl +  '/docs/user-guide/integrations/#data-converters',
+    uplinkConverters: helpBaseUrl +  '/docs/user-guide/integrations/#uplink-data-converter',
+    downlinkConverters: helpBaseUrl +  '/docs/user-guide/integrations/#downlink-data-converter',
+    integrations: helpBaseUrl +  '/docs/user-guide/integrations',
+    integrationHttp: helpBaseUrl +  '/docs/user-guide/integrations/http',
+    integrationOceanConnect: helpBaseUrl +  '/docs/user-guide/integrations/ocean-connect',
+    integrationSigFox: helpBaseUrl +  '/docs/user-guide/integrations/sigfox',
+    integrationThingPark: helpBaseUrl +  '/docs/user-guide/integrations/thingpark',
+    integrationThingParkEnterprise: helpBaseUrl +  '/docs/samples/abeeway/tracker',
+    integrationMqtt: helpBaseUrl +  '/docs/user-guide/integrations/mqtt',
+    integrationAwsIoT: helpBaseUrl +  '/docs/user-guide/integrations/aws-iot',
+    integrationAwsKinesis:  helpBaseUrl +  '/docs/user-guide/integrations/aws-kinesis',
+    integrationIbmWatsonIoT: helpBaseUrl +  '/docs/user-guide/integrations/ibm-watson-iot',
+    integrationTheThingsNetwork: helpBaseUrl +  '/docs/user-guide/integrations/ttn',
+    integrationAzureEventHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-event-hub',
+    integrationOpcUa:  helpBaseUrl +  '/docs/user-guide/integrations/opc-ua',
+    whiteLabeling: helpBaseUrl +  '/docs/user-guide/white-labeling',
+    entityGroups: helpBaseUrl +  '/docs/user-guide/groups',
+    customTranslation: helpBaseUrl +  '/docs/user-guide/custom-translation',
+    customMenu: helpBaseUrl +  '/docs/user-guide/custom-menu',
+    roles: helpBaseUrl + '/docs/user-guide/ui/roles',
+    selfRegistration: helpBaseUrl + '/docs/user-guide/self-registration'
   }
 };
 

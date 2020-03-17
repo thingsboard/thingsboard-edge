@@ -36,6 +36,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
 
 import { environment as env } from '@env/environment';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Injectable({
   providedIn: 'root'
@@ -43,6 +44,7 @@ import { environment as env } from '@env/environment';
 export class TitleService {
   constructor(
     private translate: TranslateService,
+    private whiteLabelingService: WhiteLabelingService,
     private title: Title
   ) {}
 
@@ -61,10 +63,10 @@ export class TitleService {
         .get(title)
         .pipe(filter(translatedTitle => translatedTitle !== title))
         .subscribe(translatedTitle =>
-          this.title.setTitle(`${env.appTitle} | ${translatedTitle}`)
+          this.title.setTitle(`${this.whiteLabelingService.appTitle()} | ${translatedTitle}`)
         );
     } else {
-      this.title.setTitle(env.appTitle);
+      this.title.setTitle(this.whiteLabelingService.appTitle());
     }
   }
 }

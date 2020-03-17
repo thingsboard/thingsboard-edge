@@ -70,6 +70,12 @@
       overflow-y: auto;
       height: inherit;
       padding: 0;
+      align-items: initial;
+      section.version {
+        margin: 0 8px 5px 0;
+        font-size: .6em;
+        text-align: right;
+      }
     }
   }
   .tb-primary-toolbar {

@@ -29,33 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable } from '@angular/core';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
-import { HomeComponent } from './home.component';
-import { AuthGuard } from '@core/guards/auth.guard';
-import { StoreModule } from '@ngrx/store';
-
-const routes: Routes = [
-  { path: '',
-    component: HomeComponent,
-    data: {
-      title: 'home.home',
-      breadcrumb: {
-        skip: true
-      }
-    },
-    canActivate: [AuthGuard],
-    canActivateChild: [AuthGuard],
-    loadChildren: () => import('./pages/home-pages.module').then(m => m.HomePagesModule)
-  }
-];
-
-@NgModule({
-  imports: [
-    StoreModule,
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
+@Injectable({
+  providedIn: 'root'
 })
-export class HomeRoutingModule { }
+export class FaviconService {
 
+  private favicon = $('link[rel="icon"]');
+
+  constructor(
+    private whiteLabelingService: WhiteLabelingService
+  ) {}
+
+  setFavicon() {
+    this.favicon.attr('type', this.whiteLabelingService.faviconType());
+    this.favicon.attr('href', this.whiteLabelingService.faviconUrl());
+  }
+}

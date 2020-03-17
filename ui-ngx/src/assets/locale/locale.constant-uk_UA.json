@@ -2687,7 +2687,7 @@
         "show-platform-name-version": "Показувати назву та версію платформи",
         "platform-name": "Назва платформи",
         "platform-version": "Версія платформи",
-        "version-mask": "{{name}} v.{{verion}}",
+        "version-mask": "{{name}} v.{{version}}",
         "position": {
             "label": "Розташування назви та версії платформи",
             "under-logo": "Під логотипом",

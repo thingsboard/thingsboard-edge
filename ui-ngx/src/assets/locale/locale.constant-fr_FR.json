@@ -2365,7 +2365,7 @@
         "save-palette": "Enregistrer la palette",
         "secondary-background": "Arrière-plan secondaire",
         "show-platform-name-version": "Show platform name and version",
-        "version-mask": "{{name}} v.{{verion}}",
+        "version-mask": "{{name}} v.{{version}}",
         "white-labeling": "Personnalisation"
     },
     "widget": {

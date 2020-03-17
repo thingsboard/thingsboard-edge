@@ -63,6 +63,7 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { ReportService } from '@core/http/report.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { isObject } from '@core/utils';
 
 @Injectable({
     providedIn: 'root'
@@ -239,7 +240,7 @@ export class AuthService {
     return false;
   }
 
-  public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any): UrlTree {
+  public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any, data?: any): UrlTree {
     let result: UrlTree = null;
     if (isAuthenticated) {
       if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
@@ -436,7 +437,9 @@ export class AuthService {
         const allowedDashboardIds: string[] = data[1] as string[];
         const whiteLabelingAllowedInfo = data[2] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
         return {userTokenAccessEnabled, allowedDashboardIds, ...whiteLabelingAllowedInfo};
-      }));
+      }, catchError((err) => {
+        return of({});
+      })));
   }
 
   public refreshJwtToken(): Observable<LoginResponse> {

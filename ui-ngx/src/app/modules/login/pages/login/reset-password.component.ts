@@ -39,6 +39,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-reset-password',
@@ -61,6 +62,7 @@ export class ResetPasswordComponent extends PageComponent implements OnInit, OnD
               private route: ActivatedRoute,
               private authService: AuthService,
               private translate: TranslateService,
+              public wl: WhiteLabelingService,
               public fb: FormBuilder) {
     super(store);
   }

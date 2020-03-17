@@ -30,7 +30,7 @@
 ///
 
 import { environment as env } from '@env/environment';
-import { deepClone, isDefined, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isUndefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
 
 export interface Favicon {
@@ -72,7 +72,7 @@ export interface LoginWhiteLabelingParams extends WhiteLabelingParams {
   showNameBottom?: boolean;
 }
 
-const defaultImageUrl = require('../../../assets/logo_title_white.svg');
+const defaultImageUrl = require('../../../assets/logo_title_white_pe.svg');
 
 export const defaultWLParams: WhiteLabelingParams = {
   logoImageUrl: defaultImageUrl,
@@ -157,10 +157,10 @@ export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!wlParams.helpLinkBaseUrl && targetDefaultWlParams.helpLinkBaseUrl) {
     wlParams.helpLinkBaseUrl = targetDefaultWlParams.helpLinkBaseUrl;
   }
-  if (isUndefined(wlParams.enableHelpLinks) && isDefined(targetDefaultWlParams.enableHelpLinks)) {
+  if (isUndefinedOrNull(wlParams.enableHelpLinks) && isDefined(targetDefaultWlParams.enableHelpLinks)) {
     wlParams.enableHelpLinks = targetDefaultWlParams.enableHelpLinks;
   }
-  if (isUndefined(wlParams.showNameVersion)) {
+  if (isUndefinedOrNull(wlParams.showNameVersion)) {
     wlParams.showNameVersion = targetDefaultWlParams.showNameVersion;
   }
   if (wlParams.platformName === null) {

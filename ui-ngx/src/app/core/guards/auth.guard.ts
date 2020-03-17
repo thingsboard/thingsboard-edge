@@ -33,21 +33,26 @@ import { Injectable, NgZone } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
-  CanActivateChild,
+  CanActivateChild, Router,
   RouterStateSnapshot
 } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '../core.state';
 import { selectAuth } from '../auth/auth.selectors';
-import { catchError, map, skipWhile, take } from 'rxjs/operators';
+import { catchError, map, mergeMap, skipWhile, take } from 'rxjs/operators';
 import { AuthState } from '../auth/auth.models';
-import { Observable, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { enterZone } from '@core/operator/enterZone';
 import { Authority } from '@shared/models/authority.enum';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { SelfRegistrationService } from '@core/http/self-register.service';
+import { isDefined, isObject } from '@core/utils';
+import { HasGenericPermissionPipe } from '@core/pipe/permission.pipes';
+import { MenuService } from '@core/services/menu.service';
 
 @Injectable({
   providedIn: 'root'
@@ -55,10 +60,15 @@ import { UtilsService } from '@core/services/utils.service';
 export class AuthGuard implements CanActivate, CanActivateChild {
 
   constructor(private store: Store<AppState>,
+              private router: Router,
               private authService: AuthService,
               private dialogService: DialogService,
               private utils: UtilsService,
               private translate: TranslateService,
+              private whiteLabelingService: WhiteLabelingService,
+              private selfRegistrationService: SelfRegistrationService,
+              private hasGenericPermissionPipe: HasGenericPermissionPipe,
+              private menuService: MenuService,
               private zone: NgZone) {}
 
   getAuthState(): Observable<AuthState> {
@@ -73,38 +83,44 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   canActivate(next: ActivatedRouteSnapshot,
               state: RouterStateSnapshot) {
 
+    const url: string = state.url;
+    let lastChild = state.root;
+    const urlSegments: string[] = [];
+    if (lastChild.url) {
+      urlSegments.push(...lastChild.url.map(segment => segment.path));
+    }
+    while (lastChild.children.length) {
+      lastChild = lastChild.children[0];
+      if (lastChild.url) {
+        urlSegments.push(...lastChild.url.map(segment => segment.path));
+      }
+    }
+    const path = urlSegments.join('.');
+    const publicId = this.utils.getQueryParam('publicId');
+    const data = lastChild.routeConfig ? lastChild.routeConfig.data || {} : {};
+    const params = lastChild.params || {};
+    const isPublic = data.module === 'public';
+
     return this.getAuthState().pipe(
-      map((authState) => {
-        const url: string = state.url;
-
-        let lastChild = state.root;
-        const urlSegments: string[] = [];
-        if (lastChild.url) {
-          urlSegments.push(...lastChild.url.map(segment => segment.path));
-        }
-        while (lastChild.children.length) {
-          lastChild = lastChild.children[0];
-          if (lastChild.url) {
-            urlSegments.push(...lastChild.url.map(segment => segment.path));
-          }
-        }
-        const path = urlSegments.join('.');
-        const publicId = this.utils.getQueryParam('publicId');
-        const data = lastChild.data || {};
-        const params = lastChild.params || {};
-        const isPublic = data.module === 'public';
-
+      mergeMap((authState) => {
         if (!authState.isAuthenticated) {
           if (publicId && publicId.length > 0) {
             this.authService.setUserFromJwtToken(null, null, false);
             this.authService.reloadUser();
-            return false;
+            return of(false);
           } else if (!isPublic) {
             this.authService.redirectUrl = url;
             // this.authService.gotoDefaultPlace(false);
-            return this.authService.defaultUrl(false);
+            return of(this.authService.defaultUrl(false));
           } else {
-            return true;
+            const tasks: Observable<any>[] = [];
+            tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
+            if (path === 'login') {
+              tasks.push(this.selfRegistrationService.loadSelfRegistrationParams());
+            }
+            return forkJoin(tasks).pipe(
+              map(() => true)
+            );
           }
         } else {
           if (authState.authUser.isPublic) {
@@ -115,24 +131,40 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               } else {
                 this.authService.logout();
               }
-              return false;
+              return of(false);
             }
             if (!authState.lastPublicDashboardId) {
               this.dialogService.forbidden();
-              return false;
+              return of(false);
             }
           }
           const defaultUrl = this.authService.defaultUrl(true, authState, path, params);
           if (defaultUrl) {
             // this.authService.gotoDefaultPlace(true);
-            return defaultUrl;
+            return of(defaultUrl);
           } else {
             const authority = Authority[authState.authUser.authority];
             if (data.auth && data.auth.indexOf(authority) === -1) {
               this.dialogService.forbidden();
-              return false;
+              return of(false);
+            } else if (isDefined(data.permissions) &&
+              !this.hasGenericPermissionPipe.transform(data.permissions.resources, data.permissions.operations)) {
+              this.dialogService.forbidden();
+              return of(false);
+            } else if (data.redirectTo) {
+              let redirect;
+              if (isObject(data.redirectTo)) {
+                redirect = data.redirectTo[authority];
+              } else {
+                redirect = data.redirectTo;
+              }
+              return this.menuService.getRedirectPath(path, redirect).pipe(
+                map((redirectPath) => {
+                  return this.router.parseUrl(redirectPath);
+                })
+              );
             } else {
-              return true;
+              return of(true);
             }
           }
         }

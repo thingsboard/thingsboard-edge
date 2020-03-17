@@ -36,7 +36,7 @@ import { AppState } from '../core.state';
 import { selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, mergeMap, publishReplay, refCount, take } from 'rxjs/operators';
 import { HomeSection, MenuSection } from '@core/services/menu.models';
-import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, of, ReplaySubject, Subject, Subscription } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -1068,6 +1068,31 @@ export class MenuService {
     return this.homeSections$;
   }
 
+  public getRedirectPath(parentPath: string, redirectPath: string): Observable<string> {
+    return this.menuSections$.pipe(
+      mergeMap((sections) => {
+        const filtered = sections.filter((section) => section.path === parentPath);
+        if (filtered && filtered.length) {
+          const parentSection = filtered[0];
+          if (parentSection.pages) {
+            return parentSection.pages.pipe(
+              map((childPages) => {
+                const filteredPages = childPages.filter((page) => !page.disabled);
+                if (filteredPages && filteredPages.length) {
+                  const redirectPage = filteredPages.filter((page) => page.path === redirectPath);
+                  if (!redirectPage || !redirectPage.length) {
+                    return filteredPages[0].path;
+                  }
+                }
+                return redirectPath;
+              })
+            );
+          }
+        }
+        return of(redirectPath);
+      })
+    );
+  }
 }
 
 class EntityGroupSection {
@@ -1076,11 +1101,9 @@ class EntityGroupSection {
 
   private loadedGroupPages: Observable<Array<MenuSection>> = null;
 
-  private groupPages: Observable<Array<MenuSection>>;
-
   private subscriptions: Subscription[] = [];
 
-  private groupsChangedSubject = new Subject();
+  private groupsChangedSubject = new ReplaySubject(1);
 
   constructor(private router: Router,
               private groupType: EntityType,
@@ -1089,9 +1112,6 @@ class EntityGroupSection {
     this.subscriptions.push(this.broadcast.on(this.groupType + 'changed', () => {
       this.reloadGroups();
     }));
-    this.groupPages = this.groupsChangedSubject.asObservable().pipe(
-      mergeMap(() => this.getPages())
-    );
     this.subscriptions.push(this.router.events.pipe(filter(event => event instanceof ActivationEnd)).subscribe(
       () => {
         this.loadGroups();
@@ -1164,7 +1184,9 @@ class EntityGroupSection {
       type: 'toggle',
       path,
       icon,
-      pages: this.groupPages
+      pages: this.groupsChangedSubject.asObservable().pipe(
+        mergeMap(() => this.getPages())
+      )
     };
   }
 
@@ -1189,9 +1211,8 @@ class EntityGroupSection {
         publishReplay(1),
         refCount()
       );
-    } else {
-      return this.loadedGroupPages;
     }
+    return this.loadedGroupPages;
   }
 
 }

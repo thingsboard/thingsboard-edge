@@ -30,9 +30,9 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
-import { fromEvent, Observable } from 'rxjs';
+import { combineLatest, fromEvent, Observable } from 'rxjs';
 import { select, Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged, map, mergeMap, take, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, mergeMap, share, take, tap } from 'rxjs/operators';
 
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { User } from '@shared/models/user.model';
@@ -50,6 +50,8 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { AuthState } from '@core/auth/auth.models';
 import { WINDOW } from '@core/services/window.service';
 import { ISearchableComponent, instanceOfSearchableComponent } from '@home/models/searchable-component.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { TranslateService } from '@ngx-translate/core';
 
 const screenfull = _screenfull as _screenfull.Screenfull;
 
@@ -70,8 +72,6 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   sidenavMode: 'over' | 'push' | 'side' = 'side';
   sidenavOpened = true;
 
-  logo = require('../../../assets/logo_title_white.svg');
-
   @ViewChild('sidenav')
   sidenav: MatSidenav;
 
@@ -89,6 +89,8 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
+              public wl: WhiteLabelingService,
+              private translate: TranslateService,
               private authService: AuthService,
               private router: Router,
               private userService: UserService, private menuService: MenuService,
@@ -189,6 +191,15 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
         this.searchTextUpdated();
       }
     }
+  }
+
+  platformNameAndVersion$(): Observable<string> {
+    return combineLatest([this.wl.getPlatformName$(), this.wl.getPlatformVersion$()]).pipe(
+      map((res) => {
+        return this.translate.instant('white-labeling.version-mask', {name: res[0], version: res[1]});
+      }),
+      share()
+    );
   }
 
   private searchTextUpdated() {

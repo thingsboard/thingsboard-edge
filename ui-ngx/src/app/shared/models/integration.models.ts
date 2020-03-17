@@ -33,6 +33,7 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
+import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
 
 export enum IntegrationType {
   HTTP = 'HTTP',
@@ -138,6 +139,32 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
     ]
   ]
 );
+
+const integrationHelpLinkMap = new Map<IntegrationType, string>(
+  [
+    [IntegrationType.HTTP, 'integrationHttp'],
+    [IntegrationType.OCEANCONNECT, 'integrationOceanConnect'],
+    [IntegrationType.SIGFOX, 'integrationSigFox'],
+    [IntegrationType.THINGPARK, 'integrationThingPark'],
+    [IntegrationType.TPE, 'integrationThingParkEnterprise'],
+    [IntegrationType.MQTT, 'integrationMqtt'],
+    [IntegrationType.AWS_IOT, 'integrationAwsIoT'],
+    [IntegrationType.AWS_KINESIS, 'integrationAwsKinesis'],
+    [IntegrationType.IBM_WATSON_IOT, 'integrationIbmWatsonIoT'],
+    [IntegrationType.TTN, 'integrationTheThingsNetwork'],
+    [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
+    [IntegrationType.OPC_UA, 'integrationOpcUa']
+  ]
+);
+
+export function getIntegrationHelpLink(integration: Integration): string {
+  if (integration && integration.type) {
+    if (integrationHelpLinkMap.has(integration.type)) {
+      return integrationHelpLinkMap.get(integration.type);
+    }
+  }
+  return 'integrations';
+}
 
 export interface Integration extends BaseData<IntegrationId> {
   tenantId?: TenantId;

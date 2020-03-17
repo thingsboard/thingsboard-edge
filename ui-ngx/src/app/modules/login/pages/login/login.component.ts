@@ -38,6 +38,11 @@ import { FormBuilder } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Constants } from '@shared/models/constants';
 import { Router } from '@angular/router';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { TranslateService } from '@ngx-translate/core';
+import { combineLatest, Observable } from 'rxjs';
+import { map, share } from 'rxjs/operators';
+import { SelfRegistrationService } from '@core/http/self-register.service';
 
 @Component({
   selector: 'tb-login',
@@ -53,6 +58,9 @@ export class LoginComponent extends PageComponent implements OnInit {
 
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
+              public wl: WhiteLabelingService,
+              public selfRegistrationService: SelfRegistrationService,
+              private translateService: TranslateService,
               public fb: FormBuilder,
               private router: Router) {
     super(store);
@@ -79,6 +87,15 @@ export class LoginComponent extends PageComponent implements OnInit {
         control.markAsTouched({onlySelf: true});
       });
     }
+  }
+
+  platformNameAndVersion$(): Observable<string> {
+    return combineLatest([this.wl.platformName$, this.wl.platformVersion$]).pipe(
+      map((res) => {
+        return this.translateService.instant('white-labeling.version-mask', {name: res[0], version: res[1]});
+      }),
+      share()
+    );
   }
 
 }

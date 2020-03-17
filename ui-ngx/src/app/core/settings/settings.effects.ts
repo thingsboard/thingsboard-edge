@@ -58,6 +58,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { UtilsService } from '@core/services/utils.service';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { ActionAuthUpdateLastPublicDashboardId } from '../auth/auth.actions';
+import { FaviconService } from '@core/services/favicon.service';
 
 export const SETTINGS_KEY = 'SETTINGS';
 
@@ -71,6 +72,7 @@ export class SettingsEffects {
     private router: Router,
     private localStorageService: LocalStorageService,
     private titleService: TitleService,
+    private faviconService: FaviconService,
     private translate: TranslateService
   ) {
   }
@@ -96,7 +98,7 @@ export class SettingsEffects {
 
   @Effect({dispatch: false})
   setTitle = merge(
-    this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_LANGUAGE)),
+    this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_LANGUAGE, SettingsActionTypes.CHANGE_WHITE_LABELING)),
     this.router.events.pipe(filter(event => event instanceof ActivationEnd))
   ).pipe(
     tap(() => {
@@ -104,6 +106,15 @@ export class SettingsEffects {
         this.router.routerState.snapshot.root,
         this.translate
       );
+    })
+  );
+
+  @Effect({dispatch: false})
+  setFavicon = merge(
+    this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_WHITE_LABELING)),
+  ).pipe(
+    tap(() => {
+      this.faviconService.setFavicon()
     })
   );
 

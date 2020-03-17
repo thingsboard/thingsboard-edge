@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
+import { Component, NgModule } from '@angular/core';
 
 import { AdminModule } from './admin/admin.module';
 import { HomeLinksModule } from './home-links/home-links.module';
@@ -38,12 +38,44 @@ import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
 import { CustomerModule } from '@modules/home/pages/customer/customer.module';
 import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
 import { UserModule } from '@modules/home/pages/user/user.module';
-import {DeviceModule} from '@modules/home/pages/device/device.module';
-import {AssetModule} from '@modules/home/pages/asset/asset.module';
-import {EntityViewModule} from '@modules/home/pages/entity-view/entity-view.module';
-import {RuleChainModule} from '@modules/home/pages/rulechain/rulechain.module';
-import {WidgetLibraryModule} from '@modules/home/pages/widget/widget-library.module';
-import {DashboardModule} from '@modules/home/pages/dashboard/dashboard.module';
+import { DeviceModule } from '@modules/home/pages/device/device.module';
+import { AssetModule } from '@modules/home/pages/asset/asset.module';
+import { EntityViewModule } from '@modules/home/pages/entity-view/entity-view.module';
+import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
+import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
+import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
+import { RouterModule, Routes } from '@angular/router';
+import { StoreModule } from '@ngrx/store';
+
+@Component({
+  selector: 'tb-page-not-found',
+  template: '<h1>Page not found!</h1>',
+  styleUrls: []
+})
+export class PageNotFoundComponent {
+}
+
+const routes: Routes = [
+  { path: '**',
+    component: PageNotFoundComponent,
+    data: {
+      breadcrumb: {
+        icon: 'error'
+      }
+    }
+  }
+];
+
+@NgModule({
+  declarations: [
+    PageNotFoundComponent
+  ],
+  imports: [
+    StoreModule,
+    RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class PageNotFoundRoutingModule { }
 
 @NgModule({
   exports: [
@@ -59,7 +91,8 @@ import {DashboardModule} from '@modules/home/pages/dashboard/dashboard.module';
     WidgetLibraryModule,
     DashboardModule,
     AuditLogModule,
-    UserModule
+    UserModule,
+    PageNotFoundRoutingModule
   ]
 })
 export class HomePagesModule { }

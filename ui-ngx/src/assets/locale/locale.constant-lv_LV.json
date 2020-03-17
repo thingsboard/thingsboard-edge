@@ -2483,7 +2483,7 @@
     "show-platform-name-version": "Parādīt platformas nosaukumu un versiju",
     "platform-name": "Platformas nosaukums",
     "platform-version": "Platformas versija",
-    "version-mask": "{{name}} v.{{verion}}",
+    "version-mask": "{{name}} v.{{version}}",
     "position": {
       "label": "Platformas nosaukuma un versijas pozīcija",
       "under-logo": "Zem logo",

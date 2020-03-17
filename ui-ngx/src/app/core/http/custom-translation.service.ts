@@ -80,9 +80,12 @@ export class CustomTranslationService {
       }
       const reloadObservable = forceUpdate ? this.translate.reloadLang(langKey) : of(null);
       reloadObservable.subscribe(() => {
-        this.translate.setTranslation(langKey, translationMap, true);
+        if (translationMap) {
+          this.translate.setTranslation(langKey, translationMap, true);
+        }
         this.translateLoadObservable = null;
         updateCustomTranslationSubject.next();
+        updateCustomTranslationSubject.complete();
         this.updateTranslationSubjects.forEach(subject => {
           subject.next();
         });

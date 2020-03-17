@@ -2584,7 +2584,7 @@
         "show-platform-name-version": "Показывать название и версию платформы",
         "platform-name": "Название платформы",
         "platform-version": "Версия платформы",
-        "version-mask": "{{name}} v.{{verion}}",
+        "version-mask": "{{name}} v.{{version}}",
         "position": {
             "label": "Расположение названия и версии платформы",
             "under-logo": "Под логотипом",

@@ -31,6 +31,7 @@
 
 import { Component, Input } from '@angular/core';
 import { HelpLinks } from '@shared/models/constants';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   // tslint:disable-next-line:component-selector
@@ -38,6 +39,9 @@ import { HelpLinks } from '@shared/models/constants';
   templateUrl: './help.component.html'
 })
 export class HelpComponent {
+
+  constructor(public wl: WhiteLabelingService) {
+  }
 
   // tslint:disable-next-line:no-input-rename
   @Input('tb-help') helpLinkId: string;
@@ -49,6 +53,10 @@ export class HelpComponent {
       helpUrl = this.helpLinkId;
     }
     if (helpUrl) {
+      const baseUrl =  this.wl.getHelpLinkBaseUrl();
+      if (baseUrl) {
+        helpUrl = helpUrl.replace('https://thingsboard.io', baseUrl);
+      }
       window.open(helpUrl, '_blank');
     }
   }

@@ -30,19 +30,19 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';
-import {GeneralSettingsComponent} from '@modules/home/pages/admin/general-settings.component';
-import {SecuritySettingsComponent} from '@modules/home/pages/admin/security-settings.component';
+import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
+import { AuthGuard } from '@core/guards/auth.guard';
 
 const routes: Routes = [
   {
     path: 'settings',
     data: {
-      auth: [Authority.SYS_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
         label: 'admin.system-settings',
         icon: 'settings'
@@ -51,19 +51,12 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'general',
-        pathMatch: 'full'
-      },
-      {
-        path: 'general',
-        component: GeneralSettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
         data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.general-settings',
-          breadcrumb: {
-            label: 'admin.general',
-            icon: 'settings_applications'
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            SYS_ADMIN: '/settings/outgoing-mail',
+            TENANT_ADMIN: '/settings/outgoing-mail',
+            CUSTOMER_USER: '/settings/customTranslation'
           }
         }
       },
@@ -72,7 +65,7 @@ const routes: Routes = [
         component: MailServerComponent,
         canDeactivate: [ConfirmOnExitGuard],
         data: {
-          auth: [Authority.SYS_ADMIN],
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
           title: 'admin.outgoing-mail-settings',
           breadcrumb: {
             label: 'admin.outgoing-mail',
