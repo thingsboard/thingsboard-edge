@@ -36,13 +36,13 @@ import { AppState } from '../core.state';
 import { selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, mergeMap, publishReplay, refCount, take } from 'rxjs/operators';
 import { HomeSection, MenuSection } from '@core/services/menu.models';
-import { BehaviorSubject, Observable, of, ReplaySubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject, Subscription } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { BroadcastService } from '@core/services/broadcast.service';
-import { ActivationEnd, Router } from '@angular/router';
+import { ActivationEnd, Params, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
@@ -53,10 +53,16 @@ import { CustomMenuItem } from '@shared/models/custom-menu.models';
 })
 export class MenuService {
 
-  menuSections$: Subject<Array<MenuSection>> = new BehaviorSubject<Array<MenuSection>>([]);
-  homeSections$: Subject<Array<HomeSection>> = new BehaviorSubject<Array<HomeSection>>([]);
+  private menuSections$: Subject<Array<MenuSection>> = new BehaviorSubject<Array<MenuSection>>([]);
+  private homeSections$: Subject<Array<HomeSection>> = new BehaviorSubject<Array<HomeSection>>([]);
 
-  entityGroupSections: Array<EntityGroupSection> = [];
+  private entityGroupSections: Array<EntityGroupSection> = [];
+
+  private currentMenuSections: Array<MenuSection> = [];
+  private currentHomeSections: Array<HomeSection> = [];
+
+  private currentCustomSection: MenuSection = null;
+  private currentCustomChildSection: MenuSection = null;
 
   constructor(private store: Store<AppState>,
               private router: Router,
@@ -75,6 +81,9 @@ export class MenuService {
     this.customMenuService.customMenuChanged$.subscribe(() => {
       this.buildMenu();
     });
+    this.router.events.pipe(filter(event => event instanceof ActivationEnd)).subscribe(() => {
+      this.updateCurrentCustomSection();
+    });
   }
 
   private buildMenu() {
@@ -82,11 +91,11 @@ export class MenuService {
       entityGroupSection.destroy();
     }
     this.entityGroupSections.length = 0;
+    this.currentMenuSections.length = 0;
+    this.currentHomeSections.length = 0;
     this.store.pipe(select(selectAuth), take(1)).subscribe(
       (authState: AuthState) => {
         if (authState.authUser) {
-          let menuSections: Array<MenuSection>;
-          let homeSections: Array<HomeSection>;
           const customMenu = this.customMenuService.getCustomMenu();
           let disabledItems: string[] = [];
           if (customMenu && customMenu.disabledMenuItems) {
@@ -94,28 +103,25 @@ export class MenuService {
           }
           switch (authState.authUser.authority) {
             case Authority.SYS_ADMIN:
-              menuSections = this.buildSysAdminMenu(authState, disabledItems);
-              homeSections = this.buildSysAdminHome(authState, disabledItems);
+              this.currentMenuSections = this.buildSysAdminMenu(authState, disabledItems);
+              this.currentHomeSections = this.buildSysAdminHome(authState, disabledItems);
               break;
             case Authority.TENANT_ADMIN:
-              menuSections = this.buildTenantAdminMenu(authState, disabledItems);
-              homeSections = this.buildTenantAdminHome(authState, disabledItems);
+              this.currentMenuSections = this.buildTenantAdminMenu(authState, disabledItems);
+              this.currentHomeSections = this.buildTenantAdminHome(authState, disabledItems);
               break;
             case Authority.CUSTOMER_USER:
-              menuSections = this.buildCustomerUserMenu(authState, disabledItems);
-              homeSections = this.buildCustomerUserHome(authState, disabledItems);
+              this.currentMenuSections = this.buildCustomerUserMenu(authState, disabledItems);
+              this.currentHomeSections = this.buildCustomerUserHome(authState, disabledItems);
               break;
           }
-          if (authState.authUser.authority === Authority.TENANT_ADMIN ||
-              authState.authUser.authority === Authority.CUSTOMER_USER) {
-            let customMenuItems: CustomMenuItem[] = [];
-            if (customMenu && customMenu.menuItems) {
-              customMenuItems = customMenu.menuItems;
-            }
-            this.buildCustomMenu(customMenuItems, menuSections);
+          let customMenuItems: CustomMenuItem[] = [];
+          if (customMenu && customMenu.menuItems) {
+            customMenuItems = customMenu.menuItems;
           }
-          this.menuSections$.next(menuSections);
-          this.homeSections$.next(homeSections);
+          this.buildCustomMenu(customMenuItems);
+          this.menuSections$.next(this.currentMenuSections);
+          this.homeSections$.next(this.currentHomeSections);
         }
       }
     );
@@ -150,65 +156,71 @@ export class MenuService {
         path: '/widgets-bundles',
         icon: 'now_widgets',
         disabled: disabledItems.indexOf('widget_library') > -1
-      },
-      {
-        name: 'admin.system-settings',
-        type: 'toggle',
-        path: '/settings',
-        icon: 'settings',
-        pages: of([
-          {
-            name: 'admin.outgoing-mail',
-            type: 'link',
-            path: '/settings/outgoing-mail',
-            icon: 'mail',
-            disabled: disabledItems.indexOf('mail_server') > -1
-          },
-          {
-            name: 'admin.mail-templates',
-            type: 'link',
-            path: '/settings/mail-template',
-            icon: 'format_shapes',
-            disabled: disabledItems.indexOf('mail_templates') > -1
-          },
-          {
-            name: 'white-labeling.white-labeling',
-            type: 'link',
-            path: '/settings/whiteLabel',
-            icon: 'format_paint',
-            disabled: disabledItems.indexOf('white_labeling') > -1
-          },
-          {
-            name: 'white-labeling.login-white-labeling',
-            type: 'link',
-            path: '/settings/loginWhiteLabel',
-            icon: 'format_paint',
-            disabled: disabledItems.indexOf('login_white_labeling') > -1
-          },
-          {
-            name: 'custom-translation.custom-translation',
-            type: 'link',
-            path: '/settings/customTranslation',
-            icon: 'language',
-            disabled: disabledItems.indexOf('custom_translation') > -1
-          },
-          {
-            name: 'custom-menu.custom-menu',
-            type: 'link',
-            path: '/settings/customMenu',
-            icon: 'list',
-            disabled: disabledItems.indexOf('custom_menu') > -1
-          },
-          {
-            name: 'admin.security-settings',
-            type: 'link',
-            path: '/settings/security-settings',
-            icon: 'security',
-            disabled: disabledItems.indexOf('security_settings') > -1
-          }
-        ])
       }
     );
+
+    const pages: Array<MenuSection> = [
+      {
+        name: 'admin.outgoing-mail',
+        type: 'link',
+        path: '/settings/outgoing-mail',
+        icon: 'mail',
+        disabled: disabledItems.indexOf('mail_server') > -1
+      },
+      {
+        name: 'admin.mail-templates',
+        type: 'link',
+        path: '/settings/mail-template',
+        icon: 'format_shapes',
+        disabled: disabledItems.indexOf('mail_templates') > -1
+      },
+      {
+        name: 'white-labeling.white-labeling',
+        type: 'link',
+        path: '/settings/whiteLabel',
+        icon: 'format_paint',
+        disabled: disabledItems.indexOf('white_labeling') > -1
+      },
+      {
+        name: 'white-labeling.login-white-labeling',
+        type: 'link',
+        path: '/settings/loginWhiteLabel',
+        icon: 'format_paint',
+        disabled: disabledItems.indexOf('login_white_labeling') > -1
+      },
+      {
+        name: 'custom-translation.custom-translation',
+        type: 'link',
+        path: '/settings/customTranslation',
+        icon: 'language',
+        disabled: disabledItems.indexOf('custom_translation') > -1
+      },
+      {
+        name: 'custom-menu.custom-menu',
+        type: 'link',
+        path: '/settings/customMenu',
+        icon: 'list',
+        disabled: disabledItems.indexOf('custom_menu') > -1
+      },
+      {
+        name: 'admin.security-settings',
+        type: 'link',
+        path: '/settings/security-settings',
+        icon: 'security',
+        disabled: disabledItems.indexOf('security_settings') > -1
+      }
+    ];
+
+    const section: MenuSection = {
+      name: 'admin.system-settings',
+      type: 'toggle',
+      path: '/settings',
+      icon: 'settings',
+      pages,
+      asyncPages: of(pages)
+    };
+
+    sections.push(section);
     return sections;
   }
 
@@ -410,63 +422,65 @@ export class MenuService {
       );
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+      const pages: Array<MenuSection> = [
+        {
+          name: 'admin.outgoing-mail',
+          type: 'link',
+          path: '/settings/outgoing-mail',
+          icon: 'mail',
+          disabled: disabledItems.indexOf('mail_server') > -1
+        },
+        {
+          name: 'admin.mail-templates',
+          type: 'link',
+          path: '/settings/mail-template',
+          icon: 'format_shapes',
+          disabled: disabledItems.indexOf('mail_templates') > -1
+        },
+        {
+          name: 'custom-translation.custom-translation',
+          type: 'link',
+          path: '/settings/customTranslation',
+          icon: 'language',
+          disabled: disabledItems.indexOf('custom_translation') > -1
+        },
+        {
+          name: 'custom-menu.custom-menu',
+          type: 'link',
+          path: '/settings/customMenu',
+          icon: 'list',
+          disabled: disabledItems.indexOf('custom_menu') > -1
+        },
+        {
+          name: 'white-labeling.white-labeling',
+          type: 'link',
+          path: '/settings/whiteLabel',
+          icon: 'format_paint',
+          disabled: disabledItems.indexOf('white_labeling') > -1
+        },
+        {
+          name: 'white-labeling.login-white-labeling',
+          type: 'link',
+          path: '/settings/loginWhiteLabel',
+          icon: 'format_paint',
+          disabled: disabledItems.indexOf('login_white_labeling') > -1
+        },
+        {
+          name: 'self-registration.self-registration',
+          type: 'link',
+          path: '/settings/selfRegistration',
+          icon: 'group_add',
+          disabled: disabledItems.indexOf('self_registration') > -1
+        }
+      ];
       sections.push(
         {
           name: 'white-labeling.white-labeling',
           type: 'toggle',
           path: '/settings',
           icon: 'format_paint',
-          pages: of([
-            {
-              name: 'admin.outgoing-mail',
-              type: 'link',
-              path: '/settings/outgoing-mail',
-              icon: 'mail',
-              disabled: disabledItems.indexOf('mail_server') > -1
-            },
-            {
-              name: 'admin.mail-templates',
-              type: 'link',
-              path: '/settings/mail-template',
-              icon: 'format_shapes',
-              disabled: disabledItems.indexOf('mail_templates') > -1
-            },
-            {
-              name: 'custom-translation.custom-translation',
-              type: 'link',
-              path: '/settings/customTranslation',
-              icon: 'language',
-              disabled: disabledItems.indexOf('custom_translation') > -1
-            },
-            {
-              name: 'custom-menu.custom-menu',
-              type: 'link',
-              path: '/settings/customMenu',
-              icon: 'list',
-              disabled: disabledItems.indexOf('custom_menu') > -1
-            },
-            {
-              name: 'white-labeling.white-labeling',
-              type: 'link',
-              path: '/settings/whiteLabel',
-              icon: 'format_paint',
-              disabled: disabledItems.indexOf('white_labeling') > -1
-            },
-            {
-              name: 'white-labeling.login-white-labeling',
-              type: 'link',
-              path: '/settings/loginWhiteLabel',
-              icon: 'format_paint',
-              disabled: disabledItems.indexOf('login_white_labeling') > -1
-            },
-            {
-              name: 'self-registration.self-registration',
-              type: 'link',
-              path: '/settings/selfRegistration',
-              icon: 'group_add',
-              disabled: disabledItems.indexOf('self_registration') > -1
-            }
-          ])
+          pages,
+          asyncPages: of(pages)
         }
       );
     }
@@ -812,42 +826,44 @@ export class MenuService {
       );
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+      const pages: Array<MenuSection> = [
+        {
+          name: 'custom-translation.custom-translation',
+          type: 'link',
+          path: '/settings/customTranslation',
+          icon: 'language',
+          disabled: disabledItems.indexOf('custom_translation') > -1
+        },
+        {
+          name: 'custom-menu.custom-menu',
+          type: 'link',
+          path: '/settings/customMenu',
+          icon: 'list',
+          disabled: disabledItems.indexOf('custom_menu') > -1
+        },
+        {
+          name: 'white-labeling.white-labeling',
+          type: 'link',
+          path: '/settings/whiteLabel',
+          icon: 'format_paint',
+          disabled: disabledItems.indexOf('white_labeling') > -1
+        },
+        {
+          name: 'white-labeling.login-white-labeling',
+          type: 'link',
+          path: '/settings/loginWhiteLabel',
+          icon: 'format_paint',
+          disabled: disabledItems.indexOf('login_white_labeling') > -1
+        }
+      ];
       sections.push(
         {
           name: 'white-labeling.white-labeling',
           type: 'toggle',
           path: '/settings',
           icon: 'format_paint',
-          pages: of([
-            {
-              name: 'custom-translation.custom-translation',
-              type: 'link',
-              path: '/settings/customTranslation',
-              icon: 'language',
-              disabled: disabledItems.indexOf('custom_translation') > -1
-            },
-            {
-              name: 'custom-menu.custom-menu',
-              type: 'link',
-              path: '/settings/customMenu',
-              icon: 'list',
-              disabled: disabledItems.indexOf('custom_menu') > -1
-            },
-            {
-              name: 'white-labeling.white-labeling',
-              type: 'link',
-              path: '/settings/whiteLabel',
-              icon: 'format_paint',
-              disabled: disabledItems.indexOf('white_labeling') > -1
-            },
-            {
-              name: 'white-labeling.login-white-labeling',
-              type: 'link',
-              path: '/settings/loginWhiteLabel',
-              icon: 'format_paint',
-              disabled: disabledItems.indexOf('login_white_labeling') > -1
-            }
-          ])
+          pages,
+          asyncPages: of(pages)
         }
       );
     }
@@ -1056,8 +1072,70 @@ export class MenuService {
     return homeSections;
   }
 
-  private buildCustomMenu(customMenuItems: CustomMenuItem[], menuSections: MenuSection[]) {
-    // TODO: Custom Menu
+  private buildCustomMenu(customMenuItems: CustomMenuItem[]) {
+    const stateIds: {[stateId: string]: boolean} = {};
+    for (const customMenuItem of customMenuItems) {
+      const stateId = this.getCustomMenuStateId(customMenuItem.name, stateIds);
+      const customMenuSection = {
+        isCustom: true,
+        stateId,
+        name: customMenuItem.name,
+        icon: customMenuItem.materialIcon,
+        iconUrl: customMenuItem.iconUrl,
+        path: '/iframeView'
+      } as MenuSection;
+      customMenuSection.queryParams = {
+        stateId,
+        iframeUrl: customMenuItem.iframeUrl,
+        setAccessToken: customMenuItem.setAccessToken
+      };
+      if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
+        customMenuSection.type = 'toggle';
+        const pages: MenuSection[] = [];
+        const childStateIds: {[stateId: string]: boolean} = {};
+        for (const customMenuChildItem of customMenuItem.childMenuItems) {
+          const childStateId = this.getCustomMenuStateId(customMenuChildItem.name, stateIds);
+          const customMenuChildSection: MenuSection = {
+            isCustom: true,
+            stateId: childStateId,
+            name: customMenuChildItem.name,
+            type: 'link',
+            icon: customMenuChildItem.materialIcon,
+            iconUrl: customMenuChildItem.iconUrl,
+            path: '/iframeView/child'
+          };
+          customMenuChildSection.queryParams = {
+            stateId,
+            iframeUrl: customMenuItem.iframeUrl,
+            setAccessToken: customMenuItem.setAccessToken,
+            childStateId,
+            childIframeUrl: customMenuChildItem.iframeUrl,
+            childSetAccessToken: customMenuChildItem.setAccessToken
+          };
+          pages.push(customMenuChildSection);
+          childStateIds[childStateId] = true;
+        }
+        customMenuSection.pages = pages;
+        customMenuSection.asyncPages = of(pages);
+        customMenuSection.childStateIds = childStateIds;
+      } else {
+        customMenuSection.type = 'link';
+      }
+      this.currentMenuSections.push(customMenuSection);
+    }
+    this.updateCurrentCustomSection();
+  }
+
+  private getCustomMenuStateId(name: string, stateIds: {[stateId: string]: boolean}): string {
+    const origName = (' ' + name).slice(1);
+    let stateId = origName;
+    let inc = 1;
+    while (stateIds[stateId]) {
+      stateId = origName + inc;
+      inc++;
+    }
+    stateIds[stateId] = true;
+    return stateId;
   }
 
   public menuSections(): Observable<Array<MenuSection>> {
@@ -1068,14 +1146,86 @@ export class MenuService {
     return this.homeSections$;
   }
 
+  public sectionActive(section: MenuSection): boolean {
+    if (section.isCustom) {
+      const queryParams = this.extractQueryParams();
+      if (queryParams) {
+        if (queryParams.childStateId) {
+          return section.stateId === queryParams.childStateId ||
+            (section.childStateIds && section.childStateIds[queryParams.childStateId]);
+        } else if (queryParams.stateId) {
+          return section.stateId === queryParams.stateId;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return this.router.isActive(section.path, false);
+    }
+  }
+
+  public getCurrentCustomSection(): MenuSection {
+    return this.currentCustomSection;
+  }
+
+  public getCurrentCustomChildSection(): MenuSection {
+    return this.currentCustomChildSection;
+  }
+
+  private updateCurrentCustomSection() {
+    const queryParams = this.extractQueryParams();
+    this.currentCustomSection = this.detectCurrentCustomSection(queryParams);
+    this.currentCustomChildSection = this.detectCurrentCustomChildSection(queryParams);
+  }
+
+  private detectCurrentCustomSection(queryParams: Params): MenuSection {
+    if (queryParams && queryParams.stateId) {
+      const stateId: string = queryParams.stateId;
+      const found =
+        this.currentMenuSections.find((section) => section.isCustom && section.stateId === stateId);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  private detectCurrentCustomChildSection(queryParams: Params): MenuSection {
+    if (queryParams && queryParams.childStateId) {
+      const stateId = queryParams.childStateId;
+      for (const section of this.currentMenuSections) {
+        if (section.isCustom && section.pages && section.pages.length) {
+          const found =
+            section.pages.find((childSection) => childSection.stateId === stateId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private extractQueryParams(): Params {
+    const state = this.router.routerState;
+    const snapshot =  state.snapshot;
+    let lastChild = snapshot.root;
+    while (lastChild.children.length) {
+      lastChild = lastChild.children[0];
+    }
+    return lastChild.queryParams;
+  }
+
   public getRedirectPath(parentPath: string, redirectPath: string): Observable<string> {
     return this.menuSections$.pipe(
       mergeMap((sections) => {
         const filtered = sections.filter((section) => section.path === parentPath);
         if (filtered && filtered.length) {
           const parentSection = filtered[0];
-          if (parentSection.pages) {
-            return parentSection.pages.pipe(
+          if (parentSection.asyncPages) {
+            return parentSection.asyncPages.pipe(
               map((childPages) => {
                 const filteredPages = childPages.filter((page) => !page.disabled);
                 if (filteredPages && filteredPages.length) {
@@ -1103,7 +1253,7 @@ class EntityGroupSection {
 
   private subscriptions: Subscription[] = [];
 
-  private groupsChangedSubject = new ReplaySubject(1);
+  private groupsPagesSubject: BehaviorSubject<Array<MenuSection>> = new BehaviorSubject([]);
 
   constructor(private router: Router,
               private groupType: EntityType,
@@ -1139,7 +1289,9 @@ class EntityGroupSection {
 
   private loadGroups() {
     if (this.router.isActive(this.section.path, false) && !this.loadedGroupPages) {
-      this.groupsChangedSubject.next();
+      this.loadGroupPages().subscribe((groupPages) => {
+        this.groupsPagesSubject.next(groupPages);
+      });
     }
   }
 
@@ -1184,13 +1336,13 @@ class EntityGroupSection {
       type: 'toggle',
       path,
       icon,
-      pages: this.groupsChangedSubject.asObservable().pipe(
-        mergeMap(() => this.getPages())
-      )
+      groupType: this.groupType,
+      asyncPages: this.groupsPagesSubject,
+      pages: this.groupsPagesSubject.value
     };
   }
 
-  private getPages(): Observable<Array<MenuSection>> {
+  private loadGroupPages(): Observable<Array<MenuSection>> {
     if (!this.loadedGroupPages) {
       this.loadedGroupPages = this.entityGroupService.getEntityGroups(this.groupType).pipe(
         map((groups) => {
@@ -1206,6 +1358,7 @@ class EntityGroupSection {
               }
             );
           });
+          this.section.pages = pages;
           return pages;
         }),
         publishReplay(1),

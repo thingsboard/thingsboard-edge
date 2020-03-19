@@ -29,53 +29,55 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { environment as env } from '@env/environment';
-import { TranslateService } from '@ngx-translate/core';
-import * as _moment from 'moment';
-import { Observable } from 'rxjs';
+import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AuthService } from '@core/auth/auth.service';
+import { Subscription } from 'rxjs';
 
-export function updateUserLang(translate: TranslateService, userLang: string): Observable<any> {
-  let targetLang = userLang;
-  if (!env.production) {
-    console.log(`User lang: ${targetLang}`);
-  }
-  if (!targetLang) {
-    targetLang = translate.getBrowserCultureLang();
-    if (!env.production) {
-      console.log(`Fallback to browser lang: ${targetLang}`);
-    }
-  }
-  const detectedSupportedLang = detectSupportedLang(targetLang);
-  if (!env.production) {
-    console.log(`Detected supported lang: ${detectedSupportedLang}`);
-  }
-  _moment.locale([detectedSupportedLang]);
-  return translate.use(detectedSupportedLang);
-}
+@Component({
+  selector: 'tb-iframe-view',
+  templateUrl: './iframe-view.component.html'
+})
+export class IFrameViewComponent implements OnInit, OnDestroy {
 
-function detectSupportedLang(targetLang: string): string {
-  const langTag = (targetLang || '').split('-').join('_');
-  if (langTag.length) {
-    if (env.supportedLangs.indexOf(langTag) > -1) {
-      return langTag;
-    } else {
-      const parts = langTag.split('_');
-      let lang;
-      if (parts.length === 2) {
-        lang = parts[0];
+  @HostBinding('style.width') public width = '100%';
+  @HostBinding('style.height') public height = '100%';
+
+  safeIframeUrl: SafeResourceUrl;
+
+  private sub: Subscription;
+
+  constructor(private sanitizer: DomSanitizer,
+              private route: ActivatedRoute) {
+  }
+
+  ngOnInit(): void {
+    this.sub = this.route.queryParams.subscribe((queryParams) => {
+      let iframeUrl: string;
+      let setAccessToken: string;
+      if (queryParams.childIframeUrl) {
+        iframeUrl = queryParams.childIframeUrl;
+        setAccessToken = queryParams.childSetAccessToken;
       } else {
-        lang = langTag;
+        iframeUrl = queryParams.iframeUrl;
+        setAccessToken = queryParams.setAccessToken;
       }
-      const foundLangs = env.supportedLangs.filter(
-        (supportedLang: string) => {
-          const supportedLangParts = supportedLang.split('_');
-          return supportedLangParts[0] === lang;
+      if (setAccessToken === 'true') {
+        const accessToken = AuthService.getJwtToken();
+        if (iframeUrl.indexOf('?') > -1) {
+          iframeUrl += '&';
+        } else {
+          iframeUrl += '?';
         }
-      );
-      if (foundLangs.length) {
-        return foundLangs[0];
+        iframeUrl += `accessToken=${accessToken}`;
       }
-    }
+      this.safeIframeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(iframeUrl);
+    });
   }
-  return env.defaultLang;
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
 }

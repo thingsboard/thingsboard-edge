@@ -1,0 +1,84 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div>
+  <mat-card class="settings-card">
+    <mat-card-title>
+      <div fxLayout="row">
+        <span class="mat-headline" translate>custom-translation.custom-translation</span>
+        <span fxFlex></span>
+        <div tb-help="customTranslation"></div>
+      </div>
+    </mat-card-title>
+    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+    </mat-progress-bar>
+    <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+    <mat-card-content style="padding-top: 16px;">
+      <div fxLayout="row" style="width: 100%;" fxLayoutGap="8px" fxLayoutAlign="start center">
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>language.language</mat-label>
+          <mat-select matInput [(ngModel)]="currentLang">
+            <mat-option *ngFor="let lang of languageList" [value]="lang">
+              {{ lang ? ('language.locales.' + lang | translate) : ''}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-button mat-raised-button (click)="downloadLocaleJson()">{{'custom-translation.download-locale-file' | translate }}</button>
+      </div>
+      <form #customTranslationForm="ngForm" (ngSubmit)="save()">
+        <div tb-toast toastTarget="tb-custom-translation-panel" fxFlex fxLayout="column">
+          <div class="tb-hint" translate>custom-translation.custom-translation-hint</div>
+          <fieldset [disabled]="isLoading$ | async">
+            <div class="mat-block" style="height: 500px; padding: 2px; margin: 18px 0;">
+              <tb-json-content
+                [readonly]="readonly"
+                [(ngModel)]="customTranslation.translationMap[currentLang]"
+                (ngModelChange)="isDirty = true"
+                [ngModelOptions]="{standalone: true}"
+                label="{{'custom-translation.translation-map' | translate}}"
+                [contentType]="contentType.JSON"
+                [tbPlaceholder]="translationPlaceholder"
+                [fillHeight]="true">
+              </tb-json-content>
+            </div>
+          </fieldset>
+        </div>
+        <div fxLayout="row" fxLayoutAlign="end center" style="width: 100%;" class="layout-wrap">
+          <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+                  [disabled]="(isLoading$ | async) || customTranslationForm.invalid || !isDirty"
+                  type="submit">{{'action.save' | translate}}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

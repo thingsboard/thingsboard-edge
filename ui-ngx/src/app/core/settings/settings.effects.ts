@@ -56,9 +56,10 @@ import { TitleService } from '@app/core/services/title.service';
 import { updateUserLang } from '@app/core/settings/settings.utils';
 import { AuthService } from '@core/auth/auth.service';
 import { UtilsService } from '@core/services/utils.service';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { ActionAuthUpdateLastPublicDashboardId } from '../auth/auth.actions';
 import { FaviconService } from '@core/services/favicon.service';
+import { CustomTranslationService } from '@core/http/custom-translation.service';
 
 export const SETTINGS_KEY = 'SETTINGS';
 
@@ -73,7 +74,8 @@ export class SettingsEffects {
     private localStorageService: LocalStorageService,
     private titleService: TitleService,
     private faviconService: FaviconService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private customTranslationService: CustomTranslationService
   ) {
   }
 
@@ -93,7 +95,13 @@ export class SettingsEffects {
     select(selectSettingsState),
     map(settings => settings.userLang),
     distinctUntilChanged(),
-    tap(userLang => updateUserLang(this.translate, userLang))
+    tap(userLang => {
+      updateUserLang(this.translate, userLang).subscribe(() => {
+        if (getCurrentAuthState(this.store).isAuthenticated) {
+          this.customTranslationService.updateCustomTranslations();
+        }
+      })
+    })
   );
 
   @Effect({dispatch: false})

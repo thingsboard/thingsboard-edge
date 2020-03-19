@@ -29,58 +29,14 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-width: 0;
-  flex: 1;
-
-  .tb-breadcrumb {
-    font-size: 18px !important;
-    font-weight: 400 !important;
-    overflow: hidden;
-
-    h1,
-    a,
-    span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    h1 {
-      font-size: 24px !important;
-      font-weight: 400 !important;
-    }
-
-    a {
-      border: none;
-      opacity: .75;
-      transition: opacity .35s;
-      color: inherit;
-      text-decoration: none;
-    }
-
-    a:hover,
-    a:focus {
-      text-decoration: none !important;
-      border: none;
-      opacity: 1;
-    }
-
-    .divider {
-      padding: 0 30px;
-    }
-
-    img {
-      display: inline-block;
-      width: 24px;
-      min-width: 24px;
-      height: 24px;
-      min-height: 24px;
-      margin-bottom: -5px;
-      color: rgb(255, 255, 255);
-      fill: rgb(255, 255, 255);
+  .tb-mail-template-settings {
+    .tb-mail-body {
+      min-height: 450px;
+      mat-label.tb-title {
+        margin-top: -10px;
+        display: block;
+        margin-bottom: 10px;
+      }
     }
   }
 }

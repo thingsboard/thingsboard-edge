@@ -30,6 +30,7 @@
 ///
 
 import { Observable } from 'rxjs';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export declare type MenuSectionType = 'link' | 'toggle';
 
@@ -37,11 +38,18 @@ export class MenuSection {
   name: string;
   type: MenuSectionType;
   path: string;
+  queryParams?: {[k: string]: any};
   icon: string;
+  iconUrl?: string;
   isMdiIcon?: boolean;
-  pages?: Observable<Array<MenuSection>>;
+  asyncPages?: Observable<Array<MenuSection>>;
+  pages?: Array<MenuSection>;
   disabled?: boolean;
   ignoreTranslate?: boolean;
+  groupType?: EntityType;
+  isCustom?: boolean;
+  stateId?: string;
+  childStateIds?: {[stateId: string]: boolean};
 }
 
 export class HomeSection {

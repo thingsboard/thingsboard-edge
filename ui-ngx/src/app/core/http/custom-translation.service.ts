@@ -82,6 +82,8 @@ export class CustomTranslationService {
       reloadObservable.subscribe(() => {
         if (translationMap) {
           this.translate.setTranslation(langKey, translationMap, true);
+        } else {
+          this.translate.onTranslationChange.emit({ lang: langKey, translations: this.translate.translations[langKey] });
         }
         this.translateLoadObservable = null;
         updateCustomTranslationSubject.next();

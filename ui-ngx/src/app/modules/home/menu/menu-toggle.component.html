@@ -31,11 +31,14 @@
 
 -->
 <a class="mat-button tb-button-toggle"
-        routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}" routerLink="{{section.path}}">
+        routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}"
+        [queryParams]="section.queryParams"
+        [routerLink]="section.path">
   <span class="mat-button-wrapper">
-    <mat-icon *ngIf="!section.isMdiIcon && section.icon != null" class="material-icons">{{section.icon}}</mat-icon>
-    <mat-icon *ngIf="section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
-    <span>{{section.name | translate}}</span>
+    <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
+    <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon != null">{{section.icon}}</mat-icon>
+    <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
+    <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
     <span class=" pull-right fa fa-chevron-down tb-toggle-icon"
           [ngClass]="{'tb-toggled' : sectionActive()}"></span>
   </span>

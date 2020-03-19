@@ -280,7 +280,7 @@
     "select-group-to-move": "Atlasīt mērķa grupu lai pārvietotu atlasītos aktīvus",
     "remove-assets-from-group": "Vai esat pārliecināts ka vēlaties noņemt { count, plural, 1 {1 asset} other {# aktīvus} } no grupas '{entityGroup}'?",
     "group": "Aktīvu grupa",
-    "list-of-groups": "{ count, plural, 1 {One asset group} citu {List of # aktīva grupas} }",
+    "list-of-groups": "{ count, plural, 1 {One asset group} other {List of # aktīva grupas} }",
     "group-name-starts-with": "Aktīvu grupa kuru vārdi sākas ar '{{prefix}}'",
     "import": "Importēt aktīvus",
     "asset-file": "Aktīvu fails"

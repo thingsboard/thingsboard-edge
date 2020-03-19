@@ -29,53 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { environment as env } from '@env/environment';
-import { TranslateService } from '@ngx-translate/core';
-import * as _moment from 'moment';
-import { Observable } from 'rxjs';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@app/shared/shared.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { IFrameViewRoutingModule } from '@home/pages/iframe/iframe-view-routing.module';
+import { IFrameViewComponent } from '@home/pages/iframe/iframe-view.component';
 
-export function updateUserLang(translate: TranslateService, userLang: string): Observable<any> {
-  let targetLang = userLang;
-  if (!env.production) {
-    console.log(`User lang: ${targetLang}`);
-  }
-  if (!targetLang) {
-    targetLang = translate.getBrowserCultureLang();
-    if (!env.production) {
-      console.log(`Fallback to browser lang: ${targetLang}`);
-    }
-  }
-  const detectedSupportedLang = detectSupportedLang(targetLang);
-  if (!env.production) {
-    console.log(`Detected supported lang: ${detectedSupportedLang}`);
-  }
-  _moment.locale([detectedSupportedLang]);
-  return translate.use(detectedSupportedLang);
-}
-
-function detectSupportedLang(targetLang: string): string {
-  const langTag = (targetLang || '').split('-').join('_');
-  if (langTag.length) {
-    if (env.supportedLangs.indexOf(langTag) > -1) {
-      return langTag;
-    } else {
-      const parts = langTag.split('_');
-      let lang;
-      if (parts.length === 2) {
-        lang = parts[0];
-      } else {
-        lang = langTag;
-      }
-      const foundLangs = env.supportedLangs.filter(
-        (supportedLang: string) => {
-          const supportedLangParts = supportedLang.split('_');
-          return supportedLangParts[0] === lang;
-        }
-      );
-      if (foundLangs.length) {
-        return foundLangs[0];
-      }
-    }
-  }
-  return env.defaultLang;
-}
+@NgModule({
+  declarations:
+    [
+      IFrameViewComponent
+    ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    IFrameViewRoutingModule
+  ]
+})
+export class IFrameViewModule { }

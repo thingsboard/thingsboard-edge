@@ -35,6 +35,9 @@ import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { MenuSection } from '@core/services/menu.models';
+import { MenuService } from '@core/services/menu.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-breadcrumb',
@@ -64,7 +67,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
 
   constructor(private router: Router,
               private activatedRoute: ActivatedRoute,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private menuService: MenuService,
+              public utils: UtilsService) {
   }
 
   ngOnInit(): void {
@@ -85,24 +90,47 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let label;
         let labelFunction;
         let ignoreTranslate;
-        if (breadcrumbConfig.labelFunction) {
-          labelFunction = () => {
-            return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue);
-          };
-          ignoreTranslate = true;
-        } else {
-          label = breadcrumbConfig.label || 'home.home';
-          ignoreTranslate = false;
+        let icon;
+        let iconUrl;
+        let isMdiIcon;
+        let link;
+        let queryParams;
+        let section: MenuSection = null;
+        if (breadcrumbConfig.custom || breadcrumbConfig.customChild) {
+          section = breadcrumbConfig.custom ? this.menuService.getCurrentCustomSection()
+            : this.menuService.getCurrentCustomChildSection();
         }
-        const icon = breadcrumbConfig.icon || 'home';
-        const isMdiIcon = icon.startsWith('mdi:');
-        const link = [ route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/') ];
-        const queryParams = route.queryParams;
+        if (section) {
+          ignoreTranslate = true;
+          label = section.name;
+          icon = section.icon;
+          if (icon) {
+            isMdiIcon = icon.startsWith('mdi:');
+          }
+          iconUrl = section.iconUrl;
+          link = section.path;
+          queryParams = section.queryParams;
+        } else {
+          if (breadcrumbConfig.labelFunction) {
+            labelFunction = () => {
+              return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue);
+            };
+            ignoreTranslate = true;
+          } else {
+            label = breadcrumbConfig.label || 'home.home';
+            ignoreTranslate = false;
+          }
+          icon = breadcrumbConfig.icon || 'home';
+          isMdiIcon = icon.startsWith('mdi:');
+          link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
+          queryParams = route.queryParams;
+        }
         const breadcrumb = {
           label,
           labelFunction,
           ignoreTranslate,
           icon,
+          iconUrl,
           isMdiIcon,
           link,
           queryParams

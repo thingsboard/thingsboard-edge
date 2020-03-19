@@ -29,6 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { ActivationMethod } from '@shared/models/user.model';
+
 export const smtpPortPattern: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
 export interface AdminSettings<T> {
@@ -39,6 +41,7 @@ export interface AdminSettings<T> {
 export declare type SmtpProtocol = 'smtp' | 'smtps';
 
 export interface MailServerSettings {
+  useSystemMailSettings: boolean;
   mailFrom: string;
   smtpProtocol: SmtpProtocol;
   smtpHost: string;
@@ -51,6 +54,38 @@ export interface MailServerSettings {
 
 export interface GeneralSettings {
   baseUrl: string;
+}
+
+export enum MailTemplate {
+  test = 'test',
+  activation = 'activation',
+  accountActivated = 'accountActivated',
+  accountLockout = 'accountLockout',
+  resetPassword = 'resetPassword',
+  passwordWasReset = 'passwordWasReset',
+  userActivated = 'userActivated',
+  userRegistered = 'userRegistered'
+}
+
+export const mailTemplateTranslations = new Map<MailTemplate, string>(
+  [
+    [MailTemplate.test, 'admin.mail-template.test'],
+    [MailTemplate.activation, 'admin.mail-template.activation'],
+    [MailTemplate.accountActivated, 'admin.mail-template.account-activated'],
+    [MailTemplate.accountLockout, 'admin.mail-template.account-lockout'],
+    [MailTemplate.resetPassword, 'admin.mail-template.reset-password'],
+    [MailTemplate.passwordWasReset, 'admin.mail-template.password-was-reset'],
+    [MailTemplate.userActivated, 'admin.mail-template.user-activated'],
+    [MailTemplate.userRegistered, 'admin.mail-template.user-registered']
+  ]
+);
+
+export interface MailTemplatesSettings {
+  useSystemMailSettings?: any;
+  [mailTemplate: string]: {
+    subject: string;
+    body: string;
+  }
 }
 
 export interface UserPasswordPolicy {

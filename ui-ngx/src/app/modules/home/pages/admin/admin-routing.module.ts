@@ -29,14 +29,72 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
-import { AuthGuard } from '@core/guards/auth.guard';
+import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
+import { Observable } from 'rxjs';
+import { AdminSettings, MailTemplatesSettings } from '@shared/models/settings.models';
+import { AdminService } from '@core/http/admin.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { map } from 'rxjs/operators';
+import { isDefined } from '@core/utils';
+import { CustomTranslation } from '@shared/models/custom-translation.model';
+import { CustomTranslationService } from '@core/http/custom-translation.service';
+import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
+import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
+import { CustomMenu } from '@shared/models/custom-menu.models';
+import { CustomMenuService } from '@core/http/custom-menu.service';
+
+@Injectable()
+export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
+
+  constructor(private adminService: AdminService,
+              private store: Store<AppState>) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<AdminSettings<MailTemplatesSettings>> {
+    return this.adminService.getAdminSettings<MailTemplatesSettings>('mailTemplates', true).pipe(
+      map((adminSettings) => {
+        let useSystemMailSettings = false;
+        if (getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
+          useSystemMailSettings = isDefined(adminSettings.jsonValue.useSystemMailSettings) ?
+            adminSettings.jsonValue.useSystemMailSettings : true;
+        }
+        adminSettings.jsonValue.useSystemMailSettings = useSystemMailSettings;
+        return adminSettings;
+      })
+    );
+  }
+}
+
+@Injectable()
+export class CustomTranslationResolver implements Resolve<CustomTranslation> {
+
+  constructor(private customTranslationService: CustomTranslationService) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<CustomTranslation> {
+    return this.customTranslationService.getCurrentCustomTranslation();
+  }
+}
+
+@Injectable()
+export class CustomMenuResolver implements Resolve<CustomMenu> {
+
+  constructor(private customMenuService: CustomMenuService) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<CustomMenu> {
+    return this.customMenuService.getCurrentCustomMenu();
+  }
+}
 
 const routes: Routes = [
   {
@@ -74,6 +132,54 @@ const routes: Routes = [
         }
       },
       {
+        path: 'mail-template',
+        component: MailTemplatesComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'admin.mail-template-settings',
+          breadcrumb: {
+            label: 'admin.mail-templates',
+            icon: 'format_shapes'
+          }
+        },
+        resolve: {
+          adminSettings: MailTemplateSettingsResolver
+        }
+      },
+      {
+        path: 'customTranslation',
+        component: CustomTranslationComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'custom-translation.custom-translation',
+          breadcrumb: {
+            label: 'custom-translation.custom-translation',
+            icon: 'language'
+          }
+        },
+        resolve: {
+          customTranslation: CustomTranslationResolver
+        }
+      },
+      {
+        path: 'customMenu',
+        component: CustomMenuComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'custom-menu.custom-menu',
+          breadcrumb: {
+            label: 'custom-menu.custom-menu',
+            icon: 'list'
+          }
+        },
+        resolve: {
+          customMenu: CustomMenuResolver
+        }
+      },
+      {
         path: 'security-settings',
         component: SecuritySettingsComponent,
         canDeactivate: [ConfirmOnExitGuard],
@@ -92,6 +198,11 @@ const routes: Routes = [
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [
+    MailTemplateSettingsResolver,
+    CustomTranslationResolver,
+    CustomMenuResolver
+  ]
 })
 export class AdminRoutingModule { }

@@ -31,6 +31,9 @@
 
 import { Component, OnInit } from '@angular/core';
 import { MenuService } from '@core/services/menu.service';
+import { combineLatest, Observable, of } from 'rxjs';
+import { MenuSection } from '@core/services/menu.models';
+import { map, mergeMap, share } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-side-menu',
@@ -47,4 +50,31 @@ export class SideMenuComponent implements OnInit {
   ngOnInit() {
   }
 
+  sections(): Observable<Array<MenuSection>> {
+    return this.menuSections$.pipe(
+      mergeMap((sections) => this.filterSections(sections)),
+      share()
+    );
+  }
+
+  private filterSections(sections: Array<MenuSection>): Observable<Array<MenuSection>> {
+    const enabledSections = sections.filter(section => !section.disabled);
+    const sectionsPagesObservables = enabledSections
+      .map((section) => section.asyncPages ? section.asyncPages : of([]));
+    return combineLatest(sectionsPagesObservables).pipe(
+      map((sectionsPages) => {
+        const filteredSections: MenuSection[] = [];
+        for (let i=0;i<enabledSections.length;i++) {
+          const sectionPages = sectionsPages[i];
+          const enabledSection = enabledSections[i];
+          if (enabledSection.type !== 'toggle' || enabledSection.groupType) {
+            filteredSections.push(enabledSection);
+          } else if (sectionPages.filter((page) => !page.disabled).length > 0) {
+            filteredSections.push(enabledSection);
+          }
+        }
+        return filteredSections;
+      })
+    );
+  }
 }

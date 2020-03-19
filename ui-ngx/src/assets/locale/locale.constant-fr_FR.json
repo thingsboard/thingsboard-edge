@@ -692,7 +692,7 @@
         "public": "Public",
         "public-dashboard-link": "Lien vers le tableau de bord public",
         "public-dashboard-link-notice": "<b>Note:</b> N'oubliez pas de rendre publics les dispositifs, actifs et vues d'entités associés afin d'accéder à leurs données.",
-        "public-dashboard-link-text": "Votre tableau de bord public <b> {{{dashboardTitle}} </ b> est accessible via le prochain lien public <a href='{{publicLink}}' target='_blank'>link</a>:",
+        "public-dashboard-link-text": "Votre tableau de bord public <b> {{dashboardTitle}} </ b> est accessible via le prochain lien public <a href='{{publicLink}}' target='_blank'>link</a>:",
         "public-dashboard-notice": "<b> Remarque: </ b> N'oubliez pas de rendre publics les dispositifs associés pour accéder à leurs données.",
         "public-dashboard-text": "Votre tableau de bord <b> {{dashboardTitle}} </ b> est maintenant public et accessible via le lien public <a href='{{publicLink}}' target='_blank'> </a>: ",
         "public-dashboard-title": "Le tableau de bord est maintenant public",

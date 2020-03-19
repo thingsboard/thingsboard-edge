@@ -29,11 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
-import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { filter, map, share } from 'rxjs/operators';
+import { map, share } from 'rxjs/operators';
+import { MenuService } from '@core/services/menu.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-menu-toggle',
@@ -44,18 +45,19 @@ export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
 
-  constructor(private router: Router) {
+  constructor(public utils: UtilsService,
+              private menuService: MenuService) {
   }
 
   ngOnInit() {
   }
 
   sectionActive(): boolean {
-    return this.router.isActive(this.section.path, false);
+    return this.menuService.sectionActive(this.section);
   }
 
   sectionPages(): Observable<Array<MenuSection>> {
-    return this.section.pages.pipe(
+    return this.section.asyncPages.pipe(
       map((pages) => {
           return pages.filter((page) => !page.disabled);
         }
@@ -65,7 +67,7 @@ export class MenuToggleComponent implements OnInit {
   }
 
   sectionHeight(): Observable<string> {
-    if (this.router.isActive(this.section.path, false)) {
+    if (this.sectionActive()) {
       return this.sectionPages().pipe(
         map((pages) => {
           return pages.length * 40 + 'px';

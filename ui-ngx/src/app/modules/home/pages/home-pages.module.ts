@@ -46,6 +46,7 @@ import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.m
 import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
 import { RouterModule, Routes } from '@angular/router';
 import { StoreModule } from '@ngrx/store';
+import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
 
 @Component({
   selector: 'tb-page-not-found',
@@ -92,6 +93,7 @@ export class PageNotFoundRoutingModule { }
     DashboardModule,
     AuditLogModule,
     UserModule,
+    IFrameViewModule,
     PageNotFoundRoutingModule
   ]
 })

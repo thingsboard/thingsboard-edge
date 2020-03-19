@@ -37,6 +37,7 @@ export interface BreadCrumb {
   labelFunction?: () => string;
   ignoreTranslate: boolean;
   icon: string;
+  iconUrl: string;
   isMdiIcon: boolean;
   link: any[];
   queryParams: Params;
@@ -49,4 +50,6 @@ export interface BreadCrumbConfig {
   label: string;
   icon: string;
   skip: boolean;
+  custom: boolean;
+  customChild: boolean;
 }

@@ -988,4 +988,13 @@ mat-label {
     line-height: 1.5;
     white-space: pre-line;
   }
+
+  // TinyMCE
+
+  .tox-tinymce {
+    button:not(.mat-menu-item):not(.mat-sort-header-button) {
+      text-transform: none;
+    }
+  }
+
 }

@@ -31,6 +31,7 @@
 
 import { Component, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-menu-link',
@@ -41,7 +42,7 @@ export class MenuLinkComponent implements OnInit {
 
   @Input() section: MenuSection;
 
-  constructor() {
+  constructor(public utils: UtilsService) {
   }
 
   ngOnInit() {

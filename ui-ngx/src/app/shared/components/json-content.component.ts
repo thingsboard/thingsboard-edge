@@ -85,6 +85,8 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
 
   @Input() editorStyle: {[klass: string]: any};
 
+  @Input() tbPlaceholder: string;
+
   private readonlyValue: boolean;
   get readonly(): boolean {
     return this.readonlyValue;
@@ -130,7 +132,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
       mode: `ace/mode/${mode}`,
       showGutter: true,
       showPrintMargin: false,
-      readOnly: this.readonly
+      readOnly: this.readonly,
     };
 
     const advancedOptions = {
@@ -147,9 +149,44 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
       this.cleanupJsonErrors();
       this.updateView();
     });
+    if (this.tbPlaceholder && this.tbPlaceholder.length) {
+      this.createPlaceholder();
+    }
     this.editorResizeListener = this.onAceEditorResize.bind(this);
     // @ts-ignore
     addResizeListener(editorElement, this.editorResizeListener);
+  }
+
+  private createPlaceholder() {
+    this.jsonEditor.on('input', this.updateEditorPlaceholder.bind(this));
+    setTimeout(this.updateEditorPlaceholder.bind(this), 100);
+  }
+
+  private updateEditorPlaceholder() {
+    const shouldShow = !this.jsonEditor.session.getValue().length;
+    let node: HTMLElement = (this.jsonEditor.renderer as any).emptyMessageNode;
+    if (!shouldShow && node) {
+      this.jsonEditor.renderer.getMouseEventTarget().removeChild(node);
+      (this.jsonEditor.renderer as any).emptyMessageNode = null;
+    } else if (shouldShow && !node) {
+      const placeholderElement = $('<textarea></textarea>');
+      placeholderElement.text(this.tbPlaceholder);
+      placeholderElement.addClass('ace_invisible ace_emptyMessage');
+      placeholderElement.css({
+        padding: '0 9px',
+        width: '100%',
+        border: 'none',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        resize: 'none',
+        fontSize: '15px'
+      });
+      const rows = this.tbPlaceholder.split('\n').length;
+      placeholderElement.attr('rows', rows);
+      node = placeholderElement[0];
+      (this.jsonEditor.renderer as any).emptyMessageNode = node;
+      this.jsonEditor.renderer.getMouseEventTarget().appendChild(node);
+    }
   }
 
   ngOnDestroy(): void {
@@ -279,9 +316,14 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   }
 
   minifyJSON() {
-    const res = JSON.stringify(this.contentBody);
-    this.jsonEditor.setValue(res ? res : '', -1);
-    this.updateView();
+    let res = null;
+    try {
+      res = JSON.stringify(JSON.parse(this.contentBody));
+    } catch (e) {}
+    if (res) {
+      this.jsonEditor.setValue(res, -1);
+      this.updateView();
+    }
   }
 
   onFullscreen() {

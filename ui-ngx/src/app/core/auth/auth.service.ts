@@ -428,7 +428,7 @@ export class AuthService {
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
-                     this.customTranslationService.updateCustomTranslations(),
+                     this.customTranslationService.updateCustomTranslations(true),
                      this.userPermissionsService.loadPermissionsInfo(),
                      this.timeService.loadMaxDatapointsLimit()];
     return forkJoin(sources)

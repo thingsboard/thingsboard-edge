@@ -77,6 +77,7 @@ import { ShareModule as ShareButtonsModule } from '@ngx-share/core';
 import { HotkeyModule } from 'angular2-hotkeys';
 import { ColorPickerModule } from 'ngx-color-picker';
 import { NgxHmCarouselModule } from 'ngx-hm-carousel';
+import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { UserMenuComponent } from '@shared/components/user-menu.component';
 import { NospacePipe } from '@shared/pipe/nospace.pipe';
 import { TranslateModule } from '@ngx-translate/core';
@@ -154,6 +155,10 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     {
       provide: FlowInjectionToken,
       useValue: Flow
+    },
+    {
+      provide: TINYMCE_SCRIPT_SRC,
+      useValue: 'tinymce/tinymce.min.js'
     }
   ],
   declarations: [
@@ -271,6 +276,7 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
+    EditorModule,
     NgxFlowModule,
     NgxFlowchartModule
   ],
@@ -358,6 +364,7 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
+    EditorModule,
     NgxFlowchartModule,
     ConfirmDialogComponent,
     AlertDialogComponent,

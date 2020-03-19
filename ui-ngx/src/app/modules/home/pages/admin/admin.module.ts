@@ -38,12 +38,18 @@ import { MailServerComponent } from '@modules/home/pages/admin/mail-server.compo
 import {GeneralSettingsComponent} from '@modules/home/pages/admin/general-settings.component';
 import {SecuritySettingsComponent} from '@modules/home/pages/admin/security-settings.component';
 import {HomeComponentsModule} from '@modules/home/components/home-components.module';
+import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
+import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
+import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 
 @NgModule({
   declarations:
     [
       GeneralSettingsComponent,
       MailServerComponent,
+      MailTemplatesComponent,
+      CustomTranslationComponent,
+      CustomMenuComponent,
       SecuritySettingsComponent
     ],
   imports: [
