@@ -50,6 +50,7 @@ public class WhiteLabelingParams {
     protected Boolean showNameVersion;
     protected String platformName;
     protected String platformVersion;
+    protected String customCss;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -81,6 +82,13 @@ public class WhiteLabelingParams {
             this.showNameVersion = otherWlParams.showNameVersion;
             this.platformName = otherWlParams.platformName;
             this.platformVersion = otherWlParams.platformVersion;
+        }
+        if (!StringUtils.isEmpty(otherWlParams.customCss)) {
+            if (StringUtils.isEmpty(this.customCss)) {
+                this.customCss = otherWlParams.customCss;
+            } else {
+                this.customCss = otherWlParams.customCss + "\n" + this.customCss;
+            }
         }
         return this;
     }

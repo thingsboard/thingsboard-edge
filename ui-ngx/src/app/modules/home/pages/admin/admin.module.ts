@@ -44,6 +44,7 @@ import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { PaletteComponent } from '@home/pages/admin/palette.component';
 import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
+import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
 
 @NgModule({
   declarations:
@@ -56,7 +57,8 @@ import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.compone
       WhiteLabelingComponent,
       SecuritySettingsComponent,
       PaletteComponent,
-      PaletteDialogComponent
+      PaletteDialogComponent,
+      CustomCssDialogComponent
     ],
   imports: [
     CommonModule,

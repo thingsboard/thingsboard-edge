@@ -51,6 +51,10 @@ import { ActionSettingsChangeWhiteLabeling } from '@core/settings/settings.actio
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UtilsService } from '@core/services/utils.service';
+import cssjs from '@core/css/css';
+
+const cssParser = new cssjs();
+cssParser.testMode = false;
 
 @Injectable({
   providedIn: 'root'
@@ -221,6 +225,7 @@ export class WhiteLabelingService {
     let observable: Observable<any>;
     if (loginWlChanged) {
       this.applyLoginWlParams(this.currentLoginWLParams);
+      this.applyCustomCss(this.currentLoginWLParams.customCss, true);
       observable = this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
     } else {
       observable = of(null);
@@ -345,6 +350,7 @@ export class WhiteLabelingService {
   }
 
   private wlChanged(): Observable<any> {
+    this.applyCustomCss(this.currentWLParams.customCss, false);
     return this.applyThemePalettes(this.currentWLParams.paletteSettings).pipe(
       tap(() => {
         this.notifyWlChanged();
@@ -510,6 +516,27 @@ export class WhiteLabelingService {
       }
     }
     targetStyle.text(themeCss);
+  }
+
+  private applyCustomCss(customCss: string, isLoginTheme: boolean) {
+    const target = isLoginTheme ? 'tb-login-custom-css' : 'tb-app-custom-css';
+    let targetStyle = $(`#${target}`);
+    if (!targetStyle.length) {
+      targetStyle = $(`<style id="${target}"></style>`);
+      $('head').append(targetStyle);
+    }
+    let css;
+    if (customCss && customCss.length) {
+      const namespace = isLoginTheme ? 'tb-dark' : 'tb-default';
+      cssParser.cssPreviewNamespace = namespace;
+      css = cssParser.applyNamespacing(customCss);
+      if (typeof css !== 'string') {
+        css = cssParser.getCSSForEditor(css);
+      }
+    } else {
+      css = '';
+    }
+    targetStyle.text(css);
   }
 
   private updateImages(wlParams: WhiteLabelingParams, prefix: string) {

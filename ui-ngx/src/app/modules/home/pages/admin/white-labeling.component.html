@@ -109,6 +109,10 @@
               formControlName="accentPalette"
             ></tb-palette>
           </div>
+          <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async)"
+                  style="margin-bottom: 16px;"
+                  type="button" (click)="editCustomCss()">{{'white-labeling.advanced-css' | translate}}
+          </button>
           <mat-checkbox *ngIf="isLoginWl" formControlName="darkForeground" style="display: block; padding-bottom: 16px;">
             {{ 'white-labeling.dark-foreground' | translate }}
           </mat-checkbox>

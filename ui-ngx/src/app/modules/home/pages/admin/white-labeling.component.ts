@@ -46,6 +46,11 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Observable } from 'rxjs';
+import { PaletteDialogComponent, PaletteDialogData } from '@home/pages/admin/palette-dialog.component';
+import { ColorPalette } from '@shared/models/material.models';
+import { deepClone, isDefined, isEqual } from '@core/utils';
+import { MatDialog } from '@angular/material/dialog';
+import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 
 @Component({
   selector: 'tb-white-labeling',
@@ -88,6 +93,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private userPermissionsService: UserPermissionsService,
               private whiteLabelingService: WhiteLabelingService,
               private translate: TranslateService,
+              private dialog: MatDialog,
               public fb: FormBuilder) {
     super(store);
   }
@@ -214,6 +220,25 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
         message: error,
         type: 'error'
       }));
+  }
+
+  editCustomCss(): void {
+    this.dialog.open<CustomCssDialogComponent, CustomCssDialogData, string>(CustomCssDialogComponent,
+      {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          customCss: this.whiteLabelingParams.customCss,
+          readonly: this.readonly
+        }
+      }).afterClosed().subscribe((customCss) => {
+      if (isDefined(customCss)) {
+        if (!isEqual(this.whiteLabelingParams.customCss, customCss)) {
+          this.whiteLabelingParams.customCss = customCss;
+          this.wlSettings.markAsDirty();
+        }
+      }
+    });
   }
 
   preview(): void {
