@@ -67,41 +67,31 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { DialogService } from '@core/services/dialog.service';
 import { FlowDirective } from '@flowjs/ngx-flow';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Palette } from '@shared/models/white-labeling.models';
+import { deepClone, isEqual } from '@core/utils';
+import { ColorPalette, getContrastColor, materialColorPalette } from '@shared/models/material.models';
+import {
+  ColorPickerDialogComponent,
+  ColorPickerDialogData
+} from '@shared/components/dialog/color-picker-dialog.component';
+import { PaletteDialogComponent, PaletteDialogData } from '@home/pages/admin/palette-dialog.component';
 
 @Component({
-  selector: 'tb-image-input',
-  templateUrl: './image-input.component.html',
-  styleUrls: ['./image-input.component.scss'],
+  selector: 'tb-palette',
+  templateUrl: './palette.component.html',
+  styleUrls: ['./palette.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ImageInputComponent),
+      useExisting: forwardRef(() => PaletteComponent),
       multi: true
     }
   ]
 })
-export class ImageInputComponent extends PageComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
+export class PaletteComponent extends PageComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
 
   @Input()
   label: string;
-
-  @Input()
-  accept = 'image/*';
-
-  @Input()
-  noImageText = 'dashboard.no-image';
-
-  @Input()
-  inputId = 'select';
-
-  @Input()
-  dropLabel = this.translate.instant('dashboard.drop-image');
-
-  @Input()
-  maxImageSize = 0;
-
-  @Input()
-  allowedImageMimeTypes: string[];
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -118,90 +108,27 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   @Input()
   disabled: boolean;
 
-  @Output()
-  imageTypeChanged = new EventEmitter<string>();
+  palette: Palette;
 
-  @Output()
-  imageSizeOverflow = new EventEmitter();
-
-  @Output()
-  imageTypeError = new EventEmitter();
-
-  @Output()
-  imageCleared = new EventEmitter();
-
-  imageType: string;
-  imageUrl: string;
-  safeImageUrl: SafeUrl;
-
-  @ViewChild('flow', {static: true})
-  flow: FlowDirective;
-
-  autoUploadSubscription: Subscription;
+  palettes: Palette[] = [];
 
   private propagateChange = null;
 
   constructor(protected store: Store<AppState>,
-              private translate: TranslateService,
-              private sanitizer: DomSanitizer) {
+              private dialog: MatDialog) {
     super(store);
+    for (const paletteType of Object.keys(materialColorPalette)) {
+      const palette: Palette = {
+        type: paletteType
+      };
+      this.palettes.push(palette);
+    }
   }
 
   ngAfterViewInit() {
-    this.autoUploadSubscription = this.flow.events$.subscribe(event => {
-      if (event.type === 'fileAdded') {
-        const file = (event.event[0] as flowjs.FlowFile).file;
-        const reader = new FileReader();
-        reader.onload = (loadEvent) => {
-          let allowedImage = true;
-          let type;
-          let dataUrl;
-          if (typeof reader.result === 'string' && reader.result.startsWith('data:image/')) {
-            dataUrl = reader.result;
-            type = this.extractType(dataUrl);
-            if (this.allowedImageMimeTypes && this.allowedImageMimeTypes.length) {
-              if (!type || this.allowedImageMimeTypes.indexOf(type) === -1) {
-                allowedImage = false;
-              }
-            }
-          } else {
-            allowedImage = false;
-          }
-          if (allowedImage) {
-            this.imageType = type;
-            this.imageUrl = dataUrl;
-            this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(dataUrl);
-            this.updateModel();
-          } else {
-            this.imageTypeError.emit();
-          }
-        };
-        if (this.maxImageSize > 0 && file.size > this.maxImageSize) {
-          this.imageSizeOverflow.emit();
-        } else {
-          reader.readAsDataURL(file);
-        }
-      }
-    });
-  }
-
-  private extractType(dataUrl: string): string {
-    let type;
-    if (dataUrl) {
-      let res: string | string[] = dataUrl.split(';');
-      if (res && res.length) {
-        res = res[0];
-        res = res.split(':');
-        if (res && res.length > 1) {
-          type = res[1];
-        }
-      }
-    }
-    return type;
   }
 
   ngOnDestroy() {
-    this.autoUploadSubscription.unsubscribe();
   }
 
   registerOnChange(fn: any): void {
@@ -215,26 +142,102 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
     this.disabled = isDisabled;
   }
 
-  writeValue(value: string): void {
-    this.imageUrl = value;
-    this.imageType = this.extractType(value);
-    if (this.imageUrl) {
-      this.safeImageUrl = this.sanitizer.bypassSecurityTrustUrl(this.imageUrl);
-    } else {
-      this.safeImageUrl = null;
+  writeValue(value: Palette): void {
+    this.palette = deepClone(value);
+    if (!this.palette) {
+      this.palette = {
+        type: null
+      };
+    }
+    if (this.palette.type === 'custom') {
+      const customPaletteIndex = this.palettes.findIndex((palette) => palette.type === 'custom');
+      if (customPaletteIndex === -1) {
+        this.palettes.push(deepClone(this.palette));
+      } else {
+        this.palettes[customPaletteIndex] = deepClone(this.palette);
+      }
     }
   }
 
-  private updateModel() {
-    this.propagateChange(this.imageUrl);
-    this.imageTypeChanged.emit(this.imageType);
+  paletteName(palette: Palette): string {
+    if (palette) {
+      return palette.type.toUpperCase().replace('-', ' ');
+    } else {
+      return '';
+    }
   }
 
-  clearImage() {
-    this.imageType = null;
-    this.imageUrl = null;
-    this.safeImageUrl = null;
+  paletteStyle(palette: Palette): {[klass: string]: any} {
+    if (palette && palette.type) {
+      const key = palette.type === 'custom' ? palette.extends : palette.type;
+      const paletteInfo = materialColorPalette[key];
+      const hex = palette.colors && palette.colors['500']
+          ? palette.colors['500'] : paletteInfo['500'];
+      const contrast = getContrastColor(key, '500');
+      return {
+        backgroundColor: hex,
+        color: contrast
+      }
+    } else {
+      return {};
+    }
+  }
+
+  paletteTypeChanged() {
+    if (this.palette.type === 'custom') {
+      const customPaletteResult = this.palettes.find((palette) => palette.type === 'custom');
+      if (customPaletteResult) {
+        this.palette = deepClone(customPaletteResult);
+      }
+    } else {
+      delete this.palette.extends;
+      delete this.palette.colors;
+    }
     this.updateModel();
-    this.imageCleared.emit();
+  }
+
+  editPalette() {
+    this.dialog.open<PaletteDialogComponent, PaletteDialogData, ColorPalette>(PaletteDialogComponent,
+      {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          palette: deepClone(this.palette)
+        }
+    }).afterClosed().subscribe((colors) => {
+      if (colors) {
+        if (isEqual(colors, {})) {
+          colors = null;
+        }
+        this.updatePaletteColors(colors);
+      }
+    });
+  }
+
+  private updatePaletteColors(colors: ColorPalette) {
+    if (colors) {
+      this.palette.colors = colors;
+      if (this.palette.type !== 'custom') {
+        this.palette.extends = this.palette.type;
+        this.palette.type = 'custom';
+      }
+      const customPaletteIndex = this.palettes.findIndex((palette) => palette.type === 'custom');
+      if (customPaletteIndex === -1) {
+        this.palettes.push(deepClone(this.palette));
+      } else {
+        this.palettes[customPaletteIndex] = deepClone(this.palette);
+      }
+    } else {
+      delete this.palette.colors;
+      if (this.palette.type === 'custom') {
+        this.palette.type = this.palette.extends;
+        delete this.palette.extends;
+      }
+    }
+    this.updateModel();
+  }
+
+  private updateModel() {
+    this.propagateChange(this.palette);
   }
 }

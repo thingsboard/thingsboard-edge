@@ -34,25 +34,23 @@ import { HttpClient } from '@angular/common/http';
 import {
   checkWlParams,
   defaultLoginWlParams,
-  LoginWhiteLabelingParams, mergeDefaults, PaletteSettings,
-  tbAccentPalette, tbDarkPrimaryBackgroundPalette, tbDarkPrimaryPalette,
+  LoginWhiteLabelingParams,
+  mergeDefaults,
+  PaletteSettings,
+  tbAccentPalette,
   tbPrimaryPalette,
   WhiteLabelingParams
 } from '@shared/models/white-labeling.models';
-import { BehaviorSubject, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { Observable, of, ReplaySubject } from 'rxjs';
 import { ColorPalette, extendPalette, materialColorPalette } from '@shared/models/material.models';
 import { deepClone, isEqual } from '@core/utils';
-import { catchError, map, mergeMap, share, tap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { environment as env } from '@env/environment';
-import {
-  ActionSettingsChangeLanguage,
-  ActionSettingsChangeWhiteLabeling,
-  SettingsActions, SettingsActionTypes
-} from '@core/settings/settings.actions';
+import { ActionSettingsChangeWhiteLabeling } from '@core/settings/settings.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Actions, ofType } from '@ngrx/effects';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable({
   providedIn: 'root'
@@ -61,7 +59,6 @@ export class WhiteLabelingService {
 
   private changeWhiteLabelingSubject = new ReplaySubject(1);
 
-  private currentLoginTheme: string;
   private loginLogo: string;
   private loginLogoHeight: number;
   private loginPageBackgroundColor: string;
@@ -69,11 +66,6 @@ export class WhiteLabelingService {
   private showNameBottom: boolean;
   private platformName: string;
   private platformVersion: string;
-
-  private currentTheme: string;
-
-  public currentLoginTheme$ = this.asWhiteLabelingObservable(() => this.currentLoginTheme);
-  public currentTheme$ = this.asWhiteLabelingObservable(() => this.currentTheme);
 
   public loginLogo$ = this.asWhiteLabelingObservable(() => this.loginLogo);
   public loginLogoHeight$ = this.asWhiteLabelingObservable(() => this.loginLogoHeight);
@@ -89,6 +81,7 @@ export class WhiteLabelingService {
   private userWlParams: WhiteLabelingParams;
 
   private isUserWlMode = false;
+  private isPreviewWlMode = false;
 
   private primaryPaletteName: string;
   private accentPaletteName: string;
@@ -97,12 +90,11 @@ export class WhiteLabelingService {
 
   constructor(
     private http: HttpClient,
-    private store: Store<AppState>
+    private store: Store<AppState>,
+    private utils: UtilsService,
   ) {
     this.definePalette('tb-primary', tbPrimaryPalette);
     this.definePalette('tb-accent', tbAccentPalette);
-    this.definePalette('tb-dark-primary', tbDarkPrimaryPalette)
-    this.definePalette('tb-dark-primary-background', tbDarkPrimaryBackgroundPalette);
   }
 
   public logoImageUrl(): string {
@@ -208,31 +200,36 @@ export class WhiteLabelingService {
       }
       url += `faviconChecksum=${storedFaviconChecksum}`;
     }
-    this.isUserWlMode = false;
     return this.http.get<LoginWhiteLabelingParams>(url).pipe(
-      map((loginWlParams) => {
+      mergeMap((loginWlParams) => {
         this.loginWlParams = mergeDefaults(loginWlParams, defaultLoginWlParams);
         this.updateImages(this.loginWlParams, 'login');
-        if (this.setLoginWlParams(this.loginWlParams)) {
-          this.applyLoginWlParams(this.currentLoginWLParams);
-          this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
-          this.notifyWlChanged();
-        }
-        return this.loginWlParams;
+        return this.onLoginWlParamsLoaded().pipe(map(() => this.loginWlParams));
       }),
       catchError((err) => {
         if (this.loginWlParams) {
-          if (this.setLoginWlParams(this.loginWlParams)) {
-            this.applyLoginWlParams(this.currentLoginWLParams);
-            this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
-            this.notifyWlChanged();
-          }
-          return of(this.loginWlParams);
+          return this.onLoginWlParamsLoaded().pipe(map(() => this.loginWlParams));
         } else {
           return throwError(err);
         }
       })
     );
+  }
+
+  private onLoginWlParamsLoaded(): Observable<any> {
+    const loginWlChanged = this.setLoginWlParams(this.loginWlParams);
+    let observable: Observable<any>;
+    if (loginWlChanged) {
+      this.applyLoginWlParams(this.currentLoginWLParams);
+      observable = this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
+    } else {
+      observable = of(null);
+    }
+    if (loginWlChanged || this.isUserWlMode) {
+      this.isUserWlMode = false;
+      observable = observable.pipe(tap(() => this.notifyWlChanged()));
+    }
+    return observable;
   }
 
   public loadUserWhiteLabelingParams(): Observable<WhiteLabelingParams> {
@@ -251,22 +248,14 @@ export class WhiteLabelingService {
       url += `faviconChecksum=${storedFaviconChecksum}`;
     }
     return this.http.get<WhiteLabelingParams>(url).pipe(
-      map((userWlParams) => {
-        this.isUserWlMode = true;
+      mergeMap((userWlParams) => {
         this.userWlParams = mergeDefaults(userWlParams);
         this.updateImages(this.userWlParams, 'user');
-        if (this.setWlParams(userWlParams)) {
-          this.wlChanged();
-        }
-        return this.userWlParams;
+        return this.onUserWlParamsLoaded().pipe(map(() => this.userWlParams));
       }),
       catchError((err) => {
-        this.isUserWlMode = true;
         if (this.userWlParams) {
-          if (this.setWlParams(this.userWlParams)) {
-            this.wlChanged();
-          }
-          return of(this.userWlParams);
+          return this.onUserWlParamsLoaded().pipe(map(() => this.userWlParams));
         } else {
           return throwError(err);
         }
@@ -274,18 +263,33 @@ export class WhiteLabelingService {
     );
   }
 
+  private onUserWlParamsLoaded(): Observable<any> {
+    if (this.setWlParams(this.userWlParams) || !this.isUserWlMode) {
+      this.isUserWlMode = true;
+      return this.wlChanged();
+    } else {
+      return of(null);
+    }
+  }
+
   public whiteLabelPreview(wLParams: WhiteLabelingParams): Observable<WhiteLabelingParams> {
     return this.http.post<WhiteLabelingParams>('/api/whiteLabel/previewWhiteLabelParams', wLParams).pipe(
-      tap((previewWlParams) => {
+      mergeMap((previewWlParams) => {
         this.currentWLParams = mergeDefaults(previewWlParams);
-        this.wlChanged();
+        this.isPreviewWlMode = true;
+        return this.wlChanged().pipe(map(() => previewWlParams));
       })
     );
   }
 
-  public cancelWhiteLabelPreview() {
-    this.currentWLParams = this.userWlParams;
-    this.wlChanged();
+  public cancelWhiteLabelPreview(): Observable<any> {
+    if (this.isPreviewWlMode) {
+      this.isPreviewWlMode = false;
+      this.currentWLParams = this.userWlParams;
+      return this.wlChanged();
+    } else {
+      return of(null);
+    }
   }
 
   public getCurrentWhiteLabelParams(): Observable<WhiteLabelingParams> {
@@ -324,9 +328,28 @@ export class WhiteLabelingService {
     return this.http.get<boolean>('/api/whiteLabel/isCustomerWhiteLabelingAllowed');
   }
 
-  private wlChanged() {
-    this.applyThemePalettes(this.currentWLParams.paletteSettings);
-    this.notifyWlChanged();
+  private getLoginThemeCss(paletteSettings: PaletteSettings, darkForeground: boolean): Observable<string> {
+    return this.http.post(`/api/noauth/whiteLabel/loginThemeCss?darkForeground=${darkForeground}`, paletteSettings,
+      {
+        responseType: 'text'
+      }
+    );
+  }
+
+  private getAppThemeCss(paletteSettings: PaletteSettings): Observable<string> {
+    return this.http.post('/api/whiteLabel/appThemeCss', paletteSettings,
+      {
+        responseType: 'text'
+      }
+    );
+  }
+
+  private wlChanged(): Observable<any> {
+    return this.applyThemePalettes(this.currentWLParams.paletteSettings).pipe(
+      tap(() => {
+        this.notifyWlChanged();
+      })
+    );
   }
 
   private notifyWlChanged() {
@@ -360,7 +383,7 @@ export class WhiteLabelingService {
     }
   }
 
-  private applyThemePalettes(paletteSettings: PaletteSettings) {
+  private applyThemePalettes(paletteSettings: PaletteSettings): Observable<any> {
     this.cleanupPalettes('custom-primary');
     this.cleanupPalettes('custom-accent');
 
@@ -371,8 +394,8 @@ export class WhiteLabelingService {
       accentPalette.type === 'tb-accent') {
       this.primaryPaletteName = primaryPalette.type;
       this.accentPaletteName = accentPalette.type;
-      this.currentTheme = 'tb-default';
-      return;
+      this.cleanupThemeStyle(false);
+      return of(null);
     }
 
     if (primaryPalette.type !== 'custom') {
@@ -389,14 +412,7 @@ export class WhiteLabelingService {
       const customAccentPalette = extendPalette(this.PALETTES, accentPalette.extends, accentPalette.colors);
       this.definePalette(this.accentPaletteName, customAccentPalette);
     }
-
-    this.cleanupThemes('tbCustomTheme');
-
-    const themeName = 'tbCustomTheme' + (Math.random()*1000).toFixed(0);
-
-    // TODO: CSS styling
-
-    this.currentTheme = themeName;
+    return this.generateThemeStyle(paletteSettings, false, false);
   }
 
   private applyLoginWlParams(wlParams: LoginWhiteLabelingParams) {
@@ -409,47 +425,15 @@ export class WhiteLabelingService {
     this.platformVersion = !wlParams.platformVersion ? env.tbVersion : wlParams.platformVersion;
   }
 
-  private applyLoginThemePalettes(paletteSettings: PaletteSettings, darkForeground: boolean) {
+  private applyLoginThemePalettes(paletteSettings: PaletteSettings, darkForeground: boolean): Observable<any> {
     const primaryPalette = paletteSettings.primaryPalette;
     const accentPalette = paletteSettings.accentPalette;
-
     if (primaryPalette.type === 'tb-primary' &&
-      accentPalette.type === 'tb-accent') {
-      this.currentLoginTheme = 'tb-dark';
-      return;
+      accentPalette.type === 'tb-accent' && !darkForeground) {
+      this.cleanupThemeStyle(true);
+      return of(null);
     }
-
-    this.cleanupPalettes('custom-login-');
-    const primaryExtends = primaryPalette.type !== 'custom' ? primaryPalette.type : primaryPalette.extends;
-    const primaryColors = primaryPalette.colors ? deepClone(primaryPalette.colors) : {};
-    const primaryBackgroundContrastColor = primaryColors['200'] ? primaryColors['200'] : this.PALETTES[primaryExtends]['200'];
-    const primaryBackgroundColor = primaryColors['500'] ? primaryColors['500'] : this.PALETTES[primaryExtends]['500'];
-    primaryColors['500'] = primaryBackgroundContrastColor;
-    const primaryPaletteName = 'custom-login-primary';
-    const customLoginPrimaryPalette = extendPalette(this.PALETTES, primaryExtends, primaryColors);
-    this.definePalette(primaryPaletteName, customLoginPrimaryPalette);
-    let accentPaletteName: string;
-    if (accentPalette.type !== 'custom') {
-      accentPaletteName = accentPalette.type;
-    } else {
-      accentPaletteName = 'custom-login-accent';
-      const customLoginAccentPalette = extendPalette(this.PALETTES, accentPalette.extends, accentPalette.colors);
-      this.definePalette(accentPaletteName, customLoginAccentPalette);
-    }
-    const backgroundPaletteName = 'custom-login-background';
-    const backgroundPaletteColors: ColorPalette = {
-      800:  primaryBackgroundColor
-    };
-    const customLoginBackgroundPalette = extendPalette(this.PALETTES, primaryPaletteName,
-      backgroundPaletteColors);
-    this.definePalette(backgroundPaletteName, customLoginBackgroundPalette);
-    this.cleanupThemes('tbCustomLoginTheme');
-
-    const themeName = 'tbCustomLoginTheme' + (Math.random()*1000).toFixed(0);
-
-    // TODO: CSS styling
-
-    this.currentLoginTheme = themeName;
+    return this.generateThemeStyle(paletteSettings, true, darkForeground);
   }
 
   private cleanupPalettes(prefix: string) {
@@ -460,17 +444,72 @@ export class WhiteLabelingService {
     }
   }
 
-  private cleanupThemes(prefix) {
-    const styleElements = $('style');
-    styleElements.each((index, styleElement) => {
-      // TODO: CSS styling
-      /*if (styleElement.hasAttribute('md-theme-style')) {
-        const content = styleElement.innerHTML || styleElement.innerText || styleElement.textContent;
-        if( content.indexOf(prefix) >= 0){
-          styleElement.parentNode.removeChild(styleElement);
+  private generateThemeStyle(paletteSettings: PaletteSettings,
+                             isLoginTheme: boolean,
+                             darkForeground: boolean): Observable<any> {
+    let themeChecksum;
+    if (isLoginTheme) {
+      themeChecksum = this.utils.objectHashCode({...paletteSettings, ...{darkForeground}});
+    } else {
+      themeChecksum = this.utils.objectHashCode(paletteSettings);
+    }
+    const prefix = isLoginTheme ? 'tb-login' : 'tb-app';
+    const storedThemeChecksum = localStorage.getItem(prefix+'_theme_checksum');
+    const storedThemeCss = localStorage.getItem(prefix+'_theme_css');
+    let themeCssObservable: Observable<string>;
+    let storeCssTheme;
+    if (!storedThemeChecksum || !isEqual(themeChecksum, storedThemeChecksum)
+      || !storedThemeCss || !storedThemeCss.length) {
+      storeCssTheme = true;
+      themeCssObservable = isLoginTheme ? this.getLoginThemeCss(paletteSettings, darkForeground) :
+        this.getAppThemeCss(paletteSettings);
+    } else {
+      storeCssTheme = false;
+      themeCssObservable = of(storedThemeCss);
+    }
+    return themeCssObservable.pipe(
+      tap((themeCss) => {
+        if (storeCssTheme) {
+          localStorage.setItem(prefix+'_theme_checksum', themeChecksum);
+          localStorage.setItem(prefix+'_theme_css', themeCss);
         }
-      }*/
-    });
+        this.applyThemeStyle(themeCss, isLoginTheme);
+      })
+    );
+  }
+
+  private cleanupThemeStyle(isLoginTheme: boolean) {
+    const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
+    const targetStyle = $(`#${target}`);
+    if (targetStyle.length) {
+      targetStyle.text('');
+    }
+  }
+
+  private applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
+    const favicon = $('link[rel="icon"]');
+    const afterStyle = favicon.next('style').next('style');
+    const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
+    let targetStyle = $(`#${target}`);
+    if (!targetStyle.length) {
+      targetStyle = $(`<style id="${target}"></style>`);
+      if (isLoginTheme) {
+        const appThemeStyle = $('#tb-app-theme');
+        if (!appThemeStyle.length) {
+          targetStyle.insertAfter(afterStyle);
+        } else {
+          targetStyle.insertAfter(appThemeStyle);
+        }
+      } else {
+        const loginThemeStyle = $('#tb-login-theme');
+        if (!loginThemeStyle.length) {
+          targetStyle.insertAfter(afterStyle);
+        } else {
+          targetStyle.insertBefore(loginThemeStyle);
+        }
+      }
+    }
+    targetStyle.text(themeCss);
   }
 
   private updateImages(wlParams: WhiteLabelingParams, prefix: string) {

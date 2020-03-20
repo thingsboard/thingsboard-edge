@@ -28,66 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  display: flex;
-  width: 100%;
-  height: 100%;
+@import '~@angular/material/theming';
+@import '~@mat-datetimepicker/core/datetimepicker/datetimepicker-theme.scss';
+@import 'theme-constants';
 
-  .tb-invisible {
-    display: none !important;
-  }
+$primary-extends: $mat-tb-primary; // extends
+$primary-color-map: (); // color map
 
-  mat-sidenav-container {
-    flex: 1;
-  }
-  mat-sidenav.tb-site-sidenav {
-    width: 250px;
-    @media (max-width:456px) {
-      width: calc(100% - 56px);
-    }
-    .tb-nav-header {
-      z-index: 2;
-      flex-shrink: 0;
-      white-space: nowrap;
-      .tb-nav-header-toolbar {
-        min-height: 64px;
-        height: inherit;
-        z-index: 2;
-        flex-shrink: 0;
-        white-space: nowrap;
-        border-bottom: 1px solid rgba(0, 0, 0, .12);
-        & > div {
-          height: 64px;
-          .tb-logo-title {
-            width: auto;
-            height: 36px;
-            margin: auto;
-          }
-        }
-      }
-    }
-    .tb-side-menu-toolbar {
-      overflow-y: auto;
-      height: inherit;
-      padding: 0;
-      align-items: initial;
-      section.version {
-        margin: 0 8px 5px 0;
-        font-size: .6em;
-        text-align: right;
-        font-weight: normal;
-      }
-    }
-  }
-  .tb-primary-toolbar {
-    z-index: 2;
-    h1 {
-      font-size: 24px !important;
-      font-weight: 400 !important;
-    }
-  }
-  .tb-main-content {
-    overflow: auto;
-    position: relative;
+$accent-extends: $mat-tb-accent; // extends
+$accent-color-map: (); // color map
+
+$tb-primary-colors: map_merge($primary-extends, $primary-color-map);
+$tb-accent-colors: map_merge($accent-extends, $accent-color-map);
+
+$tb-primary: mat-palette($tb-primary-colors);
+$tb-accent: mat-palette($tb-accent-colors);
+
+$tb-theme: mat-light-theme(
+    $tb-primary,
+    $tb-accent
+);
+
+.tb-default {
+  @include angular-material-theme($tb-theme);
+  @include mat-datetimepicker-theme($tb-theme);
+  @include tb-components-theme($tb-theme);
+}
+
+.tb-default, .tb-dark {
+  .tb-primary-background {
+    background-color: mat-color($tb-primary);
   }
 }

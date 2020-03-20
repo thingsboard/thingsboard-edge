@@ -51,6 +51,7 @@ import { CustomTranslationComponent } from '@home/pages/admin/custom-translation
 import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { CustomMenu } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
+import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -145,6 +146,34 @@ const routes: Routes = [
         },
         resolve: {
           adminSettings: MailTemplateSettingsResolver
+        }
+      },
+      {
+        path: 'whiteLabel',
+        component: WhiteLabelingComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'white-labeling.white-labeling',
+          isLoginWl: false,
+          breadcrumb: {
+            label: 'white-labeling.white-labeling',
+            icon: 'format_paint'
+          }
+        }
+      },
+      {
+        path: 'loginWhiteLabel',
+        component: WhiteLabelingComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'white-labeling.login-white-labeling',
+          isLoginWl: true,
+          breadcrumb: {
+            label: 'white-labeling.login-white-labeling',
+            icon: 'format_paint'
+          }
         }
       },
       {

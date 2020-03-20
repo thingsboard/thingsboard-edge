@@ -41,6 +41,9 @@ import {HomeComponentsModule} from '@modules/home/components/home-components.mod
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
 import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
+import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
+import { PaletteComponent } from '@home/pages/admin/palette.component';
+import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
 
 @NgModule({
   declarations:
@@ -50,7 +53,10 @@ import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
       MailTemplatesComponent,
       CustomTranslationComponent,
       CustomMenuComponent,
-      SecuritySettingsComponent
+      WhiteLabelingComponent,
+      SecuritySettingsComponent,
+      PaletteComponent,
+      PaletteDialogComponent
     ],
   imports: [
     CommonModule,

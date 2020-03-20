@@ -111,14 +111,6 @@ export const tbPrimaryPalette: ColorPalette = extendDefaultPalette('teal', {
 });
 export const tbAccentPalette: ColorPalette = extendDefaultPalette('deep-orange', {});
 
-export const tbDarkPrimaryPalette: ColorPalette = extendDefaultPalette('teal', {
-  500: '#00c3b6'
-});
-
-export const tbDarkPrimaryBackgroundPalette: ColorPalette = extendDefaultPalette('teal', {
-  800: '#00695c'
-});
-
 export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabelingParams>(wlParams: T,
                               targetDefaultWlParams?: T): T {
   if (!targetDefaultWlParams) {

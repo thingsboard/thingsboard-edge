@@ -43,6 +43,130 @@ export interface MaterialColorItem {
 
 export type ColorPalette = {[spectrum: string]: string};
 
+export interface PaletteContrastInfo {
+  contrastDefaultColor: 'light' | 'dark',
+  contrastDarkColors: string[];
+  contrastLightColors: string[];
+  contrastStrongLightColors: string[];
+}
+
+export const materialColorPaletteContrastInfo: {[palette: string]: PaletteContrastInfo} = {
+  red: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 A100'.split(' '),
+    contrastStrongLightColors: '400 500 600 700 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  pink: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '500 600 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  purple: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  'deep-purple': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200'.split(' '),
+    contrastLightColors: []
+  },
+  indigo: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100'.split(' '),
+    contrastStrongLightColors: '300 400 A200 A400'.split(' '),
+    contrastLightColors: []
+  },
+  blue: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 400 A100'.split(' '),
+    contrastStrongLightColors: '500 600 700 A200 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  'light-blue': {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '600 700 800 900 A700'.split(' '),
+    contrastStrongLightColors: '600 700 800 A700'.split(' '),
+    contrastDarkColors: []
+  },
+  cyan: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '700 800 900'.split(' '),
+    contrastStrongLightColors: '700 800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  teal: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '500 600 700 800 900'.split(' '),
+    contrastStrongLightColors: '500 600 700'.split(' '),
+    contrastDarkColors: []
+  },
+  green: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '500 600 700 800 900'.split(' '),
+    contrastStrongLightColors: '500 600 700'.split(' '),
+    contrastDarkColors: []
+  },
+  'light-green': {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '700 800 900'.split(' '),
+    contrastStrongLightColors: '700 800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  lime: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '900'.split(' '),
+    contrastStrongLightColors: '900'.split(' '),
+    contrastDarkColors: []
+  },
+  yellow: {
+    contrastDefaultColor: 'dark',
+    contrastDarkColors: [],
+    contrastLightColors: [],
+    contrastStrongLightColors: []
+  },
+  amber: {
+    contrastDefaultColor: 'dark',
+    contrastStrongLightColors: [],
+    contrastLightColors: [],
+    contrastDarkColors: []
+  },
+  orange: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '800 900'.split(' '),
+    contrastStrongLightColors: '800 900'.split(' '),
+    contrastDarkColors: []
+  },
+  'deep-orange': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 400 A100 A200'.split(' '),
+    contrastStrongLightColors: '500 600 700 800 900 A400 A700'.split(' '),
+    contrastLightColors: []
+  },
+  brown: {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 A100 A200'.split(' '),
+    contrastStrongLightColors: '300 400'.split(' '),
+    contrastLightColors: []
+  },
+  grey: {
+    contrastDefaultColor: 'dark',
+    contrastLightColors: '600 700 800 900 A200 A400 A700'.split(' '),
+    contrastDarkColors: [],
+    contrastStrongLightColors: []
+  },
+  'blue-grey': {
+    contrastDefaultColor: 'light',
+    contrastDarkColors: '50 100 200 300 A100 A200'.split(' '),
+    contrastStrongLightColors: '400 500 700'.split(' '),
+    contrastLightColors: []
+  }
+}
+
 export const materialColorPalette: {[palette: string]: ColorPalette} = {
   red: {
     50: '#ffebee',
@@ -357,6 +481,29 @@ export function extendDefaultPalette(existingPaletteName: string, palette: Color
 export function extendPalette(paletteMap: {[palette: string]: ColorPalette}, paletteName: string, palette: ColorPalette) {
   const existingPalette = paletteMap[paletteName];
   return mergeDeep({}, existingPalette, palette);
+}
+
+const DARK_CONTRAST_COLOR = 'rgba(0,0,0,0.87)';
+const LIGHT_CONTRAST_COLOR = 'rgba(255,255,255,0.87)';
+const STRONG_LIGHT_CONTRAST_COLOR = 'rgb(255,255,255)';
+
+export function getContrastColor(palette: string, hueName: string): string {
+  const paletteContrastInfo = materialColorPaletteContrastInfo[palette];
+  if (paletteContrastInfo.contrastDefaultColor === 'light') {
+    if (paletteContrastInfo.contrastDarkColors.indexOf(hueName) > -1) {
+      return DARK_CONTRAST_COLOR;
+    } else {
+      return paletteContrastInfo.contrastStrongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR
+        : LIGHT_CONTRAST_COLOR;
+    }
+  } else {
+    if (paletteContrastInfo.contrastLightColors.indexOf(hueName) > -1) {
+      return paletteContrastInfo.contrastStrongLightColors.indexOf(hueName) > -1 ? STRONG_LIGHT_CONTRAST_COLOR
+        : LIGHT_CONTRAST_COLOR;
+    } else {
+      return DARK_CONTRAST_COLOR;
+    }
+  }
 }
 
 export const materialColors = new Array<MaterialColorItem>();

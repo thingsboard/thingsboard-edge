@@ -29,70 +29,13 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @import '~@angular/material/theming';
-@import '~@mat-datetimepicker/core/datetimepicker/datetimepicker-theme.scss';
-@import './scss/constants';
 
-@include mat-core();
-
-$tb-primary-color: #00695c;
-
-$tb-dark-primary-color: #00c3b6;
-
-$tb-mat-teal: map_merge($mat-teal, (
-  500: $tb-primary-color
+$mat-tb-primary: map_merge($mat-teal, (
+  500: map-get($mat-teal, 800)
 ));
 
-$tb-primary: mat-palette($tb-mat-teal);
-$tb-accent: mat-palette($mat-deep-orange);
-
-$tb-theme: mat-light-theme(
-    $tb-primary,
-    $tb-accent
-);
-
-$tb-dark-mat-teal: map_merge($mat-teal, (
-  500: $tb-dark-primary-color
+$mat-tb-accent: map_merge($mat-deep-orange, (
 ));
-
-$tb-dark-background-mat-teal: map_merge($mat-teal, (
-  800: map-get($tb-dark-mat-teal, 800)
-));
-
-$tb-dark-primary: mat-palette($tb-dark-mat-teal);
-
-$tb-dark-theme-background: (
-  status-bar: black,
-  app-bar:    map_get($tb-dark-background-mat-teal, 900),
-  background: map_get($tb-dark-background-mat-teal, 800),
-  hover:      rgba(white, 0.04),
-  card:       map_get($tb-dark-background-mat-teal, 800),
-  dialog:     map_get($tb-dark-background-mat-teal, 800),
-  disabled-button: rgba(white, 0.12),
-  raised-button: map-get($tb-dark-background-mat-teal, 50),
-  focused-button: $light-focused,
-  selected-button: map_get($tb-dark-background-mat-teal, 900),
-  selected-disabled-button: map_get($tb-dark-background-mat-teal, 800),
-  disabled-button-toggle: black,
-  unselected-chip: map_get($tb-dark-background-mat-teal, 700),
-  disabled-list-option: black,
-  tooltip: map_get($mat-grey, 700),
-);
-
-@function get-tb-dark-theme($primary, $accent, $warn: mat-palette($mat-red)) {
-  @return (
-    primary: $primary,
-    accent: $accent,
-    warn: $warn,
-    is-dark: true,
-    foreground: $mat-dark-theme-foreground,
-    background: $tb-dark-theme-background,
-  );
-}
-
-$tb-dark-theme: get-tb-dark-theme(
-    $tb-dark-primary,
-    $tb-accent
-);
 
 @mixin mat-fab-toolbar-theme($theme) {
   $primary: map-get($theme, primary);
@@ -133,21 +76,5 @@ $tb-dark-theme: get-tb-dark-theme(
     }
   }
 
-  @include mat-fab-toolbar-theme($tb-theme);
-}
-
-.tb-default {
-  @include angular-material-theme($tb-theme);
-  @include mat-datetimepicker-theme($tb-theme);
-  @include tb-components-theme($tb-theme);
-}
-
-.tb-dark {
-  @include angular-material-theme($tb-dark-theme);
-}
-
-.tb-default, .tb-dark {
-  .tb-primary-background {
-    background-color: mat-color($tb-primary);
-  }
+  @include mat-fab-toolbar-theme($theme);
 }

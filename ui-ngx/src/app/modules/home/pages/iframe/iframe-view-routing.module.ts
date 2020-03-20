@@ -39,6 +39,7 @@ const routes: Routes = [
     path: 'iframeView',
     data: {
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      customTitle: true,
       breadcrumb: {
         custom: true
       }
@@ -46,18 +47,14 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        component: IFrameViewComponent,
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-menu.custom-menu'
-        }
+        component: IFrameViewComponent
       },
       {
         path: 'child',
         component: IFrameViewComponent,
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-menu.custom-menu',
+          customChildTitle: true,
           breadcrumb: {
             customChild: true
           }

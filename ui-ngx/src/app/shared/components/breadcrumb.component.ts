@@ -97,8 +97,8 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let queryParams;
         let section: MenuSection = null;
         if (breadcrumbConfig.custom || breadcrumbConfig.customChild) {
-          section = breadcrumbConfig.custom ? this.menuService.getCurrentCustomSection()
-            : this.menuService.getCurrentCustomChildSection();
+          section = breadcrumbConfig.customChild ? this.menuService.getCurrentCustomChildSection()
+            : this.menuService.getCurrentCustomSection();
         }
         if (section) {
           ignoreTranslate = true;

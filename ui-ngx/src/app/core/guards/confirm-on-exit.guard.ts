@@ -40,13 +40,15 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthState } from '@core/auth/auth.models';
 import { selectAuth } from '@core/auth/auth.selectors';
-import { take } from 'rxjs/operators';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
 import { isDefined } from '../utils';
+import { Observable, of } from 'rxjs';
 
 export interface HasConfirmForm {
   confirmForm(): FormGroup;
+  onExit?(): Observable<any>;
 }
 
 export interface HasDirtyFlag {
@@ -88,8 +90,19 @@ export class ConfirmOnExitGuard implements CanDeactivate<HasConfirmForm & HasDir
         return this.dialogService.confirm(
           this.translate.instant('confirm-on-exit.title'),
           this.translate.instant('confirm-on-exit.html-message')
+        ).pipe(
+          mergeMap(result => {
+            if (result && component.onExit) {
+              return component.onExit().pipe(map(() => result));
+            } else {
+              return of(result);
+            }
+          })
         );
       }
+    }
+    if (component.onExit) {
+      return component.onExit().pipe(map(() => true));
     }
     return true;
   }
