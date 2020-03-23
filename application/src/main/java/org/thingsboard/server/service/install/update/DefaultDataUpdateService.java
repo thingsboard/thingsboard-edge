@@ -651,6 +651,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 whiteLabelingParams.setPaletteSettings(paletteSettings);
             }
+            if (storedWl.has("customCss")) {
+                String customCss = storedWl.get("customCss").asText();
+                if (!StringUtils.isEmpty(customCss) && !"null".equals(customCss)) {
+                    whiteLabelingParams.setCustomCss(customCss);
+                }
+            }
         }
         if (isSystem) {
             String helpLinkBaseUrl = "https://thingsboard.io";
