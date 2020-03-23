@@ -29,6 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import 'hammerjs';
+
 import { Component, OnInit } from '@angular/core';
 
 import { environment as env } from '@env/environment';

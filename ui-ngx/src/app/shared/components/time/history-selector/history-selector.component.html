@@ -1,0 +1,66 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="trip-animation-control-panel">
+    <div>
+        <button mat-icon-button class="mat-icon-button" aria-label="Start" (click)="moveStart()">
+            <mat-icon class="material-icons" [ngStyle]="{'color': settings.buttonColor}">fast_rewind</mat-icon>
+        </button>
+        <button mat-icon-button class="mat-icon-button" aria-label="Previous" (click)="movePrev()">
+            <mat-icon class="material-icons" [ngStyle]="{'color': settings.buttonColor}">skip_previous</mat-icon>
+        </button>
+        <mat-slider [(ngModel)]="index" [min]="minTimeIndex" [max]="maxTimeIndex" (change)="changeIndex()">
+        </mat-slider>
+        <button mat-icon-button class="mat-icon-button" aria-label="Next" (click)="moveNext()">
+            <mat-icon class="material-icons" [ngStyle]="{'color': settings.buttonColor}">skip_next</mat-icon>
+        </button>
+        <button mat-icon-button class="mat-icon-button" aria-label="End" (click)="moveEnd()">
+            <mat-icon class="material-icons" [ngStyle]="{'color': settings.buttonColor}">fast_forward</mat-icon>
+        </button>
+        <button mat-icon-button class="mat-icon-button" aria-label="Play">
+            <mat-icon (click)="play()" *ngIf="!playing" class="material-icons"
+                [ngStyle]="{'color': settings.buttonColor}">
+                play_circle_outline
+            </mat-icon>
+            <mat-icon (click)="pause()" *ngIf="playing" class="material-icons"
+                [ngStyle]="{'color': settings.buttonColor}">
+                pause_circle_outline
+            </mat-icon>
+        </button>
+        <mat-select matInput [(ngModel)]="speed" (selectionChange)="reeneble()" class="speed-select" aria-label="Speed selector">
+            <mat-option [value]="speedValue" flex="1" *ngFor="let speedValue of speeds">{{speedValue}} </mat-option>
+        </mat-select>
+    </div>
+    <div class="panel-timer">
+        <span *ngIf="this.intervals[this.index]">{{ this.intervals[this.index] | date:'medium'}}</span>
+        <span *ngIf="!this.intervals[this.index]">{{ "widget.no-data-found" | translate}}</span>
+    </div>

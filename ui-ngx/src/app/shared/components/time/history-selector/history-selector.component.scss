@@ -1,0 +1,155 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+.trip-animation-widget {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  line-height: 24px;
+
+  .trip-animation-label-container {
+    height: 24px;
+  }
+
+  .trip-animation-container {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    width: 100%;
+
+    #trip-animation-map {
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+
+      .pointsLayerMarkerIcon {
+        border-radius: 50%;
+      }
+    }
+
+    .trip-animation-info-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 2;
+      pointer-events: none;
+
+      .md-button {
+        top: 0;
+        left: 0;
+        width: 32px;
+        min-width: 32px;
+        height: 32px;
+        min-height: 32px;
+        padding: 0 0 2px;
+        margin: 2px;
+        line-height: 24px;
+
+        ng-md-icon {
+          width: 24px;
+          height: 24px;
+
+          svg {
+            width: inherit;
+            height: inherit;
+          }
+        }
+      }
+    }
+
+    .trip-animation-tooltip {
+      position: absolute;
+      top: 38px;
+      right: 0;
+      z-index: 2;
+      padding: 10px;
+      background-color: #fff;
+      transition: 0.3s ease-in-out;
+
+      &-hidden {
+        transform: translateX(110%);
+      }
+    }
+  }
+
+  .trip-animation-control-panel {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    padding-bottom: 16px;
+    padding-left: 10px;
+
+    md-slider-container {
+      md-slider {
+        min-width: 80px;
+      }
+
+      button.md-button.md-icon-button {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+        margin: 0;
+        line-height: 28px;
+
+        md-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 28px;
+
+          svg {
+            width: inherit;
+            height: inherit;
+          }
+        }
+      }
+
+      md-select {
+        margin: 0;
+      }
+    }
+
+    .panel-timer {
+      max-width: none;
+      padding-right: 250px;
+      padding-left: 90px;
+      margin-top: -20px;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+    }
+  }
+}
+
+.speed-select{
+  width: 50px;
+  margin-left: 20px;
+}

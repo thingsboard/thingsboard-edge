@@ -34,25 +34,27 @@ import { GaugeType } from '@home/components/widget/lib/canvas-digital-gauge';
 import { AnimationRule } from '@home/components/widget/lib/analogue-gauge.models';
 import { FontSettings } from '@home/components/widget/lib/settings.models';
 
-export interface colorLevelProperty {
+export interface AttributeSourceProperty {
   valueSource: string;
   entityAlias?: string;
   attribute?: string;
   value?: number;
 }
 
-export interface fixedLevelColors {
-  from?: colorLevelProperty;
-  to?: colorLevelProperty;
+export interface FixedLevelColors {
+  from?: AttributeSourceProperty;
+  to?: AttributeSourceProperty;
   color: string;
 }
 
-export interface colorLevelSetting {
+export interface ColorLevelSetting {
   value: number;
   color: string;
 }
 
-export type colorLevel = Array<string | colorLevelSetting>;
+export type colorLevel = Array<string | ColorLevelSetting>;
+
+export type attributesGaugeType = 'levelColors' | 'ticks';
 
 export interface DigitalGaugeSettings {
   minValue?: number;
@@ -75,7 +77,7 @@ export interface DigitalGaugeSettings {
   gaugeColor?: string;
   useFixedLevelColor?: boolean;
   levelColors?: colorLevel;
-  fixedLevelColors?: fixedLevelColors[];
+  fixedLevelColors?: FixedLevelColors[];
   animation?: boolean;
   animationDuration?: number;
   animationRule?: AnimationRule;
@@ -87,6 +89,11 @@ export interface DigitalGaugeSettings {
   units?: string;
   hideValue?: boolean;
   hideMinMax?: boolean;
+  showTicks?: boolean;
+  ticksValue?: AttributeSourceProperty[];
+  ticks?: number[];
+  colorTicks?: string;
+  tickWidth?: number;
 }
 
 export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
@@ -253,6 +260,48 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
             color: {
               title: 'Color',
               type: 'string'
+            }
+          }
+        }
+      },
+      showTicks: {
+        title: 'Show ticks',
+        type: 'boolean',
+        default: false
+      },
+      tickWidth: {
+        title: 'Width ticks',
+        type: 'number',
+        default: 4
+      },
+      colorTicks: {
+        title: 'Color ticks',
+        type: 'string',
+        default: '#666'
+      },
+      ticksValue: {
+        title: 'The ticks predefined value',
+        type: 'array',
+        items: {
+          title: 'tickValue',
+          type: 'object',
+          properties: {
+            valueSource: {
+              title: 'Value source',
+              type: 'string',
+              default: 'predefinedValue'
+            },
+            entityAlias: {
+              title: 'Source entity alias',
+              type: 'string'
+            },
+            attribute: {
+              title: 'Source entity attribute',
+              type: 'string'
+            },
+            value: {
+              title: 'Value (if predefined value is selected)',
+              type: 'number'
             }
           }
         }
@@ -500,6 +549,40 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
           key: 'fixedLevelColors[].color',
           type: 'color'
         }
+      ]
+    },
+    'showTicks',
+    {
+      key: 'tickWidth',
+      condition: 'model.showTicks === true'
+    },
+    {
+      key: 'colorTicks',
+      condition: 'model.showTicks === true',
+      type: 'color'
+    },
+    {
+      key: 'ticksValue',
+      condition: 'model.showTicks === true',
+      items: [
+        {
+          key: 'ticksValue[].valueSource',
+          type: 'rc-select',
+          multiple: false,
+          items: [
+            {
+              value: 'predefinedValue',
+              label: 'Predefined value (Default)'
+            },
+            {
+              value: 'entityAttribute',
+              label: 'Value taken from entity attribute'
+            }
+          ]
+        },
+        'ticksValue[].value',
+        'ticksValue[].entityAlias',
+        'ticksValue[].attribute'
       ]
     },
     'animation',

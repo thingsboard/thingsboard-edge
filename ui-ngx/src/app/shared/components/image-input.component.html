@@ -31,15 +31,15 @@
 
 -->
 <div class="tb-container">
-  <label class="tb-title">{{label}}</label>
+  <label class="tb-title" *ngIf="label">{{label}}</label>
   <ng-container #flow="flow"
                 [flowConfig]="{singleFile: true, allowDuplicateUploads: true}">
     <div class="tb-image-select-container">
-      <div class="tb-image-preview-container">
-        <div *ngIf="!safeImageUrl" translate>dashboard.no-image</div>
-        <img *ngIf="safeImageUrl" class="tb-image-preview" [src]="safeImageUrl" />
+      <div *ngIf="showPreview" class="tb-image-preview-container">
+        <div *ngIf="!safeImageUrl;else elseBlock" translate>{{noImageText}}</div>
+        <ng-template #elseBlock><img class="tb-image-preview" [src]="safeImageUrl" /></ng-template>
       </div>
-      <div class="tb-image-clear-container" *ngIf="!disabled">
+      <div class="tb-image-clear-container" *ngIf="!disabled && showClearButton">
         <button mat-button mat-icon-button color="primary"
                 type="button"
                 (click)="clearImage()"

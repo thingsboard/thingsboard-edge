@@ -46,6 +46,8 @@ import {
   DateRangeNavigatorWidgetComponent
 } from '@home/components/widget/lib/date-range-navigator/date-range-navigator.component';
 import { MultipleInputWidgetComponent } from './lib/multiple-input-widget.component';
+import { TripAnimationComponent } from './trip-animation/trip-animation.component';
+import { WebCameraInputWidgetComponent } from './lib/web-camera-input.component';
 
 @NgModule({
   declarations:
@@ -58,7 +60,9 @@ import { MultipleInputWidgetComponent } from './lib/multiple-input-widget.compon
       EntitiesHierarchyWidgetComponent,
       DateRangeNavigatorWidgetComponent,
       DateRangeNavigatorPanelComponent,
-      MultipleInputWidgetComponent
+      MultipleInputWidgetComponent,
+      TripAnimationComponent,
+      WebCameraInputWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -73,7 +77,9 @@ import { MultipleInputWidgetComponent } from './lib/multiple-input-widget.compon
     EntitiesHierarchyWidgetComponent,
     RpcWidgetsModule,
     DateRangeNavigatorWidgetComponent,
-    MultipleInputWidgetComponent
+    MultipleInputWidgetComponent,
+    TripAnimationComponent,
+    WebCameraInputWidgetComponent
   ],
   providers: [
     CustomDialogService

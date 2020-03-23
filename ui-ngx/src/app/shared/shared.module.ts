@@ -143,6 +143,8 @@ import { NavTreeComponent } from '@shared/components/nav-tree.component';
 import { LedLightComponent } from '@shared/components/led-light.component';
 import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-to-string.directive';
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
+import { HistorySelectorComponent } from './components/time/history-selector/history-selector.component';
+import { TbTemplatePipe } from '@shared/pipe/template.pipe';
 import {
   HasGenericPermissionPipe,
   HasEntityGroupPermissionPipe,
@@ -235,12 +237,14 @@ import {
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    TbTemplatePipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
     TbJsonToStringDirective,
-    JsonObjectEditDialogComponent
+    JsonObjectEditDialogComponent,
+    HistorySelectorComponent
   ],
   imports: [
     CommonModule,
@@ -398,12 +402,14 @@ import {
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    TbTemplatePipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
     TranslateModule,
-    JsonObjectEditDialogComponent
+    JsonObjectEditDialogComponent,
+    HistorySelectorComponent
   ]
 })
 export class SharedModule { }
