@@ -94,7 +94,7 @@ export class PageNotFoundRoutingModule { }
     AuditLogModule,
     UserModule,
     IFrameViewModule,
-    // PageNotFoundRoutingModule
+    PageNotFoundRoutingModule
   ]
 })
 export class HomePagesModule { }
