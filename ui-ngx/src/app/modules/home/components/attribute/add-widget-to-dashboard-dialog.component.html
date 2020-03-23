@@ -49,6 +49,7 @@
           <section fxLayout="column" style="width: 300px;">
             <span translate>dashboard.select-existing</span>
             <tb-dashboard-autocomplete formControlName="dashboardId"
+                                       [operation]="operation.WRITE"
                                        [required]="addWidgetFormGroup.get('addToDashboardType').value === 0"
                                        [selectFirstDashboard]="false">
             </tb-dashboard-autocomplete>

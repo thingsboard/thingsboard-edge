@@ -29,15 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from '@angular/core';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { isArray } from '@core/utils';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
-@Injectable({
-  providedIn: 'root'
-})
 @Pipe({
   name: 'hasGenericPermission'
 })
@@ -46,41 +42,10 @@ export class HasGenericPermissionPipe implements PipeTransform {
   constructor(private userPermissionsService: UserPermissionsService) {}
 
   transform(resource: Resource | Resource[], operation: Operation | Operation[]): boolean {
-    return this.hasGenericPermission(resource, operation);
-  }
-
-  private hasGenericPermission(resource: Resource | Resource[], operation: Operation | Operation[]): boolean {
-    if (isArray(resource)) {
-      return this.hasGenericResourcesPermission(resource as Resource[], operation as Operation);
-    } else if (isArray(operation)) {
-      return this.hasGenericOperationsPermission(resource as Resource, operation as Operation[]);
-    } else {
-      return this.userPermissionsService.hasGenericPermission(resource as Resource, operation as Operation);
-    }
-  }
-
-  private hasGenericResourcesPermission(resources: Resource[], operation: Operation): boolean {
-    for (const resource of resources) {
-      if (!this.hasGenericPermission(resource, operation)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private hasGenericOperationsPermission(resource: Resource, operations: Operation[]): boolean {
-    for (const operation of operations) {
-      if (!this.hasGenericPermission(resource, operation)) {
-        return false;
-      }
-    }
-    return true;
+    return this.userPermissionsService.hasResourcesGenericPermission(resource, operation);
   }
 }
 
-@Injectable({
-  providedIn: 'root'
-})
 @Pipe({
   name: 'hasEntityGroupPermission'
 })
@@ -93,9 +58,6 @@ export class HasEntityGroupPermissionPipe implements PipeTransform {
   }
 }
 
-@Injectable({
-  providedIn: 'root'
-})
 @Pipe({
   name: 'hasGroupEntityPermission'
 })

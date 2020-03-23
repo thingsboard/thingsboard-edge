@@ -36,12 +36,16 @@ import { Observable, Subscription } from 'rxjs';
 import { selectIsLoading } from '@core/interceptors/load.selectors';
 import { delay, share } from 'rxjs/operators';
 import { AbstractControl } from '@angular/forms';
+import { Operation, Resource } from '@shared/models/security.models';
 
 export abstract class PageComponent implements OnDestroy {
 
   isLoading$: Observable<boolean>;
   loadingSubscription: Subscription;
   disabledOnLoadFormControls: Array<AbstractControl> = [];
+
+  resource = Resource;
+  operation = Operation;
 
   protected constructor(protected store: Store<AppState>) {
     this.isLoading$ = this.store.pipe(delay(0), select(selectIsLoading), share());

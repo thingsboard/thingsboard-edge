@@ -46,7 +46,7 @@
           </mat-select>
         </mat-form-field>
         <span fxFlex></span>
-        <button *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope)"
+        <button *ngIf="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 mat-button mat-icon-button
                 [disabled]="isLoading$ | async"
                 (click)="addAttribute($event)"
@@ -100,14 +100,15 @@
                     {count: dataSource.selection.selected.length}) | async }}
                 </span>
         <span fxFlex></span>
-        <button [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)"
+        <button [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly"
                 mat-button mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
                 (click)="deleteAttributes($event)">
           <mat-icon>delete</mat-icon>
         </button>
-        <button mat-button mat-raised-button
+        <button [fxShow]="resource.WIDGETS_BUNDLE | hasGenericPermission: operation.READ"
+                mat-button mat-raised-button
                 color="accent"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.show-on-widget' | translate }}"
@@ -130,7 +131,8 @@
                                     (ngModelChange)="onWidgetsBundleChanged()">
           </tb-widgets-bundle-select>
         </div>
-        <button mat-button mat-raised-button [fxShow]="widgetsList.length > 0"
+        <button mat-button mat-raised-button [fxShow]="widgetsList.length > 0 &&
+                                                       (resource.DASHBOARD | hasGenericPermission: [operation.READ, operation.WRITE, operation.CREATE])"
                 color="accent"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.add-to-dashboard' | translate }}"
@@ -184,7 +186,7 @@
                     (click)="editAttribute($event, attribute)">
             <div fxLayout="row">
               <span fxFlex>{{attribute.value | tbJson}}</span>
-              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope)">
+              <span [fxShow]="!isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
             </div>

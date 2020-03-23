@@ -30,9 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-tab *ngIf="entity"
+<mat-tab *ngIf="entity && (resource.TENANT | hasGenericPermission: operation.READ_ATTRIBUTES)"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="attributeScopes.SERVER_SCOPE"
+                      [readonly]="!(resource.TENANT | hasGenericPermission: operation.WRITE_ATTRIBUTES)"
                       [active]="attributesTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name">

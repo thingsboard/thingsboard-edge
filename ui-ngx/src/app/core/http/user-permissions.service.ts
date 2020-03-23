@@ -44,6 +44,7 @@ import {
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityGroup, EntityGroupInfo } from '@shared/models/entity-group.models';
+import { isArray } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -159,6 +160,34 @@ export class UserPermissionsService {
 
   public getUserOwnerId(): EntityId {
     return this.userOwnerId;
+  }
+
+  public hasResourcesGenericPermission(resource: Resource | Resource[], operation: Operation | Operation[]): boolean {
+    if (isArray(resource)) {
+      return this.hasGenericResourcesPermission(resource as Resource[], operation as Operation);
+    } else if (isArray(operation)) {
+      return this.hasGenericOperationsPermission(resource as Resource, operation as Operation[]);
+    } else {
+      return this.hasGenericPermission(resource as Resource, operation as Operation);
+    }
+  }
+
+  private hasGenericResourcesPermission(resources: Resource[], operation: Operation): boolean {
+    for (const resource of resources) {
+      if (!this.hasGenericPermission(resource, operation)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private hasGenericOperationsPermission(resource: Resource, operations: Operation[]): boolean {
+    for (const operation of operations) {
+      if (!this.hasGenericPermission(resource, operation)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private hasGenericAllPermission(operation: Operation): boolean {

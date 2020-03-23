@@ -201,38 +201,39 @@ export class AddWidgetToDashboardDialogComponent extends
       datasourceAliases: {},
       targetDeviceAliases: {}
     };
-    aliasesInfo.datasourceAliases[0] = {
-      alias: this.data.entityName,
-      filter: this.dashboardUtils.createSingleEntityFilter(this.data.entityId)
-    };
-    this.itembuffer.addWidgetToDashboard(dashboard, targetState,
-      targetLayout, this.data.widget, aliasesInfo, null,
-      48, null, -1, -1).pipe(
-      mergeMap((theDashboard) => {
-        return this.dashboardService.saveDashboard(theDashboard);
-      })
-    ).subscribe(
-      (theDashboard) => {
-        const openDashboard: boolean = this.addWidgetFormGroup.get('openDashboard').value;
-        this.dialogRef.close();
-        if (openDashboard) {
-          let url;
-          const stateIds = Object.keys(dashboard.configuration.states);
-          const stateIndex = stateIds.indexOf(targetState);
-          if (stateIndex > 0) {
-            const stateObject: StateObject = {
-              id: targetState,
-              params: {}
-            };
-            const state = objToBase64([ stateObject ]);
-            url = `/dashboards/${theDashboard.id.id}?state=${state}`;
-          } else {
-            url = `/dashboards/${theDashboard.id.id}`;
+    this.dashboardUtils.createSingleEntityFilter(this.data.entityId).subscribe((filter) => {
+      aliasesInfo.datasourceAliases[0] = {
+        alias: this.data.entityName,
+        filter
+      };
+      this.itembuffer.addWidgetToDashboard(dashboard, targetState,
+        targetLayout, this.data.widget, aliasesInfo, null,
+        48, null, -1, -1).pipe(
+        mergeMap((theDashboard) => {
+          return this.dashboardService.saveDashboard(theDashboard);
+        })
+      ).subscribe(
+        (theDashboard) => {
+          const openDashboard: boolean = this.addWidgetFormGroup.get('openDashboard').value;
+          this.dialogRef.close();
+          if (openDashboard) {
+            let url;
+            const stateIds = Object.keys(dashboard.configuration.states);
+            const stateIndex = stateIds.indexOf(targetState);
+            if (stateIndex > 0) {
+              const stateObject: StateObject = {
+                id: targetState,
+                params: {}
+              };
+              const state = objToBase64([ stateObject ]);
+              url = `/dashboard/${theDashboard.id.id}?state=${state}&edit=true`;
+            } else {
+              url = `/dashboard/${theDashboard.id.id}?edit=true`;
+            }
+            this.router.navigateByUrl(url);
           }
-          const urlTree = this.router.parseUrl(url);
-          this.router.navigateByUrl(url);
         }
-      }
-    );
+      );
+    });
   }
 }

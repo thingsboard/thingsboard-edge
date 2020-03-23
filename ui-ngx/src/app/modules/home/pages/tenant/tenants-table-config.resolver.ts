@@ -42,15 +42,12 @@ import {
 import { TenantService } from '@core/http/tenant.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import {
-  EntityType,
-  entityTypeResources,
-  entityTypeTranslations
-} from '@shared/models/entity-type.models';
+import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { TenantComponent } from '@modules/home/pages/tenant/tenant.component';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { User } from '@shared/models/user.model';
 import { TenantTabsComponent } from '@home/pages/tenant/tenant-tabs.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Tenant>> {
@@ -60,13 +57,16 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
   constructor(private tenantService: TenantService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private router: Router) {
+              private router: Router,
+              private userPermissionService: UserPermissionsService) {
 
     this.config.entityType = EntityType.TENANT;
     this.config.entityComponent = TenantComponent;
     this.config.entityTabsComponent = TenantTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.TENANT);
     this.config.entityResources = entityTypeResources.get(EntityType.TENANT);
+    this.config.entitiesDeleteEnabled = this.userPermissionService.hasGenericPermission(Resource.TENANT, Operation.DELETE);
+    this.config.deleteEnabled = () => this.userPermissionService.hasGenericPermission(Resource.TENANT, Operation.DELETE);
 
     this.config.columns.push(
       new DateEntityTableColumn<Tenant>('createdTime', 'tenant.created-time', this.datePipe, '150px'),
@@ -80,7 +80,7 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
       {
         name: this.translate.instant('tenant.manage-tenant-admins'),
         icon: 'account_circle',
-        isEnabled: () => true,
+        isEnabled: () => this.userPermissionService.hasGenericPermission(Resource.USER, Operation.READ),
         onAction: ($event, entity) => this.manageTenantAdmins($event, entity)
       }
     );
@@ -89,11 +89,11 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
     this.config.deleteEntityContent = () => this.translate.instant('tenant.delete-tenant-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('tenant.delete-tenants-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('tenant.delete-tenants-text');
-
     this.config.entitiesFetchFunction = pageLink => this.tenantService.getTenants(pageLink);
     this.config.loadEntity = id => this.tenantService.getTenant(id.id);
     this.config.saveEntity = tenant => this.tenantService.saveTenant(tenant);
     this.config.deleteEntity = id => this.tenantService.deleteTenant(id.id);
+
     this.config.onEntityAction = action => this.onTenantAction(action);
   }
 

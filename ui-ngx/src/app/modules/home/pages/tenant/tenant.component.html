@@ -32,12 +32,14 @@
 -->
 <div class="tb-details-buttons">
   <button mat-raised-button color="primary"
+          *ngIf="resource.USER | hasGenericPermission: operation.READ"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageTenantAdmins')"
           [fxShow]="!isEdit">
     {{'tenant.manage-tenant-admins' | translate }}
   </button>
   <button mat-raised-button color="primary"
+          *ngIf="resource.TENANT | hasGenericPermission: operation.DELETE"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           [fxShow]="!hideDelete() && !isEdit">
@@ -69,6 +71,13 @@
           <mat-label translate>tenant.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
         </mat-form-field>
+        <mat-checkbox fxFlex formControlName="allowWhiteLabeling" style="padding-bottom: 16px;">
+          {{ 'tenant.allow-white-labeling' | translate }}
+        </mat-checkbox>
+        <mat-checkbox [fxShow]="entityForm.get('additionalInfo').get('allowWhiteLabeling').value"
+                      fxFlex formControlName="allowCustomerWhiteLabeling" style="padding-bottom: 16px;">
+          {{ 'tenant.allow-customer-white-labeling' | translate }}
+        </mat-checkbox>
       </div>
       <tb-contact [parentForm]="entityForm" [isEdit]="isEdit"></tb-contact>
     </fieldset>

@@ -60,7 +60,8 @@ import {
   isClientSideTelemetryType,
   LatestTelemetry,
   TelemetryType,
-  telemetryTypeTranslations, toTelemetryType
+  telemetryTypeTranslations,
+  toTelemetryType
 } from '@shared/models/telemetry/telemetry.models';
 import { AttributeDatasource } from '@home/models/datasource/attribute-datasource';
 import { AttributeService } from '@app/core/http/attribute.service';
@@ -94,6 +95,8 @@ import {
   AddWidgetToDashboardDialogData
 } from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
 import { deepClone } from '@core/utils';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 
 @Component({
@@ -115,7 +118,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   attributeScope: TelemetryType;
   toTelemetryTypeFunc = toTelemetryType;
 
-  displayedColumns = ['select', 'lastUpdateTs', 'key', 'value'];
+  displayedColumns = ['lastUpdateTs', 'key', 'value'];
   pageLink: PageLink;
   textSearchMode = false;
   dataSource: AttributeDatasource;
@@ -176,6 +179,16 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   @Input()
   entityName: string;
 
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
+  }
+
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -193,6 +206,7 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
               private utils: UtilsService,
               private dashboardUtils: DashboardUtilsService,
               private widgetService: WidgetService,
+              private userPermissionsService: UserPermissionsService,
               private zone: NgZone) {
     super(store);
     this.dirtyValue = !this.activeValue;
@@ -202,6 +216,11 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   }
 
   ngOnInit() {
+    if (!this.readonly ||
+      this.userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
+        Operation.READ)) {
+      this.displayedColumns.unshift('select');
+    }
   }
 
   attributeScopeChanged(attributeScope: TelemetryType) {
@@ -312,6 +331,9 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     if ($event) {
       $event.stopPropagation();
     }
+    if (this.isClientSideTelemetryTypeMap.get(this.attributeScope) || this.readonly) {
+      return;
+    }
     const target = $event.target || $event.srcElement || $event.currentTarget;
     const config = new OverlayConfig();
     config.backdropClass = 'cdk-overlay-transparent-backdrop';
@@ -378,6 +400,17 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
   }
 
   enterWidgetMode() {
+    this.dashboardUtils.createSingleEntityFilter(this.entityIdValue).subscribe((filter) => {
+      const entityAlias: EntityAlias = {
+        id: this.utils.guid(),
+        alias: this.entityName,
+        filter
+      };
+      this.configureWidgetMode(entityAlias);
+    });
+  }
+
+  private configureWidgetMode(entityAlias: EntityAlias) {
     this.mode = 'widget';
     this.widgetsList = [];
     this.widgetsListCache = [];
@@ -386,11 +419,6 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
     this.widgetsBundle = null;
     this.selectedWidgetsBundleAlias = 'cards';
 
-    const entityAlias: EntityAlias = {
-      id: this.utils.guid(),
-      alias: this.entityName,
-      filter: this.dashboardUtils.createSingleEntityFilter(this.entityIdValue)
-    };
     const entitiAliases: EntityAliases = {};
     entitiAliases[entityAlias.id] = entityAlias;
 

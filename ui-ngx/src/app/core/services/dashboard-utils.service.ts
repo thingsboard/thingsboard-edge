@@ -49,6 +49,9 @@ import { Datasource, DatasourceType, Widget } from '@app/shared/models/widget.mo
 import { EntityType } from '@shared/models/entity-type.models';
 import { AliasFilterType, EntityAlias, EntityAliasFilter } from '@app/shared/models/alias.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -56,7 +59,8 @@ import { EntityId } from '@app/shared/models/id/entity-id';
 export class DashboardUtilsService {
 
   constructor(private utils: UtilsService,
-              private timeService: TimeService) {
+              private timeService: TimeService,
+              private entityGroupService: EntityGroupService) {
   }
 
   public validateAndUpdateDashboard(dashboard: Dashboard): Dashboard {
@@ -264,12 +268,25 @@ export class DashboardUtilsService {
     };
   }
 
-  public createSingleEntityFilter(entityId: EntityId): EntityAliasFilter {
-    return {
-      type: AliasFilterType.singleEntity,
-      singleEntity: entityId,
-      resolveMultiple: false
-    };
+  public createSingleEntityFilter(entityId: EntityId): Observable<EntityAliasFilter> {
+    if (entityId.entityType === EntityType.ENTITY_GROUP) {
+      return this.entityGroupService.getEntityGroup(entityId.id).pipe(
+        map((entityGroup) => {
+          return {
+            type: AliasFilterType.entityGroupList,
+            groupType: entityGroup.type,
+            entityGroupList: [entityId.id],
+            resolveMultiple: false
+          };
+        })
+      );
+    } else {
+      return of({
+        type: AliasFilterType.singleEntity,
+        singleEntity: entityId,
+        resolveMultiple: false
+      });
+    }
   }
 
   private validateAndUpdateState(state: DashboardState) {

@@ -38,6 +38,7 @@ import {Tenant} from '@app/shared/models/tenant.model';
 import {ActionNotificationShow} from '@app/core/notification/notification.actions';
 import {TranslateService} from '@ngx-translate/core';
 import {ContactBasedComponent} from '../../components/entity/contact-based.component';
+import { isDefined } from '@core/utils';
 
 @Component({
   selector: 'tb-tenant',
@@ -65,7 +66,12 @@ export class TenantComponent extends ContactBasedComponent<Tenant> {
         title: [entity ? entity.title : '', [Validators.required]],
         additionalInfo: this.fb.group(
           {
-            description: [entity && entity.additionalInfo ? entity.additionalInfo.description : '']
+            description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
+            allowWhiteLabeling: [entity && entity.additionalInfo
+                     && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true],
+            allowCustomerWhiteLabeling: [entity && entity.additionalInfo
+                    && isDefined(entity.additionalInfo.allowCustomerWhiteLabeling) ?
+                        entity.additionalInfo.allowCustomerWhiteLabeling : true]
           }
         )
       }
@@ -74,7 +80,14 @@ export class TenantComponent extends ContactBasedComponent<Tenant> {
 
   updateEntityForm(entity: Tenant) {
     this.entityForm.patchValue({title: entity.title});
-    this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    this.entityForm.patchValue({additionalInfo: {
+      description: entity.additionalInfo ? entity.additionalInfo.description : '',
+      allowWhiteLabeling: entity.additionalInfo
+        && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true,
+      allowCustomerWhiteLabeling: entity.additionalInfo
+        && isDefined(entity.additionalInfo.allowCustomerWhiteLabeling) ?
+          entity.additionalInfo.allowCustomerWhiteLabeling : true
+    }});
   }
 
   onTenantIdCopied(event) {

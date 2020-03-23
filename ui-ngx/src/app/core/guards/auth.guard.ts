@@ -51,8 +51,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { isDefined, isObject } from '@core/utils';
-import { HasGenericPermissionPipe } from '@core/pipe/permission.pipes';
 import { MenuService } from '@core/services/menu.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable({
   providedIn: 'root'
@@ -67,7 +67,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               private translate: TranslateService,
               private whiteLabelingService: WhiteLabelingService,
               private selfRegistrationService: SelfRegistrationService,
-              private hasGenericPermissionPipe: HasGenericPermissionPipe,
+              private userPermissionsService: UserPermissionsService,
               private menuService: MenuService,
               private zone: NgZone) {}
 
@@ -148,7 +148,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               this.dialogService.forbidden();
               return of(false);
             } else if (isDefined(data.permissions) &&
-              !this.hasGenericPermissionPipe.transform(data.permissions.resources, data.permissions.operations)) {
+              !this.userPermissionsService.hasResourcesGenericPermission(data.permissions.resources, data.permissions.operations)) {
               this.dialogService.forbidden();
               return of(false);
             } else if (data.redirectTo) {

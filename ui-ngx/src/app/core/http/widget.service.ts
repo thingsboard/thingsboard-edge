@@ -60,7 +60,7 @@ export class WidgetService {
   private systemWidgetsBundles: Array<WidgetsBundle>;
   private tenantWidgetsBundles: Array<WidgetsBundle>;
 
-  private widgetsBundleCacheSubject = new Subject();
+  private widgetsBundleCacheSubject = null;
 
   constructor(
     private http: HttpClient,

@@ -143,6 +143,11 @@ import { NavTreeComponent } from '@shared/components/nav-tree.component';
 import { LedLightComponent } from '@shared/components/led-light.component';
 import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-to-string.directive';
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
+import {
+  HasGenericPermissionPipe,
+  HasEntityGroupPermissionPipe,
+  HasGroupEntityPermissionPipe
+} from '@shared/pipe/permission.pipes';
 
 @NgModule({
   providers: [
@@ -152,6 +157,9 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     {
       provide: FlowInjectionToken,
       useValue: Flow
@@ -228,6 +236,9 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     TruncatePipe,
     TbJsonPipe,
     KeyboardShortcutPipe,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     TbJsonToStringDirective,
     JsonObjectEditDialogComponent
   ],
@@ -388,6 +399,9 @@ import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-ob
     TruncatePipe,
     TbJsonPipe,
     KeyboardShortcutPipe,
+    HasGenericPermissionPipe,
+    HasEntityGroupPermissionPipe,
+    HasGroupEntityPermissionPipe,
     TranslateModule,
     JsonObjectEditDialogComponent
   ]
