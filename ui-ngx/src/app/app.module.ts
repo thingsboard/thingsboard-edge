@@ -52,7 +52,7 @@ import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.mod
     CoreModule,
     LoginModule,
     DashboardRoutingModule,
-    HomeModule,
+    HomeModule
   ],
   providers: [],
   bootstrap: [AppComponent]

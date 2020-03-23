@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 
 import { AdminModule } from './admin/admin.module';
 import { HomeLinksModule } from './home-links/home-links.module';
@@ -45,34 +45,16 @@ import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module'
 import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
 import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
 import { RouterModule, Routes } from '@angular/router';
-import { StoreModule } from '@ngrx/store';
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
-
-@Component({
-  selector: 'tb-page-not-found',
-  template: '<h1>Page not found!</h1>',
-  styleUrls: []
-})
-export class PageNotFoundComponent {
-}
 
 const routes: Routes = [
   { path: '**',
-    component: PageNotFoundComponent,
-    data: {
-      breadcrumb: {
-        icon: 'error'
-      }
-    }
+    redirectTo: 'home'
   }
 ];
 
 @NgModule({
-  declarations: [
-    PageNotFoundComponent
-  ],
   imports: [
-    StoreModule,
     RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
