@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,10 +47,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
-import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
@@ -81,6 +82,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
                 return;
             }
             suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
+
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
@@ -90,6 +92,35 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return result;
     }
 
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> processRequest(
+            @PathVariable("routingKey") String routingKey,
+            @PathVariable("suffix") Optional<String> suffix,
+            @RequestParam Map<String, String> requestParams,
+            @RequestHeader Map<String, String> requestHeaders
+    ) {
+        log.debug("[{}] Received status check request", routingKey);
+        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+
+        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
+
+        DonAsynchron.withCallback(integrationFuture, integration -> {
+            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
+                return;
+            }
+            suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
+
+            JsonNode msg = mapper.convertValue(requestParams, JsonNode.class);
+            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
+        }, failure -> {
+            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
+            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        }, api.getCallbackExecutor());
+
+        return result;
+    }
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
