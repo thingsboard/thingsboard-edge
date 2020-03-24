@@ -61,6 +61,7 @@ interface WebCameraInputWidgetSettings {
   maxHeight: number;
 }
 
+// @dynamic
 @Component({
   selector: 'tb-web-camera-widget',
   templateUrl: './web-camera-input.component.html',
