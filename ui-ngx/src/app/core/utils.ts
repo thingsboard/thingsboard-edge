@@ -186,6 +186,18 @@ export function base64toObj(b64Encoded: string): any {
   return obj;
 }
 
+export function stringToBase64(value: string): string {
+  const encoded = utf8Encode(value);
+  const b64Encoded: string = base64js.fromByteArray(encoded);
+  return b64Encoded;
+}
+
+export function base64toString(b64Encoded: string): string {
+  const encoded: Uint8Array | number[] = base64js.toByteArray(b64Encoded);
+  const value = utf8Decode(encoded);
+  return value;
+}
+
 function utf8Encode(str: string): Uint8Array | number[] {
   let result: Uint8Array | number[];
   if (isUndefined(Uint8Array)) {

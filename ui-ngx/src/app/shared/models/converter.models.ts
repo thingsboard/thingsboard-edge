@@ -32,6 +32,7 @@
 import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
+import { ContentType } from '@shared/models/constants';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -55,18 +56,20 @@ export interface Converter extends BaseData<ConverterId> {
 }
 
 export interface TestUpLinkInputParams {
-  payload: string;
   metadata: {[key: string]: string};
+  payload: string;
   decoder: string;
 }
 
 export interface TestDownLinkInputParams {
-  msg: string;
   metadata: {[key: string]: string};
+  msg: string;
   msgType: string;
   integrationMetadata: {[key: string]: string};
   encoder: string;
 }
+
+export type TestConverterInputParams = TestUpLinkInputParams & TestDownLinkInputParams;
 
 export interface TestConverterResult {
   output: string;
@@ -74,7 +77,7 @@ export interface TestConverterResult {
 }
 
 export interface ConverterDebugInput {
-  inContentType: string;
+  inContentType: ContentType;
   inContent: string;
   inMetadata: string;
   inMsgType: string;

@@ -37,11 +37,13 @@ import { HomeComponentsModule } from '@modules/home/components/home-components.m
 import { ConverterComponent } from '@home/pages/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
 import { ConverterRoutingModule } from '@home/pages/converter/converter-routing.module';
+import { ConverterTestDialogComponent } from '@home/pages/converter/converter-test-dialog.component';
 
 @NgModule({
   declarations: [
     ConverterComponent,
-    ConverterTabsComponent
+    ConverterTabsComponent,
+    ConverterTestDialogComponent
   ],
   imports: [
     CommonModule,
