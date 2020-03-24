@@ -29,45 +29,26 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { IntegrationComponent } from '@home/pages/integration/integration.component';
+import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
+import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
 
-@Component({
-  selector: 'tb-widgets-bundle',
-  templateUrl: './widgets-bundle.component.html',
-  styleUrls: ['./widgets-bundle.component.scss']
+@NgModule({
+  declarations: [
+    IntegrationComponent,
+    IntegrationTabsComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    HomeDialogsModule,
+    IntegrationRoutingModule
+  ]
 })
-export class WidgetsBundleComponent extends EntityComponent<WidgetsBundle> {
-
-  constructor(protected store: Store<AppState>,
-              @Inject('entity') protected entityValue: WidgetsBundle,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<WidgetsBundle>,
-              protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
-  }
-
-  hideDelete() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.deleteEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
-  buildForm(entity: WidgetsBundle): FormGroup {
-    return this.fb.group(
-      {
-        title: [entity ? entity.title : '', [Validators.required]]
-      }
-    );
-  }
-
-  updateForm(entity: WidgetsBundle) {
-    this.entityForm.patchValue({title: entity.title});
-  }
-}
+export class IntegrationModule { }

@@ -65,7 +65,7 @@ export class IntegrationService {
   }
 
   public saveIntegration(integration: Integration, config?: RequestConfig): Observable<Integration> {
-    return this.http.post<Integration>('api/integration', integration, defaultHttpOptionsFromConfig(config));
+    return this.http.post<Integration>('/api/integration', integration, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteIntegration(integrationId: string, config?: RequestConfig) {

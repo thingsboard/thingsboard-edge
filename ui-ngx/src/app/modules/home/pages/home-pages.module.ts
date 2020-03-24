@@ -46,6 +46,8 @@ import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.m
 import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
 import { RouterModule, Routes } from '@angular/router';
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
+import { ConverterModule } from '@home/pages/converter/converter.module';
+import { IntegrationModule } from '@home/pages/integration/integration.module';
 
 const routes: Routes = [
   { path: '**',
@@ -75,6 +77,8 @@ export class PageNotFoundRoutingModule { }
     DashboardModule,
     AuditLogModule,
     UserModule,
+    ConverterModule,
+    IntegrationModule,
     IFrameViewModule,
     PageNotFoundRoutingModule
   ]

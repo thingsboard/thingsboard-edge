@@ -30,6 +30,7 @@
 ///
 
 import { TenantId } from './id/tenant-id';
+import { BaseData, HasId } from '@shared/models/base-data';
 
 ///
 /// Copyright © 2016-2019 The Thingsboard Authors
@@ -85,8 +86,9 @@ export interface EntityTypeTranslation {
   search?: string;
 }
 
-export interface EntityTypeResource {
+export interface EntityTypeResource<T> {
   helpLinkId: string;
+  helpLinkIdForEntity?(entity: T): string;
 }
 
 export const entityTypeTranslations = new Map<EntityType | AliasEntityType, EntityTypeTranslation>(
@@ -236,6 +238,34 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.CONVERTER,
+      {
+        type: 'entity.type-converter',
+        typePlural: 'entity.type-converters',
+        list: 'entity.list-of-converters',
+        nameStartsWith: 'entity.converter-name-starts-with',
+        details: 'converter.converter-details',
+        add: 'converter.add',
+        noEntities: 'converter.no-converters-text',
+        search: 'converter.search',
+        selectedEntities: 'converter.selected-converters'
+      }
+    ],
+    [
+      EntityType.INTEGRATION,
+      {
+        type: 'entity.type-integration',
+        typePlural: 'entity.type-integrations',
+        list: 'entity.list-of-integrations',
+        nameStartsWith: 'entity.integration-name-starts-with',
+        details: 'integration.integration-details',
+        add: 'integration.add',
+        noEntities: 'integration.no-integrations-text',
+        search: 'integration.search',
+        selectedEntities: 'integration.selected-integrations'
+      }
+    ],
+    [
       AliasEntityType.CURRENT_CUSTOMER,
       {
         type: 'entity.type-entity-view',
@@ -245,7 +275,7 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
   ]
 );
 
-export const entityTypeResources = new Map<EntityType, EntityTypeResource>(
+export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseData<HasId>>>(
   [
     [
       EntityType.TENANT,

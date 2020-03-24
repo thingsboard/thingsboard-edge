@@ -65,8 +65,6 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
     this.config.entityTabsComponent = TenantTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.TENANT);
     this.config.entityResources = entityTypeResources.get(EntityType.TENANT);
-    this.config.entitiesDeleteEnabled = this.userPermissionService.hasGenericPermission(Resource.TENANT, Operation.DELETE);
-    this.config.deleteEnabled = () => this.userPermissionService.hasGenericPermission(Resource.TENANT, Operation.DELETE);
 
     this.config.columns.push(
       new DateEntityTableColumn<Tenant>('createdTime', 'tenant.created-time', this.datePipe, '150px'),

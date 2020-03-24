@@ -53,6 +53,10 @@ import {
 import { EntityId } from '@shared/models/id/entity-id';
 import { RelationsDatasource } from '../../models/datasource/relation-datasource';
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
+import { EntityType } from '@shared/models/entity-type.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-relation-table',
@@ -106,6 +110,16 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     }
   }
 
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
+  }
+
   @ViewChild('searchInput') searchInputField: ElementRef;
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -115,6 +129,7 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
               private entityRelationService: EntityRelationService,
               public translate: TranslateService,
               public dialog: MatDialog,
+              private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService) {
     super(store);
     this.dirtyValue = !this.activeValue;
@@ -122,17 +137,20 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
     this.direction = EntitySearchDirection.FROM;
     this.pageLink = new PageLink(10, 0, null, sortOrder);
     this.dataSource = new RelationsDatasource(this.entityRelationService, this.translate);
-    this.updateColumns();
   }
 
   ngOnInit() {
+    this.updateColumns();
   }
 
   updateColumns() {
     if (this.direction === EntitySearchDirection.FROM) {
-      this.displayedColumns = ['select', 'type', 'toEntityTypeName', 'toName', 'actions'];
+      this.displayedColumns = ['type', 'toEntityTypeName', 'toName', 'actions'];
     } else {
-      this.displayedColumns = ['select', 'type', 'fromEntityTypeName', 'fromName', 'actions'];
+      this.displayedColumns = ['type', 'fromEntityTypeName', 'fromName', 'actions'];
+    }
+    if (!this.readonly) {
+      this.displayedColumns.unshift('select');
     }
   }
 
@@ -216,6 +234,15 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   editRelation($event: Event, relation: EntityRelationInfo) {
     this.openRelationDialog($event, relation);
+  }
+
+  isRelationEditable(relation: EntityRelationInfo): boolean {
+    if (this.readonly) {
+      return false;
+    }
+    const entityType = this.direction === EntitySearchDirection.FROM ? relation.to.entityType : relation.from.entityType;
+    const resource = resourceByEntityType.get(entityType as EntityType);
+    return this.userPermissionsService.hasGenericPermission(resource, Operation.WRITE);
   }
 
   deleteRelation($event: Event, relation: EntityRelationInfo) {

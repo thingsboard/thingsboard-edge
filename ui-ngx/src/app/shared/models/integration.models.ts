@@ -175,7 +175,7 @@ export interface Integration extends BaseData<IntegrationId> {
   type: IntegrationType;
   debugMode: boolean;
   enabled: boolean;
-  isRemote: boolean;
+  remote: boolean;
   secret: string;
   configuration: any;
   additionalInfo?: any;

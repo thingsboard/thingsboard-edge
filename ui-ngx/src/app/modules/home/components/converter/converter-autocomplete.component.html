@@ -30,10 +30,32 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<button *ngIf="wl.isEnableHelpLinks$() | async" mat-button mat-icon-button
-        type="button"
-        (click)="gotoHelpPage()"
-        matTooltip="{{'help.goto-help-page' | translate}}"
-        matTooltipPosition="above">
-  <mat-icon class="material-icons">help</mat-icon>
-</button>
+<mat-form-field [formGroup]="selectConverterFormGroup" class="mat-block">
+  <input matInput type="text" placeholder="{{ entityText | translate }}"
+         #converterInput
+         formControlName="entity"
+         (focusin)="onFocus()"
+         [required]="required"
+         [matAutocomplete]="entityAutocomplete">
+  <button *ngIf="selectConverterFormGroup.get('entity').value && !disabled"
+          type="button"
+          matSuffix mat-button mat-icon-button aria-label="Clear"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-autocomplete class="tb-autocomplete"
+                    #entityAutocomplete="matAutocomplete"
+                    [displayWith]="displayEntityFn">
+    <mat-option *ngFor="let entity of filteredEntities | async" [value]="entity">
+      <span [innerHTML]="entity.name | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
+      <span>
+          {{ translate.get('converter.no-converters-matching', {entity: searchText}) | async }}
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="selectConverterFormGroup.get('entity').hasError('required')">
+    {{ entityRequiredText | translate }}
+  </mat-error>
+</mat-form-field>

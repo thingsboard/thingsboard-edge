@@ -29,16 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {EntityComponent} from '../../components/entity/entity.component';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {EntityType} from '@shared/models/entity-type.models';
-import {NULL_UUID} from '@shared/models/id/has-uuid';
-import {ActionNotificationShow} from '@core/notification/notification.actions';
-import {TranslateService} from '@ngx-translate/core';
+import { Component, Inject } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityComponent } from '../../components/entity/entity.component';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { EntityType } from '@shared/models/entity-type.models';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { TranslateService } from '@ngx-translate/core';
 import { Asset } from '@shared/models/asset.models';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
   selector: 'tb-asset',
@@ -53,8 +54,10 @@ export class AssetComponent extends EntityComponent<Asset> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              public fb: FormBuilder) {
-    super(store);
+              @Inject('entity') protected entityValue: Asset,
+              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Asset>,
+              protected fb: FormBuilder) {
+    super(store, fb, entityValue, entitiesTableConfig);
   }
 
   ngOnInit() {

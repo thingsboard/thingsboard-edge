@@ -43,7 +43,9 @@ export enum EventType {
 
 export enum DebugEventType {
   DEBUG_RULE_NODE = 'DEBUG_RULE_NODE',
-  DEBUG_RULE_CHAIN = 'DEBUG_RULE_CHAIN'
+  DEBUG_RULE_CHAIN = 'DEBUG_RULE_CHAIN',
+  DEBUG_CONVERTER = 'DEBUG_CONVERTER',
+  DEBUG_INTEGRATION = 'DEBUG_INTEGRATION'
 }
 
 export const eventTypeTranslations = new Map<EventType | DebugEventType, string>(
@@ -53,6 +55,8 @@ export const eventTypeTranslations = new Map<EventType | DebugEventType, string>
     [EventType.STATS, 'event.type-stats'],
     [DebugEventType.DEBUG_RULE_NODE, 'event.type-debug-rule-node'],
     [DebugEventType.DEBUG_RULE_CHAIN, 'event.type-debug-rule-chain'],
+    [DebugEventType.DEBUG_CONVERTER, 'event.type-debug-converter'],
+    [DebugEventType.DEBUG_INTEGRATION, 'event.type-debug-integration']
   ]
 );
 

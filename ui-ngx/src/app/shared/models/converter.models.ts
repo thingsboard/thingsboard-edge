@@ -32,13 +32,18 @@
 import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { ContentType } from '@shared/models/constants';
-import { BaseEventBody } from '@shared/models/event.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
   DOWNLINK = 'DOWNLINK'
 }
+
+export const converterTypeTranslationMap = new Map<ConverterType, string>(
+  [
+    [ConverterType.UPLINK, 'converter.type-uplink'],
+    [ConverterType.DOWNLINK, 'converter.type-downlink'],
+  ]
+);
 
 export interface Converter extends BaseData<ConverterId> {
   tenantId?: TenantId;

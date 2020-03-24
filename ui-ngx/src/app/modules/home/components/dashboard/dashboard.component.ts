@@ -32,7 +32,7 @@
 import {
   AfterViewInit,
   Component,
-  DoCheck,
+  DoCheck, HostBinding,
   Input,
   IterableDiffers,
   KeyValueDiffers,
@@ -68,6 +68,7 @@ import { Widget, WidgetPosition } from '@app/shared/models/widget.models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { SafeStyle } from '@angular/platform-browser';
 import { distinct } from 'rxjs/operators';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-dashboard',
@@ -77,6 +78,11 @@ import { distinct } from 'rxjs/operators';
 export class DashboardComponent extends PageComponent implements IDashboardComponent, DoCheck, OnInit, OnDestroy, AfterViewInit, OnChanges {
 
   authUser: AuthUser;
+
+  @HostBinding('style.backgroundColor')
+  get backgroundColor(): string {
+    return this.embedded ? this.embeddedDashboardBackground : 'initial';
+  }
 
   @Input()
   widgets: Iterable<Widget>;
@@ -141,6 +147,11 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   @Input()
   dashboardTimewindow: Timewindow;
 
+  @Input()
+  embedded = false;
+
+  embeddedDashboardBackground = this.whiteLabelingService.getPrimaryColor('A100');
+
   dashboardTimewindowChangedSubject: Subject<Timewindow> = new ReplaySubject<Timewindow>();
 
   dashboardTimewindowChanged = this.dashboardTimewindowChangedSubject.asObservable().pipe(
@@ -189,6 +200,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
               private breakpointObserver: BreakpointObserver,
               private differs: IterableDiffers,
               private kvDiffers: KeyValueDiffers,
+              private whiteLabelingService: WhiteLabelingService,
               private ngZone: NgZone) {
     super(store);
     this.authUser = getCurrentAuthUser(store);

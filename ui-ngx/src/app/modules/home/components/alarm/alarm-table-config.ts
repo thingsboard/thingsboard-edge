@@ -87,7 +87,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
     this.entityType = EntityType.ALARM;
     this.entityTranslations = entityTypeTranslations.get(EntityType.ALARM);
     this.entityResources = {
-    } as EntityTypeResource;
+    } as EntityTypeResource<AlarmInfo>;
     this.searchStatus = defaultSearchStatus;
 
     this.headerComponent = AlarmTableHeaderComponent;

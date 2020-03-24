@@ -81,6 +81,7 @@ import { EventContentDialogComponent } from '@home/components/event/event-conten
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
 import { SelectTargetLayoutDialogComponent } from '@home/components/dashboard/select-target-layout-dialog.component';
 import { SelectTargetStateDialogComponent } from '@home/components/dashboard/select-target-state-dialog.component';
+import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
 
 @NgModule({
   declarations:
@@ -129,7 +130,8 @@ import { SelectTargetStateDialogComponent } from '@home/components/dashboard/sel
       SelectTargetLayoutDialogComponent,
       SelectTargetStateDialogComponent,
       AddWidgetToDashboardDialogComponent,
-      TableColumnsAssignmentComponent
+      TableColumnsAssignmentComponent,
+      ConverterAutocompleteComponent
     ],
   imports: [
     CommonModule,
@@ -171,7 +173,8 @@ import { SelectTargetStateDialogComponent } from '@home/components/dashboard/sel
     ImportDialogCsvComponent,
     TableColumnsAssignmentComponent,
     SelectTargetLayoutDialogComponent,
-    SelectTargetStateDialogComponent
+    SelectTargetStateDialogComponent,
+    ConverterAutocompleteComponent
   ],
   providers: [
     WidgetComponentService,

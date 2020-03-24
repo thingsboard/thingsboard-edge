@@ -40,7 +40,7 @@
                    (applyDetails)="saveEntity()"
                    [theForm]="detailsForm">
   <div class="details-buttons">
-    <div [tb-help]="resources.helpLinkId"></div>
+    <div [tb-help]="helpLinkId()"></div>
   </div>
   <mat-tab-group class="tb-absolute-fill" [ngClass]="{'tb-headless': isEditValue}" fxFlex [(selectedIndex)]="selectedTab">
     <mat-tab label="{{ 'details.details' | translate }}">

@@ -70,6 +70,8 @@ import { historyInterval, HistoryWindowType, Timewindow } from '@shared/models/t
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { isDefined, isUndefined } from '@core/utils';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, resourceByEntityType } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-entities-table',
@@ -122,7 +124,8 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
               public dialog: MatDialog,
               private dialogService: DialogService,
               private domSanitizer: DomSanitizer,
-              private componentFactoryResolver: ComponentFactoryResolver) {
+              private componentFactoryResolver: ComponentFactoryResolver,
+              private userPermissionsService: UserPermissionsService) {
     super(store);
   }
 
@@ -144,6 +147,20 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     this.groupActionDescriptors = [...this.entitiesTableConfig.groupActionDescriptors];
     this.cellActionDescriptors = [...this.entitiesTableConfig.cellActionDescriptors];
 
+    const resource = resourceByEntityType.get(this.entitiesTableConfig.entityType);
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
+      this.entitiesTableConfig.addEnabled = false;
+    }
+
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+      this.entitiesTableConfig.entitiesDeleteEnabled = false;
+      this.entitiesTableConfig.deleteEnabled = () => false;
+    }
+
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.WRITE)) {
+      this.entitiesTableConfig.detailsReadonly = () => true;
+    }
+
     if (this.entitiesTableConfig.entitiesDeleteEnabled) {
       this.cellActionDescriptors.push(
         {
@@ -153,16 +170,15 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
           onAction: ($event, entity) => this.deleteEntity($event, entity)
         }
       );
+      this.groupActionDescriptors.push(
+        {
+          name: this.translate.instant('action.delete'),
+          icon: 'delete',
+          isEnabled: true,
+          onAction: ($event, entities) => this.deleteEntities($event, entities)
+        }
+      );
     }
-
-    this.groupActionDescriptors.push(
-      {
-        name: this.translate.instant('action.delete'),
-        icon: 'delete',
-        isEnabled: this.entitiesTableConfig.entitiesDeleteEnabled,
-        onAction: ($event, entities) => this.deleteEntities($event, entities)
-      }
-    );
 
     const enabledGroupActionDescriptors =
       this.groupActionDescriptors.filter((descriptor) => descriptor.isEnabled);

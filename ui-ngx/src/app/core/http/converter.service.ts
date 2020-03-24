@@ -71,7 +71,7 @@ export class ConverterService {
   }
 
   public saveConverter(converter: Converter, config?: RequestConfig): Observable<Converter> {
-    return this.http.post<Converter>('api/converter', converter, defaultHttpOptionsFromConfig(config));
+    return this.http.post<Converter>('/api/converter', converter, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteConverter(converterId: string, config?: RequestConfig) {

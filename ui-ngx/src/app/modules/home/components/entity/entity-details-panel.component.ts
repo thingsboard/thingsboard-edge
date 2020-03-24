@@ -41,7 +41,7 @@ import {
   ViewChild,
   ViewChildren,
   QueryList,
-  ContentChildren, AfterViewInit
+  ContentChildren, AfterViewInit, Injector, ChangeDetectorRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -98,13 +98,15 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
   @ViewChildren(MatTab) inclusiveTabs: QueryList<MatTab>;
 
   translations: EntityTypeTranslation;
-  resources: EntityTypeResource;
+  resources: EntityTypeResource<BaseData<HasId>>;
   entity: BaseData<HasId>;
 
   private currentEntityId: HasId;
   private entityActionSubscription: Subscription;
 
   constructor(protected store: Store<AppState>,
+              private injector: Injector,
+              private cd: ChangeDetectorRef,
               private componentFactoryResolver: ComponentFactoryResolver) {
     super(store);
   }
@@ -146,15 +148,32 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
     const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.entityComponent);
     const viewContainerRef = this.entityDetailsFormAnchor.viewContainerRef;
     viewContainerRef.clear();
-    const componentRef = viewContainerRef.createComponent(componentFactory);
+    const injector: Injector = Injector.create(
+      {
+        providers: [
+          {
+            provide: 'entity',
+            useValue: this.entity
+          },
+          {
+            provide: 'entitiesTableConfig',
+            useValue: this.entitiesTableConfig
+          }
+        ],
+        parent: this.injector
+      }
+    );
+    const componentRef = viewContainerRef.createComponent(componentFactory, 0, injector);
     this.entityComponent = componentRef.instance;
     this.entityComponent.isEdit = this.isEdit;
-    this.entityComponent.entitiesTableConfig = this.entitiesTableConfig;
     this.detailsForm = this.entityComponent.entityNgForm;
     this.entityActionSubscription = this.entityComponent.entityAction.subscribe((action) => {
       this.entityAction.emit(action);
     });
     this.buildEntityTabsComponent();
+    this.entityComponent.entityForm.valueChanges.subscribe(() => {
+      this.cd.detectChanges();
+    });
   }
 
   buildEntityTabsComponent() {
@@ -195,6 +214,14 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
       }
     } else {
       this.selectedTab = 0;
+    }
+  }
+
+  helpLinkId(): string {
+    if (this.resources.helpLinkIdForEntity && this.entityComponent.entityForm) {
+      return this.resources.helpLinkIdForEntity(this.entityComponent.entityForm.getRawValue());
+    } else {
+      return this.resources.helpLinkId;
     }
   }
 

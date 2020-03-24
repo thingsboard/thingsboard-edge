@@ -154,7 +154,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   detailsPanelEnabled = true;
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
-  entityResources: EntityTypeResource;
+  entityResources: EntityTypeResource<T>;
   entityComponent: Type<EntityComponent<T>>;
   entityTabsComponent: Type<EntityTabsComponent<T>>;
   addDialogStyle = {};

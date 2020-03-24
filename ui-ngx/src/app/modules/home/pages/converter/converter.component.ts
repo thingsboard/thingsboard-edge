@@ -34,50 +34,44 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { EntityType } from '@shared/models/entity-type.models';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { EntityId } from '@app/shared/models/id/entity-id';
-import { EntityView } from '@shared/models/entity-view.models';
+import {
+  Converter,
+  ConverterDebugInput,
+  ConverterType,
+  converterTypeTranslationMap
+} from '@shared/models/converter.models';
+
+import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
+import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
+import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
 @Component({
-  selector: 'tb-entity-view',
-  templateUrl: './entity-view.component.html',
-  styleUrls: ['./entity-view.component.scss']
+  selector: 'tb-converter',
+  templateUrl: './converter.component.html',
+  styleUrls: ['./converter.component.scss']
 })
-export class EntityViewComponent extends EntityComponent<EntityView> {
+export class ConverterComponent extends EntityComponent<Converter> {
 
-  entityType = EntityType;
+  converterType = ConverterType;
 
-  dataKeyType = DataKeyType;
+  converterTypes = Object.keys(ConverterType);
 
-  entityViewScope: 'tenant' | 'customer' | 'customer_user';
-
-  allowedEntityTypes = [EntityType.DEVICE, EntityType.ASSET];
-
-  maxStartTimeMs: Observable<number | null>;
-  minEndTimeMs: Observable<number | null>;
-
-  selectedEntityId: Observable<EntityId | null>;
+  converterTypeTranslations = converterTypeTranslationMap;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
-              @Inject('entity') protected entityValue: EntityView,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<EntityView>,
+              private converterService: ConverterService,
+              @Inject('entity') protected entityValue: Converter,
+              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Converter>,
               protected fb: FormBuilder) {
     super(store, fb, entityValue, entitiesTableConfig);
   }
 
   ngOnInit() {
-    this.entityViewScope = this.entitiesTableConfig.componentsData.entityViewScope;
     super.ngOnInit();
-    this.maxStartTimeMs = this.entityForm.get('endTimeMs').valueChanges;
-    this.minEndTimeMs = this.entityForm.get('startTimeMs').valueChanges;
-    this.selectedEntityId = this.entityForm.get('entityId').valueChanges;
   }
 
   hideDelete() {
@@ -88,28 +82,16 @@ export class EntityViewComponent extends EntityComponent<EntityView> {
     }
   }
 
-  isAssignedToCustomer(entity: EntityView): boolean {
-    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
-  }
-
-  buildForm(entity: EntityView): FormGroup {
-    return this.fb.group(
+  buildForm(entity: Converter): FormGroup {
+    const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
         type: [entity ? entity.type : null, [Validators.required]],
-        entityId: [entity ? entity.entityId : null, [Validators.required]],
-        startTimeMs: [entity ? entity.startTimeMs : null],
-        endTimeMs: [entity ? entity.endTimeMs : null],
-        keys: this.fb.group(
+        debugMode: [entity ? entity.debugMode : null],
+        configuration: this.fb.group(
           {
-            attributes: this.fb.group(
-              {
-                cs: [entity && entity.keys && entity.keys.attributes ? entity.keys.attributes.cs : null],
-                sh: [entity && entity.keys && entity.keys.attributes ? entity.keys.attributes.sh : null],
-                ss: [entity && entity.keys && entity.keys.attributes ? entity.keys.attributes.ss : null],
-              }
-            ),
-            timeseries: [entity && entity.keys && entity.keys.timeseries ? entity.keys.timeseries : null]
+            decoder: [entity && entity.configuration ? entity.configuration.decoder : null],
+            encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
           }
         ),
         additionalInfo: this.fb.group(
@@ -119,37 +101,74 @@ export class EntityViewComponent extends EntityComponent<EntityView> {
         )
       }
     );
+    form.get('type').valueChanges.subscribe(() => {
+      this.converterTypeChanged(form);
+    });
+    this.checkIsNewConverter(entity, form);
+    return form;
   }
 
-  updateForm(entity: EntityView) {
+  private checkIsNewConverter(entity: Converter, form: FormGroup) {
+    if (entity && !entity.id) {
+      form.get('type').patchValue(ConverterType.UPLINK, {emitEvent: true});
+    }
+  }
+
+  private converterTypeChanged(form: FormGroup) {
+    const converterType: ConverterType = form.get('type').value;
+    if (converterType) {
+      if (converterType === ConverterType.UPLINK) {
+        form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
+        const decoder: string = form.get('configuration').get('decoder').value;
+        if (!decoder || !decoder.length) {
+          form.get('configuration').get('decoder').patchValue(jsDecoderTemplate, {emitEvent: false});
+        }
+      } else {
+        form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
+        const encoder: string = form.get('configuration').get('encoder').value;
+        if (!encoder || !encoder.length) {
+          form.get('configuration').get('encoder').patchValue(jsEncoderTemplate, {emitEvent: false});
+        }
+      }
+    }
+  }
+
+  updateForm(entity: Converter) {
     this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type});
-    this.entityForm.patchValue({entityId: entity.entityId});
-    this.entityForm.patchValue({startTimeMs: entity.startTimeMs});
-    this.entityForm.patchValue({endTimeMs: entity.endTimeMs});
-    this.entityForm.patchValue({
-      keys:
+    this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
+    this.entityForm.patchValue({debugMode: entity.debugMode});
+    this.entityForm.patchValue({configuration:
         {
-          attributes: {
-            cs: entity.keys && entity.keys.attributes ? entity.keys.attributes.cs : null,
-            sh: entity.keys && entity.keys.attributes ? entity.keys.attributes.sh : null,
-            ss: entity.keys && entity.keys.attributes ? entity.keys.attributes.ss : null,
-          },
-          timeseries: entity.keys && entity.keys.timeseries ? entity.keys.timeseries : null
+          decoder: entity.configuration ? entity.configuration.decoder : null,
+          encoder: entity.configuration ? entity.configuration.encoder : null
         }
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    this.checkIsNewConverter(entity, this.entityForm);
   }
 
-
-  onEntityViewIdCopied($event) {
+  onConverterIdCopied($event) {
     this.store.dispatch(new ActionNotificationShow(
       {
-        message: this.translate.instant('entity-view.idCopiedMessage'),
+        message: this.translate.instant('converter.idCopiedMessage'),
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  openConverterTestDialog(isDecoder: boolean) {
+    if (this.entity.id) {
+      this.converterService.getLatestConverterDebugInput(this.entity.id.id).subscribe(
+        (debugIn) => {
+          this.showConverterTestDialog(isDecoder, debugIn);
+        }
+      );
+    }
+  }
+
+  showConverterTestDialog(isDecoder: boolean, debugIn: ConverterDebugInput) {
+    // TODO:
   }
 }

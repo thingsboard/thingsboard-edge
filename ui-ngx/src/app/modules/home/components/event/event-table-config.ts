@@ -109,7 +109,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
       noEntities: 'event.no-events-prompt'
     };
     this.entityResources = {
-    } as EntityTypeResource;
+    } as EntityTypeResource<Event>;
     this.entitiesFetchFunction = pageLink => this.fetchEvents(pageLink);
 
     this.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};

@@ -87,8 +87,8 @@ export class WhiteLabelingService {
   private isUserWlMode = false;
   private isPreviewWlMode = false;
 
-  private primaryPaletteName: string;
-  private accentPaletteName: string;
+  private primaryPaletteName = 'tb-primary';
+  private accentPaletteName = 'tb-accent';
 
   private PALETTES: {[palette: string]: ColorPalette} = deepClone(materialColorPalette);
 
@@ -143,6 +143,10 @@ export class WhiteLabelingService {
 
   public getPrimaryPalette(): ColorPalette {
     return this.PALETTES[this.primaryPaletteName];
+  }
+
+  public getPrimaryColor(hue: string): string {
+    return this.PALETTES[this.primaryPaletteName][hue];
   }
 
   public getAccentPalette(): ColorPalette {

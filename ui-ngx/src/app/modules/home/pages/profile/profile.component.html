@@ -51,7 +51,7 @@
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
       <form #profileForm="ngForm" [formGroup]="profile" (ngSubmit)="save()">
-        <fieldset [disabled]="isLoading$ | async">
+        <fieldset [disabled]="(isLoading$ | async) || !(resource.PROFILE | hasGenericPermission: operation.WRITE)">
           <mat-form-field class="mat-block">
             <mat-label translate>user.email</mat-label>
             <input matInput formControlName="email" required/>
@@ -81,6 +81,7 @@
           <div fxLayout="row" style="padding-bottom: 16px;">
             <button mat-button mat-raised-button color="primary"
                     type="button"
+                    *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE"
                     [disabled]="(isLoading$ | async)" (click)="changePassword()">
               {{'profile.change-password' | translate}}
             </button>
@@ -88,6 +89,7 @@
           <div fxLayout="row" class="layout-wrap">
             <span fxFlex></span>
             <button mat-button mat-raised-button color="primary"
+                    *ngIf="resource.PROFILE | hasGenericPermission: operation.WRITE"
                     type="submit"
                     [disabled]="(isLoading$ | async) || profileForm.invalid || !profileForm.dirty">
               {{ 'action.save' | translate }}
