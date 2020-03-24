@@ -48,6 +48,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ContentType, contentTypesMap } from '@shared/models/constants';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
+import { guid } from '@core/utils';
 
 @Component({
   selector: 'tb-json-content',
@@ -74,6 +75,8 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   private jsonEditor: ace.Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
   private editorResizeListener: any;
+
+  toastTargetId = `jsonContentEditor-${guid()}`;
 
   @Input() label: string;
 
@@ -272,7 +275,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
         {
           message: errorInfo,
           type: 'error',
-          target: 'jsonContentEditor',
+          target: this.toastTargetId,
           verticalPosition: 'bottom',
           horizontalPosition: 'left'
         }));
@@ -285,7 +288,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
     if (this.errorShowed) {
       this.store.dispatch(new ActionNotificationHide(
         {
-          target: 'jsonContentEditor'
+          target: this.toastTargetId
         }));
       this.errorShowed = false;
     }
