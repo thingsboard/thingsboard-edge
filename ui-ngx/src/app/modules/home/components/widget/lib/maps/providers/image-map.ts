@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L from 'leaflet';
+import L, { LatLngLiteral } from 'leaflet';
 import LeafletMap from '../leaflet-map';
 import { MapSettings, UnitedMapSettings } from '../map-models';
 import { aspectCache } from '@app/core/utils';
@@ -108,7 +108,6 @@ export class ImageMap extends LeafletMap {
                     lastCenterPos.y /= prevHeight;
                     this.updateBounds(updateImage, lastCenterPos);
                     this.map.invalidateSize(true);
-                    // this.updateMarkers();
                 }
 
             }
@@ -128,7 +127,6 @@ export class ImageMap extends LeafletMap {
                 attributionControl: false
             });
             this.updateBounds(updateImage);
-            // this.updateMarkers();
         }
     }
 
@@ -142,7 +140,14 @@ export class ImageMap extends LeafletMap {
         return L.CRS.Simple.pointToLatLng({ x, y } as L.PointExpression, maxZoom - 1);
     }
 
-    latLngToPoint(latLng) {
+    latLngToPoint(latLng: LatLngLiteral) {
         return L.CRS.Simple.latLngToPoint(latLng, maxZoom - 1);
     }
+
+   /* convertToCustomFormat(position: L.LatLng): object {
+        return {
+            [this.options.xPosKeyName]: (position.lng + 180) / 360,
+            [this.options.yPosKeyName]: (position.lat + 180) / 360
+        }
+    }*/
 }

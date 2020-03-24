@@ -1629,7 +1629,6 @@
         "remember-me": "Recordarme",
         "forgot-password": "¿Olvidó la contraseña?",
         "password-reset": "Restablecer contraseña",
-        "expired-password-reset-message": "",
         "new-password": "Nueva contraseña",
         "new-password-again": "Repita la nueva contraseña",
         "password-link-sent-message": "¡El enlace para el restablecer la contraseña fue enviado correctamente!",
@@ -2112,7 +2111,6 @@
         "export-to-excel-xlsx": "Exportar datos a XLSX..."
     },
     "widget-action": {
-        "custom-pretty": "",
         "header-button": "Botón del encabezado del widget",
         "open-dashboard-state": "Navegar a nuevo estado del panel",
         "update-dashboard-state": "Actualizar estado vigente del panel",
