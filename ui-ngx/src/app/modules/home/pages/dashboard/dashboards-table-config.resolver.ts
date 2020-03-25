@@ -79,6 +79,7 @@ import {
 } from '@modules/home/pages/dashboard/make-dashboard-public-dialog.component';
 import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -93,6 +94,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private utils: UtilsService,
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DASHBOARD;
@@ -100,6 +102,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.entityTabsComponent = DashboardTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     this.config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
+
+    this.config.entityTitle = (dashboard) => dashboard ?
+      this.utils.customTranslation(dashboard.title, dashboard.title) : '';
 
     this.config.deleteEntityTitle = dashboard =>
       this.translate.instant('dashboard.delete-dashboard-title', { dashboardTitle: dashboard.title });
@@ -158,7 +163,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   configureColumns(dashboardScope: string): Array<EntityTableColumn<DashboardInfo>> {
     const columns: Array<EntityTableColumn<DashboardInfo>> = [
       new DateEntityTableColumn<DashboardInfo>('createdTime', 'dashboard.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<DashboardInfo>('title', 'dashboard.title', '50%')
+      new EntityTableColumn<DashboardInfo>('title', 'dashboard.title', '50%', this.config.entityTitle)
     ];
     if (dashboardScope === 'tenant') {
       columns.push(

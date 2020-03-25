@@ -46,6 +46,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setRoot')"
+          *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && !entity?.root">
     {{'rulechain.set-root' | translate }}
   </button>

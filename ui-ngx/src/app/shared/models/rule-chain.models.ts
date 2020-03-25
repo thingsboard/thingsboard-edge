@@ -83,6 +83,7 @@ export const ruleNodeTypeComponentTypes: ComponentType[] =
     ComponentType.ENRICHMENT,
     ComponentType.TRANSFORMATION,
     ComponentType.ACTION,
+    ComponentType.ANALYTICS,
     ComponentType.EXTERNAL
   ];
 

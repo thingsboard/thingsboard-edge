@@ -45,6 +45,7 @@ import { getIntegrationHelpLink, Integration, integrationTypeInfoMap } from '@sh
 import { IntegrationService } from '@core/http/integration.service';
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfig<Integration>> {
@@ -53,7 +54,8 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
   constructor(private integrationService: IntegrationService,
               private translate: TranslateService,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private utils: UtilsService) {
 
     this.config.entityType = EntityType.INTEGRATION;
     this.config.entityComponent = IntegrationComponent;
@@ -67,9 +69,12 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
     };
     this.config.addDialogStyle = {width: '800px'};
 
+    this.config.entityTitle = (integration) => integration ?
+      this.utils.customTranslation(integration.name, integration.name) : '';
+
     this.config.columns.push(
       new DateEntityTableColumn<Integration>('createdTime', 'integration.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Integration>('name', 'converter.name', '33%'),
+      new EntityTableColumn<Integration>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Integration>('type', 'converter.type', '33%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name)
       })

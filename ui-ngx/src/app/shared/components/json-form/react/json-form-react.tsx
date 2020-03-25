@@ -15,11 +15,9 @@
  */
 import * as React from 'react';
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import thingsboardTheme from './styles/thingsboardTheme';
+import createThingsboardTheme from './styles/thingsboardTheme';
 import ThingsboardSchemaForm from './json-form-schema-form';
 import { JsonFormProps } from './json-form.models';
-
-const tbTheme = createMuiTheme(thingsboardTheme);
 
 class ReactSchemaForm extends React.Component<JsonFormProps, {}> {
 
@@ -31,7 +29,9 @@ class ReactSchemaForm extends React.Component<JsonFormProps, {}> {
 
   render() {
     if (this.props.form.length > 0) {
-      return <ThemeProvider theme={tbTheme}><ThingsboardSchemaForm {...this.props} /></ThemeProvider>;
+      return <ThemeProvider
+        theme={createMuiTheme(createThingsboardTheme(this.props.primaryPalette, this.props.accentPalette))}>
+        <ThingsboardSchemaForm {...this.props} /></ThemeProvider>;
     } else {
       return <div></div>;
     }

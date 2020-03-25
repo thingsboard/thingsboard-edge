@@ -47,8 +47,9 @@
 import indigo from '@material-ui/core/colors/indigo';
 import deeepOrange from '@material-ui/core/colors/deepOrange';
 import { ThemeOptions } from '@material-ui/core/styles/createMuiTheme';
-import { PaletteOptions } from '@material-ui/core/styles/createPalette';
+import { PaletteOptions, SimplePaletteColorOptions } from '@material-ui/core/styles/createPalette';
 import { mergeDeep } from '@core/utils';
+import { ColorPalette } from '@shared/models/material.models';
 
 const PRIMARY_COLOR = '#305680';
 const SECONDARY_COLOR = '#527dad';
@@ -66,12 +67,18 @@ const thingsboardPalette: PaletteOptions = {
   secondary: deeepOrange,
   background: {
     default: '#eee'
-  }
+  },
+  type: 'light'
 };
 
-export default {
-  typography: {
-    fontFamily: 'Roboto, \'Helvetica Neue\', sans-serif'
-  },
-  palette: thingsboardPalette,
-} as ThemeOptions;
+export default function createThingsboardTheme(primaryPalette: ColorPalette, accentPalette: ColorPalette): ThemeOptions {
+  thingsboardPalette.primary = mergeDeep<any>({}, thingsboardPalette.primary, primaryPalette);
+  thingsboardPalette.secondary = mergeDeep<any>({}, thingsboardPalette.secondary, accentPalette);
+  (thingsboardPalette.secondary as SimplePaletteColorOptions).main = thingsboardPalette.secondary['500'];
+  return {
+    typography: {
+      fontFamily: 'Roboto, \'Helvetica Neue\', sans-serif'
+    },
+    palette: thingsboardPalette
+  };
+}

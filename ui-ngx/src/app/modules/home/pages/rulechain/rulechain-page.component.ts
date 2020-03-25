@@ -55,10 +55,12 @@ import { DialogService } from '@core/services/dialog.service';
 import { AuthService } from '@core/auth/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  inputNodeComponent, NodeConnectionInfo,
+  inputNodeComponent,
+  NodeConnectionInfo,
   ResolvedRuleChainMetaData,
   RuleChain,
-  RuleChainConnectionInfo, RuleChainImport,
+  RuleChainConnectionInfo,
+  RuleChainImport,
   RuleChainMetaData,
   ruleChainNodeComponent
 } from '@shared/models/rule-chain.models';
@@ -88,8 +90,10 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { ItemBufferService, RuleNodeConnection } from '@core/services/item-buffer.service';
 import { Hotkey } from 'angular2-hotkeys';
 import { EntityType } from '@shared/models/entity-type.models';
-import Timeout = NodeJS.Timeout;
 import { DebugEventType, EventType } from '@shared/models/event.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import Timeout = NodeJS.Timeout;
 
 @Component({
   selector: 'tb-rulechain-page',
@@ -115,6 +119,8 @@ export class RuleChainPageComponent extends PageComponent
     {read: MatExpansionPanel}) expansionPanels: QueryList<MatExpansionPanel>;
 
   @ViewChild('ruleChainMenuTrigger', {static: true}) ruleChainMenuTrigger: MatMenuTrigger;
+
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE);
 
   eventTypes = EventType;
 
@@ -256,6 +262,7 @@ export class RuleChainPageComponent extends PageComponent
               private authService: AuthService,
               private translate: TranslateService,
               private itembuffer: ItemBufferService,
+              private userPermissionsService: UserPermissionsService,
               public dialog: MatDialog,
               public dialogService: DialogService,
               public fb: FormBuilder) {
@@ -267,15 +274,25 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   ngAfterViewInit() {
-    fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.updateRuleChainLibrary();
-        })
-      )
-      .subscribe();
+    if (!this.readonly) {
+      fromEvent(this.ruleNodeSearchInputField.nativeElement, 'keyup')
+        .pipe(
+          debounceTime(150),
+          distinctUntilChanged(),
+          tap(() => {
+            this.updateRuleChainLibrary();
+          })
+        )
+        .subscribe();
+    } else {
+      this.ruleChainCanvas.modelService.isEditable = () => false;
+      this.ruleChainCanvas.modelService.edges.handleEdgeMouseClick = (edge) => {
+        this.openLinkDetails(edge);
+      };
+      const canvas = $(this.ruleChainCanvas.modelService.canvasHtmlElement);
+      const connectorElements  = $('.fc-connector', canvas);
+      connectorElements.attr('draggable', 'false');
+    }
     this.ruleChainCanvas.adjustCanvasSize(true);
   }
 
@@ -447,7 +464,7 @@ export class RuleChainPageComponent extends PageComponent
       }
       model.nodes.push(node);
     });
-    if (this.expansionPanels) {
+    if (this.expansionPanels && !this.readonly) {
       for (let i = 0; i < ruleNodeTypesLibrary.length; i++) {
         const panel = this.expansionPanels.find((item, index) => {
           return index === i;
@@ -536,6 +553,7 @@ export class RuleChainPageComponent extends PageComponent
         );
       }
       nodes.push(node);
+      node.readonly = this.readonly;
       this.ruleChainModel.nodes.push(node);
     });
     if (this.ruleChainMetaData.firstNodeIndex > -1) {
@@ -609,6 +627,7 @@ export class RuleChainPageComponent extends PageComponent
               ]
             };
             ruleChainNodesMap[ruleChainConnection.additionalInfo.ruleChainNodeId] = ruleChainNode;
+            ruleChainNode.readonly = this.readonly;
             this.ruleChainModel.nodes.push(ruleChainNode);
           }
           const sourceNode = nodes[ruleChainConnection.fromIndex];
@@ -646,7 +665,7 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   openRuleChainContextMenu($event: MouseEvent) {
-    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey) {
+    if (this.ruleChainCanvas.modelService && !$event.ctrlKey && !$event.metaKey && !this.readonly) {
       const x = $event.clientX;
       const y = $event.clientY;
       const item = this.ruleChainCanvas.modelService.getItemInfoAtPoint(x, y);
@@ -861,8 +880,10 @@ export class RuleChainPageComponent extends PageComponent
   }
 
   onModelChanged() {
-    this.isDirtyValue = true;
-    this.validate();
+    if (!this.readonly) {
+      this.isDirtyValue = true;
+      this.validate();
+    }
   }
 
   helpLinkIdForRuleNodeType(): string {

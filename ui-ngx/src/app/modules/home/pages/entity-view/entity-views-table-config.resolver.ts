@@ -71,6 +71,7 @@ import {EntityViewComponent} from '@modules/home/pages/entity-view/entity-view.c
 import {EntityViewTableHeaderComponent} from '@modules/home/pages/entity-view/entity-view-table-header.component';
 import {EntityViewId} from '@shared/models/id/entity-view-id';
 import { EntityViewTabsComponent } from '@home/pages/entity-view/entity-view-tabs.component';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityView>> {
@@ -86,6 +87,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private dialogService: DialogService,
               private translate: TranslateService,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private router: Router,
               private dialog: MatDialog) {
 
@@ -96,6 +98,9 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     this.config.entityResources = entityTypeResources.get(EntityType.ENTITY_VIEW);
 
     this.config.addDialogStyle = {maxWidth: '800px'};
+
+    this.config.entityTitle = (entityView) => entityView ?
+      this.utils.customTranslation(entityView.name, entityView.name) : '';
 
     this.config.deleteEntityTitle = entityView =>
       this.translate.instant('entity-view.delete-entity-view-title', { entityViewName: entityView.name });
@@ -160,7 +165,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
   configureColumns(entityViewScope: string): Array<EntityTableColumn<EntityView>> {
     const columns: Array<EntityTableColumn<EntityView>> = [
       new DateEntityTableColumn<EntityView>('createdTime', 'entity-view.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<EntityView>('name', 'entity-view.name', '33%'),
+      new EntityTableColumn<EntityView>('name', 'entity-view.name', '33%', this.config.entityTitle),
       new EntityTableColumn<EntityView>('type', 'entity-view.entity-view-type', '33%'),
     ];
     /*if (entityViewScope === 'tenant') {

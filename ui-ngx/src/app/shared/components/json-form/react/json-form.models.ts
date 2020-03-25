@@ -31,6 +31,7 @@
 
 import * as tinycolor_ from 'tinycolor2';
 import { GroupInfo } from '@shared/models/widget.models';
+import { ColorPalette } from '@shared/models/material.models';
 
 const tinycolor = tinycolor_;
 
@@ -77,6 +78,8 @@ export interface JsonFormProps {
   onIconClick?: OnIconClickFn;
   onToggleFullscreen?: onToggleFullscreenFn;
   mapper?: {[type: string]: any};
+  primaryPalette?: ColorPalette;
+  accentPalette?: ColorPalette;
 }
 
 export interface KeyLabelItem {

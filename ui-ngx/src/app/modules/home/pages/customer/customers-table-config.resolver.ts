@@ -51,6 +51,7 @@ import {Customer} from '@app/shared/models/customer.model';
 import {CustomerService} from '@app/core/http/customer.service';
 import {CustomerComponent} from '@modules/home/pages/customer/customer.component';
 import { CustomerTabsComponent } from '@home/pages/customer/customer-tabs.component';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<Customer>> {
@@ -60,7 +61,8 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
   constructor(private customerService: CustomerService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private router: Router) {
+              private router: Router,
+              private utils: UtilsService) {
 
     this.config.entityType = EntityType.CUSTOMER;
     this.config.entityComponent = CustomerComponent;
@@ -68,9 +70,12 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.CUSTOMER);
     this.config.entityResources = entityTypeResources.get(EntityType.CUSTOMER);
 
+    this.config.entityTitle = (customer) => customer ?
+      this.utils.customTranslation(customer.title, customer.title) : '';
+
     this.config.columns.push(
       new DateEntityTableColumn<Customer>('createdTime', 'customer.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Customer>('title', 'customer.title', '25%'),
+      new EntityTableColumn<Customer>('title', 'customer.title', '25%', this.config.entityTitle),
       new EntityTableColumn<Customer>('email', 'contact.email', '25%'),
       new EntityTableColumn<Customer>('country', 'contact.country', '25%'),
       new EntityTableColumn<Customer>('city', 'contact.city', '25%')

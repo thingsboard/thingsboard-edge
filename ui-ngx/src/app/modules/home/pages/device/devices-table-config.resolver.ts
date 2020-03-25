@@ -76,6 +76,7 @@ import {
 } from '../../dialogs/add-entities-to-customer-dialog.component';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Device>> {
@@ -92,6 +93,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private router: Router,
               private dialog: MatDialog) {
 
@@ -100,6 +102,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     this.config.entityTabsComponent = DeviceTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DEVICE);
     this.config.entityResources = entityTypeResources.get(EntityType.DEVICE);
+
+    this.config.entityTitle = (device) => device ?
+      this.utils.customTranslation(device.name, device.name) : '';
 
     this.config.deleteEntityTitle = device => this.translate.instant('device.delete-device-title', { deviceName: device.name });
     this.config.deleteEntityContent = () => this.translate.instant('device.delete-device-text');
@@ -163,7 +168,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
   configureColumns(deviceScope: string): Array<EntityTableColumn<Device>> {
     const columns: Array<EntityTableColumn<Device>> = [
       new DateEntityTableColumn<Device>('createdTime', 'device.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Device>('name', 'device.name', '25%'),
+      new EntityTableColumn<Device>('name', 'device.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Device>('type', 'device.device-type', '25%'),
       new EntityTableColumn<Device>('label', 'device.label', '25%')
     ];

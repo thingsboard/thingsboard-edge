@@ -196,6 +196,7 @@ export enum RuleNodeType {
   ENRICHMENT = 'ENRICHMENT',
   TRANSFORMATION = 'TRANSFORMATION',
   ACTION = 'ACTION',
+  ANALYTICS = 'ANALYTICS',
   EXTERNAL = 'EXTERNAL',
   RULE_CHAIN = 'RULE_CHAIN',
   UNKNOWN = 'UNKNOWN',
@@ -207,6 +208,7 @@ export const ruleNodeTypesLibrary = [
   RuleNodeType.ENRICHMENT,
   RuleNodeType.TRANSFORMATION,
   RuleNodeType.ACTION,
+  RuleNodeType.ANALYTICS,
   RuleNodeType.EXTERNAL,
   RuleNodeType.RULE_CHAIN,
 ];
@@ -260,6 +262,16 @@ export const ruleNodeTypeDescriptors = new Map<RuleNodeType, RuleNodeTypeDescrip
         details: 'rulenode.type-action-details',
         nodeClass: 'tb-action-type',
         icon: 'flash_on'
+      }
+    ],
+    [
+      RuleNodeType.ANALYTICS,
+      {
+        value: RuleNodeType.ANALYTICS,
+        name: 'rulenode.type-analytics',
+        details: 'rulenode.type-analytics-details',
+        nodeClass: 'tb-analytics-type',
+        icon: 'timeline'
       }
     ],
     [

@@ -46,6 +46,7 @@ import { ConverterService } from '@core/http/converter.service';
 import { ConverterComponent } from '@home/pages/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
@@ -55,7 +56,8 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
   constructor(private converterService: ConverterService,
               private translate: TranslateService,
               private importExport: ImportExportService,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private utils: UtilsService) {
 
     this.config.entityType = EntityType.CONVERTER;
     this.config.entityComponent = ConverterComponent;
@@ -69,9 +71,12 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     };
     this.config.addDialogStyle = {width: '600px'};
 
+    this.config.entityTitle = (converter) => converter ?
+      this.utils.customTranslation(converter.name, converter.name) : '';
+
     this.config.columns.push(
       new DateEntityTableColumn<Converter>('createdTime', 'converter.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Converter>('name', 'converter.name', '33%'),
+      new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type))
       })

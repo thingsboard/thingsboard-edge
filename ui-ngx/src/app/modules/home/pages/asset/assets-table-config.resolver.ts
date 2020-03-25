@@ -72,6 +72,7 @@ import { AssetTableHeaderComponent } from '@modules/home/pages/asset/asset-table
 import { AssetId } from '@app/shared/models/id/asset-id';
 import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asset>> {
@@ -88,6 +89,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private router: Router,
               private dialog: MatDialog) {
 
@@ -96,6 +98,9 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     this.config.entityTabsComponent = AssetTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     this.config.entityResources = entityTypeResources.get(EntityType.ASSET);
+
+    this.config.entityTitle = (asset) => asset ?
+      this.utils.customTranslation(asset.name, asset.name) : '';
 
     this.config.deleteEntityTitle = asset => this.translate.instant('asset.delete-asset-title', { assetName: asset.name });
     this.config.deleteEntityContent = () => this.translate.instant('asset.delete-asset-text');
@@ -159,7 +164,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
   configureColumns(assetScope: string): Array<EntityTableColumn<Asset>> {
     const columns: Array<EntityTableColumn<Asset>> = [
       new DateEntityTableColumn<Asset>('createdTime', 'asset.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Asset>('name', 'asset.name', '25%'),
+      new EntityTableColumn<Asset>('name', 'asset.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Asset>('type', 'asset.asset-type', '25%'),
       new EntityTableColumn<Asset>('label', 'asset.label', '25%'),
     ];

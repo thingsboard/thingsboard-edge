@@ -31,6 +31,7 @@
 
 -->
 <div
+   (click)="(!modelservice.isEditable() || node.readonly) && userNodeCallbacks.doubleClick($event, node)"
    (dblclick)="userNodeCallbacks.doubleClick($event, node)"
    (mousedown)="userNodeCallbacks.mouseDown($event, node)"
    (mouseenter)="userNodeCallbacks.mouseEnter($event, node)"
