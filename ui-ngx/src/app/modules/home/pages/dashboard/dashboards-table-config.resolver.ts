@@ -328,7 +328,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
   }
 
   importDashboard($event: Event) {
-    this.importExport.importDashboard().subscribe(
+    this.importExport.importDashboard(null).subscribe(
       (dashboard) => {
         if (dashboard) {
           this.config.table.updateData();

@@ -31,27 +31,21 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
-
-import { Tenant } from '@shared/models/tenant.model';
+import { Resolve } from '@angular/router';
 import {
   DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { TenantService } from '@core/http/tenant.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { TenantComponent } from '@modules/home/pages/tenant/tenant.component';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { TenantTabsComponent } from '@home/pages/tenant/tenant-tabs.component';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation, Resource } from '@shared/models/security.models';
 import { Converter, converterTypeTranslationMap, getConverterHelpLink } from '@shared/models/converter.models';
 import { ConverterService } from '@core/http/converter.service';
 import { ConverterComponent } from '@home/pages/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 
 @Injectable()
 export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
@@ -60,6 +54,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
 
   constructor(private converterService: ConverterService,
               private translate: TranslateService,
+              private importExport: ImportExportService,
               private datePipe: DatePipe) {
 
     this.config.entityType = EntityType.CONVERTER;
@@ -129,11 +124,16 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    // TODO:
+    this.importExport.exportConverter(converter.id.id);
   }
 
   importConverter($event: Event) {
-    // TODO:
+    this.importExport.importConverter().subscribe(
+     (converter) => {
+      if (converter) {
+        this.config.table.updateData();
+      }
+    });
   }
 
   onConverterAction(action: EntityAction<Converter>): boolean {
