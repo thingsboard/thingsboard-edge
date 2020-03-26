@@ -47,6 +47,7 @@ import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module'
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
 import { ConverterModule } from '@home/pages/converter/converter.module';
 import { IntegrationModule } from '@home/pages/integration/integration.module';
+import { RoleModule } from '@home/pages/role/role.module';
 
 @NgModule({
   exports: [
@@ -63,6 +64,7 @@ import { IntegrationModule } from '@home/pages/integration/integration.module';
     DashboardModule,
     AuditLogModule,
     UserModule,
+    RoleModule,
     ConverterModule,
     IntegrationModule,
     IFrameViewModule

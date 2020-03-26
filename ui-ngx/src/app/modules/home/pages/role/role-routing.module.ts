@@ -29,54 +29,36 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-@Component({
-  selector: 'tb-error',
-  template: `
-  <div [@animation]="state" style="margin-top:0.5rem;font-size:.75rem;">
-      <mat-error >
-      {{message}}
-    </mat-error>
-    </div>
-  `,
-  styles: [`
-    :host {
-        height: 24px;
+import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
+import { Authority } from '@shared/models/authority.enum';
+import { RolesTableConfigResolver } from '@home/pages/role/roles-table-config.resolver';
+
+const routes: Routes = [
+  {
+    path: 'roles',
+    component: EntitiesTableComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'role.roles',
+      breadcrumb: {
+        label: 'role.roles',
+        icon: 'security'
+      }
+    },
+    resolve: {
+      entitiesTableConfig: RolesTableConfigResolver
     }
-  `],
-  animations: [
-    trigger('animation', [
-      state('show', style({
-        opacity: 1,
-        transform: 'translateY(0)'
-      })),
-      state('hide',   style({
-        opacity: 0,
-        transform: 'translateY(-1rem)'
-      })),
-      transition('* <=> *', animate('200ms ease-out'))
-    ]),
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule],
+  providers: [
+    RolesTableConfigResolver
   ]
 })
-export class TbErrorComponent {
-  errorValue: string;
-  state = 'hide';
-  message: string;
-
-  constructor(private cd: ChangeDetectorRef) {
-  }
-
-  @Input()
-  set error(value) {
-    if (this.errorValue !== value) {
-      this.errorValue = value;
-      if (value) {
-        this.message = value;
-      }
-      this.state = value ? 'show' : 'hide';
-      this.cd.detectChanges();
-    }
-  }
-}
+export class RoleRoutingModule { }

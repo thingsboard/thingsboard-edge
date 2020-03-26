@@ -266,6 +266,20 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.ROLE,
+      {
+        type: 'entity.type-role',
+        typePlural: 'entity.type-roles',
+        list: 'entity.list-of-roles',
+        nameStartsWith: 'entity.role-name-starts-with',
+        details: 'role.role-details',
+        add: 'role.add',
+        noEntities: 'role.no-roles-text',
+        search: 'role.search',
+        selectedEntities: 'role.selected-roles'
+      }
+    ],
+    [
       AliasEntityType.CURRENT_CUSTOMER,
       {
         type: 'entity.type-entity-view',
@@ -329,6 +343,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.WIDGETS_BUNDLE,
       {
         helpLinkId: 'widgetsBundles'
+      }
+    ],
+    [
+      EntityType.ROLE,
+      {
+        helpLinkId: 'roles'
       }
     ]
   ]

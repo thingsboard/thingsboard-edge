@@ -34,6 +34,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { RoleId } from '@shared/models/id/role-id';
 import { Operation, Resource, RoleType } from '@shared/models/security.models';
+import { ValidatorFn } from '@angular/forms';
 
 export type SpecificRolePermissions = Operation[];
 export type GenericRolePermissions = {
@@ -49,4 +50,40 @@ export interface Role extends BaseData<RoleId> {
   type: RoleType;
   permissions: RolePermissions;
   additionalInfo?: any;
+}
+
+export function genericRolePermissionsValidator(required: boolean): ValidatorFn {
+  return control => {
+    const permissions: GenericRolePermissions = control.value;
+    let requiredError = false;
+    let invalidError = false;
+    const resources = permissions ? Object.keys(permissions) : [];
+    if (required && !resources.length) {
+      requiredError = true;
+    }
+    if (!requiredError) {
+      for (const resource of resources) {
+        if (!Resource[resource]) {
+          invalidError = true;
+          break;
+        }
+        const operations = permissions[resource];
+        if (!operations || !operations.length) {
+          invalidError = true;
+          break;
+        }
+      }
+    }
+    let errors = null;
+    if (requiredError || invalidError) {
+      errors = {};
+      if (requiredError) {
+        errors.required = true;
+      }
+      if (invalidError) {
+        errors.invalid = true;
+      }
+    }
+    return errors;
+  }
 }

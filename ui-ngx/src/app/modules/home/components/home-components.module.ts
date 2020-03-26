@@ -82,6 +82,9 @@ import { SharedHomeComponentsModule } from '@home/components/shared-home-compone
 import { SelectTargetLayoutDialogComponent } from '@home/components/dashboard/select-target-layout-dialog.component';
 import { SelectTargetStateDialogComponent } from '@home/components/dashboard/select-target-state-dialog.component';
 import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
+import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
+import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
+import { PermissionListComponent } from '@home/components/role/permission-list.component';
 
 @NgModule({
   declarations:
@@ -131,7 +134,10 @@ import { ConverterAutocompleteComponent } from '@home/components/converter/conve
       SelectTargetStateDialogComponent,
       AddWidgetToDashboardDialogComponent,
       TableColumnsAssignmentComponent,
-      ConverterAutocompleteComponent
+      ConverterAutocompleteComponent,
+      OperationTypeListComponent,
+      ResourceTypeAutocompleteComponent,
+      PermissionListComponent
     ],
   imports: [
     CommonModule,
@@ -174,7 +180,10 @@ import { ConverterAutocompleteComponent } from '@home/components/converter/conve
     TableColumnsAssignmentComponent,
     SelectTargetLayoutDialogComponent,
     SelectTargetStateDialogComponent,
-    ConverterAutocompleteComponent
+    ConverterAutocompleteComponent,
+    OperationTypeListComponent,
+    ResourceTypeAutocompleteComponent,
+    PermissionListComponent
   ],
   providers: [
     WidgetComponentService,

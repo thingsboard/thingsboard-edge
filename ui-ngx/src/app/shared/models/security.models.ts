@@ -38,6 +38,13 @@ export enum RoleType {
   GROUP = 'GROUP'
 }
 
+export const roleTypeTranslationMap = new Map<RoleType, string>(
+  [
+    [RoleType.GENERIC, 'role.display-type.GENERIC'],
+    [RoleType.GROUP, 'role.display-type.GROUP'],
+  ]
+);
+
 export enum Operation {
   ALL = 'ALL',
   CREATE = 'CREATE',
@@ -58,6 +65,12 @@ export enum Operation {
   CLAIM_DEVICES = 'CLAIM_DEVICES',
   SHARE_GROUP = 'SHARE_GROUP'
 }
+
+const operationTypeTranslations = new Map<Operation, string>();
+for (const key of Object.keys(Operation)) {
+  operationTypeTranslations.set(Operation[key], `permission.operation.display-type.${key}`);
+}
+export const operationTypeTranslationMap = operationTypeTranslations;
 
 export enum Resource {
   ALL = 'ALL',
@@ -89,6 +102,12 @@ export enum Resource {
   WHITE_LABELING = 'WHITE_LABELING',
   AUDIT_LOG = 'AUDIT_LOG'
 }
+
+const resourceTypeTranslations = new Map<Resource, string>();
+for (const key of Object.keys(Resource)) {
+  resourceTypeTranslations.set(Resource[key], `permission.resource.display-type.${key}`);
+}
+export const resourceTypeTranslationMap = resourceTypeTranslations;
 
 export const resourceByEntityType = new Map<EntityType, Resource>(
   [

@@ -29,54 +29,26 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { RoleComponent } from '@home/pages/role/role.component';
+import { RoleTabsComponent } from '@home/pages/role/role-tabs.component';
+import { RoleRoutingModule } from '@home/pages/role/role-routing.module';
 
-@Component({
-  selector: 'tb-error',
-  template: `
-  <div [@animation]="state" style="margin-top:0.5rem;font-size:.75rem;">
-      <mat-error >
-      {{message}}
-    </mat-error>
-    </div>
-  `,
-  styles: [`
-    :host {
-        height: 24px;
-    }
-  `],
-  animations: [
-    trigger('animation', [
-      state('show', style({
-        opacity: 1,
-        transform: 'translateY(0)'
-      })),
-      state('hide',   style({
-        opacity: 0,
-        transform: 'translateY(-1rem)'
-      })),
-      transition('* <=> *', animate('200ms ease-out'))
-    ]),
+@NgModule({
+  declarations: [
+    RoleComponent,
+    RoleTabsComponent
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    HomeDialogsModule,
+    RoleRoutingModule
   ]
 })
-export class TbErrorComponent {
-  errorValue: string;
-  state = 'hide';
-  message: string;
-
-  constructor(private cd: ChangeDetectorRef) {
-  }
-
-  @Input()
-  set error(value) {
-    if (this.errorValue !== value) {
-      this.errorValue = value;
-      if (value) {
-        this.message = value;
-      }
-      this.state = value ? 'show' : 'hide';
-      this.cd.detectChanges();
-    }
-  }
-}
+export class RoleModule { }
