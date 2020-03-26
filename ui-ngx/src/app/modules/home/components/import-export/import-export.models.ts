@@ -95,6 +95,45 @@ export interface CsvColumnParam {
   sampleData: any;
 }
 
+export interface FileType {
+  mimeType: string;
+  extension: string;
+}
+
+export const JSON_TYPE: FileType = {
+  mimeType: 'text/json',
+  extension: 'json'
+};
+
+export const CSV_TYPE: FileType = {
+  mimeType: 'attachament/csv',
+  extension: 'csv'
+};
+
+export const XLS_TYPE: FileType = {
+  mimeType: 'application/vnd.ms-excel',
+  extension: 'xls'
+};
+
+export const XLSX_TYPE: FileType = {
+  mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  extension: 'xlsx'
+};
+
+export const ZIP_TYPE: FileType = {
+  mimeType: 'application/zip',
+  extension: 'zip'
+};
+
+
+export const TEMPLATE_XLS = `
+  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+  <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
+  <head><!--[if gte mso 9]><xml>
+  <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
+  <![endif]--></head>
+  <body>{table}</body></html>`;
+
 export function convertCSVToJson(csvdata: string, config: CsvToJsonConfig,
                                  onError: (messageId: string, params?: any) => void): CsvToJsonResult | number {
   config = config || {};

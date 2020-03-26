@@ -1,0 +1,238 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import { Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { ENTER } from '@angular/cdk/keycodes';
+import { Observable, of } from 'rxjs';
+import { filter, map, mergeMap, reduce, share, switchMap, tap } from 'rxjs/operators';
+import { EntityService } from '@core/http/entity.service';
+import { EntityType } from '@shared/models/entity-type.models';
+import { Device } from '@shared/models/device.models';
+import { DialogService } from '@core/services/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DeviceService } from '@core/http/device.service';
+
+@Component({
+  selector: 'tb-entity-gateway-select',
+  templateUrl: './entity-gateway-select.component.html',
+  styleUrls: [],
+  providers: [{
+    provide: NG_VALUE_ACCESSOR,
+    useExisting: forwardRef(() => EntityGatewaySelectComponent),
+    multi: true
+  }]
+})
+
+export class EntityGatewaySelectComponent implements ControlValueAccessor, OnInit {
+  get required(): boolean {
+    return this.requiredValue;
+  }
+
+  @Input()
+  set required(value: boolean) {
+    this.requiredValue = coerceBooleanProperty(value);
+  }
+
+  @Input()
+  set newGatewayType(value: string){
+    this.gatewayType = value;
+  }
+
+  @Output()
+  private gatewayNameExist = new EventEmitter();
+
+  constructor(private store: Store<AppState>,
+              private entityService: EntityService,
+              private dialogService: DialogService,
+              private deviceService: DeviceService,
+              private translate: TranslateService,
+              private fb: FormBuilder) {
+    this.loadGatewayList();
+    this.selectDeviceGatewayFormGroup = this.fb.group({
+      gateway: [null]
+    });
+  }
+
+  private gatewayType = 'Gateway';
+  private dirty: boolean;
+  private requiredValue: boolean;
+  private gatewayList: Array<Device>;
+
+  searchText = '';
+  filteredGateways: Observable<Array<Device>>;
+  selectDeviceGatewayFormGroup: FormGroup;
+  modelValue: string | null;
+
+  @ViewChild('deviceGatewayInput', {static: true}) deviceGatewayInput: ElementRef<HTMLInputElement>;
+  private propagateChange = (v: any) => { };
+
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+  }
+
+  ngOnInit() {
+    this.filteredGateways = this.selectDeviceGatewayFormGroup.get('gateway').valueChanges
+      .pipe(
+        tap(value => {
+          let modelValue;
+          if (typeof value === 'string' || !value) {
+            modelValue = null;
+          } else {
+            modelValue = value.id.id;
+          }
+          this.updateView(modelValue);
+          if (value === null) {
+            this.clear();
+          }
+        }),
+        map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
+        mergeMap(name => this.fetchGateway(name) ),
+        share()
+      );
+  }
+
+  fetchGateway(searchText?: string): Observable<Array<Device>> {
+    this.searchText = searchText;
+    let result = [];
+    if (searchText && searchText.length) {
+      result = this.gatewayList.filter((gateway) => gateway.name.toLowerCase().includes(searchText.toLowerCase()));
+    } else {
+      result = this.gatewayList;
+    }
+    return of(result);
+  }
+
+  onFocus() {
+    if (this.dirty) {
+      this.selectDeviceGatewayFormGroup.get('gateway').updateValueAndValidity({onlySelf: true, emitEvent: true});
+      this.dirty = false;
+    }
+  }
+
+  displayGatewayFn(gateway?: Device): string | undefined {
+    return gateway ? gateway.name : undefined;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+  }
+
+  writeValue(value: string | null): void {
+    if(value === null){
+      this.searchText = '';
+      this.selectDeviceGatewayFormGroup.get('gateway').patchValue('', {emitEvent: false});
+      this.dirty = true;
+    }
+  }
+
+  clear(value: string = '', hideList?: boolean) {
+    this.searchText = value;
+    this.selectDeviceGatewayFormGroup.get('gateway').patchValue(value, {emitEvent: true});
+    if(!hideList) {
+      setTimeout(() => {
+        this.deviceGatewayInput.nativeElement.blur();
+        this.deviceGatewayInput.nativeElement.focus();
+      }, 0);
+    }
+  }
+
+  textIsNotEmpty(text: string): boolean {
+    return !!text && text.length > 0;
+  }
+
+  gatewayNameEnter($event: KeyboardEvent) {
+    if ($event.keyCode === ENTER) {
+      if (!this.modelValue) {
+        this.createGateway($event, this.searchText);
+      }
+    }
+  }
+
+  createGateway($event: Event, gatewayName: string) {
+    $event.preventDefault();
+    $event.stopPropagation();
+    const title = this.translate.instant('gateway.create-new-gateway');
+    const content = this.translate.instant('gateway.create-new-gateway-text', {gatewayName});
+    this.dialogService.confirm(title, content, null, null, true).subscribe(value => {
+      if(value){
+        this.createDeviceGateway(gatewayName);
+      } else {
+        this.clear('', true);
+      }
+    });
+  }
+
+  private createDeviceGateway(gatewayName: string){
+    this.deviceService.findByName(gatewayName, {ignoreErrors: true}).subscribe(value => {
+      this.gatewayNameExist.emit(gatewayName)
+    }, () => {
+      const newGateway: Device = {
+        name: gatewayName,
+        label: null,
+        type: this.gatewayType,
+        additionalInfo: {
+          gateway: true
+        }
+      };
+
+      this.deviceService.saveDevice(newGateway).subscribe(
+        (device) => {
+          this.searchText = '';
+          this.gatewayList.push(device);
+          this.selectDeviceGatewayFormGroup.get('gateway').patchValue(device, {emitEvent: true});
+        }
+      );
+    })
+  }
+
+  private loadGatewayList(): void{
+    this.entityService.getEntitiesByNameFilter(EntityType.DEVICE, '', -1).pipe(
+      switchMap(results => results),
+      filter((device) => (device as Device)?.additionalInfo?.gateway),
+      reduce((acc, val) => acc.concat(val), [])
+    ).subscribe((devices) => {
+      this.gatewayList = devices;
+      if(!this.searchText && this.gatewayList.length){
+        this.selectDeviceGatewayFormGroup.get('gateway').patchValue(this.gatewayList[0], {emitEvent: true});
+      }
+    })
+  }
+
+  private updateView(modelValue: any) {
+    this.propagateChange(modelValue);
+  }
+}

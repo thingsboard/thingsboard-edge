@@ -59,7 +59,15 @@ import {
   EntityAliasesDialogData
 } from '@home/components/alias/entity-aliases-dialog.component';
 import { ItemBufferService, WidgetItem } from '@core/services/item-buffer.service';
-import { ImportWidgetResult, WidgetsBundleItem } from './import-export.models';
+import {
+  CSV_TYPE,
+  FileType,
+  ImportWidgetResult,
+  JSON_TYPE, TEMPLATE_XLS,
+  WidgetsBundleItem,
+  XLS_TYPE, XLSX_TYPE,
+  ZIP_TYPE
+} from './import-export.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
@@ -72,46 +80,9 @@ import { RuleChainService } from '@core/http/rule-chain.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { ConverterService } from '@core/http/converter.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
+import * as JSZip from 'jszip';
 import * as Excel from 'exceljs/dist/exceljs.min.js';
 import * as ExcelProper from 'exceljs';
-
-interface FileType {
-  mimeType: string;
-  extension: string;
-}
-
-const JSON_TYPE: FileType = {
-  mimeType: 'text/json',
-  extension: 'json'
-};
-
-const CSV_TYPE: FileType = {
-  mimeType: 'attachament/csv',
-  extension: 'csv'
-};
-
-const XLS_TYPE: FileType = {
-  mimeType: 'application/vnd.ms-excel',
-  extension: 'xls'
-};
-
-const XLSX_TYPE: FileType = {
-  mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  extension: 'xlsx'
-};
-
-const ZIP_TYPE: FileType = {
-  mimeType: 'application/zip',
-  extension: 'zip'
-};
-
-const TEMPLATE_XLS = `
-  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-  <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
-  <head><!--[if gte mso 9]><xml>
-  <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
-  <![endif]--></head>
-  <body>{table}</body></html>`;
 
 // @dynamic
 @Injectable()
@@ -627,6 +598,19 @@ export class ImportExportService {
       }
     }
     return true;
+  }
+
+  public exportJSZip(data: object, filename: string) {
+    const jsZip: JSZip = new JSZip();
+    for (const keyName in data) {
+      if (data.hasOwnProperty(keyName)) {
+        const valueData = data[keyName];
+        jsZip.file(keyName, valueData);
+      }
+    }
+    jsZip.generateAsync({type: 'blob'}).then(content => {
+      this.downloadFile(content, filename, ZIP_TYPE);
+    });
   }
 
   private prepareRuleChain(ruleChain: RuleChain): RuleChain {

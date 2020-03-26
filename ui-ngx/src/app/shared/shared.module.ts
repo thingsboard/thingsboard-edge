@@ -110,7 +110,6 @@ import { EntityListSelectComponent } from '@shared/components/entity/entity-list
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { FooterFabButtonsComponent } from '@shared/components/footer-fab-buttons.component';
 import { CircularProgressDirective } from '@shared/components/circular-progress.directive';
-import { MatSpinner } from '@angular/material/progress-spinner';
 import { FabToolbarComponent, FabActionsDirective, FabTriggerDirective } from '@shared/components/fab-toolbar.component';
 import { DashboardSelectPanelComponent } from '@shared/components/dashboard-select-panel.component';
 import { DashboardSelectComponent } from '@shared/components/dashboard-select.component';
@@ -145,6 +144,7 @@ import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-t
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
 import { HistorySelectorComponent } from './components/time/history-selector/history-selector.component';
 import { TbTemplatePipe } from '@shared/pipe/template.pipe';
+import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
 import {
   HasGenericPermissionPipe,
   HasEntityGroupPermissionPipe,
@@ -244,7 +244,8 @@ import {
     HasGroupEntityPermissionPipe,
     TbJsonToStringDirective,
     JsonObjectEditDialogComponent,
-    HistorySelectorComponent
+    HistorySelectorComponent,
+    EntityGatewaySelectComponent
   ],
   imports: [
     CommonModule,
@@ -409,7 +410,8 @@ import {
     HasGroupEntityPermissionPipe,
     TranslateModule,
     JsonObjectEditDialogComponent,
-    HistorySelectorComponent
+    HistorySelectorComponent,
+    EntityGatewaySelectComponent
   ]
 })
 export class SharedModule { }
