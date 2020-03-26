@@ -79,6 +79,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
     TimeseriesTableWidgetComponent,
     EntitiesHierarchyWidgetComponent,
     RpcWidgetsModule,
+    SharedHomeComponentsModule,
     DateRangeNavigatorWidgetComponent,
     MultipleInputWidgetComponent,
     TripAnimationComponent,

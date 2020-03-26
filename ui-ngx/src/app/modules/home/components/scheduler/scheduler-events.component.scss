@@ -28,41 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '~@angular/material/theming';
-@import '~@mat-datetimepicker/core/datetimepicker/datetimepicker-theme.scss';
-@import 'theme-constants';
+:host {
+  width: 100%;
+  height: 100%;
+  .tb-scheduler-events {
+    .tb-scheduler-events-content {
+      width: 100%;
+      height: 100%;
+      background: #fff;
 
-$primary-extends: $mat-tb-primary; // extends
-$primary-color-map: (); // color map
+      .tb-scheduler-events-title {
+        padding-right: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-$accent-extends: $mat-tb-accent; // extends
-$accent-color-map: (); // color map
-
-$tb-primary-colors: map_merge($primary-extends, $primary-color-map);
-$tb-accent-colors: map_merge($accent-extends, $accent-color-map);
-
-$tb-primary: mat-palette($tb-primary-colors);
-$tb-accent: mat-palette($tb-accent-colors);
-
-$background: (background: map_get($mat-grey, 200));
-
-$tb-theme-background: map_merge($mat-light-theme-background, $background);
-
-$tb-mat-theme: mat-light-theme(
-    $tb-primary,
-    $tb-accent
-);
-
-$tb-theme: map_merge($tb-mat-theme, (background: $tb-theme-background));
-
-.tb-default {
-  @include angular-material-theme($tb-theme);
-  @include mat-datetimepicker-theme($tb-theme);
-  @include tb-components-theme($tb-theme);
+      .table-container {
+        overflow: auto;
+      }
+    }
+  }
 }
 
-.tb-default, .tb-dark {
-  .tb-primary-background {
-    background-color: mat-color($tb-primary);
+:host ::ng-deep {
+  .mat-sort-header-sorted .mat-sort-header-arrow {
+    opacity: 1 !important;
   }
 }

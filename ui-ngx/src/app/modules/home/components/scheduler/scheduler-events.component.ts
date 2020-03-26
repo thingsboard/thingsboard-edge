@@ -29,25 +29,49 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@app/shared/shared.module';
-import { AlarmDetailsDialogComponent } from '@home/components/alarm/alarm-details-dialog.component';
-import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
+import { Component, Input, OnInit } from '@angular/core';
+import { PageComponent } from '@shared/components/page.component';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
-@NgModule({
-  declarations:
-    [
-      AlarmDetailsDialogComponent,
-      SchedulerEventsComponent
-    ],
-  imports: [
-    CommonModule,
-    SharedModule
-  ],
-  exports: [
-    AlarmDetailsDialogComponent,
-    SchedulerEventsComponent
-  ]
+@Component({
+  selector: 'tb-scheduler-events',
+  templateUrl: './scheduler-events.component.html',
+  styleUrls: ['./scheduler-events.component.scss']
 })
-export class SharedHomeComponentsModule { }
+export class SchedulerEventsComponent extends PageComponent implements OnInit {
+
+  @Input()
+  widgetMode: boolean;
+
+  @Input()
+  ctx: WidgetContext;
+
+  editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
+  addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
+  deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
+
+  authUser = getCurrentAuthUser(this.store);
+
+  showData = (this.authUser.authority === Authority.TENANT_ADMIN ||
+    this.authUser.authority === Authority.CUSTOMER_USER) &&
+    this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ);
+
+  mode = 'list';
+
+  textSearchMode = false;
+
+  constructor(protected store: Store<AppState>,
+              private userPermissionsService: UserPermissionsService) {
+    super(store);
+  }
+
+  ngOnInit(): void {
+  }
+
+}

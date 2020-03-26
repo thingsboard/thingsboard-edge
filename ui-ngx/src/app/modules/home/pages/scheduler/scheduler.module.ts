@@ -30,46 +30,21 @@
 ///
 
 import { NgModule } from '@angular/core';
-
-import { AdminModule } from './admin/admin.module';
-import { HomeLinksModule } from './home-links/home-links.module';
-import { ProfileModule } from './profile/profile.module';
-import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
-import { CustomerModule } from '@modules/home/pages/customer/customer.module';
-import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
-import { UserModule } from '@modules/home/pages/user/user.module';
-import { DeviceModule } from '@modules/home/pages/device/device.module';
-import { AssetModule } from '@modules/home/pages/asset/asset.module';
-import { EntityViewModule } from '@modules/home/pages/entity-view/entity-view.module';
-import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
-import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
-import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
-import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
-import { ConverterModule } from '@home/pages/converter/converter.module';
-import { IntegrationModule } from '@home/pages/integration/integration.module';
-import { RoleModule } from '@home/pages/role/role.module';
-import { SchedulerModule } from '@home/pages/scheduler/scheduler.module';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { SchedulerRoutingModule } from '@home/pages/scheduler/scheduler-routing.module';
 
 @NgModule({
-  exports: [
-    AdminModule,
-    HomeLinksModule,
-    ProfileModule,
-    TenantModule,
-    DeviceModule,
-    AssetModule,
-    EntityViewModule,
-    CustomerModule,
-    RuleChainModule,
-    WidgetLibraryModule,
-    DashboardModule,
-    AuditLogModule,
-    UserModule,
-    RoleModule,
-    ConverterModule,
-    IntegrationModule,
-    IFrameViewModule,
-    SchedulerModule
+  declarations: [
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    HomeDialogsModule,
+    SchedulerRoutingModule
   ]
 })
-export class HomePagesModule { }
+export class SchedulerModule { }
