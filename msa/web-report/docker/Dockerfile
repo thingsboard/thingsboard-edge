@@ -61,9 +61,11 @@ COPY start-web-report.sh ${pkg.name}.deb /tmp/
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-web-report.sh /usr/bin
 
-RUN dpkg -i /tmp/${pkg.name}.deb
+RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
 RUN update-rc.d ${pkg.name} disable
+
+RUN chmod 0555 ${pkg.installFolder}/bin/${pkg.name}
 
 USER ${pkg.user}
 
