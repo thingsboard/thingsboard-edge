@@ -29,26 +29,31 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData, HasId } from '@shared/models/base-data';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@app/shared/shared.module';
+import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
+import { SchedulerEventDialogComponent } from '@home/components/scheduler/scheduler-event-dialog.component';
+import { SchedulerEventTypeAutocompleteComponent } from '@home/components/scheduler/scheduler-event-type-autocomplete.component';
+import { SchedulerEventConfigComponent } from '@home/components/scheduler/scheduler-event-config.component';
 
-export interface EntityGroup extends BaseData<EntityGroupId> {
-  type: EntityType;
-  name: string;
-  ownerId: EntityId;
-  groupAll: boolean;
-  additionalInfo: any;
-  configuration: any;
-}
-
-export interface EntityGroupInfo extends EntityGroup {
-  ownerIds: EntityId[];
-}
-
-export interface ShortEntityView {
-  id: EntityId;
-  readonly name: string;
-  [key: string]: any;
-}
+@NgModule({
+  declarations:
+    [
+      SchedulerEventsComponent,
+      SchedulerEventTypeAutocompleteComponent,
+      SchedulerEventConfigComponent,
+      SchedulerEventDialogComponent
+    ],
+  imports: [
+    CommonModule,
+    SharedModule
+  ],
+  exports: [
+    SchedulerEventsComponent,
+    SchedulerEventTypeAutocompleteComponent,
+    SchedulerEventConfigComponent,
+    SchedulerEventDialogComponent
+  ]
+})
+export class SchedulerEventModule { }

@@ -33,6 +33,8 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { SchedulerEventId } from '@shared/models/id/scheduler-event-id';
+import { RoleType } from '@shared/models/security.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
   tenantId?: TenantId;
@@ -46,8 +48,50 @@ export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
 export interface SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
   customerTitle: string;
   customerIsPublic: boolean;
+  typeName?: string;
+}
+
+export interface SchedulerEventConfiguration {
+  originatorId?: EntityId;
+  msgType?: string;
+  msgBody?: any;
+  metadata?: any;
 }
 
 export interface SchedulerEvent extends SchedulerEventInfo {
-  configuration: any;
+  configuration: SchedulerEventConfiguration;
 }
+
+export interface SchedulerEventConfigType {
+  name: string;
+  selector: string;
+  template?: string;
+  originator: boolean;
+  msgType: boolean;
+  metadata: boolean;
+}
+
+export const defaultSchedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType} = {
+  generateReport: {
+    name: 'Generate Report',
+    selector: 'tb-generate-report-event-config',
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  updateAttributes: {
+    name: 'Update Attributes',
+    selector: 'tb-update-attributes-event-config',
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  sendRpcRequest: {
+    name: 'Send RPC Request to Device',
+    selector: 'tb-send-rpc-request-event-config',
+    originator: false,
+    msgType: false,
+    metadata: false
+  }
+};
+

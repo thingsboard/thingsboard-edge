@@ -102,6 +102,8 @@ import { EntityAutocompleteComponent } from '@shared/components/entity/entity-au
 import { EntityListComponent } from '@shared/components/entity/entity-list.component';
 import { EntityTypeSelectComponent } from '@shared/components/entity/entity-type-select.component';
 import { EntitySelectComponent } from '@shared/components/entity/entity-select.component';
+import { EntityGroupAutocompleteComponent } from '@shared/components/group/entity-group-autocomplete.component';
+import { EntityGroupSelectComponent } from '@shared/components/group/entity-group-select.component';
 import { DatetimeComponent } from '@shared/components/time/datetime.component';
 import { EntityKeysListComponent } from '@shared/components/entity/entity-keys-list.component';
 import { SocialSharePanelComponent } from '@shared/components/socialshare-panel.component';
@@ -150,6 +152,7 @@ import {
   HasEntityGroupPermissionPipe,
   HasGroupEntityPermissionPipe
 } from '@shared/pipe/permission.pipes';
+import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
 
 @NgModule({
   providers: [
@@ -204,6 +207,9 @@ import {
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    EntityGroupSelectComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
@@ -326,6 +332,9 @@ import {
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    EntityGroupSelectComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,

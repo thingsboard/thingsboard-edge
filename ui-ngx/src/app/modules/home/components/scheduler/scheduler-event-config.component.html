@@ -30,31 +30,37 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="background: #fff;" [ngClass]="{'fill-height': fillHeight}"
-     tb-fullscreen
-     [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()" fxLayout="column">
-  <div fxLayout="row" fxLayoutAlign="start center" class="tb-json-object-toolbar">
-    <label class="tb-title no-padding"
-           [ngClass]="{'tb-required': required,
-                       'tb-readonly': readonly,
-                       'tb-error': !objectValid}">{{ label }}</label>
-    <span fxFlex></span>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="beautifyJSON()">
-      {{'js-func.tidy' | translate }}
-    </button>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="minifyJSON()">
-      {{'js-func.mini' | translate }}
-    </button>
-    <button mat-button mat-icon-button (click)="fullscreen = !fullscreen"
-            matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}"
-            matTooltipPosition="above">
-      <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-    </button>
+<section *ngIf="schedulerEventType" [formGroup]="schedulerEventConfigFormGroup" class="tb-scheduler-event" fxLayout="column">
+  <div *ngIf="showOriginator">
+    <small translate>scheduler.originator</small>
+    <tb-originator-select
+      formControlName="originatorId">
+    </tb-originator-select>
   </div>
-  <div id="tb-json-panel" tb-toast toastTarget="{{toastTargetId}}"
-       class="tb-json-object-panel" fxLayout="column">
-    <div #jsonEditor id="tb-json-input" [ngStyle]="editorStyle" [ngClass]="{'fill-height': fillHeight}"></div>
+  <tb-message-type-autocomplete
+    *ngIf="showMsgType"
+    formControlName="msgType"
+  ></tb-message-type-autocomplete>
+  <tb-json-object-edit
+    class="tb-scheduler-event-configuration-json"
+    *ngIf="!useDefinedTemplate"
+    formControlName="msgBody"
+    label="{{ 'scheduler.message-body' | translate }}"
+    required
+    [fillHeight]="true">
+  </tb-json-object-edit>
+  <div *ngIf="showMetadata">
+    <div style="height: 24px;"></div>
+    <mat-expansion-panel [expanded]="false">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="tb-panel-title" translate>rulenode.metadata</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tb-key-val-map
+        formControlName="metadata"
+        titleText="rulenode.metadata"
+      ></tb-key-val-map>
+    </mat-expansion-panel>
   </div>
-</div>
+</section>

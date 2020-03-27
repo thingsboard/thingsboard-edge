@@ -29,18 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild} from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Observable} from 'rxjs';
-import {map, mergeMap, startWith, tap, share} from 'rxjs/operators';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {TranslateService} from '@ngx-translate/core';
-import {AliasEntityType, EntityType} from '@shared/models/entity-type.models';
-import {BaseData} from '@shared/models/base-data';
-import {EntityId} from '@shared/models/id/entity-id';
-import {EntityService} from '@core/http/entity.service';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { map, mergeMap, share, tap } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
+import { BaseData } from '@shared/models/base-data';
+import { EntityId } from '@shared/models/id/entity-id';
+import { EntityService } from '@core/http/entity.service';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-entity-autocomplete',
@@ -56,7 +56,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   selectEntityFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | EntityId | null;
 
   entityTypeValue: EntityType | AliasEntityType;
 
@@ -88,6 +88,15 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   @Input()
   excludeEntityIds: Array<string>;
+
+  @Input()
+  labelText: string;
+
+  @Input()
+  requiredText: string;
+
+  @Input()
+  useFullEntityId: boolean;
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -139,7 +148,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           if (typeof value === 'string' || !value) {
             modelValue = null;
           } else {
-            modelValue = value.id.id;
+            modelValue = this.useFullEntityId ? value.id : value.id.id;
           }
           this.updateView(modelValue);
           if (value === null) {
@@ -208,7 +217,38 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.noEntitiesMatchingText = 'customer.no-customers-matching';
           this.entityRequiredText = 'customer.default-customer-required';
           break;
+        case EntityType.CONVERTER:
+          this.entityText = 'converter.converter';
+          this.noEntitiesMatchingText = 'converter.no-converters-matching';
+          this.entityRequiredText = 'converter.converter-required';
+          break;
+        case EntityType.INTEGRATION:
+          this.entityText = 'integration.integration';
+          this.noEntitiesMatchingText = 'integration.no-integrations-matching';
+          this.entityRequiredText = 'integration.integration-required';
+          break;
+        case EntityType.SCHEDULER_EVENT:
+          this.entityText = 'scheduler.scheduler-event';
+          this.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
+          this.entityRequiredText = 'scheduler.scheduler-event-required';
+          break;
+        case EntityType.BLOB_ENTITY:
+          this.entityText = 'blob-entity.blob-entity';
+          this.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
+          this.entityRequiredText = 'blob-entity.blob-entity-required';
+          break;
+        case EntityType.ROLE:
+          this.entityText = 'role.role';
+          this.noEntitiesMatchingText = 'role.no-roles-matching';
+          this.entityRequiredText = 'role.role-required';
+          break;
       }
+    }
+    if (this.labelText && this.labelText.length) {
+      this.entityText = this.labelText;
+    }
+    if (this.requiredText && this.requiredText.length) {
+      this.entityRequiredText = this.requiredText;
     }
     const currentEntity = this.getCurrentEntity();
     if (currentEntity) {
@@ -239,7 +279,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   writeValue(value: string | EntityId | null): void {
     this.searchText = '';
-    if (value != null) {
+    if (value !== null) {
       if (typeof value === 'string') {
         let targetEntityType = this.entityTypeValue;
         if (targetEntityType === AliasEntityType.CURRENT_CUSTOMER) {
@@ -247,18 +287,21 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
         }
         this.entityService.getEntity(targetEntityType, value, {ignoreLoading: true}).subscribe(
           (entity) => {
-            this.modelValue = entity.id.id;
+            this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
+            this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
+          }
+        );
+      } else if (value.entityType && value.id) {
+        const targetEntityType = value.entityType as EntityType;
+        this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true}).subscribe(
+          (entity) => {
+            this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
           }
         );
       } else {
-        const targetEntityType = value.entityType as EntityType;
-        this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true}).subscribe(
-          (entity) => {
-            this.modelValue = entity.id.id;
-            this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
-          }
-        );
+        this.modelValue = null;
+        this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
       }
     } else {
       this.modelValue = null;
@@ -278,7 +321,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | null) {
+  updateView(value: string | EntityId | null) {
     if (this.modelValue !== value) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);

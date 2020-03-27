@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -38,13 +38,52 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import {
+  defaultSchedulerEventConfigTypes, SchedulerEvent,
+  SchedulerEventConfigType,
+  SchedulerEventWithCustomerInfo
+} from '@shared/models/scheduler-event.models';
+import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
+import { BehaviorSubject, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  publishReplay,
+  refCount,
+  take,
+  tap
+} from 'rxjs/operators';
+import { PageLink } from '@shared/models/page/page-link';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { EntityRelationInfo, EntitySearchDirection } from '@shared/models/relation.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { entityTypeTranslations } from '@shared/models/entity-type.models';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { Direction, SortOrder } from '@shared/models/page/sort-order';
+import { TranslateService } from '@ngx-translate/core';
+import { deepClone } from '@core/utils';
+import { MatDialog } from '@angular/material/dialog';
+import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
+import {
+  SchedulerEventDialogComponent,
+  SchedulerEventDialogData
+} from '@home/components/scheduler/scheduler-event-dialog.component';
 
 @Component({
   selector: 'tb-scheduler-events',
   templateUrl: './scheduler-events.component.html',
   styleUrls: ['./scheduler-events.component.scss']
 })
-export class SchedulerEventsComponent extends PageComponent implements OnInit {
+export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit {
+
+  @ViewChild('searchInput') searchInputField: ElementRef;
+
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
 
   @Input()
   widgetMode: boolean;
@@ -64,14 +103,278 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit {
 
   mode = 'list';
 
+  displayCreatedTime = true;
+  displayType = true;
+  displayCustomer = true;
+
+  schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
+
+  displayPagination = true;
+  defaultPageSize = 10;
+  defaultSortOrder = 'createdTime';
+  defaultEventType: string;
+
+  displayedColumns: string[];
+  pageLink: PageLink;
+
   textSearchMode = false;
 
+  dataSource: SchedulerEventsDatasource;
+
   constructor(protected store: Store<AppState>,
-              private userPermissionsService: UserPermissionsService) {
+              public translate: TranslateService,
+              private schedulerEventService: SchedulerEventService,
+              private userPermissionsService: UserPermissionsService,
+              private dialog: MatDialog) {
     super(store);
   }
 
   ngOnInit(): void {
+    if (this.showData && this.widgetMode) {
+      // TODO:
+      this.displayedColumns = ['select', 'createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
+      const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
+      this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
+      this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
+      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+    } else {
+      this.displayedColumns = ['select', 'createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
+      const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
+      this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
+      this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
+      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+    }
   }
 
+  ngAfterViewInit() {
+
+    fromEvent(this.searchInputField.nativeElement, 'keyup')
+      .pipe(
+        debounceTime(150),
+        distinctUntilChanged(),
+        tap(() => {
+          this.paginator.pageIndex = 0;
+          this.updateData();
+        })
+      )
+      .subscribe();
+
+    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+
+    merge(this.sort.sortChange, this.paginator.page)
+      .pipe(
+        tap(() => this.updateData())
+      )
+      .subscribe();
+
+    this.updateData(true);
+  }
+
+  updateData(reload: boolean = false) {
+    this.pageLink.page = this.paginator.pageIndex;
+    this.pageLink.pageSize = this.paginator.pageSize;
+    this.pageLink.sortOrder.property = this.sort.active;
+    this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
+    this.dataSource.loadEntities(this.pageLink, this.defaultEventType, reload);
+  }
+
+  enterFilterMode() {
+    this.textSearchMode = true;
+    this.pageLink.textSearch = '';
+    setTimeout(() => {
+      this.searchInputField.nativeElement.focus();
+      this.searchInputField.nativeElement.setSelectionRange(0, 0);
+    }, 10);
+  }
+
+  exitFilterMode() {
+    this.textSearchMode = false;
+    this.pageLink.textSearch = null;
+    this.paginator.pageIndex = 0;
+    this.updateData();
+  }
+
+  reloadSchedulerEvents() {
+    this.updateData(true);
+  }
+
+  addSchedulerEvent($event: Event) {
+    this.openSchedulerEventDialog($event);
+  }
+
+  editSchedulerEvent($event, schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.schedulerEventService.getSchedulerEvent(schedulerEventWithCustomerInfo.id.id)
+      .subscribe((schedulerEvent) => {
+      this.openSchedulerEventDialog($event, schedulerEvent);
+    });
+  }
+
+  viewSchedulerEvent($event, schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.schedulerEventService.getSchedulerEvent(schedulerEventWithCustomerInfo.id.id)
+      .subscribe((schedulerEvent) => {
+        this.openSchedulerEventDialog($event, schedulerEvent, true);
+      });
+  }
+
+  openSchedulerEventDialog($event: Event, schedulerEvent?: SchedulerEvent, readonly = false) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    let isAdd = false;
+    if (!schedulerEvent || !schedulerEvent.id) {
+      isAdd = true;
+      if (!schedulerEvent) {
+        schedulerEvent = {
+          name: null,
+          type: null,
+          schedule: {},
+          configuration: {
+            originatorId: null,
+            msgType: null,
+            msgBody: {},
+            metadata: {}
+          }
+        };
+      }
+    }
+    this.dialog.open<SchedulerEventDialogComponent, SchedulerEventDialogData, boolean>(SchedulerEventDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        schedulerEventConfigTypes: this.schedulerEventConfigTypes,
+        isAdd,
+        readonly,
+        schedulerEvent,
+        defaultEventType: this.defaultEventType
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          this.reloadSchedulerEvents();
+        }
+      }
+    );
+  }
+
+}
+
+class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomerInfo> {
+
+  private entitiesSubject = new BehaviorSubject<SchedulerEventWithCustomerInfo[]>([]);
+  private pageDataSubject = new BehaviorSubject<PageData<SchedulerEventWithCustomerInfo>>(emptyPageData<SchedulerEventWithCustomerInfo>());
+
+  public pageData$ = this.pageDataSubject.asObservable();
+
+  public selection = new SelectionModel<SchedulerEventWithCustomerInfo>(true, []);
+
+  private allEntities: Observable<Array<SchedulerEventWithCustomerInfo>>;
+
+  constructor(private schedulerEventService: SchedulerEventService,
+              private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType}) {
+  }
+
+  connect(collectionViewer: CollectionViewer):
+    Observable<SchedulerEventWithCustomerInfo[] | ReadonlyArray<SchedulerEventWithCustomerInfo>> {
+    return this.entitiesSubject.asObservable();
+  }
+
+  disconnect(collectionViewer: CollectionViewer): void {
+    this.entitiesSubject.complete();
+    this.pageDataSubject.complete();
+  }
+
+  reset() {
+    const pageData = emptyPageData<SchedulerEventWithCustomerInfo>();
+    this.entitiesSubject.next(pageData.data);
+    this.pageDataSubject.next(pageData);
+  }
+
+  loadEntities(pageLink: PageLink, eventType: string,
+               reload: boolean = false): Observable<PageData<SchedulerEventWithCustomerInfo>> {
+    if (reload) {
+      this.allEntities = null;
+    }
+    const result = new ReplaySubject<PageData<SchedulerEventWithCustomerInfo>>();
+    this.fetchEntities(eventType, pageLink).pipe(
+      tap(() => {
+        this.selection.clear();
+      }),
+      catchError(() => of(emptyPageData<SchedulerEventWithCustomerInfo>())),
+    ).subscribe(
+      (pageData) => {
+        this.entitiesSubject.next(pageData.data);
+        this.pageDataSubject.next(pageData);
+        result.next(pageData);
+      }
+    );
+    return result;
+  }
+
+  fetchEntities(eventType: string,
+                pageLink: PageLink): Observable<PageData<SchedulerEventWithCustomerInfo>> {
+    return this.getAllEntities(eventType).pipe(
+      map((data) => pageLink.filterData(data))
+    );
+  }
+
+  getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {
+    if (!this.allEntities) {
+      this.allEntities = this.schedulerEventService.getSchedulerEvents(eventType).pipe(
+        map((schedulerEvents) => {
+          schedulerEvents.forEach((schedulerEvent) => {
+            let typeName = schedulerEvent.type;
+            if (this.schedulerEventConfigTypes[typeName]) {
+              typeName = this.schedulerEventConfigTypes[typeName].name;
+            }
+            schedulerEvent.typeName = typeName;
+          });
+          return schedulerEvents;
+        }),
+        publishReplay(1),
+        refCount()
+      );
+    }
+    return this.allEntities;
+  }
+
+  isAllSelected(): Observable<boolean> {
+    const numSelected = this.selection.selected.length;
+    return this.entitiesSubject.pipe(
+      map((entities) => numSelected === entities.length)
+    );
+  }
+
+  isEmpty(): Observable<boolean> {
+    return this.entitiesSubject.pipe(
+      map((entities) => !entities.length)
+    );
+  }
+
+  total(): Observable<number> {
+    return this.pageDataSubject.pipe(
+      map((pageData) => pageData.totalElements)
+    );
+  }
+
+  masterToggle() {
+    this.entitiesSubject.pipe(
+      tap((entities) => {
+        const numSelected = this.selection.selected.length;
+        if (numSelected === entities.length) {
+          this.selection.clear();
+        } else {
+          entities.forEach(row => {
+            this.selection.select(row);
+          });
+        }
+      }),
+      take(1)
+    ).subscribe();
+  }
 }

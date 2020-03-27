@@ -28,62 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-
-$tb-button-selected-color: rgb(255, 110, 64) !default;
-
 :host {
-  width: 100%;
-  height: 100%;
-  .tb-scheduler-events {
-    .tb-scheduler-events-content {
-      width: 100%;
-      height: 100%;
-      background: #fff;
-
-      .tb-scheduler-events-title {
-        padding-right: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .tb-scheduler-events-view-type-toolbar {
-        height: 55px;
-        min-height: 55px;
-        padding-right: 16px;
-        background-color: transparent;
-        box-shadow: none;
-
-        .tb-toolbar-button {
-          height: 40px;
-          button.mat-icon-button {
-            margin: 0;
-          }
-          &.tb-selected {
-            background-color: rgba(255, 255, 255, .15);
-            border-bottom: $tb-button-selected-color solid 4px;
-
-            button.mat-icon-button {
-              margin-bottom: -4px;
-
-              mat-icon {
-                color: $tb-button-selected-color;
-                fill: $tb-button-selected-color;
-              }
-            }
-          }
-        }
-      }
-
-      .table-container {
-        overflow: auto;
-      }
-    }
-  }
-}
-
-:host ::ng-deep {
-  .mat-sort-header-sorted .mat-sort-header-arrow {
-    opacity: 1 !important;
+  tb-json-object-edit.tb-scheduler-event-configuration-json {
+    display: block;
+    height: 300px;
   }
 }

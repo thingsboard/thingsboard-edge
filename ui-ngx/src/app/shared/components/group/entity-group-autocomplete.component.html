@@ -30,31 +30,32 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="background: #fff;" [ngClass]="{'fill-height': fillHeight}"
-     tb-fullscreen
-     [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()" fxLayout="column">
-  <div fxLayout="row" fxLayoutAlign="start center" class="tb-json-object-toolbar">
-    <label class="tb-title no-padding"
-           [ngClass]="{'tb-required': required,
-                       'tb-readonly': readonly,
-                       'tb-error': !objectValid}">{{ label }}</label>
-    <span fxFlex></span>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="beautifyJSON()">
-      {{'js-func.tidy' | translate }}
-    </button>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="minifyJSON()">
-      {{'js-func.mini' | translate }}
-    </button>
-    <button mat-button mat-icon-button (click)="fullscreen = !fullscreen"
-            matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}"
-            matTooltipPosition="above">
-      <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-    </button>
-  </div>
-  <div id="tb-json-panel" tb-toast toastTarget="{{toastTargetId}}"
-       class="tb-json-object-panel" fxLayout="column">
-    <div #jsonEditor id="tb-json-input" [ngStyle]="editorStyle" [ngClass]="{'fill-height': fillHeight}"></div>
-  </div>
-</div>
+<mat-form-field [formGroup]="selectEntityGroupFormGroup" class="mat-block">
+  <input matInput type="text" placeholder="{{ placeholderText | translate }}"
+         #entityGroupInput
+         formControlName="entityGroup"
+         (focusin)="onFocus()"
+         [required]="required"
+         [matAutocomplete]="entityGroupAutocomplete">
+  <button *ngIf="selectEntityGroupFormGroup.get('entityGroup').value && !disabled"
+          type="button"
+          matSuffix mat-button mat-icon-button aria-label="Clear"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-autocomplete class="tb-autocomplete"
+                    #entityGroupAutocomplete="matAutocomplete"
+                    [displayWith]="displayEntityGroupFn">
+    <mat-option *ngFor="let entityGroup of filteredEntityGroups | async" [value]="entityGroup">
+      <span [innerHTML]="entityGroup.name | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredEntityGroups | async)?.length" [value]="null">
+      <span>
+          {{ translate.get(notFoundText, {entityGroup: searchText}) | async }}
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="selectEntityGroupFormGroup.get('entityGroup').hasError('required')">
+    {{ requiredText | translate }}
+  </mat-error>
+</mat-form-field>

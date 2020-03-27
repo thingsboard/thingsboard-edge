@@ -52,7 +52,7 @@ export class SchedulerEventService {
   }
 
   public getSchedulerEvents(type: string = '', config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
-    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/schedulerEvents&type=${type}`,
+    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/schedulerEvents?type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
 

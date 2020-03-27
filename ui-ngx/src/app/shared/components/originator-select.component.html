@@ -30,31 +30,31 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="background: #fff;" [ngClass]="{'fill-height': fillHeight}"
-     tb-fullscreen
-     [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()" fxLayout="column">
-  <div fxLayout="row" fxLayoutAlign="start center" class="tb-json-object-toolbar">
-    <label class="tb-title no-padding"
-           [ngClass]="{'tb-required': required,
-                       'tb-readonly': readonly,
-                       'tb-error': !objectValid}">{{ label }}</label>
-    <span fxFlex></span>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="beautifyJSON()">
-      {{'js-func.tidy' | translate }}
-    </button>
-    <button type="button"
-            mat-button *ngIf="!readonly" class="tidy" (click)="minifyJSON()">
-      {{'js-func.mini' | translate }}
-    </button>
-    <button mat-button mat-icon-button (click)="fullscreen = !fullscreen"
-            matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}"
-            matTooltipPosition="above">
-      <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
-    </button>
-  </div>
-  <div id="tb-json-panel" tb-toast toastTarget="{{toastTargetId}}"
-       class="tb-json-object-panel" fxLayout="column">
-    <div #jsonEditor id="tb-json-input" [ngStyle]="editorStyle" [ngClass]="{'fill-height': fillHeight}"></div>
-  </div>
-</div>
+<section [formGroup]="originatorFormGroup" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
+  <mat-radio-group color="primary" formControlName="isEntityGroupOriginator" fxLayout="row"
+                    fxLayoutGap="16px"
+                    style="padding-top: 16px; padding-bottom: 16px;">
+    <mat-radio-button [value]="false" color="primary">
+      <span>{{ singleEntityText | translate }}</span>
+    </mat-radio-button>
+    <mat-radio-button [value]="true" color="primary">
+      <span>{{ groupOfEntitiesText | translate }}</span>
+    </mat-radio-button>
+  </mat-radio-group>
+  <tb-entity-select
+    [fxShow]="!originatorFormGroup.get('isEntityGroupOriginator').value"
+    [allowedEntityTypes]="allowedEntityTypes"
+    [required]="required"
+    formControlName="entityOriginatorId">
+  </tb-entity-select>
+  <tb-entity-group-select
+    [fxShow]="originatorFormGroup.get('isEntityGroupOriginator').value"
+    [allowedGroupTypes]="allowedEntityTypes"
+    formControlName="groupOriginatorId"
+    (currentGroupType)="currentGroupType.emit($event)"
+    [required]="required"
+    placeholderText="entity-group.select-entity-group"
+    notFoundText="entity-group.no-entity-groups-matching"
+    requiredText="entity-group.target-entity-group-required">
+  </tb-entity-group-select>
+</section>

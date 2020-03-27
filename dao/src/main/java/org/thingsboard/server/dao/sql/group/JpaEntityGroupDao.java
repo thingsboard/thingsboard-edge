@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -85,6 +86,18 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
                 fromTimeUUID(parentEntityId),
                 parentEntityType.name(),
                 relationType)));
+    }
+
+    @Override
+    public ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(UUID tenantId, UUID parentEntityId,
+                                                                                     EntityType parentEntityType, String relationType, PageLink pageLink) {
+        return service.submit(() -> DaoUtil.toPageData(entityGroupRepository
+                .findEntityGroupsByTypeAndPageLink(
+                        fromTimeUUID(parentEntityId),
+                        parentEntityType.name(),
+                        relationType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink))));
     }
 
     @Override

@@ -34,20 +34,21 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
 import { AlarmDetailsDialogComponent } from '@home/components/alarm/alarm-details-dialog.component';
 import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
+import { SchedulerEventModule } from '@home/components/scheduler/scheduler-event.module';
 
 @NgModule({
   declarations:
     [
-      AlarmDetailsDialogComponent,
-      SchedulerEventsComponent
+      AlarmDetailsDialogComponent
     ],
   imports: [
     CommonModule,
-    SharedModule
+    SharedModule,
+    SchedulerEventModule
   ],
   exports: [
     AlarmDetailsDialogComponent,
-    SchedulerEventsComponent
+    SchedulerEventModule
   ]
 })
 export class SharedHomeComponentsModule { }

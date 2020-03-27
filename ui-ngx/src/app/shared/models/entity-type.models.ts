@@ -228,6 +228,12 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.ENTITY_GROUP,
+      {
+        type: 'entity.type-entity-group'
+      }
+    ],
+    [
       EntityType.WIDGETS_BUNDLE,
       {
         details: 'widgets-bundle.widgets-bundle-details',
@@ -266,6 +272,24 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.SCHEDULER_EVENT,
+      {
+        type: 'entity.type-scheduler-event',
+        typePlural: 'entity.type-scheduler-events',
+        list: 'entity.list-of-scheduler-events',
+        nameStartsWith: 'entity.scheduler-event-name-starts-with'
+      }
+    ],
+    [
+      EntityType.BLOB_ENTITY,
+      {
+        type: 'entity.type-blob-entity',
+        typePlural: 'entity.type-blob-entities',
+        list: 'entity.list-of-blob-entities',
+        nameStartsWith: 'entity.blob-entity-name-starts-with'
+      }
+    ],
+    [
       EntityType.ROLE,
       {
         type: 'entity.type-role',
@@ -277,6 +301,12 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'role.no-roles-text',
         search: 'role.search',
         selectedEntities: 'role.selected-roles'
+      }
+    ],
+    [
+      EntityType.GROUP_PERMISSION,
+      {
+        type: 'entity.type-group-permission'
       }
     ],
     [
