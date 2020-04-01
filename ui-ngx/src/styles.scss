@@ -491,7 +491,8 @@ mat-label {
   }
 
   .mat-form-field{
-    .mat-icon{
+    .mat-icon {
+      vertical-align: bottom;
       margin-right: 4px;
       margin-left: 4px;
     }
@@ -708,7 +709,7 @@ mat-label {
   }
 
   .mat-icon {
-    vertical-align: bottom;
+    vertical-align: middle;
     box-sizing: content-box;
     &.tb-mat-16 {
       @include tb-mat-icon-size(16);
