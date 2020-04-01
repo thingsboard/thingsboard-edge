@@ -105,6 +105,7 @@ import { EntitySelectComponent } from '@shared/components/entity/entity-select.c
 import { EntityGroupAutocompleteComponent } from '@shared/components/group/entity-group-autocomplete.component';
 import { EntityGroupSelectComponent } from '@shared/components/group/entity-group-select.component';
 import { DatetimeComponent } from '@shared/components/time/datetime.component';
+import { TimezoneSelectComponent } from '@shared/components/time/timezone-select.component';
 import { EntityKeysListComponent } from '@shared/components/entity/entity-keys-list.component';
 import { SocialSharePanelComponent } from '@shared/components/socialshare-panel.component';
 import { RelationTypeAutocompleteComponent } from '@shared/components/relation/relation-type-autocomplete.component';
@@ -153,6 +154,7 @@ import {
   HasGroupEntityPermissionPipe
 } from '@shared/pipe/permission.pipes';
 import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
+import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
 
 @NgModule({
   providers: [
@@ -198,6 +200,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
     DashboardSelectPanelComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
+    TimezoneSelectComponent,
     ValueInputComponent,
     DashboardAutocompleteComponent,
     EntitySubTypeAutocompleteComponent,
@@ -224,6 +227,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
     WidgetsBundleSelectComponent,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,
@@ -324,6 +328,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
     DashboardSelectComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
+    TimezoneSelectComponent,
     DashboardAutocompleteComponent,
     EntitySubTypeAutocompleteComponent,
     EntitySubTypeSelectComponent,
@@ -393,6 +398,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
     NgxFlowchartModule,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,

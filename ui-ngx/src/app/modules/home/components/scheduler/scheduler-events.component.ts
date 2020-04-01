@@ -39,8 +39,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import {
-  defaultSchedulerEventConfigTypes, SchedulerEvent,
-  SchedulerEventConfigType,
+  SchedulerEvent,
   SchedulerEventWithCustomerInfo
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
@@ -72,6 +71,10 @@ import {
   SchedulerEventDialogComponent,
   SchedulerEventDialogData
 } from '@home/components/scheduler/scheduler-event-dialog.component';
+import {
+  defaultSchedulerEventConfigTypes,
+  SchedulerEventConfigType
+} from '@home/components/scheduler/scheduler-event-config.models';
 
 @Component({
   selector: 'tb-scheduler-events',

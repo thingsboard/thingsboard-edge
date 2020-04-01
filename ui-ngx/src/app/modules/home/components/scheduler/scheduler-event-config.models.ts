@@ -29,34 +29,42 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { CustomerId } from '@shared/models/id/customer-id';
-import { SchedulerEventId } from '@shared/models/id/scheduler-event-id';
-import { EntityId } from '@shared/models/id/entity-id';
+import { Type } from '@angular/core';
+import { ControlValueAccessor } from '@angular/forms';
+import { SendRpcRequestComponent } from '@home/components/scheduler/config/send-rpc-request.component';
+import { UpdateAttributesComponent } from '@home/components/scheduler/config/update-attributes.component';
+import { GenerateReportComponent } from '@home/components/scheduler/config/generate-report.component';
 
-export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
-  tenantId?: TenantId;
-  customerId?: CustomerId;
+export interface SchedulerEventConfigType {
   name: string;
-  type: string;
-  schedule: any;
-  additionalInfo?: any;
+  componentType?: Type<ControlValueAccessor>;
+  template?: string;
+  originator?: boolean;
+  msgType?: boolean;
+  metadata?: boolean;
 }
 
-export interface SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  typeName?: string;
-}
+export const defaultSchedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType} = {
+  generateReport: {
+    name: 'Generate Report',
+    componentType: GenerateReportComponent,
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  updateAttributes: {
+    name: 'Update Attributes',
+    componentType: UpdateAttributesComponent,
+    originator: false,
+    msgType: false,
+    metadata: false
+  },
+  sendRpcRequest: {
+    name: 'Send RPC Request to Device',
+    componentType: SendRpcRequestComponent,
+    originator: false,
+    msgType: false,
+    metadata: false
+  }
+};
 
-export interface SchedulerEventConfiguration {
-  originatorId?: EntityId;
-  msgType?: string;
-  msgBody?: any;
-  metadata?: any;
-}
-
-export interface SchedulerEvent extends SchedulerEventInfo {
-  configuration: SchedulerEventConfiguration;
-}

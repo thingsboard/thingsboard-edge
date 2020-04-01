@@ -30,26 +30,32 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section *ngIf="schedulerEventType" [formGroup]="schedulerEventConfigFormGroup" class="tb-scheduler-event" fxLayout="column">
-  <div *ngIf="showOriginator">
+<section [fxShow]="schedulerEventType" [formGroup]="schedulerEventConfigFormGroup" class="tb-scheduler-event" fxLayout="column">
+  <div [fxShow]="showOriginator">
     <small translate>scheduler.originator</small>
     <tb-originator-select
       formControlName="originatorId">
     </tb-originator-select>
   </div>
   <tb-message-type-autocomplete
-    *ngIf="showMsgType"
+    [fxShow]="showMsgType"
     formControlName="msgType"
   ></tb-message-type-autocomplete>
+  <tb-scheduler-event-template-config
+    [fxShow]="useDefinedTemplate"
+    [schedulerEventType]="schedulerEventType"
+    [schedulerEventConfigTypes]="schedulerEventConfigTypes"
+    formControlName="configuration">
+  </tb-scheduler-event-template-config>
   <tb-json-object-edit
     class="tb-scheduler-event-configuration-json"
-    *ngIf="!useDefinedTemplate"
+    [fxShow]="!useDefinedTemplate"
     formControlName="msgBody"
     label="{{ 'scheduler.message-body' | translate }}"
     required
     [fillHeight]="true">
   </tb-json-object-edit>
-  <div *ngIf="showMetadata">
+  <div [fxShow]="showMetadata">
     <div style="height: 24px;"></div>
     <mat-expansion-panel [expanded]="false">
       <mat-expansion-panel-header>

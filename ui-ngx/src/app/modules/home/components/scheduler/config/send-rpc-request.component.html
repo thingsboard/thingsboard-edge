@@ -30,28 +30,31 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
-  <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
-    *ngIf="displayGroupTypeSelect"
-    [showLabel]="true"
-    [required]="required"
-    [allowedEntityTypes]="entityGroupTypes"
-    formControlName="groupType">
-  </tb-entity-type-select>
-  <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
-    [required]="required"
-    [groupType]="getCurrentGroupType()"
-    [ownerId]="ownerId"
-    (entityGroupLoaded)="entityGroupLoaded($event)"
-    [excludeGroupIds]="excludeGroupIds"
-    [excludeGroupAll]="excludeGroupAll"
-    placeholderText="{{placeholderText}}"
-    notFoundText="{{notFoundText}}"
-    requiredText="{{requiredText}}"
-    formControlName="groupId">
-  </tb-entity-group-autocomplete>
-</div>
+<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column">
+  <div>
+    <small translate>scheduler.target</small>
+    <tb-originator-select
+      required
+      [allowedEntityTypes]="[entityType.DEVICE]"
+      singleEntityText="scheduler.single-device"
+      groupOfEntitiesText="scheduler.group-of-devices"
+      formControlName="originatorId">
+    </tb-originator-select>
+  </div>
+  <div formGroupName="msgBody" fxLayout="column">
+    <mat-form-field class="mat-block">
+      <mat-label translate>scheduler.rpc-method</mat-label>
+      <input matInput formControlName="method" required>
+      <mat-error *ngIf="sendRpcRequestFormGroup.get('msgBody').get('method').hasError('required')">
+        {{ 'scheduler.rpc-method-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <tb-json-object-edit
+      class="tb-scheduler-event-configuration-json"
+      formControlName="params"
+      label="{{ 'scheduler.rpc-params' | translate }}"
+      required
+      [fillHeight]="true">
+    </tb-json-object-edit>
+  </div>
+</section>

@@ -45,6 +45,7 @@ import { Dashboard } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { map } from 'rxjs/operators';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class DashboardResolver implements Resolve<Dashboard> {
@@ -65,43 +66,25 @@ export const dashboardBreadcumbLabelFunction: BreadCrumbLabelFunction = ((route,
 
 const routes: Routes = [
   {
-    path: 'dashboards',
+    path: 'dashboards/:dashboardId',
+    component: DashboardPageComponent,
     data: {
       breadcrumb: {
-        label: 'dashboard.dashboards',
+        labelFunction: dashboardBreadcumbLabelFunction,
         icon: 'dashboard'
-      }
-    },
-    children: [
-      {
-        path: '',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'dashboard.dashboards',
-          dashboardsType: 'tenant'
-        },
-        resolve: {
-          entitiesTableConfig: DashboardsTableConfigResolver
-        }
+      } as BreadCrumbConfig,
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      permissions: {
+        resources: [Resource.DASHBOARD, Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
+        operations: [Operation.READ]
       },
-      {
-        path: ':dashboardId',
-        component: DashboardPageComponent,
-        data: {
-          breadcrumb: {
-            labelFunction: dashboardBreadcumbLabelFunction,
-            icon: 'dashboard'
-          } as BreadCrumbConfig,
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'dashboard.dashboard',
-          widgetEditMode: false
-        },
-        resolve: {
-          dashboard: DashboardResolver
-        }
-      }
-    ]
+      title: 'dashboard.dashboard',
+      widgetEditMode: false
+    },
+    resolve: {
+      dashboard: DashboardResolver,
+      entityGroup: 'entityGroupResolver'
+    }
   }
 ];
 
@@ -111,7 +94,11 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [
     DashboardsTableConfigResolver,
-    DashboardResolver
+    DashboardResolver,
+    {
+      provide: 'entityGroupResolver',
+      useValue: (route: ActivatedRouteSnapshot) => null
+    }
   ]
 })
 export class DashboardRoutingModule { }

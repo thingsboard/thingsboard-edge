@@ -61,12 +61,12 @@
               [schedulerEventConfigTypes]="schedulerEventConfigTypes"
             ></tb-scheduler-event-type-autocomplete>
             <tb-scheduler-event-config
-              *ngIf="schedulerEventFormGroup.get('type').value"
+              [fxShow]="schedulerEventFormGroup.get('type').value"
               formControlName="configuration"
               [schedulerEventConfigTypes]="schedulerEventConfigTypes"
               [schedulerEventType]="schedulerEventFormGroup.get('type').value">
             </tb-scheduler-event-config>
-            <div *ngIf="!schedulerEventFormGroup.get('type').value" style="height: 300px;"></div>
+            <div [fxShow]="!schedulerEventFormGroup.get('type').value" style="height: 300px;"></div>
           </div>
         </mat-tab>
         <mat-tab label="{{ 'scheduler.schedule' | translate }}">

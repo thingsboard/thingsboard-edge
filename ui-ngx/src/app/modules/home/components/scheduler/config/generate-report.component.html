@@ -30,28 +30,38 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
-  <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
-    *ngIf="displayGroupTypeSelect"
-    [showLabel]="true"
-    [required]="required"
-    [allowedEntityTypes]="entityGroupTypes"
-    formControlName="groupType">
-  </tb-entity-type-select>
-  <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
-    [required]="required"
-    [groupType]="getCurrentGroupType()"
-    [ownerId]="ownerId"
-    (entityGroupLoaded)="entityGroupLoaded($event)"
-    [excludeGroupIds]="excludeGroupIds"
-    [excludeGroupAll]="excludeGroupAll"
-    placeholderText="{{placeholderText}}"
-    notFoundText="{{notFoundText}}"
-    requiredText="{{requiredText}}"
-    formControlName="groupId">
-  </tb-entity-group-autocomplete>
-</div>
+<section [formGroup]="generateReportFormGroup" fxLayout="column">
+  <div formGroupName="msgBody" fxLayout="column">
+    <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="tb-panel-title" translate>report.report-config</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tb-report-config
+        formControlName="reportConfig">
+      </tb-report-config>
+    </mat-expansion-panel>
+    <div style="height: 20px;"></div>
+    <mat-checkbox fxFlex formControlName="sendEmail" style="padding-bottom: 16px;">
+      {{ 'report.send-email' | translate }}
+    </mat-checkbox>
+    <mat-expansion-panel #emailConfigPanel [expanded]="generateReportFormGroup.get('msgBody.sendEmail').value"
+                         [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="tb-panel-title" translate>report.email-config</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div [fxShow]="generateReportFormGroup.get('msgBody.sendEmail').value">
+        EMAIL CONFIG
+      </div>
+      <!--tb-attribute-key-value-table
+        titleText="attribute.scope-shared"
+        required
+        requiredPrompt="attribute.add-attribute-prompt"
+        formControlName="sharedAttributes"
+      ></tb-attribute-key-value-table-->
+    </mat-expansion-panel>
+  </div>
+</section>

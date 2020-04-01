@@ -30,28 +30,13 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
-  <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
-    *ngIf="displayGroupTypeSelect"
-    [showLabel]="true"
-    [required]="required"
-    [allowedEntityTypes]="entityGroupTypes"
-    formControlName="groupType">
-  </tb-entity-type-select>
-  <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
-    [required]="required"
-    [groupType]="getCurrentGroupType()"
-    [ownerId]="ownerId"
-    (entityGroupLoaded)="entityGroupLoaded($event)"
-    [excludeGroupIds]="excludeGroupIds"
-    [excludeGroupAll]="excludeGroupAll"
-    placeholderText="{{placeholderText}}"
-    notFoundText="{{notFoundText}}"
-    requiredText="{{requiredText}}"
-    formControlName="groupId">
-  </tb-entity-group-autocomplete>
-</div>
+<form style="min-width: 600px;">
+  <mat-toolbar fxLayout="row" color="primary">
+    <h2>{{ progressText }}</h2>
+  </mat-toolbar>
+  <div mat-dialog-content>
+    <div class="mat-content mat-padding" fxLayout="column">
+      <mat-progress-bar mode="indeterminate" style="height: 5px;"></mat-progress-bar>
+    </div>
+  </div>
+</form>

@@ -47,7 +47,7 @@
     </mat-form-field>
     <mat-form-field *ngIf="valueType === valueTypeEnum.STRING" fxFlex="60" class="mat-block">
       <mat-label translate>value.string-value</mat-label>
-      <input [disabled]="disabled" matInput required name="value" #value="ngModel" [(ngModel)]="modelValue" (ngModelChange)="onValueChanged()"/>
+      <input [disabled]="disabled" matInput [required]="!stringNotRequired" name="value" #value="ngModel" [(ngModel)]="modelValue" (ngModelChange)="onValueChanged()"/>
       <mat-error *ngIf="value.hasError('required')">
         {{ (requiredText ? requiredText : 'value.string-value-required') | translate }}
       </mat-error>

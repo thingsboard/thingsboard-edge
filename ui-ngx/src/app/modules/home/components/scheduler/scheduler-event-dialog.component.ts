@@ -47,8 +47,9 @@ import { forkJoin, Observable } from 'rxjs';
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { SchedulerEvent, SchedulerEventConfigType } from '@shared/models/scheduler-event.models';
+import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 
 export interface SchedulerEventDialogData {
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
@@ -86,6 +87,40 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.schedulerEventConfigTypes = data.schedulerEventConfigTypes;
+    this.schedulerEventConfigTypes.test = {
+      originator: true,
+      msgType: true,
+      template: '<form #myCustomConfigForm="ngForm">' +
+                  '<mat-form-field class="mat-block">' +
+                      '<mat-label>My custom field</mat-label>' +
+                      '<input name="myField" #myField="ngModel" matInput [(ngModel)]="configuration.msgBody.myField" required>' +
+                          '<mat-error *ngIf="myField.hasError(\'required\')">' +
+                            'My field is required.' +
+                          '</mat-error>' +
+                  '</mat-form-field>' +
+                  '<div>Form valid: {{myCustomConfigForm.valid}}</div>' +
+                '</form>',
+      name: 'Test!'
+    };
+    this.schedulerEventConfigTypes.test2 = {
+      template: '<form #myCustomConfigForm2="ngForm">' +
+        '<mat-form-field class="mat-block">' +
+        '<mat-label>My custom field 2</mat-label>' +
+        '<input name="myField" #myField="ngModel" matInput [(ngModel)]="configuration.msgBody.myField" required>' +
+        '<mat-error *ngIf="myField.hasError(\'required\')">' +
+        'My field is required.' +
+        '</mat-error>' +
+        '</mat-form-field>' +
+        '<div>Form valid: {{myCustomConfigForm2.valid}}</div>' +
+        '</form>',
+      name: 'Test 2!'
+    };
+    this.schedulerEventConfigTypes.test3 = {
+      name: 'Test 3!',
+      msgType: true,
+      originator: true,
+      metadata: true
+    };
     this.isAdd = data.isAdd;
     this.readonly = data.readonly;
     this.schedulerEvent = data.schedulerEvent;
@@ -105,7 +140,7 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
     } else if (!this.readonly) {
       this.schedulerEventFormGroup.get('type').valueChanges.subscribe((newVal) => {
         const prevVal = this.schedulerEventFormGroup.value.type;
-        if (newVal !== prevVal) {
+        if (newVal !== prevVal && newVal) {
           this.schedulerEventFormGroup.get('configuration').patchValue({
             originatorId: null,
             msgType: null,
@@ -128,11 +163,12 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
   }
 
   save(): void {
-    this.submitted = true;
+    // this.submitted = true;
     if (!this.schedulerEventFormGroup.invalid) {
+      console.log(this.schedulerEventFormGroup.getRawValue());
         // this.schedulerEventService.saveSchedulerEvent(this.schedulerEvent).subscribe(
         //  () => {
-            this.dialogRef.close(true);
+            // this.dialogRef.close(true);
         //  }
        // );
       }

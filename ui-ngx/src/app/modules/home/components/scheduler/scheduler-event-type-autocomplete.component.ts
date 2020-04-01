@@ -38,7 +38,7 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { SchedulerEventConfigType } from '@shared/models/scheduler-event.models';
+import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 
 interface SchedulerEventTypeInfo {
   name: string;

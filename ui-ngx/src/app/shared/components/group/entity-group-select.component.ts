@@ -201,6 +201,14 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
     }, 0);
   }
 
+  getCurrentGroupType(): EntityType {
+    let groupType = this.entityGroupSelectFormGroup.get('groupType').value;
+    if (!groupType) {
+      groupType = this.defaultGroupType;
+    }
+    return groupType;
+  }
+
   updateView(groupId: string | null) {
     if (this.modelValue !== groupId) {
       this.modelValue = groupId;

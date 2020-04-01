@@ -36,6 +36,13 @@ import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-e
 import { SchedulerEventDialogComponent } from '@home/components/scheduler/scheduler-event-dialog.component';
 import { SchedulerEventTypeAutocompleteComponent } from '@home/components/scheduler/scheduler-event-type-autocomplete.component';
 import { SchedulerEventConfigComponent } from '@home/components/scheduler/scheduler-event-config.component';
+import { SchedulerEventTemplateConfigComponent } from '@home/components/scheduler/scheduler-event-template-config.component';
+import { SendRpcRequestComponent } from '@home/components/scheduler/config/send-rpc-request.component';
+import { UpdateAttributesComponent } from '@home/components/scheduler/config/update-attributes.component';
+import { AttributeKeyValueTableComponent } from '@home/components/scheduler/config/attribute-key-value-table.component';
+import { GenerateReportComponent } from '@home/components/scheduler/config/generate-report.component';
+import { ReportConfigComponent } from '@home/components/scheduler/config/report-config.component';
+import { SelectDashboardStateDialogComponent } from '@home/components/scheduler/config/select-dashboard-state-dialog.component';
 
 @NgModule({
   declarations:
@@ -43,6 +50,13 @@ import { SchedulerEventConfigComponent } from '@home/components/scheduler/schedu
       SchedulerEventsComponent,
       SchedulerEventTypeAutocompleteComponent,
       SchedulerEventConfigComponent,
+      SchedulerEventTemplateConfigComponent,
+      SendRpcRequestComponent,
+      UpdateAttributesComponent,
+      AttributeKeyValueTableComponent,
+      GenerateReportComponent,
+      ReportConfigComponent,
+      SelectDashboardStateDialogComponent,
       SchedulerEventDialogComponent
     ],
   imports: [
@@ -53,6 +67,13 @@ import { SchedulerEventConfigComponent } from '@home/components/scheduler/schedu
     SchedulerEventsComponent,
     SchedulerEventTypeAutocompleteComponent,
     SchedulerEventConfigComponent,
+    SchedulerEventTemplateConfigComponent,
+    SendRpcRequestComponent,
+    UpdateAttributesComponent,
+    AttributeKeyValueTableComponent,
+    GenerateReportComponent,
+    ReportConfigComponent,
+    SelectDashboardStateDialogComponent,
     SchedulerEventDialogComponent
   ]
 })

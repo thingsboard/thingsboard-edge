@@ -30,28 +30,34 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
-  <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
-    *ngIf="displayGroupTypeSelect"
-    [showLabel]="true"
-    [required]="required"
-    [allowedEntityTypes]="entityGroupTypes"
-    formControlName="groupType">
-  </tb-entity-type-select>
-  <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
-    [required]="required"
-    [groupType]="getCurrentGroupType()"
-    [ownerId]="ownerId"
-    (entityGroupLoaded)="entityGroupLoaded($event)"
-    [excludeGroupIds]="excludeGroupIds"
-    [excludeGroupAll]="excludeGroupAll"
-    placeholderText="{{placeholderText}}"
-    notFoundText="{{notFoundText}}"
-    requiredText="{{requiredText}}"
-    formControlName="groupId">
-  </tb-entity-group-autocomplete>
-</div>
+<form #selectDashboardStateForm="ngForm" (ngSubmit)="select()" class="tb-select-dashboard-state-dialog">
+  <mat-toolbar fxLayout="row" color="primary">
+    <h2 translate>scheduler.select-dashboard-state</h2>
+    <span fxFlex></span>
+    <button mat-button mat-icon-button
+            (click)="cancel()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <div mat-dialog-content fxFlex style="position: relative; overflow: hidden;">
+    <div class="tb-absolute-fill">
+      <iframe #selectDashboardFrame frameborder="0" height="100%" width="100%"></iframe>
+    </div>
+  </div>
+  <div mat-dialog-actions fxLayout="row">
+    <span fxFlex></span>
+    <button mat-button mat-raised-button color="primary"
+            type="submit"
+            [disabled]="isLoading$ | async">
+      {{ 'action.select' | translate }}
+    </button>
+    <button mat-button color="primary"
+            style="margin-right: 20px;"
+            type="button"
+            [disabled]="(isLoading$ | async)"
+            (click)="cancel()" cdkFocusInitial>
+      {{ 'action.cancel' | translate }}
+    </button>
+  </div>
+</form>

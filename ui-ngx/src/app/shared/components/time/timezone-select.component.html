@@ -30,28 +30,36 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
-  <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
-    *ngIf="displayGroupTypeSelect"
-    [showLabel]="true"
-    [required]="required"
-    [allowedEntityTypes]="entityGroupTypes"
-    formControlName="groupType">
-  </tb-entity-type-select>
-  <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="entityGroupSelectFormGroup.get('groupType').value ||
-              entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
-    [required]="required"
-    [groupType]="getCurrentGroupType()"
-    [ownerId]="ownerId"
-    (entityGroupLoaded)="entityGroupLoaded($event)"
-    [excludeGroupIds]="excludeGroupIds"
-    [excludeGroupAll]="excludeGroupAll"
-    placeholderText="{{placeholderText}}"
-    notFoundText="{{notFoundText}}"
-    requiredText="{{requiredText}}"
-    formControlName="groupId">
-  </tb-entity-group-autocomplete>
-</div>
+<mat-form-field [formGroup]="selectTimezoneFormGroup" class="mat-block">
+  <mat-label translate>timezone.timezone</mat-label>
+  <input matInput type="text" placeholder="{{ 'timezone.select-timezone' | translate }}"
+         #timezoneInput
+         formControlName="timezone"
+         (focusin)="onFocus()"
+         [required]="required"
+         [matAutocomplete]="timezoneAutocomplete">
+  <button *ngIf="selectTimezoneFormGroup.get('timezone').value && !disabled"
+          type="button"
+          matSuffix mat-button mat-icon-button aria-label="Clear"
+          (mousedown)="ignoreClosePanel = true"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-autocomplete class="tb-autocomplete"
+                    #timezoneAutocomplete="matAutocomplete"
+                    (closed)="onPanelClosed()"
+                    (optionSelected)="ignoreClosePanel = true"
+                    [displayWith]="displayTimezoneFn">
+    <mat-option *ngFor="let timezone of filteredTimezones | async" [value]="timezone">
+      <span [innerHTML]="displayTimezoneFn(timezone) | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredTimezones | async)?.length" [value]="null">
+      <span>
+          {{ translate.get('timezone.no-timezones-matching', {timezone: searchText}) | async }}
+      </span>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="selectTimezoneFormGroup.get('timezone').hasError('required')">
+    {{ 'timezone.timezone-required' | translate }}
+  </mat-error>
+</mat-form-field>

@@ -33,6 +33,8 @@ import _ from 'lodash';
 import { Observable, Subject, from, fromEvent, of } from 'rxjs';
 import { finalize, share, map } from 'rxjs/operators';
 import base64js from 'base64-js';
+import { Type } from '@angular/core';
+import { CustomSchedulerEventConfigComponent } from '@home/components/scheduler/config/custom-scheduler-event-config.component';
 
 export function onParentScrollOrWindowResize(el: Node): Observable<Event> {
   const scrollSubject = new Subject<Event>();
@@ -448,6 +450,19 @@ export function guid(): string {
   }
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
     s4() + '-' + s4() + s4() + s4();
+}
+
+const PROP_METADATA = '__prop__metadata__';
+
+export function cloneMetadata<S, T>(sourceType: Type<S>, targetType: Type<T>) {
+  const sourceMeta = sourceType.prototype.constructor[PROP_METADATA];
+  const targetMeta = Object.defineProperty(targetType.prototype.constructor,
+    PROP_METADATA, { value: {} })[PROP_METADATA];
+  for (const field of Object.keys(sourceMeta)) {
+    if (sourceMeta.hasOwnProperty(field)) {
+      targetMeta[field] = sourceMeta[field];
+    }
+  }
 }
 
 const SNAKE_CASE_REGEXP = /[A-Z]/g;

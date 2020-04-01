@@ -29,34 +29,33 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { CustomerId } from '@shared/models/id/customer-id';
-import { SchedulerEventId } from '@shared/models/id/scheduler-event-id';
-import { EntityId } from '@shared/models/id/entity-id';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Observable } from 'rxjs';
 
-export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
-  tenantId?: TenantId;
-  customerId?: CustomerId;
-  name: string;
-  type: string;
-  schedule: any;
-  additionalInfo?: any;
+export interface ProgressDialogData<T> {
+  progressObservable: Observable<T>;
+  progressText: string;
 }
 
-export interface SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
-  customerTitle: string;
-  customerIsPublic: boolean;
-  typeName?: string;
-}
+@Component({
+  selector: 'tb-progress-dialog',
+  templateUrl: './progress-dialog.component.html',
+  styleUrls: []
+})
+export class ProgressDialogComponent<T> {
 
-export interface SchedulerEventConfiguration {
-  originatorId?: EntityId;
-  msgType?: string;
-  msgBody?: any;
-  metadata?: any;
-}
+  progressText: string;
 
-export interface SchedulerEvent extends SchedulerEventInfo {
-  configuration: SchedulerEventConfiguration;
+  constructor(public dialogRef: MatDialogRef<ProgressDialogComponent<T>, T>,
+              @Inject(MAT_DIALOG_DATA) public data: ProgressDialogData<T>) {
+    this.progressText = data.progressText;
+    this.data.progressObservable.subscribe(
+      (observableData: T) => {
+        this.dialogRef.close(observableData);
+    },
+     () => {
+        this.dialogRef.close(null);
+    });
+  }
 }

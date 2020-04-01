@@ -45,8 +45,9 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { SchedulerEventConfigType, SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
-import { isDefined } from '@core/utils';
+import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
+import { deepClone, isDefined } from '@core/utils';
+import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 
 @Component({
   selector: 'tb-scheduler-event-config',
@@ -78,7 +79,7 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   showMsgType = true;
   showMetadata = true;
 
-  private configChangesSubscription: Subscription;
+//  private configChangesSubscription: Subscription;
 
   private propagateChange = (v: any) => { };
 
@@ -96,6 +97,16 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   }
 
   ngOnInit() {
+    this.schedulerEventConfigFormGroup = this.fb.group({
+      originatorId: [null],
+      msgType: [null],
+      configuration: [null, Validators.required],
+      msgBody: [null, Validators.required],
+      metadata: [null]
+    });
+    this.schedulerEventConfigFormGroup.valueChanges.subscribe(() => {
+      this.updateView();
+    });
     this.buildSchedulerEventConfigForm();
   }
 
@@ -111,51 +122,20 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   }
 
   private buildSchedulerEventConfigForm() {
-    if (this.configChangesSubscription) {
-      this.configChangesSubscription.unsubscribe();
-      this.configChangesSubscription = null;
-    }
     this.useDefinedTemplate = false;
     this.showOriginator = true;
     this.showMsgType = true;
     this.showMetadata = true;
-    this.schedulerEventConfigFormGroup = this.fb.group({});
     if (this.schedulerEventType) {
       const configType = this.schedulerEventConfigTypes[this.schedulerEventType];
       if (configType) {
-        this.useDefinedTemplate = isDefined(configType.template) || isDefined(configType.selector);
+        this.useDefinedTemplate = isDefined(configType.template) || isDefined(configType.componentType);
         this.showOriginator = configType.originator;
         this.showMsgType = configType.msgType;
         this.showMetadata = configType.metadata;
       }
-      if (this.showOriginator) {
-        this.schedulerEventConfigFormGroup.addControl(
-          'originatorId', this.fb.control(this.modelValue ? this.modelValue.originatorId : null)
-        );
-      }
-      if (this.showMsgType) {
-        this.schedulerEventConfigFormGroup.addControl(
-          'msgType', this.fb.control(this.modelValue ? this.modelValue.msgType : null)
-        );
-      }
-      if (this.useDefinedTemplate) {
-        this.schedulerEventConfigFormGroup.addControl(
-          'configuration', this.fb.control(this.modelValue)
-        );
-      } else {
-        this.schedulerEventConfigFormGroup.addControl(
-          'msgBody', this.fb.control(this.modelValue ? this.modelValue.msgBody : null, [Validators.required])
-        );
-      }
-      if (this.showMetadata) {
-        this.schedulerEventConfigFormGroup.addControl(
-          'metadata', this.fb.control(this.modelValue ? this.modelValue.metadata : null)
-        );
-      }
-      this.configChangesSubscription = this.schedulerEventConfigFormGroup.valueChanges.subscribe(() => {
-        this.updateView();
-      });
     }
+    this.updateEnabledState();
   }
 
   ngAfterViewInit(): void {
@@ -169,27 +149,61 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
     if (this.disabled) {
       this.schedulerEventConfigFormGroup.disable({emitEvent: false});
     } else {
-      this.schedulerEventConfigFormGroup.enable({emitEvent: false});
+      this.updateEnabledState();
+    }
+  }
+
+  private updateEnabledState() {
+    if (!this.disabled) {
+      if (this.showOriginator) {
+        this.schedulerEventConfigFormGroup.get('originatorId').enable({emitEvent: false});
+      } else {
+        this.schedulerEventConfigFormGroup.get('originatorId').disable({emitEvent: false});
+      }
+      if (this.showMsgType) {
+        this.schedulerEventConfigFormGroup.get('msgType').enable({emitEvent: false});
+      } else {
+        this.schedulerEventConfigFormGroup.get('msgType').disable({emitEvent: false});
+      }
+      if (this.useDefinedTemplate) {
+        this.schedulerEventConfigFormGroup.get('configuration').enable({emitEvent: false});
+        this.schedulerEventConfigFormGroup.get('msgBody').disable({emitEvent: false});
+      } else {
+        this.schedulerEventConfigFormGroup.get('msgBody').enable({emitEvent: false});
+        this.schedulerEventConfigFormGroup.get('configuration').disable({emitEvent: false});
+      }
+      if (this.showMetadata) {
+        this.schedulerEventConfigFormGroup.get('metadata').enable({emitEvent: false});
+      } else {
+        this.schedulerEventConfigFormGroup.get('metadata').disable({emitEvent: false});
+      }
     }
   }
 
   writeValue(value: SchedulerEventConfiguration | null): void {
     this.modelValue = value;
-    this.schedulerEventConfigFormGroup.reset(undefined,{emitEvent: false});
-    if (this.modelValue) {
-      this.schedulerEventConfigFormGroup.reset(this.modelValue,{emitEvent: false});
-      if (this.useDefinedTemplate) {
-        this.schedulerEventConfigFormGroup.get('configuration').reset(this.modelValue,{emitEvent: false});
-      }
+    const model = deepClone(this.modelValue) || undefined;
+    if (model) {
+      (model as any).configuration = deepClone(model);
     }
+    this.schedulerEventConfigFormGroup.reset(model,{emitEvent: false});
   }
 
   updateView() {
     if (this.schedulerEventConfigFormGroup.valid) {
-      let schedulerEventConfig = this.schedulerEventConfigFormGroup.getRawValue();
+      let schedulerEventConfig = this.schedulerEventConfigFormGroup.value;
       if (schedulerEventConfig) {
         if (this.useDefinedTemplate) {
           const configuration = schedulerEventConfig.configuration;
+          if (!configuration.originatorId) {
+            delete configuration.originatorId;
+          }
+          if (!configuration.msgType) {
+            delete configuration.msgType;
+          }
+          if (!configuration.metadata) {
+            delete configuration.metadata;
+          }
           delete schedulerEventConfig.configuration;
           if (configuration) {
             schedulerEventConfig = {...schedulerEventConfig, ...configuration};
