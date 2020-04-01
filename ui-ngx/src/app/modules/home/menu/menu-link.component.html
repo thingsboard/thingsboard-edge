@@ -30,13 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<a class="mat-button" routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}"
+<a mat-button routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}"
   [queryParams]="section.queryParams"
   [routerLink]="section.path">
-  <span class="mat-button-wrapper">
-    <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
-    <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon != null">{{section.icon}}</mat-icon>
-    <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
-    <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
-  </span>
+  <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
+  <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon != null">{{section.icon}}</mat-icon>
+  <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
+  <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
 </a>

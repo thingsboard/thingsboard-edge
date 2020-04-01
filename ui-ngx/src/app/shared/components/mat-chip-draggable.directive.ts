@@ -135,7 +135,7 @@ class DraggableChip {
     }
   }
 
-  private onDragStart(event: DragEvent) {
+  private onDragStart(event: Event | any) {
     if (this.preventDrag) {
       event.preventDefault();
     } else {
@@ -151,7 +151,7 @@ class DraggableChip {
     }
   }
 
-  private onDragEnter(event: DragEvent) {
+  private onDragEnter(event: Event | any) {
     this.counter++;
     if (this.dragging) {
       return;
@@ -163,7 +163,7 @@ class DraggableChip {
     this.chipElement.addEventListener('drop', this.dropHandler);
   }
 
-  private onDragLeave(event: DragEvent) {
+  private onDragLeave(event: Event | any) {
     this.counter--;
     if (this.counter <= 0) {
       this.counter = 0;
@@ -173,14 +173,14 @@ class DraggableChip {
     }
   }
 
-  private onDragEnd(event: DragEvent) {
+  private onDragEnd(event: Event | any) {
     this.dragging = false;
     globalDraggingChipListId = null;
     this.chipListElement.classList.remove(draggingClassName);
     this.chipElement.classList.remove(draggingClassName);
   }
 
-  private onDragOver(event: DragEvent) {
+  private onDragOver(event: Event | any) {
     if (this.dragging) {
       return;
     }
@@ -218,7 +218,7 @@ class DraggableChip {
 
   }
 
-  private onDrop(event: DragEvent) {
+  private onDrop(event: Event | any) {
     this.counter = 0;
     event.preventDefault();
     if (globalDraggingChipListId !== this.chipListElement.id) {
