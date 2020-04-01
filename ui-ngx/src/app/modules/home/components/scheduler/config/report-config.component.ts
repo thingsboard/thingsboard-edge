@@ -33,8 +33,8 @@ import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { DAY, historyInterval, Timewindow } from '@shared/models/time/time.models';
-import { ReportType } from '@shared/models/report.models';
+import { DAY, historyInterval } from '@shared/models/time/time.models';
+import { ReportConfig, reportTypeNamesMap, reportTypes } from '@shared/models/report.models';
 import * as _moment from 'moment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
@@ -45,19 +45,10 @@ import {
   SelectDashboardStateDialogComponent,
   SelectDashboardStateDialogData
 } from '@home/components/scheduler/config/select-dashboard-state-dialog.component';
-
-interface ReportConfig {
-  baseUrl: string;
-  dashboardId: string;
-  state: string;
-  timezone: string;
-  useDashboardTimewindow: boolean;
-  timewindow: Timewindow;
-  namePattern: string;
-  type: ReportType;
-  useCurrentUserCredentials: boolean;
-  userId: string;
-}
+import { PageComponent } from '@shared/components/page.component';
+import { ReportService } from '@core/http/report.service';
+import { DialogService } from '@core/services/dialog.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'tb-report-config',
@@ -69,11 +60,14 @@ interface ReportConfig {
     multi: true
   }]
 })
-export class ReportConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class ReportConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
 
   modelValue: ReportConfig | null;
 
   reportConfigFormGroup: FormGroup;
+
+  @Input()
+  reportsServerEndpointUrl: string;
 
   @Input()
   disabled: boolean;
@@ -86,12 +80,20 @@ export class ReportConfigComponent implements ControlValueAccessor, OnInit, Afte
 
   entityType = EntityType;
 
+  reportTypesList = reportTypes;
+
+  reportTypeNames = reportTypeNamesMap;
+
   private propagateChange = (v: any) => { };
 
-  constructor(private store: Store<AppState>,
+  constructor(protected store: Store<AppState>,
               private utils: UtilsService,
+              private reportService: ReportService,
+              private dialogService: DialogService,
+              private translate: TranslateService,
               private dialog: MatDialog,
               private fb: FormBuilder) {
+    super(store);
     this.reportConfigFormGroup = this.fb.group({
       baseUrl: [null, [Validators.required]],
       dashboardId: [null, [Validators.required]],
@@ -162,6 +164,12 @@ export class ReportConfigComponent implements ControlValueAccessor, OnInit, Afte
         }
       }
     );
+  }
+
+  generateTestReport() {
+    const progressText = this.translate.instant('dashboard.download-dashboard-progress', {reportType: this.modelValue.type});
+    this.dialogService.progress(
+      this.reportService.downloadTestReport(this.modelValue, this.reportsServerEndpointUrl), progressText).subscribe();
   }
 
   registerOnChange(fn: any): void {

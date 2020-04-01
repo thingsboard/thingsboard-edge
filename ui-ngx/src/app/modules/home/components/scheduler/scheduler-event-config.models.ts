@@ -44,6 +44,25 @@ export interface SchedulerEventConfigType {
   metadata?: boolean;
 }
 
+// Example of custom scheduler event config type
+
+/*
+test = {
+  originator: true,
+  msgType: true,
+  template: '<form #myCustomConfigForm="ngForm">' +
+    '<mat-form-field class="mat-block">' +
+    '<mat-label>My custom field</mat-label>' +
+    '<input name="myField" #myField="ngModel" matInput [(ngModel)]="configuration.msgBody.myField" required>' +
+    '<mat-error *ngIf="myField.hasError(\'required\')">' +
+    'My field is required.' +
+    '</mat-error>' +
+    '</mat-form-field>' +
+    '<div>Form valid: {{myCustomConfigForm.valid}}</div>' +
+    '</form>',
+  name: 'Test!'
+}*/
+
 export const defaultSchedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType} = {
   generateReport: {
     name: 'Generate Report',

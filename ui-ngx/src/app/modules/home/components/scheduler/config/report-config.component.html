@@ -78,4 +78,43 @@
       </tb-timewindow>
     </section>
   </div>
+  <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>report.name-pattern</mat-label>
+      <input matInput formControlName="namePattern" required>
+      <mat-error *ngIf="reportConfigFormGroup.get('namePattern').hasError('required')">
+        {{ 'report.name-pattern-required' | translate }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>report.type</mat-label>
+      <mat-select matInput formControlName="type" required>
+        <mat-option *ngFor="let reportType of reportTypesList" [value]="reportType">
+          {{ reportTypeNames.get(reportType) }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div [fxShow]="isTenantAdmin" fxLayout="column" fxLayoutAlign="center" fxLayout.gt-sm="row"
+       fxLayoutAlign.gt-sm="start center" fxLayoutGap="8px">
+    <mat-checkbox fxFlex formControlName="useCurrentUserCredentials" style="padding-bottom: 16px;">
+      {{ 'report.use-current-user-credentials' | translate }}
+    </mat-checkbox>
+    <tb-entity-autocomplete
+      [fxShow]="!reportConfigFormGroup.get('useCurrentUserCredentials').value"
+      fxFlex
+      required
+      [entityType]="entityType.USER"
+      labelText="report.customer-user-credentials"
+      requiredText="report.customer-user-credentials-required"
+      formControlName="userId">
+    </tb-entity-autocomplete>
+  </div>
+  <div fxLayout="row">
+    <button *ngIf="!disabled" mat-button mat-raised-button color="primary"
+            [disabled]="(isLoading$ | async) || reportConfigFormGroup.invalid"
+            (click)="generateTestReport()">
+      {{ 'report.generate-test-report' | translate }}
+    </button>
+  </div>
 </section>

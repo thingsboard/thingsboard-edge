@@ -54,14 +54,10 @@
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div [fxShow]="generateReportFormGroup.get('msgBody.sendEmail').value">
-        EMAIL CONFIG
+        <tb-email-config
+          formControlName="emailConfig">
+        </tb-email-config>
       </div>
-      <!--tb-attribute-key-value-table
-        titleText="attribute.scope-shared"
-        required
-        requiredPrompt="attribute.add-attribute-prompt"
-        formControlName="sharedAttributes"
-      ></tb-attribute-key-value-table-->
     </mat-expansion-panel>
   </div>
 </section>

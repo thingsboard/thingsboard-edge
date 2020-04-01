@@ -236,7 +236,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         schedulerEvent = {
           name: null,
           type: null,
-          schedule: {},
+          schedule: null,
           configuration: {
             originatorId: null,
             msgType: null,

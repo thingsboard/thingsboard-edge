@@ -33,9 +33,28 @@ import { Timewindow } from '@shared/models/time/time.models';
 
 export type ReportType = 'pdf' | 'jpeg' | 'png';
 
+export const reportTypes: ReportType[] = ['pdf', 'jpeg', 'png'];
+
+export const reportTypeNamesMap = new Map<ReportType, string>(
+  [
+    ['pdf', 'PDF'],
+    ['jpeg', 'JPEG'],
+    ['png', 'PNG'],
+  ]
+);
+
 export interface ReportParams {
   type: ReportType;
   timezone: string;
-  timewindow?: Timewindow;
   state?: string;
+  timewindow?: Timewindow;
+}
+
+export interface ReportConfig extends ReportParams {
+  baseUrl: string;
+  dashboardId: string;
+  useDashboardTimewindow: boolean;
+  namePattern: string;
+  useCurrentUserCredentials: boolean;
+  userId: string;
 }

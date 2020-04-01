@@ -73,7 +73,7 @@ export class SchedulerEventService {
   }
 
   public saveSchedulerEvent(schedulerEvent: SchedulerEvent, config?: RequestConfig): Observable<SchedulerEvent> {
-    return this.http.post<SchedulerEvent>('api/schedulerEvent', schedulerEvent, defaultHttpOptionsFromConfig(config));
+    return this.http.post<SchedulerEvent>('/api/schedulerEvent', schedulerEvent, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteSchedulerEvent(schedulerEventId: string, config?: RequestConfig) {

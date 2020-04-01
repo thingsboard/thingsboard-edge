@@ -29,22 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
-import {
-  CONTAINS_TYPE,
-  EntityRelation,
-  EntitySearchDirection,
-  RelationTypeGroup
-} from '@shared/models/relation.models';
-import { EntityRelationService } from '@core/http/entity-relation.service';
-import { EntityId } from '@shared/models/id/entity-id';
-import { forkJoin, Observable } from 'rxjs';
-import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
@@ -87,40 +77,6 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.schedulerEventConfigTypes = data.schedulerEventConfigTypes;
-    this.schedulerEventConfigTypes.test = {
-      originator: true,
-      msgType: true,
-      template: '<form #myCustomConfigForm="ngForm">' +
-                  '<mat-form-field class="mat-block">' +
-                      '<mat-label>My custom field</mat-label>' +
-                      '<input name="myField" #myField="ngModel" matInput [(ngModel)]="configuration.msgBody.myField" required>' +
-                          '<mat-error *ngIf="myField.hasError(\'required\')">' +
-                            'My field is required.' +
-                          '</mat-error>' +
-                  '</mat-form-field>' +
-                  '<div>Form valid: {{myCustomConfigForm.valid}}</div>' +
-                '</form>',
-      name: 'Test!'
-    };
-    this.schedulerEventConfigTypes.test2 = {
-      template: '<form #myCustomConfigForm2="ngForm">' +
-        '<mat-form-field class="mat-block">' +
-        '<mat-label>My custom field 2</mat-label>' +
-        '<input name="myField" #myField="ngModel" matInput [(ngModel)]="configuration.msgBody.myField" required>' +
-        '<mat-error *ngIf="myField.hasError(\'required\')">' +
-        'My field is required.' +
-        '</mat-error>' +
-        '</mat-form-field>' +
-        '<div>Form valid: {{myCustomConfigForm2.valid}}</div>' +
-        '</form>',
-      name: 'Test 2!'
-    };
-    this.schedulerEventConfigTypes.test3 = {
-      name: 'Test 3!',
-      msgType: true,
-      originator: true,
-      metadata: true
-    };
     this.isAdd = data.isAdd;
     this.readonly = data.readonly;
     this.schedulerEvent = data.schedulerEvent;
@@ -131,7 +87,8 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
     this.schedulerEventFormGroup = this.fb.group({
       name: [this.schedulerEvent.name, [Validators.required]],
       type: [this.isAdd ? this.defaultEventType : this.schedulerEvent.type, [Validators.required]],
-      configuration: [this.schedulerEvent.configuration, [Validators.required]]
+      configuration: [this.schedulerEvent.configuration, [Validators.required]],
+      schedule: [this.schedulerEvent.schedule, [Validators.required]]
     });
     if (this.readonly) {
       this.schedulerEventFormGroup.disable();
@@ -163,14 +120,14 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
   }
 
   save(): void {
-    // this.submitted = true;
+    this.submitted = true;
     if (!this.schedulerEventFormGroup.invalid) {
-      console.log(this.schedulerEventFormGroup.getRawValue());
-        // this.schedulerEventService.saveSchedulerEvent(this.schedulerEvent).subscribe(
-        //  () => {
-            // this.dialogRef.close(true);
-        //  }
-       // );
-      }
+      this.schedulerEvent = {...this.schedulerEvent, ...this.schedulerEventFormGroup.value};
+      this.schedulerEventService.saveSchedulerEvent(this.schedulerEvent).subscribe(
+        () => {
+            this.dialogRef.close(true);
+        }
+      );
+    }
   }
 }

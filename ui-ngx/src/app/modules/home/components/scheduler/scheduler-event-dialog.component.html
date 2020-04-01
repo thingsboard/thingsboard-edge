@@ -70,6 +70,11 @@
           </div>
         </mat-tab>
         <mat-tab label="{{ 'scheduler.schedule' | translate }}">
+          <div fxLayout="column" class="mat-padding">
+            <tb-scheduler-event-schedule
+              formControlName="schedule">
+            </tb-scheduler-event-schedule>
+          </div>
         </mat-tab>
       </mat-tab-group>
     </fieldset>

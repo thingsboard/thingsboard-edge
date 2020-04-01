@@ -77,6 +77,7 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
 
   ngAfterViewInit() {
     if (this.forms) {
+      this.updateFormsDisabledState();
       this.forms.changes.subscribe(() => {
         this.updateFormsDisabledState();
       });
@@ -95,13 +96,15 @@ export class CustomSchedulerEventConfigComponent extends PageComponent implement
 
   private updateFormsDisabledState() {
     if (this.forms) {
-      this.forms.toArray().forEach((form) => {
-        if (this.disabled) {
-          form.control.disable();
-        } else {
-          form.control.enable();
-        }
-      })
+      setTimeout(() => {
+        this.forms.toArray().forEach((form) => {
+          if (this.disabled) {
+            form.control.disable();
+          } else {
+            form.control.enable();
+          }
+        })
+      }, 0);
     }
   }
 
