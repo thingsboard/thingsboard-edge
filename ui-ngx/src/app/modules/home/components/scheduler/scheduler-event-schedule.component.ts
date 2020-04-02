@@ -233,9 +233,10 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private toSchedulerEventScheduleConfig(value: SchedulerEventSchedule): SchedulerEventScheduleConfig {
     if (value) {
+      const timezone = value.timezone || this.defaultTimezone;
       const config: SchedulerEventScheduleConfig = {
-        timezone: value.timezone,
-        startDate: this.dateFromUtcTime(value.startTime, value.timezone)
+        timezone,
+        startDate: this.dateFromUtcTime(value.startTime, timezone)
       };
       if (value.repeat && value.repeat !== null) {
         config.repeat = true;
@@ -251,7 +252,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
             timeUnit: value.repeat.timeUnit
           };
         }
-        config.endsOnDate = this.dateFromUtcTime(value.repeat.endsOn, value.timezone);
+        config.endsOnDate = this.dateFromUtcTime(value.repeat.endsOn, timezone);
       } else {
         config.repeat = false;
       }

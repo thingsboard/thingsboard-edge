@@ -229,8 +229,40 @@
         </div>
       </div>
       <div fxFlex class="calendar-container">
+        <div #schedulerEventMenuTrigger="matMenuTrigger" style="visibility: hidden; position: fixed"
+             [style.left]="schedulerEventMenuPosition.x"
+             [style.top]="schedulerEventMenuPosition.y"
+             [matMenuTriggerFor]="schedulerEventMenu">
+        </div>
+        <mat-menu #schedulerEventMenu="matMenu" class="tb-event-schedule-calendar-menu"
+                  [overlapTrigger]="true">
+          <ng-template matMenuContent let-schedulerEvent="schedulerEvent">
+            <div class="tb-event-schedule-context-menu-container" (mouseleave)="onSchedulerEventContextMenuMouseLeave()">
+              <div class="tb-context-menu-header">
+                <div class="tb-context-menu-title">{{schedulerEvent.name}}</div>
+                <div class="tb-context-menu-subtitle">{{schedulerEvent.typeName}}</div>
+              </div>
+              <button mat-menu-item *ngIf="editEnabled"
+                      (click)="editSchedulerEvent(schedulerContextMenuEvent, schedulerEvent)">
+                <mat-icon>edit</mat-icon>
+                <span translate>action.edit</span>
+              </button>
+              <button mat-menu-item *ngIf="!editEnabled"
+                      (click)="viewSchedulerEvent(schedulerContextMenuEvent, schedulerEvent)">
+                <mat-icon>visibility</mat-icon>
+                <span translate>action.view</span>
+              </button>
+              <button mat-menu-item *ngIf="deleteEnabled"
+                      (click)="deleteSchedulerEvent(schedulerContextMenuEvent, schedulerEvent)">
+                <mat-icon>delete</mat-icon>
+                <span translate>action.delete</span>
+              </button>
+            </div>
+          </ng-template>
+        </mat-menu>
         <full-calendar #calendar
                        height="parent"
+                       [eventSources]="eventSources"
                        [editable]="editEnabled"
                        [eventDurationEditable]="false"
                        [allDaySlot]="false"

@@ -34,6 +34,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { SchedulerEventId } from '@shared/models/id/scheduler-event-id';
 import { EntityId } from '@shared/models/id/entity-id';
+import * as moment_ from 'moment';
 
 export enum SchedulerRepeatType {
   DAILY = 'DAILY',
@@ -53,11 +54,26 @@ export const schedulerRepeatTypeTranslationMap = new Map<SchedulerRepeatType, st
   ]
 );
 
+export const schedulerRepeatTypeToUnitMap = new Map<SchedulerRepeatType, moment_.unitOfTime.Base>(
+  [
+    [SchedulerRepeatType.MONTHLY, 'month'],
+    [SchedulerRepeatType.YEARLY, 'year'],
+  ]
+);
+
 export enum SchedulerTimeUnit {
   HOURS = 'HOURS',
   MINUTES = 'MINUTES',
   SECONDS = 'SECONDS'
 }
+
+export const schedulerTimeUnitToUnitMap = new Map<SchedulerTimeUnit, moment_.unitOfTime.Base>(
+  [
+    [SchedulerTimeUnit.HOURS, 'hours'],
+    [SchedulerTimeUnit.MINUTES, 'minutes'],
+    [SchedulerTimeUnit.SECONDS, 'seconds'],
+  ]
+);
 
 export const schedulerTimeUnitTranslationMap = new Map<SchedulerTimeUnit, string>(
   [
