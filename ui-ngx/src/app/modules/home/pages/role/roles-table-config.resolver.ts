@@ -67,7 +67,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
     this.config.entityTitle = (role) => role ? role.name : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<Role>('createdTime', 'role.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Role>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Role>('name', 'role.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Role>('type', 'role.role-type', '25%', (role) => {
         return this.translate.instant(roleTypeTranslationMap.get(role.type))

@@ -33,7 +33,6 @@ import { Injectable } from '@angular/core';
 
 import { Resolve, Router } from '@angular/router';
 
-import { Tenant } from '@shared/models/tenant.model';
 import {
   DateEntityTableColumn,
   EntityTableColumn,
@@ -41,15 +40,11 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import {
-  EntityType,
-  entityTypeResources,
-  entityTypeTranslations
-} from '@shared/models/entity-type.models';
+import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import {Customer} from '@app/shared/models/customer.model';
-import {CustomerService} from '@app/core/http/customer.service';
-import {CustomerComponent} from '@modules/home/pages/customer/customer.component';
+import { Customer } from '@app/shared/models/customer.model';
+import { CustomerService } from '@app/core/http/customer.service';
+import { CustomerComponent } from '@modules/home/pages/customer/customer.component';
 import { CustomerTabsComponent } from '@home/pages/customer/customer-tabs.component';
 import { UtilsService } from '@core/services/utils.service';
 
@@ -74,7 +69,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
       this.utils.customTranslation(customer.title, customer.title) : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<Customer>('createdTime', 'customer.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Customer>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Customer>('title', 'customer.title', '25%', this.config.entityTitle),
       new EntityTableColumn<Customer>('email', 'contact.email', '25%'),
       new EntityTableColumn<Customer>('country', 'contact.country', '25%'),

@@ -78,7 +78,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       this.utils.customTranslation(ruleChain.name, ruleChain.name) : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<RuleChain>('createdTime', 'rulechain.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<RuleChain>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<RuleChain>('name', 'rulechain.name', '100%', this.config.entityTitle),
       new EntityTableColumn<RuleChain>('root', 'rulechain.root', '60px',
         entity => {

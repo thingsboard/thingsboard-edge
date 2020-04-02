@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
-import {ActivatedRouteSnapshot, Resolve, Router} from '@angular/router';
+import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
@@ -41,22 +41,22 @@ import {
   GroupActionDescriptor,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
-import {TranslateService} from '@ngx-translate/core';
-import {DatePipe} from '@angular/common';
-import {EntityType, entityTypeResources, entityTypeTranslations} from '@shared/models/entity-type.models';
-import {EntityAction} from '@home/models/entity/entity-component.models';
-import {forkJoin, Observable, of} from 'rxjs';
-import {select, Store} from '@ngrx/store';
-import {selectAuthUser} from '@core/auth/auth.selectors';
-import {map, mergeMap, take, tap} from 'rxjs/operators';
-import {AppState} from '@core/core.state';
-import {Authority} from '@app/shared/models/authority.enum';
-import {CustomerService} from '@core/http/customer.service';
-import {Customer} from '@app/shared/models/customer.model';
-import {NULL_UUID} from '@shared/models/id/has-uuid';
-import {BroadcastService} from '@core/services/broadcast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
+import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { EntityAction } from '@home/models/entity/entity-component.models';
+import { forkJoin, Observable, of } from 'rxjs';
+import { select, Store } from '@ngrx/store';
+import { selectAuthUser } from '@core/auth/auth.selectors';
+import { map, mergeMap, take, tap } from 'rxjs/operators';
+import { AppState } from '@core/core.state';
+import { Authority } from '@app/shared/models/authority.enum';
+import { CustomerService } from '@core/http/customer.service';
+import { Customer } from '@app/shared/models/customer.model';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { BroadcastService } from '@core/services/broadcast.service';
 import { MatDialog } from '@angular/material/dialog';
-import {DialogService} from '@core/services/dialog.service';
+import { DialogService } from '@core/services/dialog.service';
 import {
   AssignToCustomerDialogComponent,
   AssignToCustomerDialogData
@@ -65,11 +65,11 @@ import {
   AddEntitiesToCustomerDialogComponent,
   AddEntitiesToCustomerDialogData
 } from '../../dialogs/add-entities-to-customer-dialog.component';
-import {EntityView} from '@app/shared/models/entity-view.models';
-import {EntityViewService} from '@core/http/entity-view.service';
-import {EntityViewComponent} from '@modules/home/pages/entity-view/entity-view.component';
-import {EntityViewTableHeaderComponent} from '@modules/home/pages/entity-view/entity-view-table-header.component';
-import {EntityViewId} from '@shared/models/id/entity-view-id';
+import { EntityView } from '@app/shared/models/entity-view.models';
+import { EntityViewService } from '@core/http/entity-view.service';
+import { EntityViewComponent } from '@modules/home/pages/entity-view/entity-view.component';
+import { EntityViewTableHeaderComponent } from '@modules/home/pages/entity-view/entity-view-table-header.component';
+import { EntityViewId } from '@shared/models/id/entity-view-id';
 import { EntityViewTabsComponent } from '@home/pages/entity-view/entity-view-tabs.component';
 import { UtilsService } from '@core/services/utils.service';
 
@@ -164,7 +164,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
 
   configureColumns(entityViewScope: string): Array<EntityTableColumn<EntityView>> {
     const columns: Array<EntityTableColumn<EntityView>> = [
-      new DateEntityTableColumn<EntityView>('createdTime', 'entity-view.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<EntityView>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<EntityView>('name', 'entity-view.name', '33%', this.config.entityTitle),
       new EntityTableColumn<EntityView>('type', 'entity-view.entity-view-type', '33%'),
     ];

@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-import {EntitiesTableComponent} from '../../components/entity/entities-table.component';
-import {Authority} from '@shared/models/authority.enum';
-import {EntityViewsTableConfigResolver} from '@modules/home/pages/entity-view/entity-views-table-config.resolver';
+import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
+import { Authority } from '@shared/models/authority.enum';
+import { EntityViewsTableConfigResolver } from '@modules/home/pages/entity-view/entity-views-table-config.resolver';
 
 const routes: Routes = [
   {

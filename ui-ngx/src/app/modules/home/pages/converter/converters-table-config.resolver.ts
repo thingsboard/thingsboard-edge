@@ -75,7 +75,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
       this.utils.customTranslation(converter.name, converter.name) : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<Converter>('createdTime', 'converter.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Converter>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type))

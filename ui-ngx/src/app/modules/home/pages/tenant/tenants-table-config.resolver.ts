@@ -72,7 +72,7 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
       this.utils.customTranslation(tenant.title, tenant.title) : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<Tenant>('createdTime', 'tenant.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Tenant>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Tenant>('title', 'tenant.title', '25%', this.config.entityTitle),
       new EntityTableColumn<Tenant>('email', 'contact.email', '25%'),
       new EntityTableColumn<Tenant>('country', 'contact.country', '25%'),

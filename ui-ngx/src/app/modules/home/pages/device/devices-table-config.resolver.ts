@@ -167,7 +167,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
 
   configureColumns(deviceScope: string): Array<EntityTableColumn<Device>> {
     const columns: Array<EntityTableColumn<Device>> = [
-      new DateEntityTableColumn<Device>('createdTime', 'device.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Device>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Device>('name', 'device.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Device>('type', 'device.device-type', '25%'),
       new EntityTableColumn<Device>('label', 'device.label', '25%')

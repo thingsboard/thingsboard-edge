@@ -31,7 +31,6 @@
 
 import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
-
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';

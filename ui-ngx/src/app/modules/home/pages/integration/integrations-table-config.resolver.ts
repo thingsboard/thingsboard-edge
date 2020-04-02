@@ -73,7 +73,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
       this.utils.customTranslation(integration.name, integration.name) : '';
 
     this.config.columns.push(
-      new DateEntityTableColumn<Integration>('createdTime', 'integration.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Integration>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Integration>('type', 'converter.type', '33%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name)

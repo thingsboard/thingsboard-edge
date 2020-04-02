@@ -412,7 +412,8 @@
         "password": "Пароль",
         "enter-username": "Введите имя пользователя",
         "enter-password": "Введите пароль",
-        "enter-search": "Введите условие поиска"
+        "enter-search": "Введите условие поиска",
+        "created-time": "Время создания"
     },
     "converter": {
         "converter": "Конвертер данных",
