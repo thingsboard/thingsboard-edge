@@ -39,7 +39,7 @@
         <div class="tb-scheduler-events-view-type-toolbar" fxLayout="row" fxLayoutAlign="start center">
           <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'list'}">
             <button mat-button mat-icon-button
-                    (click)="mode = 'list'"
+                    (click)="mode = 'list'; triggerResize();"
                     matTooltip="{{'scheduler.list-mode' | translate }}"
                     matTooltipPosition="below">
               <mat-icon>view_list</mat-icon>
@@ -47,7 +47,7 @@
           </div>
           <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'calendar'}">
             <button mat-button mat-icon-button
-                    (click)="mode = 'calendar'"
+                    (click)="dataSource.selection.clear(); mode = 'calendar'; triggerResize();"
                     matTooltip="{{'scheduler.calendar-mode' | translate }}"
                     matTooltipPosition="below">
               <mat-icon>event</mat-icon>
@@ -202,8 +202,47 @@
     <div fxFlex class="mat-padding" [fxShow]="mode === 'calendar'" fxLayout="column">
       <div fxLayout="row">
         <h2 class="mat-headline">
-          TODO: Calendar View
+          {{ calendarViewTitle() }}
         </h2>
+        <mat-form-field class="mat-block" fxFlex style="margin-left: 16px; margin-right: 16px;">
+          <mat-label translate>scheduler.calendar-view-type</mat-label>
+          <mat-select matInput [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
+            <mat-option *ngFor="let viewType of schedulerCalendarViews" [value]="viewType">
+              {{ schedulerCalendarViewTranslations.get(viewType) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+          <button mat-button mat-raised-button [disabled]="isCalendarToday()" (click)="gotoCalendarToday()">
+            {{'scheduler.today' | translate}}
+          </button>
+          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarPrev()"
+            matTooltip="{{'scheduler.navigate-before' | translate}}"
+            matTooltipPosition="above">
+            <mat-icon>navigate_before</mat-icon>
+          </button>
+          <button mat-button mat-raised-button mat-icon-button (click)="gotoCalendarNext()"
+                  matTooltip="{{'scheduler.navigate-next' | translate}}"
+                  matTooltipPosition="above">
+            <mat-icon>navigate_next</mat-icon>
+          </button>
+        </div>
+      </div>
+      <div fxFlex class="calendar-container">
+        <full-calendar #calendar
+                       height="parent"
+                       [editable]="editEnabled"
+                       [eventDurationEditable]="false"
+                       [allDaySlot]="false"
+                       [header]="false"
+                       timeZone="UTC"
+                       (eventClick)="onEventClick($event)"
+                       (dateClick)="onDayClick($event)"
+                       (eventDrop)="onEventDrop($event)"
+                       (eventRender)="eventRender($event)"
+                       [defaultView]="currentCalendarViewValue"
+                       [plugins]="calendarPlugins">
+        </full-calendar>
       </div>
     </div>
   </div>

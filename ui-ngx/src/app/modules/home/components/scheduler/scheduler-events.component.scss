@@ -78,6 +78,12 @@ $tb-button-selected-color: rgb(255, 110, 64) !default;
       .table-container {
         overflow: auto;
       }
+
+      .calendar-container {
+        position: relative;
+        min-height: 0;
+        box-sizing: border-box;
+      }
     }
   }
 }

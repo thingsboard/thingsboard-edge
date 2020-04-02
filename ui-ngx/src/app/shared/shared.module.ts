@@ -155,6 +155,7 @@ import {
 } from '@shared/pipe/permission.pipes';
 import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
+import { FullCalendarModule } from '@fullcalendar/angular';
 
 @NgModule({
   providers: [
@@ -303,6 +304,7 @@ import { ProgressDialogComponent } from '@shared/components/dialog/progress-dial
     ColorPickerModule,
     NgxHmCarouselModule,
     EditorModule,
+    FullCalendarModule,
     NgxFlowModule,
     NgxFlowchartModule
   ],
@@ -395,6 +397,7 @@ import { ProgressDialogComponent } from '@shared/components/dialog/progress-dial
     ColorPickerModule,
     NgxHmCarouselModule,
     EditorModule,
+    FullCalendarModule,
     NgxFlowchartModule,
     ConfirmDialogComponent,
     AlertDialogComponent,

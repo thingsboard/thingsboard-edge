@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -38,12 +38,9 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import {
-  SchedulerEvent,
-  SchedulerEventWithCustomerInfo
-} from '@shared/models/scheduler-event.models';
+import { SchedulerEvent, SchedulerEventWithCustomerInfo } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
-import { BehaviorSubject, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, forkJoin, fromEvent, merge, Observable, of, ReplaySubject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import {
   catchError,
@@ -57,16 +54,12 @@ import {
 } from 'rxjs/operators';
 import { PageLink } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
-import { EntityRelationInfo, EntitySearchDirection } from '@shared/models/relation.models';
-import { EntityId } from '@shared/models/id/entity-id';
-import { entityTypeTranslations } from '@shared/models/entity-type.models';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { TranslateService } from '@ngx-translate/core';
 import { deepClone } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
-import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
 import {
   SchedulerEventDialogComponent,
   SchedulerEventDialogData
@@ -75,6 +68,17 @@ import {
   defaultSchedulerEventConfigTypes,
   SchedulerEventConfigType
 } from '@home/components/scheduler/scheduler-event-config.models';
+import { DialogService } from '@core/services/dialog.service';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import listPlugin from '@fullcalendar/list';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import { FullCalendarComponent } from '@fullcalendar/angular';
+import {
+  schedulerCalendarView, schedulerCalendarViewTranslationMap,
+  schedulerCalendarViewValueMap
+} from '@home/components/scheduler/scheduler-events.models';
+import { Calendar } from '@fullcalendar/core/Calendar';
+import { rangeContainsMarker } from '@fullcalendar/core';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -87,6 +91,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
+
+  @ViewChild('calendar') calendarComponent: FullCalendarComponent;
 
   @Input()
   widgetMode: boolean;
@@ -124,10 +130,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   dataSource: SchedulerEventsDatasource;
 
+  calendarPlugins = [dayGridPlugin, listPlugin, timeGridPlugin];
+
+  currentCalendarView = schedulerCalendarView.month;
+
+  currentCalendarViewValue = schedulerCalendarViewValueMap.get(this.currentCalendarView);
+
+  schedulerCalendarViews = Object.keys(schedulerCalendarView);
+  schedulerCalendarViewTranslations = schedulerCalendarViewTranslationMap;
+
+  calendarApi: Calendar;
+
   constructor(protected store: Store<AppState>,
               public translate: TranslateService,
               private schedulerEventService: SchedulerEventService,
               private userPermissionsService: UserPermissionsService,
+              private dialogService: DialogService,
               private dialog: MatDialog) {
     super(store);
   }
@@ -150,6 +168,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   ngAfterViewInit() {
+
+    setTimeout(() => {
+      this.calendarApi = this.calendarComponent.getApi();
+    }, 0);
 
     fromEvent(this.searchInputField.nativeElement, 'keyup')
       .pipe(
@@ -199,6 +221,49 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   reloadSchedulerEvents() {
     this.updateData(true);
+  }
+
+  deleteSchedulerEvent($event: Event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const title = this.translate.instant('scheduler.delete-scheduler-event-title', {schedulerEventName: schedulerEvent.name});
+    const content = this.translate.instant('scheduler.delete-scheduler-event-text');
+    this.dialogService.confirm(title, content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes')).subscribe((result) => {
+      if (result) {
+        this.schedulerEventService.deleteSchedulerEvent(schedulerEvent.id.id).subscribe(
+          () => {
+            this.reloadSchedulerEvents();
+          }
+        );
+      }
+    });
+  }
+
+  deleteSchedulerEvents($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const selectedSchedulerEvents = this.dataSource.selection.selected;
+    if (selectedSchedulerEvents && selectedSchedulerEvents.length) {
+      const title = this.translate.instant('scheduler.delete-scheduler-events-title', {count: selectedSchedulerEvents.length});
+      const content = this.translate.instant('scheduler.delete-scheduler-events-text');
+      this.dialogService.confirm(title, content,
+        this.translate.instant('action.no'),
+        this.translate.instant('action.yes')).subscribe((result) => {
+        if (result) {
+          const tasks = selectedSchedulerEvents.map((schedulerEvent) =>
+            this.schedulerEventService.deleteSchedulerEvent(schedulerEvent.id.id));
+          forkJoin(tasks).subscribe(
+            () => {
+              this.reloadSchedulerEvents();
+            }
+          );
+        }
+      });
+    }
   }
 
   addSchedulerEvent($event: Event) {
@@ -263,6 +328,64 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       }
     );
+  }
+
+  triggerResize() {
+    setTimeout(() => {
+      this.calendarComponent.getApi().updateSize();
+    }, 0);
+  }
+
+  changeCalendarView() {
+    this.currentCalendarViewValue = schedulerCalendarViewValueMap.get(this.currentCalendarView);
+    this.calendarApi.changeView(this.currentCalendarViewValue);
+  }
+
+  calendarViewTitle(): string {
+    if (this.calendarApi) {
+      return this.calendarApi.view.title;
+    } else {
+      return '';
+    }
+  }
+
+  gotoCalendarToday() {
+    this.calendarApi.today();
+  }
+
+  isCalendarToday(): boolean {
+    if (this.calendarApi) {
+      const now = this.calendarApi.getNow();
+      const view = this.calendarApi.view;
+      return rangeContainsMarker(view.props.dateProfile.currentRange, now);
+    } else {
+      return false;
+    }
+  }
+
+  gotoCalendarPrev() {
+    this.calendarApi.prev();
+  }
+
+  gotoCalendarNext() {
+    this.calendarApi.next();
+  }
+
+  onEventClick(event) {
+    // this.calendarComponent.getApi().changeView()
+    console.log(event);
+  }
+
+  onDayClick(event) {
+    console.log(event);
+  }
+
+  onEventDrop(event) {
+    console.log(event);
+  }
+
+  eventRender(event) {
+    console.log(event);
   }
 
 }
