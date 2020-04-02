@@ -122,7 +122,7 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
   save(): void {
     this.submitted = true;
     if (!this.schedulerEventFormGroup.invalid) {
-      this.schedulerEvent = {...this.schedulerEvent, ...this.schedulerEventFormGroup.value};
+      this.schedulerEvent = {...this.schedulerEvent, ...this.schedulerEventFormGroup.getRawValue()};
       this.schedulerEventService.saveSchedulerEvent(this.schedulerEvent).subscribe(
         () => {
             this.dialogRef.close(true);

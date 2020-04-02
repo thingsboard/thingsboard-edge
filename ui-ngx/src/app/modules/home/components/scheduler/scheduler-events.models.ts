@@ -68,3 +68,23 @@ export const schedulerCalendarViewTranslationMap = new Map<schedulerCalendarView
     [schedulerCalendarView.agendaDay, 'scheduler.agenda-day']
   ]
 );
+
+export interface SchedulerEventsWidgetSettings {
+  title: string;
+  displayCreatedTime: boolean;
+  displayType: boolean;
+  displayCustomer: boolean;
+  displayPagination: boolean;
+  defaultPageSize: number;
+  defaultSortOrder: string;
+  enabledViews: 'both' | 'list' | 'calendar';
+  forceDefaultEventType: string;
+  customEventTypes: {
+    name: string;
+    value: string;
+    originator: boolean;
+    msgType: boolean;
+    metadata: boolean;
+    template: string;
+  }[]
+}

@@ -63,9 +63,9 @@ import { PageLink } from '@shared/models/page/page-link';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Direction, SortOrder } from '@shared/models/page/sort-order';
+import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone } from '@core/utils';
+import { deepClone, isDefined, isNumber } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   SchedulerEventDialogComponent,
@@ -85,7 +85,8 @@ import { FullCalendarComponent } from '@fullcalendar/angular';
 import {
   schedulerCalendarView,
   schedulerCalendarViewTranslationMap,
-  schedulerCalendarViewValueMap
+  schedulerCalendarViewValueMap,
+  SchedulerEventsWidgetSettings
 } from '@home/components/scheduler/scheduler-events.models';
 import { Calendar, DateClickApi } from '@fullcalendar/core/Calendar';
 import { asRoughMs, Duration, EventInput, rangeContainsMarker } from '@fullcalendar/core';
@@ -107,6 +108,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  @ViewChild('calendarContainer') calendarContainer: ElementRef<HTMLElement>;
   @ViewChild('calendar') calendarComponent: FullCalendarComponent;
 
   @Input()
@@ -114,6 +116,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
 
   @Input()
   ctx: WidgetContext;
+
+  settings: SchedulerEventsWidgetSettings;
 
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
@@ -134,6 +138,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
 
   displayPagination = true;
+  pageSizeOptions;
   defaultPageSize = 10;
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
@@ -176,53 +181,160 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   ngOnInit(): void {
+    if (this.widgetMode) {
+      this.ctx.$scope.schedulerEventsWidget = this;
+    }
     if (this.showData && this.widgetMode) {
-      // TODO:
-      this.displayedColumns = ['select', 'createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
-      const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
-      this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
-      this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
-      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+      this.settings = this.ctx.settings;
+      this.initializeWidgetConfig();
+      this.ctx.updateWidgetParams();
     } else {
       this.displayedColumns = ['select', 'createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
       const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
+      this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
     }
   }
 
+  private initializeWidgetConfig() {
+    this.ctx.widgetConfig.showTitle = false;
+    this.ctx.widgetTitle = this.settings.title;
+    const displayCreatedTime = isDefined(this.settings.displayCreatedTime) ? this.settings.displayCreatedTime : true;
+    const displayType = isDefined(this.settings.displayType) ? this.settings.displayType : true;
+    const displayCustomer = isDefined(this.settings.displayCustomer) ? this.settings.displayCustomer : true;
+
+    this.displayedColumns = [];
+    this.displayedColumns.push('select');
+    if (displayCreatedTime) {
+      this.displayedColumns.push('createdTime');
+    }
+    this.displayedColumns.push('name');
+    if (displayType) {
+      this.displayedColumns.push('typeName');
+    }
+    if (displayCustomer) {
+      this.displayedColumns.push('customerTitle');
+    }
+    this.displayedColumns.push('actions');
+    this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
+    const pageSize = this.settings.defaultPageSize;
+    if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
+      this.defaultPageSize = pageSize;
+    }
+    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+    if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
+      this.defaultSortOrder = this.settings.defaultSortOrder;
+    }
+    const sortOrder: SortOrder = sortOrderFromString(this.defaultSortOrder);
+    if (sortOrder.property === 'type') {
+      sortOrder.property = 'typeName';
+    }
+    if (sortOrder.property === 'customer') {
+      sortOrder.property = 'customerTitle';
+    }
+    this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
+    if (this.settings.forceDefaultEventType && this.settings.forceDefaultEventType.length) {
+      this.defaultEventType = this.settings.forceDefaultEventType;
+    }
+    this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
+    if (this.settings.customEventTypes && this.settings.customEventTypes.length) {
+      this.settings.customEventTypes.forEach((customEventType) => {
+        this.schedulerEventConfigTypes[customEventType.value] = customEventType;
+      });
+    }
+    if (this.settings.enabledViews !== 'both') {
+      this.mode = this.settings.enabledViews;
+    }
+    this.ctx.widgetActions = [
+      {
+        name: 'scheduler.add-scheduler-event',
+        show: this.addEnabled,
+        icon: 'add',
+        onAction: ($event) => {
+          this.addSchedulerEvent($event);
+        }
+      },
+      {
+        name: 'action.search',
+        show: true,
+        icon: 'search',
+        onAction: () => {
+          this.enterFilterMode();
+        }
+      },
+      {
+        name: 'action.refresh',
+        show: true,
+        icon: 'refresh',
+        onAction: () => {
+          this.reloadSchedulerEvents();
+        }
+      }
+    ];
+    this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+    this.dataSource.selection.changed.subscribe(() => {
+      const hideTitlePanel = !this.dataSource.selection.isEmpty() || this.textSearchMode;
+      if (this.ctx.hideTitlePanel !== hideTitlePanel) {
+        this.ctx.hideTitlePanel = hideTitlePanel;
+        this.ctx.detectChanges(true);
+      } else {
+        this.ctx.detectChanges();
+      }
+    });
+  }
+
   ngAfterViewInit() {
+    if (this.showData) {
+      setTimeout(() => {
+        this.calendarApi = this.calendarComponent.getApi();
+        this.calendarApi.refetchEvents();
+        if (this.widgetMode && this.mode === 'calendar') {
+          this.resize();
+        }
+      }, 0);
 
-    setTimeout(() => {
-      this.calendarApi = this.calendarComponent.getApi();
-    }, 0);
+      fromEvent(this.searchInputField.nativeElement, 'keyup')
+        .pipe(
+          debounceTime(150),
+          distinctUntilChanged(),
+          tap(() => {
+            if (this.displayPagination) {
+              this.paginator.pageIndex = 0;
+            }
+            this.updateData();
+          })
+        )
+        .subscribe();
 
-    fromEvent(this.searchInputField.nativeElement, 'keyup')
-      .pipe(
-        debounceTime(150),
-        distinctUntilChanged(),
-        tap(() => {
-          this.paginator.pageIndex = 0;
-          this.updateData();
-        })
-      )
-      .subscribe();
+      if (this.displayPagination) {
+        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+      }
 
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+      (this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange)
+        .pipe(
+          tap(() => this.updateData())
+        )
+        .subscribe();
 
-    merge(this.sort.sortChange, this.paginator.page)
-      .pipe(
-        tap(() => this.updateData())
-      )
-      .subscribe();
+      this.updateData(true);
+    }
+  }
 
-    this.updateData(true);
+  resize() {
+    if (this.mode === 'calendar' && this.calendarApi) {
+      this.calendarApi.updateSize();
+    }
   }
 
   updateData(reload: boolean = false) {
-    this.pageLink.page = this.paginator.pageIndex;
-    this.pageLink.pageSize = this.paginator.pageSize;
+    if (this.displayPagination) {
+      this.pageLink.page = this.paginator.pageIndex;
+      this.pageLink.pageSize = this.paginator.pageSize;
+    } else {
+      this.pageLink.page = 0;
+    }
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
     this.dataSource.loadEntities(this.pageLink, this.defaultEventType, reload).subscribe(
@@ -230,11 +342,18 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         this.updateCalendarEvents(data.data);
       }
     );
+    if (this.widgetMode) {
+      this.ctx.detectChanges();
+    }
   }
 
   enterFilterMode() {
     this.textSearchMode = true;
     this.pageLink.textSearch = '';
+    if (this.widgetMode) {
+      this.ctx.hideTitlePanel = true;
+      this.ctx.detectChanges(true);
+    }
     setTimeout(() => {
       this.searchInputField.nativeElement.focus();
       this.searchInputField.nativeElement.setSelectionRange(0, 0);
@@ -244,8 +363,14 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   exitFilterMode() {
     this.textSearchMode = false;
     this.pageLink.textSearch = null;
-    this.paginator.pageIndex = 0;
+    if (this.displayPagination) {
+      this.paginator.pageIndex = 0;
+    }
     this.updateData();
+    if (this.widgetMode) {
+      this.ctx.hideTitlePanel = false;
+      this.ctx.detectChanges(true);
+    }
   }
 
   reloadSchedulerEvents() {
@@ -410,9 +535,13 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   openSchedulerEventContextMenu($event: MouseEvent, schedulerEvent: SchedulerEventWithCustomerInfo) {
     $event.preventDefault();
     $event.stopPropagation();
+    const $element = $(this.calendarContainer.nativeElement);
+    const offset = $element.offset();
+    const x = $event.pageX - offset.left;
+    const y = $event.pageY - offset.top;
     this.schedulerContextMenuEvent = $event;
-    this.schedulerEventMenuPosition.x = $event.clientX + 'px';
-    this.schedulerEventMenuPosition.y = $event.clientY + 'px';
+    this.schedulerEventMenuPosition.x = x + 'px';
+    this.schedulerEventMenuPosition.y = y + 'px';
     this.schedulerEventMenuTrigger.menuData = { schedulerEvent };
     this.schedulerEventMenuTrigger.openMenu();
   }

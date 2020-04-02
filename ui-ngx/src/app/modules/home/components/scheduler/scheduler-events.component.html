@@ -33,10 +33,16 @@
 <div class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
   <div [fxShow]="showData"
        fxFlex fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
-    <mat-toolbar *ngIf="!widgetMode" class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
-        <span class="tb-scheduler-events-title" translate>scheduler.scheduler-events</span>
-        <div class="tb-scheduler-events-view-type-toolbar" fxLayout="row" fxLayoutAlign="start center">
+        <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
+        <ng-template #schedulerEventsTitle>
+          <span class="tb-scheduler-events-title" translate>scheduler.scheduler-events</span>
+        </ng-template>
+        <div class="tb-scheduler-events-view-type-toolbar"
+             *ngIf="!widgetMode || settings?.enabledViews === 'both'"
+             fxLayout="row"
+             fxLayoutAlign="start center">
           <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'list'}">
             <button mat-button mat-icon-button
                     (click)="mode = 'list'; triggerResize();"
@@ -55,29 +61,31 @@
           </div>
         </div>
       </div>
-      <span fxFlex></span>
-      <button *ngIf="addEnabled"
-              [disabled]="isLoading$ | async"
-              mat-button mat-icon-button
-              (click)="addSchedulerEvent($event)"
-              matTooltip="{{'scheduler.add-scheduler-event' | translate }}"
-              matTooltipPosition="above">
-        <mat-icon>add</mat-icon>
-      </button>
-      <button [disabled]="isLoading$ | async"
-              mat-button mat-icon-button
-              (click)="enterFilterMode()"
-              matTooltip="{{'action.search' | translate }}"
-              matTooltipPosition="above">
-        <mat-icon>search</mat-icon>
-      </button>
-      <button [disabled]="isLoading$ | async"
-              mat-button mat-icon-button
-              (click)="reloadSchedulerEvents()"
-              matTooltip="{{'action.refresh' | translate }}"
-              matTooltipPosition="above">
-        <mat-icon>refresh</mat-icon>
-      </button>
+      <section *ngIf="!widgetMode" fxFlex fxLayout="row">
+        <span fxFlex></span>
+        <button *ngIf="addEnabled"
+                [disabled]="isLoading$ | async"
+                mat-button mat-icon-button
+                (click)="addSchedulerEvent($event)"
+                matTooltip="{{'scheduler.add-scheduler-event' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button [disabled]="isLoading$ | async"
+                mat-button mat-icon-button
+                (click)="enterFilterMode()"
+                matTooltip="{{'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <button [disabled]="isLoading$ | async"
+                mat-button mat-icon-button
+                (click)="reloadSchedulerEvents()"
+                matTooltip="{{'action.refresh' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </section>
     </mat-toolbar>
     <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
@@ -193,11 +201,12 @@
               fxLayoutAlign="center center"
               class="no-data-found" translate>{{ 'scheduler.no-scheduler-events' }}</span>
       </div>
-      <mat-divider></mat-divider>
-      <mat-paginator [length]="dataSource.total() | async"
+      <mat-divider *ngIf="displayPagination"></mat-divider>
+      <mat-paginator *ngIf="displayPagination"
+                     [length]="dataSource.total() | async"
                      [pageIndex]="pageLink.page"
                      [pageSize]="pageLink.pageSize"
-                     [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+                     [pageSizeOptions]="pageSizeOptions"></mat-paginator>
     </div>
     <div fxFlex class="mat-padding" [fxShow]="mode === 'calendar'" fxLayout="column">
       <div fxLayout="row">
@@ -228,8 +237,8 @@
           </button>
         </div>
       </div>
-      <div fxFlex class="calendar-container">
-        <div #schedulerEventMenuTrigger="matMenuTrigger" style="visibility: hidden; position: fixed"
+      <div #calendarContainer fxFlex class="calendar-container">
+        <div #schedulerEventMenuTrigger="matMenuTrigger" style="visibility: hidden; position: absolute"
              [style.left]="schedulerEventMenuPosition.x"
              [style.top]="schedulerEventMenuPosition.y"
              [matMenuTriggerFor]="schedulerEventMenu">
