@@ -49,6 +49,7 @@ import { ConverterModule } from '@home/pages/converter/converter.module';
 import { IntegrationModule } from '@home/pages/integration/integration.module';
 import { RoleModule } from '@home/pages/role/role.module';
 import { SchedulerModule } from '@home/pages/scheduler/scheduler.module';
+import { EntityGroupModule } from '@home/pages/group/entity-group.module';
 
 @NgModule({
   exports: [
@@ -68,6 +69,7 @@ import { SchedulerModule } from '@home/pages/scheduler/scheduler.module';
     RoleModule,
     ConverterModule,
     IntegrationModule,
+    EntityGroupModule,
     IFrameViewModule,
     SchedulerModule
   ]

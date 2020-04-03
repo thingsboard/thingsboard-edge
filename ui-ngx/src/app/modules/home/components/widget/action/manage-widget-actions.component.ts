@@ -62,7 +62,7 @@ import {
 import { UtilsService } from '@core/services/utils.service';
 import { EntityRelation, EntitySearchDirection, RelationTypeGroup } from '@shared/models/relation.models';
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
-import { WidgetActionDescriptor, WidgetActionSource } from '@shared/models/widget.models';
+import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
 import {
   WidgetActionDialogComponent,
   WidgetActionDialogData
@@ -86,6 +86,10 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
   @Input() disabled: boolean;
 
   @Input() callbacks: WidgetActionCallbacks;
+
+  @Input() actionTypes: WidgetActionType[];
+
+  @Input() customFunctionArgs: string[];
 
   innerValue: WidgetActionsData;
 
@@ -206,6 +210,8 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         isAdd,
         callbacks: this.callbacks,
         actionsData,
+        actionTypes: this.actionTypes,
+        customFunctionArgs: this.customFunctionArgs,
         action: deepClone(action)
       }
     }).afterClosed().subscribe(

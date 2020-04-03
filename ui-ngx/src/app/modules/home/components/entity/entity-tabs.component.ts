@@ -46,6 +46,7 @@ import { AuditLogMode } from '@shared/models/audit-log.models';
 import { DebugEventType, EventType } from '@shared/models/event.models';
 import { AttributeScope, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { NgForm } from '@angular/forms';
 
 @Directive()
 export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends PageComponent implements OnInit, AfterViewInit {
@@ -84,7 +85,7 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
 
   @Input()
   set entity(entity: T) {
-    this.entityValue = entity;
+    this.setEntity(entity);
   }
 
   get entity(): T {
@@ -93,6 +94,9 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
 
   @Input()
   entitiesTableConfig: EntityTableConfig<T>;
+
+  @Input()
+  detailsForm: NgForm;
 
   private entityTabsSubject = new BehaviorSubject<Array<MatTab>>(null);
 
@@ -113,6 +117,10 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
         this.entityTabsSubject.next(this.entityTabs.toArray());
       }
     );
+  }
+
+  protected setEntity(entity: T) {
+    this.entityValue = entity;
   }
 
 }

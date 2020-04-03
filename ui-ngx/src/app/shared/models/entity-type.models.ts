@@ -230,7 +230,12 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
     [
       EntityType.ENTITY_GROUP,
       {
-        type: 'entity.type-entity-group'
+        type: 'entity.type-entity-group',
+        details: 'entity-group.entity-group-details',
+        add: 'entity-group.add',
+        noEntities: 'entity-group.no-entity-groups-text',
+        search: 'entity-group.search',
+        selectedEntities: 'entity-group.selected-entity-groups'
       }
     ],
     [
@@ -379,6 +384,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.ROLE,
       {
         helpLinkId: 'roles'
+      }
+    ],
+    [
+      EntityType.ENTITY_GROUP,
+      {
+        helpLinkId: 'entityGroups'
       }
     ]
   ]

@@ -62,7 +62,7 @@ export class EntityGroupService {
   }
 
   public saveEntityGroup(entityGroup: EntityGroup, config?: RequestConfig): Observable<EntityGroupInfo> {
-    return this.http.post<EntityGroupInfo>('api/entityGroup', entityGroup, defaultHttpOptionsFromConfig(config));
+    return this.http.post<EntityGroupInfo>('/api/entityGroup', entityGroup, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteEntityGroup(entityGroupId: string, config?: RequestConfig) {

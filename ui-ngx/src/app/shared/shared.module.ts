@@ -67,6 +67,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatListModule } from '@angular/material/list';
 import { MatDatetimepickerModule, MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { NgxDaterangepickerMd } from 'ngx-daterangepicker-material';
 import { GridsterModule } from 'angular-gridster2';
@@ -156,6 +157,7 @@ import {
 import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
 import { FullCalendarModule } from '@fullcalendar/angular';
+import { DndModule } from 'ngx-drag-drop';
 
 @NgModule({
   providers: [
@@ -293,6 +295,7 @@ import { FullCalendarModule } from '@fullcalendar/angular';
     MatStepperModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatListModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule.withConfig({addFlexToParent: false}),
@@ -303,8 +306,8 @@ import { FullCalendarModule } from '@fullcalendar/angular';
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
-    EditorModule,
     FullCalendarModule,
+    DndModule,
     NgxFlowModule,
     NgxFlowchartModule
   ],
@@ -386,6 +389,7 @@ import { FullCalendarModule } from '@fullcalendar/angular';
     MatStepperModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatListModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule,
@@ -398,6 +402,7 @@ import { FullCalendarModule } from '@fullcalendar/angular';
     NgxHmCarouselModule,
     EditorModule,
     FullCalendarModule,
+    DndModule,
     NgxFlowchartModule,
     ConfirmDialogComponent,
     AlertDialogComponent,

@@ -1,0 +1,100 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxFlex fxLayout="column" class="tb-entity-group-columns mat-padding">
+  <div class="mat-elevation-z1" fxFlex fxLayout="column">
+    <div fxFlex fxLayout="row" fxLayoutAlign="start center" class="tb-header">
+      <span *ngIf="!disabled" style="min-width: 40px; margin: 0px;">&nbsp;</span>
+      <span style="padding-left: 10px; min-width: 20px;">&nbsp;</span>
+      <div fxFlex fxLayout="row" fxLayoutAlign="start center" style="padding: 0 0 0 10px; margin: 5px;">
+        <span translate fxFlex.xs
+              [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
+              [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}">entity-group.column-type.column-type</span>
+        <span translate fxFlex.xs style="padding-left: 5px;"
+              [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
+              [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}">entity-group.column-value</span>
+        <span style="padding-left: 5px;" translate fxHide.xs fxFlex>entity-group.column-title</span>
+        <span fxHide.xs style="padding-left: 5px; min-width: 120px; max-width: 120px;" translate>entity-group.default-sort-order</span>
+        <span fxHide.xs style="padding-left: 5px; min-width: 40px; max-width: 40px;" translate>entity-group.hide-in-mobile-view</span>
+        <span style="padding-left: 5px; min-width: 80px;">&nbsp;</span>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+    <div class="tb-columns" [ngClass]="{'tb-readonly': disabled}"
+         style="max-height: 500px; overflow: auto; padding-bottom: 15px;" [formGroup]="columnsFormGroup">
+      <mat-list dndDropzone dndEffectAllowed="move"
+                (dndDrop)="onDrop($event)"
+                [dndDisableIf]="disabled" formArrayName="columns">
+        <mat-list-item dndPlaceholderRef
+                       class="dndPlaceholder">
+        </mat-list-item>
+        <mat-list-item *ngFor="let columnControl of columnsFormArray().controls; let $index = index"
+                       [dndDraggable]="columnControl.value"
+                       (dndMoved)="dndMoved($index)"
+                       [dndDisableIf]="disabled"
+                       dndEffectAllowed="move">
+          <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+            <button *ngIf="!disabled" mat-icon-button color="primary"
+                    class="handle"
+                    style="min-width: 40px; margin: 0"
+                    dndHandle
+                    matTooltip="{{ 'action.drag' | translate }}"
+                    matTooltipPosition="above">
+              <mat-icon>drag_handle</mat-icon>
+            </button>
+            <div fxFlex fxLAyout="row" fxLayoutAlign="start center">
+              <span style="padding-left: 10px; min-width: 20px;">{{$index + 1}}.</span>
+              <tb-entity-group-column
+                fxFlex
+                [entityType]="entityType"
+                [formControl]="columnControl"
+                (defaultSortOrderChanged)="defaultSortOrderChanged($index, $event)"
+                (removeColumn)="removeColumn($index)"
+                (updateColumn)="updateColumn($index)">
+              </tb-entity-group-column>
+            </div>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </div>
+  <div *ngIf="!disabled" fxFlex fxLayout="row" fxLayoutAlign="start center"
+    style="padding-top: 16px;">
+    <button mat-raised-button color="primary"
+            (click)="addColumn()"
+            matTooltip="{{ 'entity-group.add-column' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>add</mat-icon>
+      <span translate>action.add</span>
+    </button>
+  </div>
+</div>

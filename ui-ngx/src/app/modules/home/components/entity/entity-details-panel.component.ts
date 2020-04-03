@@ -60,6 +60,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Subscription } from 'rxjs';
 import { MatTabGroup, MatTab } from '@angular/material/tabs';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
+import { deepClone } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-details-panel',
@@ -100,6 +101,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
   translations: EntityTypeTranslation;
   resources: EntityTypeResource<BaseData<HasId>>;
   entity: BaseData<HasId>;
+  editingEntity: BaseData<HasId>;
 
   private currentEntityId: HasId;
   private entityActionSubscription: Subscription;
@@ -185,7 +187,12 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
       this.entityTabsComponent = componentTabsRef.instance;
       this.entityTabsComponent.isEdit = this.isEdit;
       this.entityTabsComponent.entitiesTableConfig = this.entitiesTableConfig;
+      this.entityTabsComponent.detailsForm = this.detailsForm;
     }
+  }
+
+  hideDetailsTabs(): boolean {
+    return this.isEditValue && this.entitiesTableConfig.hideDetailsTabsOnEdit;
   }
 
   reload(): void {
@@ -213,7 +220,14 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
         this.entityTabsComponent.entity = this.entity;
       }
     } else {
-      this.selectedTab = 0;
+      this.editingEntity = deepClone(this.entity);
+      this.entityComponent.entity = this.editingEntity;
+      if (this.entityTabsComponent) {
+        this.entityTabsComponent.entity = this.editingEntity;
+      }
+      if (this.entitiesTableConfig.hideDetailsTabsOnEdit) {
+        this.selectedTab = 0;
+      }
     }
   }
 
@@ -227,7 +241,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
 
   saveEntity() {
     if (this.detailsForm.valid) {
-      const editingEntity = {...this.entity, ...this.entityComponent.entityFormValue()};
+      const editingEntity = {...this.editingEntity, ...this.entityComponent.entityFormValue()};
       this.entitiesTableConfig.saveEntity(editingEntity).subscribe(
         (entity) => {
           this.entity = entity;

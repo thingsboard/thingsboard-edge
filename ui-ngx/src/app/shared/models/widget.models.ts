@@ -319,6 +319,14 @@ export enum WidgetActionType {
   customPretty = 'customPretty'
 }
 
+export const widgetActionTypes: WidgetActionType[] = [
+  WidgetActionType.openDashboardState,
+  WidgetActionType.updateDashboardState,
+  WidgetActionType.openDashboard,
+  WidgetActionType.custom,
+  WidgetActionType.customPretty
+];
+
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
   [
     [ WidgetActionType.openDashboardState, 'widget-action.open-dashboard-state' ],

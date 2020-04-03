@@ -36,14 +36,14 @@
       <div class="mat-toolbar-tools">
         <span class="tb-entity-table-title" translate>widget-config.actions</span>
         <span fxFlex></span>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+        <button mat-button mat-icon-button [disabled]="(isLoading$ | async) || disabled"
                 type="button"
                 (click)="addAction($event)"
                 matTooltip="{{ 'widget-config.add-action' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>add</mat-icon>
         </button>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
+        <button mat-button mat-icon-button [disabled]="(isLoading$ | async) || disabled" (click)="enterFilterMode()"
                 type="button"
                 matTooltip="{{ 'action.search' | translate }}"
                 matTooltipPosition="above">
@@ -105,14 +105,14 @@
           </mat-header-cell>
           <mat-cell *matCellDef="let action">
             <div fxFlex fxLayout="row" fxLayoutAlign="end">
-              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+              <button mat-button mat-icon-button [disabled]="(isLoading$ | async) || disabled"
                       type="button"
                       matTooltip="{{ 'widget-config.edit-action' | translate }}"
                       matTooltipPosition="above"
                       (click)="editAction($event, action)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+              <button mat-button mat-icon-button [disabled]="(isLoading$ | async) || disabled"
                       type="button"
                       matTooltip="{{ 'widget-config.delete-action' | translate }}"
                       matTooltipPosition="above"

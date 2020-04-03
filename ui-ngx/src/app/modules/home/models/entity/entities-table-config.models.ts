@@ -152,6 +152,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   addEnabled = true;
   entitiesDeleteEnabled = true;
   detailsPanelEnabled = true;
+  hideDetailsTabsOnEdit = true;
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
   entityResources: EntityTypeResource<T>;

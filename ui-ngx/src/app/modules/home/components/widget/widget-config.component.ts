@@ -38,7 +38,7 @@ import {
   Datasource,
   DatasourceType,
   datasourceTypeTranslationMap,
-  defaultLegendConfig, GroupInfo, JsonSchema,
+  defaultLegendConfig, GroupInfo, JsonSchema, widgetActionTypes,
   widgetType
 } from '@shared/models/widget.models';
 import {
@@ -131,6 +131,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
   datasourceType = DatasourceType;
   datasourceTypes: Array<DatasourceType>;
   datasourceTypesTranslations = datasourceTypeTranslationMap;
+
+  widgetActionTypesList = widgetActionTypes;
 
   widgetConfigCallbacks: WidgetConfigCallbacks = {
     createEntityAlias: this.createEntityAlias.bind(this),

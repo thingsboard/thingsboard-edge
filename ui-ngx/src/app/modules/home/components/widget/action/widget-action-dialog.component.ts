@@ -63,6 +63,8 @@ export interface WidgetActionDialogData {
   isAdd: boolean;
   callbacks: WidgetActionCallbacks;
   actionsData: WidgetActionsData;
+  actionTypes: WidgetActionType[];
+  customFunctionArgs: string[];
   action?: WidgetActionDescriptorInfo;
 }
 
@@ -83,9 +85,10 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
   isAdd: boolean;
   action: WidgetActionDescriptorInfo;
 
-  widgetActionTypes = Object.keys(WidgetActionType);
+  widgetActionTypes = this.data.actionTypes;
   widgetActionTypeTranslations = widgetActionTypeTranslationMap;
   widgetActionType = WidgetActionType;
+  customFunctionArgs = this.data.customFunctionArgs;
 
   filteredDashboardStates: Observable<Array<string>>;
   targetDashboardStateSearchText = '';
