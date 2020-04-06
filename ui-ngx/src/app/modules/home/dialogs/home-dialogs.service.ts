@@ -30,8 +30,6 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { AuthService } from '@core/auth/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Observable } from 'rxjs';
@@ -54,7 +52,6 @@ export class HomeDialogsService {
         return this.openImportDialogCSV(customerId, entityType, entityGroupId,'device.import', 'device.device-file');
       case EntityType.ASSET:
         return this.openImportDialogCSV(customerId, entityType, entityGroupId,'asset.import', 'asset.asset-file');
-        break;
     }
   }
 

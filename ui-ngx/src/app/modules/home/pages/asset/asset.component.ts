@@ -41,6 +41,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Asset } from '@shared/models/asset.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 
+
 @Component({
   selector: 'tb-asset',
   templateUrl: './asset.component.html',

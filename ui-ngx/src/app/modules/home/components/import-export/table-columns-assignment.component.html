@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-table [dataSource]="dataSource">
+<table mat-table [dataSource]="dataSource">
   <ng-container matColumnDef="order">
     <mat-header-cell *matHeaderCellDef style="min-width: 40px; max-width: 40px; width: 40px"></mat-header-cell>
     <mat-cell *matCellDef="let column; let i = index">
@@ -67,5 +67,5 @@
   </ng-container>
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let column; columns: displayedColumns;"></mat-row>
-</mat-table>
+</table>
 <mat-divider></mat-divider>
