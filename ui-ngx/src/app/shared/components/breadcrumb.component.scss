@@ -29,28 +29,24 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
   min-width: 0;
-  flex: 1;
 
   .tb-breadcrumb {
-    font-size: 18px !important;
-    font-weight: 400 !important;
+    font-size: 18px;
+    font-weight: 400;
     overflow: hidden;
 
     h1,
     a,
-    span {
+    span:not(.divider) {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     h1 {
-      font-size: 24px !important;
-      font-weight: 400 !important;
+      font-size: 24px;
+      font-weight: 400;
     }
 
     a {
@@ -59,6 +55,7 @@
       transition: opacity .35s;
       color: inherit;
       text-decoration: none;
+      outline: none;
     }
 
     a:hover,
@@ -69,16 +66,16 @@
     }
 
     .divider {
-      padding: 0 30px;
+      padding: 0 20px;
     }
 
     img {
       display: inline-block;
+      vertical-align: middle;
       width: 24px;
       min-width: 24px;
       height: 24px;
       min-height: 24px;
-      margin-bottom: -5px;
       color: rgb(255, 255, 255);
       fill: rgb(255, 255, 255);
     }

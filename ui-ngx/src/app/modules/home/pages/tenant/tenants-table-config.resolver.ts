@@ -48,6 +48,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { TenantTabsComponent } from '@home/pages/tenant/tenant-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
 export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Tenant>> {
@@ -58,6 +59,7 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private utils: UtilsService,
               private userPermissionService: UserPermissionsService) {
 
     this.config.entityType = EntityType.TENANT;
@@ -66,9 +68,12 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.TENANT);
     this.config.entityResources = entityTypeResources.get(EntityType.TENANT);
 
+    this.config.entityTitle = (tenant) => tenant ?
+      this.utils.customTranslation(tenant.title, tenant.title) : '';
+
     this.config.columns.push(
-      new DateEntityTableColumn<Tenant>('createdTime', 'tenant.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Tenant>('title', 'tenant.title', '25%'),
+      new DateEntityTableColumn<Tenant>('createdTime', 'common.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<Tenant>('title', 'tenant.title', '25%', this.config.entityTitle),
       new EntityTableColumn<Tenant>('email', 'contact.email', '25%'),
       new EntityTableColumn<Tenant>('country', 'contact.country', '25%'),
       new EntityTableColumn<Tenant>('city', 'contact.city', '25%')

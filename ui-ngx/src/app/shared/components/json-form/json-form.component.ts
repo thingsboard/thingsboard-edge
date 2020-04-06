@@ -58,6 +58,7 @@ import ReactSchemaForm from './react/json-form-react';
 import JsonFormUtils from './react/json-form-utils';
 import { JsonFormComponentData } from './json-form-component.models';
 import { GroupInfo } from '@shared/models/widget.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 const tinycolor = tinycolor_;
 
@@ -103,7 +104,9 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     onModelChange: this.onModelChange.bind(this),
     onColorClick: this.onColorClick.bind(this),
     onIconClick: this.onIconClick.bind(this),
-    onToggleFullscreen: this.onToggleFullscreen.bind(this)
+    onToggleFullscreen: this.onToggleFullscreen.bind(this),
+    primaryPalette: this.whiteLabelingService.getPrimaryPalette(),
+    accentPalette: this.whiteLabelingService.getAccentPalette()
   };
 
   data: JsonFormComponentData;
@@ -125,6 +128,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   constructor(public elementRef: ElementRef,
               private translate: TranslateService,
               private dialogs: DialogService,
+              private whiteLabelingService: WhiteLabelingService,
               protected store: Store<AppState>) {
   }
 

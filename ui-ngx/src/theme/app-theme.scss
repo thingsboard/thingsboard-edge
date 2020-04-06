@@ -44,10 +44,16 @@ $tb-accent-colors: map_merge($accent-extends, $accent-color-map);
 $tb-primary: mat-palette($tb-primary-colors);
 $tb-accent: mat-palette($tb-accent-colors);
 
-$tb-theme: mat-light-theme(
+$background: (background: map_get($mat-grey, 200));
+
+$tb-theme-background: map_merge($mat-light-theme-background, $background);
+
+$tb-mat-theme: mat-light-theme(
     $tb-primary,
     $tb-accent
 );
+
+$tb-theme: map_merge($tb-mat-theme, (background: $tb-theme-background));
 
 .tb-default {
   @include angular-material-theme($tb-theme);

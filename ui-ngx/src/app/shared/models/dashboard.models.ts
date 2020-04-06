@@ -37,9 +37,11 @@ import { Widget } from './widget.models';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAlias, EntityAliases } from './alias.models';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 export interface DashboardInfo extends BaseData<DashboardId> {
   tenantId?: TenantId;
+  customerId?: CustomerId;
   title?: string;
   assignedCustomers?: Array<ShortCustomerInfo>;
 }

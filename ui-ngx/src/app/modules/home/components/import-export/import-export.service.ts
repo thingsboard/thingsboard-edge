@@ -36,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, isDefined, isObject, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isNumber, isObject, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -59,7 +59,15 @@ import {
   EntityAliasesDialogData
 } from '@home/components/alias/entity-aliases-dialog.component';
 import { ItemBufferService, WidgetItem } from '@core/services/item-buffer.service';
-import { ImportWidgetResult, WidgetsBundleItem } from './import-export.models';
+import {
+  CSV_TYPE,
+  FileType,
+  ImportWidgetResult,
+  JSON_TYPE, TEMPLATE_XLS,
+  WidgetsBundleItem,
+  XLS_TYPE, XLSX_TYPE,
+  ZIP_TYPE
+} from './import-export.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
@@ -70,6 +78,11 @@ import { RequestConfig } from '@core/http/http-utils';
 import { RuleChain, RuleChainImport, RuleChainMetaData } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { ConverterService } from '@core/http/converter.service';
+import { Converter, ConverterType } from '@shared/models/converter.models';
+import * as JSZip from 'jszip';
+import * as Excel from 'exceljs/dist/exceljs.min.js';
+import * as ExcelProper from 'exceljs';
 
 // @dynamic
 @Injectable()
@@ -84,6 +97,7 @@ export class ImportExportService {
               private widgetService: WidgetService,
               private entityService: EntityService,
               private ruleChainService: RuleChainService,
+              private converterService: ConverterService,
               private utils: UtilsService,
               private itembuffer: ItemBufferService,
               private dialog: MatDialog) {
@@ -95,7 +109,7 @@ export class ImportExportService {
       (dashboard) => {
         let name = dashboard.title;
         name = name.toLowerCase().replace(/\W/g, '_');
-        this.exportToPc(this.prepareDashboardExport(dashboard), name + '.json');
+        this.exportToPc(this.prepareDashboardExport(dashboard), name);
       },
       (e) => {
         this.handleExportError(e, 'dashboard.export-failed-error');
@@ -103,7 +117,7 @@ export class ImportExportService {
     );
   }
 
-  public importDashboard(): Observable<Dashboard> {
+  public importDashboard(customerId: CustomerId, entityGroupId?: string): Observable<Dashboard> {
     return this.openImportDialog('dashboard.import', 'dashboard.dashboard-file').pipe(
       mergeMap((dashboard: Dashboard) => {
         if (!this.validateImportedDashboard(dashboard)) {
@@ -113,6 +127,7 @@ export class ImportExportService {
           throw new Error('Invalid dashboard file');
         } else {
           dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
+          dashboard.customerId = customerId;
           let aliasIds = null;
           const entityAliases = dashboard.configuration.entityAliases;
           if (entityAliases) {
@@ -129,16 +144,16 @@ export class ImportExportService {
                       for (const aliasId of Object.keys(updatedEntityAliases)) {
                         entityAliases[aliasId] = updatedEntityAliases[aliasId];
                       }
-                      return this.saveImportedDashboard(dashboard);
+                      return this.saveImportedDashboard(dashboard, entityGroupId);
                     })
                   );
                 } else {
-                  return this.saveImportedDashboard(dashboard);
+                  return this.saveImportedDashboard(dashboard, entityGroupId);
                 }
               }
              ));
           } else {
-            return this.saveImportedDashboard(dashboard);
+            return this.saveImportedDashboard(dashboard, entityGroupId);
           }
         }
       }),
@@ -152,7 +167,7 @@ export class ImportExportService {
     const widgetItem = this.itembuffer.prepareWidgetItem(dashboard, sourceState, sourceLayout, widget);
     let name = widgetItem.widget.config.title;
     name = name.toLowerCase().replace(/\W/g, '_');
-    this.exportToPc(this.prepareExport(widgetItem), name + '.json');
+    this.exportToPc(this.prepareExport(widgetItem), name);
   }
 
   public importWidget(dashboard: Dashboard, targetState: string,
@@ -251,7 +266,7 @@ export class ImportExportService {
         }
         let name = widgetType.name;
         name = name.toLowerCase().replace(/\W/g, '_');
-        this.exportToPc(this.prepareExport(widgetType), name + '.json');
+        this.exportToPc(this.prepareExport(widgetType), name);
       },
       (e) => {
         this.handleExportError(e, 'widget-type.export-failed-error');
@@ -297,7 +312,7 @@ export class ImportExportService {
             }
             let name = widgetsBundle.title;
             name = name.toLowerCase().replace(/\W/g, '_');
-            this.exportToPc(widgetsBundleItem, name + '.json');
+            this.exportToPc(widgetsBundleItem, name);
           },
           (e) => {
             this.handleExportError(e, 'widgets-bundle.export-failed-error');
@@ -400,7 +415,7 @@ export class ImportExportService {
     ).subscribe((ruleChainExport) => {
         let name = ruleChainExport.ruleChain.name;
         name = name.toLowerCase().replace(/\W/g, '_');
-        this.exportToPc(ruleChainExport, name + '.json');
+        this.exportToPc(ruleChainExport, name);
     },
       (e) => {
         this.handleExportError(e, 'rulechain.export-failed-error');
@@ -429,6 +444,173 @@ export class ImportExportService {
         return of(null);
       })
     );
+  }
+
+  public exportConverter(converterId: string) {
+    this.converterService.getConverter(converterId).subscribe((converter) => {
+      if (!converter.configuration || converter.configuration === null) {
+        converter.configuration = {};
+      }
+      let name = converter.name;
+      name = name.toLowerCase().replace(/\W/g,'_');
+      this.exportToPc(this.prepareExport(converter), name);
+    },
+    (error) => {
+      this.handleExportError(error, 'converter.export-failed-error');
+    });
+  }
+
+  public importConverter(): Observable<Converter> {
+    return this.openImportDialog('converter.import', 'converter.converter-file').pipe(
+      mergeMap((converter: Converter) => {
+        if (!this.validateImportedConverter(converter)) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('converter.invalid-converter-file-error'),
+              type: 'error'}));
+          throw new Error('Invalid converter file');
+        } else {
+          return this.converterService.saveConverter(converter);
+        }
+      }),
+      catchError((err) => {
+        return of(null);
+      })
+    );
+  }
+
+  public exportCsv(data: {[key: string]: any}[], filename: string) {
+    let colsHead: string;
+    let colsData: string;
+    if (data && data.length) {
+      this.formatDataAccordingToLocale(data);
+      colsHead = Object.keys(data[0]).map(key => [key]).join(';');
+      colsData = data.map(obj => [ // obj === row
+        Object.keys(obj).map(col => [
+          obj[col]
+        ]).join(';')
+      ]).join('\n');
+    } else {
+      colsHead = '';
+      colsData = '';
+    }
+    const csvData = `${colsHead}\n${colsData}`;
+    this.downloadFile(csvData, filename, CSV_TYPE);
+  }
+
+  public exportXls(data: {[key: string]: any}[], filename: string) {
+    let colsHead: string;
+    let colsData: string;
+    if (data && data.length) {
+      this.formatDataAccordingToLocale(data);
+      colsHead = `<tr>${Object.keys(data[0]).map(key => `<td><b>${key}</b></td>`).join('')}</tr>`;
+      colsData = data.map(obj => [`<tr>
+                ${Object.keys(obj).map(col => `<td>${obj[col] ? obj[col] : ''}</td>`).join('')}
+            </tr>`])
+        .join('');
+    } else {
+      colsHead = '';
+      colsData = '';
+    }
+    const tableData = `<table>${colsHead}${colsData}</table>`.trim();
+    const parameters = { title: filename, table: tableData };
+    const xlsData = TEMPLATE_XLS.replace(/{(\w+)}/g, (x, y) => parameters[y]);
+    this.downloadFile(xlsData, filename, XLS_TYPE);
+  }
+
+  public exportXlsx(data: {[key: string]: any}[], filename: string) {
+    const workbook: ExcelProper.Workbook = new Excel.Workbook();
+    workbook.creator = 'ThingsBoard, Inc.';
+    workbook.lastModifiedBy = 'ThingsBoard, Inc.';
+    workbook.properties.date1904 = false;
+
+    const sheet = workbook.addWorksheet('Export');
+
+    const cellBorderStyle: Partial<ExcelProper.Borders> = {
+      top: {style: 'thin'},
+      left: {style: 'thin'},
+      bottom: {style: 'thin'},
+      right: {style: 'thin'}
+    };
+
+    const dateFormat = 'yyyy-MM-dd HH:mm:ss';
+
+    if (data && data.length) {
+      const titles = Object.keys(data[0]);
+      const columnsTable: Array<Partial<ExcelProper.Column>> = [];
+      titles.forEach((title) => {
+        columnsTable.push({
+          header: title,
+          key: title,
+          width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
+          style: {
+            numFmt: title === 'Timestamp' ? dateFormat : null
+          }
+        });
+      });
+      sheet.columns = columnsTable;
+      sheet.views = [
+        {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
+      ];
+      sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
+
+      data.forEach((item) => {
+        if (item.Timestamp) {
+          item.Timestamp = new Date(item.Timestamp);
+        }
+        sheet.addRow(item).eachCell((cell) => {
+          cell.border = cellBorderStyle;
+        });
+      })
+    }
+
+    workbook.xlsx.writeBuffer().then((xlsxData) => {
+      this.downloadFile(xlsxData, filename, XLSX_TYPE);
+    });
+  }
+
+  private formatDataAccordingToLocale(data: {[key: string]: any}[]) {
+    for (const row of data) {
+      for (const key in Object.keys(row)) {
+        if (isNumber(row[key])) {
+          row[key] = (row[key] as number).toLocaleString(undefined, {maximumFractionDigits: 14});
+        }
+      }
+    }
+  }
+
+  private validateImportedConverter(converter: Converter): boolean {
+    if (isUndefined(converter.name)
+        || isUndefined(converter.type
+        || isUndefined(converter.configuration))) {
+      return false;
+    }
+    if (!ConverterType[converter.type]) {
+      return false;
+    }
+    if (converter.type === ConverterType.UPLINK) {
+      if (!converter.configuration.decoder || !converter.configuration.decoder.length) {
+        return false;
+      }
+    }
+    if (converter.type === ConverterType.DOWNLINK) {
+      if (!converter.configuration.encoder || !converter.configuration.encoder.length) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public exportJSZip(data: object, filename: string) {
+    const jsZip: JSZip = new JSZip();
+    for (const keyName in data) {
+      if (data.hasOwnProperty(keyName)) {
+        const valueData = data[keyName];
+        jsZip.file(keyName, valueData);
+      }
+    }
+    jsZip.generateAsync({type: 'blob'}).then(content => {
+      this.downloadFile(content, filename, ZIP_TYPE);
+    });
   }
 
   private prepareRuleChain(ruleChain: RuleChain): RuleChain {
@@ -532,8 +714,8 @@ export class ImportExportService {
     return true;
   }
 
-  private saveImportedDashboard(dashboard: Dashboard): Observable<Dashboard> {
-    return this.dashboardService.saveDashboard(dashboard);
+  private saveImportedDashboard(dashboard: Dashboard, entityGroupId?: string): Observable<Dashboard> {
+    return this.dashboardService.saveDashboard(dashboard, entityGroupId);
   }
 
   private addImportedWidget(dashboard: Dashboard, targetState: string,
@@ -670,6 +852,30 @@ export class ImportExportService {
     };
   }
 
+  private prepareDashboardExport(dashboard: Dashboard): Dashboard {
+    dashboard = this.prepareExport(dashboard);
+    delete dashboard.assignedCustomers;
+    delete dashboard.ownerId;
+    return dashboard;
+  }
+
+  private prepareExport(data: any): any {
+    const exportedData = deepClone(data);
+    if (isDefined(exportedData.id)) {
+      delete exportedData.id;
+    }
+    if (isDefined(exportedData.createdTime)) {
+      delete exportedData.createdTime;
+    }
+    if (isDefined(exportedData.tenantId)) {
+      delete exportedData.tenantId;
+    }
+    if (isDefined(exportedData.customerId)) {
+      delete exportedData.customerId;
+    }
+    return exportedData;
+  }
+
   private openImportDialog(importTitle: string, importFileLabel: string): Observable<any> {
     return this.dialog.open<ImportDialogComponent, ImportDialogData,
       any>(ImportDialogComponent, {
@@ -695,13 +901,22 @@ export class ImportExportService {
       console.error('No data');
       return;
     }
-    if (!filename) {
-      filename = 'download.json';
-    }
+    this.exportJson(data, filename);
+  }
+
+  private exportJson(data: any, filename: string) {
     if (isObject(data)) {
       data = JSON.stringify(data, null,  2);
     }
-    const blob = new Blob([data], {type: 'text/json'});
+    this.downloadFile(data, filename, JSON_TYPE);
+  }
+
+  private downloadFile(data: any, filename: string, fileType: FileType) {
+    if (!filename) {
+      filename = 'download';
+    }
+    filename += '.' + fileType.extension;
+    const blob = new Blob([data], {type: fileType.mimeType});
     if (this.window.navigator && this.window.navigator.msSaveOrOpenBlob) {
       this.window.navigator.msSaveOrOpenBlob(blob, filename);
     } else {
@@ -709,7 +924,7 @@ export class ImportExportService {
       const a = this.document.createElement('a');
       a.download = filename;
       a.href = URL.createObjectURL(blob);
-      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
+      a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
       // @ts-ignore
       e.initEvent('click', true, false, this.window,
         0, 0, 0, 0, 0, false, false, false, false, 0, null);
@@ -717,27 +932,5 @@ export class ImportExportService {
     }
   }
 
-  private prepareDashboardExport(dashboard: Dashboard): Dashboard {
-    dashboard = this.prepareExport(dashboard);
-    delete dashboard.assignedCustomers;
-    return dashboard;
-  }
-
-  private prepareExport(data: any): any {
-    const exportedData = deepClone(data);
-    if (isDefined(exportedData.id)) {
-      delete exportedData.id;
-    }
-    if (isDefined(exportedData.createdTime)) {
-      delete exportedData.createdTime;
-    }
-    if (isDefined(exportedData.tenantId)) {
-      delete exportedData.tenantId;
-    }
-    if (isDefined(exportedData.customerId)) {
-      delete exportedData.customerId;
-    }
-    return exportedData;
-  }
 
 }

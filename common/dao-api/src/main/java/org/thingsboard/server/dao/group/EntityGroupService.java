@@ -95,6 +95,9 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
+    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
+                                                                              EntityType groupType, PageLink pageLink);
+
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
     void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);

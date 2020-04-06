@@ -148,7 +148,7 @@
         <ng-template [ngSwitchCase]="widgetActionType.custom">
           <tb-js-func
             formControlName="customFunction"
-            [functionArgs]="['$event', 'widgetContext', 'entityId', 'entityName', 'additionalParams', 'entityLabel']"
+            [functionArgs]="customFunctionArgs"
             [validationArgs]="[]"
           ></tb-js-func>
         </ng-template>

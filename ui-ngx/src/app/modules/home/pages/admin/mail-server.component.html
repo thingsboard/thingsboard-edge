@@ -115,14 +115,14 @@
             <input matInput formControlName="password" type="password" placeholder="{{ 'common.enter-password' | translate }}"/>
           </mat-form-field>
         </fieldset>
-        <div fxLayout="row" fxLayoutAlign="end center" style="width: 100%;" class="layout-wrap">
+        <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
           <button *ngIf="!this.mailSettings.get('useSystemMailSettings').value && !readonly"
-                  mat-button mat-raised-button
+                  mat-raised-button
                   type="button" style="margin-right: 16px;"
                   [disabled]="(isLoading$ | async) || mailSettingsForm.invalid" (click)="sendTestMail()">
             {{'admin.send-test-mail' | translate}}
           </button>
-          <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+          <button *ngIf="!readonly" mat-raised-button color="primary"
                   [disabled]="(isLoading$ | async) || mailSettingsForm.invalid || !mailSettingsForm.dirty"
                   type="submit">{{'action.save' | translate}}
           </button>

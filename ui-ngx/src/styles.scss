@@ -112,8 +112,10 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  &, &.mat-headline {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
 }
 
 h1 {
@@ -250,6 +252,14 @@ label {
 
 .tb-noselect {
   user-select: none;
+}
+
+.tb-readonly-label {
+  color: rgba(0, 0, 0, .54);
+}
+
+.tb-disabled-label {
+  color: rgba(0, 0, 0, .44);
 }
 
 div {
@@ -454,10 +464,10 @@ mat-label {
   }
 
   .layout-padding, .layout-padding > * {
-    @media #{$mat-lt-md} {
+    @media #{$mat-lt-sm} {
       padding: 4px;
     }
-    @media #{$mat-gt-sm} {
+    @media #{$mat-gt-xs} {
       padding: 8px;
     }
   }
@@ -482,10 +492,16 @@ mat-label {
     display: block;
   }
 
+  .mat-form-field{
+    .mat-icon {
+      margin-right: 4px;
+      margin-left: 4px;
+    }
+  }
+
   button.mat-menu-item {
     overflow: hidden;
     fill: #737373;
-    display: block;
     .tb-alt-text {
       float: right;
     }
@@ -617,7 +633,7 @@ mat-label {
     display: table-cell;
     box-sizing: content-box;
     line-break: unset;
-    width: 0px;
+    width: 0;
     overflow: hidden;
     vertical-align: middle;
     border-width: 0;
@@ -625,6 +641,7 @@ mat-label {
     border-bottom-color: rgba(0, 0, 0, 0.12);
     border-style: solid;
     text-overflow: ellipsis;
+    touch-action: auto !important;
     &:last-child {
       padding: 0 12px 0 0;
     }
@@ -644,6 +661,7 @@ mat-label {
   .mat-header-cell {
     white-space: nowrap;
     button.mat-sort-header-button {
+      display: block;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
@@ -693,7 +711,7 @@ mat-label {
   }
 
   .mat-icon {
-    vertical-align: middle;
+    vertical-align: bottom;
     box-sizing: content-box;
     &.tb-mat-16 {
       @include tb-mat-icon-size(16);

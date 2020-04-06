@@ -128,6 +128,7 @@ export function historyInterval(timewindowMs: number): Timewindow {
     selectedTab: TimewindowType.HISTORY,
     history: {
       historyType: HistoryWindowType.LAST_INTERVAL,
+      interval: SECOND,
       timewindowMs
     }
   };

@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {EntityTableHeaderComponent} from '../../components/entity/entity-table-header.component';
-import {EntityType} from '@shared/models/entity-type.models';
-import { EntityView } from '@shared/models/entity-view.models';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityView } from '@app/shared/models/entity-view.models';
 
 @Component({
   selector: 'tb-entity-view-table-header',

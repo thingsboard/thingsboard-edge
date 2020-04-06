@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DashboardState } from '@shared/models/dashboard.models';
@@ -41,7 +41,9 @@ import { UtilsService } from '@core/services/utils.service';
 import { base64toObj, objToBase64 } from '@app/core/utils';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
+import { WINDOW } from '@core/services/window.service';
 
+// @dynamic
 @Component({
   selector: 'tb-default-state-controller',
   templateUrl: './default-state-controller.component.html',
@@ -50,13 +52,14 @@ import { EntityService } from '@core/http/entity.service';
 export class DefaultStateControllerComponent extends StateControllerComponent implements OnInit, OnDestroy {
 
   constructor(protected router: Router,
+              @Inject(WINDOW) protected window: Window,
               protected route: ActivatedRoute,
               protected ngZone: NgZone,
               protected statesControllerService: StatesControllerService,
-              private utils: UtilsService,
+              protected utils: UtilsService,
               private entityService: EntityService,
               private dashboardUtils: DashboardUtilsService) {
-    super(router, route, ngZone, statesControllerService);
+    super(router, route, utils, window, ngZone, statesControllerService);
   }
 
   ngOnInit(): void {

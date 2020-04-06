@@ -36,8 +36,9 @@ import { isObject } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import {
   JsonObjectEditDialogComponent,
-  JsonObjectEdittDialogData
+  JsonObjectEditDialogData
 } from '@shared/components/dialog/json-object-edit-dialog.component';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-value-input',
@@ -58,6 +59,15 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
   @Input() requiredText: string;
 
   @ViewChild('inputForm', {static: true}) inputForm: NgForm;
+
+  private stringNotRequiredValue: boolean;
+  get stringNotRequired(): boolean {
+    return this.stringNotRequiredValue;
+  }
+  @Input()
+  set stringNotRequired(value: boolean) {
+    this.stringNotRequiredValue = coerceBooleanProperty(value);
+  }
 
   modelValue: any;
 
@@ -84,7 +94,7 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
     if ($event) {
       $event.stopPropagation();
     }
-    this.dialog.open<JsonObjectEditDialogComponent, JsonObjectEdittDialogData, Object>(JsonObjectEditDialogComponent, {
+    this.dialog.open<JsonObjectEditDialogComponent, JsonObjectEditDialogData, object>(JsonObjectEditDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -130,7 +140,11 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
 
   updateView() {
     if (this.inputForm.valid || this.valueType === ValueType.BOOLEAN) {
-      this.propagateChange(this.modelValue);
+      let value = this.modelValue;
+      if (this.stringNotRequired && this.valueType === ValueType.STRING && !value) {
+        value = '';
+      }
+      this.propagateChange(value);
     } else {
       this.propagateChange(null);
     }
@@ -141,10 +155,14 @@ export class ValueInputComponent implements OnInit, ControlValueAccessor {
       this.modelValue = false;
     } if (this.valueType === ValueType.JSON) {
       this.modelValue = {};
+    } else if (this.valueType === ValueType.STRING && this.stringNotRequired) {
+      this.modelValue = '';
     } else {
       this.modelValue = null;
     }
-    this.updateView();
+    setTimeout(() => {
+      this.updateView();
+    }, 0);
   }
 
   onValueChanged() {

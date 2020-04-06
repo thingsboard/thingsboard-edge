@@ -38,7 +38,7 @@ import 'leaflet.markercluster/dist/leaflet.markercluster'
 
 import { MapSettings, MarkerSettings, FormattedData, UnitedMapSettings, PolygonSettings, PolylineSettings } from './map-models';
 import { Marker } from './markers';
-import { Observable, of, BehaviorSubject, Subject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Polyline } from './polyline';
 import { Polygon } from './polygon';
@@ -79,7 +79,7 @@ export default abstract class LeafletMap {
             let mousePositionOnMap: L.LatLng;
             let addMarker: L.Control;
             this.map.on('mouseup', (e: L.LeafletMouseEvent) => {
-                mousePositionOnMap = e.latlng
+                mousePositionOnMap = e.latlng;
             })
             const dragListener = (e: L.DragEndEvent) => {
                 if (e.type === 'dragend' && mousePositionOnMap) {
@@ -179,6 +179,23 @@ export default abstract class LeafletMap {
         return this.map.getCenter();
     }
 
+    fitBounds(bounds, useDefaultZoom = false) {
+        if (bounds.isValid()) {
+            if ((this.options.dontFitMapBounds || useDefaultZoom) && this.options.defaultZoomLevel) {
+                this.map.setZoom(this.options.defaultZoomLevel, { animate: false });
+                this.map.panTo(bounds.getCenter(), { animate: false });
+            } else {
+                this.map.once('zoomend', () => {
+                    if (!this.options.defaultZoomLevel && this.map.getZoom() > this.options.minZoomLevel) {
+                        this.map.setZoom(this.options.minZoomLevel, { animate: false });
+                    }
+                });
+                this.map.fitBounds(bounds, { padding: [50, 50], animate: false });
+            }
+            this.bounds = this.bounds.extend(bounds);
+        }
+    }
+
     convertPosition(expression: object): L.LatLng {
         if (!expression) return null;
         const lat = expression[this.options.latKeyName];
@@ -200,7 +217,7 @@ export default abstract class LeafletMap {
     updateMarkers(markersData) {
         markersData.forEach(data => {
             if (this.convertPosition(data)) {
-                if (data.rotationAngle) {
+                if (data.rotationAngle || data.rotationAngle === 0) {
                     this.options.icon = L.divIcon({
                         html: `<div class="arrow" style="transform: translate(-10px, -10px) rotate(${data.rotationAngle}deg);"><div>`
                     })
@@ -226,8 +243,7 @@ export default abstract class LeafletMap {
     private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings, setFocus = true) {
         this.ready$.subscribe(() => {
             const newMarker = new Marker(this.map, this.convertPosition(data), settings, data, dataSources, () => { }, this.dragMarker);
-            if (setFocus /*&& settings.fitMapBounds*/)
-                this.map.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()).pad(0.2));
+            this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()), setFocus);
             this.markers.set(key, newMarker);
         });
     }
@@ -275,11 +291,8 @@ export default abstract class LeafletMap {
             this.ready$.subscribe(() => {
                 const poly = new Polyline(this.map,
                     data.map(el => this.convertPosition(el)).filter(el => !!el), data, dataSources, settings);
-                const bounds = this.bounds.extend(poly.leafletPoly.getBounds().pad(0.2));
-                if (bounds.isValid()) {
-                    this.map.fitBounds(bounds);
-                    this.bounds = bounds;
-                }
+                const bounds = this.bounds.extend(poly.leafletPoly.getBounds());
+                this.fitBounds(bounds)
                 this.polylines.set(data[0].entityName, poly)
             });
     }
@@ -311,7 +324,7 @@ export default abstract class LeafletMap {
     createPolygon(key: string, data: LatLngTuple[], dataSources: DatasourceData[], settings: PolygonSettings) {
         this.ready$.subscribe(() => {
             const polygon = new Polygon(this.map, data, dataSources, settings);
-            const bounds = this.bounds.extend(polygon.leafletPoly.getBounds().pad(0.2));
+            const bounds = this.bounds.extend(polygon.leafletPoly.getBounds());
             if (bounds.isValid()) {
                 this.map.fitBounds(bounds);
                 this.bounds = bounds;

@@ -41,8 +41,10 @@ import {
   DashboardConfiguration,
   DashboardLayoutId,
   DashboardLayoutInfo,
-  DashboardLayoutsInfo, DashboardState,
-  DashboardStateLayouts, GridSettings,
+  DashboardLayoutsInfo,
+  DashboardState,
+  DashboardStateLayouts,
+  GridSettings,
   WidgetLayout
 } from '@app/shared/models/dashboard.models';
 import { WINDOW } from '@core/services/window.service';
@@ -53,14 +55,13 @@ import {
   DashboardPageLayout,
   DashboardPageLayoutContext,
   DashboardPageLayouts,
-  DashboardPageScope,
   IDashboardController,
   LayoutWidgetsArray
 } from './dashboard-page.models';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { AuthUser } from '@shared/models/user.model';
-import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { Widget, WidgetConfig, WidgetPosition, widgetTypesData } from '@app/shared/models/widget.models';
 import { environment as env } from '@env/environment';
 import { Authority } from '@shared/models/authority.enum';
@@ -100,6 +101,11 @@ import {
 } from '@home/pages/dashboard/states/manage-dashboard-states-dialog.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { AuthState } from '@app/core/auth/auth.models';
+import { ReportService } from '@core/http/report.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation } from '@shared/models/security.models';
+import { ReportType } from '@shared/models/report.models';
 
 // @dynamic
 @Component({
@@ -115,16 +121,21 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   authUser: AuthUser = this.authState.authUser;
 
+  entityGroup: EntityGroupInfo;
+  entityGroupId: string;
   dashboard: Dashboard;
   dashboardConfiguration: DashboardConfiguration;
 
   prevDashboard: Dashboard;
 
   iframeMode = this.utils.iframeMode;
+  reportView = this.reportService.reportView;
+  stateSelectView = this.utils.stateSelectView;
   widgetEditMode: boolean;
   singlePageMode: boolean;
   forceFullscreen = this.authState.forceFullscreen;
 
+  readonly = false;
   isFullscreen = false;
   isEdit = false;
   isEditingWidget = false;
@@ -149,8 +160,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   thingsboardVersion: string = env.tbVersion;
 
   currentDashboardId: string;
-  currentCustomerId: string;
-  currentDashboardScope: DashboardPageScope;
 
   addingLayoutCtx: DashboardPageLayoutContext;
 
@@ -215,7 +224,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   private rxSubscriptions = new Array<Subscription>();
 
   get toolbarOpened(): boolean {
-    return !this.widgetEditMode &&
+    return !this.widgetEditMode && !this.reportView &&
       (this.toolbarAlwaysOpen() || this.isToolbarOpened || this.isEdit || this.showRightLayoutSwitch());
   }
   set toolbarOpened(toolbarOpened: boolean) {
@@ -235,12 +244,14 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private route: ActivatedRoute,
               private router: Router,
               private utils: UtilsService,
+              private reportService: ReportService,
               private dashboardUtils: DashboardUtilsService,
               private authService: AuthService,
               private entityService: EntityService,
               private dialogService: DialogService,
               private widgetComponentService: WidgetComponentService,
               private dashboardService: DashboardService,
+              private userPermissionsService: UserPermissionsService,
               private itembuffer: ItemBufferService,
               private importExport: ImportExportService,
               private fb: FormBuilder,
@@ -271,21 +282,26 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
     this.currentDashboardId = this.route.snapshot.params.dashboardId;
 
-    if (this.route.snapshot.params.customerId) {
-      this.currentCustomerId = this.route.snapshot.params.customerId;
-      this.currentDashboardScope = 'customer';
-    } else {
-      this.currentDashboardScope = this.authUser.authority === Authority.TENANT_ADMIN ? 'tenant' : 'customer';
-      this.currentCustomerId = this.authUser.customerId;
-    }
-
     this.dashboard = data.dashboard;
+    this.entityGroup = data.entityGroup;
     this.dashboardConfiguration = this.dashboard.configuration;
-    this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
+    if (this.reportService.reportTimewindow) {
+      this.dashboardCtx.dashboardTimewindow = this.reportService.reportTimewindow;
+    } else {
+      this.dashboardCtx.dashboardTimewindow = this.dashboardConfiguration.timewindow;
+    }
     this.layouts.main.layoutCtx.widgets = new LayoutWidgetsArray(this.dashboardCtx);
     this.layouts.right.layoutCtx.widgets = new LayoutWidgetsArray(this.dashboardCtx);
     this.widgetEditMode = data.widgetEditMode;
     this.singlePageMode = data.singlePageMode;
+    if (this.entityGroup) {
+      this.readonly = !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, this.entityGroup);
+      this.entityGroupId = this.entityGroup.id.id;
+    } else {
+      if (!this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit')) {
+        this.readonly = true;
+      }
+    }
 
     this.dashboardCtx.aliasController = new AliasController(this.utils,
       this.entityService,
@@ -329,8 +345,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     this.editingLayoutCtx = null;
 
     this.currentDashboardId = null;
-    this.currentCustomerId = null;
-    this.currentDashboardScope = null;
 
     this.dashboardCtx.state = null;
   }
@@ -468,6 +482,10 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     return this.authUser.isPublic;
   }
 
+  public isCustomerUser(): boolean {
+    return this.authUser.authority === Authority.CUSTOMER_USER;
+  }
+
   public isTenantAdmin(): boolean {
     return this.authUser.authority === Authority.TENANT_ADMIN;
   }
@@ -476,11 +494,22 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     return this.authUser.authority === Authority.SYS_ADMIN;
   }
 
+  public canEdit(): boolean {
+    return this.isTenantAdmin() || this.isCustomerUser();
+  }
+
   public exportDashboard($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
     this.importExport.exportDashboard(this.currentDashboardId);
+  }
+
+  public generateDashboardReport($event: Event, reportType: ReportType) {
+    const state = this.route.snapshot.queryParamMap.get('state');
+    const progressText = this.translate.instant('dashboard.download-dashboard-progress', {reportType});
+    this.dialogService.progress(this.reportService.downloadDashboardReport(this.currentDashboardId, reportType, state,
+      this.dashboardCtx.dashboardTimewindow), progressText).subscribe();
   }
 
   public openEntityAliases($event: Event) {
@@ -603,15 +632,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   public currentDashboardIdChanged(dashboardId: string) {
     if (!this.widgetEditMode) {
-      if (this.currentDashboardScope === 'customer' && this.authUser.authority === Authority.TENANT_ADMIN) {
-        this.router.navigateByUrl(`customers/${this.currentCustomerId}/dashboards/${dashboardId}`);
-      } else {
-        if (this.singlePageMode) {
-          this.router.navigateByUrl(`dashboard/${dashboardId}`);
-        } else {
-          this.router.navigateByUrl(`dashboards/${dashboardId}`);
-        }
-      }
+      const url = this.router.createUrlTree([`../${dashboardId}`], {relativeTo: this.route});
+      this.router.navigateByUrl(url);
     }
   }
 

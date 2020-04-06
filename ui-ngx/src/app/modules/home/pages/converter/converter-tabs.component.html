@@ -58,7 +58,7 @@
   <tb-event-table [defaultEventType]="debugEventTypes.DEBUG_CONVERTER"
                   [debugEventTypes]="[debugEventTypes.DEBUG_CONVERTER]"
                   [active]="eventsTab.isActive"
-                  [tenantId]="entity.tenantId"
+                  [tenantId]="entity.tenantId.id"
                   [entityId]="entity.id"></tb-event-table>
 </mat-tab>
 <mat-tab *ngIf="entity"

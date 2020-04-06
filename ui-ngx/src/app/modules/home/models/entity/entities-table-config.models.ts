@@ -152,6 +152,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   addEnabled = true;
   entitiesDeleteEnabled = true;
   detailsPanelEnabled = true;
+  hideDetailsTabsOnEdit = true;
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
   entityResources: EntityTypeResource<T>;
@@ -178,6 +179,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   deleteEntity: EntityIdOneWayOperation = () => of();
   entitiesFetchFunction: EntitiesFetchFunction<T, P> = () => of(emptyPageData<T>());
   onEntityAction: EntityActionFunction<T> = () => false;
+  entityTitle: EntityStringFunction<T> = (entity) => entity?.name;
 }
 
 export function checkBoxCell(value: boolean): string {

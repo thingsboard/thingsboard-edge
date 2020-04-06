@@ -1,0 +1,81 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxLayout="column" class="tb-permission-list" [formGroup]="permissionListFormGroup">
+  <div class="header" fxFlex fxLayout="row">
+    <span class="cell" fxFlex="30" translate>permission.resource.resource</span>
+    <span class="cell" fxFlex="70" translate>permission.operation.operations</span>
+    <span [fxShow]="!disabled" style="width: 40px; min-width: 40px;">&nbsp;</span>
+  </div>
+  <div class="body">
+    <div class="row" fxFlex fxLayout="row"
+         fxLayoutAlign="start center" formArrayName="permissions"
+         *ngFor="let permissionControl of permissionsFormArray().controls; let $index = index">
+      <tb-resource-type-autocomplete
+        class="cell mat-block" fxFlex="30"
+        required
+        [formControl]="permissionControl.get('resource')">
+      </tb-resource-type-autocomplete>
+      <tb-operation-type-list
+        class="cell mat-block" fxFlex="70"
+        required
+        [resource]="permissionControl.get('resource').value"
+        [formControl]="permissionControl.get('operations')">
+      </tb-operation-type-list>
+      <button mat-button mat-icon-button color="primary"
+              [fxShow]="!disabled"
+              type="button"
+              style="width: 40px; min-width: 40px;"
+              (click)="removePermission($index)"
+              [disabled]="isLoading$ | async"
+              matTooltip="{{ 'permission.remove-permission' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <tb-error style="margin-top: -20px; padding-bottom: 40px;"
+    [error]="ngControl.hasError('required') ? ('permission.permissions-required' | translate) : ''">
+  </tb-error>
+  <div>
+    <button mat-button mat-raised-button color="primary"
+            [fxShow]="!disabled"
+            [disabled]="isLoading$ | async"
+            (click)="addPermission()"
+            type="button"
+            matTooltip="{{ 'permission.add-permission' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>add</mat-icon>
+      {{ 'action.add' | translate }}
+    </button>
+  </div>
+</div>

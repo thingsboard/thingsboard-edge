@@ -71,7 +71,7 @@ export class RoleService {
   }
 
   public saveRole(role: Role, config?: RequestConfig): Observable<Role> {
-    return this.http.post<Role>('api/role', role, defaultHttpOptionsFromConfig(config));
+    return this.http.post<Role>('/api/role', role, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteRole(roleId: string, config?: RequestConfig) {
@@ -79,7 +79,7 @@ export class RoleService {
   }
 
   public saveGroupPermission(groupPermission: GroupPermission, config?: RequestConfig): Observable<GroupPermission> {
-    return this.http.post<GroupPermission>('api/groupPermission', groupPermission, defaultHttpOptionsFromConfig(config));
+    return this.http.post<GroupPermission>('/api/groupPermission', groupPermission, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteGroupPermissions(groupPermissionIds: string[], config?: RequestConfig): Observable<any> {

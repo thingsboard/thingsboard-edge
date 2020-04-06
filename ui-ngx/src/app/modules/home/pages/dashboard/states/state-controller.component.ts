@@ -38,6 +38,8 @@ import { ActivatedRoute, Router, Params } from '@angular/router';
 import { StatesControllerService } from '@home/pages/dashboard/states/states-controller.service';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import { StateParams } from '@app/core/api/widget-api.models';
+import { WindowMessage } from '@shared/models/window-message.model';
+import { UtilsService } from '@core/services/utils.service';
 
 export abstract class StateControllerComponent implements IStateControllerComponent, OnInit, OnDestroy {
 
@@ -106,6 +108,8 @@ export abstract class StateControllerComponent implements IStateControllerCompon
 
   protected constructor(protected router: Router,
                         protected route: ActivatedRoute,
+                        protected utils: UtilsService,
+                        protected window: Window,
                         protected ngZone: NgZone,
                         protected statesControllerService: StatesControllerService) {
   }
@@ -146,6 +150,13 @@ export abstract class StateControllerComponent implements IStateControllerCompon
           queryParamsHandling: 'merge',
         });
     });
+    if (this.utils.stateSelectView) {
+      const message: WindowMessage = {
+        type: 'dashboardStateSelected',
+        data: this.currentState
+      };
+      this.window.parent.postMessage(JSON.stringify(message), '*');
+    }
   }
 
   public openRightLayout(): void {

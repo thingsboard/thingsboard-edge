@@ -52,7 +52,7 @@ export class SchedulerEventService {
   }
 
   public getSchedulerEvents(type: string = '', config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
-    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/schedulerEvents&type=${type}`,
+    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/schedulerEvents?type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -73,7 +73,7 @@ export class SchedulerEventService {
   }
 
   public saveSchedulerEvent(schedulerEvent: SchedulerEvent, config?: RequestConfig): Observable<SchedulerEvent> {
-    return this.http.post<SchedulerEvent>('api/schedulerEvent', schedulerEvent, defaultHttpOptionsFromConfig(config));
+    return this.http.post<SchedulerEvent>('/api/schedulerEvent', schedulerEvent, defaultHttpOptionsFromConfig(config));
   }
 
   public deleteSchedulerEvent(schedulerEventId: string, config?: RequestConfig) {

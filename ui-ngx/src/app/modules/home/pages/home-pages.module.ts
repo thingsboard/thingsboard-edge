@@ -44,23 +44,12 @@ import { EntityViewModule } from '@modules/home/pages/entity-view/entity-view.mo
 import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
 import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
 import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
-import { RouterModule, Routes } from '@angular/router';
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
 import { ConverterModule } from '@home/pages/converter/converter.module';
 import { IntegrationModule } from '@home/pages/integration/integration.module';
-
-const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
-  }
-];
-
-@NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class PageNotFoundRoutingModule { }
+import { RoleModule } from '@home/pages/role/role.module';
+import { SchedulerModule } from '@home/pages/scheduler/scheduler.module';
+import { EntityGroupModule } from '@home/pages/group/entity-group.module';
 
 @NgModule({
   exports: [
@@ -77,10 +66,12 @@ export class PageNotFoundRoutingModule { }
     DashboardModule,
     AuditLogModule,
     UserModule,
+    RoleModule,
     ConverterModule,
     IntegrationModule,
+    EntityGroupModule,
     IFrameViewModule,
-    PageNotFoundRoutingModule
+    SchedulerModule
   ]
 })
 export class HomePagesModule { }

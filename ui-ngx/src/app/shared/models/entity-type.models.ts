@@ -228,6 +228,17 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       }
     ],
     [
+      EntityType.ENTITY_GROUP,
+      {
+        type: 'entity.type-entity-group',
+        details: 'entity-group.entity-group-details',
+        add: 'entity-group.add',
+        noEntities: 'entity-group.no-entity-groups-text',
+        search: 'entity-group.search',
+        selectedEntities: 'entity-group.selected-entity-groups'
+      }
+    ],
+    [
       EntityType.WIDGETS_BUNDLE,
       {
         details: 'widgets-bundle.widgets-bundle-details',
@@ -263,6 +274,44 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'integration.no-integrations-text',
         search: 'integration.search',
         selectedEntities: 'integration.selected-integrations'
+      }
+    ],
+    [
+      EntityType.SCHEDULER_EVENT,
+      {
+        type: 'entity.type-scheduler-event',
+        typePlural: 'entity.type-scheduler-events',
+        list: 'entity.list-of-scheduler-events',
+        nameStartsWith: 'entity.scheduler-event-name-starts-with'
+      }
+    ],
+    [
+      EntityType.BLOB_ENTITY,
+      {
+        type: 'entity.type-blob-entity',
+        typePlural: 'entity.type-blob-entities',
+        list: 'entity.list-of-blob-entities',
+        nameStartsWith: 'entity.blob-entity-name-starts-with'
+      }
+    ],
+    [
+      EntityType.ROLE,
+      {
+        type: 'entity.type-role',
+        typePlural: 'entity.type-roles',
+        list: 'entity.list-of-roles',
+        nameStartsWith: 'entity.role-name-starts-with',
+        details: 'role.role-details',
+        add: 'role.add',
+        noEntities: 'role.no-roles-text',
+        search: 'role.search',
+        selectedEntities: 'role.selected-roles'
+      }
+    ],
+    [
+      EntityType.GROUP_PERMISSION,
+      {
+        type: 'entity.type-group-permission'
       }
     ],
     [
@@ -329,6 +378,18 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.WIDGETS_BUNDLE,
       {
         helpLinkId: 'widgetsBundles'
+      }
+    ],
+    [
+      EntityType.ROLE,
+      {
+        helpLinkId: 'roles'
+      }
+    ],
+    [
+      EntityType.ENTITY_GROUP,
+      {
+        helpLinkId: 'entityGroups'
       }
     ]
   ]

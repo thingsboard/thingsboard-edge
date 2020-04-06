@@ -32,7 +32,7 @@
     "angular-material-expansion-panel": "^0.7.2",
     "angular-material-icons": "^0.7.1",
     "angular-messages": "1.5.8",
-    "angular-recaptcha": "^4.1.5",
+    "angular-recaptcha": "git://github.com/thingsboard/angular-recaptcha.git#master",
     "angular-route": "1.5.8",
     "angular-sanitize": "1.5.8",
     "angular-socialshare": "^2.3.8",

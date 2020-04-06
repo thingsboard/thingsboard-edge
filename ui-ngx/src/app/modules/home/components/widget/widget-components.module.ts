@@ -48,6 +48,8 @@ import {
 import { MultipleInputWidgetComponent } from './lib/multiple-input-widget.component';
 import { TripAnimationComponent } from './trip-animation/trip-animation.component';
 import { WebCameraInputWidgetComponent } from './lib/web-camera-input.component';
+import { GatewayFormComponent } from './lib/gateway/gateway-form.component';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 
 @NgModule({
   declarations:
@@ -62,7 +64,8 @@ import { WebCameraInputWidgetComponent } from './lib/web-camera-input.component'
       DateRangeNavigatorPanelComponent,
       MultipleInputWidgetComponent,
       TripAnimationComponent,
-      WebCameraInputWidgetComponent
+      WebCameraInputWidgetComponent,
+      GatewayFormComponent
     ],
   imports: [
     CommonModule,
@@ -76,13 +79,16 @@ import { WebCameraInputWidgetComponent } from './lib/web-camera-input.component'
     TimeseriesTableWidgetComponent,
     EntitiesHierarchyWidgetComponent,
     RpcWidgetsModule,
+    SharedHomeComponentsModule,
     DateRangeNavigatorWidgetComponent,
     MultipleInputWidgetComponent,
     TripAnimationComponent,
-    WebCameraInputWidgetComponent
+    WebCameraInputWidgetComponent,
+    GatewayFormComponent
   ],
   providers: [
-    CustomDialogService
+    CustomDialogService,
+    ImportExportService
   ]
 })
 export class WidgetComponentsModule { }

@@ -34,6 +34,7 @@
   <mat-tab-group *ngIf="hasWidgetTypes()" class="tb-absolute-fill" fxFlex>
     <mat-tab *ngIf="timeseriesWidgetTypes.length" style="height: 100%;" label="{{ 'widget.timeseries' | translate }}">
       <tb-dashboard [aliasController]="aliasController"
+                    [embedded]="true"
                     [widgets]="timeseriesWidgetTypes"
                     [widgetLayouts]="{}"
                     [isEdit]="false"
@@ -45,6 +46,7 @@
     </mat-tab>
     <mat-tab *ngIf="latestWidgetTypes.length" style="height: 100%;" label="{{ 'widget.latest-values' | translate }}">
       <tb-dashboard [aliasController]="aliasController"
+                    [embedded]="true"
                     [widgets]="latestWidgetTypes"
                     [widgetLayouts]="{}"
                     [isEdit]="false"
@@ -56,6 +58,7 @@
     </mat-tab>
     <mat-tab *ngIf="rpcWidgetTypes.length" style="height: 100%;" label="{{ 'widget.rpc' | translate }}">
       <tb-dashboard [aliasController]="aliasController"
+                    [embedded]="true"
                     [widgets]="rpcWidgetTypes"
                     [widgetLayouts]="{}"
                     [isEdit]="false"
@@ -67,6 +70,7 @@
     </mat-tab>
     <mat-tab *ngIf="alarmWidgetTypes.length" style="height: 100%;" label="{{ 'widget.alarm' | translate }}">
       <tb-dashboard [aliasController]="aliasController"
+                    [embedded]="true"
                     [widgets]="alarmWidgetTypes"
                     [widgetLayouts]="{}"
                     [isEdit]="false"
@@ -78,6 +82,7 @@
     </mat-tab>
     <mat-tab *ngIf="staticWidgetTypes.length" style="height: 100%;" label="{{ 'widget.static' | translate }}">
       <tb-dashboard [aliasController]="aliasController"
+                    [embedded]="true"
                     [widgets]="staticWidgetTypes"
                     [widgetLayouts]="{}"
                     [isEdit]="false"

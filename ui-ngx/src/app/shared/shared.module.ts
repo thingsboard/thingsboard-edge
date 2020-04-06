@@ -67,6 +67,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatListModule } from '@angular/material/list';
 import { MatDatetimepickerModule, MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { NgxDaterangepickerMd } from 'ngx-daterangepicker-material';
 import { GridsterModule } from 'angular-gridster2';
@@ -102,7 +103,10 @@ import { EntityAutocompleteComponent } from '@shared/components/entity/entity-au
 import { EntityListComponent } from '@shared/components/entity/entity-list.component';
 import { EntityTypeSelectComponent } from '@shared/components/entity/entity-type-select.component';
 import { EntitySelectComponent } from '@shared/components/entity/entity-select.component';
+import { EntityGroupAutocompleteComponent } from '@shared/components/group/entity-group-autocomplete.component';
+import { EntityGroupSelectComponent } from '@shared/components/group/entity-group-select.component';
 import { DatetimeComponent } from '@shared/components/time/datetime.component';
+import { TimezoneSelectComponent } from '@shared/components/time/timezone-select.component';
 import { EntityKeysListComponent } from '@shared/components/entity/entity-keys-list.component';
 import { SocialSharePanelComponent } from '@shared/components/socialshare-panel.component';
 import { RelationTypeAutocompleteComponent } from '@shared/components/relation/relation-type-autocomplete.component';
@@ -110,7 +114,6 @@ import { EntityListSelectComponent } from '@shared/components/entity/entity-list
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { FooterFabButtonsComponent } from '@shared/components/footer-fab-buttons.component';
 import { CircularProgressDirective } from '@shared/components/circular-progress.directive';
-import { MatSpinner } from '@angular/material/progress-spinner';
 import { FabToolbarComponent, FabActionsDirective, FabTriggerDirective } from '@shared/components/fab-toolbar.component';
 import { DashboardSelectPanelComponent } from '@shared/components/dashboard-select-panel.component';
 import { DashboardSelectComponent } from '@shared/components/dashboard-select.component';
@@ -145,11 +148,16 @@ import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-t
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
 import { HistorySelectorComponent } from './components/time/history-selector/history-selector.component';
 import { TbTemplatePipe } from '@shared/pipe/template.pipe';
+import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
 import {
   HasGenericPermissionPipe,
   HasEntityGroupPermissionPipe,
   HasGroupEntityPermissionPipe
 } from '@shared/pipe/permission.pipes';
+import { OriginatorSelectComponent } from '@shared/components/originator-select.component';
+import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
+import { FullCalendarModule } from '@fullcalendar/angular';
+import { DndModule } from 'ngx-drag-drop';
 
 @NgModule({
   providers: [
@@ -195,6 +203,7 @@ import {
     DashboardSelectPanelComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
+    TimezoneSelectComponent,
     ValueInputComponent,
     DashboardAutocompleteComponent,
     EntitySubTypeAutocompleteComponent,
@@ -204,6 +213,9 @@ import {
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    EntityGroupSelectComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
@@ -218,6 +230,7 @@ import {
     WidgetsBundleSelectComponent,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,
@@ -244,7 +257,8 @@ import {
     HasGroupEntityPermissionPipe,
     TbJsonToStringDirective,
     JsonObjectEditDialogComponent,
-    HistorySelectorComponent
+    HistorySelectorComponent,
+    EntityGatewaySelectComponent
   ],
   imports: [
     CommonModule,
@@ -281,6 +295,7 @@ import {
     MatStepperModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatListModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule.withConfig({addFlexToParent: false}),
@@ -291,7 +306,8 @@ import {
     HotkeyModule,
     ColorPickerModule,
     NgxHmCarouselModule,
-    EditorModule,
+    FullCalendarModule,
+    DndModule,
     NgxFlowModule,
     NgxFlowchartModule
   ],
@@ -317,6 +333,7 @@ import {
     DashboardSelectComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
+    TimezoneSelectComponent,
     DashboardAutocompleteComponent,
     EntitySubTypeAutocompleteComponent,
     EntitySubTypeSelectComponent,
@@ -325,6 +342,9 @@ import {
     EntityListComponent,
     EntityTypeSelectComponent,
     EntitySelectComponent,
+    EntityGroupAutocompleteComponent,
+    EntityGroupSelectComponent,
+    OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
@@ -369,6 +389,7 @@ import {
     MatStepperModule,
     MatAutocompleteModule,
     MatChipsModule,
+    MatListModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule,
@@ -380,9 +401,12 @@ import {
     ColorPickerModule,
     NgxHmCarouselModule,
     EditorModule,
+    FullCalendarModule,
+    DndModule,
     NgxFlowchartModule,
     ConfirmDialogComponent,
     AlertDialogComponent,
+    ProgressDialogComponent,
     TodoDialogComponent,
     ColorPickerDialogComponent,
     MaterialIconsDialogComponent,
@@ -409,7 +433,8 @@ import {
     HasGroupEntityPermissionPipe,
     TranslateModule,
     JsonObjectEditDialogComponent,
-    HistorySelectorComponent
+    HistorySelectorComponent,
+    EntityGatewaySelectComponent
   ]
 })
 export class SharedModule { }

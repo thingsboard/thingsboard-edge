@@ -31,15 +31,202 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData, HasId } from '@shared/models/base-data';
+import { BaseData } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
+import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
+import { isUndefined } from '@core/utils';
+import { EntityField } from '@shared/models/entity.models';
+
+export const entityGroupActionTypes: WidgetActionType[] = [
+  WidgetActionType.openDashboard,
+  WidgetActionType.custom
+];
+
+export const entityGroupActionSources: {[acionSourceId: string]: WidgetActionSource} = {
+  actionCellButton:
+    {
+      name: 'widget-action.action-cell-button',
+      value: 'actionCellButton',
+      multiple: true,
+    },
+  rowClick:
+    {
+      name: 'widget-action.row-click',
+      value: 'rowClick',
+      multiple: true,
+    }
+};
+
+export enum EntityGroupDetailsMode {
+  onRowClick = 'onRowClick',
+  onActionButtonClick = 'onActionButtonClick',
+  disabled = 'disabled'
+}
+
+export const entityGroupDetailsModeTranslationMap = new Map<EntityGroupDetailsMode, string>(
+  [
+    [EntityGroupDetailsMode.onRowClick, 'entity-group.details-mode.on-row-click'],
+    [EntityGroupDetailsMode.onActionButtonClick, 'entity-group.details-mode.on-action-button-click'],
+    [EntityGroupDetailsMode.disabled, 'entity-group.details-mode.disabled']
+  ]
+);
+
+export interface EntityGroupSettings {
+  groupTableTitle: string;
+  enableSearch: boolean;
+  enableAdd: boolean;
+  enableDelete: boolean;
+  enableSelection: boolean;
+  enableGroupTransfer: boolean;
+  detailsMode: EntityGroupDetailsMode;
+  displayPagination: boolean;
+  defaultPageSize: number;
+  enableAssignment: boolean;
+  enableCredentialsManagement: boolean;
+  enableLoginAsUser: boolean;
+  enableUsersManagement: boolean;
+  enableCustomersManagement: boolean;
+  enableAssetsManagement: boolean;
+  enableDevicesManagement: boolean;
+  enableEntityViewsManagement: boolean;
+  enableDashboardsManagement: boolean;
+}
+
+export enum EntityGroupSortOrder {
+  ASC = 'ASC',
+  DESC = 'DESC',
+  NONE = 'NONE'
+}
+
+export const entityGroupSortOrderTranslationMap = new Map<EntityGroupSortOrder, string>(
+  [
+    [EntityGroupSortOrder.ASC, 'entity-group.sort-order.asc'],
+    [EntityGroupSortOrder.DESC, 'entity-group.sort-order.desc'],
+    [EntityGroupSortOrder.NONE, 'entity-group.sort-order.none']
+  ]
+);
+
+export enum EntityGroupColumnType {
+  CLIENT_ATTRIBUTE = 'CLIENT_ATTRIBUTE',
+  SHARED_ATTRIBUTE = 'SHARED_ATTRIBUTE',
+  SERVER_ATTRIBUTE = 'SERVER_ATTRIBUTE',
+  TIMESERIES = 'TIMESERIES',
+  ENTITY_FIELD = 'ENTITY_FIELD'
+}
+
+export const entityGroupColumnTypeTranslationMap = new Map<EntityGroupColumnType, string>(
+  [
+    [EntityGroupColumnType.CLIENT_ATTRIBUTE, 'entity-group.column-type.client-attribute'],
+    [EntityGroupColumnType.SHARED_ATTRIBUTE, 'entity-group.column-type.shared-attribute'],
+    [EntityGroupColumnType.SERVER_ATTRIBUTE, 'entity-group.column-type.server-attribute'],
+    [EntityGroupColumnType.TIMESERIES, 'entity-group.column-type.timeseries'],
+    [EntityGroupColumnType.ENTITY_FIELD, 'entity-group.column-type.entity-field']
+  ]
+);
+
+export interface EntityGroupEntityField {
+  name: string;
+  value: string;
+  time?: boolean;
+}
+
+export const entityGroupEntityFields: {[fieldName: string]: EntityGroupEntityField} = {
+  created_time: {
+    name: 'entity-group.entity-field.created-time',
+    value: 'created_time',
+    time: true
+  },
+  name: {
+    name: 'entity-group.entity-field.name',
+    value: 'name'
+  },
+  type: {
+    name: 'entity-group.entity-field.type',
+    value: 'type'
+  },
+  assigned_customer: {
+    name: 'entity-group.entity-field.assigned_customer',
+    value: 'assigned_customer'
+  },
+  authority: {
+    name: 'entity-group.entity-field.authority',
+    value: 'authority'
+  },
+  first_name: {
+    name: 'entity-group.entity-field.first_name',
+    value: 'first_name'
+  },
+  last_name: {
+    name: 'entity-group.entity-field.last_name',
+    value: 'last_name'
+  },
+  email: {
+    name: 'entity-group.entity-field.email',
+    value: 'email'
+  },
+  title: {
+    name: 'entity-group.entity-field.title',
+    value: 'title'
+  },
+  country: {
+    name: 'entity-group.entity-field.country',
+    value: 'country'
+  },
+  state: {
+    name: 'entity-group.entity-field.state',
+    value: 'state'
+  },
+  city: {
+    name: 'entity-group.entity-field.city',
+    value: 'city'
+  },
+  address: {
+    name: 'entity-group.entity-field.address',
+    value: 'address'
+  },
+  address2: {
+    name: 'entity-group.entity-field.address2',
+    value: 'address2'
+  },
+  zip: {
+    name: 'entity-group.entity-field.zip',
+    value: 'zip'
+  },
+  phone: {
+    name: 'entity-group.entity-field.phone',
+    value: 'phone'
+  },
+  label: {
+    name: 'entity-group.entity-field.label',
+    value: 'label'
+  }
+};
+
+export interface EntityGroupColumn {
+  type: EntityGroupColumnType;
+  key: string;
+  title?: string;
+  sortOrder: EntityGroupSortOrder;
+  mobileHide: boolean;
+  useCellStyleFunction?: boolean;
+  cellStyleFunction?: string;
+  useCellContentFunction?: string;
+  cellContentFunction?: string;
+}
+
+export interface EntityGroupConfiguration {
+  columns: EntityGroupColumn[];
+  settings: EntityGroupSettings;
+  actions: {[actionSourceId: string]: Array<WidgetActionDescriptor>};
+}
 
 export interface EntityGroup extends BaseData<EntityGroupId> {
   type: EntityType;
   name: string;
   ownerId: EntityId;
+  groupAll: boolean;
   additionalInfo: any;
-  configuration: any;
+  configuration: EntityGroupConfiguration;
 }
 
 export interface EntityGroupInfo extends EntityGroup {
@@ -50,4 +237,48 @@ export interface ShortEntityView {
   id: EntityId;
   readonly name: string;
   [key: string]: any;
+}
+
+export function groupSettingsDefaults(entityType: EntityType, settings: EntityGroupSettings): EntityGroupSettings {
+  settings = {...{
+      groupTableTitle: '',
+      enableSearch: true,
+      enableAdd: true,
+      enableDelete: true,
+      enableSelection: true,
+      enableGroupTransfer: true,
+      detailsMode: EntityGroupDetailsMode.onRowClick,
+      displayPagination: true,
+      defaultPageSize: 10
+  }, ...settings};
+
+  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW) {
+    settings = {...{
+        enableAssignment: true
+      }, ...settings};
+  }
+
+  if (entityType === EntityType.DEVICE) {
+    settings = {...{
+        enableCredentialsManagement: true
+      }, ...settings};
+  }
+
+  if (entityType === EntityType.USER) {
+    settings = {...{
+        enableLoginAsUser: true
+      }, ...settings};
+  }
+
+  if (entityType === EntityType.CUSTOMER) {
+    settings = {...{
+        enableUsersManagement: true,
+        enableCustomersManagement: true,
+        enableAssetsManagement: true,
+        enableDevicesManagement: true,
+        enableEntityViewsManagement: true,
+        enableDashboardsManagement: true
+      }, ...settings};
+  }
+  return settings;
 }

@@ -106,6 +106,8 @@ export class UtilsService {
   widgetEditMode = false;
   editWidgetInfo: WidgetInfo = null;
 
+  stateSelectView = false;
+
   defaultDataKey: DataKey = {
     name: 'f(x)',
     type: DataKeyType.function,
@@ -142,6 +144,10 @@ export class UtilsService {
       if (dataWidgetAttr && dataWidgetAttr.length) {
         this.editWidgetInfo = JSON.parse(dataWidgetAttr);
         this.widgetEditMode = true;
+      }
+      const stateSelectViewAttr = frame.getAttribute('state-select-view');
+      if (stateSelectViewAttr) {
+        this.stateSelectView = true;
       }
     }
   }
@@ -528,6 +534,15 @@ export class UtilsService {
         params = '?' + newParam;
     }
     this.window.history.replaceState({}, '', baseUrl + params);
+  }
+
+  public baseUrl(): string {
+    let url = this.window.location.protocol + '//' + this.window.location.hostname;
+    const port = this.window.location.port;
+    if (port !== '80' && port !== '443') {
+      url += ':' + port;
+    }
+    return url;
   }
 
   public deepClone<T>(target: T, ignoreFields?: string[]): T {

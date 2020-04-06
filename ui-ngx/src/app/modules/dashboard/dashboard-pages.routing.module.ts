@@ -46,6 +46,7 @@ import { map } from 'rxjs/operators';
 import { dashboardBreadcumbLabelFunction, DashboardResolver } from '@app/modules/home/pages/dashboard/dashboard-routing.module';
 import { UtilsService } from '@core/services/utils.service';
 import { Widget } from '@app/shared/models/widget.models';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
@@ -83,12 +84,17 @@ const routes: Routes = [
         skip: true
       },
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      permissions: {
+        resources: [Resource.DASHBOARD, Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
+        operations: [Operation.READ]
+      },
       title: 'dashboard.dashboard',
       widgetEditMode: false,
       singlePageMode: true
     },
     resolve: {
-      dashboard: DashboardResolver
+      dashboard: DashboardResolver,
+      entityGroup: 'entityGroupResolver'
     }
   },
   {
@@ -104,7 +110,8 @@ const routes: Routes = [
       singlePageMode: true
     },
     resolve: {
-      dashboard: WidgetEditorDashboardResolver
+      dashboard: WidgetEditorDashboardResolver,
+      entityGroup: 'entityGroupResolver'
     }
   }
 ];
@@ -113,7 +120,11 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    WidgetEditorDashboardResolver
+    WidgetEditorDashboardResolver,
+    {
+      provide: 'entityGroupResolver',
+      useValue: (route: ActivatedRouteSnapshot) => null
+    }
   ]
 })
 export class DashboardPagesRoutingModule { }

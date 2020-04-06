@@ -47,6 +47,11 @@ import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
 import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  ConverterTestDialogComponent,
+  ConverterTestDialogData
+} from '@home/pages/converter/converter-test-dialog.component';
 
 @Component({
   selector: 'tb-converter',
@@ -64,6 +69,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private converterService: ConverterService,
+              private dialog: MatDialog,
               @Inject('entity') protected entityValue: Converter,
               @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Converter>,
               protected fb: FormBuilder) {
@@ -169,6 +175,26 @@ export class ConverterComponent extends EntityComponent<Converter> {
   }
 
   showConverterTestDialog(isDecoder: boolean, debugIn: ConverterDebugInput) {
-    // TODO:
+    const funcBody = isDecoder ? this.entityForm.get('configuration').get('decoder').value :
+      this.entityForm.get('configuration').get('encoder').value;
+    this.dialog.open<ConverterTestDialogComponent, ConverterTestDialogData, string>(ConverterTestDialogComponent,
+      {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog', 'tb-fullscreen-dialog-gt-sm'],
+        data: {
+          debugIn,
+          isDecoder,
+          funcBody
+        }
+      })
+      .afterClosed().subscribe((result) => {
+        if (result !== null) {
+          if (isDecoder) {
+            this.entityForm.get('configuration').get('decoder').patchValue(result);
+          } else {
+            this.entityForm.get('configuration').get('encoder').patchValue(result);
+          }
+        }
+    });
   }
 }

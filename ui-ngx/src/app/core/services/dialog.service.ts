@@ -45,6 +45,7 @@ import {
 import { ConfirmDialogComponent } from '@shared/components/dialog/confirm-dialog.component';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
 import { TodoDialogComponent } from '@shared/components/dialog/todo-dialog.component';
+import { ProgressDialogComponent, ProgressDialogData } from '@shared/components/dialog/progress-dialog.component';
 
 @Injectable(
   {
@@ -137,6 +138,18 @@ export class DialogService {
       }
     });
     return observable;
+  }
+
+  progress<T>(progressObservable: Observable<T>, progressText: string): Observable<T> {
+    return this.dialog.open<ProgressDialogComponent<T>, ProgressDialogData<T>, T>(ProgressDialogComponent,
+      {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          progressObservable,
+          progressText
+        }
+      }).afterClosed();
   }
 
   todo(): Observable<any> {
