@@ -172,31 +172,31 @@ export const templates = {
 
 export const mqttCredentialTypes = {
   anonymous: {
-    value: "anonymous",
-    name: "extension.anonymous"
+    value: 'anonymous',
+    name: 'extension.anonymous'
   },
   basic: {
-    value: "basic",
-    name: "extension.basic"
+    value: 'basic',
+    name: 'extension.basic'
   },
   'cert.PEM': {
-    value: "cert.PEM",
-    name: "extension.pem"
+    value: 'cert.PEM',
+    name: 'extension.pem'
   }
 }
 
 export const opcUaMappingType = {
-  ID: "ID",
-  FQN: "Fully Qualified Name"
+  ID: 'ID',
+  FQN: 'Fully Qualified Name'
 }
 
 export const extensionKeystoreType = {
-  PKCS12: "PKCS12",
-  JKS: "JKS"
+  PKCS12: 'PKCS12',
+  JKS: 'JKS'
 }
 
 export const initialPositionInStream = {
-  latest: "LATEST",
-  trim_horizon: "TRIM_HORIZON",
-  at_timestamp: "AT_TIMESTAMP"
+  latest: 'LATEST',
+  trim_horizon: 'TRIM_HORIZON',
+  at_timestamp: 'AT_TIMESTAMP'
 }

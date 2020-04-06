@@ -35,75 +35,80 @@
         <div fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host-type</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="currentHostType" >
-                    <mat-option *ngIf="let type of hostTypes | keyvalue"  [value]="type.value">
+                <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="currentHostType">
+                    <mat-option *ngIf="let type of hostTypes | keyvalue" [value]="type.value">
                         {{value}}
                     </mat-option>
                 </mat-select>
-                <div *ngIf="form.get('currentHostType')?.dirty">  
-         <mat-error translate *ngIf="form.get('currentHostType')?.errors.required">integration.host-type-required</mat-error>
+                <div *ngIf="form.get('currentHostType')?.dirty">
+                    <mat-error translate *ngIf="form.get('currentHostType')?.errors.required">
+                        integration.host-type-required</mat-error>
                 </div>
             </mat-form-field>
             <div fxFlex="50" fxLayout="row">
                 <mat-form-field ng-if="currentHostType == hostTypes.region" fxFlex="60" class="mat-block">
                     <mat-label translate>integration.region</mat-label>
-                    <input matInput required  formControlName="$parent.hostRegion" (change)="buildHostName()">
-                    <div *ngIf="form.get('region')?.dirty">  
-         <mat-error translate *ngIf="form.get('region')?.errors.required">integration.region-required</mat-error>
+                    <input matInput required formControlName="$parent.hostRegion" (change)="buildHostName()">
+                    <div *ngIf="form.get('region')?.dirty">
+                        <mat-error translate *ngIf="form.get('region')?.errors.required">integration.region-required
+                        </mat-error>
                     </div>
                 </mat-form-field>
-                <div ng-if="currentHostType == hostTypes.region" fxFlex="40" fxLayout="column" layout-align="center start">
+                <div ng-if="currentHostType == hostTypes.region" fxFlex="40" fxLayout="column"
+                    layout-align="center start">
                     <mat-label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</mat-label>
                 </div>
                 <mat-form-field ng-if="currentHostType == hostTypes.custom" fxFlex="100" class="mat-block">
                     <mat-label translate>integration.custom-host</mat-label>
-                    <input matInput required  formControlName="$parent.hostCustom" (change)="buildHostName()">
-                    <div *ngIf="form.get('hostCustom')?.dirty">  
-         <mat-error translate *ngIf="form.get('hostCustom')?.errors.required">integration.custom-host-required</mat-error>
+                    <input matInput required formControlName="$parent.hostCustom" (change)="buildHostName()">
+                    <div *ngIf="form.get('hostCustom')?.dirty">
+                        <mat-error translate *ngIf="form.get('hostCustom')?.errors.required">
+                            integration.custom-host-required</mat-error>
                     </div>
                 </mat-form-field>
             </div>
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.connect-timeout</mat-label>
-            <input matInput type="number" step="1" min="1" max="200" required
-                    formControlName="connectTimeoutSec">
-            <div *ngIf="form.get('connectTimeoutSec')?.dirty">  
-         <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">integration.connect-timeout-range</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.max">integration.connect-timeout-range</mat-error>
+            <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
+            <div *ngIf="form.get('connectTimeoutSec')?.dirty">
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">
+                    integration.connect-timeout-required</mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">integration.connect-timeout-range
+                </mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.max">integration.connect-timeout-range
+                </mat-error>
             </div>
         </mat-form-field>
-        <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.application-credentials' | translate }}</div>
+        <div class="tb-panel-title" style="padding-bottom: 15px;">
+            {{ 'integration.application-credentials' | translate }}</div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.application-id</mat-label>
-            <input matInput required  formControlName="credentials.username">
-            <div *ngIf="form.get('applicationId')?.dirty">  
-         <mat-error translate *ngIf="form.get('applicationId')?.errors.required">integration.application-id-required</mat-error>
+            <input matInput required formControlName="credentials.username">
+            <div *ngIf="form.get('applicationId')?.dirty">
+                <mat-error translate *ngIf="form.get('applicationId')?.errors.required">
+                    integration.application-id-required</mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.access-key</mat-label>
-            <input matInput type="password" required  formControlName="credentials.password">
-            <div *ngIf="form.get('accessKey')?.dirty">  
-         <mat-error translate *ngIf="form.get('accessKey')?.errors.required">integration.access-key-required</mat-error>
+            <input matInput type="password" required formControlName="credentials.password">
+            <div *ngIf="form.get('accessKey')?.dirty">
+                <mat-error translate *ngIf="form.get('accessKey')?.errors.required">integration.access-key-required
+                </mat-error>
             </div>
         </mat-form-field>
     </fieldset>
-    <tb-mqtt-topic-filters
-            formControlName="configuration.topicFilters"
-            is-edit="isEdit"
-            disable-mqtt-topics="true"
-    ></tb-mqtt-topic-filters>
+    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" is-edit="isEdit" disable-mqtt-topics="true">
+    </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required 
-               [disabled]="(isLoading$ | async) || isEdit"
-               ng-readonly="true"
-               formControlName="configuration.downlinkTopicPattern">
-        <div *ngIf="form.get('downlinkTopicPattern')?.dirty">  
-         <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors.required">integration.downlink-topic-pattern-required</mat-error>
+        <input matInput required [disabled]="(isLoading$ | async) || isEdit" ng-readonly="true"
+            formControlName="configuration.downlinkTopicPattern">
+        <div *ngIf="form.get('downlinkTopicPattern')?.dirty">
+            <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors.required">
+                integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>
 </section>

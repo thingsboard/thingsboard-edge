@@ -22,6 +22,6 @@ export class OpcUaIntegrationFormComponent implements OnInit {
 
   opcUaSecurityTypeChanged(){}
 
- 
+
 
 }

@@ -43,16 +43,18 @@
         <div fxFlex fxLayout="column" fxLayout="row">
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
-                <input matInput required  formControlName="host">
+                <input matInput required formControlName="host">
                 <div *ngIf="form.get('host')?.dirty">
-                    <mat-error translate *ngIf="form.get('host')?.errors?.required">integration.host-required</mat-error>
+                    <mat-error translate *ngIf="form.get('host')?.errors?.required">integration.host-required
+                    </mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="20" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
-                <input matInput type="number" step="1" min="1" max="65535" required  formControlName="port">
+                <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
-                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required
+                    </mat-error>
                     <mat-error translate *ngIf="form.get('port')?.errors.min">integration.port-range</mat-error>
                     <mat-error translate *ngIf="form.get('port')?.errors.max">integration.port-range</mat-error>
                 </div>
@@ -61,41 +63,44 @@
         <div fxFlex fxLayout="column" fxLayout="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.opc-ua-scan-period-in-seconds</mat-label>
-                <input matInput type="number" required  formControlName="scanPeriodInSeconds">
+                <input matInput type="number" required formControlName="scanPeriodInSeconds">
                 <div *ngIf="form.get('scanPeriodInSeconds')?.dirty">
-                    <mat-error translate *ngIf="form.get('scanPeriodInSeconds')?.errors?.required">integration.opc-ua-scan-period-in-seconds-required
+                    <mat-error translate *ngIf="form.get('scanPeriodInSeconds')?.errors?.required">
+                        integration.opc-ua-scan-period-in-seconds-required
                     </mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.opc-ua-timeout</mat-label>
-                <input matInput type="number" required  formControlName="timeoutInMillis">
+                <input matInput type="number" required formControlName="timeoutInMillis">
                 <div *ngIf="form.get('timeoutInMillis')?.dirty">
-                    <mat-error translate *ngIf="form.get('timeoutInMillis')?.errors?.required">integration.opc-ua-timeout-required</mat-error>
+                    <mat-error translate *ngIf="form.get('timeoutInMillis')?.errors?.required">
+                        integration.opc-ua-timeout-required</mat-error>
                 </div>
             </mat-form-field>
         </div>
         <div form fxFlex fxLayout="column" formGroupName="identity" fxLayout="row">
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-security</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" 
-                    (change)="opcUaSecurityTypeChanged()" formControlName="security">
+                <mat-select required [disabled]="(isLoading$ | async) || isEdit" (change)="opcUaSecurityTypeChanged()"
+                    formControlName="security">
                     <mat-option [value]="securityType" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{securityValue}}</span></mat-option>
                 </mat-select>
                 <div *ngIf="form.get('securityType')?.dirty">
-                    <mat-error translate *ngIf="form.get('securityType')?.errors?.required">integration.opc-ua-security-required</mat-error>
+                    <mat-error translate *ngIf="form.get('securityType')?.errors?.required">
+                        integration.opc-ua-security-required</mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-identity</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" 
-                    formControlName="type">
+                <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="type">
                     <mat-option [value]="identityType" *ngIf="identityType && identityType[identity]">
                         <span>{{identityValue | translate}}</span></mat-option>
                 </mat-select>
                 <div *ngIf="form.get('identityType')?.dirty">
-                    <mat-error translate *ngIf="form.get('identity').get('type')?.errors?.required">integration.opc-ua-identity-required
+                    <mat-error translate *ngIf="form.get('identity').get('type')?.errors?.required">
+                        integration.opc-ua-identity-required
                     </mat-error>
                 </div>
             </mat-form-field>
@@ -107,7 +112,7 @@
             <mat-form-field fxFlex="50" class="mat-block"
                 mat-is-error="form.identityUsername.$touched && form.identityUsername.$invalid">
                 <mat-label translate>integration.username</mat-label>
-                <input matInput required  formControlName="username">
+                <input matInput required formControlName="username">
                 <div *ngIf="form.get('username')?.dirty">
                     <mat-error translate *ngIf="form.get('username')?.errors?.required">integration.username-required
                     </mat-error>
@@ -117,9 +122,10 @@
             <mat-form-field fxFlex="50" class="mat-block"
                 mat-is-error="form.identityPassword.$touched && form.identityPassword.$invalid">
                 <mat-label translate>integration.password</mat-label>
-                <input matInput required  formControlName="password">
+                <input matInput required formControlName="password">
                 <div *ngIf="form.get('password')?.dirty">
-                    <mat-error translate *ngIf="form.get('password')?.errors?.required">integration.password-required</mat-error>
+                    <mat-error translate *ngIf="form.get('password')?.errors?.required">integration.password-required
+                    </mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -149,7 +155,8 @@
                                 <span>{{keystoreValue}}</span></mat-option>
                         </mat-select>
                         <div *ngIf="form.get('keystore').dirty">
-                            <mat-error translate *ngIf="form.get('keydtore')?.errors?.required">integration.opc-ua-keystore-type-required
+                            <mat-error translate *ngIf="form.get('keydtore')?.errors?.required">
+                                integration.opc-ua-keystore-type-required
                             </mat-error>
                         </div>
                     </mat-form-field>
@@ -187,26 +194,29 @@
                     <div fxFlex fxLayout="row">
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-password</mat-label>
-                            <input matInput required  formControlName="password">
+                            <input matInput required formControlName="password">
                             <div *ngIf="form.get('keydtore')?.dirty">
-                                <mat-error translate *ngIf="form.get('keydtore')?.errors?.required">integration.opc-ua-keystore-password-required
+                                <mat-error translate *ngIf="form.get('keydtore')?.errors?.required">
+                                    integration.opc-ua-keystore-password-required
                                 </mat-error>
                             </div>
                         </mat-form-field>
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
-                            <input matInput required  formControlName="alias">
+                            <input matInput required formControlName="alias">
                             <div *ngIf="form.get('alias')?.dirty">
-                                <mat-error translate *ngIf="form.get('alias')?.errors?.required">integration.opc-ua-keystore-alias-required
+                                <mat-error translate *ngIf="form.get('alias')?.errors?.required">
+                                    integration.opc-ua-keystore-alias-required
                                 </mat-error>
                             </div>
                         </mat-form-field>
                     </div>
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.opc-ua-keystore-key-password</mat-label>
-                        <input matInput required  formControlName="keyPassword">
+                        <input matInput required formControlName="keyPassword">
                         <div *ngIf="form.get('keyPassword')?.dirty">
-                            <mat-error translate *ngIf="form.get('keyPassword')?.errors?.required">integration.opc-ua-keystore-key-password-required
+                            <mat-error translate *ngIf="form.get('keyPassword')?.errors?.required">
+                                integration.opc-ua-keystore-key-password-required
                             </mat-error>
                         </div>
                     </mat-form-field>
@@ -226,10 +236,11 @@
                     <ol class="list-group">
                         <li class="list-group-item">
                             <!--*ngIf="(mapIndex, map) in mapping"-->
-                            <button mat-button *ngIf="!((isLoading$ | async) || isEdit)" [disabled]="(isLoading$ | async)"
-                                aria-mat-label="{{ 'action.remove' | translate }}" class="mat-icon-button"
-                                click="removeItem(map, mapping)">
-                                <ng-mat-icon icon="close" aria-mat-label="{{ 'action.remove' | translate }}"></ng-mat-icon>
+                            <button mat-button *ngIf="!((isLoading$ | async) || isEdit)"
+                                [disabled]="(isLoading$ | async)" aria-mat-label="{{ 'action.remove' | translate }}"
+                                class="mat-icon-button" click="removeItem(map, mapping)">
+                                <ng-mat-icon icon="close" aria-mat-label="{{ 'action.remove' | translate }}">
+                                </ng-mat-icon>
                                 <mat-tooltip mat-direction="top">
                                     {{ 'action.remove' | translate }}
                                 </mat-tooltip>
@@ -243,14 +254,14 @@
                                             <input matInput
                                                 placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
                                                 type="number" min="0" [disabled]="(isLoading$ | async) || isEdit"
-                                                 formControlName="map.namespace">
+                                                formControlName="map.namespace">
                                         </mat-form-field>
                                         <mat-form-field fxFlex class="mat-block">
                                             <mat-label translate>integration.opc-ua-mapping-type</mat-label>
                                             <mat-select
                                                 placeholder="{{ 'integration.opc-ua-mapping-type' | translate }}"
                                                 [disabled]="(isLoading$ | async) || isEdit" required
-                                                 formControlName="map.mappingType">
+                                                formControlName="map.mappingType">
                                                 <!--*ngIf="(mappingType, mappingValue) inopcUaMappingType"-->
                                                 <mat-option [value]="mappingType">
                                                     {{mappingValue}}
@@ -268,7 +279,6 @@
                                             <input matInput
                                                 placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
                                                 [disabled]="(isLoading$ | async) || isEdit" required
-                                                
                                                 formControlName="map.deviceNodePattern">
                                             <div *ngIf="form['deviceNodePattern_' + mapIndex].dirty">
                                                 <mat-error translate *ngIf="form.get('')?.errors?.required">

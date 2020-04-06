@@ -35,59 +35,64 @@
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.group-id</mat-label>
-            <input matInput  formControlName="groupId" required>
-            <div *ngIf="form.get('groupId')?.dirty">  
-         <mat-error translate *ngIf="form.get('groupId')?.errors.required">integration.group-id-required</mat-error>
+            <input matInput formControlName="groupId" required>
+            <div *ngIf="form.get('groupId')?.dirty">
+                <mat-error translate *ngIf="form.get('groupId')?.errors.required">integration.group-id-required
+                </mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
-            <input matInput  formControlName="clientId" required>
-            <div *ngIf="form.get('clientId')?.dirty">  
-         <mat-error translate *ngIf="form.get('clientId')?.errors.required">integration.clientId-id-required</mat-error>
+            <input matInput formControlName="clientId" required>
+            <div *ngIf="form.get('clientId')?.dirty">
+                <mat-error translate *ngIf="form.get('clientId')?.errors.required">integration.clientId-id-required
+                </mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.topics</mat-label>
-            <input matInput  formControlName="topics" required>
-            <div *ngIf="form.get('topics')?.dirty">  
-         <mat-error translate *ngIf="form.get('topics')?.errors.required">integration.topics-required</mat-error>
+            <input matInput formControlName="topics" required>
+            <div *ngIf="form.get('topics')?.dirty">
+                <mat-error translate *ngIf="form.get('topics')?.errors.required">integration.topics-required</mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.bootstrap-servers</mat-label>
-            <input matInput  formControlName="bootstrapServers" required>
-            <div *ngIf="form.get('bootstrapServers')?.dirty">  
-         <mat-error translate *ngIf="form.get('bootstrapServers')?.errors.required">integration.bootstrap-servers-required</mat-error>
+            <input matInput formControlName="bootstrapServers" required>
+            <div *ngIf="form.get('bootstrapServers')?.dirty">
+                <mat-error translate *ngIf="form.get('bootstrapServers')?.errors.required">
+                    integration.bootstrap-servers-required</mat-error>
             </div>
         </mat-form-field>
 
         <mat-error fxFlex="40" class="mat-block">
             <mat-label translate>integration.poll-interval</mat-label>
-            <input matInput type="number" required  formControlName="pollInterval"
-                   step="1">
-            <div *ngIf="form.get('pollInterval')?.dirty">  
-         <mat-error translate *ngIf="form.get('pollInterval')?.errors.required">integration.poll-interval-required</mat-error>
+            <input matInput type="number" required formControlName="pollInterval" step="1">
+            <div *ngIf="form.get('pollInterval')?.dirty">
+                <mat-error translate *ngIf="form.get('pollInterval')?.errors.required">
+                    integration.poll-interval-required</mat-error>
             </div>
         </mat-error>
-        <mat-checkbox [disabled]="(isLoading$ | async) || isEdit" aria-mat-label="{{ 'integration.enable-ssl' | translate }}"
-                     formControlName="autoCreateTopics" style="margin-bottom: 32px;">
+        <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+            aria-mat-label="{{ 'integration.enable-ssl' | translate }}" formControlName="autoCreateTopics"
+            style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
             <span translate>integration.auto-create-topics</span>
         </mat-checkbox>
-        <mat-accordeon class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}" mat-component-id="otherPropertiesPanelGroup">
-            <mat-expansion-panel mat-component-id="{{otherPropertiesPanelId}}">            
-                
-                    <mat-expansion-panel-header ng-click="$matExpansionPanel(otherPropertiesPanelId).collapse()">
-                        <div class="tb-panel-title" translate>integration.other-properties</div>
-                        <span fxFlex></span>
-                        <mat-expansion-panel-icon></mat-expansion-panel-icon>
-                    </mat-expansion-panel-header>
-                    <mat-expansion-panel-content>
-                        <tb-key-val-map title-text="{{'integration.other-properties' | translate}}" [disabled]="(isLoading$ | async) || isEdit"
-                                        key-val-map="otherProperties"></tb-key-val-map>
-                    </mat-expansion-panel-content>
-                
+        <mat-accordeon class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
+            mat-component-id="otherPropertiesPanelGroup">
+            <mat-expansion-panel mat-component-id="{{otherPropertiesPanelId}}">
+
+                <mat-expansion-panel-header ng-click="$matExpansionPanel(otherPropertiesPanelId).collapse()">
+                    <div class="tb-panel-title" translate>integration.other-properties</div>
+                    <span fxFlex></span>
+                    <mat-expansion-panel-icon></mat-expansion-panel-icon>
+                </mat-expansion-panel-header>
+                <mat-expansion-panel-content>
+                    <tb-key-val-map title-text="{{'integration.other-properties' | translate}}"
+                        [disabled]="(isLoading$ | async) || isEdit" key-val-map="otherProperties"></tb-key-val-map>
+                </mat-expansion-panel-content>
+
             </mat-expansion-panel>
         </mat-accordeon>
     </fieldset>

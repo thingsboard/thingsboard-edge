@@ -4,8 +4,6 @@ import { IntegrationType } from '@app/shared/models/integration.models';
 import { mqttCredentialTypes } from '../../integartionFormTemapltes';
 
 
-//mqttCredentialTypes
-
 @Component({
   selector: 'tb-mqtt-integration-form',
   templateUrl: './mqtt-integration-form.component.html',

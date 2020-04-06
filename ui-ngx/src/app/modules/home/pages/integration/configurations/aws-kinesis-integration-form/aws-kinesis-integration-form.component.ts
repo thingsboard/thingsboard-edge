@@ -20,5 +20,5 @@ export class AwsKinesisIntegrationFormComponent implements OnInit {
   ngOnInit(): void {
   }
 
- 
+
 }

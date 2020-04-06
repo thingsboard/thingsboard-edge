@@ -35,16 +35,18 @@
         <div class="flex row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-stream-name</mat-label>
-                <input matInput required  formControlName="streamName">
-                <div *ngIf="form.get('streamName')?.dirty">  
-         <mat-error translate *ngIf="form.get('streamName')?.errors?.required">integration.kinesis-stream-name-required</mat-error>
+                <input matInput required formControlName="streamName">
+                <div *ngIf="form.get('streamName')?.dirty">
+                    <mat-error translate *ngIf="form.get('streamName')?.errors?.required">
+                        integration.kinesis-stream-name-required</mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-region</mat-label>
-                <input matInput required  formControlName="region">
-                <div *ngIf="form.get('region')?.dirty">  
-         <mat-error translate *ngIf="form.get('region')?.errors?.required">integration.kinesis-region-required</mat-error>
+                <input matInput required formControlName="region">
+                <div *ngIf="form.get('region')?.dirty">
+                    <mat-error translate *ngIf="form.get('region')?.errors?.required">
+                        integration.kinesis-region-required</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -53,9 +55,10 @@
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
                 <input matInput ng-required="!useCredentialsFromInstanceMetadata"
                     [disabled]="(isLoading$ | async) || isEdit || useCredentialsFromInstanceMetadata"
-                     formControlName="accessKeyId">
-                <div *ngIf="form.get('accessKeyId')?.dirty">  
-         <mat-error translate *ngIf="form.get('accessKeyId')?.errors?.required">integration.kinesis-access-key-id-required</mat-error>
+                    formControlName="accessKeyId">
+                <div *ngIf="form.get('accessKeyId')?.dirty">
+                    <mat-error translate *ngIf="form.get('accessKeyId')?.errors?.required">
+                        integration.kinesis-access-key-id-required</mat-error>
                 </div>
             </mat-form-field>
 
@@ -63,9 +66,10 @@
                 <mat-label translate>integration.kinesis-secret-access-key</mat-label>
                 <input matInput ng-required="!useCredentialsFromInstanceMetadata"
                     [disabled]="(isLoading$ | async) || isEdit || useCredentialsFromInstanceMetadata" type="password"
-                     formControlName="secretAccessKey">
-                <div *ngIf="form.get('secretAccessKey')?.dirty">  
-         <mat-error translate *ngIf="form.get('secretAccessKey')?.errors?.required">integration.kinesis-secret-access-key-required</mat-error>
+                    formControlName="secretAccessKey">
+                <div *ngIf="form.get('secretAccessKey')?.dirty">
+                    <mat-error translate *ngIf="form.get('secretAccessKey')?.errors?.required">
+                        integration.kinesis-secret-access-key-required</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -81,18 +85,19 @@
         <div class="flex row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-application-name</mat-label>
-                <input matInput  formControlName="applicationName">
+                <input matInput formControlName="applicationName">
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" 
+                <mat-select required [disabled]="(isLoading$ | async) || isEdit"
                     formControlName="initialPositionInStream">
                     <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.value">
                         {{stream?.value}}
                     </mat-option>
                 </mat-select>
-                <div *ngIf="form.get('initialPositionInStream')?.dirty">  
-         <mat-error translate *ngIf="form.get('initialPositionInStream')?.errors?.required">integration.kinesis-initial-position-in-stream-required</mat-error>
+                <div *ngIf="form.get('initialPositionInStream')?.dirty">
+                    <mat-error translate *ngIf="form.get('initialPositionInStream')?.errors?.required">
+                        integration.kinesis-initial-position-in-stream-required</mat-error>
                 </div>
             </mat-form-field>
         </div>

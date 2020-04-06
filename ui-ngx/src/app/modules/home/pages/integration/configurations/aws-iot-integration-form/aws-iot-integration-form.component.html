@@ -35,20 +35,19 @@
         <div fxLayout="row">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.aws-iot-endpoint</mat-label>
-                <input matInput required  formControlName="host">
-                <div *ngIf="form.get('host')?.dirty">  
-         <mat-error translate *ngIf="form.get('host')?.errors?.required">
+                <input matInput required formControlName="host">
+                <div *ngIf="form.get('host')?.dirty">
+                    <mat-error translate *ngIf="form.get('host')?.errors?.required">
                         integration.aws-iot-endpoint-required
                     </mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.connect-timeout</mat-label>
-                <input matInput type="number" step="1" min="1" max="200" required 
-                    formControlName="connectTimeoutSec">
-                    {{log(form)}}
-                <div *ngIf="form.get('connectTimeoutSec')?.dirty">  
-         <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
+                <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
+
+                <div *ngIf="form.get('connectTimeoutSec')?.dirty">
+                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
                         integration.connect-timeout-required</mat-error>
                     <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">
                         integration.connect-timeout-range</mat-error>
@@ -59,15 +58,17 @@
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
-            <input matInput  formControlName="clientId">
+            <input matInput formControlName="clientId">
         </mat-form-field>
         <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
         <section class="dropdown-section" formGroupName="credentials">
             <div class="tb-container"
                 [ngClass]="form.get('credentials')?.get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('caCertFileName').value" formControlName="caCert" mat-label="integration.ca-cert"
-                    (fileNameChanged)="form.get('credentials')?.get('caCertFileName').patchValue($event)" inputId="ca-cert">
-                </tb-file-input>   
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('caCertFileName').value"
+                    formControlName="caCert" mat-label="integration.ca-cert"
+                    (fileNameChanged)="form.get('credentials')?.get('caCertFileName').patchValue($event)"
+                    inputId="ca-cert">
+                </tb-file-input>
             </div>
             <div class="dropdown-messages">
                 <div *ngIf="!form.get('credentials').get('caCertFileName').value; else caCertFileName"
@@ -77,7 +78,8 @@
             </div>
             <div class="tb-container" [ngClass]="form.get('credentials').certFileName ? 'ng-valid' : 'ng-invalid'">
                 <!--<mat-label class="tb-mat-label" translate>integration.cert</mat-label>-->
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('certFileName').value" formControlName="cert" mat-label="integration.cert"
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('certFileName').value"
+                    formControlName="cert" mat-label="integration.cert"
                     (fileNameChanged)="form.get('credentials')?.get('certFileName').patchValue($event)" inputId="cert">
                 </tb-file-input>
                 <!--
@@ -107,9 +109,10 @@
             <div class="tb-container"
                 [ngClass]="form.get('credentials').get('privateKeyFileName').value ? 'ng-valid' : 'ng-invalid'">
                 <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('privateKeyFileName').value" formControlName="privateKey" mat-label="integration.private-key"
-                    
-                    (fileNameChanged)="form.get('credentials')?.get('privateKeyFileName').patchValue($event)" inputId="private-key">
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('privateKeyFileName').value"
+                    formControlName="privateKey" mat-label="integration.private-key"
+                    (fileNameChanged)="form.get('credentials')?.get('privateKeyFileName').patchValue($event)"
+                    inputId="private-key">
                 </tb-file-input>
                 <!--<div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')" class="tb-file-select-container">
                     <div class="tb-file-clear-container">
@@ -136,7 +139,7 @@
             </div>
             <mat-form-field class="mat-block">
                 <mat-label translate>integration.private-key-password</mat-label>
-                <input matInput type="password"  formControlName="password">
+                <input matInput type="password" formControlName="password">
             </mat-form-field>
         </section>
     </fieldset>
@@ -145,9 +148,8 @@
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required  [disabled]="(isLoading$ | async) || isEdit"
-            [formControl]="downlinkTopicPattern">
-            {{log(downlinkTopicPattern)}}
+        <input matInput required [disabled]="(isLoading$ | async) || isEdit" [formControl]="downlinkTopicPattern">
+
         <div *ngIf="downlinkTopicPattern.dirty">
             <mat-error translate *ngIf="form.get('')?.downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -48,7 +48,7 @@ import { templates } from './integartionFormTemapltes';
   templateUrl: './integration.component.html',
   styleUrls: ['./integration.component.scss']
 })
-export class IntegrationComponent extends EntityComponent<Integration> {
+export class IntegrationComponent extends EntityComponent<Integration> implements OnInit {
 
   integrationType: IntegrationType;
 
@@ -175,7 +175,7 @@ export class IntegrationComponent extends EntityComponent<Integration> {
   }
 
   getIntegrationForm(form: object): FormGroup {
-    let template = form;
+    const template = form;
     for (const key in template) {
       if (template[key] && typeof (template[key]) === 'object' && !Array.isArray(template[key])) {
         template[key] = this.getIntegrationForm(template[key]);

@@ -18,9 +18,4 @@ export class AwsIotIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
-  log(a){
-    console.log(a);    
-  }
-
 }
