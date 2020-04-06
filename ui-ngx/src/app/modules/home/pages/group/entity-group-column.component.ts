@@ -44,6 +44,12 @@ import {
   EntityGroupSortOrder,
   entityGroupSortOrderTranslationMap
 } from '@shared/models/entity-group.models';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  EntityGroupColumnDialogComponent,
+  EntityGroupColumnDialogData
+} from '@home/pages/group/entity-group-column-dialog.component';
+import { deepClone } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-column',
@@ -74,7 +80,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
   removeColumn = new EventEmitter();
 
   @Output()
-  updateColumn = new EventEmitter();
+  updateColumn = new EventEmitter<EntityGroupColumn>();
 
   columnType = EntityGroupColumnType;
 
@@ -87,6 +93,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
   entityGroupSortOrderTranslations = entityGroupSortOrderTranslationMap;
 
   constructor(protected store: Store<AppState>,
+              private dialog: MatDialog,
               private fb: FormBuilder) {
     super(store);
   }
@@ -195,7 +202,24 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
     if ($event) {
       $event.stopPropagation();
     }
-    // TODO:
+    this.dialog.open<EntityGroupColumnDialogComponent, EntityGroupColumnDialogData,
+      EntityGroupColumn>(EntityGroupColumnDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        isReadOnly: this.disabled,
+        column: deepClone(this.modelValue),
+        entityType: this.entityType,
+        columnTypes: this.columnTypes,
+        entityFields: this.entityFields
+      }
+    }).afterClosed().subscribe((column) => {
+      if (column && column !== null) {
+        this.modelValue = column;
+        this.columnFormGroup.reset(column, {emitEvent: false});
+        this.updateModel();
+        this.updateColumn.emit(this.modelValue);
+      }
+    });
   }
-
 }

@@ -79,7 +79,7 @@
                 [formControl]="columnControl"
                 (defaultSortOrderChanged)="defaultSortOrderChanged($index, $event)"
                 (removeColumn)="removeColumn($index)"
-                (updateColumn)="updateColumn($index)">
+                (updateColumn)="updateColumn($index, $event)">
               </tb-entity-group-column>
             </div>
           </div>

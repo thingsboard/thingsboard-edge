@@ -159,8 +159,8 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
     }
   }
 
-  public updateColumn(index: number) {
-    this.defaultSortOrderChanged(index);
+  public updateColumn(index: number, column: EntityGroupColumn) {
+    this.defaultSortOrderChanged(index, column.sortOrder);
   }
 
   public dndMoved(index: number) {

@@ -40,6 +40,7 @@ import { EntityGroupRoutingModule } from '@home/pages/group/entity-group-routing
 import { EntityGroupSettingsComponent } from '@home/pages/group/entity-group-settings.component';
 import { EntityGroupColumnComponent } from '@home/pages/group/entity-group-column.component';
 import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-columns.component';
+import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group-column-dialog.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-colu
     EntityGroupTabsComponent,
     EntityGroupSettingsComponent,
     EntityGroupColumnComponent,
-    EntityGroupColumnsComponent
+    EntityGroupColumnsComponent,
+    EntityGroupColumnDialogComponent
   ],
   imports: [
     CommonModule,
