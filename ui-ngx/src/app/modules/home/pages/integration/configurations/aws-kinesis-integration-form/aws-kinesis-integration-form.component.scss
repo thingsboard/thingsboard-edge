@@ -1,0 +1,16 @@
+.flex {
+    display: fxFlex;
+}
+
+.column {
+    fxFlex-direction: column;
+}
+
+.row {
+    fxFlex-direction: row;
+}
+
+.mat-block {
+    fxFlex:1;
+    margin-right: 20px;
+}

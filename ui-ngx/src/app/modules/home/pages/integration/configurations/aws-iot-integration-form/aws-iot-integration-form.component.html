@@ -1,0 +1,156 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="form" fxLayout="column">
+    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+        <div fxLayout="row">
+            <mat-form-field fxFlex="60" class="mat-block">
+                <mat-label translate>integration.aws-iot-endpoint</mat-label>
+                <input matInput required  formControlName="host">
+                <div *ngIf="form.get('host')?.dirty">  
+         <mat-error translate *ngIf="form.get('host')?.errors?.required">
+                        integration.aws-iot-endpoint-required
+                    </mat-error>
+                </div>
+            </mat-form-field>
+            <mat-form-field fxFlex="40" class="mat-block">
+                <mat-label translate>integration.connect-timeout</mat-label>
+                <input matInput type="number" step="1" min="1" max="200" required 
+                    formControlName="connectTimeoutSec">
+                    {{log(form)}}
+                <div *ngIf="form.get('connectTimeoutSec')?.dirty">  
+         <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
+                        integration.connect-timeout-required</mat-error>
+                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">
+                        integration.connect-timeout-range</mat-error>
+                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.max">
+                        integration.connect-timeout-range</mat-error>
+                </div>
+            </mat-form-field>
+        </div>
+        <mat-form-field class="mat-block">
+            <mat-label translate>integration.client-id</mat-label>
+            <input matInput  formControlName="clientId">
+        </mat-form-field>
+        <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
+        <section class="dropdown-section" formGroupName="credentials">
+            <div class="tb-container"
+                [ngClass]="form.get('credentials')?.get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('caCertFileName').value" formControlName="caCert" mat-label="integration.ca-cert"
+                    (fileNameChanged)="form.get('credentials')?.get('caCertFileName').patchValue($event)" inputId="ca-cert">
+                </tb-file-input>   
+            </div>
+            <div class="dropdown-messages">
+                <div *ngIf="!form.get('credentials').get('caCertFileName').value; else caCertFileName"
+                    class="tb-error-message" translate>
+                    integration.no-file</div>
+                <ng-template #caCertFileName>{{form.get('credentials').get('caCertFileName').value}}</ng-template>
+            </div>
+            <div class="tb-container" [ngClass]="form.get('credentials').certFileName ? 'ng-valid' : 'ng-invalid'">
+                <!--<mat-label class="tb-mat-label" translate>integration.cert</mat-label>-->
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('certFileName').value" formControlName="cert" mat-label="integration.cert"
+                    (fileNameChanged)="form.get('credentials')?.get('certFileName').patchValue($event)" inputId="cert">
+                </tb-file-input>
+                <!--
+                <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'Cert')" class="tb-file-select-container">
+                    <div class="tb-file-clear-container">
+                        <button mat-button (click)="clearCertFile('Cert')" class="tb-file-clear-btn mat-icon-button mat-primary" aria-mat-label="{{ 'action.remove' | translate }}">
+                            <mat-tooltip mat-direction="top">
+                                {{ 'action.remove' | translate }}
+                            </mat-tooltip>
+                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}" class="material-icons">close</mat-icon>
+                        </button>
+                    </div>
+                    <div class="alert tb-flow-drop" flow-drop>
+                        <mat-label for="awsCertSelect" translate>integration.drop-file</mat-label>
+                        <input matInput class="file-input" flow-btn id="awsCertSelect">
+                    </div>
+                </div>
+                -->
+            </div>
+            <div class="dropdown-messages">
+                <mat-error *ngIf="!form.get('credentials').get('caCertFileName').value; else certFileName"
+                    class="tb-error-message" translate>integration.no-file
+                </mat-error>
+                <ng-template #certFileName>{{form.get('credentials').get('caCertFileName').value}}
+                </ng-template>
+            </div>
+            <div class="tb-container"
+                [ngClass]="form.get('credentials').get('privateKeyFileName').value ? 'ng-valid' : 'ng-invalid'">
+                <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
+                <tb-file-input [existingFileName]="form.get('credentials')?.get('privateKeyFileName').value" formControlName="privateKey" mat-label="integration.private-key"
+                    
+                    (fileNameChanged)="form.get('credentials')?.get('privateKeyFileName').patchValue($event)" inputId="private-key">
+                </tb-file-input>
+                <!--<div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')" class="tb-file-select-container">
+                    <div class="tb-file-clear-container">
+                        <button mat-button (click)="clearCertFile('privateKey')" class="tb-file-clear-btn mat-icon-button mat-primary" aria-mat-label="{{ 'action.remove' | translate }}">
+                            <mat-tooltip mat-direction="top">
+                                {{ 'action.remove' | translate }}
+                            </mat-tooltip>
+                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}" class="material-icons">close</mat-icon>
+                        </button>
+                    </div>
+                    <div class="alert tb-flow-drop" flow-drop>
+                        <mat-label for="awsPrivateKeySelect" translate>integration.drop-file</mat-label>
+                        <input matInput class="file-input" flow-btn id="awsPrivateKeySelect">
+                    </div>
+                </div>
+                -->
+            </div>
+            <div class="dropdown-messages">
+                <mat-error *ngIf="!form.get('credentials').get('privateKeyFileName').value; elseprivateKeyFileName"
+                    class="tb-error-message" translate>
+                    integration.no-file</mat-error>
+                <div #privateKeyFileName>{{form.get('credentials').privateKeyFileName}}
+                </div>
+            </div>
+            <mat-form-field class="mat-block">
+                <mat-label translate>integration.private-key-password</mat-label>
+                <input matInput type="password"  formControlName="password">
+            </mat-form-field>
+        </section>
+    </fieldset>
+    <tb-mqtt-topic-filters formControlName="topicFilters" is-edit="isEdit" disable-mqtt-topics="false">
+    </tb-mqtt-topic-filters>
+    <div style="height: 30px;"></div>
+    <mat-form-field class="mat-block">
+        <mat-label translate>integration.downlink-topic-pattern</mat-label>
+        <input matInput required  [disabled]="(isLoading$ | async) || isEdit"
+            [formControl]="downlinkTopicPattern">
+            {{log(downlinkTopicPattern)}}
+        <div *ngIf="downlinkTopicPattern.dirty">
+            <mat-error translate *ngIf="form.get('')?.downlinkTopicPattern.errors?.required">
+                integration.downlink-topic-pattern-required</mat-error>
+        </div>
+    </mat-form-field>
+</section>

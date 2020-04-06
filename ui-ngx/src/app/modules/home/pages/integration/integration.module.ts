@@ -37,11 +37,13 @@ import { HomeComponentsModule } from '@modules/home/components/home-components.m
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
+import { integrations } from './configurations';
 
 @NgModule({
   declarations: [
     IntegrationComponent,
-    IntegrationTabsComponent
+    IntegrationTabsComponent,
+    ...integrations
   ],
   imports: [
     CommonModule,
