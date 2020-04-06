@@ -2219,7 +2219,8 @@
         "user-group": "User group",
         "no-owners-matching": "No owners matching '{{owner}}' were found.",
         "target-owner-required": "Entity group owner is required.",
-        "target-user-group-owner-required": "User group owner is required."
+        "target-user-group-owner-required": "User group owner is required.",
+        "no-group-permissions-text": "No group permissions found"
     },
     "permission": {
         "permissions-required": "At least one permission entry should be specified.",

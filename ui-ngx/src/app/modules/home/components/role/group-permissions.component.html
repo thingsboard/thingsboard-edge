@@ -1,0 +1,200 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="mat-padding tb-entity-table tb-absolute-fill">
+  <div fxFlex fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <span class="tb-entity-table-title">{{(isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>
+        <span fxFlex></span>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                *ngIf="addEnabled"
+                (click)="addGroupPermission($event)"
+                matTooltip="{{ 'action.add' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>add</mat-icon>
+        </button>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
+                matTooltip="{{ 'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="reloadGroupPermissions()"
+                matTooltip="{{ 'action.refresh' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <button mat-button mat-icon-button
+                matTooltip="{{ 'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <mat-form-field fxFlex>
+          <mat-label>&nbsp;</mat-label>
+          <input #searchInput matInput
+                 [(ngModel)]="pageLink.textSearch"
+                 placeholder="{{ 'common.enter-search' | translate }}"/>
+        </mat-form-field>
+        <button mat-button mat-icon-button (click)="exitFilterMode()"
+                matTooltip="{{ 'action.close' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+          <span>
+            {{ translate.get('group-permission.selected-group-permissions', {count: dataSource.selection.selected.length}) | async }}
+          </span>
+        <span fxFlex></span>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                matTooltip="{{ 'action.delete' | translate }}"
+                matTooltipPosition="above"
+                (click)="deleteGroupPermissions($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <div fxFlex class="table-container">
+      <mat-table [dataSource]="dataSource"
+                 matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
+        <ng-container matColumnDef="select" sticky>
+          <mat-header-cell *matHeaderCellDef style="width: 30px;">
+            <mat-checkbox (change)="$event ? dataSource.masterToggle() : null"
+                          [checked]="dataSource.selection.hasValue() && (dataSource.isAllSelected() | async)"
+                          [indeterminate]="dataSource.selection.hasValue() && !(dataSource.isAllSelected() | async)">
+            </mat-checkbox>
+          </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            <mat-checkbox (click)="$event.stopPropagation()"
+                          [fxShow]="!groupPermission.readOnly"
+                          (change)="$event ? dataSource.selection.toggle(groupPermission) : null"
+                          [checked]="dataSource.selection.isSelected(groupPermission)">
+            </mat-checkbox>
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="roleName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: isUserGroup ? '20%' : '33%'}"> {{ 'group-permission.role-name' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            <div fxLayout="row">
+              <span fxFlex style="line-height: 40px;">
+                           {{groupPermission.roleName}}
+              </span>
+              <button mat-icon-button (click)="viewRole($event, groupPermission)"
+                matTooltip="{{ 'role.view' | translate }}"
+                matTooltipPosition="above">
+                <mat-icon>more_horiz</mat-icon>
+              </button>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="isUserGroup" matColumnDef="roleTypeName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 15%"> {{ 'group-permission.role-type' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.roleTypeName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupTypeName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 15%"> {{ 'group-permission.group-type' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.entityGroupTypeName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'group-permission.group-name' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.entityGroupName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupOwnerFullName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'group-permission.group-owner' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.entityGroupOwnerFullName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'group-permission.user-group-name' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.userGroupName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupOwnerFullName">
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'group-permission.user-group-owner' | translate }} </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            {{ groupPermission.userGroupOwnerFullName }}
+          </mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="actions" stickyEnd>
+          <mat-header-cell *matHeaderCellDef style="min-width: 80px; max-width: 80px; width: 80px">
+          </mat-header-cell>
+          <mat-cell *matCellDef="let groupPermission">
+            <div fxFlex fxLayout="row" fxLayoutAlign="end">
+              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      [style.visibility]="!groupPermission.readOnly && editEnabled ? 'visible' : 'hidden'"
+                      matTooltip="{{ 'group-permission.edit' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="editGroupPermission($event, groupPermission)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      [style.visibility]="!groupPermission.readOnly && deleteEnabled ? 'visible' : 'hidden'"
+                      matTooltip="{{ 'group-permission.delete' | translate }}"
+                      matTooltipPosition="above"
+                      (click)="deleteGroupPermission($event, groupPermission)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </mat-cell>
+        </ng-container>
+        <mat-header-row [ngClass]="{'mat-row-select': deleteEnabled}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+        <mat-row [ngClass]="{'mat-row-select': deleteEnabled,
+                             'tb-read-only': groupPermission.readOnly,
+                             'mat-selected': dataSource.selection.isSelected(groupPermission)}"
+                 *matRowDef="let groupPermission; columns: displayedColumns;"
+                 (click)="dataSource.selection.toggle(groupPermission)"></mat-row>
+      </mat-table>
+      <span [fxShow]="dataSource.isEmpty() | async"
+            fxLayoutAlign="center center"
+            class="no-data-found" translate>{{ 'group-permission.no-group-permissions-text' }}</span>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-paginator [length]="dataSource.total() | async"
+                   [pageIndex]="pageLink.page"
+                   [pageSize]="pageLink.pageSize"
+                   [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+  </div>
+</div>

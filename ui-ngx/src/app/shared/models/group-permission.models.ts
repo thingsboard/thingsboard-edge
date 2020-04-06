@@ -55,5 +55,13 @@ export interface GroupPermissionInfo extends GroupPermission {
   userGroupName: string;
   userGroupOwnerId: EntityId;
   userGroupOwnerName: string;
-  isReadOnly: boolean;
+  readOnly: boolean;
+}
+
+export interface GroupPermissionFullInfo extends GroupPermissionInfo {
+  roleName?: string;
+  roleTypeName?: string;
+  entityGroupTypeName?: string;
+  entityGroupOwnerFullName?: string;
+  userGroupOwnerFullName?: string;
 }

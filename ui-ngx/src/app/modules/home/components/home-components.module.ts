@@ -85,6 +85,10 @@ import { ConverterAutocompleteComponent } from '@home/components/converter/conve
 import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
+import { GroupPermissionsComponent } from '@home/components/role/group-permissions.component';
+import { OwnerAutocompleteComponent } from '@home/components/role/owner-autocomplete.component';
+import { GroupPermissionDialogComponent } from '@home/components/role/group-permission-dialog.component';
+import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
 
 @NgModule({
   declarations:
@@ -137,7 +141,11 @@ import { PermissionListComponent } from '@home/components/role/permission-list.c
       ConverterAutocompleteComponent,
       OperationTypeListComponent,
       ResourceTypeAutocompleteComponent,
-      PermissionListComponent
+      PermissionListComponent,
+      GroupPermissionsComponent,
+      GroupPermissionDialogComponent,
+      ViewRoleDialogComponent,
+      OwnerAutocompleteComponent
     ],
   imports: [
     CommonModule,
@@ -183,7 +191,11 @@ import { PermissionListComponent } from '@home/components/role/permission-list.c
     ConverterAutocompleteComponent,
     OperationTypeListComponent,
     ResourceTypeAutocompleteComponent,
-    PermissionListComponent
+    PermissionListComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
+    ViewRoleDialogComponent,
+    OwnerAutocompleteComponent
   ],
   providers: [
     WidgetComponentService,
