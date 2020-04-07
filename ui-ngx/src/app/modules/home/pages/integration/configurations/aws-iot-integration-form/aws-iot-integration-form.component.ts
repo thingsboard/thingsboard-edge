@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
-import { IntegrationType } from '@app/shared/models/integration.models';
+import { Observable } from 'rxjs';
+
 
 @Component({
   selector: 'tb-aws-iot-integration-form',
@@ -9,10 +10,12 @@ import { IntegrationType } from '@app/shared/models/integration.models';
 })
 export class AwsIotIntegrationFormComponent implements OnInit {
 
+  @Input() isLoading$: Observable<boolean>;
+  @Input() isEdit: boolean;
   @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
   @Input() form: FormGroup;
-  @Input() integrationType: IntegrationType;
+
 
   constructor() { }
 

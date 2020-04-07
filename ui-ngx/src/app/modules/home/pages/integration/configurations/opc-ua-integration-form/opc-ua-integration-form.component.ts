@@ -1,7 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { IntegrationType } from '@app/shared/models/integration.models';
-import { opcUaMappingType, extensionKeystoreType } from '../../integartionFormTemapltes';
+import { Observable } from 'rxjs';
+
+import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integartion-forms-temapltes';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -10,11 +11,15 @@ import { opcUaMappingType, extensionKeystoreType } from '../../integartionFormTe
 })
 export class OpcUaIntegrationFormComponent implements OnInit {
 
+  @Input() isLoading$: Observable<boolean>;
+  @Input() isEdit: boolean;
   @Input() form: FormGroup;
-  @Input() integrationType: IntegrationType;
 
+  identityType =identityType;
   opcUaMappingType = opcUaMappingType;
   extensionKeystoreType = extensionKeystoreType;
+  opcSecurityTypes = opcSecurityTypes;
+
   constructor() { }
 
   ngOnInit(): void {

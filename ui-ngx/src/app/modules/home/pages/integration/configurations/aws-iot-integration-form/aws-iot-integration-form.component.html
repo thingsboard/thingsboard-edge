@@ -62,88 +62,14 @@
         </mat-form-field>
         <div class="tb-panel-title">{{ 'integration.aws-iot-credentials' | translate }}</div>
         <section class="dropdown-section" formGroupName="credentials">
-            <div class="tb-container"
-                [ngClass]="form.get('credentials')?.get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('caCertFileName').value"
-                    formControlName="caCert" mat-label="integration.ca-cert"
-                    (fileNameChanged)="form.get('credentials')?.get('caCertFileName').patchValue($event)"
-                    inputId="ca-cert">
-                </tb-file-input>
-            </div>
-            <div class="dropdown-messages">
-                <div *ngIf="!form.get('credentials').get('caCertFileName').value; else caCertFileName"
-                    class="tb-error-message" translate>
-                    integration.no-file</div>
-                <ng-template #caCertFileName>{{form.get('credentials').get('caCertFileName').value}}</ng-template>
-            </div>
-            <div class="tb-container" [ngClass]="form.get('credentials').certFileName ? 'ng-valid' : 'ng-invalid'">
-                <!--<mat-label class="tb-mat-label" translate>integration.cert</mat-label>-->
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('certFileName').value"
-                    formControlName="cert" mat-label="integration.cert"
-                    (fileNameChanged)="form.get('credentials')?.get('certFileName').patchValue($event)" inputId="cert">
-                </tb-file-input>
-                <!--
-                <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'Cert')" class="tb-file-select-container">
-                    <div class="tb-file-clear-container">
-                        <button mat-button (click)="clearCertFile('Cert')" class="tb-file-clear-btn mat-icon-button mat-primary" aria-mat-label="{{ 'action.remove' | translate }}">
-                            <mat-tooltip mat-direction="top">
-                                {{ 'action.remove' | translate }}
-                            </mat-tooltip>
-                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}" class="material-icons">close</mat-icon>
-                        </button>
-                    </div>
-                    <div class="alert tb-flow-drop" flow-drop>
-                        <mat-label for="awsCertSelect" translate>integration.drop-file</mat-label>
-                        <input matInput class="file-input" flow-btn id="awsCertSelect">
-                    </div>
-                </div>
-                -->
-            </div>
-            <div class="dropdown-messages">
-                <mat-error *ngIf="!form.get('credentials').get('caCertFileName').value; else certFileName"
-                    class="tb-error-message" translate>integration.no-file
-                </mat-error>
-                <ng-template #certFileName>{{form.get('credentials').get('caCertFileName').value}}
-                </ng-template>
-            </div>
-            <div class="tb-container"
-                [ngClass]="form.get('credentials').get('privateKeyFileName').value ? 'ng-valid' : 'ng-invalid'">
-                <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
-                <tb-file-input [existingFileName]="form.get('credentials')?.get('privateKeyFileName').value"
-                    formControlName="privateKey" mat-label="integration.private-key"
-                    (fileNameChanged)="form.get('credentials')?.get('privateKeyFileName').patchValue($event)"
-                    inputId="private-key">
-                </tb-file-input>
-                <!--<div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')" class="tb-file-select-container">
-                    <div class="tb-file-clear-container">
-                        <button mat-button (click)="clearCertFile('privateKey')" class="tb-file-clear-btn mat-icon-button mat-primary" aria-mat-label="{{ 'action.remove' | translate }}">
-                            <mat-tooltip mat-direction="top">
-                                {{ 'action.remove' | translate }}
-                            </mat-tooltip>
-                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}" class="material-icons">close</mat-icon>
-                        </button>
-                    </div>
-                    <div class="alert tb-flow-drop" flow-drop>
-                        <mat-label for="awsPrivateKeySelect" translate>integration.drop-file</mat-label>
-                        <input matInput class="file-input" flow-btn id="awsPrivateKeySelect">
-                    </div>
-                </div>
-                -->
-            </div>
-            <div class="dropdown-messages">
-                <mat-error *ngIf="!form.get('credentials').get('privateKeyFileName').value; elseprivateKeyFileName"
-                    class="tb-error-message" translate>
-                    integration.no-file</mat-error>
-                <div #privateKeyFileName>{{form.get('credentials').privateKeyFileName}}
-                </div>
-            </div>
+            <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>                        
             <mat-form-field class="mat-block">
                 <mat-label translate>integration.private-key-password</mat-label>
                 <input matInput type="password" formControlName="password">
             </mat-form-field>
         </section>
     </fieldset>
-    <tb-mqtt-topic-filters formControlName="topicFilters" is-edit="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters formControlName="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
@@ -151,7 +77,7 @@
         <input matInput required [disabled]="(isLoading$ | async) || isEdit" [formControl]="downlinkTopicPattern">
 
         <div *ngIf="downlinkTopicPattern.dirty">
-            <mat-error translate *ngIf="form.get('')?.downlinkTopicPattern.errors?.required">
+            <mat-error translate *ngIf="form.get('')?.errors.downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>

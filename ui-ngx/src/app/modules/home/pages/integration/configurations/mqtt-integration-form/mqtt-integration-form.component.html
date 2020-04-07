@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [diabled]="(isLoading$ | async) || isEdit">
+    <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <div fxLayout="column" fxLayout="row">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
@@ -45,8 +45,8 @@
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
                     <mat-error translate *ngIf="form.get('port')?.errors.required">integration.port-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.min">integration.port-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.max">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors.min">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors.max">integration.port-range</mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
@@ -55,8 +55,8 @@
                 <div *ngIf="form.get('connectTimeoutSec')?.dirty">
                     <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">
                         integration.connect-timeout-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.min">integration.connect-timeout-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.max">integration.connect-timeout-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors.min">integration.connect-timeout-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors.max">integration.connect-timeout-range</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -66,108 +66,106 @@
             <div *ngIf="form.get('clientId')?.dirty">
                 <mat-error translate *ngIf="form.get('clientId')?.errors.pattern">integration.client-id-pattern
                 </mat-error>
-                <mat-error translate *ngIf="form.get('')?.maxlength">integration.client-id-range</mat-error>
+                <mat-error translate *ngIf="form.get('')?.errors.maxlength">integration.client-id-range</mat-error>
             </div>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox [diabled]="(isLoading$ | async) || isEdit"
-                aria-mat-label="{{ 'integration.clean-session' | translate }}" formControlName="cleanSession">
+            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                aria-label="'integration.clean-session | translate" formControlName="cleanSession">
                 {{ 'integration.clean-session' | translate }}
             </mat-checkbox>
-            <mat-checkbox [diabled]="(isLoading$ | async) || isEdit"
-                aria-mat-label="{{ 'integration.enable-ssl' | translate }}" formControlName="ssl">
+            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit" aria-label="'integration.enable-ssl | translate"
+                formControlName="ssl">
                 {{ 'integration.enable-ssl' | translate }}
             </mat-checkbox>
         </div>
-        <mat-accordeon class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
-            mat-component-id="credentialsPanelGroup">
-            <mat-expansion-panel mat-component-id="credentialsPanel">
-
-                <mat-expansion-panel-header ng-click="$matExpansionPanel('credentialsPanel').collapse()">
+        <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
                     <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
                     <div class="tb-panel-prompt">
                         {{ mqttCredentialTypes[form?.get('credentialsType')?.value]?.name | translate }}</div>
                     <span fxFlex></span>
-                    <mat-expansion-panel-icon></mat-expansion-panel-icon>
                 </mat-expansion-panel-header>
-                <mat-expansion-panel-content>
-                    <div>
+                <div>
+                    <mat-form-field class="mat-block">
+                        <mat-label translate>integration.credentials-type</mat-label>
+                        <mat-select required formControlName="credentialsType"
+                            [disabled]="(isLoading$ | async) || isEdit" (change)="credentialsTypeChanged()">
+                            <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
+                                [value]="credentialsType?.value">
+                                {{credentialsType?.value.name | translate}}
+                            </mat-option>
+                        </mat-select>
+                        <div *ngIf="form.get('credentialsType')?.dirty">
+                            <mat-error translate *ngIf="form.get('credentialsType')?.errors.required">
+                                integration.credentials-type-required</mat-error>
+                        </div>
+                    </mat-form-field>
+                    {{form?.get('credentialsType')}}
+                    <section *ngIf="form?.get('credentialsType')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
-                            <mat-label translate>integration.credentials-type</mat-label>
-                            <mat-select required formControlName="credentialsType"
-                                [diabled]="(isLoading$ | async) || isEdit" (change)="credentialsTypeChanged()">
-                                <mat-option *ngFor="let credentialsType in mqttCredentialTypes | keyvalue"
-                                    [value]="credentialsType?.value">
-                                    {{credentialsType?.value.name | translate}}
-                                </mat-option>
-                            </mat-select>
-                            <div *ngIf="form.get('credentialsType')?.dirty">
-                                <mat-error translate *ngIf="form.get('credentialsType')?.errors.required">
-                                    integration.credentials-type-required</mat-error>
+                            <mat-label translate>integration.username</mat-label>
+                            <input matInput required formControlName="mqttUsername">
+                            <div *ngIf="form.get('mqttUsername')?.dirty">
+                                <mat-error translate *ngIf="form.get('mqttUsername')?.errors.required">
+                                    integration.username-required</mat-error>
                             </div>
                         </mat-form-field>
-                        {{form?.get('credentialsType')}}
-                        <section *ngIf="form?.get('credentialsType')?.value == mqttCredentialTypes.basic.value">
-                            <mat-form-field class="mat-block">
-                                <mat-label translate>integration.username</mat-label>
-                                <input matInput required formControlName="mqttUsername">
-                                <div *ngIf="form.get('mqttUsername')?.dirty">
-                                    <mat-error translate *ngIf="form.get('mqttUsername')?.errors.required">
-                                        integration.username-required</mat-error>
-                                </div>
-                            </mat-form-field>
-                            <mat-form-field class="mat-block">
-                                <mat-label translate>integration.password</mat-label>
-                                <input matInput type="password" required formControlName="mqttPassword">
-                                <div *ngIf="form.get('mqttPassword')?.dirty">
-                                    <mat-error translate *ngIf="form.get('mqttPassword')?.errors.required">
-                                        integration.password-required</mat-error>
-                                </div>
-                            </mat-form-field>
-                        </section>
-                        <section *ngIf="form?.get('credentialsType')?.value == mqttCredentialTypes['cert.PEM'].value"
-                            class="dropdown-section">
-                            <div class="tb-container"
-                                [ngClass]="credentials.caCertFileName ? 'ng-valid' : 'ng-invalid'">
+                        <mat-form-field class="mat-block">
+                            <mat-label translate>integration.password</mat-label>
+                            <input matInput type="password" required formControlName="mqttPassword">
+                            <div *ngIf="form.get('mqttPassword')?.dirty">
+                                <mat-error translate *ngIf="form.get('mqttPassword')?.errors.required">
+                                    integration.password-required</mat-error>
+                            </div>
+                        </mat-form-field>
+                    </section>
+                    <section *ngIf="form?.get('credentialsType')?.value === mqttCredentialTypes['cert.PEM'].value"
+                        class="dropdown-section">
+                        <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
+                        <!--  <div class="tb-container"
+                                [ngClass]="form.get('credentials').get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
+                                <tb-file-input [existingFileName]="form.get('credentials')?.get('caCertFileName').value"
+                                formControlName="caCert" mat-label="integration.ca-cert"
+                                (fileNameChanged)="form.get('credentials')?.get('caCertFileName').patchValue($event)"
+                                inputId="ca-cert">
+                            </tb-file-input>
                                 <mat-label class="tb-mat-label" translate>integration.ca-cert</mat-label>
                                 <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'caCert')"
                                     class="tb-file-select-container">
                                     <div class="tb-file-clear-container">
-                                        <mat-button ng-click="clearCertFile('caCert')"
+                                        <button mat-button (click)="clearCertFile('caCert')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
-                                            aria-mat-label="{{ 'action.remove' | translate }}">
-                                            <mat-tooltip mat-direction="top">
-                                                {{ 'action.remove' | translate }}
-                                            </mat-tooltip>
-                                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}"
+                                            aria-label="'action.remove' | translate"
+                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
-                                        </mat-button>
+                                        </button>
                                     </div>
                                     <div class="alert tb-flow-drop" flow-drop>
                                         <mat-label for="caCertSelect" translate>integration.drop-file</mat-label>
                                         <input matInput class="file-input" flow-btn id="caCertSelect">
                                     </div>
-                                </div>
+                                </div>->
                             </div>
                             <div class="dropdown-messages">
-                                <div *ngIf="!credentials.caCertFileName" class="tb-error-message" translate>
+                                <div *ngIf="!form.get('credentials').get('caCertFileName').value" class="tb-error-message" translate>
                                     integration.no-file</div>
-                                <div *ngIf="credentials.caCertFileName">{{credentials.caCertFileName}}</div>
+                                <div *ngIf="form.get('credentials').get('caCertFileName').value">{{form.get('credentials').get('caCertFileName').value}}</div>
                             </div>
-                            <div class="tb-container" [ngClass]="credentials.certFileName ? 'ng-valid' : 'ng-invalid'">
+                            <div class="tb-container" [ngClass]="form.get('credentials').get('certFileName').value ? 'ng-valid' : 'ng-invalid'">
                                 <mat-label class="tb-mat-label" translate>integration.cert</mat-label>
                                 <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'Cert')"
                                     class="tb-file-select-container">
                                     <div class="tb-file-clear-container">
-                                        <mat-button ng-click="clearCertFile('Cert')"
+                                        <button mat-button (click)="clearCertFile('Cert')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
-                                            aria-mat-label="{{ 'action.remove' | translate }}">
-                                            <mat-tooltip mat-direction="top">
-                                                {{ 'action.remove' | translate }}
-                                            </mat-tooltip>
-                                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}"
+                                            aria-label="'action.remove | translate"
+                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
-                                        </mat-button>
+                                        </button>
                                     </div>
                                     <div class="alert tb-flow-drop" flow-drop>
                                         <mat-label for="CertSelect" translate>integration.drop-file</mat-label>
@@ -176,25 +174,23 @@
                                 </div>
                             </div>
                             <div class="dropdown-messages">
-                                <div *ngIf="!credentials.certFileName" class="tb-error-message" translate>
+                                <div *ngIf="!form.get('credentials').get('certFileName').value" class="tb-error-message" translate>
                                     integration.no-file</div>
-                                <div *ngIf="credentials.certFileName">{{credentials.certFileName}}</div>
+                                <div *ngIf="form.get('credentials').get('certFileName').value">{{form.get('credentials').get('certFileName').value}}</div>
                             </div>
                             <div class="tb-container"
-                                [ngClass]="credentials.privateKeyFileName ? 'ng-valid' : 'ng-invalid'">
+                                [ngClass]="form.get('credentials').get('privateKeyFileName').value ? 'ng-valid' : 'ng-invalid'">
                                 <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
                                 <div flow-init="{singleFile:true}" flow-file-added="certFileAdded($file, 'privateKey')"
                                     class="tb-file-select-container">
                                     <div class="tb-file-clear-container">
-                                        <mat-button ng-click="clearCertFile('privateKey')"
+                                        <button mat-button (click)="clearCertFile('privateKey')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
-                                            aria-mat-label="{{ 'action.remove' | translate }}">
-                                            <mat-tooltip mat-direction="top">
-                                                {{ 'action.remove' | translate }}
-                                            </mat-tooltip>
-                                            <mat-icon aria-mat-label="{{ 'action.remove' | translate }}"
+                                            aria-label="'action.remove | translate"
+                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
-                                        </mat-button>
+                                        </button>
                                     </div>
                                     <div class="alert tb-flow-drop" flow-drop>
                                         <mat-label for="privateKeySelect" translate>integration.drop-file</mat-label>
@@ -203,27 +199,25 @@
                                 </div>
                             </div>
                             <div class="dropdown-messages">
-                                <div *ngIf="!credentials.privateKeyFileName" class="tb-error-message" translate>
+                                <div *ngIf="!form.get('credentials').get('privateKeyFileName').value" class="tb-error-message" translate>
                                     integration.no-file</div>
-                                <div *ngIf="credentials.privateKeyFileName">{{credentials.privateKeyFileName}}</div>
-                            </div>
-                            <mat-form-field class="mat-block">
-                                <mat-label translate>integration.private-key-password</mat-label>
-                                <input matInput type="password" formControlName="privateKeyPassword">
-                            </mat-form-field>
-                        </section>
-                    </div>
-                </mat-expansion-panel-content>
-
+                                <div *ngIf="form.get('credentials').get('privateKeyFileName').value">{{form.get('credentials').get('privateKeyFileName').value}}</div>
+                            </div>-->
+                        <mat-form-field class="mat-block">
+                            <mat-label translate>integration.private-key-password</mat-label>
+                            <input matInput type="password" formControlName="privateKeyPassword">
+                        </mat-form-field>
+                    </section>
+                </div>
             </mat-expansion-panel>
-        </mat-accordeon>
+        </mat-accordion>
     </fieldset>
-    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" is-edit="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [diabled]="(isLoading$ | async) || isEdit"
+        <input matInput required [disabled]="(isLoading$ | async) || isEdit"
             formControlName="configuration.downlinkTopicPattern">
         <div *ngIf="form.get('downlinkTopicPattern')?.dirty">
             <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors.required">

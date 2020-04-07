@@ -1,3 +1,4 @@
+import { CertUploadComponent } from './cert-upload/cert-upload.component';
 import { HttpIntegrationFormComponent } from './http-integration-form/http-integration-form.component';
 import { MqttIntegrationFormComponent } from './mqtt-integration-form/mqtt-integration-form.component';
 import { OpcUaIntegrationFormComponent } from './opc-ua-integration-form/opc-ua-integration-form.component';
@@ -10,8 +11,12 @@ import { KafkaIntegrationFormComponent } from './kafka-integration-form/kafka-in
 import { TcpIntegrationFormComponent } from './tcp-integration-form/tcp-integration-form.component';
 import { TtnIntegrationFormComponent } from './ttn-integration-form/ttn-integration-form.component';
 import { UdpIntegrationFormComponent } from './udp-integration-form/udp-integration-form.component';
+import { MqttTopicFiltersComponent } from './mqtt-topic-filters/mqtt-topic-filters.component';
+import { OpcUaSubscriptionTagsComponent } from './opc-ua-subscription-tags/opc-ua-subscription-tags.component';
 
 export const integrations = [
+    CertUploadComponent,
+    OpcUaSubscriptionTagsComponent,
     HttpIntegrationFormComponent,
     MqttIntegrationFormComponent,
     OpcUaIntegrationFormComponent,
@@ -23,5 +28,6 @@ export const integrations = [
     KafkaIntegrationFormComponent,
     TcpIntegrationFormComponent,
     TtnIntegrationFormComponent,
-    UdpIntegrationFormComponent
+    UdpIntegrationFormComponent,
+    MqttTopicFiltersComponent,
 ];

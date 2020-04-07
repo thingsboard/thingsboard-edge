@@ -74,27 +74,27 @@
             </div>
         </mat-error>
         <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
-            aria-mat-label="{{ 'integration.enable-ssl' | translate }}" formControlName="autoCreateTopics"
+            aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
             style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
             <span translate>integration.auto-create-topics</span>
         </mat-checkbox>
-        <mat-accordeon class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
-            mat-component-id="otherPropertiesPanelGroup">
-            <mat-expansion-panel mat-component-id="{{otherPropertiesPanelId}}">
+        <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
+           >
+            <mat-expansion-panel>
 
-                <mat-expansion-panel-header ng-click="$matExpansionPanel(otherPropertiesPanelId).collapse()">
+                <mat-expansion-panel-header >
                     <div class="tb-panel-title" translate>integration.other-properties</div>
                     <span fxFlex></span>
-                    <mat-expansion-panel-icon></mat-expansion-panel-icon>
+                    
                 </mat-expansion-panel-header>
-                <mat-expansion-panel-content>
-                    <tb-key-val-map title-text="{{'integration.other-properties' | translate}}"
+                
+                    <tb-key-val-map titleText="{{'integration.other-properties' | translate}}"
                         [disabled]="(isLoading$ | async) || isEdit" key-val-map="otherProperties"></tb-key-val-map>
-                </mat-expansion-panel-content>
+                
 
             </mat-expansion-panel>
-        </mat-accordeon>
+        </mat-accordion>
     </fieldset>
     <div style="height: 30px;"></div>
 </section>

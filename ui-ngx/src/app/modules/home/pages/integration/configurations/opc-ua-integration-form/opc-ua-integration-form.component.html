@@ -84,8 +84,8 @@
                 <mat-label translate>integration.opc-ua-security</mat-label>
                 <mat-select required [disabled]="(isLoading$ | async) || isEdit" (change)="opcUaSecurityTypeChanged()"
                     formControlName="security">
-                    <mat-option [value]="securityType" *ngFor="let security of opcSecurityTypes | keyvalue">
-                        <span>{{securityValue}}</span></mat-option>
+                    <mat-option [value]="security.value" *ngFor="let security of opcSecurityTypes | keyvalue">
+                        <span>{{security.value}}</span></mat-option>
                 </mat-select>
                 <div *ngIf="form.get('securityType')?.dirty">
                     <mat-error translate *ngIf="form.get('securityType')?.errors?.required">
@@ -95,8 +95,8 @@
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-identity</mat-label>
                 <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="type">
-                    <mat-option [value]="identityType" *ngIf="identityType && identityType[identity]">
-                        <span>{{identityValue | translate}}</span></mat-option>
+                    <mat-option [value]="identity.value" *ngFor="let identity of identityType | keyvalue">
+                        <span>{{identity.value | translate}}</span></mat-option>
                 </mat-select>
                 <div *ngIf="form.get('identityType')?.dirty">
                     <mat-error translate *ngIf="form.get('identity').get('type')?.errors?.required">
@@ -105,10 +105,10 @@
                 </div>
             </mat-form-field>
         </div>
-        <div *ngIf="type != 'username'">
+        <div *ngIf="form.get('identity').get('type').value !== 'username'">
             <span class="" ng-init="configuration.clientConfiguration.identity = {'type':'anonymous'}"></span>
         </div>
-        <div fxLayout="row" *ngIf="type == 'username'">
+        <div fxLayout="row" *ngIf="form.get('identity').get('type').value === 'username'">
             <mat-form-field fxFlex="50" class="mat-block"
                 mat-is-error="form.identityUsername.$touched && form.identityUsername.$invalid">
                 <mat-label translate>integration.username</mat-label>
@@ -129,12 +129,13 @@
                 </div>
             </mat-form-field>
         </div>
-        <mat-accordion class="tb-integration-panel-group opc-ua-keystore" *ngIf="security != 'None'"
-            [ngClass]="{'disabled': (isLoading$ | async) || isEdit}" mat-component-id="opcUaKeystorePanelGroup">
-            <mat-expansion-panel mat-component-id="opcUaKeystorePanel">
+        <mat-accordion class="tb-integration-panel-group opc-ua-keystore"
+            *ngIf="form.get('identity').get('security').value!== 'None'"
+            [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+            <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <div class="tb-panel-title">{{ 'integration.opc-ua-keystore' | translate }}</div>
-                    <div class="tb-panel-prompt" translate *ngIf="!fileContent">integration.add-opc-ua-keystore-prompt
+                    <div class="tb-panel-prompt" translate *ngIf="!form.get('keystore').get('fileContent').value">integration.add-opc-ua-keystore-prompt
                     </div>
                     <span fxFlex></span>
 
@@ -150,9 +151,8 @@
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.opc-ua-keystore-type</mat-label>
                         <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="type">
-                            {{keystore}}
-                            <mat-option [value]="keystoreType" *ngIf="extensionKeystoreType[keystore]">
-                                <span>{{keystoreValue}}</span></mat-option>
+                            <mat-option [value]="keystore.value" *ngFor="let keystore of extensionKeystoreType">
+                                <span>{{keystore.value}}</span></mat-option>
                         </mat-select>
                         <div *ngIf="form.get('keystore').dirty">
                             <mat-error translate *ngIf="form.get('keydtore')?.errors?.required">
@@ -161,16 +161,22 @@
                         </div>
                     </mat-form-field>
                     <section class="dropdown-section">
-                        <div class="tb-container" [ngClass]="{'ng-invalid':!fileContent}">
-                            <mat-label class="tb-mat-label" translate>integration.opc-ua-keystore-location</mat-label>
-                            <tb-file-input formControlName="fileContent"></tb-file-input>
+                        <div class="tb-container"
+                            [ngClass]="{'ng-invalid':!form?.get('keystore').get('fileContent').value}">
+                            <div class="tb-container"
+                                [ngClass]="form?.get('keystore').get('fileContent').value ? 'ng-valid' : 'ng-invalid'">
+                                <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
+                                <tb-file-input [existingFileName]="form?.get('keystore').get('location').value"
+                                    formControlName="fileContent" mat-label="integration.opc-ua-keystore-location"
+                                    (fileNameChanged)="form?.get('keystore').get('fileContent').patchValue($event)"
+                                    inputId="location">
+                                </tb-file-input>
+                            </div>
                             <!-- <div flow-init="{singleFile:true}" flow-file-added='opcUaKeystoreFileAdded($file)' class="tb-file-select-container">
                                         <div class="tb-file-clear-container">
-                                            <button mat-button click='clearUaKeystoreFile()' class="tb-file-clear-btn mat-icon-button mat-primary" aria-mat-label="{{ 'action.remove' | translate }}">
-                                                <mat-tooltip mat-direction="top">
-                                                    {{ 'action.remove' | translate }}
-                                                </mat-tooltip>
-                                                <mat-icon aria-mat-label="{{ 'action.remove' | translate }}" class="material-icons">close</mat-icon>
+                                            <button mat-button click='clearUaKeystoreFile()' class="tb-file-clear-btn mat-icon-button mat-primary" aria-label="'action.remove | translate"
+                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                                <mat-icon aria-label="'action.remove | translate" class="material-icons">close</mat-icon>
                                             </button>
                                         </div>
                                       
@@ -187,8 +193,8 @@
                                     -->
                         </div>
                         <div class="dropdown-messages">
-                            <div *ngIf="!fileContent" class="tb-error-message" translate>integration.no-file</div>
-                            <div *ngIf="form.get('keystore').get('location')">{{location}}</div>
+                            <div *ngIf="!form.get('keystore').get('fileContent').value" class="tb-error-message" translate>integration.no-file</div>
+                            <div *ngIf="form.get('keystore').get('location').value">{{form.get('keystore').get('location').value}}</div>
                         </div>
                     </section>
                     <div fxFlex fxLayout="row">
@@ -224,32 +230,28 @@
             </mat-expansion-panel>
         </mat-accordion>
         <mat-accordion class="tb-integration-panel-group opc-ua-mapping"
-            [ngClass]="{'disabled': (isLoading$ | async) || isEdit}" mat-component-id="opcUaMappingPanelGroup">
-            <mat-expansion-panel mat-component-id="opcUaMappingPanel">
+            [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+            <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <div class="tb-panel-title">{{ 'integration.opc-ua-mapping' | translate }}</div>
-                    <div class="tb-panel-prompt" translate *ngIf="!mapping?.length">
+                    <div class="tb-panel-prompt" translate *ngIf="!form.get('mapping')['length']">
                         integration.add-opc-ua-mapping-prompt</div>
                     <span fxFlex></span>
                 </mat-expansion-panel-header>
-                <div *ngIf="mapping?.length > 0">
+                <div *ngIf="form.get('mapping')['length'] > 0">
                     <ol class="list-group">
-                        <li class="list-group-item">
-                            <!--*ngIf="(mapIndex, map) in mapping"-->
+                        <li class="list-group-item" *ngFor="let map of form.get('mapping');let mapIndex = index">
+
                             <button mat-button *ngIf="!((isLoading$ | async) || isEdit)"
-                                [disabled]="(isLoading$ | async)" aria-mat-label="{{ 'action.remove' | translate }}"
-                                class="mat-icon-button" click="removeItem(map, mapping)">
-                                <ng-mat-icon icon="close" aria-mat-label="{{ 'action.remove' | translate }}">
-                                </ng-mat-icon>
-                                <mat-tooltip mat-direction="top">
-                                    {{ 'action.remove' | translate }}
-                                </mat-tooltip>
+                                [disabled]="(isLoading$ | async)" aria-label="'action.remove | translate"
+                                class="mat-icon-button" click="removeItem(map, mapping)"
+                                matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
                             </button>
                             <mat-card>
                                 <mat-card-content>
                                     <div fxFlex fxLayout="row">
                                         <mat-form-field fxFlex="50" class="mat-block"
-                                            *ngIf="map.mappingType ==opcUaMappingType.ID">
+                                            *ngIf="map.mappingType === opcUaMappingType.ID">
                                             <mat-label translate>integration.opc-ua-namespace</mat-label>
                                             <input matInput
                                                 placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
@@ -262,9 +264,9 @@
                                                 placeholder="{{ 'integration.opc-ua-mapping-type' | translate }}"
                                                 [disabled]="(isLoading$ | async) || isEdit" required
                                                 formControlName="map.mappingType">
-                                                <!--*ngIf="(mappingType, mappingValue) inopcUaMappingType"-->
-                                                <mat-option [value]="mappingType">
-                                                    {{mappingValue}}
+                                                <mat-option *ngFor="let mapping of opcUaMappingType | keyvalue"
+                                                    [value]="mapping.value.type">
+                                                    {{mapping.value}}
                                                 </mat-option>
                                             </mat-select>
                                             <div *ngIf="form['mappingType_' + mapIndex].dirty">
@@ -280,29 +282,27 @@
                                                 placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
                                                 [disabled]="(isLoading$ | async) || isEdit" required
                                                 formControlName="map.deviceNodePattern">
-                                            <div *ngIf="form['deviceNodePattern_' + mapIndex].dirty">
-                                                <mat-error translate *ngIf="form.get('')?.errors?.required">
+                                            <div *ngIf="map.get('deviceNodePattern_' + mapIndex).dirty">
+                                                <mat-error translate
+                                                    *ngIf="form.get('deviceNodePattern_' + mapIndex)?.errors?.required">
                                                     integration.opc-ua-device-node-pattern-required</mat-error>
                                             </div>
                                         </mat-form-field>
                                     </div>
-                                    <tb-opc-ua-subscription-tags formControlName="map.subscriptionTags"
-                                        is-edit="isEdit"></tb-opc-ua-subscription-tags>
+                                    <tb-opc-ua-subscription-tags form="map.get('subscriptionTags')">
+                                    </tb-opc-ua-subscription-tags>
                                 </mat-card-content>
                             </mat-card>
                         </li>
                     </ol>
                 </div>
-                <span *ngIf="!mapping?.length" layout-align="center center"
+                <span *ngIf="!form.get('mapping')['length']" layout-align="center center"
                     [ngClass]="{'disabled': (isLoading$ | async) || isEdit}" class="no-data-found"
                     translate>integration.add-opc-ua-mapping-prompt</span>
                 <div>
                     <button mat-button *ngIf="!((isLoading$ | async) || isEdit)" [disabled]="(isLoading$ | async)"
-                        class="mat-primary mat-raised" click="addMap(mapping)"
-                        aria-mat-label="{{ 'action.add' | translate }}">
-                        <mat-tooltip mat-direction="top">
-                            {{ 'integration.opc-ua-add-map' | translate }}
-                        </mat-tooltip>
+                        class="mat-primary mat-raised" click="addMap(mapping)" aria-label="'action.add | translate"
+                        matTooltip=" 'integration.opc-ua-add-map' | translate " matTooltipPosition="top">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.opc-ua-add-map</span>
                     </button>

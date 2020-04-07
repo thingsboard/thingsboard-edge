@@ -116,6 +116,7 @@ export const templates = {
       security: [],
       type: []
     },
+    mapping: 'array',
     keystore: {
       fileContent: [],
       type: [],
@@ -199,4 +200,57 @@ export const initialPositionInStream = {
   latest: 'LATEST',
   trim_horizon: 'TRIM_HORIZON',
   at_timestamp: 'AT_TIMESTAMP'
+}
+
+export const topicFilters = {
+
+}
+
+export const handlerConfigurationTypes = {
+  text: {
+    value: 'TEXT',
+    name: 'extension.text'
+  },
+  binary: {
+    value: 'BINARY',
+    name: 'extension.binary'
+  },
+  json: {
+    value: 'JSON',
+    name: 'extension.json'
+  },
+  hex: {
+    value: 'HEX',
+    name: 'extension.hex'
+  }
+}
+
+export const tcpTextMessageSeparator = {
+  systemLineSeparator: {
+    value: 'SYSTEM_LINE_SEPARATOR'
+  },
+  nulDelimiter: {
+    value: 'NUL_DELIMITER'
+  }
+}
+
+export const tcpBinaryByteOrder = {
+  littleEndian: {
+    value: 'LITTLE_ENDIAN'
+  },
+  bigEndian: {
+    value: 'BIG_ENDIAN'
+  }
+}
+
+export const opcSecurityTypes = {
+  Basic128Rsa15: 'Basic128Rsa15',
+  Basic256: 'Basic256',
+  Basic256Sha256: 'Basic256Sha256',
+  None: 'None'
+}
+
+export const identityType = {
+  anonymous: 'extension.anonymous',
+  username: 'extension.username'
 }

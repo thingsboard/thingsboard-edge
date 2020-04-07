@@ -38,8 +38,8 @@
             <div *ngIf="form.get('connectTimeoutSec')?.dirty">
                 <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">
                     integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('')?.min">integration.connect-timeout-range</mat-error>
-                <mat-error translate *ngIf="form.get('')?.max">integration.connect-timeout-range</mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">integration.connect-timeout-range</mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.max">integration.connect-timeout-range</mat-error>
             </div>
         </mat-form-field>
         <div class="tb-panel-title" style="padding-bottom: 15px;">
@@ -61,7 +61,7 @@
             </div>
         </mat-form-field>
     </fieldset>
-    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" is-edit="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">

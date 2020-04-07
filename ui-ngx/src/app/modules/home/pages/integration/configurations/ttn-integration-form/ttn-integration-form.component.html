@@ -36,8 +36,8 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host-type</mat-label>
                 <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="currentHostType">
-                    <mat-option *ngIf="let type of hostTypes | keyvalue" [value]="type.value">
-                        {{value}}
+                    <mat-option *ngFor="let  type of hostTypes | keyvalue" [value]="type.value">
+                        {{type.value}}
                     </mat-option>
                 </mat-select>
                 <div *ngIf="form.get('currentHostType')?.dirty">
@@ -46,7 +46,7 @@
                 </div>
             </mat-form-field>
             <div fxFlex="50" fxLayout="row">
-                <mat-form-field ng-if="currentHostType == hostTypes.region" fxFlex="60" class="mat-block">
+                <mat-form-field *ngIf="form.get('currentHostType').value === hostTypes.region" fxFlex="60" class="mat-block">
                     <mat-label translate>integration.region</mat-label>
                     <input matInput required formControlName="$parent.hostRegion" (change)="buildHostName()">
                     <div *ngIf="form.get('region')?.dirty">
@@ -54,11 +54,11 @@
                         </mat-error>
                     </div>
                 </mat-form-field>
-                <div ng-if="currentHostType == hostTypes.region" fxFlex="40" fxLayout="column"
+                <div *ngIf="form.get('currentHostType').value === hostTypes.region" fxFlex="40" fxLayout="column"
                     layout-align="center start">
                     <mat-label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</mat-label>
                 </div>
-                <mat-form-field ng-if="currentHostType == hostTypes.custom" fxFlex="100" class="mat-block">
+                <mat-form-field *ngIf="form.get('currentHostType').value === hostTypes.custom" fxFlex="100" class="mat-block">
                     <mat-label translate>integration.custom-host</mat-label>
                     <input matInput required formControlName="$parent.hostCustom" (change)="buildHostName()">
                     <div *ngIf="form.get('hostCustom')?.dirty">
@@ -99,7 +99,7 @@
             </div>
         </mat-form-field>
     </fieldset>
-    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" is-edit="isEdit" disable-mqtt-topics="true">
+    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" [isEdit]="isEdit" disable-mqtt-topics="true">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">

@@ -41,7 +41,7 @@ import { Integration, IntegrationType, integrationTypeInfoMap, IntegrationTypeIn
 import { guid, isDefined, isUndefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { ClipboardService } from 'ngx-clipboard';
-import { templates } from './integartionFormTemapltes';
+import { templates } from './integartion-forms-temapltes';
 
 @Component({
   selector: 'tb-integration',
@@ -91,6 +91,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   buildForm(entity: Integration): FormGroup {
+    console.log(this.isEdit);
+
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -176,7 +178,10 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   getIntegrationForm(form: object): FormGroup {
     const template = form;
-    for (const key in template) {
+    for (const key of Object.keys(template)) {
+      if (template[key] === 'array') {
+        template[key] = this.fb.array([]);
+      }
       if (template[key] && typeof (template[key]) === 'object' && !Array.isArray(template[key])) {
         template[key] = this.getIntegrationForm(template[key]);
       }

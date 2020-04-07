@@ -1,7 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { IntegrationType } from '@app/shared/models/integration.models';
-import { initialPositionInStream } from '../../integartionFormTemapltes';
+import { Observable } from 'rxjs';
+
+import { initialPositionInStream } from '../../integartion-forms-temapltes';
 
 @Component({
   selector: 'tb-aws-kinesis-integration-form',
@@ -10,8 +11,10 @@ import { initialPositionInStream } from '../../integartionFormTemapltes';
 })
 export class AwsKinesisIntegrationFormComponent implements OnInit {
 
+  @Input() isLoading$: Observable<boolean>;
+  @Input() isEdit: boolean;
   @Input() form: FormGroup;
-  @Input() integrationType: IntegrationType;
+
 
   initialPositionInStream  = initialPositionInStream;
 

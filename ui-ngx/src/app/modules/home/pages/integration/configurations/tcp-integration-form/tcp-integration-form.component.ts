@@ -1,6 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { IntegrationType } from '@app/shared/models/integration.models';
+import { Observable } from 'rxjs';
+import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integartion-forms-temapltes';
+
 
 @Component({
   selector: 'tb-tcp-integration-form',
@@ -9,12 +11,25 @@ import { IntegrationType } from '@app/shared/models/integration.models';
 })
 export class TcpIntegrationFormComponent implements OnInit {
 
+  @Input() isLoading$: Observable<boolean>;
+  @Input() isEdit: boolean;
   @Input() form: FormGroup;
-  @Input() integrationType: IntegrationType;
+
+  handlerConfigurationTypes = handlerConfigurationTypes;
+  handlerTypes = handlerConfigurationTypes;
+  tcpBinaryByteOrder = tcpBinaryByteOrder;
+  tcpTextMessageSeparator = tcpTextMessageSeparator;
 
   constructor() { }
 
   ngOnInit(): void {
+    delete this.handlerTypes.hex;
   }
+
+  handlerConfigurationTypeChanged = () => {
+  /*  let handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
+    scope.configuration.clientConfiguration.handlerConfiguration = {};
+    scope.configuration.clientConfiguration.handlerConfiguration = angular.copy(defaultHandlerConfigurations[handlerType]);*/
+};
 
 }
