@@ -29,30 +29,37 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
+import { InjectionToken, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { DeviceComponent } from '@modules/home/pages/device/device.component';
-import { DeviceRoutingModule } from './device-routing.module';
-import { DeviceTableHeaderComponent } from '@modules/home/pages/device/device-table-header.component';
 import { DeviceCredentialsDialogComponent } from '@modules/home/pages/device/device-credentials-dialog.component';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
+import { EntityType } from '@shared/models/entity-type.models';
+import { Device } from '@shared/models/device.models';
+import { EntityGroupStateConfigFactory } from '@home/models/group/group-entities-table-config.models';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
+
+export const DEVICE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Device>>(EntityType.DEVICE);
 
 @NgModule({
   declarations: [
     DeviceComponent,
-    DeviceTabsComponent,
-    DeviceTableHeaderComponent,
     DeviceCredentialsDialogComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule,
-    DeviceRoutingModule
+    HomeDialogsModule
+  ],
+  providers: [
+    {
+      provide: DEVICE_GROUP_CONFIG_FACTORY,
+      useClass: DeviceGroupConfigFactory
+    }
   ]
 })
 export class DeviceModule { }

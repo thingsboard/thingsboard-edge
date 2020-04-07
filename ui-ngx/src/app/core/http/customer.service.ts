@@ -35,7 +35,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { Customer } from '@shared/models/customer.model';
+import { Customer, ShortCustomerInfo } from '@shared/models/customer.model';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
@@ -78,6 +78,10 @@ export class CustomerService {
   public getUserCustomers(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Customer>> {
     return this.http.get<PageData<Customer>>(`/api/user/customers${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
+  }
+
+  public getShortCustomerInfo(customerId: string, config?: RequestConfig): Observable<ShortCustomerInfo> {
+    return this.http.get<ShortCustomerInfo>(`/api/customer/${customerId}/shortInfo`, defaultHttpOptionsFromConfig(config));
   }
 
 }

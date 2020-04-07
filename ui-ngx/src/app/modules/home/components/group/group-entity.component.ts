@@ -29,40 +29,27 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
-import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
-import { EntityGroupRoutingModule } from '@home/pages/group/entity-group-routing.module';
-import { EntityGroupSettingsComponent } from '@home/pages/group/entity-group-settings.component';
-import { EntityGroupColumnComponent } from '@home/pages/group/entity-group-column.component';
-import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-columns.component';
-import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group-column-dialog.component';
-import { DeviceModule } from '@home/pages/device/device.module';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
+import { Directive } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityComponent } from '../../components/entity/entity.component';
+import { FormBuilder } from '@angular/forms';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { ShortEntityView } from '@shared/models/entity-group.models';
+import { BaseData, HasId } from '@shared/models/base-data';
 
-@NgModule({
-  declarations: [
-    EntityGroupComponent,
-    EntityGroupTabsComponent,
-    EntityGroupSettingsComponent,
-    EntityGroupColumnComponent,
-    EntityGroupColumnsComponent,
-    EntityGroupColumnDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    DeviceModule,
-    EntityGroupRoutingModule
-  ],
-  providers: [
-    EntityGroupConfigResolver
-  ]
-})
-export class EntityGroupModule { }
+@Directive()
+export abstract class GroupEntityComponent<T extends BaseData<HasId>>
+  extends EntityComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
+
+  entityGroup = this.entitiesTableConfig.entityGroup;
+
+  constructor(protected store: Store<AppState>,
+              protected fb: FormBuilder,
+              protected entityValue: T,
+              protected entitiesTableConfig: GroupEntityTableConfig<T>) {
+    super(store, fb, entityValue, entitiesTableConfig);
+  }
+
+}

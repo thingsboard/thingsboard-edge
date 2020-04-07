@@ -34,7 +34,7 @@ import { Injectable } from '@angular/core';
 import { Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -53,6 +53,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { DialogService } from '@core/services/dialog.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableConfig<WidgetsBundle>> {
@@ -62,6 +63,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
   constructor(private store: Store<AppState>,
               private dialogService: DialogService,
               private widgetsService: WidgetService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private importExport: ImportExportService,
               private datePipe: DatePipe,
@@ -134,6 +136,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.deleteEnabled = (widgetsBundle) => this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     this.config.entitySelectionEnabled = (widgetsBundle) => this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

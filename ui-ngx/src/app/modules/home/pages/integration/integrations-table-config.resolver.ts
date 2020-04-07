@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 
 import { Resolve } from '@angular/router';
 import {
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -46,6 +46,7 @@ import { IntegrationService } from '@core/http/integration.service';
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { UtilsService } from '@core/services/utils.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfig<Integration>> {
@@ -53,6 +54,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
   private readonly config: EntityTableConfig<Integration> = new EntityTableConfig<Integration>();
 
   constructor(private integrationService: IntegrationService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService) {
@@ -95,7 +97,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
   resolve(): EntityTableConfig<Integration> {
     this.config.tableTitle = this.translate.instant('integration.integrations');
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

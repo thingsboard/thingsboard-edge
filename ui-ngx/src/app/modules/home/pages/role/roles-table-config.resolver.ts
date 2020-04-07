@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 
 import { Resolve } from '@angular/router';
 import {
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -46,6 +46,7 @@ import { RoleService } from '@core/http/role.service';
 import { RoleComponent } from '@home/pages/role/role.component';
 import { RoleTabsComponent } from '@home/pages/role/role-tabs.component';
 import { roleTypeTranslationMap } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>> {
@@ -53,6 +54,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
   private readonly config: EntityTableConfig<Role> = new EntityTableConfig<Role>();
 
   constructor(private roleService: RoleService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe) {
 
@@ -91,7 +93,7 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
 
   resolve(): EntityTableConfig<Role> {
     this.config.tableTitle = this.translate.instant('role.roles');
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

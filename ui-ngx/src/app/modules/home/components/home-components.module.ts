@@ -89,6 +89,9 @@ import { GroupPermissionsComponent } from '@home/components/role/group-permissio
 import { OwnerAutocompleteComponent } from '@home/components/role/owner-autocomplete.component';
 import { GroupPermissionDialogComponent } from '@home/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 
 @NgModule({
   declarations:
@@ -145,7 +148,10 @@ import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.
       GroupPermissionsComponent,
       GroupPermissionDialogComponent,
       ViewRoleDialogComponent,
-      OwnerAutocompleteComponent
+      OwnerAutocompleteComponent,
+      GroupEntitiesTableComponent,
+      GroupEntityTabsComponent,
+      AddGroupEntityDialogComponent
     ],
   imports: [
     CommonModule,
@@ -195,7 +201,10 @@ import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ViewRoleDialogComponent,
-    OwnerAutocompleteComponent
+    OwnerAutocompleteComponent,
+    GroupEntitiesTableComponent,
+    GroupEntityTabsComponent,
+    AddGroupEntityDialogComponent
   ],
   providers: [
     WidgetComponentService,

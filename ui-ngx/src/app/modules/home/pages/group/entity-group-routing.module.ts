@@ -29,13 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
 import { EntityType } from '@shared/models/entity-type.models';
+import { Observable } from 'rxjs';
+import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
+import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
+
+@Injectable()
+export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
+
+  constructor(private entityGroupConfigResolver: EntityGroupConfigResolver) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> {
+    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(route.params);
+  }
+}
 
 const routes: Routes = [
   {
@@ -72,19 +89,43 @@ const routes: Routes = [
   },
   {
     path: 'deviceGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.device-groups',
-      groupType: EntityType.DEVICE,
       breadcrumb: {
         label: 'entity-group.device-groups',
         icon: 'devices_other'
       }
     },
-    resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.device-groups',
+          groupType: EntityType.DEVICE
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.device-group',
+          breadcrumb: {
+            icon: 'devices_other',
+            labelFunction: (route, translate, component) => {
+              return component ? component.entityGroup?.name : '';
+            }
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
   },
   {
     path: 'entityViewGroups',
@@ -140,7 +181,8 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    EntityGroupsTableConfigResolver
+    EntityGroupsTableConfigResolver,
+    EntityGroupResolver
   ]
 })
 export class EntityGroupRoutingModule { }

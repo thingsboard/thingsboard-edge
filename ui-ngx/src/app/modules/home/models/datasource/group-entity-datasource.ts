@@ -29,40 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
-import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
-import { EntityGroupRoutingModule } from '@home/pages/group/entity-group-routing.module';
-import { EntityGroupSettingsComponent } from '@home/pages/group/entity-group-settings.component';
-import { EntityGroupColumnComponent } from '@home/pages/group/entity-group-column.component';
-import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-columns.component';
-import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group-column-dialog.component';
-import { DeviceModule } from '@home/pages/device/device.module';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
+import { EntityBooleanFunction } from '@home/models/entity/entities-table-config.models';
+import { EntityGroupColumn, ShortEntityView } from '@shared/models/entity-group.models';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
+import { deepClone } from '@core/utils';
+import { PageLink } from '@shared/models/page/page-link';
 
-@NgModule({
-  declarations: [
-    EntityGroupComponent,
-    EntityGroupTabsComponent,
-    EntityGroupSettingsComponent,
-    EntityGroupColumnComponent,
-    EntityGroupColumnsComponent,
-    EntityGroupColumnDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    DeviceModule,
-    EntityGroupRoutingModule
-  ],
-  providers: [
-    EntityGroupConfigResolver
-  ]
-})
-export class EntityGroupModule { }
+export class GroupEntitiesDataSource extends EntitiesDataSource<ShortEntityView> {
+
+  constructor(private columnsMap: Map<string, EntityGroupColumn>,
+              private entityGroupId: string,
+              private entityGroupService: EntityGroupService,
+              protected selectionEnabledFunction: EntityBooleanFunction<ShortEntityView>,
+              protected dataLoadedFunction: () => void) {
+    super(
+      (pageLink =>
+        {
+          if (pageLink.sortOrder && pageLink.sortOrder.property) {
+            const column = this.columnsMap.get(pageLink.sortOrder.property);
+            let sortOrder = null;
+            if (column) {
+              const newProperty = this.columnsMap.get(pageLink.sortOrder.property).property;
+              sortOrder = deepClone(pageLink.sortOrder);
+              sortOrder.property = newProperty;
+            }
+            pageLink = new PageLink(pageLink.pageSize, pageLink.page, pageLink.textSearch, sortOrder);
+          }
+          return this.entityGroupService.getEntityGroupEntities<ShortEntityView>(this.entityGroupId, pageLink)
+        }),
+      selectionEnabledFunction,
+      dataLoadedFunction
+    )
+  }
+
+}

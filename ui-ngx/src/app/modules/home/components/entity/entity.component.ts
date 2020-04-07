@@ -37,9 +37,14 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Directive()
-export abstract class EntityComponent<T extends BaseData<HasId>> extends PageComponent implements OnInit {
+export abstract class EntityComponent<T extends BaseData<HasId>,
+  P extends PageLink = PageLink,
+  L extends BaseData<HasId> = T,
+  C extends EntityTableConfig<T, P, L> = EntityTableConfig<T, P, L>>
+  extends PageComponent implements OnInit {
 
   entityForm: FormGroup;
 
@@ -81,7 +86,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>> extends PageCom
   protected constructor(protected store: Store<AppState>,
                         protected fb: FormBuilder,
                         protected entityValue: T,
-                        protected entitiesTableConfig: EntityTableConfig<T>) {
+                        protected entitiesTableConfig: C) {
     super(store);
     this.entityForm = this.buildForm(this.entityValue);
   }

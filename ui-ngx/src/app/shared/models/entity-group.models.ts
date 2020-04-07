@@ -31,11 +31,11 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
-import { isUndefined } from '@core/utils';
-import { EntityField } from '@shared/models/entity.models';
+import { Params } from '@angular/router';
+import { Observable } from 'rxjs';
 
 export const entityGroupActionTypes: WidgetActionType[] = [
   WidgetActionType.openDashboard,
@@ -205,6 +205,8 @@ export const entityGroupEntityFields: {[fieldName: string]: EntityGroupEntityFie
 export interface EntityGroupColumn {
   type: EntityGroupColumnType;
   key: string;
+  property?: string;
+  columnKey?: string;
   title?: string;
   sortOrder: EntityGroupSortOrder;
   mobileHide: boolean;
@@ -281,4 +283,21 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       }, ...settings};
   }
   return settings;
+}
+
+export function entityGroupsTitle(groupType: EntityType) {
+  switch(groupType) {
+    case EntityType.ASSET:
+      return 'entity-group.asset-groups';
+    case EntityType.DEVICE:
+      return 'entity-group.device-groups';
+    case EntityType.CUSTOMER:
+      return 'entity-group.customer-groups';
+    case EntityType.USER:
+      return 'entity-group.user-groups';
+    case EntityType.ENTITY_VIEW:
+      return 'entity-group.entity-view-groups';
+    case EntityType.DASHBOARD:
+      return 'entity-group.dashboard-groups';
+  }
 }

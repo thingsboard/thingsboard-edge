@@ -150,7 +150,7 @@
         </mat-toolbar>
         <div fxFlex class="table-container">
           <table mat-table [dataSource]="dataSource" [trackBy]="trackByEntityId"
-                     matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
+                     matSort [matSortActive]="pageLink.sortOrder?.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
             <ng-container matColumnDef="select" sticky>
               <mat-header-cell *matHeaderCellDef style="width: 30px;">
                 <mat-checkbox (change)="$event ? dataSource.masterToggle() : null"
@@ -168,8 +168,11 @@
             </ng-container>
             <ng-container [matColumnDef]="column.key" *ngFor="let column of entityColumns; trackBy: trackByColumnKey;">
               <mat-header-cell [ngClass]="{'mat-number-cell': column.isNumberColumn}"
-                               *matHeaderCellDef [ngStyle]="headerCellStyle(column)" mat-sort-header [disabled]="!column.sortable"> {{ column.title | translate }} </mat-header-cell>
+                               [fxHide.lt-lg]="column.mobileHide"
+                               *matHeaderCellDef [ngStyle]="headerCellStyle(column)" mat-sort-header [disabled]="!column.sortable">
+                {{ column.ignoreTranslate ? column.title : (column.title | translate) }} </mat-header-cell>
               <mat-cell [ngClass]="{'mat-number-cell': column.isNumberColumn}"
+                        [fxHide.lt-lg]="column.mobileHide"
                         *matCellDef="let entity; let row = index"
                         [matTooltip]="cellTooltip(entity, column, row)"
                         matTooltipPosition="above"

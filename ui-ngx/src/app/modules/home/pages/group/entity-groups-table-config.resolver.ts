@@ -34,7 +34,7 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -206,6 +206,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
         break;
     }
     this.config.tableTitle = this.translate.instant(title);
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
