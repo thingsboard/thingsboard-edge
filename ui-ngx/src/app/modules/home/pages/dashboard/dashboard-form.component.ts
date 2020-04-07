@@ -121,7 +121,9 @@ export class DashboardFormComponent extends EntityComponent<Dashboard> {
   }
 
   private updateFields(entity: Dashboard): void {
-    this.assignedCustomersText = getDashboardAssignedCustomersText(entity);
-    // this.publicLink = this.dashboardService.getPublicDashboardLink(entity);
+    if (entity) {
+      this.assignedCustomersText = getDashboardAssignedCustomersText(entity);
+      // this.publicLink = this.dashboardService.getPublicDashboardLink(entity);
+    }
   }
 }
