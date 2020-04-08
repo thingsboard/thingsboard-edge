@@ -92,6 +92,7 @@ import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
 
 @NgModule({
   declarations:
@@ -151,6 +152,7 @@ import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-
       OwnerAutocompleteComponent,
       GroupEntitiesTableComponent,
       GroupEntityTabsComponent,
+      GroupEntityTableHeaderComponent,
       AddGroupEntityDialogComponent
     ],
   imports: [
@@ -204,6 +206,7 @@ import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-
     OwnerAutocompleteComponent,
     GroupEntitiesTableComponent,
     GroupEntityTabsComponent,
+    GroupEntityTableHeaderComponent,
     AddGroupEntityDialogComponent
   ],
   providers: [

@@ -46,9 +46,9 @@ export class WidgetsBundleComponent extends EntityComponent<WidgetsBundle> {
 
   constructor(protected store: Store<AppState>,
               @Inject('entity') protected entityValue: WidgetsBundle,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<WidgetsBundle>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<WidgetsBundle>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   hideDelete() {

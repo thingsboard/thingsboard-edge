@@ -67,9 +67,9 @@ export class EntityViewComponent extends EntityComponent<EntityView> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: EntityView,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<EntityView>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<EntityView>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {

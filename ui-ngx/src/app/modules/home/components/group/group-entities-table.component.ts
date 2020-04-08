@@ -33,11 +33,13 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  Inject,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
+  ViewChild
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { BaseData, HasId } from '@shared/models/base-data';
@@ -48,7 +50,23 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
+import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
+import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import {
+  EntityGroupInfo,
+  EntityGroupParams,
+  resolveGroupParams,
+  ShortEntityView
+} from '@shared/models/entity-group.models';
+import { EntityAction } from '@home/models/entity/entity-component.models';
+import { DialogService } from '@core/services/dialog.service';
+import { WINDOW } from '@core/services/window.service';
+import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
+import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
 
+// @dynamic
 @Component({
   selector: 'tb-group-entities-table',
   templateUrl: './group-entities-table.component.html',
@@ -57,17 +75,32 @@ import { Subscription } from 'rxjs';
 })
 export class GroupEntitiesTableComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy, OnChanges {
 
+  isGroupDetailsOpen = false;
+
+  @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
+
+  @Input()
+  groupParams: EntityGroupParams;
+
   @Input()
   entityGroup: EntityGroupStateInfo<BaseData<HasId>>;
 
   entityGroupConfig: GroupEntityTableConfig<BaseData<HasId>>;
 
+  entityGroupDetailsConfig: EntityTableConfig<EntityGroupInfo>;
+
   private rxSubscriptions = new Array<Subscription>();
 
   constructor(protected store: Store<AppState>,
+              @Inject(WINDOW) private window: Window,
               private route: ActivatedRoute,
+              private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
+              private entityGroupConfigResolver: EntityGroupConfigResolver,
+              private entityGroupService: EntityGroupService,
+              private userPermissionsService: UserPermissionsService,
               public translate: TranslateService,
-              public dialog: MatDialog) {
+              public dialog: MatDialog,
+              private dialogService: DialogService) {
     super(store);
   }
 
@@ -102,9 +135,84 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
     this.rxSubscriptions.length = 0;
   }
 
-  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>) {
+  onToggleEntityGroupDetails() {
+    this.isGroupDetailsOpen = !this.isGroupDetailsOpen;
+    if (this.isGroupDetailsOpen) {
+      this.entitiesTable.isDetailsOpen = false;
+    }
+  }
+
+  onToggleEntityDetails($event: Event, entity: ShortEntityView) {
+    this.entitiesTable.toggleEntityDetails($event, entity);
+  }
+
+  onEntityGroupUpdated(entity: BaseData<HasId>) {
+    const entityGroup = entity as EntityGroupInfo;
+    this.reloadEntityGroupConfig(entityGroup);
+  }
+
+  onEntityGroupAction(action: EntityAction<BaseData<HasId>>) {
+    if (action.action === 'delete') {
+      this.deleteEntityGroup(action.event, action.entity as EntityGroupInfo);
+    }
+  }
+
+  private reloadEntityGroup() {
+    this.entityGroupService.getEntityGroup(this.entityGroup.id.id).subscribe(
+      (entityGroup) => {
+        this.reloadEntityGroupConfig(entityGroup);
+      }
+    );
+  }
+
+  private reloadEntityGroupConfig(entityGroup: EntityGroupInfo) {
+    this.entityGroupConfigResolver.constructGroupConfig<BaseData<HasId>>(this.groupParams, entityGroup).subscribe(
+      (entityGroupConfig) => {
+        this.init(entityGroupConfig, false);
+      }
+    );
+  }
+
+  private deleteEntityGroup($event: Event, entity: EntityGroupInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.entityGroupDetailsConfig.deleteEntityTitle(entity),
+      this.entityGroupDetailsConfig.deleteEntityContent(entity),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((result) => {
+      if (result) {
+        this.entityGroupDetailsConfig.deleteEntity(entity.id).subscribe(
+          () => {
+            this.window.history.back();
+          }
+        );
+      }
+    });
+  }
+
+  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>, closeGroupDetails = true) {
+    if (closeGroupDetails) {
+      this.isGroupDetailsOpen = false;
+    }
     this.entityGroup = entityGroup;
+    this.groupParams = this.groupParams || resolveGroupParams(this.route.snapshot);
     this.entityGroupConfig = entityGroup.entityGroupConfig;
+    this.entityGroupConfig.onToggleEntityGroupDetails = this.onToggleEntityGroupDetails.bind(this);
+    this.entityGroupConfig.onToggleEntityDetails = this.onToggleEntityDetails.bind(this);
+    this.entitiesTable.detailsPanelOpened.subscribe((isDetailsOpened: boolean) => {
+      if (isDetailsOpened) {
+        this.isGroupDetailsOpen = false;
+      }
+    });
+    this.entityGroupDetailsConfig = this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams);
+    this.entityGroupDetailsConfig.componentsData = {
+      isGroupEntitiesView: true,
+      reloadEntityGroup: this.reloadEntityGroup.bind(this)
+    };
   }
 
   ngAfterViewInit(): void {

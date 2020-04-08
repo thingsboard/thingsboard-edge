@@ -42,6 +42,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
+import { resolveGroupParams } from '@shared/models/entity-group.models';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -50,7 +51,7 @@ export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> 
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> {
-    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(route.params);
+    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(resolveGroupParams(route));
   }
 }
 
@@ -114,6 +115,7 @@ const routes: Routes = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'entity-group.device-group',
+          groupType: EntityType.DEVICE,
           breadcrumb: {
             icon: 'devices_other',
             labelFunction: (route, translate, component) => {

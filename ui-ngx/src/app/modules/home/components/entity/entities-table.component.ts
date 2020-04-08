@@ -34,7 +34,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ComponentFactoryResolver,
-  ElementRef,
+  ElementRef, EventEmitter,
   Input, OnChanges,
   OnInit, SimpleChanges,
   ViewChild
@@ -42,14 +42,14 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { PageLink, TimePageLink } from '@shared/models/page/page-link';
+import { MAX_SAFE_PAGE_SIZE, PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
 import { debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, fromEvent, merge, Observable } from 'rxjs';
+import { forkJoin, fromEvent, merge, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute } from '@angular/router';
@@ -102,12 +102,16 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   selectionEnabled;
 
+  defaultPageSize = 10;
+  displayPagination = true;
+  pageSizeOptions;
   pageLink: PageLink;
   textSearchMode = false;
   timewindow: Timewindow;
   dataSource: EntitiesDataSource<BaseData<HasId>>;
 
   isDetailsOpen = false;
+  detailsPanelOpened = new EventEmitter<boolean>();
 
   @ViewChild('entityTableHeader', {static: true}) entityTableHeaderAnchor: TbAnchorComponent;
 
@@ -115,6 +119,10 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
 
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
+
+  private sortSubscription: Subscription;
+  private updateDataSubscription: Subscription;
+  private viewInited = false;
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
@@ -198,6 +206,10 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
       };
     }
 
+    this.displayPagination = this.entitiesTableConfig.displayPagination;
+    this.defaultPageSize = this.entitiesTableConfig.defaultPageSize;
+    this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
+
     if (this.entitiesTableConfig.useTimePageLink) {
       this.timewindow = historyInterval(DAY);
       const currentTime = Date.now();
@@ -206,6 +218,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     } else {
       this.pageLink = new PageLink(10, 0, null, sortOrder);
     }
+    this.pageLink.pageSize = this.displayPagination ? this.defaultPageSize : MAX_SAFE_PAGE_SIZE;
     this.dataSource = this.entitiesTableConfig.dataSource(() => {
       this.dataLoaded();
     });
@@ -214,6 +227,11 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     }
     if (this.entitiesTableConfig.loadDataOnInit) {
       this.dataSource.loadEntities(this.pageLink);
+    }
+    if (this.viewInited) {
+      setTimeout(() => {
+        this.updatePaginationSubscriptions();
+      }, 0);
     }
   }
 
@@ -224,15 +242,31 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
         debounceTime(150),
         distinctUntilChanged(),
         tap(() => {
-          this.paginator.pageIndex = 0;
+          if (this.displayPagination) {
+            this.paginator.pageIndex = 0;
+          }
           this.updateData();
         })
       )
       .subscribe();
 
-    this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    this.updatePaginationSubscriptions();
+    this.viewInited = true;
+  }
 
-    merge(this.sort.sortChange, this.paginator.page)
+  private updatePaginationSubscriptions() {
+    if (this.sortSubscription) {
+      this.sortSubscription.unsubscribe();
+      this.sortSubscription = null;
+    }
+    if (this.updateDataSubscription) {
+      this.updateDataSubscription.unsubscribe();
+      this.updateDataSubscription = null;
+    }
+    if (this.displayPagination) {
+      this.sortSubscription = this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    }
+    this.updateDataSubscription = (this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange)
       .pipe(
         tap(() => this.updateData())
       )
@@ -247,8 +281,12 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     if (closeDetails) {
       this.isDetailsOpen = false;
     }
-    this.pageLink.page = this.paginator.pageIndex;
-    this.pageLink.pageSize = this.paginator.pageSize;
+    if (this.displayPagination) {
+      this.pageLink.page = this.paginator.pageIndex;
+      this.pageLink.pageSize = this.paginator.pageSize;
+    } else {
+      this.pageLink.page = 0;
+    }
     if (this.sort.active) {
       this.pageLink.sortOrder = {
         property: this.sort.active,
@@ -279,6 +317,12 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   }
 
   onRowClick($event: Event, entity) {
+    if (!this.entitiesTableConfig.handleRowClick($event, entity)) {
+      this.toggleEntityDetails($event, entity);
+    }
+  }
+
+  toggleEntityDetails($event: Event, entity) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -287,6 +331,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     } else {
       this.isDetailsOpen = !this.isDetailsOpen;
     }
+    this.detailsPanelOpened.emit(this.isDetailsOpen);
   }
 
   addEntity($event: Event) {
@@ -386,7 +431,9 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   exitFilterMode() {
     this.textSearchMode = false;
     this.pageLink.textSearch = null;
-    this.paginator.pageIndex = 0;
+    if (this.displayPagination) {
+      this.paginator.pageIndex = 0;
+    }
     this.updateData();
   }
 
@@ -395,7 +442,9 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     if (this.entitiesTableConfig.useTimePageLink) {
       this.timewindow = historyInterval(24 * 60 * 60 * 1000);
     }
-    this.paginator.pageIndex = 0;
+    if (this.displayPagination) {
+      this.paginator.pageIndex = 0;
+    }
     const sortable = this.sort.sortables.get(this.entitiesTableConfig.defaultSortOrder.property);
     this.sort.active = sortable.id;
     this.sort.direction = this.entitiesTableConfig.defaultSortOrder.direction === Direction.ASC ? 'asc' : 'desc';

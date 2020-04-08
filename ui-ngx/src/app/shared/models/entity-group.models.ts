@@ -34,7 +34,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
-import { Params } from '@angular/router';
+import { ActivatedRouteSnapshot, Params } from '@angular/router';
 import { Observable } from 'rxjs';
 
 export const entityGroupActionTypes: WidgetActionType[] = [
@@ -299,5 +299,25 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.entity-view-groups';
     case EntityType.DASHBOARD:
       return 'entity-group.dashboard-groups';
+  }
+}
+
+export interface EntityGroupParams {
+  customerId?: string;
+  entityGroupId?: string;
+  childEntityGroupId?: string;
+  groupType?: EntityType;
+  childGroupType?: EntityType;
+}
+
+export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
+  const routeParams = route.params;
+  const routeData = route.data;
+  return {
+    customerId: routeParams.customerId,
+    entityGroupId: routeParams.entityGroupId,
+    childEntityGroupId: routeParams.childEntityGroupId,
+    groupType: routeData.groupType,
+    childGroupType: routeData.childGroupType
   }
 }

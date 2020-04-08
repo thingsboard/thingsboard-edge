@@ -29,28 +29,21 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, InjectionToken, Injector } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
 import { Params } from '@angular/router';
-import { EntityGroupInfo, entityGroupsTitle } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { deepClone } from '@core/utils';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
   EntityGroupStateConfigFactory,
-  EntityGroupStateInfo
+  EntityGroupStateInfo,
+  groupConfigFactoryTokenMap
 } from '@home/models/group/group-entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
-import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/pages/device/device.module';
-import { BaseData, HasId } from '@shared/models/base-data';
-
-const factoryTokenMap = new Map<EntityType, InjectionToken<EntityGroupStateConfigFactory<BaseData<HasId>>>>(
-  [
-    [EntityType.DEVICE, DEVICE_GROUP_CONFIG_FACTORY]
-  ]
-);
 
 @Injectable()
 export class EntityGroupConfigResolver {
@@ -61,7 +54,7 @@ export class EntityGroupConfigResolver {
               private injector: Injector) {
   }
 
-  public constructGroupConfigByStateParams<T>(params: Params): Observable<EntityGroupStateInfo<T>> {
+  public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
     const entityGroupId: string = params.childEntityGroupId || params.entityGroupId;
     return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
       mergeMap((entityGroup) => {
@@ -70,13 +63,13 @@ export class EntityGroupConfigResolver {
       ));
   }
 
-  private constructGroupConfig<T>(params: Params,
-                                  entityGroup: EntityGroupInfo): Observable<EntityGroupStateInfo<T>> {
+  public constructGroupConfig<T>(params: EntityGroupParams,
+                                 entityGroup: EntityGroupInfo): Observable<EntityGroupStateInfo<T>> {
     const entityGroupStateInfo: EntityGroupStateInfo<T> = entityGroup;
     entityGroupStateInfo.origEntityGroup = deepClone(entityGroup);
     return this.resolveParentGroupInfo(params, entityGroupStateInfo).pipe(
       mergeMap((resolvedEntityGroup) => {
-          const token = factoryTokenMap.get(resolvedEntityGroup.type);
+          const token = groupConfigFactoryTokenMap.get(resolvedEntityGroup.type);
           const factory = this.injector.get(token) as EntityGroupStateConfigFactory<T>;
           return factory.createConfig(params, resolvedEntityGroup).pipe(
             map(entityGroupConfig => {
@@ -88,7 +81,7 @@ export class EntityGroupConfigResolver {
       ));
   }
 
-  private resolveParentGroupInfo<T>(params: Params, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
+  private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
     if (params.customerId) {
       const groupType: EntityType = params.childGroupType || params.groupType;
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(

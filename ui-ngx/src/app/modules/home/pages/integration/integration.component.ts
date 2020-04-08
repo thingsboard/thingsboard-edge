@@ -60,9 +60,9 @@ export class IntegrationComponent extends EntityComponent<Integration> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Integration>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {

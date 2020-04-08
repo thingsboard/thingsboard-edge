@@ -29,40 +29,31 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, HasId } from '@shared/models/base-data';
-import { PageComponent } from '@shared/components/page.component';
-import { Input, OnInit, Directive } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
-import { PageLink } from '@shared/models/page/page-link';
+import { Type } from '@angular/core';
+import { DeviceService } from '@core/http/device.service';
+import { AssetService } from '@core/http/asset.service';
+import { AttributeService } from '@core/http/attribute.service';
+import { EntityRelationService } from '@core/http/entity-relation.service';
+import { EntityService } from '@core/http/entity.service';
+import { DialogService } from '@core/services/dialog.service';
+import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
+import { DatePipe } from '@angular/common';
+import { UtilsService } from '@core/services/utils.service';
+import { TranslateService } from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
 
-@Directive()
-export abstract class EntityTableHeaderComponent<T extends BaseData<HasId>,
-  P extends PageLink = PageLink,
-  L extends BaseData<HasId> = T,
-  C extends EntityTableConfig<T, P, L> = EntityTableConfig<T, P, L>>
-  extends PageComponent implements OnInit {
-
-  entitiesTableConfigValue: C;
-
-  @Input()
-  set entitiesTableConfig(entitiesTableConfig: C) {
-    this.setEntitiesTableConfig(entitiesTableConfig);
-  }
-
-  get entitiesTableConfig(): C {
-    return this.entitiesTableConfigValue;
-  }
-
-  protected constructor(protected store: Store<AppState>) {
-    super(store);
-  }
-
-  ngOnInit() {
-  }
-
-  protected setEntitiesTableConfig(entitiesTableConfig: C) {
-    this.entitiesTableConfigValue = entitiesTableConfig;
-  }
-}
+export const ServicesMap = new Map<string, Type<any>>(
+  [
+   ['deviceService', DeviceService],
+   ['assetService', AssetService],
+   ['attributeService', AttributeService],
+   ['entityRelationService', EntityRelationService],
+   ['entityService', EntityService],
+   ['dialogs', DialogService],
+   ['customDialog', CustomDialogService],
+   ['date', DatePipe],
+   ['utils', UtilsService],
+   ['translate', TranslateService],
+   ['http', HttpClient]
+  ]
+);

@@ -56,9 +56,9 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
               protected translate: TranslateService,
               protected userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: EntityGroupInfo,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<EntityGroupInfo>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<EntityGroupInfo>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
@@ -68,6 +68,14 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   hideDelete() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.deleteEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideOpen() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isGroupEntitiesView;
     } else {
       return false;
     }

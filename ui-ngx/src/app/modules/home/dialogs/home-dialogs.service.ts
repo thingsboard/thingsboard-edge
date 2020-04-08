@@ -32,17 +32,25 @@
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityType } from '@shared/models/entity-type.models';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import {
   ImportDialogCsvComponent,
   ImportDialogCsvData
 } from '@home/components/import-export/import-dialog-csv.component';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { DialogService } from '@core/services/dialog.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { TranslateService } from '@ngx-translate/core';
+import { map, mergeMap } from 'rxjs/operators';
 
 @Injectable()
 export class HomeDialogsService {
   constructor(
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService,
+    private dialogService: DialogService,
+    private entityGroupService: EntityGroupService
   ) {
   }
 
@@ -53,6 +61,50 @@ export class HomeDialogsService {
       case EntityType.ASSET:
         return this.openImportDialogCSV(customerId, entityType, entityGroupId,'asset.import', 'asset.asset-file');
     }
+  }
+
+  public makeEntityGroupPublic($event: Event, entityGroup: EntityGroupInfo): Observable<boolean> {
+    const title = this.translate.instant('entity-group.make-public-entity-group-title',
+      {entityGroupName: entityGroup.name});
+    const content = this.translate.instant('entity-group.make-public-entity-group-text');
+    return this.dialogService.confirm(
+      title,
+      content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).pipe(
+      mergeMap((res) => {
+        if (res) {
+          return this.entityGroupService.makeEntityGroupPublic(entityGroup.id.id)
+            .pipe(map(() => res));
+        } else {
+          return of(res);
+        }
+      }
+    ));
+  }
+
+  public makeEntityGroupPrivate($event: Event, entityGroup: EntityGroupInfo): Observable<boolean> {
+    const title = this.translate.instant('entity-group.make-private-entity-group-title',
+      {entityGroupName: entityGroup.name});
+    const content = this.translate.instant('entity-group.make-private-entity-group-text');
+    return this.dialogService.confirm(
+      title,
+      content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).pipe(
+      mergeMap((res) => {
+          if (res) {
+            return this.entityGroupService.makeEntityGroupPrivate(entityGroup.id.id)
+              .pipe(map(() => res));
+          } else {
+            return of(res);
+          }
+        }
+      ));
   }
 
   private openImportDialogCSV(customerId: CustomerId, entityType: EntityType,

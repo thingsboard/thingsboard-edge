@@ -58,9 +58,9 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
               private deviceService: DeviceService,
               private clipboardService: ClipboardService,
               @Inject('entity') protected entityValue: Device,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: GroupEntityTableConfig<Device>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {

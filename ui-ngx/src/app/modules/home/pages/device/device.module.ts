@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { InjectionToken, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { DeviceComponent } from '@modules/home/pages/device/device.component';
@@ -37,12 +37,7 @@ import { DeviceCredentialsDialogComponent } from '@modules/home/pages/device/dev
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
-import { EntityType } from '@shared/models/entity-type.models';
-import { Device } from '@shared/models/device.models';
-import { EntityGroupStateConfigFactory } from '@home/models/group/group-entities-table-config.models';
-import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
-
-export const DEVICE_GROUP_CONFIG_FACTORY = new InjectionToken<EntityGroupStateConfigFactory<Device>>(EntityType.DEVICE);
+import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 
 @NgModule({
   declarations: [

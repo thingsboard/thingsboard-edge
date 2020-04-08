@@ -30,59 +30,54 @@
 ///
 
 import { Device, DeviceCredentials } from '@shared/models/device.models';
-import { Params } from '@angular/router';
+import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { EntityGroupService } from '@core/http/entity-group.service';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
-import { DatePipe } from '@angular/common';
 import {
-  EntityGroupStateConfigFactory,
-  EntityGroupStateInfo,
+  AbstractGroupConfigFactory,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
 import { tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
 import { BroadcastService } from '@core/services/broadcast.service';
-import { MatDialog } from '@angular/material/dialog';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import {
   DeviceCredentialsDialogComponent,
   DeviceCredentialsDialogData
 } from '@home/pages/device/device-credentials-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { DatePipe } from '@angular/common';
+import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
+import { Operation } from '@shared/models/security.models';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { CustomerId } from '@shared/models/id/customer-id';
 
 @Injectable()
-export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
+export class DeviceGroupConfigFactory extends AbstractGroupConfigFactory<Device> {
 
-  constructor(private entityGroupService: EntityGroupService,
-              private userPermissionsService: UserPermissionsService,
-              private translate: TranslateService,
+  constructor(protected entityGroupService: EntityGroupService,
+              protected userPermissionsService: UserPermissionsService,
+              protected translate: TranslateService,
+              protected utils: UtilsService,
+              protected datePipe: DatePipe,
+              protected dialog: MatDialog,
+              protected router: Router,
+              protected injector: Injector,
               private deviceService: DeviceService,
               private broadcast: BroadcastService,
-              private utils: UtilsService,
-              private datePipe: DatePipe,
-              private dialog: MatDialog) {
+              private homeDialogs: HomeDialogsService) {
+    super(entityGroupService, userPermissionsService, translate, utils, datePipe, dialog, router, injector);
   }
 
-  createConfig(params: Params, entityGroup: EntityGroupStateInfo<Device>): Observable<GroupEntityTableConfig<Device>> {
-    const config = new GroupEntityTableConfig<Device>(
-      this.entityGroupService,
-      this.userPermissionsService,
-      this.translate,
-      this.utils,
-      this.datePipe,
-      this.dialog,
-      entityGroup
-    );
+  protected configure(params: EntityGroupParams, config: GroupEntityTableConfig<Device>): Observable<GroupEntityTableConfig<Device>> {
 
-    config.entityType = EntityType.DEVICE;
     config.entityComponent = DeviceComponent;
-    config.entityTranslations = entityTypeTranslations.get(EntityType.DEVICE);
-    config.entityResources = entityTypeResources.get(EntityType.DEVICE);
 
     config.entityTitle = (device) => device ?
       this.utils.customTranslation(device.name, device.name) : '';
@@ -103,12 +98,61 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
 
     config.onEntityAction = action => this.onDeviceAction(action);
 
-    config.tableTitle = `${entityGroup.name}: ${this.translate.instant('device.devices')}`;
+    if (config.settings.enableCredentialsManagement) {
+      if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ_CREDENTIALS, config.entityGroup) &&
+        !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE_CREDENTIALS, config.entityGroup)) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('device.view-credentials'),
+            icon: 'security',
+            isEnabled: config.manageCredentialsEnabled,
+            onAction: ($event, entity) => this.manageCredentials($event, entity, true)
+          }
+        );
+      }
+
+      if (this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE_CREDENTIALS, config.entityGroup)) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('device.manage-credentials'),
+            icon: 'security',
+            isEnabled: config.manageCredentialsEnabled,
+            onAction: ($event, entity) => this.manageCredentials($event, entity, false)
+          }
+        );
+      }
+    }
+
+    if (config.addEnabled) {
+      config.headerActionDescriptors.push(
+        {
+          name: this.translate.instant('device.import'),
+          icon: 'file_upload',
+          isEnabled: () => true,
+          onAction: ($event) => this.importDevices($event, config)
+        }
+      );
+    }
 
     return of(config);
   }
 
-  manageCredentials($event: Event, device: Device, isReadOnly: boolean) {
+  importDevices($event: Event, config: GroupEntityTableConfig<Device>) {
+    const entityGroup = config.entityGroup;
+    const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
+    let customerId: CustomerId = null;
+    if (entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      customerId = entityGroup.ownerId as CustomerId;
+    }
+    this.homeDialogs.importEntities(customerId, EntityType.DEVICE, entityGroupId).subscribe((res) => {
+      if (res) {
+        this.broadcast.broadcast('deviceSaved');
+        config.table.updateData();
+      }
+    });
+  }
+
+  manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean) {
     if ($event) {
       $event.stopPropagation();
     }

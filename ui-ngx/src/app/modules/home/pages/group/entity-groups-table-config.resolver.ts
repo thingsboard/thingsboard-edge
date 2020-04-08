@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Params, Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
@@ -43,15 +43,16 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { UtilsService } from '@core/services/utils.service';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, EntityGroupParams, resolveGroupParams } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
 import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation, publicGroupTypes } from '@shared/models/security.models';
+import { Operation, publicGroupTypes, resourceByEntityType } from '@shared/models/security.models';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfig<EntityGroupInfo>> {
@@ -66,7 +67,10 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
               private broadcast: BroadcastService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private route: ActivatedRoute,
+              private router: Router,
+              private homeDialogs: HomeDialogsService) {
 
     this.config.entityType = EntityType.ENTITY_GROUP;
     this.config.entityComponent = EntityGroupComponent;
@@ -175,15 +179,16 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
   }
 
   resolve(route: ActivatedRouteSnapshot): EntityTableConfig<EntityGroupInfo> {
-    const routeParams = route.params;
-    const routeData = route.data;
-    this.customerId = routeParams.customerId;
-    if (this.customerId && routeData.childGroupType) {
-      this.groupType = routeData.childGroupType;
-    } else {
-      this.groupType = routeData.groupType;
-    }
+    return this.resolveEntityGroupTableConfig(resolveGroupParams(route));
+  }
 
+  resolveEntityGroupTableConfig(params: EntityGroupParams): EntityTableConfig<EntityGroupInfo> {
+    this.customerId = params.customerId;
+    if (this.customerId && params.childGroupType) {
+      this.groupType = params.childGroupType;
+    } else {
+      this.groupType = params.groupType;
+    }
     let title;
     switch (this.groupType) {
       case EntityType.CUSTOMER:
@@ -206,7 +211,16 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
         break;
     }
     this.config.tableTitle = this.translate.instant(title);
-    defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    const resource = resourceByEntityType.get(this.config.entityType);
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
+      this.config.addEnabled = false;
+    }
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+      this.config.entitiesDeleteEnabled = false;
+    }
+    this.config.componentsData = {
+      isGroupEntitiesView: false
+    };
     return this.config;
   }
 
@@ -214,20 +228,40 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
     if ($event) {
       $event.stopPropagation();
     }
-
+    this.homeDialogs.makeEntityGroupPublic($event, entityGroup)
+      .subscribe((res) => {
+        if (res) {
+          if (this.config.componentsData.isGroupEntitiesView) {
+            this.config.componentsData.reloadEntityGroup();
+          } else {
+            this.config.table.updateData();
+          }
+        }
+    });
   }
 
   makePrivate($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {
       $event.stopPropagation();
     }
+    this.homeDialogs.makeEntityGroupPrivate($event, entityGroup)
+      .subscribe((res) => {
+        if (res) {
+          if (this.config.componentsData.isGroupEntitiesView) {
+            this.config.componentsData.reloadEntityGroup();
+          } else {
+            this.config.table.updateData();
+          }
+        }
+    });
   }
 
   open($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {
       $event.stopPropagation();
     }
-
+    const url = this.router.createUrlTree([[], entityGroup.id.id], {relativeTo: this.route});
+    this.router.navigateByUrl(url);
   }
 
   onEntityGroupAction(action: EntityAction<EntityGroupInfo>): boolean {

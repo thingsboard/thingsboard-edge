@@ -49,9 +49,9 @@ export class RuleChainComponent extends EntityComponent<RuleChain> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: RuleChain,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<RuleChain>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<RuleChain>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   hideDelete() {
