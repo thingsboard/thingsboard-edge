@@ -440,7 +440,7 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
   resetSortAndFilter(update: boolean = true) {
     this.pageLink.textSearch = null;
     if (this.entitiesTableConfig.useTimePageLink) {
-      this.timewindow = historyInterval(24 * 60 * 60 * 1000);
+      this.timewindow = historyInterval(DAY);
     }
     if (this.displayPagination) {
       this.paginator.pageIndex = 0;
