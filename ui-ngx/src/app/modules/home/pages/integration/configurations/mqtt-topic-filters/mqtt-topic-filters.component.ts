@@ -1,5 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Observable } from 'rxjs';
+import { mqttQoSTypes } from '../../integartion-forms-templates';
+import { FormBuilder, FormArray } from '@angular/forms';
 
 @Component({
   selector: 'tb-mqtt-topic-filters',
@@ -8,36 +10,23 @@ import { Observable } from 'rxjs';
 })
 export class MqttTopicFiltersComponent implements OnInit {
 
-  @Input() topicFilters;
+  @Input() topicFilters: FormArray;
   @Input() disableMqttTopics;
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
 
-  constructor() { }
+  mqttQoSTypes = mqttQoSTypes;
+
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
   }
 
-  addTopicFilter = () => {
- /*   if (!scope.topicFilters) {
-        scope.topicFilters = [];
-    }
-    scope.topicFilters.push(
-        {
-            filter: '',
-            qos: 0
-        }
-    );
-    ngModelCtrl.$setDirty();
-    scope.updateValidity();*/
-}
-
-removeTopicFilter = (index) => {
-  /*if (index > -1) {
-      scope.topicFilters.splice(index, 1);
-      ngModelCtrl.$setDirty();
-      scope.updateValidity();
-  }*/
-};
+  addTopicFilter() {
+    this.topicFilters.push(this.fb.group({
+      filter: [''],
+      qos: [0]
+    }));
+  }
 
 }

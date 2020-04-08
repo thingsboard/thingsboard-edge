@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { initialPositionInStream } from '../../integartion-forms-temapltes';
+import { initialPositionInStream } from '../../integartion-forms-templates';
 
 @Component({
   selector: 'tb-aws-kinesis-integration-form',

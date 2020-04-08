@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Integration, IntegrationType } from '@shared/models/integration.models';
@@ -12,18 +12,21 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './http-integration-form.component.html',
   styleUrls: ['./http-integration-form.component.scss']
 })
-export class HttpIntegrationFormComponent implements OnInit {
+export class HttpIntegrationFormComponent implements AfterViewInit {
 
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
   @Input() integrationType: IntegrationType;
+  @Input() routingKey;
 
   integrationTypes = IntegrationType;
 
   constructor(protected store: Store<AppState>, private translate: TranslateService) { }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    this.integrationBaseUrlChanged();
+    this.form.get('httpEndpoint').disable();
   }
 
   httpEnableSecurityChanged = () => {
@@ -60,10 +63,10 @@ export class HttpIntegrationFormComponent implements OnInit {
       }));
   }
 
-  integrationBaseUrlChanged = () => {
+  integrationBaseUrlChanged() {
     let url = this.form.get('baseUrl').value;
     const type = this.integrationType ? this.integrationType.toLowerCase() : '';
-    const key = this.form.get('routingKey').value || '';
+    const key = this.routingKey || '';
     url += `/api/v1/integrations/${type}/${key}`;
     this.form.get('httpEndpoint').patchValue(url);
   };

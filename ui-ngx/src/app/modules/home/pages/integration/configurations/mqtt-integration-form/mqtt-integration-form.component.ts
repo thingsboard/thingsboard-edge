@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { mqttCredentialTypes } from '../../integartion-forms-temapltes';
+import { mqttCredentialTypes } from '../../integartion-forms-templates';
 
 
 @Component({
@@ -15,6 +15,8 @@ export class MqttIntegrationFormComponent implements OnInit {
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
+  @Input() topicFilters: FormGroup;
+  @Input() downlinkTopicPattern: FormGroup;
 
   mqttCredentialTypes = mqttCredentialTypes;
 

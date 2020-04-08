@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integartion-forms-temapltes';
+import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integartion-forms-templates';
 
 
 @Component({

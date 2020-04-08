@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
+import { FormArray, FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-opc-ua-subscription-tags',
@@ -7,9 +8,21 @@ import { Component, OnInit } from '@angular/core';
 })
 export class OpcUaSubscriptionTagsComponent implements OnInit {
 
-  constructor() { }
+  @Input() subscriptionTagsForm: FormArray;
+
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
+  }
+
+  addSubscriptionTag() {
+    this.subscriptionTagsForm.push(this.fb.group(
+      {
+        key: [''],
+        path: [''],
+        required: [false]
+      }
+    ));    
   }
 
 }

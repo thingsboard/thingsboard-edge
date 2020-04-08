@@ -1,8 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 
-import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integartion-forms-temapltes';
+import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integartion-forms-templates';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -15,17 +15,33 @@ export class OpcUaIntegrationFormComponent implements OnInit {
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
 
-  identityType =identityType;
+  identityType = identityType;
   opcUaMappingType = opcUaMappingType;
   extensionKeystoreType = extensionKeystoreType;
   opcSecurityTypes = opcSecurityTypes;
 
-  constructor() { }
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
   }
 
-  opcUaSecurityTypeChanged(){}
+  opcUaSecurityTypeChanged() { }
+
+  log(a) {
+    console.log(a);
+
+  }
+
+  addMap() {
+    (this.form.get('mapping') as FormArray).push(
+      this.fb.group({
+        deviceNodePattern: ["Channel1\\.Device\\d+$"],
+        mappingType: ['FQN', Validators.required],
+        subscriptionTags: this.fb.array([]),
+        namespace: [Validators.min(0)]
+      }      )
+    );
+  }
 
 
 

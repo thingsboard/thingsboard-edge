@@ -620,3 +620,27 @@ export function padValue(val: any, dec: number): string {
   strVal = (n ? '-' : '') + strVal;
   return strVal;
 }
+
+export function removeEmptyObjects(obj: object): object {
+  console.log("functionremoveEmptyObjects -> obj", obj)
+  for (const key of Object.keys(obj)) {
+    if (!obj[key]) delete obj[key]
+    else
+      if (Array.isArray(obj[key]))
+        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el))
+      else
+        if (typeof (obj[key]) === 'object')
+          removeEmptyObjects(obj[key]);
+  }
+  return obj;
+}
+
+
+export function baseUrl(): string {
+  let url = window.location.protocol + '//' + window.location.hostname;
+  const port = window.location.port;
+  if (port !== '80' && port !== '443') {
+    url += ':' + port;
+  }
+  return url;
+}

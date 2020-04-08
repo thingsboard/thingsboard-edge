@@ -109,54 +109,60 @@
     </div>
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <section *ngIf="integrationInfo?.http">
-        <tb-http-integration-form [form]="httpForm" [integrationType]="integrationType"></tb-http-integration-form>
+        <tb-http-integration-form [form]="integrationForm" [integrationType]="integrationType"
+          [routingKey]="entityForm.get('routingKey').value">
+        </tb-http-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.MQTT">
-        <tb-mqtt-integration-form [form]="integrationForm" [integrationType]="integrationType">
+        <tb-mqtt-integration-form [form]="integrationForm.get('clientConfiguration')"
+          [topicFilters]="integrationForm.get('topicFilters')"
+          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.OPC_UA">
-        <tb-opc-ua-integration-form [form]="integrationForm" [integrationType]="integrationType">
+        <tb-opc-ua-integration-form [form]="integrationForm">
         </tb-opc-ua-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.AWS_KINESIS">
-        <tb-aws-kinesis-integration-form [form]="integrationForm" [integrationType]="integrationType">
+        <tb-aws-kinesis-integration-form [form]="integrationForm">
         </tb-aws-kinesis-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.AWS_IOT">
-        <tb-aws-iot-integration-form [form]="integrationForm" [integrationType]="integrationType"
-          [downlinkTopicPattern]="downlinkTopicPattern"></tb-aws-iot-integration-form>
+        <tb-aws-iot-integration-form [form]="integrationForm.get('clientConfiguration')"
+          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
+          [topicFilters]="integrationForm.get('topicFilters')">
+        </tb-aws-iot-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.AWS_SQS">
-        <tb-aws-sqs-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-aws-sqs-integration-form [form]="sqsConfiguration">
         </tb-aws-sqs-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.IBM_WATSON_IOT">
-        <tb-ibm-watson-iot-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-ibm-watson-iot-integration-form [form]="sqsConfiguration">
         </tb-ibm-watson-iot-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.TTN">
-        <tb-ttn-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-ttn-integration-form [form]="integrationForm">
         </tb-ttn-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.AZURE_EVENT_HUB">
-        <tb-azure-event-hub-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-azure-event-hub-integration-form [form]="integrationForm">
         </tb-azure-event-hub-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.TCP">
-        <tb-tcp-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-tcp-integration-form [form]="integrationForm">
         </tb-tcp-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.UDP">
-        <tb-udp-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-udp-integration-form [form]="integrationForm">
         </tb-udp-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.KAFKA">
-        <tb-kafka-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-kafka-integration-form [form]="integrationForm">
         </tb-kafka-integration-form>
       </section>
       <section *ngIf="entityForm?.get('type').value === integrationTypes.CUSTOM">
-        <tb-custom-integration-form [form]="sqsConfiguration" [integrationType]="integrationType">
+        <tb-custom-integration-form [form]="integrationForm">
         </tb-custom-integration-form>
       </section>
       <div formGroupName="additionalInfo" fxLayout="column">

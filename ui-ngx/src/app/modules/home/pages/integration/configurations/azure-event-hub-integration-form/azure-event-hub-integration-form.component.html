@@ -36,11 +36,11 @@
             <mat-label translate>integration.connect-timeout</mat-label>
             <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
             <div *ngIf="form.get('connectTimeoutSec')?.dirty">
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
                     integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.min">integration.connect-timeout-range
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.min">integration.connect-timeout-range
                 </mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.max">integration.connect-timeout-range
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.max">integration.connect-timeout-range
                 </mat-error>
             </div>
         </mat-form-field>
@@ -50,7 +50,7 @@
             <mat-label translate>integration.service-bus-namespace-name</mat-label>
             <input matInput required formControlName="namespaceName">
             <div *ngIf="form.get('namespaceName')?.dirty">
-                <mat-error translate *ngIf="form.get('namespaceName')?.errors.required">
+                <mat-error translate *ngIf="form.get('namespaceName')?.errors?.required">
                     integration.service-bus-namespace-name-required</mat-error>
             </div>
         </mat-form-field>
@@ -58,7 +58,7 @@
             <mat-label translate>integration.event-hub-name</mat-label>
             <input matInput required formControlName="eventHubName">
             <div *ngIf="form.get('eventHubName')?.dirty">
-                <mat-error translate *ngIf="form.get('eventHubName')?.errors.required">
+                <mat-error translate *ngIf="form.get('eventHubName')?.errors?.required">
                     integration.event-hub-name-required</mat-error>
             </div>
         </mat-form-field>
@@ -66,7 +66,7 @@
             <mat-label translate>integration.sas-key-name</mat-label>
             <input matInput required formControlName="sasKeyName">
             <div *ngIf="form.get('sasKeyName')?.dirty">
-                <mat-error translate *ngIf="form.get('sasKeyName')?.errors.required">integration.sas-key-name-required
+                <mat-error translate *ngIf="form.get('sasKeyName')?.errors?.required">integration.sas-key-name-required
                 </mat-error>
             </div>
         </mat-form-field>
@@ -74,7 +74,7 @@
             <mat-label translate>integration.sas-key</mat-label>
             <input matInput type="password" required formControlName="sasKey">
             <div *ngIf="form.get('sasKey')?.dirty">
-                <mat-error translate *ngIf="form.get('sasKey')?.errors.required">integration.sas-key-required
+                <mat-error translate *ngIf="form.get('sasKey')?.errors?.required">integration.sas-key-required
                 </mat-error>
             </div>
         </mat-form-field>

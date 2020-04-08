@@ -35,14 +35,14 @@
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.integration-clazz</mat-label>
-            <input matInput required formControlName="configuration.clazz">
+            <input matInput required formControlName="clazz">
             <div *ngIf="form.get('clazz')?.dirty">
-                <mat-error translate *ngIf="form.get('clazz')?.errors.required">integration.integration-clazz-required
+                <mat-error translate *ngIf="form.get('clazz')?.errors?.required">integration.integration-clazz-required
                 </mat-error>
             </div>
         </mat-form-field>
-        <tb-json-content class="integration-custom-configuration" formControlName="configuration.configuration"
-            mat-label="{{ 'integration.integration-configuration' | translate }}" content-type=contentType.JSON.value"
+        <tb-json-content class="integration-custom-configuration" formControlName="configuration"
+            mat-label="{{ 'integration.integration-configuration' | translate }}" content-type="contentType.JSON.value"
             validate-content="true" ng-readonly="(isLoading$ | async) || isEdit" fill-height="true">
         </tb-json-content>
     </fieldset>

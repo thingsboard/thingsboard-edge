@@ -13,10 +13,13 @@ import { TtnIntegrationFormComponent } from './ttn-integration-form/ttn-integrat
 import { UdpIntegrationFormComponent } from './udp-integration-form/udp-integration-form.component';
 import { MqttTopicFiltersComponent } from './mqtt-topic-filters/mqtt-topic-filters.component';
 import { OpcUaSubscriptionTagsComponent } from './opc-ua-subscription-tags/opc-ua-subscription-tags.component';
+import { CustomIntegrationFormComponent } from './custom-integration-form/custom-integration-form.component';
 
 export const integrations = [
     CertUploadComponent,
+    CustomIntegrationFormComponent,
     OpcUaSubscriptionTagsComponent,
+    MqttTopicFiltersComponent,
     HttpIntegrationFormComponent,
     MqttIntegrationFormComponent,
     OpcUaIntegrationFormComponent,
@@ -29,5 +32,5 @@ export const integrations = [
     TcpIntegrationFormComponent,
     TtnIntegrationFormComponent,
     UdpIntegrationFormComponent,
-    MqttTopicFiltersComponent,
+    OpcUaSubscriptionTagsComponent
 ];

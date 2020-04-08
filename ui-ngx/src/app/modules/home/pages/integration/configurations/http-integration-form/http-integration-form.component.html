@@ -36,7 +36,7 @@
             <mat-label translate>integration.base-url</mat-label>
             <input matInput formControlName="baseUrl" (change)="integrationBaseUrlChanged()">
             <div *ngIf="form.get('baseUrl')?.dirty">
-                <mat-error translate *ngIf="form.get('baseUrl')?.errors.required">integration.base-url-required
+                <mat-error translate *ngIf="form.get('baseUrl')?.errors?.required">integration.base-url-required
                 </mat-error>
             </div>
         </mat-form-field>
@@ -91,7 +91,7 @@
                     <mat-label translate>integration.as-id</mat-label>
                     <input matInput required formControlName="asId">
                     <div *ngIf="form.get('asId')?.dirty">
-                        <mat-error translate *ngIf="form.get('asId')?.errors.required">integration.as-id-required
+                        <mat-error translate *ngIf="form.get('asId')?.errors?.required">integration.as-id-required
                         </mat-error>
                     </div>
                 </mat-form-field>
@@ -103,7 +103,7 @@
                     <mat-label translate>integration.as-key</mat-label>
                     <input matInput required formControlName="asKey">
                     <div *ngIf="form.get('asKey')?.dirty">
-                        <mat-error translate *ngIf="form.get('asKey')?.errors.required">integration.as-key-required
+                        <mat-error translate *ngIf="form.get('asKey')?.errors?.required">integration.as-key-required
                         </mat-error>
                     </div>
                 </mat-form-field>
@@ -113,7 +113,7 @@
                     <mat-label translate>integration.client-id-new</mat-label>
                     <input matInput required formControlName="clientIdNew">
                     <div *ngIf="form.get('clientIdNew')?.dirty">
-                        <mat-error translate *ngIf="form.get('clientIdNew')?.errors.required">
+                        <mat-error translate *ngIf="form.get('clientIdNew')?.errors?.required">
                             integration.client-id-new-required</mat-error>
                     </div>
                 </mat-form-field>
@@ -121,7 +121,7 @@
                     <mat-label translate>integration.client-secret</mat-label>
                     <input matInput required formControlName="clientSecret">
                     <div *ngIf="form.get('clientSecret')?.dirty">
-                        <mat-error translate *ngIf="form.get('clientSecret')?.errors.required">
+                        <mat-error translate *ngIf="form.get('clientSecret')?.errors?.required">
                             integration.client-secret-required</mat-error>
                     </div>
                 </mat-form-field>
@@ -130,7 +130,7 @@
                 <mat-label translate>integration.max-time-diff-in-seconds</mat-label>
                 <input matInput type="number" min="0" step="1" required formControlName="maxTimeDiffInSeconds">
                 <div *ngIf="form.get('maxTimeDiffInSeconds')?.dirty">
-                    <mat-error translate *ngIf="form.get('maxTimeDiffInSeconds')?.errors.required">
+                    <mat-error translate *ngIf="form.get('maxTimeDiffInSeconds')?.errors?.required">
                         integration.max-time-diff-in-seconds-required</mat-error>
                 </div>
             </mat-form-field>
@@ -139,13 +139,12 @@
     <div fxLayout="row">
         <mat-form-field class="mat-block" fxFlex>
             <mat-label translate>integration.http-endpoint</mat-label>
-            <input matInput formControlName="httpEndpoint" disabled>
+            <input matInput formControlName="httpEndpoint" disabled="true">
         </mat-form-field>
-        <button mat-button class="mat-icon-button" style="margin-top: 14px;"
-            (click)="onHttpEndpointCopied()" [matTooltip]="'integration.copy-http-endpoint-url' | translate"
-            matTooltipPosition="top">
-            <mat-icon>clipboard-arrow-left</mat-icon>
-            {{form.get('httpEndpoint')?.value}}
-        </button>
+        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
+        [cbContent]="form.get('httpEndpoint')?.value"
+        [matTooltip]="'integration.copy-http-endpoint-url' | translate">
+        <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+      </button> 
     </div>
 </section>

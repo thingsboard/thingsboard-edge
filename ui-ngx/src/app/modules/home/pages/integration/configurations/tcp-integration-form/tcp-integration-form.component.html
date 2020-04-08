@@ -37,9 +37,9 @@
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
-                    <mat-error translate *ngIf="form.get('port')?.errors.required">integration.port-required</mat-error>
-                    <mat-error translate *ngIf="form.get('port')?.errors.min">integration.port-range</mat-error>
-                    <mat-error translate *ngIf="form.get('port')?.errors.max">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.min">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.max">integration.port-range</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -50,11 +50,11 @@
                     <input matInput type="number" step="1" min="1" max="65535" required
                         formControlName="soBacklogOption">
                     <div *ngIf="form.get('soBacklogOption')?.dirty">
-                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors.required">
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.required">
                             integration.so-backlog-option-required</mat-error>
-                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors.min">integration.so-backlog-option-range
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.min">integration.so-backlog-option-range
                         </mat-error>
-                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors.max">integration.so-backlog-option-range
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.max">integration.so-backlog-option-range
                         </mat-error>
                     </div>
                 </mat-form-field>
@@ -64,10 +64,10 @@
                     <mat-label translate>integration.so-rcv-buf</mat-label>
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soRcvBuf">
                     <div *ngIf="form.get('soRcvBuf')?.dirty">
-                        <mat-error translate *ngIf="form.get('soRcvBuf')?.errors.required">
+                        <mat-error translate *ngIf="form.get('soRcvBuf')?.errors?.required">
                             integration.so-rcv-buf-required</mat-error>
-                        <mat-error translate *ngIf="form.get('soRcvBuf').errors.min">integration.so-rcv-buf-range</mat-error>
-                        <mat-error translate *ngIf="form.get('soRcvBuf').errors.max">integration.so-rcv-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf').errors?.min">integration.so-rcv-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf').errors?.max">integration.so-rcv-buf-range</mat-error>
                     </div>
                 </mat-form-field>
             </div>
@@ -76,10 +76,10 @@
                     <mat-label translate>integration.so-snd-buf</mat-label>
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soSndBuf">
                     <div *ngIf="form.get('soSndBuf')?.dirty">
-                        <mat-error translate *ngIf="form.get('soSndBuf')?.errors.required">
+                        <mat-error translate *ngIf="form.get('soSndBuf')?.errors?.required">
                             integration.so-snd-buf-required</mat-error>
-                        <mat-error translate *ngIf="form.get('soSndBuf').errors.min">integration.so-snd-buf-range</mat-error>
-                        <mat-error translate *ngIf="form.get('soSndBuf').errors.max">integration.so-snd-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soSndBuf').errors?.min">integration.so-snd-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soSndBuf').errors?.max">integration.so-snd-buf-range</mat-error>
                     </div>
                 </mat-form-field>
             </div>
@@ -112,7 +112,7 @@
                             </mat-option>
                         </mat-select>
                         <div *ngIf="form.get('handlerConfigurationType')?.dirty">
-                            <mat-error translate *ngIf="form.get('handlerConfigurationType')?.errors.required">
+                            <mat-error translate *ngIf="form.get('handlerConfigurationType')?.errors?.required">
                                 integration.handler-configuration-type-required</mat-error>
                         </div>
                     </mat-form-field>
@@ -123,11 +123,11 @@
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
                                 <div *ngIf="form.get('maxFrameLength')?.dirty">
-                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
                                         integration.max-frame-length-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors.min">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.min">
                                         integration.min-frame-length-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors.max">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.max">
                                         integration.max-frame-length-range</mat-error>
                                 </div>
                             </mat-form-field>
@@ -161,11 +161,11 @@
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
                                 <div *ngIf="form.get('maxFrameLength')?.dirty">
-                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
                                         integration.max-frame-length-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors.min">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors?.min">
                                         integration.max-frame-length-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors.max">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors?.max">
                                         integration.max-frame-length-range</mat-error>
                                 </div>
                             </mat-form-field>
@@ -176,11 +176,11 @@
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldOffset">
                                 <div *ngIf="form.get('lengthFieldOffset')?.dirty">
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.required">
                                         integration.length-field-offset-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.min">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.min">
                                         integration.length-field-offset-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.max">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.max">
                                         integration.length-field-offset-range</mat-error>
                                 </div>
                             </mat-form-field>
@@ -191,11 +191,11 @@
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldLength">
                                 <div *ngIf="form.get('lengthFieldOffset')?.dirty">
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.required">
                                         integration.length-field-length-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.min">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.min">
                                         integration.length-field-length-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors.max">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.max">
                                         integration.length-field-length-range</mat-error>
                                 </div>
                             </mat-form-field>
@@ -206,11 +206,11 @@
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthAdjustment">
                                 <div *ngIf="form.get('lengthAdjustment')?.dirty">
-                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.required">
                                         integration.length-adjustment-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors.min">
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.min">
                                         integration.length-adjustment-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors.max">
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.max">
                                         integration.length-adjustment-range</mat-error>
                                 </div>
                             </mat-form-field>
@@ -221,11 +221,11 @@
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="initialBytesToStrip">
                                 <div *ngIf="form.get('initialBytesToStrip')?.dirty">
-                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors.required">
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.required">
                                         integration.initial-bytes-to-strip-required</mat-error>
-                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors.min">
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.min">
                                         integration.initial-bytes-to-strip-range</mat-error>
-                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors.max">
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.max">
                                         integration.initial-bytes-to-strip-range</mat-error>
                                 </div>
                             </mat-form-field>

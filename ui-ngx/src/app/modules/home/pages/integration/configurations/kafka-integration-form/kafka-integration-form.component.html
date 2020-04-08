@@ -37,7 +37,7 @@
             <mat-label translate>integration.group-id</mat-label>
             <input matInput formControlName="groupId" required>
             <div *ngIf="form.get('groupId')?.dirty">
-                <mat-error translate *ngIf="form.get('groupId')?.errors.required">integration.group-id-required
+                <mat-error translate *ngIf="form.get('groupId')?.errors?.required">integration.group-id-required
                 </mat-error>
             </div>
         </mat-form-field>
@@ -45,7 +45,7 @@
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId" required>
             <div *ngIf="form.get('clientId')?.dirty">
-                <mat-error translate *ngIf="form.get('clientId')?.errors.required">integration.clientId-id-required
+                <mat-error translate *ngIf="form.get('clientId')?.errors?.required">integration.clientId-id-required
                 </mat-error>
             </div>
         </mat-form-field>
@@ -53,14 +53,14 @@
             <mat-label translate>integration.topics</mat-label>
             <input matInput formControlName="topics" required>
             <div *ngIf="form.get('topics')?.dirty">
-                <mat-error translate *ngIf="form.get('topics')?.errors.required">integration.topics-required</mat-error>
+                <mat-error translate *ngIf="form.get('topics')?.errors?.required">integration.topics-required</mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.bootstrap-servers</mat-label>
             <input matInput formControlName="bootstrapServers" required>
             <div *ngIf="form.get('bootstrapServers')?.dirty">
-                <mat-error translate *ngIf="form.get('bootstrapServers')?.errors.required">
+                <mat-error translate *ngIf="form.get('bootstrapServers')?.errors?.required">
                     integration.bootstrap-servers-required</mat-error>
             </div>
         </mat-form-field>
@@ -69,7 +69,7 @@
             <mat-label translate>integration.poll-interval</mat-label>
             <input matInput type="number" required formControlName="pollInterval" step="1">
             <div *ngIf="form.get('pollInterval')?.dirty">
-                <mat-error translate *ngIf="form.get('pollInterval')?.errors.required">
+                <mat-error translate *ngIf="form.get('pollInterval')?.errors?.required">
                     integration.poll-interval-required</mat-error>
             </div>
         </mat-error>

@@ -91,7 +91,7 @@
                 <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
                 <mat-select required [disabled]="(isLoading$ | async) || isEdit"
                     formControlName="initialPositionInStream">
-                    <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.value">
+                    <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.key">
                         {{stream?.value}}
                     </mat-option>
                 </mat-select>

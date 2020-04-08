@@ -37,26 +37,26 @@
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
                 <div *ngIf="form.get('host')?.dirty">
-                    <mat-error translate *ngIf="form.get('host')?.errors.required">integration.host-required</mat-error>
+                    <mat-error translate *ngIf="form.get('host')?.errors?.required">integration.host-required</mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
-                    <mat-error translate *ngIf="form.get('port')?.errors.required">integration.port-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors.min">integration.port-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors.max">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors?.min">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors?.max">integration.port-range</mat-error>
                 </div>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.connect-timeout</mat-label>
                 <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
                 <div *ngIf="form.get('connectTimeoutSec')?.dirty">
-                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors.required">
+                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
                         integration.connect-timeout-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors.min">integration.connect-timeout-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors.max">integration.connect-timeout-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors?.min">integration.connect-timeout-range</mat-error>
+                    <mat-error translate *ngIf="form.get('')?.errors?.max">integration.connect-timeout-range</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -64,9 +64,9 @@
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId" ng-pattern="/^[a-zA-Z0-9]*$/" ng-maxlength="23">
             <div *ngIf="form.get('clientId')?.dirty">
-                <mat-error translate *ngIf="form.get('clientId')?.errors.pattern">integration.client-id-pattern
+                <mat-error translate *ngIf="form.get('clientId')?.errors?.pattern">integration.client-id-pattern
                 </mat-error>
-                <mat-error translate *ngIf="form.get('')?.errors.maxlength">integration.client-id-range</mat-error>
+                <mat-error translate *ngIf="form.get('')?.errors?.maxlength">integration.client-id-range</mat-error>
             </div>
         </mat-form-field>
         <div fxLayout="column">
@@ -93,22 +93,22 @@
                         <mat-select required formControlName="credentialsType"
                             [disabled]="(isLoading$ | async) || isEdit" (change)="credentialsTypeChanged()">
                             <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
-                                [value]="credentialsType?.value">
+                                [value]="credentialsType?.key">
                                 {{credentialsType?.value.name | translate}}
                             </mat-option>
                         </mat-select>
                         <div *ngIf="form.get('credentialsType')?.dirty">
-                            <mat-error translate *ngIf="form.get('credentialsType')?.errors.required">
+                            <mat-error translate *ngIf="form.get('credentialsType')?.errors?.required">
                                 integration.credentials-type-required</mat-error>
                         </div>
                     </mat-form-field>
-                    {{form?.get('credentialsType')}}
+                    {{form?.get('credentialsType').value}}
                     <section *ngIf="form?.get('credentialsType')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
                             <input matInput required formControlName="mqttUsername">
                             <div *ngIf="form.get('mqttUsername')?.dirty">
-                                <mat-error translate *ngIf="form.get('mqttUsername')?.errors.required">
+                                <mat-error translate *ngIf="form.get('mqttUsername')?.errors?.required">
                                     integration.username-required</mat-error>
                             </div>
                         </mat-form-field>
@@ -116,7 +116,7 @@
                             <mat-label translate>integration.password</mat-label>
                             <input matInput type="password" required formControlName="mqttPassword">
                             <div *ngIf="form.get('mqttPassword')?.dirty">
-                                <mat-error translate *ngIf="form.get('mqttPassword')?.errors.required">
+                                <mat-error translate *ngIf="form.get('mqttPassword')?.errors?.required">
                                     integration.password-required</mat-error>
                             </div>
                         </mat-form-field>
@@ -138,7 +138,7 @@
                                         <button mat-button (click)="clearCertFile('caCert')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
                                             aria-label="'action.remove' | translate"
-                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            matTooltip="'action.remove' | translate" matTooltipPosition="above">
                                             <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
                                         </button>
@@ -162,7 +162,7 @@
                                         <button mat-button (click)="clearCertFile('Cert')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
                                             aria-label="'action.remove | translate"
-                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            matTooltip="'action.remove' | translate" matTooltipPosition="above">
                                             <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
                                         </button>
@@ -187,7 +187,7 @@
                                         <button mat-button (click)="clearCertFile('privateKey')"
                                             class="tb-file-clear-btn mat-icon-button mat-primary"
                                             aria-label="'action.remove | translate"
-                                            matTooltip=" 'action.remove' | translate " matTooltipPosition="top">
+                                            matTooltip="'action.remove' | translate" matTooltipPosition="above">
                                             <mat-icon aria-label="'action.remove | translate"
                                                 class="material-icons">close</mat-icon>
                                         </button>
@@ -212,15 +212,15 @@
             </mat-expansion-panel>
         </mat-accordion>
     </fieldset>
-    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
         <input matInput required [disabled]="(isLoading$ | async) || isEdit"
-            formControlName="configuration.downlinkTopicPattern">
-        <div *ngIf="form.get('downlinkTopicPattern')?.dirty">
-            <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors.required">
+            [formControl]="downlinkTopicPattern">
+        <div *ngIf="downlinkTopicPattern.dirty">
+            <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>

@@ -38,10 +38,11 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { Integration, IntegrationType, integrationTypeInfoMap, IntegrationTypeInfo } from '@shared/models/integration.models';
-import { guid, isDefined, isUndefined } from '@core/utils';
+import { guid, isDefined, isUndefined, removeEmptyObjects } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { ClipboardService } from 'ngx-clipboard';
-import { templates } from './integartion-forms-temapltes';
+import { templates } from './integartion-forms-templates';
+import _ from 'lodash';
 
 @Component({
   selector: 'tb-integration',
@@ -60,13 +61,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationTypeInfos = integrationTypeInfoMap;
 
-  httpForm: FormGroup;
-
   integrationForm: FormGroup;
-
-  sqsConfiguration: FormGroup;
-
-  downlinkTopicPattern: FormControl;
 
   integrationInfo: IntegrationTypeInfo;
 
@@ -91,8 +86,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   buildForm(entity: Integration): FormGroup {
-    console.log(this.isEdit);
-
+    console.log("IntegrationComponent -> buildForm -> entity", entity)
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -113,19 +107,23 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         )
       }
     );
-    this.downlinkTopicPattern = this.fb.control(['${topic}', Validators.required]);
     form.get('type').valueChanges.subscribe((type: IntegrationType) => {
       this.integrationType = type;
-      if (type === IntegrationType.AWS_SQS)
-        this.sqsConfiguration = this.getIntegrationForm(templates[type]);
-      else
-        this.integrationForm = this.getIntegrationForm(templates[type]);
-      this.integrationInfo = this.integrationTypeInfos.get(type);
+      console.log(templates);
+
+      this.setConfigurationForm(type);
       this.integrationTypeChanged(form);
     });
-    this.httpForm = this.fb.group(templates.HTTP);
     this.checkIsNewIntegration(entity, form);
     return form;
+  }
+
+  setConfigurationForm(type, entity = {}) {
+    console.log("IntegrationComponent -> setConfigurationForm -> type", type)
+    this.integrationInfo = this.integrationTypeInfos.get(type);
+    let formTemplate = this.integrationInfo.http ? templates.http : templates[type];
+    this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, entity));
+    if (!this.isEditValue) this.integrationForm.disable();
   }
 
   updateFormState() {
@@ -134,7 +132,10 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       this.checkIsRemote(this.entityForm);
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
+      if(this.integrationForm)
+      this.integrationForm.enable();
     }
+    else if (this.integrationForm) this.integrationForm.disable();
   }
 
   private checkIsNewIntegration(entity: Integration, form: FormGroup) {
@@ -174,16 +175,21 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     this.entityForm.patchValue({ metadata: entity.configuration ? entity.configuration.metadata : {} });
     this.entityForm.patchValue({ additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' } });
     this.checkIsNewIntegration(entity, this.entityForm);
+    this.integrationType = entity.type;
+    this.setConfigurationForm(entity.type, entity.configuration.clientConfiguration);
   }
 
   getIntegrationForm(form: object): FormGroup {
-    const template = form;
-    for (const key of Object.keys(template)) {
-      if (template[key] === 'array') {
-        template[key] = this.fb.array([]);
+    const template = {};
+    for (const key of Object.keys(form)) {
+      if (Array.isArray(form[key])) {
+        template[key] = this.fb.array(form[key]);
       }
-      if (template[key] && typeof (template[key]) === 'object' && !Array.isArray(template[key])) {
-        template[key] = this.getIntegrationForm(template[key]);
+      else if (typeof (form[key]) === 'object') {
+        template[key] = this.getIntegrationForm(form[key]);
+      }
+      else {
+        template[key] = [form[key], { disabled: this.isEdit }];
       }
     }
     return this.fb.group(
@@ -199,17 +205,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     if (!formValue.configuration) {
       formValue.configuration = {};
     }
+    formValue.configuration = { ...removeEmptyObjects(formValue.configuration) };
     formValue.configuration.metadata = formValue.metadata || {};
-    formValue.configuration = formValue.configuration || {};
-    if (this.integrationInfo?.http) {
-      formValue.configuration = { ...formValue.configuration, ...this.httpForm.value };
-    }
-    if (this.integrationType === IntegrationType.AWS_SQS) {
-      formValue.sqsConfiguration = this.integrationForm.value;
-    }
-    else {
-      formValue.clientConfiguration = this.integrationForm.value;
-    }
     delete formValue.metadata;
     return formValue;
   }
