@@ -30,16 +30,16 @@
 ///
 
 import { Device, DeviceCredentials } from '@shared/models/device.models';
-import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
-  AbstractGroupConfigFactory,
+  EntityGroupStateConfigFactory,
+  EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable, Injector } from '@angular/core';
-import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { Injectable } from '@angular/core';
+import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceComponent } from '@home/pages/device/device.component';
 import { tap } from 'rxjs/operators';
 import { DeviceService } from '@core/http/device.service';
@@ -50,32 +50,28 @@ import {
   DeviceCredentialsDialogData
 } from '@home/pages/device/device-credentials-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { EntityGroupService } from '@core/http/entity-group.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { DatePipe } from '@angular/common';
 import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
 import { Operation } from '@shared/models/security.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 
 @Injectable()
-export class DeviceGroupConfigFactory extends AbstractGroupConfigFactory<Device> {
+export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
 
-  constructor(protected entityGroupService: EntityGroupService,
-              protected userPermissionsService: UserPermissionsService,
-              protected translate: TranslateService,
-              protected utils: UtilsService,
-              protected datePipe: DatePipe,
-              protected dialog: MatDialog,
-              protected router: Router,
-              protected injector: Injector,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Device>,
+              private userPermissionsService: UserPermissionsService,
+              private translate: TranslateService,
+              private utils: UtilsService,
+              private dialog: MatDialog,
+              private homeDialogs: HomeDialogsService,
               private deviceService: DeviceService,
-              private broadcast: BroadcastService,
-              private homeDialogs: HomeDialogsService) {
-    super(entityGroupService, userPermissionsService, translate, utils, datePipe, dialog, router, injector);
+              private broadcast: BroadcastService) {
   }
 
-  protected configure(params: EntityGroupParams, config: GroupEntityTableConfig<Device>): Observable<GroupEntityTableConfig<Device>> {
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Device>): Observable<GroupEntityTableConfig<Device>> {
+    const config = new GroupEntityTableConfig<Device>(entityGroup, params);
 
     config.entityComponent = DeviceComponent;
 
@@ -133,8 +129,7 @@ export class DeviceGroupConfigFactory extends AbstractGroupConfigFactory<Device>
         }
       );
     }
-
-    return of(config);
+    return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
   importDevices($event: Event, config: GroupEntityTableConfig<Device>) {
@@ -178,4 +173,5 @@ export class DeviceGroupConfigFactory extends AbstractGroupConfigFactory<Device>
     }
     return false;
   }
+
 }

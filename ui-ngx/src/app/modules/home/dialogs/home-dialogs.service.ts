@@ -43,6 +43,13 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { TranslateService } from '@ngx-translate/core';
 import { map, mergeMap } from 'rxjs/operators';
+import { EntityId } from '@shared/models/id/entity-id';
+import { SelectOwnerDialogComponent, SelectOwnerDialogData } from '@home/dialogs/select-owner-dialog.component';
+import {
+  SelectEntityGroupDialogComponent,
+  SelectEntityGroupDialogData,
+  SelectEntityGroupDialogResult
+} from '@home/dialogs/select-entity-group-dialog.component';
 
 @Injectable()
 export class HomeDialogsService {
@@ -52,6 +59,19 @@ export class HomeDialogsService {
     private dialogService: DialogService,
     private entityGroupService: EntityGroupService
   ) {
+  }
+
+  confirm(title: string, message: string,
+          cancel: string = this.translate.instant('action.no'),
+          ok: string = this.translate.instant('action.yes'),
+          fullscreen: boolean = true): Observable<boolean> {
+    return this.dialogService.confirm(
+      title,
+      message,
+      cancel,
+      ok,
+      fullscreen
+    );
   }
 
   public importEntities(customerId: CustomerId, entityType: EntityType, entityGroupId: string): Observable<boolean> {
@@ -67,13 +87,9 @@ export class HomeDialogsService {
     const title = this.translate.instant('entity-group.make-public-entity-group-title',
       {entityGroupName: entityGroup.name});
     const content = this.translate.instant('entity-group.make-public-entity-group-text');
-    return this.dialogService.confirm(
+    return this.confirm(
       title,
-      content,
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).pipe(
+      content).pipe(
       mergeMap((res) => {
         if (res) {
           return this.entityGroupService.makeEntityGroupPublic(entityGroup.id.id)
@@ -91,11 +107,7 @@ export class HomeDialogsService {
     const content = this.translate.instant('entity-group.make-private-entity-group-text');
     return this.dialogService.confirm(
       title,
-      content,
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).pipe(
+      content).pipe(
       mergeMap((res) => {
           if (res) {
             return this.entityGroupService.makeEntityGroupPrivate(entityGroup.id.id)
@@ -105,6 +117,55 @@ export class HomeDialogsService {
           }
         }
       ));
+  }
+
+  public selectOwner($event: Event, selectOwnerTitle: string, confirmSelectTitle: string,
+                     placeholderText: string, notFoundText: string,  requiredText: string,
+                     onOwnerSelected?: (targetOwnerId: EntityId) => Observable<boolean>,
+                     excludeOwnerIds?: Array<string>): Observable<EntityId> {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<SelectOwnerDialogComponent, SelectOwnerDialogData,
+      EntityId>(SelectOwnerDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        selectOwnerTitle,
+        confirmSelectTitle,
+        placeholderText,
+        notFoundText,
+        requiredText,
+        onOwnerSelected,
+        excludeOwnerIds
+      }
+    }).afterClosed();
+  }
+
+  public selectEntityGroup($event: Event, ownerId: EntityId, targetGroupType: EntityType,
+                           selectEntityGroupTitle: string, confirmSelectTitle: string,
+                           placeholderText: string, notFoundText: string, requiredText: string,
+                           onEntityGroupSelected?: (result: SelectEntityGroupDialogResult) => Observable<boolean>,
+                           excludeGroupIds?: Array<string>): Observable<SelectEntityGroupDialogResult> {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<SelectEntityGroupDialogComponent, SelectEntityGroupDialogData,
+      SelectEntityGroupDialogResult>(SelectEntityGroupDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        ownerId,
+        targetGroupType,
+        selectEntityGroupTitle,
+        confirmSelectTitle,
+        placeholderText,
+        notFoundText,
+        requiredText,
+        onEntityGroupSelected,
+        excludeGroupIds
+      }
+    }).afterClosed();
   }
 
   private openImportDialogCSV(customerId: CustomerId, entityType: EntityType,

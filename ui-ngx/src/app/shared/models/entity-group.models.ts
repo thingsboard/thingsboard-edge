@@ -226,9 +226,9 @@ export interface EntityGroup extends BaseData<EntityGroupId> {
   type: EntityType;
   name: string;
   ownerId: EntityId;
-  groupAll: boolean;
-  additionalInfo: any;
-  configuration: EntityGroupConfiguration;
+  groupAll?: boolean;
+  additionalInfo?: any;
+  configuration?: EntityGroupConfiguration;
 }
 
 export interface EntityGroupInfo extends EntityGroup {

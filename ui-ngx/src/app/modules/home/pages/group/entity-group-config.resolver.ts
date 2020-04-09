@@ -32,7 +32,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
-import { Params } from '@angular/router';
 import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';

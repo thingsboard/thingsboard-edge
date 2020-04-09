@@ -52,7 +52,7 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
 
   constructor(private fetchFunction: EntitiesFetchFunction<T, P>,
               protected selectionEnabledFunction: EntityBooleanFunction<T>,
-              protected dataLoadedFunction: () => void) {}
+              protected dataLoadedFunction: (col?: number, row?: number) => void) {}
 
   connect(collectionViewer: CollectionViewer): Observable<T[] | ReadonlyArray<T>> {
     return this.entitiesSubject.asObservable();
@@ -65,7 +65,7 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
 
   reset() {
     const pageData = emptyPageData<T>();
-    this.entitiesSubject.next(pageData.data);
+    this.onEntities(pageData.data);
     this.pageDataSubject.next(pageData);
     this.dataLoadedFunction();
   }
@@ -79,13 +79,17 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
       catchError(() => of(emptyPageData<T>())),
     ).subscribe(
       (pageData) => {
-        this.entitiesSubject.next(pageData.data);
+        this.onEntities(pageData.data);
         this.pageDataSubject.next(pageData);
         result.next(pageData);
         this.dataLoadedFunction();
       }
     );
     return result;
+  }
+
+  protected onEntities(entities: T[]) {
+    this.entitiesSubject.next(entities);
   }
 
   isAllSelected(): Observable<boolean> {

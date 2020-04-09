@@ -302,10 +302,32 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 entity.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             } else {
                 Object value = ((Object[]) obj)[column.propertyIndex];
-                entity.put(column.propertyName, value != null ? value.toString() : null);
+                entity.put(column.propertyName, this.convertValue(value));
             }
         }
         return entity;
+    }
+
+    private String convertValue(Object value) {
+        if (value != null) {
+            String strVal = value.toString();
+            // check number
+            if (strVal.length() > 0) {
+                try {
+                    int intVal = Integer.parseInt(strVal);
+                    return new Integer(intVal).toString();
+                } catch (NumberFormatException e) {
+                }
+                try {
+                    double dblVal = Double.parseDouble(strVal);
+                    return new Double(dblVal).toString();
+                } catch (NumberFormatException e) {
+                }
+            }
+            return strVal;
+        } else {
+            return null;
+        }
     }
 
     private List<ColumnMapping> toColumnMapping(List<ColumnConfiguration> columns) {

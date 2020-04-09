@@ -166,6 +166,7 @@ export class TelemetryWebsocketService implements TelemetryService {
   public batchUnsubscribe(subscribers: TelemetrySubscriber[]) {
     subscribers.forEach((subscriber) => {
       this.unsubscribe(subscriber, true);
+      subscriber.complete();
     });
   }
 

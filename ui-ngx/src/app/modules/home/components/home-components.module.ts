@@ -93,6 +93,7 @@ import { GroupEntitiesTableComponent } from '@home/components/group/group-entiti
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 
 @NgModule({
   declarations:
@@ -212,7 +213,8 @@ import { GroupEntityTableHeaderComponent } from '@home/components/group/group-en
   providers: [
     WidgetComponentService,
     CustomDialogService,
-    ImportExportService
+    ImportExportService,
+    GroupConfigTableConfigService
   ]
 })
 export class HomeComponentsModule { }
