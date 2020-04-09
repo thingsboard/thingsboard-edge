@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field class="mat-block" style="width: 200px;">
+<mat-form-field class="mat-block">
   <mat-label translate>alarm.alarm-status</mat-label>
-  <mat-select matInput [ngModel]="alarmTableConfig.searchStatus"
+  <mat-select [ngModel]="alarmTableConfig.searchStatus"
               (ngModelChange)="searchStatusChanged($event)">
     <mat-option *ngFor="let status of alarmSearchStatusTypes" [value]="status">
       {{ alarmSearchStatusTranslationsMap.get(alarmSearchStatusEnum[status]) | translate }}
