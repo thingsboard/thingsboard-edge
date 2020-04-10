@@ -34,30 +34,49 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
-          [fxShow]="!isEdit && !isPublic">
-    {{'customer.manage-users' | translate }}
+          *ngIf="resource.USER_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageUsers() && !isEdit && !isPublic">
+    {{'customer.manage-user-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageCustomers')"
+          *ngIf="resource.CUSTOMER_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageCustomers() && !isEdit && !isPublic">
+    {{'customer.manage-customer-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageAssets')"
-          [fxShow]="!isEdit">
-    {{'customer.manage-assets' | translate }}
+          *ngIf="resource.ASSET_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageAssets() && !isEdit">
+    {{'customer.manage-asset-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDevices')"
-          [fxShow]="!isEdit">
-    {{'customer.manage-devices' | translate }}
+          *ngIf="resource.DEVICE_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageDevices() && !isEdit">
+    {{'customer.manage-device-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageEntityViews')"
+          *ngIf="resource.ENTITY_VIEW_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageEntityViews() && !isEdit">
+    {{'customer.manage-entity-view-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDashboards')"
-          [fxShow]="!isEdit">
-    {{'customer.manage-dashboards' | translate }}
+          *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!hideManageDashboards() && !isEdit">
+    {{'customer.manage-dashboard-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
+          *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit && !isPublic">
     {{'customer.delete' | translate }}
   </button>
@@ -87,6 +106,10 @@
           <mat-label translate>customer.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
         </mat-form-field>
+        <mat-checkbox [fxShow]="allowCustomerWhiteLabeling"
+                      fxFlex formControlName="allowWhiteLabeling" style="padding-bottom: 16px;">
+          {{ 'customer.allow-white-labeling' | translate }}
+        </mat-checkbox>
       </div>
       <tb-contact [parentForm]="entityForm" [isEdit]="isEdit"></tb-contact>
     </fieldset>

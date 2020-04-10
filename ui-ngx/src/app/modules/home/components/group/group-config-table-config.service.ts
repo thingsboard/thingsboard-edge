@@ -406,7 +406,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       event.stopPropagation();
     }
     const entityId = entity.id as EntityId;
-    const entityName = entity.name;
+    const entityName = entity.name || entity.title;
     const entityLabel = entity.label;
     const type = descriptor.type;
     const targetEntityParamName = descriptor.stateEntityParamName;

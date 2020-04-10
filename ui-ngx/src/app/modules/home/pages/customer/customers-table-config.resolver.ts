@@ -60,7 +60,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
               private utils: UtilsService) {
 
     this.config.entityType = EntityType.CUSTOMER;
-    this.config.entityComponent = CustomerComponent;
+    // this.config.entityComponent = CustomerComponent;
     this.config.entityTabsComponent = CustomerTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.CUSTOMER);
     this.config.entityResources = entityTypeResources.get(EntityType.CUSTOMER);

@@ -89,19 +89,42 @@ const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComp
 const routes: Routes = [
   {
     path: 'customerGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.customer-groups',
-      groupType: EntityType.CUSTOMER,
       breadcrumb: {
         label: 'entity-group.customer-groups',
         icon: 'supervisor_account'
       }
     },
-    resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.customer-groups',
+          groupType: EntityType.CUSTOMER
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.customer-group',
+          groupType: EntityType.CUSTOMER,
+          breadcrumb: {
+            icon: 'supervisor_account',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
   },
   {
     path: 'assetGroups',

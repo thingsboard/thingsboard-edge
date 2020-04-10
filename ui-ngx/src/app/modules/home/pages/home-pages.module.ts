@@ -53,7 +53,6 @@ import { EntityGroupModule } from '@home/pages/group/entity-group.module';
     HomeLinksModule,
     ProfileModule,
     TenantModule,
-    CustomerModule,
     RuleChainModule,
     WidgetLibraryModule,
     AuditLogModule,

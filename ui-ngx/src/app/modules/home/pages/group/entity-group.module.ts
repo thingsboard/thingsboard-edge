@@ -47,6 +47,7 @@ import { AssetModule } from '@home/pages/asset/asset.module';
 import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { UserModule } from '@home/pages/user/user.module';
+import { CustomerModule } from '@home/pages/customer/customer.module';
 
 @NgModule({
   declarations: [
@@ -67,6 +68,7 @@ import { UserModule } from '@home/pages/user/user.module';
     EntityViewModule,
     DashboardModule,
     UserModule,
+    CustomerModule,
     EntityGroupRoutingModule
   ],
   providers: [

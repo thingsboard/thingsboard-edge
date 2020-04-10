@@ -93,6 +93,12 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
 
   assignmentEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableAssignment;
   manageCredentialsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableCredentialsManagement;
+  manageUsersEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableUsersManagement;
+  manageCustomersEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableCustomersManagement;
+  manageAssetsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableAssetsManagement;
+  manageDevicesEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableDevicesManagement;
+  manageEntityViewsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableEntityViewsManagement;
+  manageDashboardsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableDashboardsManagement;
 
   constructor(public entityGroup: EntityGroupStateInfo<T>,
               public groupParams: EntityGroupParams) {

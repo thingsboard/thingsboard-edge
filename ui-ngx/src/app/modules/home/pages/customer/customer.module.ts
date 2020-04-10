@@ -33,20 +33,24 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { CustomerComponent } from '@modules/home/pages/customer/customer.component';
-import { CustomerRoutingModule } from './customer-routing.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { CustomerTabsComponent } from '@home/pages/customer/customer-tabs.component';
+import { CUSTOMER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { CustomerGroupConfigFactory } from '@home/pages/customer/customer-group-config.factory';
 
 @NgModule({
   declarations: [
-    CustomerComponent,
-    CustomerTabsComponent
+    CustomerComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule,
-    CustomerRoutingModule
+    HomeComponentsModule
+  ],
+  providers: [
+    {
+      provide: CUSTOMER_GROUP_CONFIG_FACTORY,
+      useClass: CustomerGroupConfigFactory
+    }
   ]
 })
 export class CustomerModule { }
