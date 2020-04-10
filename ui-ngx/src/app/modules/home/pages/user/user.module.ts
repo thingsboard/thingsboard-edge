@@ -38,12 +38,18 @@ import { AddUserDialogComponent } from '@modules/home/pages/user/add-user-dialog
 import { ActivationLinkDialogComponent } from '@modules/home/pages/user/activation-link-dialog.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
+import { GroupUserComponent } from '@home/pages/user/group-user.component';
+import { AddGroupUserDialogComponent } from '@home/pages/user/add-group-user-dialog.component';
+import { USER_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { UserGroupConfigFactory } from '@home/pages/user/user-group-config.factory';
 
 @NgModule({
   declarations: [
     UserComponent,
     UserTabsComponent,
     AddUserDialogComponent,
+    GroupUserComponent,
+    AddGroupUserDialogComponent,
     ActivationLinkDialogComponent
   ],
   imports: [
@@ -51,6 +57,12 @@ import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
     SharedModule,
     HomeComponentsModule,
     UserRoutingModule
+  ],
+  providers: [
+    {
+      provide: USER_GROUP_CONFIG_FACTORY,
+      useClass: UserGroupConfigFactory
+    }
   ]
 })
 export class UserModule { }

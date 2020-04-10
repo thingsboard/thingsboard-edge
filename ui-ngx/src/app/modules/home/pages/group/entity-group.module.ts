@@ -46,6 +46,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
 import { AssetModule } from '@home/pages/asset/asset.module';
 import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
+import { UserModule } from '@home/pages/user/user.module';
 
 @NgModule({
   declarations: [
@@ -65,6 +66,7 @@ import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
     AssetModule,
     EntityViewModule,
     DashboardModule,
+    UserModule,
     EntityGroupRoutingModule
   ],
   providers: [

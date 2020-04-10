@@ -44,13 +44,20 @@ import { BaseData, HasId } from '@shared/models/base-data';
 export abstract class GroupEntityComponent<T extends BaseData<HasId>>
   extends EntityComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
 
-  entityGroup = this.entitiesTableConfig.entityGroup;
+  entityGroup = this.entitiesTableConfig?.entityGroup;
 
   constructor(protected store: Store<AppState>,
               protected fb: FormBuilder,
               protected entityValue: T,
               protected entitiesTableConfigValue: GroupEntityTableConfig<T>) {
     super(store, fb, entityValue, entitiesTableConfigValue);
+  }
+
+  protected setEntitiesTableConfig(entitiesTableConfig: GroupEntityTableConfig<T>) {
+    super.setEntitiesTableConfig(entitiesTableConfig);
+    if (entitiesTableConfig) {
+      this.entityGroup = entitiesTableConfig.entityGroup;
+    }
   }
 
 }

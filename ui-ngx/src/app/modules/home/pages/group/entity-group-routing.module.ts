@@ -222,19 +222,42 @@ const routes: Routes = [
   },
   {
     path: 'userGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.user-groups',
-      groupType: EntityType.USER,
       breadcrumb: {
         label: 'entity-group.user-groups',
         icon: 'account_circle'
       }
     },
-    resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.user-groups',
+          groupType: EntityType.USER
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.user-group',
+          groupType: EntityType.USER,
+          breadcrumb: {
+            icon: 'account_circle',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
   },
   {
     path: 'dashboardGroups',

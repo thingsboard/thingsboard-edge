@@ -90,9 +90,11 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     } else {
       config.addEnabled = false;
     }
-    config.addEntity = () => {
-      return this.addGroupEntity(config);
-    };
+    if (!config.addEntity) {
+      config.addEntity = () => {
+        return this.addGroupEntity(config);
+      };
+    }
     config.handleRowClick = (event, entity) => {
       return this.onRowClick(config, event, entity);
     };

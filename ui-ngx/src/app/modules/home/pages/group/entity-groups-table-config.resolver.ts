@@ -97,33 +97,6 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
         }, () => ({}), false)
     );
 
-    this.config.cellActionDescriptors.push(
-      {
-        name: this.translate.instant('action.open'),
-        icon: 'view_list',
-        isEnabled: (entity) => true,
-        onAction: ($event, entity) => this.open($event, entity)
-      },
-      {
-        name: this.translate.instant('action.share'),
-        icon: 'share',
-        isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
-          && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
-          && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-          && userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-        onAction: ($event, entity) => this.makePublic($event, entity)
-      },
-      {
-        name: this.translate.instant('action.make-private'),
-        icon: 'reply',
-        isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
-          && entity.additionalInfo && entity.additionalInfo.isPublic
-          && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-          && userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-        onAction: ($event, entity) => this.makePrivate($event, entity)
-      }
-    );
-
     this.config.deleteEntityTitle = entityGroup =>
       this.translate.instant('entity-group.delete-entity-group-title', { entityGroupName: entityGroup.name });
     this.config.deleteEntityContent = () => this.translate.instant('entity-group.delete-entity-group-text');
@@ -224,7 +197,42 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
     this.config.componentsData = {
       isGroupEntitiesView: false
     };
+    this.updateActionCellDescriptors();
     return this.config;
+  }
+
+  updateActionCellDescriptors() {
+    this.config.cellActionDescriptors.splice(0);
+    this.config.cellActionDescriptors.push(
+      {
+        name: this.translate.instant('action.open'),
+        icon: 'view_list',
+        isEnabled: (entity) => true,
+        onAction: ($event, entity) => this.open($event, entity)
+      }
+    );
+    if (publicGroupTypes.has(this.groupType)) {
+      this.config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('action.share'),
+          icon: 'share',
+          isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
+            && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePublic($event, entity)
+        },
+        {
+          name: this.translate.instant('action.make-private'),
+          icon: 'reply',
+          isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
+            && entity.additionalInfo && entity.additionalInfo.isPublic
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePrivate($event, entity)
+        }
+      );
+    }
   }
 
   makePublic($event: Event, entityGroup: EntityGroupInfo) {
