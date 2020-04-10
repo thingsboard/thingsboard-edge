@@ -40,6 +40,7 @@ import { ShortEntityView } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 
 @Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class GroupEntityComponent<T extends BaseData<HasId>>
   extends EntityComponent<T, PageLink, ShortEntityView, GroupEntityTableConfig<T>> {
 
