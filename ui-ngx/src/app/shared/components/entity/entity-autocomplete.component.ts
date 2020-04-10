@@ -188,6 +188,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.entityRequiredText = 'rulechain.rulechain-required';
           break;
         case EntityType.TENANT:
+        case AliasEntityType.CURRENT_TENANT:
           this.entityText = 'tenant.tenant';
           this.noEntitiesMatchingText = 'tenant.no-tenants-matching';
           this.entityRequiredText = 'tenant.tenant-required';
@@ -281,10 +282,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     this.searchText = '';
     if (value !== null) {
       if (typeof value === 'string') {
-        let targetEntityType = this.entityTypeValue;
-        if (targetEntityType === AliasEntityType.CURRENT_CUSTOMER) {
-          targetEntityType = EntityType.CUSTOMER;
-        }
+        const targetEntityType = this.checkEntityType(this.entityTypeValue);
         this.entityService.getEntity(targetEntityType, value, {ignoreLoading: true}).subscribe(
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
@@ -292,7 +290,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           }
         );
       } else if (value.entityType && value.id) {
-        const targetEntityType = value.entityType as EntityType;
+        const targetEntityType = this.checkEntityType(value.entityType);
         this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true}).subscribe(
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
@@ -334,10 +332,7 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
 
   fetchEntities(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    let targetEntityType = this.entityTypeValue;
-    if (targetEntityType === AliasEntityType.CURRENT_CUSTOMER) {
-      targetEntityType = EntityType.CUSTOMER;
-    }
+    const targetEntityType = this.checkEntityType(this.entityTypeValue);
     return this.entityService.getEntitiesByNameFilter(targetEntityType, searchText,
       50, this.entitySubtypeValue, {ignoreLoading: true}).pipe(
       map((data) => {
@@ -368,4 +363,12 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     }, 0);
   }
 
+  checkEntityType(entityType: EntityType | AliasEntityType): EntityType {
+    if (entityType === AliasEntityType.CURRENT_CUSTOMER) {
+      return EntityType.CUSTOMER;
+    } else if (entityType === AliasEntityType.CURRENT_TENANT) {
+      return EntityType.TENANT;
+    }
+    return entityType;
+  }
 }

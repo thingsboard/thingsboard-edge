@@ -32,20 +32,14 @@
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  Dashboard,
-  getDashboardAssignedCustomersText,
-  isCurrentPublicDashboardCustomer,
-  isPublicDashboard
-} from '@shared/models/dashboard.models';
+import { Dashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { isEqual } from '@core/utils';
 
 @Component({
   selector: 'tb-dashboard-form',
@@ -137,7 +131,7 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
   }
 
   private updateFields(entity: Dashboard): void {
-    if (entity) {
+    if (entity && !isEqual(entity, {})) {
       // this.assignedCustomersText = getDashboardAssignedCustomersText(entity);
       if (this.isPublic) {
         this.publicLink = this.dashboardService.getPublicDashboardLink(entity, this.entityGroup);
