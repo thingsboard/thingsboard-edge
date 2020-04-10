@@ -38,19 +38,24 @@ import { AssetTableHeaderComponent } from './asset-table-header.component';
 import { AssetRoutingModule } from './asset-routing.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
+import { ASSET_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { AssetGroupConfigFactory } from '@home/pages/asset/asset-group-config.factory';
 
 @NgModule({
   declarations: [
-    AssetComponent,
-    AssetTabsComponent,
-    AssetTableHeaderComponent
+    AssetComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule,
-    AssetRoutingModule
+    HomeDialogsModule
+  ],
+  providers: [
+    {
+      provide: ASSET_GROUP_CONFIG_FACTORY,
+      useClass: AssetGroupConfigFactory
+    }
   ]
 })
 export class AssetModule { }

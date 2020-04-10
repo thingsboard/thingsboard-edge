@@ -43,6 +43,7 @@ import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-colu
 import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group-column-dialog.component';
 import { DeviceModule } from '@home/pages/device/device.module';
 import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
+import { AssetModule } from '@home/pages/asset/asset.module';
 
 @NgModule({
   declarations: [
@@ -59,6 +60,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
     HomeComponentsModule,
     HomeDialogsModule,
     DeviceModule,
+    AssetModule,
     EntityGroupRoutingModule
   ],
   providers: [

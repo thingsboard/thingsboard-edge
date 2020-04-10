@@ -40,7 +40,7 @@ import { Observable } from 'rxjs';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
-import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 
@@ -54,6 +54,11 @@ export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> 
     return this.entityGroupConfigResolver.constructGroupConfigByStateParams(resolveGroupParams(route));
   }
 }
+
+const groupEntitiesLabelFunction: BreadCrumbLabelFunction<GroupEntitiesTableComponent> =
+  (route, translate, component) => {
+    return component ? component.entityGroup?.name : '';
+  };
 
 const routes: Routes = [
   {
@@ -74,19 +79,42 @@ const routes: Routes = [
   },
   {
     path: 'assetGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.asset-groups',
-      groupType: EntityType.ASSET,
       breadcrumb: {
         label: 'entity-group.asset-groups',
         icon: 'domain'
       }
     },
-    resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.asset-groups',
+          groupType: EntityType.ASSET
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.asset-group',
+          groupType: EntityType.ASSET,
+          breadcrumb: {
+            icon: 'domain',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
   },
   {
     path: 'deviceGroups',
@@ -118,9 +146,7 @@ const routes: Routes = [
           groupType: EntityType.DEVICE,
           breadcrumb: {
             icon: 'devices_other',
-            labelFunction: (route, translate, component) => {
-              return component ? component.entityGroup?.name : '';
-            }
+            labelFunction: groupEntitiesLabelFunction
           } as BreadCrumbConfig<GroupEntitiesTableComponent>
         },
         resolve: {

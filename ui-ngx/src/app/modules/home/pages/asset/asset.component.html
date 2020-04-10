@@ -49,9 +49,10 @@
           [fxShow]="!isEdit && (assetScope === 'customer' || assetScope === 'tenant') && isAssignedToCustomer(entity)">
     {{ (entity?.customerIsPublic ? 'asset.make-private' : 'asset.unassign-from-customer') | translate }}
   </button-->
-  <button mat-raised-button color="primary"
+  <button mat-raised-button color="primary" fxFlex.xs
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
+          *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'asset.delete' | translate }}
   </button>

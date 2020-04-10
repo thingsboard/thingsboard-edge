@@ -94,7 +94,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.ASSET;
-    this.config.entityComponent = AssetComponent;
+    // this.config.entityComponent = AssetComponent;
     this.config.entityTabsComponent = AssetTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     this.config.entityResources = entityTypeResources.get(EntityType.ASSET);

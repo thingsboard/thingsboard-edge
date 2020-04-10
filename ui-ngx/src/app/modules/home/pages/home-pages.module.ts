@@ -56,7 +56,6 @@ import { EntityGroupModule } from '@home/pages/group/entity-group.module';
     HomeLinksModule,
     ProfileModule,
     TenantModule,
-    AssetModule,
     EntityViewModule,
     CustomerModule,
     RuleChainModule,
