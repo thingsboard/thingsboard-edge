@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function LoginController($state, $scope, toast, loginService, userService, types/*, $rootScope, $log, $translate*/) {
+export default function LoginController($state, $scope, toast, loginService, userService, types, $stateParams/*, $rootScope, $log, $translate*/) {
     var vm = this;
 
     vm.user = {
@@ -39,6 +39,12 @@ export default function LoginController($state, $scope, toast, loginService, use
 
     vm.signUp = signUp;
     vm.login = login;
+
+    if ($stateParams.username && $stateParams.password) {
+        vm.user.name = $stateParams.username;
+        vm.user.password = $stateParams.password;
+        doLogin();
+    }
 
     function doLogin() {
         loginService.login(vm.user).then(function success(response) {

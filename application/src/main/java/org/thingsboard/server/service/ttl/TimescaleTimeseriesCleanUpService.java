@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,26 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import React from 'react';
+package org.thingsboard.server.service.ttl;
 
-class ThingsboardFieldSet extends React.Component {
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
-    render() {
-        let forms = this.props.form.items.map(function(form, index){
-            return this.props.builder(form, this.props.model, index, this.props.onChange, this.props.onColorClick, this.props.onIconClick, this.props.onToggleFullscreen, this.props.mapper, this.props.builder);
-        }.bind(this));
+import java.sql.Connection;
 
-        return (
-            <div style={{paddingTop: '20px'}}>
-                <div className="tb-head-label">
-                    {this.props.form.title}
-                </div>
-                <div>
-                    {forms}
-                </div>
-            </div>
-        );
+@TimescaleDBTsDao
+@Service
+@Slf4j
+public class TimescaleTimeseriesCleanUpService extends AbstractTimeseriesCleanUpService {
+
+    @Override
+    protected void doCleanUp(Connection connection) {
+        long totalEntitiesTelemetryRemoved = executeQuery(connection, "call cleanup_timeseries_by_ttl('" + ModelConstants.NULL_UUID_STR + "'," + systemTtl + ", 0);");
+        log.info("Total telemetry removed stats by TTL for entities: [{}]", totalEntitiesTelemetryRemoved);
     }
 }
-
-export default ThingsboardFieldSet;
