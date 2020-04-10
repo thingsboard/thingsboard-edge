@@ -247,6 +247,7 @@ public class AuthController extends BaseController {
                     mailService.sendAccountActivatedEmail(user.getTenantId(), loginUrl, email);
                 } catch (Exception e) {
                     log.info("Unable to send account activation email [{}]", e.getMessage());
+                }
             }
 
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
