@@ -92,7 +92,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.ENTITY_VIEW;
-    this.config.entityComponent = EntityViewComponent;
+    // this.config.entityComponent = EntityViewComponent;
     this.config.entityTabsComponent = EntityViewTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.ENTITY_VIEW);
     this.config.entityResources = entityTypeResources.get(EntityType.ENTITY_VIEW);

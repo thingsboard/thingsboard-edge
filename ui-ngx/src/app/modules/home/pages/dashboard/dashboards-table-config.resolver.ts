@@ -98,7 +98,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DASHBOARD;
-    this.config.entityComponent = DashboardFormComponent;
+    // this.config.entityComponent = DashboardFormComponent;
     this.config.entityTabsComponent = DashboardTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     this.config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);

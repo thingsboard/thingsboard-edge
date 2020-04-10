@@ -31,7 +31,7 @@
 
 import {
   AfterViewInit,
-  ChangeDetectionStrategy,
+  ChangeDetectionStrategy, ChangeDetectorRef,
   Component,
   Inject,
   Input,
@@ -100,7 +100,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
               private userPermissionsService: UserPermissionsService,
               public translate: TranslateService,
               public dialog: MatDialog,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -110,7 +111,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       const change = changes[propName];
       if (!change.firstChange && change.currentValue !== change.previousValue) {
         if (propName === 'entityGroup' && change.currentValue) {
-          this.init(change.currentValue);
+          this.init(change.currentValue, this.groupParams);
         }
       }
     }
@@ -118,11 +119,12 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   ngOnInit(): void {
     if (this.entityGroup) {
-      this.init(this.entityGroup);
+      this.init(this.entityGroup, this.groupParams);
     } else {
       this.rxSubscriptions.push(this.route.data.subscribe(
         (data) => {
-          this.init(data.entityGroup);
+          const groupParams = resolveGroupParams(this.route.snapshot);
+          this.init(data.entityGroup, groupParams);
         }
       ));
     }
@@ -168,7 +170,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
   private reloadEntityGroupConfig(entityGroup: EntityGroupInfo) {
     this.entityGroupConfigResolver.constructGroupConfig<BaseData<HasId>>(this.groupParams, entityGroup).subscribe(
       (entityGroupConfig) => {
-        this.init(entityGroupConfig, false);
+        this.init(entityGroupConfig, this.groupParams, false);
       }
     );
   }
@@ -194,7 +196,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
     });
   }
 
-  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>, closeGroupDetails = true) {
+  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>, groupParams: EntityGroupParams, closeGroupDetails = true) {
     if (closeGroupDetails) {
       this.isGroupDetailsOpen = false;
     }
@@ -213,6 +215,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       isGroupEntitiesView: true,
       reloadEntityGroup: this.reloadEntityGroup.bind(this)
     };
+    this.cd.detectChanges();
   }
 
   ngAfterViewInit(): void {

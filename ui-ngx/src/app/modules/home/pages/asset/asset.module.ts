@@ -34,10 +34,7 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { AssetComponent } from './asset.component';
-import { AssetTableHeaderComponent } from './asset-table-header.component';
-import { AssetRoutingModule } from './asset-routing.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
 import { ASSET_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { AssetGroupConfigFactory } from '@home/pages/asset/asset-group-config.factory';
 

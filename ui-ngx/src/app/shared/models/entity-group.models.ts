@@ -308,16 +308,23 @@ export interface EntityGroupParams {
   childEntityGroupId?: string;
   groupType?: EntityType;
   childGroupType?: EntityType;
+  entityGroup?: EntityGroupInfo;
 }
 
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
-  const routeParams = route.params;
-  const routeData = route.data;
+  let routeParams = {...route.params};
+  let routeData = {...route.data};
+  while (route.parent !== null) {
+    route = route.parent;
+    routeParams = {...routeParams, ...route.params};
+    routeData = {...routeData, ...route.data};
+  }
   return {
     customerId: routeParams.customerId,
     entityGroupId: routeParams.entityGroupId,
     childEntityGroupId: routeParams.childEntityGroupId,
     groupType: routeData.groupType,
-    childGroupType: routeData.childGroupType
+    childGroupType: routeData.childGroupType,
+    entityGroup: routeData.entityGroup
   }
 }

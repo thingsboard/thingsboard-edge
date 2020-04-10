@@ -41,8 +41,14 @@ import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-co
 import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
-import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
+import { Operation, Resource } from '@shared/models/security.models';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { DashboardService } from '@core/http/dashboard.service';
+import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { map } from 'rxjs/operators';
+import { dashboardBreadcumbLabelFunction } from '@home/pages/dashboard/dashboard-routing.module';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -50,8 +56,28 @@ export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> 
   constructor(private entityGroupConfigResolver: EntityGroupConfigResolver) {
   }
 
-  resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> {
-    return this.entityGroupConfigResolver.constructGroupConfigByStateParams(resolveGroupParams(route));
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupStateInfo<T>> | EntityGroupStateInfo<T> {
+    const entityGroupParams = resolveGroupParams(route);
+    if (entityGroupParams.entityGroup) {
+      return entityGroupParams.entityGroup;
+    } else {
+      return this.entityGroupConfigResolver.constructGroupConfigByStateParams(entityGroupParams);
+    }
+  }
+}
+
+@Injectable()
+export class DashboardResolver implements Resolve<Dashboard> {
+
+  constructor(private dashboardService: DashboardService,
+              private dashboardUtils: DashboardUtilsService) {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<Dashboard> {
+    const dashboardId = route.params.dashboardId;
+    return this.dashboardService.getDashboard(dashboardId).pipe(
+      map((dashboard) => this.dashboardUtils.validateAndUpdateDashboard(dashboard))
+    );
   }
 }
 
@@ -157,19 +183,42 @@ const routes: Routes = [
   },
   {
     path: 'entityViewGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.entity-view-groups',
-      groupType: EntityType.ENTITY_VIEW,
       breadcrumb: {
         label: 'entity-group.entity-view-groups',
         icon: 'view_quilt'
       }
     },
-    resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
-    }
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.entity-view-groups',
+          groupType: EntityType.ENTITY_VIEW
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.entity-view-group',
+          groupType: EntityType.ENTITY_VIEW,
+          breadcrumb: {
+            icon: 'view_quilt',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
   },
   {
     path: 'userGroups',
@@ -189,18 +238,87 @@ const routes: Routes = [
   },
   {
     path: 'dashboardGroups',
-    component: EntitiesTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'entity-group.dashboard-groups',
-      groupType: EntityType.DASHBOARD,
       breadcrumb: {
         label: 'entity-group.dashboard-groups',
         icon: 'dashboard'
       }
     },
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.dashboard-groups',
+          groupType: EntityType.DASHBOARD
+        },
+        resolve: {
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        data: {
+          groupType: EntityType.DASHBOARD,
+          breadcrumb: {
+            icon: 'dashboard',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        children: [
+          {
+            path: '',
+            component: GroupEntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              title: 'entity-group.dashboard-group',
+              groupType: EntityType.DASHBOARD
+            },
+            resolve: {
+              entityGroup: EntityGroupResolver
+            }
+          },
+          {
+            path: ':dashboardId',
+            component: DashboardPageComponent,
+            data: {
+              breadcrumb: {
+                labelFunction: dashboardBreadcumbLabelFunction,
+                icon: 'dashboard'
+              } as BreadCrumbConfig<DashboardPageComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              title: 'dashboard.dashboard',
+              widgetEditMode: false
+            },
+            resolve: {
+              dashboard: DashboardResolver,
+              entityGroup: EntityGroupResolver
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    path: 'dashboards/:dashboardId',
+    component: DashboardPageComponent,
+    data: {
+      breadcrumb: {
+        labelFunction: dashboardBreadcumbLabelFunction,
+        icon: 'dashboard'
+      } as BreadCrumbConfig<DashboardPageComponent>,
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      permissions: {
+        resources: [Resource.DASHBOARD, Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
+        operations: [Operation.READ]
+      },
+      title: 'dashboard.dashboard',
+      widgetEditMode: false
+    },
     resolve: {
-      entitiesTableConfig: EntityGroupsTableConfigResolver
+      dashboard: DashboardResolver,
+      entityGroup: 'emptyEntityGroupResolver'
     }
   }
 ];
@@ -210,7 +328,12 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [
     EntityGroupsTableConfigResolver,
-    EntityGroupResolver
+    EntityGroupResolver,
+    DashboardResolver,
+    {
+      provide: 'emptyEntityGroupResolver',
+      useValue: (route: ActivatedRouteSnapshot) => null
+    }
   ]
 })
 export class EntityGroupRoutingModule { }

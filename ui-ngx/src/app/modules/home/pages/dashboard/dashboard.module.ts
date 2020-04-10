@@ -34,11 +34,7 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
-import { ManageDashboardCustomersDialogComponent } from '@modules/home/pages/dashboard/manage-dashboard-customers-dialog.component';
-import { DashboardRoutingModule } from './dashboard-routing.module';
-import { MakeDashboardPublicDialogComponent } from '@modules/home/pages/dashboard/make-dashboard-public-dialog.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
 import { DashboardToolbarComponent } from './dashboard-toolbar.component';
 import { StatesControllerModule } from '@home/pages/dashboard/states/states-controller.module';
@@ -50,13 +46,13 @@ import { ManageDashboardLayoutsDialogComponent } from './layout/manage-dashboard
 import { DashboardSettingsDialogComponent } from './dashboard-settings-dialog.component';
 import { ManageDashboardStatesDialogComponent } from './states/manage-dashboard-states-dialog.component';
 import { DashboardStateDialogComponent } from './states/dashboard-state-dialog.component';
+import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
+import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
+import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
 
 @NgModule({
   declarations: [
     DashboardFormComponent,
-    DashboardTabsComponent,
-    ManageDashboardCustomersDialogComponent,
-    MakeDashboardPublicDialogComponent,
     DashboardToolbarComponent,
     DashboardPageComponent,
     DashboardLayoutComponent,
@@ -66,15 +62,21 @@ import { DashboardStateDialogComponent } from './states/dashboard-state-dialog.c
     ManageDashboardLayoutsDialogComponent,
     DashboardSettingsDialogComponent,
     ManageDashboardStatesDialogComponent,
-    DashboardStateDialogComponent
+    DashboardStateDialogComponent,
+    PublicDashboardLinkDialogComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
     HomeDialogsModule,
-    StatesControllerModule,
-    DashboardRoutingModule
+    StatesControllerModule
+  ],
+  providers: [
+    {
+      provide: DASHBOARD_GROUP_CONFIG_FACTORY,
+      useClass: DashboardGroupConfigFactory
+    }
   ]
 })
 export class DashboardModule { }

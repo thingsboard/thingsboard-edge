@@ -53,6 +53,7 @@ import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfig<EntityGroupInfo>> {
@@ -87,7 +88,9 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
       new DateEntityTableColumn<EntityGroupInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<EntityGroupInfo>('name', 'entity-group.name', '33%', this.config.entityTitle),
       new EntityTableColumn<EntityGroupInfo>('description', 'entity-group.description', '40%',
-        (entityGroup) => entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.description : '', entity => ({}), false),
+        (entityGroup) =>
+          entityGroup && entityGroup.additionalInfo && isDefinedAndNotNull(entityGroup.additionalInfo.description)
+            ? entityGroup.additionalInfo.description : '', entity => ({}), false),
       new EntityTableColumn<EntityGroupInfo>('isPublic', 'entity-group.public', '60px',
         entityGroup => {
           return checkBoxCell(entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.isPublic : false);
@@ -260,7 +263,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([[], entityGroup.id.id], {relativeTo: this.route});
+    const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.config.table.route});
     this.router.navigateByUrl(url);
   }
 

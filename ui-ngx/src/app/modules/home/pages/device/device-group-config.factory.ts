@@ -119,7 +119,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       }
     }
 
-    if (config.addEnabled) {
+    if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(
         {
           name: this.translate.instant('device.import'),

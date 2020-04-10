@@ -44,6 +44,8 @@ import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group
 import { DeviceModule } from '@home/pages/device/device.module';
 import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { AssetModule } from '@home/pages/asset/asset.module';
+import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
+import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 
 @NgModule({
   declarations: [
@@ -61,6 +63,8 @@ import { AssetModule } from '@home/pages/asset/asset.module';
     HomeDialogsModule,
     DeviceModule,
     AssetModule,
+    EntityViewModule,
+    DashboardModule,
     EntityGroupRoutingModule
   ],
   providers: [

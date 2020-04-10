@@ -38,7 +38,6 @@ import {
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
 import { Injectable } from '@angular/core';
-import { EntityType } from '@shared/models/entity-type.models';
 import { tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityAction } from '@home/models/entity/entity-component.models';
@@ -46,79 +45,53 @@ import { MatDialog } from '@angular/material/dialog';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
-import { Asset } from '@shared/models/asset.models';
-import { AssetService } from '@core/http/asset.service';
-import { AssetComponent } from '@home/pages/asset/asset.component';
-import { Operation } from '@shared/models/security.models';
+import { EntityView } from '@shared/models/entity-view.models';
+import { EntityViewService } from '@core/http/entity-view.service';
+import { EntityViewComponent } from '@home/pages/entity-view/entity-view.component';
 
 @Injectable()
-export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<Asset> {
+export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFactory<EntityView> {
 
-  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Asset>,
+  constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<EntityView>,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private utils: UtilsService,
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
-              private assetService: AssetService,
+              private entityViewService: EntityViewService,
               private broadcast: BroadcastService) {
   }
 
-  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Asset>): Observable<GroupEntityTableConfig<Asset>> {
-    const config = new GroupEntityTableConfig<Asset>(entityGroup, params);
+  createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<EntityView>): Observable<GroupEntityTableConfig<EntityView>> {
+    const config = new GroupEntityTableConfig<EntityView>(entityGroup, params);
 
-    config.entityComponent = AssetComponent;
+    config.entityComponent = EntityViewComponent;
 
-    config.entityTitle = (asset) => asset ?
-      this.utils.customTranslation(asset.name, asset.name) : '';
+    config.entityTitle = (entityView) => entityView ?
+      this.utils.customTranslation(entityView.name, entityView.name) : '';
 
-    config.deleteEntityTitle = asset => this.translate.instant('asset.delete-asset-title', { assetName: asset.name });
-    config.deleteEntityContent = () => this.translate.instant('asset.delete-asset-text');
-    config.deleteEntitiesTitle = count => this.translate.instant('asset.delete-assets-title', {count});
-    config.deleteEntitiesContent = () => this.translate.instant('asset.delete-assets-text');
+    config.deleteEntityTitle = entityView =>
+      this.translate.instant('entity-view.delete-entity-view-title', { entityViewName: entityView.name });
+    config.deleteEntityContent = () => this.translate.instant('entity-view.delete-entity-view-text');
+    config.deleteEntitiesTitle = count => this.translate.instant('entity-view.delete-entity-views-title', {count});
+    config.deleteEntitiesContent = () => this.translate.instant('entity-view.delete-entity-views-text');
 
-    config.loadEntity = id => this.assetService.getAsset(id.id);
-    config.saveEntity = asset => {
-      return this.assetService.saveAsset(asset).pipe(
+    config.loadEntity = id => this.entityViewService.getEntityView(id.id);
+    config.saveEntity = entityView => {
+      return this.entityViewService.saveEntityView(entityView).pipe(
         tap(() => {
-          this.broadcast.broadcast('assetSaved');
+          this.broadcast.broadcast('entityViewSaved');
         }));
     };
-    config.deleteEntity = id => this.assetService.deleteAsset(id.id);
+    config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
 
-    config.onEntityAction = action => this.onAssetAction(action);
+    config.onEntityAction = action => this.onEntityViewAction(action);
 
-    if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
-      config.headerActionDescriptors.push(
-        {
-          name: this.translate.instant('asset.import'),
-          icon: 'file_upload',
-          isEnabled: () => true,
-          onAction: ($event) => this.importAssets($event, config)
-        }
-      );
-    }
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  importAssets($event: Event, config: GroupEntityTableConfig<Asset>) {
-    const entityGroup = config.entityGroup;
-    const entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
-    let customerId: CustomerId = null;
-    if (entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
-      customerId = entityGroup.ownerId as CustomerId;
-    }
-    this.homeDialogs.importEntities(customerId, EntityType.ASSET, entityGroupId).subscribe((res) => {
-      if (res) {
-        this.broadcast.broadcast('assetSaved');
-        config.table.updateData();
-      }
-    });
-  }
-
-  onAssetAction(action: EntityAction<Asset>): boolean {
+  onEntityViewAction(action: EntityAction<EntityView>): boolean {
     return false;
   }
 
