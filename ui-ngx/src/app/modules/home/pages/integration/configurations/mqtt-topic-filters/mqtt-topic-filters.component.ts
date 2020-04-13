@@ -1,7 +1,6 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Observable } from 'rxjs';
-import { mqttQoSTypes } from '../../integartion-forms-templates';
-import { FormBuilder, FormArray } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { mqttQoSTypes } from '../../integration-forms-templates';
+import { FormArray, FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-mqtt-topic-filters',

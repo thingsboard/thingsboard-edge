@@ -1,8 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 
-import { mqttCredentialTypes } from '../../integartion-forms-templates';
+import { mqttCredentialTypes } from '../../integration-forms-templates';
 
 
 @Component({

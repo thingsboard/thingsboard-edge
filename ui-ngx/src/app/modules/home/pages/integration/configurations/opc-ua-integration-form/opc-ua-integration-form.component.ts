@@ -1,8 +1,12 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integartion-forms-templates';
+import {
+  extensionKeystoreType,
+  identityType,
+  opcSecurityTypes,
+  opcUaMappingType
+} from '../../integration-forms-templates';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
