@@ -124,9 +124,12 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
   updateColumns(updateTableColumns: boolean = false): void {
     this.columns = [];
     this.columns.push(
-      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'),
-      new EntityTableColumn<Event>('server', 'event.server', '100px',
-        (entity) => entity.body.server, entity => ({}), false));
+      new DateEntityTableColumn<Event>('createdTime', 'event.event-time', this.datePipe, '120px'));
+    if (this.eventType !== EventType.RAW_DATA) {
+      this.columns.push(
+        new EntityTableColumn<Event>('server', 'event.server', '100px',
+          (entity) => entity.body.server, entity => ({}), false));
+    }
     switch (this.eventType) {
       case EventType.ERROR:
         this.columns.push(
@@ -171,6 +174,87 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
             () => ({}),
             false,
             () => ({}), () => undefined, true)
+        );
+        break;
+      case DebugEventType.DEBUG_CONVERTER:
+        this.columns.push(
+          new EntityTableColumn<Event>('type', 'event.type', '20%',
+            (entity) => entity.body.type, entity => ({
+              padding: '0 12px 0 0',
+            }), false, key => ({
+              padding: '0 12px 0 0'
+            })),
+          new EntityActionTableColumn<Event>('in', 'event.in',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.in ? entity.body.in.length > 0 : false,
+              onAction: ($event, entity) => this.showContent($event, entity.body.in,
+                'event.in', entity.body.inMessageType)
+            },
+            '20%'),
+          new EntityActionTableColumn<Event>('out', 'event.out',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.out ? entity.body.out.length > 0 : false,
+              onAction: ($event, entity) => this.showContent($event, entity.body.out,
+                'event.out', entity.body.outMessageType)
+            },
+            '20%'),
+          new EntityActionTableColumn<Event>('metadata', 'event.metadata',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.metadata ? entity.body.metadata.length > 0 : false,
+              onAction: ($event, entity) => this.showContent($event, entity.body.metadata,
+                'event.metadata', ContentType.JSON)
+            },
+            '20%'),
+          new EntityActionTableColumn<Event>('error', 'event.error',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.error && entity.body.error.length > 0,
+              onAction: ($event, entity) => this.showContent($event, entity.body.error,
+                'event.error')
+            },
+            '20%')
+        );
+        break;
+      case DebugEventType.DEBUG_INTEGRATION:
+        this.columns[1].width = '20%';
+        this.columns.push(
+          new EntityTableColumn<Event>('type', 'event.type', '20%',
+            (entity) => entity.body.type, entity => ({
+              padding: '0 12px 0 0',
+            }), false, key => ({
+              padding: '0 12px 0 0'
+            })),
+          new EntityActionTableColumn<Event>('message', 'event.message',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.message ? entity.body.message.length > 0 : false,
+              onAction: ($event, entity) => this.showContent($event, entity.body.message,
+                'event.message', entity.body.messageType)
+            },
+            '20%'),
+          new EntityTableColumn<Event>('status', 'event.status', '20%',
+            (entity) => entity.body.status, entity => ({
+              padding: '0 12px 0 0',
+            }), false, key => ({
+              padding: '0 12px 0 0'
+            })),
+          new EntityActionTableColumn<Event>('error', 'event.error',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.error && entity.body.error.length > 0,
+              onAction: ($event, entity) => this.showContent($event, entity.body.error,
+                'event.error')
+            },
+            '20%')
         );
         break;
       case DebugEventType.DEBUG_RULE_NODE:
@@ -236,6 +320,26 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
                 'event.error')
             },
             '40px')
+        );
+        break;
+      case EventType.RAW_DATA:
+        this.columns[0].width = '30%';
+        this.columns.push(
+          new EntityActionTableColumn<Event>('message', 'event.message',
+            {
+              name: this.translate.instant('action.view'),
+              icon: 'more_horiz',
+              isEnabled: (entity) => entity.body.message ? entity.body.message.length > 0 : false,
+              onAction: ($event, entity) => this.showContent($event, entity.body.message,
+                'event.message', entity.body.messageType)
+            },
+            '20%'),
+          new EntityTableColumn<Event>('uuid', 'event.uuid', '50%',
+            (entity) => entity.body.uuid, entity => ({
+              padding: '0 12px 0 0',
+            }), false, key => ({
+              padding: '0 12px 0 0'
+            }))
         );
         break;
     }

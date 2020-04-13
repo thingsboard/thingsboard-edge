@@ -34,7 +34,8 @@ import { Injectable } from '@angular/core';
 import { Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -54,6 +55,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Injectable()
 export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableConfig<WidgetsBundle>> {
@@ -106,13 +108,13 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
       {
         name: this.translate.instant('widgets-bundle.open-widgets-bundle'),
         icon: 'now_widgets',
-        isEnabled: () => true,
+        isEnabled: () => userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ),
         onAction: ($event, entity) => this.openWidgetsBundle($event, entity)
       },
       {
         name: this.translate.instant('widgets-bundle.export'),
         icon: 'file_download',
-        isEnabled: () => true,
+        isEnabled: () => userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ),
         onAction: ($event, entity) => this.exportWidgetsBundle($event, entity)
       }
     );
@@ -133,8 +135,12 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
   resolve(): EntityTableConfig<WidgetsBundle> {
     this.config.tableTitle = this.translate.instant('widgets-bundle.widgets-bundles');
     const authUser = getCurrentAuthUser(this.store);
-    this.config.deleteEnabled = (widgetsBundle) => this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
-    this.config.entitySelectionEnabled = (widgetsBundle) => this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
+    this.config.deleteEnabled = (widgetsBundle) =>
+      this.isWidgetsBundleEditable(widgetsBundle, authUser.authority) &&
+      this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
+    this.config.entitySelectionEnabled = (widgetsBundle) =>
+      this.isWidgetsBundleEditable(widgetsBundle, authUser.authority) &&
+      this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.DELETE);
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;

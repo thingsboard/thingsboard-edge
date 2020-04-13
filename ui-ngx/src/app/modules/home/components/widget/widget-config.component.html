@@ -328,22 +328,35 @@
             <input matInput formControlName="titleTooltip">
           </mat-form-field>
         </div>
-        <div fxLayout="column" fxLayoutAlign="center" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start center"
-             fxLayoutGap="8px">
-          <div fxLayout="row">
-            <mat-checkbox formControlName="showTitle">
-              {{ 'widget-config.display-title' | translate }}
-            </mat-checkbox>
-          </div>
-          <div fxLayout="row">
-            <mat-checkbox formControlName="dropShadow">
-              {{ 'widget-config.drop-shadow' | translate }}
-            </mat-checkbox>
-          </div>
-          <div fxLayout="row">
-            <mat-checkbox formControlName="enableFullscreen">
-              {{ 'widget-config.enable-fullscreen' | translate }}
-            </mat-checkbox>
+        <div fxLayout="column" fxLayoutAlign="center" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start center">
+          <div fxLayout="column" fxLayoutGap="8px">
+            <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+              <div fxLayout="row">
+                <mat-checkbox formControlName="showTitle">
+                  {{ 'widget-config.display-title' | translate }}
+                </mat-checkbox>
+              </div>
+              <div fxLayout="row">
+                <mat-checkbox formControlName="dropShadow">
+                  {{ 'widget-config.drop-shadow' | translate }}
+                </mat-checkbox>
+              </div>
+              <div fxLayout="row">
+                <mat-checkbox formControlName="enableFullscreen">
+                  {{ 'widget-config.enable-fullscreen' | translate }}
+                </mat-checkbox>
+              </div>
+            </div>
+            <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px"
+                 [fxShow]="widgetType === widgetTypes.timeseries ||
+                           widgetType === widgetTypes.latest ||
+                           widgetType === widgetTypes.alarm">
+              <div fxLayout="row">
+                <mat-checkbox formControlName="enableDataExport">
+                  {{ 'widget-config.enable-data-export' | translate }}
+                </mat-checkbox>
+              </div>
+            </div>
           </div>
           <div fxFlex>
             <tb-json-object-edit

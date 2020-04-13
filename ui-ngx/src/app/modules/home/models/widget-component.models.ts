@@ -41,7 +41,7 @@ import {
   widgetType,
   WidgetTypeDescriptor,
   WidgetTypeParameters,
-  Widget, JsonSettingsSchema
+  Widget, JsonSettingsSchema, WidgetExportType
 } from '@shared/models/widget.models';
 import { Timewindow, WidgetTimewindow } from '@shared/models/time/time.models';
 import {
@@ -188,6 +188,9 @@ export class WidgetContext {
 
   actionsApi?: WidgetActionsApi;
   activeEntityInfo?: SubscriptionEntityInfo;
+
+  exportWidgetData: (widgetExportType: WidgetExportType) => void;
+  customDataExport?: () => {[key: string]: any}[];
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;

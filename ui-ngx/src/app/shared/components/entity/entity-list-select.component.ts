@@ -38,6 +38,7 @@ import {AliasEntityType, EntityType, entityTypeTranslations} from '@shared/model
 import {EntityService} from '@core/http/entity.service';
 import {EntityId} from '@shared/models/id/entity-id';
 import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { Operation } from '@shared/models/security.models';
 
 interface EntityListSelectModel {
   entityType: EntityType | AliasEntityType;
@@ -67,6 +68,9 @@ export class EntityListSelectComponent implements ControlValueAccessor, OnInit, 
   @Input()
   useAliasEntityTypes: boolean;
 
+  @Input()
+  operation: Operation;
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -91,7 +95,8 @@ export class EntityListSelectComponent implements ControlValueAccessor, OnInit, 
               private fb: FormBuilder) {
 
     const entityTypes = this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes,
-      this.useAliasEntityTypes);
+                                                                         this.useAliasEntityTypes,
+                                                                         this.operation);
     if (entityTypes.length === 1) {
       this.displayEntityTypeSelect = false;
       this.defaultEntityType = entityTypes[0];

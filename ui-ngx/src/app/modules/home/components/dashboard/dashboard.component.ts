@@ -64,11 +64,17 @@ import { animatedScroll, deepClone, isDefined } from '@app/core/utils';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
-import { Widget, WidgetPosition } from '@app/shared/models/widget.models';
+import {
+  Widget,
+  WidgetExportType,
+  widgetExportTypeTranslationMap,
+  WidgetPosition
+} from '@app/shared/models/widget.models';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { SafeStyle } from '@angular/platform-browser';
 import { distinct } from 'rxjs/operators';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-dashboard',
@@ -150,6 +156,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   @Input()
   embedded = false;
 
+  widgetExportType = WidgetExportType;
+  widgetExportTypeTranslations = widgetExportTypeTranslationMap;
+
   embeddedDashboardBackground = this.whiteLabelingService.getPrimaryColor('A100');
 
   dashboardTimewindowChangedSubject: Subject<Timewindow> = new ReplaySubject<Timewindow>();
@@ -195,6 +204,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   private gridsterResizeListener = null;
 
   constructor(protected store: Store<AppState>,
+              public utils: UtilsService,
               private timeService: TimeService,
               private dialogService: DialogService,
               private breakpointObserver: BreakpointObserver,

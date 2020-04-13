@@ -58,9 +58,8 @@ import { deepClone, isDefined, isNumber } from '@core/utils';
 import cssjs from '@core/css/css';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
-import { DataSource } from '@angular/cdk/collections';
+import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { CollectionViewer } from '@angular/cdk/collections';
 import { BehaviorSubject, fromEvent, merge, Observable, of } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -70,20 +69,21 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
-    CellContentInfo,
-    CellStyleInfo,
-    constructTableCssString,
-    DisplayColumn,
-    EntityColumn,
-    EntityData,
-    fromEntityColumnDef,
-    getCellContentInfo,
-    getCellStyleInfo,
-    getColumnWidth,
-    getEntityValue,
-    TableWidgetDataKeySettings,
-    TableWidgetSettings,
-    toEntityColumnDef, widthStyle
+  CellContentInfo,
+  CellStyleInfo,
+  constructTableCssString,
+  DisplayColumn,
+  EntityColumn,
+  EntityData,
+  fromEntityColumnDef,
+  getCellContentInfo,
+  getCellStyleInfo,
+  getColumnWidth,
+  getEntityValue,
+  TableWidgetDataKeySettings,
+  TableWidgetSettings,
+  toEntityColumnDef,
+  widthStyle
 } from '@home/components/widget/lib/table-widget.models';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal, PortalInjector } from '@angular/cdk/portal';
@@ -213,6 +213,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   private initializeConfig() {
     this.ctx.widgetActions = [this.searchAction, this.columnDisplayAction];
+
+    this.ctx.customDataExport = this.customDataExport.bind(this);
 
     this.actionCellDescriptors = this.ctx.actionsApi.getActionDescriptors('actionCellButton');
 
@@ -468,7 +470,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     return style;
   }
 
-  public cellContent(entity: EntityData, key: EntityColumn): SafeHtml {
+  public cellContent(entity: EntityData, key: EntityColumn, useSafeHtml = true): SafeHtml {
     if (entity && key) {
       const contentInfo = this.contentsInfo[key.def];
       const value = getEntityValue(entity, key);
@@ -484,7 +486,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         const units = contentInfo.units || this.ctx.widgetConfig.units;
         content = this.ctx.utils.formatValue(value, decimals, units, true);
       }
-      return isDefined(content) ? this.domSanitizer.bypassSecurityTrustHtml(content) : '';
+      return isDefined(content) ? (useSafeHtml ? this.domSanitizer.bypassSecurityTrustHtml(content) : content) : '';
     } else {
       return '';
     }
@@ -529,6 +531,22 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     return {};
   }
 
+  customDataExport(): {[key: string]: any}[] {
+    const exportedData: {[key: string]: any}[] = [];
+    const pageLink = new PageLink(Number.POSITIVE_INFINITY, 0, this.pageLink.textSearch, this.pageLink.sortOrder);
+    const entitiesToExport = pageLink.filterData(this.entityDatasource.allEntities).data;
+    entitiesToExport.forEach((entity) => {
+      const dataObj: {[key: string]: any} = {};
+      this.columns.forEach((column) => {
+        if (this.displayedColumns.indexOf(column.def) > -1) {
+          dataObj[column.title] = this.cellContent(entity, column, false);
+        }
+      });
+      exportedData.push(dataObj);
+    });
+    return exportedData;
+  }
+
 }
 
 
@@ -538,7 +556,7 @@ class EntityDatasource implements DataSource<EntityData> {
   private entitiesSubject = new BehaviorSubject<EntityData[]>([]);
   private pageDataSubject = new BehaviorSubject<PageData<EntityData>>(emptyPageData<EntityData>());
 
-  private allEntities: Array<EntityData> = [];
+  public allEntities: Array<EntityData> = [];
   private allEntitiesSubject = new BehaviorSubject<EntityData[]>([]);
   private allEntities$: Observable<Array<EntityData>> = this.allEntitiesSubject.asObservable();
 

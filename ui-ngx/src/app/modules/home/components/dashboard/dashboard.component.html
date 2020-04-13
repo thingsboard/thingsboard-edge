@@ -104,7 +104,7 @@
                     matTooltipPosition="above"
                     class="mat-subheading-2 title">
                 <mat-icon *ngIf="widget.showTitleIcon" [ngStyle]="widget.titleIconStyle">{{widget.titleIcon}}</mat-icon>
-                {{widget.title}}
+                {{widget.customTranslatedTitle}}
               </span>
               <tb-timewindow *ngIf="widget.hasTimewindow"
                              #timewindowComponent
@@ -134,6 +134,30 @@
                       matTooltipPosition="above">
                 <mat-icon>{{ action.icon }}</mat-icon>
               </button>
+              <button mat-button mat-icon-button
+                      [matMenuTriggerFor]="widgetDataExportMenu"
+                      [fxShow]="!isEdit && widget.enableDataExport"
+                      matTooltip="{{ 'widget.export-data' | translate }}"
+                      matTooltipPosition="above">
+                <mat-icon svgIcon="mdi:file-export"></mat-icon>
+              </button>
+              <mat-menu #widgetDataExportMenu="matMenu" xPosition="before" yPosition="below">
+                <button mat-menu-item
+                        (click)="widget.exportWidgetData($event, widgetExportType.csv)">
+                  <mat-icon svgIcon="mdi:file-delimited"></mat-icon>
+                  <span translate>{{ widgetExportTypeTranslations.get(widgetExportType.csv) }}</span>
+                </button>
+                <button mat-menu-item
+                        (click)="widget.exportWidgetData($event, widgetExportType.xls)">
+                  <mat-icon svgIcon="mdi:file-excel"></mat-icon>
+                  <span translate>{{ widgetExportTypeTranslations.get(widgetExportType.xls) }}</span>
+                </button>
+                <button mat-menu-item
+                        (click)="widget.exportWidgetData($event, widgetExportType.xlsx)">
+                  <mat-icon svgIcon="mdi:file-excel"></mat-icon>
+                  <span translate>{{ widgetExportTypeTranslations.get(widgetExportType.xlsx) }}</span>
+                </button>
+              </mat-menu>
               <button mat-button mat-icon-button
                       [fxShow]="!isEdit && widget.enableFullscreen"
                       (click)="$event.stopPropagation(); widget.isFullscreen = !widget.isFullscreen"
