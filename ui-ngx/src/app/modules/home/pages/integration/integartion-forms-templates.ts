@@ -32,10 +32,10 @@ export const tcpBinaryByteOrder = {
 
 export const tcpTextMessageSeparator = {
   systemLineSeparator: {
-    value: "SYSTEM_LINE_SEPARATOR"
+    value: 'SYSTEM_LINE_SEPARATOR'
   },
   nulDelimiter: {
-    value: "NUL_DELIMITER"
+    value: 'NUL_DELIMITER'
   }
 }
 
@@ -223,10 +223,10 @@ export const templates = {
   },
   [IntegrationType.KAFKA]: {
     clientConfiguration: {
-      groupId: "" ,
-      clientId: "" ,
-      topics: "my-topic-output",
-      bootstrapServers: "localhost:9092",
+      groupId: '' ,
+      clientId: '' ,
+      topics: 'my-topic-output',
+      bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
       autoCreateTopics: false,
     }

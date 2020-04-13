@@ -22,7 +22,7 @@ export class OpcUaSubscriptionTagsComponent implements OnInit {
         path: [''],
         required: [false]
       }
-    ));    
+    ));
   }
 
 }

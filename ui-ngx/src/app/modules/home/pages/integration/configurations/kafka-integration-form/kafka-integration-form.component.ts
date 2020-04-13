@@ -11,17 +11,15 @@ import { generateId } from '@app/core/utils';
 })
 export class KafkaIntegrationFormComponent implements OnInit {
 
-  
   @Input() form: FormGroup;
-
 
   constructor() { }
 
   ngOnInit(): void {
     if (!this.form.get('groupId').value)
-      this.form.get('groupId').patchValue("group_id_" + generateId(10));
+      this.form.get('groupId').patchValue('group_id_' + generateId(10));
     if (!this.form.get('clientId').value)
-      this.form.get('clientId').patchValue("client_id_" + generateId(10));
+      this.form.get('clientId').patchValue('client_id_' + generateId(10));
   }
 
 }

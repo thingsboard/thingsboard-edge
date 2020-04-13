@@ -11,7 +11,6 @@ import { initialPositionInStream } from '../../integartion-forms-templates';
 })
 export class AwsKinesisIntegrationFormComponent implements OnInit {
 
-  
   @Input() form: FormGroup;
 
 

@@ -11,7 +11,7 @@ import { handlerConfigurationTypes } from '../../integartion-forms-templates';
 })
 export class UdpIntegrationFormComponent implements OnInit {
 
-  
+
   @Input() form: FormGroup;
 
   handlerConfigurationTypes = handlerConfigurationTypes;

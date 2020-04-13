@@ -11,7 +11,7 @@ import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType
 })
 export class OpcUaIntegrationFormComponent implements OnInit {
 
-  
+
   @Input() form: FormGroup;
 
   identityType = identityType;
@@ -29,7 +29,7 @@ export class OpcUaIntegrationFormComponent implements OnInit {
   addMap() {
     (this.form.get('mapping') as FormArray).push(
       this.fb.group({
-        deviceNodePattern: ["Channel1\\.Device\\d+$"],
+        deviceNodePattern: ['Channel1\\.Device\\d+$'],
         mappingType: ['FQN', Validators.required],
         subscriptionTags: this.fb.array([]),
         namespace: [Validators.min(0)]

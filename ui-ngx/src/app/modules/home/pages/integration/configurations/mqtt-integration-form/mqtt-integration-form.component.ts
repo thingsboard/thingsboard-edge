@@ -12,7 +12,7 @@ import { mqttCredentialTypes } from '../../integartion-forms-templates';
 })
 export class MqttIntegrationFormComponent implements OnInit {
 
-  
+
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;

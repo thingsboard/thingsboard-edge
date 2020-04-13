@@ -10,11 +10,9 @@ import { Observable } from 'rxjs';
 })
 export class IbmWatsonIotIntegrationFormComponent implements OnInit {
 
-  
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
-
 
   constructor() { }
 

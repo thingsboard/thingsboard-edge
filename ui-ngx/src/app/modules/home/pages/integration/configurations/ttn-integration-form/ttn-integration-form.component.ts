@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class TtnIntegrationFormComponent implements OnInit {
 
-  
+
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
@@ -20,18 +20,20 @@ export class TtnIntegrationFormComponent implements OnInit {
     custom: 'Custom'
   }
 
-
   constructor() { }
 
   ngOnInit(): void {
     this.form.get('credentials').get('username').valueChanges.subscribe(name => {
-      this.downlinkTopicPattern.patchValue(name + "/devices/${devId}/down");
+      this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
     })
   }
 
-  buildHostName() {/*
-    scope.configuration.clientConfiguration.host = (scope.currentHostType === scope.hostTypes.region) ? (scope.hostRegion + hostRegionSuffix) : scope.hostCustom;
-    scope.configuration.clientConfiguration.customHost = (scope.currentHostType === scope.hostTypes.custom);
-  */}
+  buildHostName() {
+    const hostRegionSuffix = '.thethings.network';
+    const formValue = this.form.getRawValue();
+    this.form.get('host').patchValue((this.form.get('currentHostType').value === this.hostTypes.region)
+      ? (formValue.host + hostRegionSuffix) : formValue.host);
+    this.form.get('customHost').patchValue(formValue.currentHostType === this.hostTypes.custom);
+  }
 
 }

@@ -10,11 +10,9 @@ import { Observable } from 'rxjs';
 })
 export class AwsIotIntegrationFormComponent implements OnInit {
 
-  
   @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
   @Input() form: FormGroup;
-
 
   constructor() { }
 

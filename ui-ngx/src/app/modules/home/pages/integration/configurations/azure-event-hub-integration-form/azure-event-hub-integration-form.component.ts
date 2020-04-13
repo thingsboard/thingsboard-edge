@@ -10,7 +10,6 @@ import { Observable } from 'rxjs';
 })
 export class AzureEventHubIntegrationFormComponent implements OnInit {
 
-  
   @Input() form: FormGroup;
 
 

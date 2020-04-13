@@ -10,9 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class AwsSqsIntegrationFormComponent implements OnInit {
 
-  
   @Input() form: FormGroup;
-
 
   constructor() { }
 

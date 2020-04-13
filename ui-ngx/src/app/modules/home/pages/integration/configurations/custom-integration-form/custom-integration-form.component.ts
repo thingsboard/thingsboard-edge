@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class CustomIntegrationFormComponent implements OnInit {
 
-  
+
   @Input() form: FormGroup;
 
 
