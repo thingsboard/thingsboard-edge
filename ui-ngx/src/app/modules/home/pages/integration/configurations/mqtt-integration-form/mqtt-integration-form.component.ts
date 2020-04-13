@@ -12,8 +12,7 @@ import { mqttCredentialTypes } from '../../integartion-forms-templates';
 })
 export class MqttIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;

@@ -10,8 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class AwsIotIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
   @Input() form: FormGroup;

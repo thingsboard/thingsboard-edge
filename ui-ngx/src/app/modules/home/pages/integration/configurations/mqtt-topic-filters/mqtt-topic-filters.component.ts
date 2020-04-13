@@ -12,8 +12,7 @@ export class MqttTopicFiltersComponent implements OnInit {
 
   @Input() topicFilters: FormArray;
   @Input() disableMqttTopics: boolean;
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
 
   mqttQoSTypes = mqttQoSTypes;
 

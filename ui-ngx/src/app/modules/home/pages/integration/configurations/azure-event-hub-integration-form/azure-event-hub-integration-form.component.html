@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <mat-form-field class="mat-block">
             <mat-label translate>integration.connect-timeout</mat-label>
             <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">

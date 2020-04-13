@@ -65,12 +65,12 @@
             </div>
         </mat-form-field>
     </div>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters"  disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [disabled]="(isLoading$ | async) || isEdit" ng-readonly="true"
+        <input matInput required  ng-readonly="true"
             [formControl]="downlinkTopicPattern">
         <div *ngIf="downlinkTopicPattern.dirty">
             <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">

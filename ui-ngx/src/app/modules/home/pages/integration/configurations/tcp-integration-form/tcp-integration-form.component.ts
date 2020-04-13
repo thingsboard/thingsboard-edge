@@ -11,8 +11,7 @@ import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator 
 })
 export class TcpIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
 
   handlerConfigurationTypes = handlerConfigurationTypes;

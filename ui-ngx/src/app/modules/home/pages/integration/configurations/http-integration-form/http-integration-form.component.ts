@@ -14,8 +14,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class HttpIntegrationFormComponent implements AfterViewInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
   @Input() integrationType: IntegrationType;
   @Input() routingKey;

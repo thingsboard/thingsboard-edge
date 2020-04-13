@@ -11,8 +11,7 @@ import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType
 })
 export class OpcUaIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
 
   identityType = identityType;

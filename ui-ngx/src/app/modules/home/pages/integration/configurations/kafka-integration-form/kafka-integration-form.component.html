@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <mat-form-field class="mat-block">
             <mat-label translate>integration.group-id</mat-label>
             <input matInput formControlName="groupId" required>
@@ -72,13 +72,13 @@
                     integration.poll-interval-required</mat-error>
             </div>
         </mat-form-field>
-        <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+        <mat-checkbox 
             aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
             style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
             <span translate>integration.auto-create-topics</span>
         </mat-checkbox>
-        <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
+        <mat-accordion class="tb-integration-panel-group" 
            >
             <mat-expansion-panel>
 
@@ -89,7 +89,7 @@
                 </mat-expansion-panel-header>
                 
                     <tb-key-val-map titleText="{{'integration.other-properties' | translate}}"
-                        [disabled]="(isLoading$ | async) || isEdit" key-val-map="otherProperties"></tb-key-val-map>
+                         key-val-map="otherProperties"></tb-key-val-map>
                 
 
             </mat-expansion-panel>

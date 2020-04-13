@@ -11,8 +11,7 @@ import { generateId } from '@app/core/utils';
 })
 export class KafkaIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
 
 

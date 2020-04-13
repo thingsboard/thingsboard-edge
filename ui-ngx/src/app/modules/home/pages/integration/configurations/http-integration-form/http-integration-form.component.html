@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <mat-form-field class="mat-block">
             <mat-label translate>integration.base-url</mat-label>
             <input matInput formControlName="baseUrl" (change)="integrationBaseUrlChanged()">
@@ -41,7 +41,7 @@
             </div>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+            <mat-checkbox 
                 aria-label="'integration.replace-no-content-to-ok | translate"
                 formControlName="replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' |
                 translate }}
@@ -49,12 +49,12 @@
         </div>
         <section *ngIf="integrationType === integrationTypes.HTTP ||
                                                 integrationType === integrationTypes.SIGFOX">
-            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+            <mat-checkbox 
                 aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
                 (change)="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
             </mat-checkbox>
             <mat-accordion *ngIf="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters"
-                [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+                >
                 <mat-expansion-panel>
                     <mat-expansion-panel-header>
                         <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
@@ -62,7 +62,7 @@
 
                     </mat-expansion-panel-header>
                     <tb-key-val-map noDataText="integration.no-headers-filter"
-                        key-placeholder-text="integration.header" [disabled]="(isLoading$ | async) || isEdit"
+                        key-placeholder-text="integration.header" 
                         key-val-map="headersFilter"></tb-key-val-map>
                 </mat-expansion-panel>
             </mat-accordion>
@@ -73,13 +73,13 @@
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
             <div fxLayout="row">
-                <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                <mat-checkbox 
                     aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
                     (change)="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' |
                         translate }}
                 </mat-checkbox>
                 <mat-form-field fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value">
-                    <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                    <mat-checkbox 
                         aria-label="'integration.enable-security-new | translate"
                         formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
                         translate}}

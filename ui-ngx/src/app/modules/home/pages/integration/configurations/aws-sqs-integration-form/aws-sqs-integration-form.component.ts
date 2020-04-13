@@ -10,8 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class AwsSqsIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
 
 

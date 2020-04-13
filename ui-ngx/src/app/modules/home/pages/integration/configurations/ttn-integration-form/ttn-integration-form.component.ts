@@ -10,8 +10,7 @@ import { Observable } from 'rxjs';
 })
 export class TtnIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;

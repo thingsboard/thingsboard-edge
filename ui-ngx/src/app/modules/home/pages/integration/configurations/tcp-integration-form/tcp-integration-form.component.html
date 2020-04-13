@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <div fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="100" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
@@ -83,16 +83,16 @@
                     </div>
                 </mat-form-field>
             </div>
-            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+            <mat-checkbox 
                 aria-label="'integration.so-keepalive-option | translate" formControlName="soKeepaliveOption">
                 {{ 'integration.so-keepalive-option' | translate }}
             </mat-checkbox>
-            <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+            <mat-checkbox 
                 aria-label="'integration.tcp-no-delay | translate" formControlName="tcpNoDelay">
                 {{ 'integration.tcp-no-delay' | translate }}
             </mat-checkbox>
         </div>
-        <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+        <mat-accordion class="tb-integration-panel-group" >
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <div class="tb-panel-title" translate>integration.handler-configuration</div>                    
@@ -101,7 +101,7 @@
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.handler-configuration-type</mat-label>
                         <mat-select required formControlName="handlerType"
-                            [disabled]="(isLoading$ | async) || isEdit" (selectionChange)="handlerConfigurationTypeChanged($event)">
+                             (selectionChange)="handlerConfigurationTypeChanged($event)">
                             <mat-option *ngFor="let handlerConfigurationType of handlerTypes | keyvalue"
                                 [value]="handlerConfigurationType.value.value">
                                 {{handlerConfigurationType.value.name | translate}}
@@ -128,14 +128,14 @@
                                 </div>
                             </mat-form-field>
                         </div>
-                        <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                        <mat-checkbox 
                             aria-label="'integration.strip-delimiter | translate"
                             formControlName="stripDelimiter">
                             {{ 'integration.strip-delimiter' | translate }}
                         </mat-checkbox>
                         <p class="mat-subhead" translate>integration.message-separator</p>
                         <mat-radio-group formControlName="messageSeparator"
-                            [disabled]="(isLoading$ | async) || isEdit">
+                            >
                             <mat-radio-button [value]="tcpTextMessageSeparator.systemLineSeparator.value">
                                 {{ 'integration.tcp.system-line-separator' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpTextMessageSeparator.nulDelimiter.value">
@@ -146,7 +146,7 @@
                         <p class="mat-subhead" translate>integration.byte-order</p>
                         <mat-radio-group formControlName="byteOrder"
                         fxFlex fxLayout="column"
-                            [disabled]="(isLoading$ | async) || isEdit">
+                            >
                             <mat-radio-button [value]="tcpBinaryByteOrder.littleEndian.value">
                                 {{ 'integration.tcp.byte-order-little-endian' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpBinaryByteOrder.bigEndian.value">
@@ -227,7 +227,7 @@
                                 </div>
                             </mat-form-field>
                         </div>
-                        <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                        <mat-checkbox 
                             aria-label="'integration.fail-fast | translate"
                             formControlName="failFast">
                             {{ 'integration.fail-fast' | translate }}

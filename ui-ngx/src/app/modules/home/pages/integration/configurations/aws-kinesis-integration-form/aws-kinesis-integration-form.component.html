@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit" class="flex column">
+    <fieldset  class="flex column">
         <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-stream-name</mat-label>
@@ -54,7 +54,7 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
                 <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [disabled]="(isLoading$ | async) || isEdit || form.get('useCredentialsFromInstanceMetadata').value"
+                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value"
                     formControlName="accessKeyId">
                 <div *ngIf="form.get('accessKeyId')?.dirty">
                     <mat-error translate *ngIf="form.get('accessKeyId')?.errors?.required">
@@ -65,7 +65,7 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-secret-access-key</mat-label>
                 <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [disabled]="(isLoading$ | async) || isEdit || form.get('useCredentialsFromInstanceMetadata').value" type="password"
+                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
                     formControlName="secretAccessKey">
                 <div *ngIf="form.get('secretAccessKey')?.dirty">
                     <mat-error translate *ngIf="form.get('secretAccessKey')?.errors?.required">
@@ -75,7 +75,7 @@
         </div>
         <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <div class="mat-block">
-                <mat-checkbox matInput [disabled]="(isLoading$ | async) || isEdit"
+                <mat-checkbox matInput 
                     aria-label="'integration.kinesis-use-credentials-from-instance-metadata | translate"
                     formControlName="useCredentialsFromInstanceMetadata">
                     {{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}
@@ -89,7 +89,7 @@
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit"
+                <mat-select required 
                     formControlName="initialPositionInStream">
                     <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.key">
                         {{stream?.value}}
@@ -103,7 +103,7 @@
         </div>
         <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <div class="mat-block">
-                <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                <mat-checkbox 
                     aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"
                     formControlName="useConsumersWithEnhancedFanOut">
                     {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}

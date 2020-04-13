@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <div fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
@@ -46,7 +46,7 @@
         </div>
         <div fxLayout="column">
             <div fxLayout="column" fxLayout.gt-sm="row">
-                <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
+                <mat-checkbox 
                     aria-label="'integration.so-broadcast | translate" formControlName="soBroadcast">
                     {{ 'integration.so-broadcast' | translate }}
                 </mat-checkbox>
@@ -66,7 +66,7 @@
                 </mat-form-field>
             </div>
         </div>
-        <mat-accordion formGroupName="handlerConfiguration" class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
+        <mat-accordion formGroupName="handlerConfiguration" class="tb-integration-panel-group" >
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <div class="tb-panel-title" translate>integration.handler-configuration</div>                 
@@ -74,7 +74,7 @@
                 <div>
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.handler-configuration-type</mat-label>
-                        <mat-select required formControlName="handlerType" [disabled]="(isLoading$ | async) || isEdit"
+                        <mat-select required formControlName="handlerType" 
                             (selectionChange)="handlerConfigurationTypeChanged($event)">
                             <mat-option *ngFor="let handlerConfigurationType of handlerConfigurationTypes | keyvalue"
                                 [value]="handlerConfigurationType.key">

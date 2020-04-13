@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column" class="integration-custom-form">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <mat-form-field class="mat-block">
             <mat-label translate>integration.integration-clazz</mat-label>
             <input matInput required formControlName="clazz">

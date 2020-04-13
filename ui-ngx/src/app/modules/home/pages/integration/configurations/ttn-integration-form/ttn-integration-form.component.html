@@ -31,11 +31,11 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <div fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host-type</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" formControlName="currentHostType">
+                <mat-select required  formControlName="currentHostType">
                     <mat-option *ngFor="let  type of hostTypes | keyvalue" [value]="type.key">
                         {{type.value}}
                     </mat-option>
@@ -105,12 +105,12 @@
             </mat-form-field>
         </div>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disableMqttTopics>
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters"  disableMqttTopics>
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [disabled]="(isLoading$ | async) || isEdit" [readonly]="true"
+        <input matInput required  [readonly]="true"
             [formControl]="downlinkTopicPattern">
         <div *ngIf="form.get('downlinkTopicPattern')?.dirty">
             <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors?.required">

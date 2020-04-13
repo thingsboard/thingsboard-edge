@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
+    <fieldset >
         <div fxLayout="row">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.aws-iot-endpoint</mat-label>
@@ -68,12 +68,12 @@
             </mat-form-field>
         </section>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters"  disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block" >
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [disabled]="(isLoading$ | async) || isEdit" [formControl]="downlinkTopicPattern">
+        <input matInput required  [formControl]="downlinkTopicPattern">
         <div *ngIf="downlinkTopicPattern.dirty">
             <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>

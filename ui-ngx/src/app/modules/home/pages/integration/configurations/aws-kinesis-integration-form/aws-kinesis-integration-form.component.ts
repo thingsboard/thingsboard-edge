@@ -11,8 +11,7 @@ import { initialPositionInStream } from '../../integartion-forms-templates';
 })
 export class AwsKinesisIntegrationFormComponent implements OnInit {
 
-  @Input() isLoading$: Observable<boolean>;
-  @Input() isEdit: boolean;
+  
   @Input() form: FormGroup;
 
 
