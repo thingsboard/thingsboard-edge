@@ -29,33 +29,41 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
-import { Integration, IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
-import { guid, isDefined, isUndefined } from '@core/utils';
+import { Integration, IntegrationType, integrationTypeInfoMap, IntegrationTypeInfo } from '@shared/models/integration.models';
+import { guid, isDefined, isUndefined, removeEmptyObjects } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { ClipboardService } from 'ngx-clipboard';
+import { templates } from './integartion-forms-templates';
+import _ from 'lodash';
 
 @Component({
   selector: 'tb-integration',
   templateUrl: './integration.component.html',
   styleUrls: ['./integration.component.scss']
 })
-export class IntegrationComponent extends EntityComponent<Integration> {
+export class IntegrationComponent extends EntityComponent<Integration> implements OnInit {
 
-  integrationType = IntegrationType;
+  integrationType: IntegrationType;
 
   converterType = ConverterType;
 
-  integrationTypes = Object.keys(IntegrationType);
+  integrationTypes = IntegrationType;
+
+  integrationTypeKeys = Object.keys(IntegrationType)
 
   integrationTypeInfos = integrationTypeInfoMap;
+
+  integrationForm: FormGroup;
+
+  integrationInfo: IntegrationTypeInfo;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -87,9 +95,9 @@ export class IntegrationComponent extends EntityComponent<Integration> {
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
         remote: [entity ? entity.remote : null],
-        routingKey: this.fb.control({value: entity ? entity.routingKey : null, disabled: true}),
-        secret: this.fb.control({value: entity ? entity.secret : null, disabled: true}),
-        configuration: [entity ? entity.configuration : {}, []],
+        routingKey: this.fb.control({ value: entity ? entity.routingKey : null, disabled: true }),
+        secret: this.fb.control({ value: entity ? entity.secret : null, disabled: true }),
+        configuration: this.fb.array([entity ? entity.configuration : {}, []]),
         metadata: [entity && entity.configuration ? entity.configuration.metadata : {}],
         additionalInfo: this.fb.group(
           {
@@ -98,65 +106,101 @@ export class IntegrationComponent extends EntityComponent<Integration> {
         )
       }
     );
-    form.get('type').valueChanges.subscribe(() => {
+    form.get('type').valueChanges.subscribe((type: IntegrationType) => {
+      this.integrationType = type;
+      this.setConfigurationForm(type);
       this.integrationTypeChanged(form);
     });
     this.checkIsNewIntegration(entity, form);
     return form;
   }
 
+  setConfigurationForm(type, entity = {}) {
+    this.integrationInfo = this.integrationTypeInfos.get(type);
+    const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[type]);
+    this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, entity));
+    const configuration = this.entityForm.get('configuration') as FormArray;
+    configuration.controls = [];
+    configuration.push(this.integrationForm);
+    if (!this.isEditValue) this.integrationForm.disable();
+  }
+
   updateFormState() {
     super.updateFormState();
     if (this.isEditValue && this.entityForm) {
       this.checkIsRemote(this.entityForm);
-      this.entityForm.get('routingKey').disable({emitEvent: false});
-      this.entityForm.get('secret').disable({emitEvent: false});
+      this.entityForm.get('routingKey').disable({ emitEvent: false });
+      this.entityForm.get('secret').disable({ emitEvent: false });
+      if (this.integrationForm)
+        this.integrationForm.enable();
     }
+    else if (this.integrationForm) this.integrationForm.disable();
   }
 
   private checkIsNewIntegration(entity: Integration, form: FormGroup) {
     if (entity && !entity.id) {
-      form.get('routingKey').patchValue(guid(), {emitEvent: false});
-      form.get('secret').patchValue(this.generateSecret(20), {emitEvent: false});
+      form.get('routingKey').patchValue(guid(), { emitEvent: false });
+      form.get('secret').patchValue(this.generateSecret(20), { emitEvent: false });
     }
   }
 
   private integrationTypeChanged(form: FormGroup) {
-    form.get('configuration').patchValue({}, {emitEvent: false});
-    form.get('metadata').patchValue({}, {emitEvent: false});
+    form.get('configuration').patchValue({}, { emitEvent: false });
+    form.get('metadata').patchValue({}, { emitEvent: false });
     this.checkIsRemote(form);
   }
 
   private checkIsRemote(form: FormGroup) {
     const integrationType: IntegrationType = form.get('type').value;
     if (integrationType && this.integrationTypeInfos.get(integrationType).remote) {
-      form.get('remote').patchValue(true, {emitEvent: false});
-      form.get('remote').disable({emitEvent: false});
-    } else if (this.isEditValue){
-      form.get('remote').enable({emitEvent: false});
+      form.get('remote').patchValue(true, { emitEvent: false });
+      form.get('remote').disable({ emitEvent: false });
+    } else if (this.isEditValue) {
+      form.get('remote').enable({ emitEvent: false });
     }
   }
 
   updateForm(entity: Integration) {
-    this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
-    this.entityForm.patchValue({enabled: isDefined(entity.enabled) ? entity.enabled : true});
-    this.entityForm.patchValue({debugMode: entity.debugMode});
-    this.entityForm.patchValue({defaultConverterId: entity.defaultConverterId});
-    this.entityForm.patchValue({downlinkConverterId: entity.downlinkConverterId});
-    this.entityForm.patchValue({remote: entity.remote});
-    this.entityForm.patchValue({routingKey: entity.routingKey});
-    this.entityForm.patchValue({secret: entity.secret});
-    this.entityForm.patchValue({configuration: entity.configuration});
-    this.entityForm.patchValue({metadata: entity.configuration ? entity.configuration.metadata : {}});
-    this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    this.entityForm.patchValue({ name: entity.name });
+    this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
+    this.entityForm.patchValue({ enabled: isDefined(entity.enabled) ? entity.enabled : true });
+    this.entityForm.patchValue({ debugMode: entity.debugMode });
+    this.entityForm.patchValue({ defaultConverterId: entity.defaultConverterId });
+    this.entityForm.patchValue({ downlinkConverterId: entity.downlinkConverterId });
+    this.entityForm.patchValue({ remote: entity.remote });
+    this.entityForm.patchValue({ routingKey: entity.routingKey });
+    this.entityForm.patchValue({ secret: entity.secret });
+    // this.entityForm.patchValue({ configuration: entity.configuration });
+    this.entityForm.patchValue({ metadata: entity.configuration ? entity.configuration.metadata : {} });
+    this.entityForm.patchValue({ additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' } });
     this.checkIsNewIntegration(entity, this.entityForm);
+    this.integrationType = entity.type;
+    this.setConfigurationForm(entity.type, entity.configuration);
+  }
+
+  getIntegrationForm(form: object): FormGroup {
+    const template = {};
+    for (const key of Object.keys(form)) {
+      if (Array.isArray(form[key])) {
+        template[key] = this.fb.array(form[key].map(el => this.getIntegrationForm(el)));
+      }
+      else if (typeof (form[key]) === 'object') {
+        template[key] = this.getIntegrationForm(form[key]);
+      }
+      else {
+        template[key] = this.fb.control(form[key]);
+      }
+    }
+    return this.fb.group(
+      template
+    )
   }
 
   prepareFormValue(formValue: any): any {
     if (!formValue.configuration) {
       formValue.configuration = {};
     }
+    formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
     delete formValue.metadata;
     return formValue;
@@ -168,7 +212,7 @@ export class IntegrationComponent extends EntityComponent<Integration> {
     }
     const l = length > 10 ? 10 : length;
     const str = Math.random().toString(36).substr(2, l);
-    if(str.length >= length){
+    if (str.length >= length) {
       return str;
     }
     return str.concat(this.generateSecret(length - str.length));

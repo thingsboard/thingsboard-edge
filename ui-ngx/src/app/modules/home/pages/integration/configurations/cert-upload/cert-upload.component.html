@@ -1,0 +1,22 @@
+<div [formGroup]="form">
+    <div class="tb-container" [ngClass]="form?.get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
+        <tb-file-input [existingFileName]="form?.get('caCertFileName').value" formControlName="caCert"
+            mat-label="integration.ca-cert" (fileNameChanged)="form?.get('caCertFileName').patchValue($event)"
+            inputId="ca-cert">
+        </tb-file-input>
+    </div>
+    <div class="tb-container" [ngClass]="form.get('caCertFileName').value ? 'ng-valid' : 'ng-invalid'">
+        <!--<mat-label class="tb-mat-label" translate>integration.cert</mat-label>-->
+        <tb-file-input [existingFileName]="form?.get('certFileName').value" formControlName="cert"
+            mat-label="integration.cert" (fileNameChanged)="form?.get('certFileName').patchValue($event)"
+            inputId="cert">
+        </tb-file-input>
+    </div>
+    <div class="tb-container" [ngClass]="form.get('privateKeyFileName').value ? 'ng-valid' : 'ng-invalid'">
+        <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
+        <tb-file-input [existingFileName]="form?.get('privateKeyFileName').value" formControlName="privateKey"
+            mat-label="integration.private-key" (fileNameChanged)="form?.get('privateKeyFileName').patchValue($event)"
+            inputId="private-key">
+        </tb-file-input>
+    </div>
+</div>
