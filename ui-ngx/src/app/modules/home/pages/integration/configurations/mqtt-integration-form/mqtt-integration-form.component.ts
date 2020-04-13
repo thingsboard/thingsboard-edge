@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 
 import { mqttCredentialTypes } from '../../integartion-forms-templates';
@@ -16,7 +16,7 @@ export class MqttIntegrationFormComponent implements OnInit {
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
-  @Input() downlinkTopicPattern: FormGroup;
+  @Input() downlinkTopicPattern: FormControl;
 
   mqttCredentialTypes = mqttCredentialTypes;
 
@@ -24,11 +24,4 @@ export class MqttIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
-  credentialsTypeChanged = () => {
-/*    var type = scope.configuration.clientConfiguration.credentials.type;
-    scope.configuration.clientConfiguration.credentials = {};
-    scope.configuration.clientConfiguration.credentials.type = type;
-    scope.updateValidity();*/
-}
 }

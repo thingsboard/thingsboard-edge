@@ -1,4 +1,3 @@
-<p>kafka-integration-form works!</p>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -31,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column">
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.group-id</mat-label>
@@ -65,14 +64,14 @@
             </div>
         </mat-form-field>
 
-        <mat-error fxFlex="40" class="mat-block">
+        <mat-form-field fxFlex="40" class="mat-block">
             <mat-label translate>integration.poll-interval</mat-label>
             <input matInput type="number" required formControlName="pollInterval" step="1">
             <div *ngIf="form.get('pollInterval')?.dirty">
                 <mat-error translate *ngIf="form.get('pollInterval')?.errors?.required">
                     integration.poll-interval-required</mat-error>
             </div>
-        </mat-error>
+        </mat-form-field>
         <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
             aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
             style="margin-bottom: 32px;">

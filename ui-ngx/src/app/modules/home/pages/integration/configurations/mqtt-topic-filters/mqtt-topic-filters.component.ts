@@ -11,7 +11,7 @@ import { FormBuilder, FormArray } from '@angular/forms';
 export class MqttTopicFiltersComponent implements OnInit {
 
   @Input() topicFilters: FormArray;
-  @Input() disableMqttTopics;
+  @Input() disableMqttTopics: boolean;
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
 

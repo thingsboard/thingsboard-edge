@@ -30,16 +30,17 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column">
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <div fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
-                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.min">integration.port-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.max">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required
+                    </mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.min">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.max">integration.port-range</mat-error>
                 </div>
             </mat-form-field>
         </div>
@@ -57,71 +58,66 @@
                     <div *ngIf="form.get('soRcvBuf')?.dirty">
                         <mat-error translate *ngIf="form.get('soRcvBuf')?.errors?.required">
                             integration.so-rcv-buf-required</mat-error>
-                        <mat-error translate *ngIf="form.get('')?.errors?.min">integration.so-rcv-buf-range</mat-error>
-                        <mat-error translate *ngIf="form.get('')?.errors?.max">integration.so-rcv-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf')?.errors?.min">integration.so-rcv-buf-range
+                        </mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf')?.errors?.max">integration.so-rcv-buf-range
+                        </mat-error>
                     </div>
                 </mat-form-field>
             </div>
         </div>
-        <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}"
-           >
+        <mat-accordion formGroupName="handlerConfiguration" class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
             <mat-expansion-panel>
-
-                <mat-expansion-panel-header >
-                    <div class="tb-panel-title" translate>integration.handler-configuration</div>
-                    <div class="tb-panel-prompt">
-                        {{handlerConfigurationTypes[form.get('handlerConfiguration').get('handlerType').value].name | translate }}</div>
-                    <span fxFlex></span>
-                    
+                <mat-expansion-panel-header>
+                    <div class="tb-panel-title" translate>integration.handler-configuration</div>                 
                 </mat-expansion-panel-header>
-                
-                    <div>
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.handler-configuration-type</mat-label>
-                            <mat-select required formControlName="handlerType"
-                                [disabled]="(isLoading$ | async) || isEdit"
-                                (change)="handlerConfigurationTypeChanged()">
-                                <mat-option *ngFor="let handlerConfigurationType of handlerConfigurationTypes | keyvalue"
-                                    [value]="handlerConfigurationType.key">
-                                    {{handlerConfigurationType.value.name | translate}}
-                                </mat-option>
-                            </mat-select>
-                            <div *ngIf="form.get('handlerConfigurationType')?.dirty">
-                                <mat-error translate *ngIf="form.get('handlerConfigurationType')?.errors?.required">
-                                    integration.handler-configuration-type-required</mat-error>
-                            </div>
-                        </mat-form-field>
-                        <section *ngIf="form.get('handlerConfiguration').get('handlerType').value ==handlerConfigurationTypes.text.value">
-                            <div fxLayout="column" fxLayout.gt-sm="row">
-                                <mat-form-field fxFlex="40" class="mat-block">
-                                    <mat-label translate>integration.charset-name</mat-label>
-                                    <input matInput type="text" required
-                                        formControlName="charsetName">
-                                    <div *ngIf="form.get('charsetName')?.dirty">
-                                        <mat-error translate *ngIf="form.get('charsetName')?.errors?.required">
-                                            integration.charset-name-required</mat-error>
-                                    </div>
-                                </mat-form-field>
-                            </div>
-                        </section>
-                        <section *ngIf="form.get('handlerConfiguration').get('handlerType').value ==handlerConfigurationTypes.hex.value">
-                            <div fxLayout="column" fxLayout.gt-sm="row">
-                                <mat-form-field fxFlex="40" class="mat-block">
-                                    <mat-label translate>integration.max-frame-length</mat-label>
-                                    <input matInput type="number" step="1" min="1" max="65535" required
-                                        formControlName="maxFrameLength">
-                                    <div *ngIf="form.get('maxFrameLength')?.dirty">
-                                        <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
-                                            integration.max-frame-length-required</mat-error>
-                                        <mat-error translate *ngIf="form.get('')?.errors?.min">
-                                            integration.max-frame-length-range</mat-error>
-                                        <mat-error translate *ngIf="form.get('')?.errors?.max">
-                                            integration.max-frame-length-range</mat-error>
-                                    </div>
-                                </mat-form-field>
-                            </div>
-                        </section>
-                    </div>
+                <div>
+                    <mat-form-field class="mat-block">
+                        <mat-label translate>integration.handler-configuration-type</mat-label>
+                        <mat-select required formControlName="handlerType" [disabled]="(isLoading$ | async) || isEdit"
+                            (selectionChange)="handlerConfigurationTypeChanged($event)">
+                            <mat-option *ngFor="let handlerConfigurationType of handlerConfigurationTypes | keyvalue"
+                                [value]="handlerConfigurationType.key">
+                                {{handlerConfigurationType.value.name | translate}}
+                            </mat-option>
+                        </mat-select>
+                        <div *ngIf="form.get('handlerConfigurationType')?.dirty">
+                            <mat-error translate *ngIf="form.get('handlerConfigurationType')?.errors?.required">
+                                integration.handler-configuration-type-required</mat-error>
+                        </div>
+                    </mat-form-field>
+                    <section
+                        *ngIf="form.get('handlerConfiguration').get('handlerType').value ==handlerConfigurationTypes.text.value">
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="40" class="mat-block">
+                                <mat-label translate>integration.charset-name</mat-label>
+                                <input matInput type="text" required formControlName="charsetName">
+                                <div *ngIf="form.get('charsetName')?.dirty">
+                                    <mat-error translate *ngIf="form.get('charsetName')?.errors?.required">
+                                        integration.charset-name-required</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                    </section>
+                    <section
+                        *ngIf="form.get('handlerConfiguration').get('handlerType').value ==handlerConfigurationTypes.hex.value">
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="40" class="mat-block">
+                                <mat-label translate>integration.max-frame-length</mat-label>
+                                <input matInput type="number" step="1" min="1" max="65535" required
+                                    formControlName="maxFrameLength">
+                                <div *ngIf="form.get('maxFrameLength')?.dirty">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
+                                        integration.max-frame-length-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.min">
+                                        integration.max-frame-length-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.max">
+                                        integration.max-frame-length-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                    </section>
+                </div>
             </mat-expansion-panel>
         </mat-accordion>
     </fieldset>

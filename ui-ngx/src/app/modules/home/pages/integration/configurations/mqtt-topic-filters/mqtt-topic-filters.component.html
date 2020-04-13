@@ -39,7 +39,7 @@
                     <div class="tb-panel-title">{{ 'integration.topic-filters' | translate }}</div>
                 </mat-expansion-panel-header>
                 <div fxFlex fxLayout="row" *ngFor="let topicFilter of topicFilters.controls; let i = index" style="max-height: 40px;"
-                    fxLayoutAlign="start center">
+                   [formGroup]="topicFilter" fxLayoutAlign="start center">
                     <mat-form-field fxFlex mat-no-float class="mat-block"
                         style="margin: 10px 0px 0px 0px; max-height: 40px;">
                         <input matInput placeholder="{{ 'integration.topic' | translate }}"

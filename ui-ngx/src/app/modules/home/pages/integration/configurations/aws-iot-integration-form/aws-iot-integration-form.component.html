@@ -45,7 +45,6 @@
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.connect-timeout</mat-label>
                 <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-
                 <div *ngIf="form.get('connectTimeoutSec')?.dirty">
                     <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
                         integration.connect-timeout-required</mat-error>
@@ -69,15 +68,14 @@
             </mat-form-field>
         </section>
     </fieldset>
-    <tb-mqtt-topic-filters [formControl]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
-    <mat-form-field class="mat-block">
+    <mat-form-field class="mat-block" >
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
         <input matInput required [disabled]="(isLoading$ | async) || isEdit" [formControl]="downlinkTopicPattern">
-
         <div *ngIf="downlinkTopicPattern.dirty">
-            <mat-error translate *ngIf="form.get('')?.errors?.downlinkTopicPattern.errors?.required">
+            <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>

@@ -33,7 +33,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -86,7 +86,6 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   buildForm(entity: Integration): FormGroup {
-    console.log("IntegrationComponent -> buildForm -> entity", entity)
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
@@ -98,7 +97,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         remote: [entity ? entity.remote : null],
         routingKey: this.fb.control({ value: entity ? entity.routingKey : null, disabled: true }),
         secret: this.fb.control({ value: entity ? entity.secret : null, disabled: true }),
-        configuration: [entity ? entity.configuration : {}, []],
+        configuration: this.fb.array([entity ? entity.configuration : {}, []]),
         metadata: [entity && entity.configuration ? entity.configuration.metadata : {}],
         additionalInfo: this.fb.group(
           {
@@ -109,8 +108,6 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     );
     form.get('type').valueChanges.subscribe((type: IntegrationType) => {
       this.integrationType = type;
-      console.log(templates);
-
       this.setConfigurationForm(type);
       this.integrationTypeChanged(form);
     });
@@ -119,10 +116,12 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   setConfigurationForm(type, entity = {}) {
-    console.log("IntegrationComponent -> setConfigurationForm -> type", type)
     this.integrationInfo = this.integrationTypeInfos.get(type);
-    let formTemplate = this.integrationInfo.http ? templates.http : templates[type];
+    const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[type]);
     this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, entity));
+    const configuration = this.entityForm.get('configuration') as FormArray;
+    configuration.controls = [];
+    configuration.push(this.integrationForm);
     if (!this.isEditValue) this.integrationForm.disable();
   }
 
@@ -132,8 +131,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       this.checkIsRemote(this.entityForm);
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
-      if(this.integrationForm)
-      this.integrationForm.enable();
+      if (this.integrationForm)
+        this.integrationForm.enable();
     }
     else if (this.integrationForm) this.integrationForm.disable();
   }
@@ -171,25 +170,25 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     this.entityForm.patchValue({ remote: entity.remote });
     this.entityForm.patchValue({ routingKey: entity.routingKey });
     this.entityForm.patchValue({ secret: entity.secret });
-    this.entityForm.patchValue({ configuration: entity.configuration });
+    // this.entityForm.patchValue({ configuration: entity.configuration });
     this.entityForm.patchValue({ metadata: entity.configuration ? entity.configuration.metadata : {} });
     this.entityForm.patchValue({ additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' } });
     this.checkIsNewIntegration(entity, this.entityForm);
     this.integrationType = entity.type;
-    this.setConfigurationForm(entity.type, entity.configuration.clientConfiguration);
+    this.setConfigurationForm(entity.type, entity.configuration);
   }
 
   getIntegrationForm(form: object): FormGroup {
     const template = {};
     for (const key of Object.keys(form)) {
       if (Array.isArray(form[key])) {
-        template[key] = this.fb.array(form[key]);
+        template[key] = this.fb.array(form[key].map(el => this.getIntegrationForm(el)));
       }
       else if (typeof (form[key]) === 'object') {
         template[key] = this.getIntegrationForm(form[key]);
       }
       else {
-        template[key] = [form[key], { disabled: this.isEdit }];
+        template[key] = this.fb.control(form[key]);
       }
     }
     return this.fb.group(
@@ -197,15 +196,11 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     )
   }
 
-  log(a) {
-    console.log(a);
-  }
-
   prepareFormValue(formValue: any): any {
     if (!formValue.configuration) {
       formValue.configuration = {};
     }
-    formValue.configuration = { ...removeEmptyObjects(formValue.configuration) };
+    formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
     delete formValue.metadata;
     return formValue;

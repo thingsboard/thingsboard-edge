@@ -82,7 +82,7 @@
         <div form fxFlex fxLayout="column" formGroupName="identity" fxLayout="row">
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-security</mat-label>
-                <mat-select required [disabled]="(isLoading$ | async) || isEdit" (change)="opcUaSecurityTypeChanged()"
+                <mat-select required [disabled]="(isLoading$ | async) || isEdit" (selectionChange)="opcUaSecurityTypeChanged()"
                     [formControl]="form.get('security')">
                     <mat-option [value]="security.key" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{security.value}}</span></mat-option>

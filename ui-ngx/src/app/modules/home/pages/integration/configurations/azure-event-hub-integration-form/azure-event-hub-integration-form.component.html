@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column">
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.connect-timeout</mat-label>

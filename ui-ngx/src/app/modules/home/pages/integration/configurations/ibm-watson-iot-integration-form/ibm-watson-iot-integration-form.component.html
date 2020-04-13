@@ -30,46 +30,50 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column">
-    <fieldset [disabled]="(isLoading$ | async) || isEdit">
-        <mat-form-field class="mat-block">
-            <mat-label translate>integration.connect-timeout</mat-label>
-            <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-            <div *ngIf="form.get('connectTimeoutSec')?.dirty">
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
-                    integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.min">integration.connect-timeout-range</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.max">integration.connect-timeout-range</mat-error>
-            </div>
-        </mat-form-field>
-        <div class="tb-panel-title" style="padding-bottom: 15px;">
-            {{ 'integration.application-credentials' | translate }}</div>
+<section [formGroup]="form" fxLayout="column">
+    <mat-form-field class="mat-block">
+        <mat-label translate>integration.connect-timeout</mat-label>
+        <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
+        <div *ngIf="form.get('connectTimeoutSec')?.dirty">
+            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
+                integration.connect-timeout-required</mat-error>
+            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.min">
+                integration.connect-timeout-range</mat-error>
+            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.max">
+                integration.connect-timeout-range</mat-error>
+        </div>
+    </mat-form-field>
+    <div class="tb-panel-title" style="padding-bottom: 15px;">
+        {{ 'integration.application-credentials' | translate }}</div>
+    <div [formGroup]="form.get('credentials')">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.api-key</mat-label>
-            <input matInput required formControlName="credentials.username">
-            <div *ngIf="form.get('apiKey')?.dirty">
-                <mat-error translate *ngIf="form.get('apiKey')?.errors?.required">integration.api-key-required
+            <input matInput required formControlName="username">
+            <div *ngIf="form.get('credentials').get('username')?.dirty">
+                <mat-error translate *ngIf="form.get('credentials').get('username')?.errors?.required">
+                    integration.api-key-required
                 </mat-error>
             </div>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.auth-token</mat-label>
-            <input matInput type="password" required formControlName="credentials.password">
-            <div *ngIf="form.get('authToken')?.dirty">
-                <mat-error translate *ngIf="form.get('authToken')?.errors?.required">integration.auth-token-required
+            <input matInput type="password" required formControlName="password">
+            <div *ngIf="form.get('credentials').get('password')?.dirty">
+                <mat-error translate *ngIf="form.get('credentials').get('password')?.errors?.required">
+                    integration.auth-token-required
                 </mat-error>
             </div>
         </mat-form-field>
-    </fieldset>
-    <tb-mqtt-topic-filters formControlName="configuration.topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
+    </div>
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [isEdit]="isEdit" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
         <input matInput required [disabled]="(isLoading$ | async) || isEdit" ng-readonly="true"
-            formControlName="configuration.downlinkTopicPattern">
-        <div *ngIf="form.get('downlinkTopicPattern')?.dirty">
-            <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors?.required">
+            [formControl]="downlinkTopicPattern">
+        <div *ngIf="downlinkTopicPattern.dirty">
+            <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>

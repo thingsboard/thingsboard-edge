@@ -27,11 +27,6 @@ export class OpcUaIntegrationFormComponent implements OnInit {
 
   opcUaSecurityTypeChanged() { }
 
-  log(a) {
-    console.log(a);
-
-  }
-
   addMap() {
     (this.form.get('mapping') as FormArray).push(
       this.fb.group({
@@ -39,7 +34,7 @@ export class OpcUaIntegrationFormComponent implements OnInit {
         mappingType: ['FQN', Validators.required],
         subscriptionTags: this.fb.array([]),
         namespace: [Validators.min(0)]
-      }      )
+      })
     );
   }
 

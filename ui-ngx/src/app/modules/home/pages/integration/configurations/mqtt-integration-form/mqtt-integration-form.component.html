@@ -66,7 +66,7 @@
             <div *ngIf="form.get('clientId')?.dirty">
                 <mat-error translate *ngIf="form.get('clientId')?.errors?.pattern">integration.client-id-pattern
                 </mat-error>
-                <mat-error translate *ngIf="form.get('')?.errors?.maxlength">integration.client-id-range</mat-error>
+                <mat-error translate *ngIf="form.get('clientId')?.errors?.maxlength">integration.client-id-range</mat-error>
             </div>
         </mat-form-field>
         <div fxLayout="column">
@@ -81,47 +81,46 @@
         </div>
         <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
             <mat-expansion-panel>
-                <mat-expansion-panel-header>
+                <mat-expansion-panel-header fxFlex>
                     <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
                     <div class="tb-panel-prompt">
-                        {{ mqttCredentialTypes[form?.get('credentialsType')?.value]?.name | translate }}</div>
+                        {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}</div>
                     <span fxFlex></span>
                 </mat-expansion-panel-header>
-                <div>
+                <div formGroupName="credentials">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="credentialsType"
-                            [disabled]="(isLoading$ | async) || isEdit" (change)="credentialsTypeChanged()">
+                        <mat-select required formControlName="type"
+                            [disabled]="(isLoading$ | async) || isEdit">
                             <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
                                 [value]="credentialsType?.key">
                                 {{credentialsType?.value.name | translate}}
                             </mat-option>
                         </mat-select>
-                        <div *ngIf="form.get('credentialsType')?.dirty">
-                            <mat-error translate *ngIf="form.get('credentialsType')?.errors?.required">
+                        <div *ngIf="form.get('credentials').get('type')?.dirty">
+                            <mat-error translate *ngIf="form.get('credentials').get('type')?.errors?.required">
                                 integration.credentials-type-required</mat-error>
                         </div>
                     </mat-form-field>
-                    {{form?.get('credentialsType').value}}
-                    <section *ngIf="form?.get('credentialsType')?.value === mqttCredentialTypes.basic.value">
+                    <section *ngIf="form?.get('credentials').get('credentialsType')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
-                            <input matInput required formControlName="mqttUsername">
-                            <div *ngIf="form.get('mqttUsername')?.dirty">
-                                <mat-error translate *ngIf="form.get('mqttUsername')?.errors?.required">
+                            <input matInput required formControlName="username">
+                            <div *ngIf="form.get('credentials').get('username')?.dirty">
+                                <mat-error translate *ngIf="form.get('credentials').get('username')?.errors?.required">
                                     integration.username-required</mat-error>
                             </div>
                         </mat-form-field>
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.password</mat-label>
-                            <input matInput type="password" required formControlName="mqttPassword">
-                            <div *ngIf="form.get('mqttPassword')?.dirty">
-                                <mat-error translate *ngIf="form.get('mqttPassword')?.errors?.required">
+                            <input matInput type="password" required formControlName="password">
+                            <div *ngIf="form.get('credentials').get('password')?.dirty">
+                                <mat-error translate *ngIf="form.get('credentials').get('password')?.errors?.required">
                                     integration.password-required</mat-error>
                             </div>
                         </mat-form-field>
                     </section>
-                    <section *ngIf="form?.get('credentialsType')?.value === mqttCredentialTypes['cert.PEM'].value"
+                    <section *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes['cert.PEM'].value"
                         class="dropdown-section">
                         <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
                         <!--  <div class="tb-container"
@@ -220,7 +219,7 @@
         <input matInput required [disabled]="(isLoading$ | async) || isEdit"
             [formControl]="downlinkTopicPattern">
         <div *ngIf="downlinkTopicPattern.dirty">
-            <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.errors?.required">
+            <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">
                 integration.downlink-topic-pattern-required</mat-error>
         </div>
     </mat-form-field>

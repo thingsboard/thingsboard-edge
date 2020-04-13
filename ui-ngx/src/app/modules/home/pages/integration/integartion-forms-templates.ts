@@ -1,6 +1,43 @@
 import { Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
-import { baseUrl } from '@app/core/utils';
+import { baseUrl, generateId } from '@app/core/utils';
+
+export const handlerConfigurationTypes = {
+  text: {
+    value: 'TEXT',
+    name: 'extension.text'
+  },
+  binary: {
+    value: 'BINARY',
+    name: 'extension.binary'
+  },
+  json: {
+    value: 'JSON',
+    name: 'extension.json'
+  },
+  hex: {
+    value: 'HEX',
+    name: 'extension.hex'
+  }
+}
+
+export const tcpBinaryByteOrder = {
+  littleEndian: {
+    value: 'LITTLE_ENDIAN'
+  },
+  bigEndian: {
+    value: 'BIG_ENDIAN'
+  }
+}
+
+export const tcpTextMessageSeparator = {
+  systemLineSeparator: {
+    value: "SYSTEM_LINE_SEPARATOR"
+  },
+  nulDelimiter: {
+    value: "NUL_DELIMITER"
+  }
+}
 
 export const templates = {
   http: {
@@ -20,41 +57,48 @@ export const templates = {
   },
   [IntegrationType.MQTT]: {
     clientConfiguration: {
-      host: '',
-      port: '',
+      host: 'localhost',
+      port: 11883,
       cleanSession: '',
       ssl: '',
-      connectTimeoutSec: '',
+      connectTimeoutSec: 10,
       clientId: '',
-      credentialsType: '',
-      mqttUsername: '',
-      mqttPassword: '',
-      privateKeyPassword: ''
+      credentials: {
+        type: 'annonymus',
+        username: ' ',
+        password: ' '
+      },
+      privateKeypassword: ' '
     },
     downlinkTopicPattern: '${topic}',
     topicFilters: []
   },
   [IntegrationType.AWS_IOT]: {
-    host: '',
-    number: '',
-    clientId: '',
-    connectTimeoutSec: '',
-    credentials: {
-      type: '',
-      caCertFileName: '',
-      caCert: '',
-      certFileName: '',
-      cert: '',
-      privateKeyFileName: '',
-      privateKey: '',
-      password: ''
-    }
+    clientConfiguration: {
+      host: '',
+      port: 8883,
+      clientId: '',
+      connectTimeoutSec: 10,
+      ssl: true,
+      credentials: {
+        type: 'cert.PEM',
+        caCertFileName: '',
+        caCert: '',
+        certFileName: '',
+        cert: '',
+        privateKeyFileName: '',
+        privateKey: '',
+        password: ' '
+      }
+    },
+    downlinkTopicPattern: '${topic}',
+    topicFilters: []
   },
   [IntegrationType.AWS_SQS]: {
     sqsConfiguration: {
       queueUrl: '',
-      pollingPeriodSeconds: '',
-      region: '',
+      pollingPeriodSeconds: 5,
+      region: 'us-west-2',
       accessKeyId: '',
       secretAccessKey: ''
     }
@@ -70,34 +114,50 @@ export const templates = {
     useConsumersWithEnhancedFanOut: ''
   },
   [IntegrationType.IBM_WATSON_IOT]: {
-    connectTimeoutSec: '',
-    credentials: {
-      username: '',
-      password: '',
+    clientConfiguration: {
+      connectTimeoutSec: 10,
+      host: '',
+      port: 8883,
+      ssl: true,
+      cleanSession: true,
+      credentials: {
+        type: 'basic',
+        username: ' ',
+        password: ' ',
+      }
     },
-    configuration: {
-      topicFilters: '',
-      downlinkTopicPattern: ''
-    }
+    topicFilters: [{
+      filter: 'iot-2/type/+/id/+/evt/+/fmt/+',
+      qos: 0
+    }],
+    downlinkTopicPattern: 'iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}'
+
   },
   [IntegrationType.TTN]: {
-    currentHostType: '',
-    $parent: {
-      hostRegion: '',
-      hostCustom: ''
-    },
-    connectTimeoutSec: '',
-    credentials: {
-      username: '',
-      password: ''
-    },
-    configuration: {
-      topicFilters: '',
+    clientConfiguration: {
+      currentHostType: '',
+      host: '',
+      port: 8883,
+      ssl: true,
+      $parent: {
+        hostRegion: '',
+        hostCustom: ''
+      },
+      connectTimeoutSec: 10,
+      credentials: {
+        type: 'basic',
+        username: ' ',
+        password: ' '
+      },
+      topicFilters: [{
+        filter: '+/devices/+/up',
+        qos: 0
+      }],
       downlinkTopicPattern: ''
     }
   },
   [IntegrationType.AZURE_EVENT_HUB]: {
-    connectTimeoutSec: '',
+    connectTimeoutSec: 10,
     namespaceName: '',
     eventHubName: '',
     sasKeyName: '',
@@ -105,69 +165,71 @@ export const templates = {
     iotHubName: '',
   },
   [IntegrationType.OPC_UA]: {
-    applicationName: '',
-    applicationUri: '',
-    host: '',
-    port: '',
-    scanPeriodInSeconds: '',
-    timeoutInMillis: '',
-    security: '',
-    identity: {
-      password: '',
-      username: '',
-      type: 'anonymous'
-    },
-    mapping: [],
-    keystore: {
-      fileContent: '',
-      type: '',
-      location: '',
-      password: '',
-      alias: '',
-      keyPassword: ''
+    clientConfiguration: {
+      applicationName: '',
+      applicationUri: '',
+      host: 'localhost',
+      port: 49320,
+      scanPeriodInSeconds: 10,
+      timeoutInMillis: 5000,
+      security: '',
+      identity: {
+        password: ' ',
+        username: ' ',
+        type: 'anonymous'
+      },
+      mapping: [],
+      keystore: {
+        location: '',
+        type: '',
+        fileContent: '',
+        password: 'secret',
+        alias: 'opc-ua-extension',
+        keyPassword: 'secret',
+      }
     }
   },
   [IntegrationType.UDP]: {
-    currentHostType: '',
-    $parent: {
-      hostRegion: '',
-      hostCustom: ''
-    },
-    connectTimeoutSec: '',
-    credentials: {
-      username: '',
-      password: '',
-      topicFilters: '',
-      downlinkTopicPattern: ''
+    clientConfiguration: {
+      port: 11560,
+      soBroadcast: true,
+      soRcvBuf: 64,
+      handlerConfiguration: {
+        handlerType: handlerConfigurationTypes.binary.value
+      }
     }
   },
   [IntegrationType.TCP]: {
-    port: '',
-    soBacklogOption: '',
-    soRcvBuf: '',
-    soSndBuf: '',
-    soKeepaliveOption: '',
-    tcpNoDelay: '',
-    handlerConfiguration: {
-      handlerType: '',
-      maxFrameLength: '',
-      stripDelimiter: '',
-      messageSeparator: '',
-      byteOrder: '',
-      lengthFieldOffset: '',
-      lengthFieldLength: '',
-      lengthAdjustment: '',
-      initialBytesToStrip: '',
-      failFast: ''
+    clientConfiguration: {
+      port: 10560,
+      soBacklogOption: 128,
+      soRcvBuf: 64,
+      soSndBuf: 64,
+      soKeepaliveOption: false,
+      tcpNoDelay: true,
+      handlerConfiguration: {
+        handlerType: handlerConfigurationTypes.binary.value,
+        byteOrder: tcpBinaryByteOrder.littleEndian.value,
+        maxFrameLength: 128,
+        lengthFieldOffset: 0,
+        lengthFieldLength: 2,
+        lengthAdjustment: 0,
+        initialBytesToStrip: 0,
+        failFast: false,
+        stripDelimiter: true,
+        messageSeparator: tcpTextMessageSeparator.systemLineSeparator.value
+      }
     }
   },
   [IntegrationType.KAFKA]: {
-    groupId: '',
-    clientId: '',
-    topics: '',
-    bootstrapServers: '',
-    pollInterval: '',
-    autoCreateTopics: '',
+    clientConfiguration: {
+      groupId: "" ,
+      clientId: "" ,
+      topics: "my-topic-output",
+      bootstrapServers: "localhost:9092",
+      pollInterval: 5000,
+      autoCreateTopics: false,
+    }
   },
   [IntegrationType.CUSTOM]: {
     clazz: '',
@@ -209,44 +271,6 @@ export const initialPositionInStream = {
 export const topicFilters = {
 
 }
-
-export const handlerConfigurationTypes = {
-  text: {
-    value: 'TEXT',
-    name: 'extension.text'
-  },
-  binary: {
-    value: 'BINARY',
-    name: 'extension.binary'
-  },
-  json: {
-    value: 'JSON',
-    name: 'extension.json'
-  },
-  hex: {
-    value: 'HEX',
-    name: 'extension.hex'
-  }
-}
-
-export const tcpTextMessageSeparator = {
-  systemLineSeparator: {
-    value: 'SYSTEM_LINE_SEPARATOR'
-  },
-  nulDelimiter: {
-    value: 'NUL_DELIMITER'
-  }
-}
-
-export const tcpBinaryByteOrder = {
-  littleEndian: {
-    value: 'LITTLE_ENDIAN'
-  },
-  bigEndian: {
-    value: 'BIG_ENDIAN'
-  }
-}
-
 export const opcSecurityTypes = {
   Basic128Rsa15: 'Basic128Rsa15',
   Basic256: 'Basic256',

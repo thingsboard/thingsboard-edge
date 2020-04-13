@@ -32,7 +32,7 @@
 -->
 <section [formGroup]="form" fxLayout="column">
     <fieldset [disabled]="(isLoading$ | async) || isEdit" class="flex column">
-        <div class="flex row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-stream-name</mat-label>
                 <input matInput required formControlName="streamName">
@@ -50,7 +50,7 @@
                 </div>
             </mat-form-field>
         </div>
-        <div class="flex row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
                 <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
@@ -73,7 +73,7 @@
                 </div>
             </mat-form-field>
         </div>
-        <div class="flex row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <div class="mat-block">
                 <mat-checkbox matInput [disabled]="(isLoading$ | async) || isEdit"
                     aria-label="'integration.kinesis-use-credentials-from-instance-metadata | translate"
@@ -82,7 +82,7 @@
                 </mat-checkbox>
             </div>
         </div>
-        <div class="flex row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-application-name</mat-label>
                 <input matInput formControlName="applicationName">
@@ -101,7 +101,7 @@
                 </div>
             </mat-form-field>
         </div>
-        <div class="flex row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <div class="mat-block">
                 <mat-checkbox [disabled]="(isLoading$ | async) || isEdit"
                     aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"

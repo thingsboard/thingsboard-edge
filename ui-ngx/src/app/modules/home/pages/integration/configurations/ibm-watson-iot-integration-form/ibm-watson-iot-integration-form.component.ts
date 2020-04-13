@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 
 
@@ -13,6 +13,8 @@ export class IbmWatsonIotIntegrationFormComponent implements OnInit {
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
+  @Input() topicFilters: FormGroup;
+  @Input() downlinkTopicPattern: FormControl;
 
 
   constructor() { }

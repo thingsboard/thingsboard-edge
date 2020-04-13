@@ -17,16 +17,31 @@ export class UdpIntegrationFormComponent implements OnInit {
 
   handlerConfigurationTypes = handlerConfigurationTypes;
 
+  defaultHandlerConfigurations = {
+    [handlerConfigurationTypes.binary.value]: {
+      handlerType: handlerConfigurationTypes.binary.value
+    },
+    [handlerConfigurationTypes.text.value]: {
+      handlerType: handlerConfigurationTypes.text.value,
+      charsetName: 'UTF-8'
+    },
+    [handlerConfigurationTypes.json.value]: {
+      handlerType: handlerConfigurationTypes.json.value
+    },
+    [handlerConfigurationTypes.hex.value]: {
+      handlerType: handlerConfigurationTypes.hex.value,
+      maxFrameLength: 128
+    },
+  }
+
 
   constructor() { }
 
   ngOnInit(): void {
   }
 
-  handlerConfigurationTypeChanged = () => {
-   /* let handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
-    scope.configuration.clientConfiguration.handlerConfiguration = {};
-    scope.configuration.clientConfiguration.handlerConfiguration = angular.copy(defaultHandlerConfigurations[handlerType]);*/
-};
+  handlerConfigurationTypeChanged(type) {
+    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value])
+  };
 
 }

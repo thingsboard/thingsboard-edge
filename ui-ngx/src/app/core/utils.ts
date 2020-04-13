@@ -622,9 +622,8 @@ export function padValue(val: any, dec: number): string {
 }
 
 export function removeEmptyObjects(obj: object): object {
-  console.log("functionremoveEmptyObjects -> obj", obj)
   for (const key of Object.keys(obj)) {
-    if (!obj[key]) delete obj[key]
+    if (obj[key] === null || obj[key] === undefined || obj[key] === ' ') delete obj[key]
     else
       if (Array.isArray(obj[key]))
         obj[key] = obj[key].filter(el => !!removeEmptyObjects(el))
@@ -632,7 +631,9 @@ export function removeEmptyObjects(obj: object): object {
         if (typeof (obj[key]) === 'object')
           removeEmptyObjects(obj[key]);
   }
-  return obj;
+  if (Object.keys(obj).length)
+    return obj;
+  else return null;
 }
 
 
@@ -643,4 +644,15 @@ export function baseUrl(): string {
     url += ':' + port;
   }
   return url;
+}
+
+export function generateId(length: number): string {
+  if (!length || isNaN(length)) {
+      length = 1;
+  }
+  const str = Math.random().toString(36).substr(2, length > 10 ? 10 : length);
+  if (str.length >= length) {
+      return str;
+  }
+  return str.concat(generateId(length - str.length));
 }

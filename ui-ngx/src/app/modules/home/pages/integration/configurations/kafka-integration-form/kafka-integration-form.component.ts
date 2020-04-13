@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
+import { generateId } from '@app/core/utils';
 
 
 @Component({
@@ -18,6 +19,10 @@ export class KafkaIntegrationFormComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    if (!this.form.get('groupId').value)
+      this.form.get('groupId').patchValue("group_id_" + generateId(10));
+    if (!this.form.get('clientId').value)
+      this.form.get('clientId').patchValue("client_id_" + generateId(10));
   }
 
 }

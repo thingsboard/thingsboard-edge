@@ -20,16 +20,35 @@ export class TcpIntegrationFormComponent implements OnInit {
   tcpBinaryByteOrder = tcpBinaryByteOrder;
   tcpTextMessageSeparator = tcpTextMessageSeparator;
 
+  defaultHandlerConfigurations = {
+    [handlerConfigurationTypes.binary.value]: {
+      handlerType: handlerConfigurationTypes.binary.value,
+      byteOrder: tcpBinaryByteOrder.littleEndian.value,
+      maxFrameLength: 128,
+      lengthFieldOffset: 0,
+      lengthFieldLength: 2,
+      lengthAdjustment: 0,
+      initialBytesToStrip: 0,
+      failFast: false
+    }, [handlerConfigurationTypes.text.value]: {
+      handlerType: handlerConfigurationTypes.text.value,
+      maxFrameLength: 128,
+      stripDelimiter: true,
+      messageSeparator: tcpTextMessageSeparator.systemLineSeparator.value
+    },
+    [handlerConfigurationTypes.json.value]: {
+      handlerType: handlerConfigurationTypes.json.value
+    }
+  }
+
   constructor() { }
 
   ngOnInit(): void {
     delete this.handlerTypes.hex;
   }
 
-  handlerConfigurationTypeChanged = () => {
-  /*  let handlerType = scope.configuration.clientConfiguration.handlerConfiguration.handlerType;
-    scope.configuration.clientConfiguration.handlerConfiguration = {};
-    scope.configuration.clientConfiguration.handlerConfiguration = angular.copy(defaultHandlerConfigurations[handlerType]);*/
-};
+  handlerConfigurationTypeChanged(type){
+    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value]);
+  };
 
 }

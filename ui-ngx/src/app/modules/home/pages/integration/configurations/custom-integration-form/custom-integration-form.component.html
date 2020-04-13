@@ -1,4 +1,3 @@
-<p>custom-integration-form works!</p>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -31,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column" class="integration-custom-form">
+<section [formGroup]="form" fxLayout="column" class="integration-custom-form">
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.integration-clazz</mat-label>
@@ -42,7 +41,7 @@
             </div>
         </mat-form-field>
         <tb-json-content class="integration-custom-configuration" formControlName="configuration"
-            mat-label="{{ 'integration.integration-configuration' | translate }}" content-type="contentType.JSON.value"
+            label="{{ 'integration.integration-configuration' | translate }}" content-type="contentType.JSON.value"
             validate-content="true" ng-readonly="(isLoading$ | async) || isEdit" fill-height="true">
         </tb-json-content>
     </fieldset>

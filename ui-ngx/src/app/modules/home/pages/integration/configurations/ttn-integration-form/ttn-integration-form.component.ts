@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, FormArray, FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 
 
@@ -13,6 +13,8 @@ export class TtnIntegrationFormComponent implements OnInit {
   @Input() isLoading$: Observable<boolean>;
   @Input() isEdit: boolean;
   @Input() form: FormGroup;
+  @Input() topicFilters: FormGroup;
+  @Input() downlinkTopicPattern: FormControl;
 
   hostTypes = {
     region: 'Region',
@@ -23,6 +25,9 @@ export class TtnIntegrationFormComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.form.get('credentials').get('username').valueChanges.subscribe(name => {
+      this.downlinkTopicPattern.patchValue(name + "/devices/${devId}/down");
+    })
   }
 
   buildHostName() {/*

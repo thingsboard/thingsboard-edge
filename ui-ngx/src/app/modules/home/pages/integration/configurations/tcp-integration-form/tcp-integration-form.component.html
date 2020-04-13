@@ -30,10 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section formGroup="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column">
     <fieldset [disabled]="(isLoading$ | async) || isEdit">
         <div fxLayout="column" fxLayout.gt-sm="row">
-            <mat-form-field fxFlex="40" class="mat-block">
+            <mat-form-field fxFlex="100" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <div *ngIf="form.get('port')?.dirty">
@@ -45,7 +45,7 @@
         </div>
         <div fxLayout="column">
             <div fxLayout="column" fxLayout.gt-sm="row">
-                <mat-form-field fxFlex="40" class="mat-block">
+                <mat-form-field fxFlex="100" class="mat-block">
                     <mat-label translate>integration.so-backlog-option</mat-label>
                     <input matInput type="number" step="1" min="1" max="65535" required
                         formControlName="soBacklogOption">
@@ -60,7 +60,7 @@
                 </mat-form-field>
             </div>
             <div fxLayout="column" fxLayout.gt-sm="row">
-                <mat-form-field fxFlex="40" class="mat-block">
+                <mat-form-field fxFlex="100" class="mat-block">
                     <mat-label translate>integration.so-rcv-buf</mat-label>
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soRcvBuf">
                     <div *ngIf="form.get('soRcvBuf')?.dirty">
@@ -72,7 +72,7 @@
                 </mat-form-field>
             </div>
             <div fxLayout="column" fxLayout.gt-sm="row">
-                <mat-form-field fxFlex="40" class="mat-block">
+                <mat-form-field fxFlex="100" class="mat-block">
                     <mat-label translate>integration.so-snd-buf</mat-label>
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soSndBuf">
                     <div *ngIf="form.get('soSndBuf')?.dirty">
@@ -95,20 +95,16 @@
         <mat-accordion class="tb-integration-panel-group" [ngClass]="{'disabled': (isLoading$ | async) || isEdit}">
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
-                    <div class="tb-panel-title" translate>integration.handler-configuration</div>
-                    <div class="tb-panel-prompt">
-                        {{handlerConfigurationTypes[form.get('handlerConfiguration').get('handlerType').value].name | translate }}</div>
-                    <span fxFlex></span>
-                    
+                    <div class="tb-panel-title" translate>integration.handler-configuration</div>                    
                 </mat-expansion-panel-header>
                 <div formGroupName="handlerConfiguration">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.handler-configuration-type</mat-label>
                         <mat-select required formControlName="handlerType"
-                            [disabled]="(isLoading$ | async) || isEdit" (change)="handlerConfigurationTypeChanged()">
+                            [disabled]="(isLoading$ | async) || isEdit" (selectionChange)="handlerConfigurationTypeChanged($event)">
                             <mat-option *ngFor="let handlerConfigurationType of handlerTypes | keyvalue"
-                                [value]="handlerConfigurationType.value">
-                                {{handlerConfigurationType.name | translate}}
+                                [value]="handlerConfigurationType.value.value">
+                                {{handlerConfigurationType.value.name | translate}}
                             </mat-option>
                         </mat-select>
                         <div *ngIf="form.get('handlerConfigurationType')?.dirty">
@@ -118,7 +114,7 @@
                     </mat-form-field>
                     <section *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.text.value">
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.max-frame-length</mat-label>
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
@@ -149,6 +145,7 @@
                     <section *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.binary.value">
                         <p class="mat-subhead" translate>integration.byte-order</p>
                         <mat-radio-group formControlName="byteOrder"
+                        fxFlex fxLayout="column"
                             [disabled]="(isLoading$ | async) || isEdit">
                             <mat-radio-button [value]="tcpBinaryByteOrder.littleEndian.value">
                                 {{ 'integration.tcp.byte-order-little-endian' | translate }}</mat-radio-button>
@@ -156,7 +153,7 @@
                                 {{ 'integration.tcp.byte-order-big-endian' | translate }}</mat-radio-button>
                         </mat-radio-group>
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.max-frame-length</mat-label>
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
@@ -171,7 +168,7 @@
                             </mat-form-field>
                         </div>
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-field-offset</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldOffset">
@@ -186,7 +183,7 @@
                             </mat-form-field>
                         </div>
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-field-length</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldLength">
@@ -201,7 +198,7 @@
                             </mat-form-field>
                         </div>
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-adjustment</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthAdjustment">
@@ -216,7 +213,7 @@
                             </mat-form-field>
                         </div>
                         <div fxLayout="column" fxLayout.gt-sm="row">
-                            <mat-form-field fxFlex="40" class="mat-block">
+                            <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.initial-bytes-to-strip</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="initialBytesToStrip">
