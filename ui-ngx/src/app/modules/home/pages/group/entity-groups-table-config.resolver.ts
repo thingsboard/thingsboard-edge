@@ -31,10 +31,10 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRoute, ActivatedRouteSnapshot, Params, Resolve, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -43,7 +43,12 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { UtilsService } from '@core/services/utils.service';
-import { EntityGroupInfo, EntityGroupParams, resolveGroupParams } from '@shared/models/entity-group.models';
+import {
+  EntityGroupInfo,
+  EntityGroupParams,
+  entityGroupsTitle,
+  resolveGroupParams
+} from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
 import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
@@ -53,7 +58,8 @@ import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { isDefined, isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
+import { CustomerService } from '@core/http/customer.service';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfig<EntityGroupInfo>> {
@@ -64,6 +70,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
   private groupType: EntityType;
 
   constructor(private entityGroupService: EntityGroupService,
+              private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
               private broadcast: BroadcastService,
               private translate: TranslateService,
@@ -154,39 +161,18 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
   }
 
-  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<EntityGroupInfo> {
+  resolve(route: ActivatedRouteSnapshot): Observable<EntityTableConfig<EntityGroupInfo>> | EntityTableConfig<EntityGroupInfo> {
     return this.resolveEntityGroupTableConfig(resolveGroupParams(route));
   }
 
-  resolveEntityGroupTableConfig(params: EntityGroupParams): EntityTableConfig<EntityGroupInfo> {
+  resolveEntityGroupTableConfig(params: EntityGroupParams, resolveCustomer = true):
+    Observable<EntityTableConfig<EntityGroupInfo>> | EntityTableConfig<EntityGroupInfo> {
     this.customerId = params.customerId;
     if (this.customerId && params.childGroupType) {
       this.groupType = params.childGroupType;
     } else {
       this.groupType = params.groupType;
     }
-    let title;
-    switch (this.groupType) {
-      case EntityType.CUSTOMER:
-        title = 'entity-group.customer-groups';
-        break;
-      case EntityType.ASSET:
-        title = 'entity-group.asset-groups';
-        break;
-      case EntityType.DEVICE:
-        title = 'entity-group.device-groups';
-        break;
-      case EntityType.ENTITY_VIEW:
-        title = 'entity-group.entity-view-groups';
-        break;
-      case EntityType.USER:
-        title = 'entity-group.user-groups';
-        break;
-      case EntityType.DASHBOARD:
-        title = 'entity-group.dashboard-groups';
-        break;
-    }
-    this.config.tableTitle = this.translate.instant(title);
     const resource = resourceByEntityType.get(this.config.entityType);
     if (!this.userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
       this.config.addEnabled = false;
@@ -198,7 +184,17 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
       isGroupEntitiesView: false
     };
     this.updateActionCellDescriptors();
-    return this.config;
+    if (this.customerId && resolveCustomer) {
+      return this.customerService.getShortCustomerInfo(this.customerId).pipe(
+        map((info) => {
+          this.config.tableTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(this.groupType));
+          return this.config;
+        })
+      );
+    } else {
+      this.config.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType));
+      return this.config;
+    }
   }
 
   updateActionCellDescriptors() {

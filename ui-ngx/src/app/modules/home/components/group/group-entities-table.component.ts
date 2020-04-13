@@ -210,7 +210,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
         this.isGroupDetailsOpen = false;
       }
     });
-    this.entityGroupDetailsConfig = this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams);
+    this.entityGroupDetailsConfig =
+      this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityTableConfig<EntityGroupInfo>;
     this.entityGroupDetailsConfig.componentsData = {
       isGroupEntitiesView: true,
       reloadEntityGroup: this.reloadEntityGroup.bind(this)

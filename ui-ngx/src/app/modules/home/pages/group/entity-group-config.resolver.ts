@@ -35,7 +35,6 @@ import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
-import { deepClone } from '@core/utils';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
   EntityGroupStateConfigFactory,
@@ -55,17 +54,21 @@ export class EntityGroupConfigResolver {
 
   public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
     const entityGroupId: string = params.childEntityGroupId || params.entityGroupId;
-    return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
-      mergeMap((entityGroup) => {
-          return this.constructGroupConfig<T>(params, entityGroup);
-        }
-      ));
+    if (entityGroupId) {
+      return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
+        mergeMap((entityGroup) => {
+            return this.constructGroupConfig<T>(params, entityGroup);
+          }
+        ));
+    } else {
+      return of(null);
+    }
   }
 
   public constructGroupConfig<T>(params: EntityGroupParams,
                                  entityGroup: EntityGroupInfo): Observable<EntityGroupStateInfo<T>> {
     const entityGroupStateInfo: EntityGroupStateInfo<T> = entityGroup;
-    entityGroupStateInfo.origEntityGroup = deepClone(entityGroup);
+    // entityGroupStateInfo.origEntityGroup = deepClone(entityGroup);
     return this.resolveParentGroupInfo(params, entityGroupStateInfo).pipe(
       mergeMap((resolvedEntityGroup) => {
           const token = groupConfigFactoryTokenMap.get(resolvedEntityGroup.type);
