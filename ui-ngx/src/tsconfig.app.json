@@ -5,8 +5,7 @@
     "types": ["node", "jquery", "flot", "tooltipster", "tinycolor2", "js-beautify", "react", "react-dom", "jstree", "raphael", "canvas-gauges"]
   },
   "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
-    "strictTemplates":true
+    "fullTemplateTypeCheck": true
   },
   "files": [
     "main.ts",
