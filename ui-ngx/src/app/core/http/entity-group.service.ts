@@ -172,5 +172,4 @@ export class EntityGroupService {
     url += pageLink.toQuery();
     return this.http.get<PageData<T>>(url, defaultHttpOptionsFromConfig(config));
   }
-
 }

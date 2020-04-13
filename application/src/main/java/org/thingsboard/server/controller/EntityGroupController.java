@@ -81,6 +81,7 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -243,6 +244,7 @@ public class EntityGroupController extends BaseController {
                         groups.addAll(entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupIds).get());
                     }
                 }
+                groups.sort(Comparator.comparingLong(EntityGroup::getCreatedTime));
                 return toEntityGroupsInfo(groups);
             } else {
                 return Collections.emptyList();

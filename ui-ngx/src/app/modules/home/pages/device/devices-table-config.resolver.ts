@@ -98,7 +98,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DEVICE;
-    this.config.entityComponent = DeviceComponent;
+    // this.config.entityComponent = DeviceComponent;
     this.config.entityTabsComponent = DeviceTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DEVICE);
     this.config.entityResources = entityTypeResources.get(EntityType.DEVICE);

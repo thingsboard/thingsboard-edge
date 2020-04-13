@@ -114,7 +114,8 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 alias = String.format("alias%s", aliasCounter++);
                 columnSelection = String.format("%s as %s", this.buildAttributeSelection(type.getAttributeScope(), column.column.getKey()), alias);
             } else {
-                // TODO: timeseries
+                alias = String.format("alias%s", aliasCounter++);
+                columnSelection = String.format("%s as %s", this.buildTimeseriesSelection(column.column.getKey()), alias);
             }
             if (columnSelection != null) {
                 selections.add(columnSelection);
@@ -169,7 +170,8 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 alias = String.format("alias%s", aliasCounter++);
                 columnSelection = String.format("%s as %s", this.buildAttributeSelection(type.getAttributeScope(), column.column.getKey()), alias);
             } else {
-                // TODO: timeseries
+                alias = String.format("alias%s", aliasCounter++);
+                columnSelection = String.format("%s as %s", this.buildTimeseriesSelection(column.column.getKey()), alias);
             }
             if (columnSelection != null) {
                 selections.add(columnSelection);
@@ -281,6 +283,11 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 "and attr.attribute_type='%s' and attr.attribute_key='%s')", attributeType, attributeKey);
     }
 
+    private String buildTimeseriesSelection(String timeseriesKey) {
+        // TODO: timeseries
+        return "(select '')";
+    }
+
     private List<ShortEntityView> convertListToShortEntityView(List<Object> result, EntityType entityType, List<ColumnMapping> columns) {
         return result.stream().map(obj -> this.toShortEntityView(obj, entityType, columns)).collect(Collectors.toList());
     }
@@ -295,10 +302,32 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 entity.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             } else {
                 Object value = ((Object[]) obj)[column.propertyIndex];
-                entity.put(column.propertyName, value != null ? value.toString() : null);
+                entity.put(column.propertyName, this.convertValue(value));
             }
         }
         return entity;
+    }
+
+    private String convertValue(Object value) {
+        if (value != null) {
+            String strVal = value.toString();
+            // check number
+            if (strVal.length() > 0) {
+                try {
+                    int intVal = Integer.parseInt(strVal);
+                    return new Integer(intVal).toString();
+                } catch (NumberFormatException e) {
+                }
+                try {
+                    double dblVal = Double.parseDouble(strVal);
+                    return new Double(dblVal).toString();
+                } catch (NumberFormatException e) {
+                }
+            }
+            return strVal;
+        } else {
+            return null;
+        }
     }
 
     private List<ColumnMapping> toColumnMapping(List<ColumnConfiguration> columns) {
@@ -307,13 +336,15 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
         Set<String> uniqueProperties = new HashSet<>();
         for (ColumnConfiguration column: columns) {
             ColumnMapping mapping = toColumnMapping(column);
-            if (uniqueProperties.add(mapping.propertyName)) {
-                if (column.getType() == ColumnType.ENTITY_FIELD && mapping.entityField == EntityField.CREATED_TIME) {
-                    mapping.propertyIndex = 0;
-                } else {
-                    mapping.propertyIndex = ++index;
+            if (mapping != null) {
+                if (uniqueProperties.add(mapping.propertyName)) {
+                    if (column.getType() == ColumnType.ENTITY_FIELD && mapping.entityField == EntityField.CREATED_TIME) {
+                        mapping.propertyIndex = 0;
+                    } else {
+                        mapping.propertyIndex = ++index;
+                    }
+                    columnMappings.add(mapping);
                 }
-                columnMappings.add(mapping);
             }
         }
        return columnMappings;
@@ -330,6 +361,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
             try {
                 entityField = EntityField.valueOf(column.getKey().toUpperCase());
             } catch (Exception ignored) {
+                return null;
             }
             mapping.entityField = entityField;
             if (entityField != null) {

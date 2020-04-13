@@ -85,6 +85,15 @@ import { ConverterAutocompleteComponent } from '@home/components/converter/conve
 import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
+import { GroupPermissionsComponent } from '@home/components/role/group-permissions.component';
+import { OwnerAutocompleteComponent } from '@home/components/role/owner-autocomplete.component';
+import { GroupPermissionDialogComponent } from '@home/components/role/group-permission-dialog.component';
+import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
+import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
+import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
+import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
+import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 
 @NgModule({
   declarations:
@@ -137,7 +146,15 @@ import { PermissionListComponent } from '@home/components/role/permission-list.c
       ConverterAutocompleteComponent,
       OperationTypeListComponent,
       ResourceTypeAutocompleteComponent,
-      PermissionListComponent
+      PermissionListComponent,
+      GroupPermissionsComponent,
+      GroupPermissionDialogComponent,
+      ViewRoleDialogComponent,
+      OwnerAutocompleteComponent,
+      GroupEntitiesTableComponent,
+      GroupEntityTabsComponent,
+      GroupEntityTableHeaderComponent,
+      AddGroupEntityDialogComponent
     ],
   imports: [
     CommonModule,
@@ -183,12 +200,21 @@ import { PermissionListComponent } from '@home/components/role/permission-list.c
     ConverterAutocompleteComponent,
     OperationTypeListComponent,
     ResourceTypeAutocompleteComponent,
-    PermissionListComponent
+    PermissionListComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
+    ViewRoleDialogComponent,
+    OwnerAutocompleteComponent,
+    GroupEntitiesTableComponent,
+    GroupEntityTabsComponent,
+    GroupEntityTableHeaderComponent,
+    AddGroupEntityDialogComponent
   ],
   providers: [
     WidgetComponentService,
     CustomDialogService,
-    ImportExportService
+    ImportExportService,
+    GroupConfigTableConfigService
   ]
 })
 export class HomeComponentsModule { }

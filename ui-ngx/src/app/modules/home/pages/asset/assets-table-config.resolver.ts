@@ -94,7 +94,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private dialog: MatDialog) {
 
     this.config.entityType = EntityType.ASSET;
-    this.config.entityComponent = AssetComponent;
+    // this.config.entityComponent = AssetComponent;
     this.config.entityTabsComponent = AssetTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.ASSET);
     this.config.entityResources = entityTypeResources.get(EntityType.ASSET);
@@ -163,7 +163,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
 
   configureColumns(assetScope: string): Array<EntityTableColumn<Asset>> {
     const columns: Array<EntityTableColumn<Asset>> = [
-      new DateEntityTableColumn<Asset>('createdTime', 'asset.created-time', this.datePipe, '150px'),
+      new DateEntityTableColumn<Asset>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<Asset>('name', 'asset.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Asset>('type', 'asset.asset-type', '25%'),
       new EntityTableColumn<Asset>('label', 'asset.label', '25%'),

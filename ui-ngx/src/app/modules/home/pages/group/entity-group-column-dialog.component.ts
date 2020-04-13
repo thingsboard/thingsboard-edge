@@ -143,7 +143,9 @@ export class EntityGroupColumnDialogComponent extends
 
   save(): void {
     this.submitted = true;
-    this.column = {...this.column, ...this.columnFormGroup.value};
-    this.dialogRef.close(this.column);
+    if (this.columnFormGroup.valid) {
+      this.column = {...this.column, ...this.columnFormGroup.value};
+      this.dialogRef.close(this.column);
+    }
   }
 }

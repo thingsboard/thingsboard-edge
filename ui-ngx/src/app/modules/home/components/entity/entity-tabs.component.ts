@@ -47,9 +47,14 @@ import { DebugEventType, EventType } from '@shared/models/event.models';
 import { AttributeScope, LatestTelemetry } from '@shared/models/telemetry/telemetry.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { NgForm } from '@angular/forms';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Directive()
-export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends PageComponent implements OnInit, AfterViewInit {
+export abstract class EntityTabsComponent<T extends BaseData<HasId>,
+  P extends PageLink = PageLink,
+  L extends BaseData<HasId> = T,
+  C extends EntityTableConfig<T, P, L> = EntityTableConfig<T, P, L>>
+  extends PageComponent implements OnInit, AfterViewInit {
 
   attributeScopes = AttributeScope;
   latestTelemetryTypes = LatestTelemetry;
@@ -69,6 +74,8 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
   nullUid = NULL_UUID;
 
   entityValue: T;
+
+  entitiesTableConfigValue: C;
 
   @ViewChildren(MatTab) entityTabs: QueryList<MatTab>;
 
@@ -93,7 +100,13 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
   }
 
   @Input()
-  entitiesTableConfig: EntityTableConfig<T>;
+  set entitiesTableConfig(entitiesTableConfig: C) {
+    this.setEntitiesTableConfig(entitiesTableConfig);
+  }
+
+  get entitiesTableConfig(): C {
+    return this.entitiesTableConfigValue;
+  }
 
   @Input()
   detailsForm: NgForm;
@@ -121,6 +134,10 @@ export abstract class EntityTabsComponent<T extends BaseData<HasId>> extends Pag
 
   protected setEntity(entity: T) {
     this.entityValue = entity;
+  }
+
+  protected setEntitiesTableConfig(entitiesTableConfig: C) {
+    this.entitiesTableConfigValue = entitiesTableConfig;
   }
 
 }

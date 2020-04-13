@@ -42,7 +42,7 @@ import { filter, map, publishReplay, refCount } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { Operation } from '@shared/models/security.models';
 import { Customer } from '@shared/models/customer.model';
-import { EntityGroup } from '@shared/models/entity-group.models';
+import { EntityGroup, ShortEntityView } from '@shared/models/entity-group.models';
 
 // @dynamic
 @Injectable({
@@ -165,7 +165,7 @@ export class DashboardService {
       defaultHttpOptionsFromConfig(config));
   }*/
 
-  public getPublicDashboardLink(dashboard: DashboardInfo, entityGroup: EntityGroup): string | null {
+  public getPublicDashboardLink(dashboard: DashboardInfo | ShortEntityView, entityGroup: EntityGroup): string | null {
       const publicCustomerId = entityGroup.additionalInfo.publicCustomerId;
       let url = this.window.location.protocol + '//' + this.window.location.hostname;
       const port = this.window.location.port;

@@ -32,23 +32,27 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
-import {AssignToCustomerDialogComponent} from '@modules/home/dialogs/assign-to-customer-dialog.component';
-import {AddEntitiesToCustomerDialogComponent} from '@modules/home/dialogs/add-entities-to-customer-dialog.component';
+import { AssignToCustomerDialogComponent } from '@modules/home/dialogs/assign-to-customer-dialog.component';
+import { AddEntitiesToCustomerDialogComponent } from '@modules/home/dialogs/add-entities-to-customer-dialog.component';
 import { HomeDialogsService } from './home-dialogs.service';
+import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.component';
+import { HomeComponentsModule } from '@home/components/home-components.module';
+import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-group-dialog.component';
 
 @NgModule({
   declarations:
   [
-    AssignToCustomerDialogComponent,
-    AddEntitiesToCustomerDialogComponent
+    SelectOwnerDialogComponent,
+    SelectEntityGroupDialogComponent
   ],
   imports: [
     CommonModule,
-    SharedModule
+    SharedModule,
+    HomeComponentsModule
   ],
   exports: [
-    AssignToCustomerDialogComponent,
-    AddEntitiesToCustomerDialogComponent
+    SelectOwnerDialogComponent,
+    SelectEntityGroupDialogComponent
   ],
   providers: [
     HomeDialogsService

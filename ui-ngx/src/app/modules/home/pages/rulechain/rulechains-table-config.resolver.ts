@@ -34,7 +34,7 @@ import { Injectable } from '@angular/core';
 import { Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -142,7 +142,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
 
   resolve(): EntityTableConfig<RuleChain> {
     this.config.tableTitle = this.translate.instant('rulechain.rulechains');
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

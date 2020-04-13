@@ -41,9 +41,9 @@ import { Observable } from 'rxjs';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { WidgetService } from '@core/http/widget.service';
 import { WidgetEditorComponent } from '@home/pages/widget/widget-editor.component';
-import { map, share } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { toWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
-import { Widget, widgetType, WidgetType } from '@app/shared/models/widget.models';
+import { widgetType, WidgetType } from '@app/shared/models/widget.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { WidgetsData } from '@home/models/dashboard-component.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
@@ -129,10 +129,11 @@ export class WidgetEditorAddDataResolver implements Resolve<WidgetEditorData> {
   }
 }
 
-export const widgetTypesBreadcumbLabelFunction: BreadCrumbLabelFunction = ((route, translate) => route.data.widgetsBundle.title);
+export const widgetTypesBreadcumbLabelFunction: BreadCrumbLabelFunction<any> = ((route, translate) =>
+  route.data.widgetsBundle.title);
 
-export const widgetEditorBreadcumbLabelFunction: BreadCrumbLabelFunction =
-  ((route, translate, component) => component ? (component as WidgetEditorComponent).widget.widgetName : '');
+export const widgetEditorBreadcumbLabelFunction: BreadCrumbLabelFunction<WidgetEditorComponent> =
+  ((route, translate, component) => component ? component.widget.widgetName : '');
 
 export const routes: Routes = [
   {
@@ -161,7 +162,7 @@ export const routes: Routes = [
           breadcrumb: {
             labelFunction: widgetTypesBreadcumbLabelFunction,
             icon: 'now_widgets'
-          } as BreadCrumbConfig
+          } as BreadCrumbConfig<any>
         },
         resolve: {
           widgetsBundle: WidgetsBundleResolver
@@ -188,7 +189,7 @@ export const routes: Routes = [
               breadcrumb: {
                 labelFunction: widgetEditorBreadcumbLabelFunction,
                 icon: 'insert_chart'
-              } as BreadCrumbConfig
+              } as BreadCrumbConfig<WidgetEditorComponent>
             },
             resolve: {
               widgetEditorData: WidgetEditorDataResolver
@@ -204,7 +205,7 @@ export const routes: Routes = [
               breadcrumb: {
                 labelFunction: widgetEditorBreadcumbLabelFunction,
                 icon: 'insert_chart'
-              } as BreadCrumbConfig
+              } as BreadCrumbConfig<WidgetEditorComponent>
             },
             resolve: {
               widgetEditorData: WidgetEditorAddDataResolver

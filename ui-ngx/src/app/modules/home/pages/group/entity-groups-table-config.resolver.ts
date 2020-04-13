@@ -31,10 +31,10 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Params, Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -43,15 +43,17 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { UtilsService } from '@core/services/utils.service';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, EntityGroupParams, resolveGroupParams } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
 import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation, publicGroupTypes } from '@shared/models/security.models';
+import { Operation, publicGroupTypes, resourceByEntityType } from '@shared/models/security.models';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfig<EntityGroupInfo>> {
@@ -66,7 +68,10 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
               private broadcast: BroadcastService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private route: ActivatedRoute,
+              private router: Router,
+              private homeDialogs: HomeDialogsService) {
 
     this.config.entityType = EntityType.ENTITY_GROUP;
     this.config.entityComponent = EntityGroupComponent;
@@ -83,38 +88,13 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
       new DateEntityTableColumn<EntityGroupInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<EntityGroupInfo>('name', 'entity-group.name', '33%', this.config.entityTitle),
       new EntityTableColumn<EntityGroupInfo>('description', 'entity-group.description', '40%',
-        (entityGroup) => entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.description : '', entity => ({}), false),
+        (entityGroup) =>
+          entityGroup && entityGroup.additionalInfo && isDefinedAndNotNull(entityGroup.additionalInfo.description)
+            ? entityGroup.additionalInfo.description : '', entity => ({}), false),
       new EntityTableColumn<EntityGroupInfo>('isPublic', 'entity-group.public', '60px',
         entityGroup => {
           return checkBoxCell(entityGroup && entityGroup.additionalInfo ? entityGroup.additionalInfo.isPublic : false);
         }, () => ({}), false)
-    );
-
-    this.config.cellActionDescriptors.push(
-      {
-        name: this.translate.instant('action.open'),
-        icon: 'view_list',
-        isEnabled: (entity) => true,
-        onAction: ($event, entity) => this.open($event, entity)
-      },
-      {
-        name: this.translate.instant('action.share'),
-        icon: 'share',
-        isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
-          && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
-          && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-          && userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-        onAction: ($event, entity) => this.makePublic($event, entity)
-      },
-      {
-        name: this.translate.instant('action.make-private'),
-        icon: 'reply',
-        isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
-          && entity.additionalInfo && entity.additionalInfo.isPublic
-          && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-          && userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-        onAction: ($event, entity) => this.makePrivate($event, entity)
-      }
     );
 
     this.config.deleteEntityTitle = entityGroup =>
@@ -175,15 +155,16 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
   }
 
   resolve(route: ActivatedRouteSnapshot): EntityTableConfig<EntityGroupInfo> {
-    const routeParams = route.params;
-    const routeData = route.data;
-    this.customerId = routeParams.customerId;
-    if (this.customerId && routeData.childGroupType) {
-      this.groupType = routeData.childGroupType;
-    } else {
-      this.groupType = routeData.groupType;
-    }
+    return this.resolveEntityGroupTableConfig(resolveGroupParams(route));
+  }
 
+  resolveEntityGroupTableConfig(params: EntityGroupParams): EntityTableConfig<EntityGroupInfo> {
+    this.customerId = params.customerId;
+    if (this.customerId && params.childGroupType) {
+      this.groupType = params.childGroupType;
+    } else {
+      this.groupType = params.groupType;
+    }
     let title;
     switch (this.groupType) {
       case EntityType.CUSTOMER:
@@ -206,27 +187,92 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityTableConfi
         break;
     }
     this.config.tableTitle = this.translate.instant(title);
+    const resource = resourceByEntityType.get(this.config.entityType);
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
+      this.config.addEnabled = false;
+    }
+    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+      this.config.entitiesDeleteEnabled = false;
+    }
+    this.config.componentsData = {
+      isGroupEntitiesView: false
+    };
+    this.updateActionCellDescriptors();
     return this.config;
+  }
+
+  updateActionCellDescriptors() {
+    this.config.cellActionDescriptors.splice(0);
+    this.config.cellActionDescriptors.push(
+      {
+        name: this.translate.instant('action.open'),
+        icon: 'view_list',
+        isEnabled: (entity) => true,
+        onAction: ($event, entity) => this.open($event, entity)
+      }
+    );
+    if (publicGroupTypes.has(this.groupType)) {
+      this.config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('action.share'),
+          icon: 'share',
+          isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
+            && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePublic($event, entity)
+        },
+        {
+          name: this.translate.instant('action.make-private'),
+          icon: 'reply',
+          isEnabled: (entity) => entity && publicGroupTypes.has(entity.type)
+            && entity.additionalInfo && entity.additionalInfo.isPublic
+            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+          onAction: ($event, entity) => this.makePrivate($event, entity)
+        }
+      );
+    }
   }
 
   makePublic($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {
       $event.stopPropagation();
     }
-
+    this.homeDialogs.makeEntityGroupPublic($event, entityGroup)
+      .subscribe((res) => {
+        if (res) {
+          if (this.config.componentsData.isGroupEntitiesView) {
+            this.config.componentsData.reloadEntityGroup();
+          } else {
+            this.config.table.updateData();
+          }
+        }
+    });
   }
 
   makePrivate($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {
       $event.stopPropagation();
     }
+    this.homeDialogs.makeEntityGroupPrivate($event, entityGroup)
+      .subscribe((res) => {
+        if (res) {
+          if (this.config.componentsData.isGroupEntitiesView) {
+            this.config.componentsData.reloadEntityGroup();
+          } else {
+            this.config.table.updateData();
+          }
+        }
+    });
   }
 
   open($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {
       $event.stopPropagation();
     }
-
+    const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.config.table.route});
+    this.router.navigateByUrl(url);
   }
 
   onEntityGroupAction(action: EntityAction<EntityGroupInfo>): boolean {

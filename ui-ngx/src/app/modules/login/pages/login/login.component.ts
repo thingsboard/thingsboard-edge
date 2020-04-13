@@ -43,6 +43,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
 import { map, share } from 'rxjs/operators';
 import { SelfRegistrationService } from '@core/http/self-register.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'tb-login',
@@ -62,11 +63,17 @@ export class LoginComponent extends PageComponent implements OnInit {
               public selfRegistrationService: SelfRegistrationService,
               private translateService: TranslateService,
               public fb: FormBuilder,
-              private router: Router) {
+              private router: Router,
+              private route: ActivatedRoute) {
     super(store);
   }
 
   ngOnInit() {
+    if (this.route.snapshot.queryParams.username && this.route.snapshot.queryParams.password) {
+      this.loginFormGroup.setValue({username: this.route.snapshot.queryParams.username,
+        password: this.route.snapshot.queryParams.password});
+      this.login();
+    }
   }
 
   login(): void {

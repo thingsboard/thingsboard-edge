@@ -34,6 +34,7 @@ import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
 import {
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -65,6 +66,8 @@ import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { TenantService } from '@app/core/http/tenant.service';
 import { TenantId } from '@app/shared/models/id/tenant-id';
 import { UserTabsComponent } from '@home/pages/user/user-tabs.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 export interface UsersTableRouteData {
   authority: Authority;
@@ -85,6 +88,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
               private authService: AuthService,
               private tenantService: TenantService,
               private customerService: CustomerService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialog: MatDialog) {
@@ -143,6 +147,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
         } else {
           this.config.tableTitle = parentEntity.title + ': ' + this.translate.instant('user.customer-users');
         }
+        defaultEntityTablePermissions(this.userPermissionsService, this.config);
         return this.config;
       })
     );
@@ -150,7 +155,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<User>
 
   updateActionCellDescriptors(auth: AuthState) {
     this.config.cellActionDescriptors.splice(0);
-    if (auth.userTokenAccessEnabled) {
+    if (auth.userTokenAccessEnabled && this.userPermissionsService.hasGenericPermission(Resource.USER, Operation.IMPERSONATE)) {
       this.config.cellActionDescriptors.push(
         {
           name: this.authority === Authority.TENANT_ADMIN ?

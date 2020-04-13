@@ -712,6 +712,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             if (user.authority === 'CUSTOMER_USER') {
                 entityId.id = user.customerId;
             }
+        } else if (entityType === types.aliasEntityType.current_tenant){
+            let user = userService.getCurrentUser();
+            entityId.entityType = types.entityType.tenant;
+            entityId.id = user.tenantId;
         }
         return entityId;
     }
@@ -1214,6 +1218,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.role = types.entityType.role;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
+                    entityTypes.current_tenant = types.aliasEntityType.current_tenant;
                 }
                 break;
             case 'CUSTOMER_USER':

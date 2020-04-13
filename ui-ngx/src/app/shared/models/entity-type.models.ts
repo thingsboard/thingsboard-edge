@@ -71,7 +71,8 @@ export enum EntityType {
 }
 
 export enum AliasEntityType {
-  CURRENT_CUSTOMER = 'CURRENT_CUSTOMER'
+  CURRENT_CUSTOMER = 'CURRENT_CUSTOMER',
+  CURRENT_TENANT = 'CURRENT_TENANT'
 }
 
 export interface EntityTypeTranslation {
@@ -84,6 +85,12 @@ export interface EntityTypeTranslation {
   noEntities?: string;
   selectedEntities?: string;
   search?: string;
+  selectGroupToAdd?: string;
+  selectGroupToMove?: string;
+  removeFromGroup?: string;
+  group?: string;
+  groupList?: string;
+  groupNameStartsWith?: string;
 }
 
 export interface EntityTypeResource<T> {
@@ -118,7 +125,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'customer.add',
         noEntities: 'customer.no-customers-text',
         search: 'customer.search',
-        selectedEntities: 'customer.selected-customers'
+        selectedEntities: 'customer.selected-customers',
+        selectGroupToAdd: 'customer.select-group-to-add',
+        selectGroupToMove: 'customer.select-group-to-move',
+        removeFromGroup: 'customer.remove-customers-from-group',
+        group: 'customer.group',
+        groupList: 'customer.list-of-groups',
+        groupNameStartsWith: 'customer.group-name-starts-with'
       }
     ],
     [
@@ -132,7 +145,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'user.add',
         noEntities: 'user.no-users-text',
         search: 'user.search',
-        selectedEntities: 'user.selected-users'
+        selectedEntities: 'user.selected-users',
+        selectGroupToAdd: 'user.select-group-to-add',
+        selectGroupToMove: 'user.select-group-to-move',
+        removeFromGroup: 'user.remove-users-from-group',
+        group: 'user.group',
+        groupList: 'user.list-of-groups',
+        groupNameStartsWith: 'user.group-name-starts-with'
       }
     ],
     [
@@ -146,7 +165,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'device.add',
         noEntities: 'device.no-devices-text',
         search: 'device.search',
-        selectedEntities: 'device.selected-devices'
+        selectedEntities: 'device.selected-devices',
+        selectGroupToAdd: 'device.select-group-to-add',
+        selectGroupToMove: 'device.select-group-to-move',
+        removeFromGroup: 'device.remove-devices-from-group',
+        group: 'device.group',
+        groupList: 'device.list-of-groups',
+        groupNameStartsWith: 'device.group-name-starts-with'
       }
     ],
     [
@@ -160,7 +185,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'asset.add',
         noEntities: 'asset.no-assets-text',
         search: 'asset.search',
-        selectedEntities: 'asset.selected-assets'
+        selectedEntities: 'asset.selected-assets',
+        selectGroupToAdd: 'asset.select-group-to-add',
+        selectGroupToMove: 'asset.select-group-to-move',
+        removeFromGroup: 'asset.remove-assets-from-group',
+        group: 'asset.group',
+        groupList: 'asset.list-of-groups',
+        groupNameStartsWith: 'asset.group-name-starts-with'
       }
     ],
     [
@@ -174,7 +205,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'entity-view.add',
         noEntities: 'entity-view.no-entity-views-text',
         search: 'entity-view.search',
-        selectedEntities: 'entity-view.selected-entity-views'
+        selectedEntities: 'entity-view.selected-entity-views',
+        selectGroupToAdd: 'entity-view.select-group-to-add',
+        selectGroupToMove: 'entity-view.select-group-to-move',
+        removeFromGroup: 'entity-view.remove-entity-views-from-group',
+        group: 'entity-view.group',
+        groupList: 'entity-view.list-of-groups',
+        groupNameStartsWith: 'entity-view.group-name-starts-with'
       }
     ],
     [
@@ -211,7 +248,13 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         add: 'dashboard.add',
         noEntities: 'dashboard.no-dashboards-text',
         search: 'dashboard.search',
-        selectedEntities: 'dashboard.selected-dashboards'
+        selectedEntities: 'dashboard.selected-dashboards',
+        selectGroupToAdd: 'dashboard.select-group-to-add',
+        selectGroupToMove: 'dashboard.select-group-to-move',
+        removeFromGroup: 'dashboard.remove-dashboards-from-group',
+        group: 'dashboard.group',
+        groupList: 'dashboard.list-of-groups',
+        groupNameStartsWith: 'dashboard.group-name-starts-with'
       }
     ],
     [
@@ -317,8 +360,15 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
     [
       AliasEntityType.CURRENT_CUSTOMER,
       {
-        type: 'entity.type-entity-view',
+        type: 'entity.type-current-customer',
         list: 'entity.type-current-customer'
+      }
+    ],
+    [
+      AliasEntityType.CURRENT_TENANT,
+      {
+        type: 'entity.type-current-tenant',
+        list: 'entity.type-current-tenant'
       }
     ]
   ]

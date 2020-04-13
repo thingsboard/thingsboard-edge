@@ -32,40 +32,39 @@
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { DeviceService } from '@core/http/device.service';
 import { ClipboardService } from 'ngx-clipboard';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 
 @Component({
   selector: 'tb-device',
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss']
 })
-export class DeviceComponent extends EntityComponent<Device> {
+export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
-  deviceScope: 'tenant' | 'customer' | 'customer_user';
+//  deviceScope: 'tenant' | 'customer' | 'customer_user';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private deviceService: DeviceService,
               private clipboardService: ClipboardService,
               @Inject('entity') protected entityValue: Device,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Device>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Device>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
-    this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
+    // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
     super.ngOnInit();
   }
 
@@ -77,9 +76,25 @@ export class DeviceComponent extends EntityComponent<Device> {
     }
   }
 
-  isAssignedToCustomer(entity: Device): boolean {
-    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  hideAssignmentActions() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
+    } else {
+      return false;
+    }
   }
+
+  hideManageCredentials() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  /* isAssignedToCustomer(entity: Device): boolean {
+    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  } */
 
   buildForm(entity: Device): FormGroup {
     return this.fb.group(

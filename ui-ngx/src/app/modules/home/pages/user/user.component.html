@@ -30,16 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons">
+<div class="tb-details-buttons" fxLayout.xs="column">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'disableAccount')"
+          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && isUserCredentialsEnabled()">
     {{'user.disable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'enableAccount')"
+          *ngIf="resource.USER | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && !isUserCredentialsEnabled()">
     {{'user.enable-account' | translate }}
   </button>
@@ -58,13 +60,14 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'loginAsUser')"
-          *ngIf="loginAsUserEnabled$ | async"
+          *ngIf="(loginAsUserEnabled$ | async) && resource.USER | hasGenericPermission: operation.IMPERSONATE"
           [fxShow]="!isEdit">
     {{ (entity?.authority === authority.TENANT_ADMIN ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user') | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
+          *ngIf="resource.USER | hasGenericPermission: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit">
     {{'user.delete' | translate }}
   </button>
@@ -101,9 +104,7 @@
               fxFlex
               placeholder="{{ 'user.default-dashboard' | translate }}"
               formControlName="defaultDashboardId"
-              [dashboardsScope]="entity?.authority === authority.TENANT_ADMIN ? 'tenant' : 'customer'"
-              [tenantId]="entity?.tenantId?.id"
-              [customerId]="entity?.customerId?.id"
+              [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
             ></tb-dashboard-autocomplete>
             <mat-checkbox fxFlex formControlName="defaultDashboardFullscreen">

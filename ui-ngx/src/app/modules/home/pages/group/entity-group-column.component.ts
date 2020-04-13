@@ -131,7 +131,6 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
     }
 
     this.entityFields.created_time = entityGroupEntityFields.created_time;
-    this.entityFields.name = entityGroupEntityFields.name;
 
     let entityFieldKeys: string[];
 
@@ -144,10 +143,10 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         break;
       case EntityType.ASSET:
       case EntityType.DEVICE:
-        entityFieldKeys = ['type', 'label', 'assigned_customer'];
+        entityFieldKeys = ['name', 'type', 'label', 'assigned_customer'];
         break;
       case EntityType.ENTITY_VIEW:
-        entityFieldKeys = ['type', 'assigned_customer'];
+        entityFieldKeys = ['name', 'type', 'assigned_customer'];
         break;
       case EntityType.DASHBOARD:
         entityFieldKeys = ['title'];

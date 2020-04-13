@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 
 import { Resolve } from '@angular/router';
 import {
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -47,6 +47,7 @@ import { ConverterComponent } from '@home/pages/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
@@ -54,6 +55,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
   private readonly config: EntityTableConfig<Converter> = new EntityTableConfig<Converter>();
 
   constructor(private converterService: ConverterService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private importExport: ImportExportService,
               private datePipe: DatePipe,
@@ -121,7 +123,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
 
   resolve(): EntityTableConfig<Converter> {
     this.config.tableTitle = this.translate.instant('converter.converters');
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

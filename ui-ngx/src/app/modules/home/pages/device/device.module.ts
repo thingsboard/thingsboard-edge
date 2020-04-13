@@ -32,27 +32,29 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import {DeviceComponent} from '@modules/home/pages/device/device.component';
-import {DeviceRoutingModule} from './device-routing.module';
-import {DeviceTableHeaderComponent} from '@modules/home/pages/device/device-table-header.component';
-import {DeviceCredentialsDialogComponent} from '@modules/home/pages/device/device-credentials-dialog.component';
-import {HomeDialogsModule} from '../../dialogs/home-dialogs.module';
-import {HomeComponentsModule} from '@modules/home/components/home-components.module';
-import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
+import { DeviceComponent } from '@modules/home/pages/device/device.component';
+import { DeviceCredentialsDialogComponent } from '@modules/home/pages/device/device-credentials-dialog.component';
+import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
+import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 
 @NgModule({
   declarations: [
     DeviceComponent,
-    DeviceTabsComponent,
-    DeviceTableHeaderComponent,
     DeviceCredentialsDialogComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    HomeDialogsModule,
-    DeviceRoutingModule
+    HomeDialogsModule
+  ],
+  providers: [
+    {
+      provide: DEVICE_GROUP_CONFIG_FACTORY,
+      useClass: DeviceGroupConfigFactory
+    }
   ]
 })
 export class DeviceModule { }

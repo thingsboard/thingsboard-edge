@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN"
+<mat-tab *ngIf="entity && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)"
          label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">
   <tb-audit-log-table [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.USER" [userId]="entity.id" detailsMode="true"></tb-audit-log-table>
 </mat-tab>

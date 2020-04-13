@@ -59,9 +59,9 @@ export class RoleComponent extends EntityComponent<Role> {
               protected translate: TranslateService,
               private dialog: MatDialog,
               @Inject('entity') protected entityValue: Role,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Role>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Role>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {

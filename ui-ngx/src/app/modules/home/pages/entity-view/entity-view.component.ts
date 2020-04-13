@@ -43,19 +43,21 @@ import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import { EntityView } from '@shared/models/entity-view.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 
 @Component({
   selector: 'tb-entity-view',
   templateUrl: './entity-view.component.html',
   styleUrls: ['./entity-view.component.scss']
 })
-export class EntityViewComponent extends EntityComponent<EntityView> {
+export class EntityViewComponent extends GroupEntityComponent<EntityView> {
 
   entityType = EntityType;
 
   dataKeyType = DataKeyType;
 
-  entityViewScope: 'tenant' | 'customer' | 'customer_user';
+  // entityViewScope: 'tenant' | 'customer' | 'customer_user';
 
   allowedEntityTypes = [EntityType.DEVICE, EntityType.ASSET];
 
@@ -67,13 +69,13 @@ export class EntityViewComponent extends EntityComponent<EntityView> {
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: EntityView,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<EntityView>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<EntityView>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
-    this.entityViewScope = this.entitiesTableConfig.componentsData.entityViewScope;
+    // this.entityViewScope = this.entitiesTableConfig.componentsData.entityViewScope;
     super.ngOnInit();
     this.maxStartTimeMs = this.entityForm.get('endTimeMs').valueChanges;
     this.minEndTimeMs = this.entityForm.get('startTimeMs').valueChanges;
@@ -88,9 +90,17 @@ export class EntityViewComponent extends EntityComponent<EntityView> {
     }
   }
 
-  isAssignedToCustomer(entity: EntityView): boolean {
-    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  hideAssignmentActions() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
+    } else {
+      return false;
+    }
   }
+
+  /* isAssignedToCustomer(entity: EntityView): boolean {
+    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  } */
 
   buildForm(entity: EntityView): FormGroup {
     return this.fb.group(

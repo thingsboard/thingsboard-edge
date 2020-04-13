@@ -53,18 +53,22 @@
   <tb-manage-widget-actions
     [disabled]="!isEdit"
     [actionTypes]="entityGroupActionTypesList"
-    [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName']"
+    [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName', 'servicesMap']"
     [(ngModel)]="actionsData"
     (ngModelChange)="detailsForm.control.markAsDirty()">
   </tb-manage-widget-actions>
 </mat-tab>
 <mat-tab *ngIf="entity && entity.type === entityTypes.USER && !isEdit && (resource.GROUP_PERMISSION | hasGenericPermission: operation.READ)"
-         label="{{ 'entity-group.roles' | translate }}" #entityGroupActionsTab="matTab">
-  TODO:
+         label="{{ 'entity-group.roles' | translate }}" #entityGroupRolesTab="matTab">
+  <tb-group-permissions
+    [entityGroup]="entity"
+    [active]="entityGroupRolesTab.isActive"></tb-group-permissions>
 </mat-tab>
 <mat-tab *ngIf="entity && entity.type !== entityTypes.USER && !isEdit && (resource.GROUP_PERMISSION | hasGenericPermission: operation.READ)"
-         label="{{ 'entity-group.permissions' | translate }}" #entityGroupActionsTab="matTab">
-  TODO:
+         label="{{ 'entity-group.permissions' | translate }}" #entityGroupPermissionsTab="matTab">
+  <tb-group-permissions
+    [entityGroup]="entity"
+    [active]="entityGroupPermissionsTab.isActive"></tb-group-permissions>
 </mat-tab>
 <mat-tab *ngIf="entity && !isEdit && (entity | hasEntityGroupPermission: operation.READ_ATTRIBUTES)"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">

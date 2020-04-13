@@ -34,7 +34,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit">
+          [fxShow]="!hideOpen() &&!isEdit">
     {{'entity-group.open-entity-group' | translate }}
   </button>
   <button mat-raised-button color="primary"

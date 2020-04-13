@@ -153,8 +153,9 @@ export class AuthService {
       {email}, defaultHttpOptions());
   }
 
-  public activate(activateToken: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>('/api/noauth/activate', {activateToken, password}, defaultHttpOptions()).pipe(
+  public activate(activateToken: string, password: string, sendActivationMail: boolean): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`/api/noauth/activate?sendActivationMail=${sendActivationMail}`,
+      {activateToken, password}, defaultHttpOptions()).pipe(
       tap((loginResponse: LoginResponse) => {
           this.setUserFromJwtToken(loginResponse.token, loginResponse.refreshToken, true);
         }
@@ -218,7 +219,7 @@ export class AuthService {
     });
   }
 
-  private forceDefaultPlace(authState?: AuthState, path?: string, params?: any): boolean {
+  public forceDefaultPlace(authState?: AuthState, path?: string, params?: any): boolean {
     if (authState && authState.authUser) {
       if (authState.authUser.authority === Authority.TENANT_ADMIN || authState.authUser.authority === Authority.CUSTOMER_USER) {
         if ((this.userHasDefaultDashboard(authState) && authState.forceFullscreen) || authState.authUser.isPublic) {
@@ -259,7 +260,7 @@ export class AuthService {
             } else {
               result = this.router.parseUrl(`dashboards/${dashboardId}`);
             }
-          } else if (authState.authUser.isPublic) {
+          } else if (authState.authUser.isPublic && authState.lastPublicDashboardId) {
             result = this.router.parseUrl(`dashboard/${authState.lastPublicDashboardId}`);
           }
         } else if (authState.authUser.authority === Authority.SYS_ADMIN) {

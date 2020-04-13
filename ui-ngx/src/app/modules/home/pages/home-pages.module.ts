@@ -38,12 +38,8 @@ import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
 import { CustomerModule } from '@modules/home/pages/customer/customer.module';
 import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
 import { UserModule } from '@modules/home/pages/user/user.module';
-import { DeviceModule } from '@modules/home/pages/device/device.module';
-import { AssetModule } from '@modules/home/pages/asset/asset.module';
-import { EntityViewModule } from '@modules/home/pages/entity-view/entity-view.module';
 import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
 import { WidgetLibraryModule } from '@modules/home/pages/widget/widget-library.module';
-import { DashboardModule } from '@modules/home/pages/dashboard/dashboard.module';
 import { IFrameViewModule } from '@home/pages/iframe/iframe-view.module';
 import { ConverterModule } from '@home/pages/converter/converter.module';
 import { IntegrationModule } from '@home/pages/integration/integration.module';
@@ -57,13 +53,8 @@ import { EntityGroupModule } from '@home/pages/group/entity-group.module';
     HomeLinksModule,
     ProfileModule,
     TenantModule,
-    DeviceModule,
-    AssetModule,
-    EntityViewModule,
-    CustomerModule,
     RuleChainModule,
     WidgetLibraryModule,
-    DashboardModule,
     AuditLogModule,
     UserModule,
     RoleModule,

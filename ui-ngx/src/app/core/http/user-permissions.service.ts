@@ -164,26 +164,26 @@ export class UserPermissionsService {
 
   public hasResourcesGenericPermission(resource: Resource | Resource[], operation: Operation | Operation[]): boolean {
     if (isArray(resource)) {
-      return this.hasGenericResourcesPermission(resource as Resource[], operation as Operation);
+      return this.hasGenericResourcesPermission(resource as Resource[], operation);
     } else if (isArray(operation)) {
-      return this.hasGenericOperationsPermission(resource as Resource, operation as Operation[]);
+      return this.hasGenericOperationsPermission(resource, operation as Operation[]);
     } else {
       return this.hasGenericPermission(resource as Resource, operation as Operation);
     }
   }
 
-  private hasGenericResourcesPermission(resources: Resource[], operation: Operation): boolean {
+  private hasGenericResourcesPermission(resources: Resource[], operation: Operation | Operation[]): boolean {
     for (const resource of resources) {
-      if (!this.hasGenericPermission(resource, operation)) {
+      if (!this.hasResourcesGenericPermission(resource, operation)) {
         return false;
       }
     }
     return true;
   }
 
-  private hasGenericOperationsPermission(resource: Resource, operations: Operation[]): boolean {
+  private hasGenericOperationsPermission(resource: Resource | Resource[], operations: Operation[]): boolean {
     for (const operation of operations) {
-      if (!this.hasGenericPermission(resource, operation)) {
+      if (!this.hasResourcesGenericPermission(resource, operation)) {
         return false;
       }
     }

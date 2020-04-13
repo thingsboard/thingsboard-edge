@@ -109,7 +109,7 @@
               formControlName="accentPalette"
             ></tb-palette>
           </div>
-          <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async)"
+          <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || readonly"
                   style="margin-bottom: 16px;"
                   type="button" (click)="editCustomCss()">{{'white-labeling.advanced-css' | translate}}
           </button>

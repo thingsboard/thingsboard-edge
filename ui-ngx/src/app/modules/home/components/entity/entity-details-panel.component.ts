@@ -30,35 +30,31 @@
 ///
 
 import {
-  ChangeDetectionStrategy,
+  AfterViewInit,
+  ChangeDetectionStrategy, ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
-  EventEmitter,
+  EventEmitter, Injector,
   Input,
   OnDestroy,
   OnInit,
   Output,
-  ViewChild,
-  ViewChildren,
   QueryList,
-  ContentChildren, AfterViewInit, Injector, ChangeDetectorRef
+  ViewChild,
+  ViewChildren
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
-import {
-  EntityType,
-  EntityTypeResource,
-  EntityTypeTranslation
-} from '@shared/models/entity-type.models';
+import { EntityType, EntityTypeResource, EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { NgForm } from '@angular/forms';
 import { EntityComponent } from './entity.component';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Subscription } from 'rxjs';
-import { MatTabGroup, MatTab } from '@angular/material/tabs';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
 import { deepClone } from '@core/utils';
 
@@ -69,8 +65,6 @@ import { deepClone } from '@core/utils';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EntityDetailsPanelComponent extends PageComponent implements OnInit, AfterViewInit, OnDestroy {
-
-  @Input() entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
 
   @Output()
   closeEntityDetails = new EventEmitter<void>();
@@ -85,6 +79,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
   entityTabsComponent: EntityTabsComponent<BaseData<HasId>>;
   detailsForm: NgForm;
 
+  entitiesTableConfigValue: EntityTableConfig<BaseData<HasId>>;
   isEditValue = false;
   selectedTab = 0;
 
@@ -121,9 +116,26 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
     }
   }
 
+  @Input()
+  set entitiesTableConfig(entitiesTableConfig: EntityTableConfig<BaseData<HasId>>) {
+    this.entitiesTableConfigValue = entitiesTableConfig;
+    if (this.entityComponent) {
+      this.entityComponent.entitiesTableConfig = entitiesTableConfig;
+    }
+    if (this.entityTabsComponent) {
+      this.entityTabsComponent.entitiesTableConfig = entitiesTableConfig;
+    }
+  }
+
+  get entitiesTableConfig(): EntityTableConfig<BaseData<HasId>> {
+    return this.entitiesTableConfigValue;
+  }
+
   set isEdit(val: boolean) {
     this.isEditValue = val;
-    this.entityComponent.isEdit = val;
+    if (this.entityComponent) {
+      this.entityComponent.isEdit = val;
+    }
     if (this.entityTabsComponent) {
       this.entityTabsComponent.isEdit = val;
     }

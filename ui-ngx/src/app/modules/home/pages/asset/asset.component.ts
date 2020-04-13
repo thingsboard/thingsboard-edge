@@ -32,36 +32,36 @@
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { Asset } from '@shared/models/asset.models';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+
 
 @Component({
   selector: 'tb-asset',
   templateUrl: './asset.component.html',
   styleUrls: ['./asset.component.scss']
 })
-export class AssetComponent extends EntityComponent<Asset> {
+export class AssetComponent extends GroupEntityComponent<Asset> {
 
   entityType = EntityType;
 
-  assetScope: 'tenant' | 'customer' | 'customer_user';
+  // assetScope: 'tenant' | 'customer' | 'customer_user';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Asset,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Asset>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Asset>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
-    this.assetScope = this.entitiesTableConfig.componentsData.assetScope;
+    // this.assetScope = this.entitiesTableConfig.componentsData.assetScope;
     super.ngOnInit();
   }
 
@@ -73,9 +73,17 @@ export class AssetComponent extends EntityComponent<Asset> {
     }
   }
 
-  isAssignedToCustomer(entity: Asset): boolean {
-    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  hideAssignmentActions() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
+    } else {
+      return false;
+    }
   }
+
+  /* isAssignedToCustomer(entity: Asset): boolean {
+    return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
+  } */
 
   buildForm(entity: Asset): FormGroup {
     return this.fb.group(

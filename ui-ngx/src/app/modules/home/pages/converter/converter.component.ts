@@ -71,9 +71,9 @@ export class ConverterComponent extends EntityComponent<Converter> {
               private converterService: ConverterService,
               private dialog: MatDialog,
               @Inject('entity') protected entityValue: Converter,
-              @Inject('entitiesTableConfig') protected entitiesTableConfig: EntityTableConfig<Converter>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
               protected fb: FormBuilder) {
-    super(store, fb, entityValue, entitiesTableConfig);
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {

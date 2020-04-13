@@ -728,7 +728,8 @@ export default angular.module('thingsboard.types', [])
                 }
             },
             aliasEntityType: {
-                current_customer: "CURRENT_CUSTOMER"
+                current_customer: "CURRENT_CUSTOMER",
+                current_tenant: "CURRENT_TENANT"
             },
             entityTypeTranslations: {
                 "DEVICE": {
@@ -886,6 +887,10 @@ export default angular.module('thingsboard.types', [])
                 "CURRENT_CUSTOMER": {
                     type: 'entity.type-current-customer',
                     list: 'entity.type-current-customer'
+                },
+                "CURRENT_TENANT": {
+                    type: 'entity.type-current-tenant',
+                    list: 'entity.type-current-tenant'
                 },
                 "SCHEDULER_EVENT": {
                     type: 'entity.type-scheduler-event',

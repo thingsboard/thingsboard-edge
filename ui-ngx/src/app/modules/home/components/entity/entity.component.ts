@@ -32,20 +32,36 @@
 import { BaseData, HasId } from '@shared/models/base-data';
 import { FormBuilder, FormGroup, NgForm } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
-import { EventEmitter, Input, OnInit, Output, ViewChild, Directive } from '@angular/core';
+import { Directive, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { PageLink } from '@shared/models/page/page-link';
 
+// @dynamic
 @Directive()
-export abstract class EntityComponent<T extends BaseData<HasId>> extends PageComponent implements OnInit {
+// tslint:disable-next-line:directive-class-suffix
+export abstract class EntityComponent<T extends BaseData<HasId>,
+  P extends PageLink = PageLink,
+  L extends BaseData<HasId> = T,
+  C extends EntityTableConfig<T, P, L> = EntityTableConfig<T, P, L>>
+  extends PageComponent implements OnInit {
 
   entityForm: FormGroup;
 
   @ViewChild('entityNgForm', {static: true}) entityNgForm: NgForm;
 
   isEditValue: boolean;
+
+  @Input()
+  set entitiesTableConfig(entitiesTableConfig: C) {
+    this.setEntitiesTableConfig(entitiesTableConfig);
+  }
+
+  get entitiesTableConfig(): C {
+    return this.entitiesTableConfigValue;
+  }
 
   @Input()
   set isEdit(isEdit: boolean) {
@@ -81,7 +97,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>> extends PageCom
   protected constructor(protected store: Store<AppState>,
                         protected fb: FormBuilder,
                         protected entityValue: T,
-                        protected entitiesTableConfig: EntityTableConfig<T>) {
+                        protected entitiesTableConfigValue: C) {
     super(store);
     this.entityForm = this.buildForm(this.entityValue);
   }
@@ -117,6 +133,10 @@ export abstract class EntityComponent<T extends BaseData<HasId>> extends PageCom
 
   prepareFormValue(formValue: any): any {
     return formValue;
+  }
+
+  protected setEntitiesTableConfig(entitiesTableConfig: C) {
+    this.entitiesTableConfigValue = entitiesTableConfig;
   }
 
   abstract buildForm(entity: T): FormGroup;
