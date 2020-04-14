@@ -49,6 +49,7 @@ import { DashboardService } from '@core/http/dashboard.service';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { map } from 'rxjs/operators';
 import { dashboardBreadcumbLabelFunction } from '@home/pages/dashboard/dashboard-routing.module';
+import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarchy.component';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -499,6 +500,18 @@ const routes: Routes = [
     resolve: {
       dashboard: DashboardResolver,
       entityGroup: 'emptyEntityGroupResolver'
+    }
+  },
+  {
+    path: 'customersHierarchy',
+    component: CustomersHierarchyComponent,
+    data: {
+      breadcrumb: {
+        label: 'customers-hierarchy.customers-hierarchy',
+        icon: 'sort'
+      },
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'customers-hierarchy.customers-hierarchy'
     }
   }
 ];

@@ -31,7 +31,8 @@
 
 import {
   AfterViewInit,
-  ChangeDetectionStrategy, ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Inject,
   Input,
@@ -51,7 +52,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import {
   EntityGroupInfo,
   EntityGroupParams,
@@ -65,6 +65,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityGroupsTableConfig } from '../../pages/group/entity-groups-table-config';
 
 // @dynamic
 @Component({
@@ -87,7 +88,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   entityGroupConfig: GroupEntityTableConfig<BaseData<HasId>>;
 
-  entityGroupDetailsConfig: EntityTableConfig<EntityGroupInfo>;
+  entityGroupDetailsConfig: EntityGroupsTableConfig;
 
   private rxSubscriptions = new Array<Subscription>();
 
@@ -211,7 +212,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       }
     });
     this.entityGroupDetailsConfig =
-      this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityTableConfig<EntityGroupInfo>;
+      this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityGroupsTableConfig;
     this.entityGroupDetailsConfig.componentsData = {
       isGroupEntitiesView: true,
       reloadEntityGroup: this.reloadEntityGroup.bind(this)

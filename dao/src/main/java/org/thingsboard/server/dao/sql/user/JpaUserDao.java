@@ -88,7 +88,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                                 NULL_UUID_STR,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 Authority.TENANT_ADMIN,
-                                DaoUtil.toPageable(pageLink)));
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                                 fromTimeUUID(customerId),
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 Authority.CUSTOMER_USER,
-                                DaoUtil.toPageable(pageLink)));
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
 
     }
 
@@ -112,7 +112,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                                 fromTimeUUID(tenantId),
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 Authority.CUSTOMER_USER,
-                                DaoUtil.toPageable(pageLink)));
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
     @Override
@@ -126,7 +126,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                 .findByEntityGroupId(
                         fromTimeUUID(groupId),
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
     @Override
@@ -135,6 +135,6 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                 .findByEntityGroupIds(
                         fromTimeUUIDs(groupIds),
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 }
