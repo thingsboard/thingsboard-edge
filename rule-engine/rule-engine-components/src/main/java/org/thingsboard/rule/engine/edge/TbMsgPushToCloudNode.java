@@ -70,6 +70,7 @@ public class TbMsgPushToCloudNode implements TbNode {
     private static final String CLOUD_MSG_SOURCE = "cloud";
     private static final String EDGE_MSG_SOURCE = "edge";
     private static final String MSG_SOURCE_KEY = "source";
+    private static final String TS_METADATA_KEY = "ts";
 
     private EmptyNodeConfiguration config;
 
@@ -111,6 +112,9 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
 
         if (entityName != null && entityType != null) {
+            if (msg.getType().equals(SessionMsgType.POST_TELEMETRY_REQUEST.name())) {
+                msg.getMetaData().putValue(TS_METADATA_KEY, Long.toString(System.currentTimeMillis()));
+            }
             msg.getMetaData().putValue(MSG_SOURCE_KEY, EDGE_MSG_SOURCE);
             ctx.getEdgeEventStorage().write(constructUplinkMsg(entityName, entityType, msg), new PushToCloudNodeCallback(ctx, msg));
         }
