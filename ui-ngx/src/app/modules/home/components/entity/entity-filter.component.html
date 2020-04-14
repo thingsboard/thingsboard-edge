@@ -49,6 +49,59 @@
                         formControlName="singleEntity">
       </tb-entity-select>
     </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.entityGroup">
+      <section fxLayout="column" id="entityGroupFilter">
+        <label class="tb-small">{{ 'entity-group.entity-group' | translate }}</label>
+        <section class="tb-root-state-entity-switch" fxLayout="row" fxLayoutAlign="start center" style="padding-left: 0px;">
+          <mat-slide-toggle class="root-state-entity-switch"
+                            formControlName="groupStateEntity">
+          </mat-slide-toggle>
+          <label class="tb-small root-state-entity-label" translate>alias.group-state-entity</label>
+        </section>
+        <div fxFlex fxLayout="row" *ngIf="!filterFormGroup.get('groupStateEntity').value">
+          <tb-entity-type-select
+                            style="min-width: 100px; padding-right: 8px;"
+                            required
+                            showLabel
+                            [allowedEntityTypes]="entityGroupTypes"
+                            formControlName="groupType">
+          </tb-entity-type-select>
+          <tb-entity-group-autocomplete fxFlex *ngIf="filterFormGroup.get('groupType').value"
+                                        required
+                                        [groupType]="filterFormGroup.get('groupType').value"
+                                        formControlName="entityGroup"
+                                        placeholderText="entity-group.select-entity-group"
+                                        notFoundText="entity-group.no-entity-groups-matching"
+                                        requiredText="entity-group.target-entity-group-required">
+          </tb-entity-group-autocomplete>
+        </div>
+        <div fxFlex fxLayout="column" *ngIf="filterFormGroup.get('groupStateEntity').value">
+          <mat-form-field floatLabel="always" class="mat-block" style="margin-top: 14px; padding-right: 8px;">
+            <mat-label translate>alias.state-entity-parameter-name</mat-label>
+            <input matInput formControlName="stateEntityParamName"
+                   placeholder="{{ 'alias.default-entity-parameter-name' | translate }}">
+          </mat-form-field>
+          <div fxFlex fxLayout="column">
+            <label class="tb-small">{{ 'alias.default-state-entity-group' | translate }}</label>
+            <div fxFlex fxLayout="row">
+              <tb-entity-type-select
+                style="min-width: 100px; padding-right: 8px;"
+                showLabel
+                [allowedEntityTypes]="entityGroupTypes"
+                formControlName="defaultStateGroupType">
+              </tb-entity-type-select>
+              <tb-entity-group-autocomplete fxFlex *ngIf="filterFormGroup.get('defaultStateGroupType').value"
+                                            [groupType]="filterFormGroup.get('defaultStateGroupType').value"
+                                            formControlName="defaultStateEntityGroup"
+                                            placeholderText="entity-group.select-entity-group"
+                                            notFoundText="entity-group.no-entity-groups-matching"
+                                            requiredText="entity-group.target-entity-group-required">
+              </tb-entity-group-autocomplete>
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-template>
     <ng-template [ngSwitchCase]="aliasFilterType.entityList">
       <tb-entity-type-select required
                              showLabel
@@ -74,7 +127,69 @@
         </mat-error>
       </mat-form-field>
     </ng-template>
-    <ng-template [ngSwitchCase]="aliasFilterType.stateEntity">
+    <ng-template [ngSwitchCase]="aliasFilterType.entityGroupList">
+      <tb-entity-type-select required
+                             showLabel
+                             [allowedEntityTypes]="entityGroupTypes"
+                             formControlName="groupType">
+      </tb-entity-type-select>
+      <tb-entity-group-list
+        required
+        [groupType]="filterFormGroup.get('groupType').value"
+        formControlName="entityGroupList">
+      </tb-entity-group-list>
+    </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.entityGroupName">
+      <tb-entity-type-select required
+                             showLabel
+                             [allowedEntityTypes]="entityGroupTypes"
+                             formControlName="groupType">
+      </tb-entity-type-select>
+      <mat-form-field class="mat-block">
+        <mat-label translate>entity-group.name-starts-with</mat-label>
+        <input matInput formControlName="entityGroupNameFilter" required>
+        <mat-error *ngIf="filterFormGroup.get('entityGroupNameFilter').hasError('required')">
+          {{ 'entity-group.entity-group-name-filter-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+    </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.entitiesByGroupName">
+      <section fxLayout="column" id="entityGroupByNameFilter">
+        <section class="tb-root-state-entity-switch" fxLayout="row" fxLayoutAlign="start center" style="padding-left: 0px;">
+          <mat-slide-toggle class="root-state-entity-switch"
+                            formControlName="groupStateEntity">
+          </mat-slide-toggle>
+          <label class="tb-small root-state-entity-label" translate>alias.group-state-entity</label>
+        </section>
+        <div fxFlex fxLayout="column" style="margin-top: 16px;">
+          <mat-form-field *ngIf="filterFormGroup.get('groupStateEntity').value"
+                          floatLabel="always" class="mat-block" style="padding-right: 8px;">
+            <mat-label translate>alias.state-entity-parameter-name</mat-label>
+            <input matInput formControlName="stateEntityParamName"
+                   placeholder="{{ 'alias.default-entity-parameter-name' | translate }}">
+          </mat-form-field>
+          <div fxFlex fxLayout="row">
+            <tb-entity-type-select
+              style="min-width: 100px; padding-right: 8px;"
+              required
+              showLabel
+              [allowedEntityTypes]="entityGroupTypes"
+              formControlName="groupType">
+            </tb-entity-type-select>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>entity-group.entity-group-name</mat-label>
+              <input matInput formControlName="entityGroupNameFilter" required>
+              <mat-error *ngIf="filterFormGroup.get('entityGroupNameFilter').hasError('required')">
+                {{ 'entity-group.entity-group-name-filter-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </section>
+    </ng-template>
+    <ng-template [ngSwitchCase]="entityFilterFormGroup.get('type').value === aliasFilterType.stateEntity ||
+                                 entityFilterFormGroup.get('type').value === aliasFilterType.stateEntityOwner ?
+                                 entityFilterFormGroup.get('type').value : ''">
       <mat-form-field floatLabel="always" class="mat-block">
         <mat-label translate>alias.state-entity-parameter-name</mat-label>
         <input matInput formControlName="stateEntityParamName"

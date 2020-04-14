@@ -36,6 +36,7 @@ import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityService } from '@core/http/entity.service';
 import { EntitySearchDirection, entitySearchDirectionTranslations } from '@shared/models/relation.models';
+import { entityGroupTypes } from '@app/shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-filter',
@@ -63,6 +64,7 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
   filterFormGroup: FormGroup;
 
   aliasFilterTypes: Array<AliasFilterType>;
+  entityGroupTypes: Array<EntityType>;
 
   aliasFilterType = AliasFilterType;
   aliasFilterTypeTranslations = aliasFilterTypeTranslationMap;
@@ -82,6 +84,9 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
   ngOnInit(): void {
 
     this.aliasFilterTypes = this.entityService.getAliasFilterTypesByEntityTypes(this.allowedEntityTypes);
+    this.entityGroupTypes = entityGroupTypes.filter((entityType) =>
+      this.allowedEntityTypes ? this.allowedEntityTypes.indexOf(entityType) > - 1 : true
+    );
 
     this.entityFilterFormGroup = this.fb.group({
       type: [null, [Validators.required]]
@@ -126,6 +131,22 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           singleEntity: [filter ? filter.singleEntity : null, [Validators.required]]
         });
         break;
+      case AliasFilterType.entityGroup:
+        this.filterFormGroup = this.fb.group({
+          groupStateEntity: [filter ? filter.groupStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          defaultStateGroupType: [filter ? filter.defaultStateGroupType : null, []],
+          defaultStateEntityGroup: [filter ? filter.defaultStateEntityGroup : null, []],
+          groupType: [filter ? filter.groupType : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
+          entityGroup: [filter ? filter.entityGroup : null, (filter && filter.groupStateEntity) ? [] : [Validators.required]],
+        });
+        this.filterFormGroup.get('groupStateEntity').valueChanges.subscribe((groupStateEntity: boolean) => {
+          this.filterFormGroup.get('groupType').setValidators(groupStateEntity ? [] : [Validators.required]);
+          this.filterFormGroup.get('entityGroup').setValidators(groupStateEntity ? [] : [Validators.required]);
+          this.filterFormGroup.get('groupType').updateValueAndValidity();
+          this.filterFormGroup.get('entityGroup').updateValueAndValidity();
+        });
+        break;
       case AliasFilterType.entityList:
         this.filterFormGroup = this.fb.group({
           entityType: [filter ? filter.entityType : null, [Validators.required]],
@@ -138,7 +159,28 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           entityNameFilter: [filter ? filter.entityNameFilter : '', [Validators.required]],
         });
         break;
+      case AliasFilterType.entityGroupList:
+        this.filterFormGroup = this.fb.group({
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupList: [filter ? filter.entityGroupList : [], [Validators.required]],
+        });
+        break;
+      case AliasFilterType.entityGroupName:
+        this.filterFormGroup = this.fb.group({
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupNameFilter: [filter ? filter.entityGroupNameFilter : '', [Validators.required]],
+        });
+        break;
+      case AliasFilterType.entitiesByGroupName:
+        this.filterFormGroup = this.fb.group({
+          groupStateEntity: [filter ? filter.groupStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          groupType: [filter ? filter.groupType : null, [Validators.required]],
+          entityGroupNameFilter: [filter ? filter.entityGroupNameFilter : '', [Validators.required]],
+        });
+        break;
       case AliasFilterType.stateEntity:
+      case AliasFilterType.stateEntityOwner:
         this.filterFormGroup = this.fb.group({
           stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
           defaultStateEntity: [filter ? filter.defaultStateEntity : null, []],
@@ -205,7 +247,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   private filterTypeChanged(type: AliasFilterType) {
     let resolveMultiple = true;
-    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity) {
+    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity ||
+        type === AliasFilterType.stateEntityOwner) {
       resolveMultiple = false;
     }
     if (this.resolveMultiple !== resolveMultiple) {

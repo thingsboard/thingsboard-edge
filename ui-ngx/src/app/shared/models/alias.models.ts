@@ -41,7 +41,7 @@ export enum AliasFilterType {
   entityName = 'entityName',
   entityGroupList = 'entityGroupList',
   entityGroupName = 'entityGroupName',
-  entitiesByGroupName = 'entityGroupName',
+  entitiesByGroupName = 'entitiesByGroupName',
   stateEntity = 'stateEntity',
   stateEntityOwner = 'stateEntityOwner',
   assetType = 'assetType',

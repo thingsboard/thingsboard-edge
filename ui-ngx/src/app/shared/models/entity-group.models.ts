@@ -37,6 +37,15 @@ import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@s
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { isEqual } from '@core/utils';
 
+export const entityGroupTypes: EntityType[] = [
+  EntityType.CUSTOMER,
+  EntityType.ASSET,
+  EntityType.DEVICE,
+  EntityType.USER,
+  EntityType.ENTITY_VIEW,
+  EntityType.DASHBOARD
+];
+
 export const entityGroupActionTypes: WidgetActionType[] = [
   WidgetActionType.openDashboard,
   WidgetActionType.custom
