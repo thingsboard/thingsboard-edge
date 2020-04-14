@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import '../../../../scss/constants';
+
 :host ::ng-deep {
   .mat-form-field-wrapper {
     padding-bottom: 8px;
@@ -37,5 +39,9 @@
   }
   .mat-form-field-infix {
     width: 150px;
+
+    @media #{$mat-xs} {
+      width: 100%;
+    }
   }
 }

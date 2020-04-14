@@ -29,14 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {AfterViewInit, Component, forwardRef, Input, OnInit} from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {TranslateService} from '@ngx-translate/core';
-import {AliasEntityType, EntityType, entityTypeTranslations} from '@app/shared/models/entity-type.models';
-import {EntityService} from '@core/http/entity.service';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { AfterViewInit, Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import { AliasEntityType, EntityType, entityTypeTranslations } from '@app/shared/models/entity-type.models';
+import { EntityService } from '@core/http/entity.service';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 
 @Component({

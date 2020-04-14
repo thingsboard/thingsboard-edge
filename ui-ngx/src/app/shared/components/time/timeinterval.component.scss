@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import '../../../../scss/constants';
+
 :host {
   min-width: 355px;
 
@@ -52,6 +54,10 @@
     }
   }
 
+  @media #{$mat-xs} {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 :host ::ng-deep {
