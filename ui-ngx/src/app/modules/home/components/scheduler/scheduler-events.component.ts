@@ -657,39 +657,39 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
           if (event.schedule.repeat) {
             const endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
             const repeatEndsOn = _moment(event.schedule.repeat.endsOn - endOffset);
-            let currentTime: _moment.Moment;
-            let eventStartOffsetUnits = 0;
-            if (rangeStart.isSameOrBefore(eventStart)) {
-              currentTime = eventStart.clone();
-            } else {
-              switch (event.schedule.repeat.type) {
-                case SchedulerRepeatType.YEARLY:
-                case SchedulerRepeatType.MONTHLY:
-                  const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
-                  const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
-                  eventStartOffsetUnits =
-                    Math.ceil(eventStartOffsetDuration.as(offsetUnits));
-                  currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
-                  break;
-                default:
-                  currentTime = rangeStart.clone();
-                  currentTime.hours(eventStart.hours());
-                  currentTime.minutes(eventStart.minutes());
-                  currentTime.seconds(eventStart.seconds())
-              }
-            }
-            let eventEnd;
-            if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
-              eventEnd = repeatEndsOn.clone();
-            } else {
-              eventEnd = rangeEnd.clone();
-            }
             if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
               calendarEvent = this.toCalendarEvent(event,
-                currentTime.clone(),
+                eventStart,
                 repeatEndsOn);
               events.push(calendarEvent);
             } else {
+              let currentTime: _moment.Moment;
+              let eventStartOffsetUnits = 0;
+              if (rangeStart.isSameOrBefore(eventStart)) {
+                currentTime = eventStart.clone();
+              } else {
+                switch (event.schedule.repeat.type) {
+                  case SchedulerRepeatType.YEARLY:
+                  case SchedulerRepeatType.MONTHLY:
+                    const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
+                    const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
+                    eventStartOffsetUnits =
+                      Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                    currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
+                    break;
+                  default:
+                    currentTime = rangeStart.clone();
+                    currentTime.hours(eventStart.hours());
+                    currentTime.minutes(eventStart.minutes());
+                    currentTime.seconds(eventStart.seconds())
+                }
+              }
+              let eventEnd;
+              if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
+                eventEnd = repeatEndsOn.clone();
+              } else {
+                eventEnd = rangeEnd.clone();
+              }
               while (currentTime.isBefore(eventEnd)) {
                 const day = currentTime.day();
                 if (event.schedule.repeat.type !== SchedulerRepeatType.WEEKLY ||
