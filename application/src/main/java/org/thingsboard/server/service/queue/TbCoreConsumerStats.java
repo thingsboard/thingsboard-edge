@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.queue;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -50,7 +51,8 @@ public class TbCoreConsumerStats {
     private final AtomicInteger subscriptionInfoCounter = new AtomicInteger(0);
     private final AtomicInteger claimDeviceCounter = new AtomicInteger(0);
 
-    private final AtomicInteger deviceStateCounter = new AtomicInteger(0);
+    private final AtomicInteger deviceStateMsgCounter = new AtomicInteger(0);
+    private final AtomicInteger schedulerMsgCounter = new AtomicInteger(0);
     private final AtomicInteger subscriptionMsgCounter = new AtomicInteger(0);
     private final AtomicInteger toCoreNotificationsCounter = new AtomicInteger(0);
 
@@ -81,12 +83,17 @@ public class TbCoreConsumerStats {
 
     public void log(DeviceStateServiceMsgProto msg) {
         totalCounter.incrementAndGet();
-        deviceStateCounter.incrementAndGet();
+        deviceStateMsgCounter.incrementAndGet();
     }
 
     public void log(SubscriptionMgrMsgProto msg) {
         totalCounter.incrementAndGet();
         subscriptionMsgCounter.incrementAndGet();
+    }
+
+    public void log(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg) {
+        totalCounter.incrementAndGet();
+        schedulerMsgCounter.incrementAndGet();
     }
 
     public void log(ToCoreNotificationMsg msg) {
@@ -98,12 +105,13 @@ public class TbCoreConsumerStats {
         int total = totalCounter.getAndSet(0);
         if (total > 0) {
             log.info("Transport total [{}] sessionEvents [{}] getAttr [{}] subToAttr [{}] subToRpc [{}] toDevRpc [{}] subInfo [{}] claimDevice [{}]" +
-                            " deviceState [{}] subMgr [{}] coreNfs [{}]",
+                            " deviceState [{}] scheduler [{}], subMgr [{}] coreNfs [{}]",
                     total, sessionEventCounter.getAndSet(0),
                     getAttributesCounter.getAndSet(0), subscribeToAttributesCounter.getAndSet(0),
                     subscribeToRPCCounter.getAndSet(0), toDeviceRPCCallResponseCounter.getAndSet(0),
-                    subscriptionInfoCounter.getAndSet(0), claimDeviceCounter.getAndSet(0)
-                    , deviceStateCounter.getAndSet(0), subscriptionMsgCounter.getAndSet(0), toCoreNotificationsCounter.getAndSet(0));
+                    subscriptionInfoCounter.getAndSet(0), claimDeviceCounter.getAndSet(0),
+                    deviceStateMsgCounter.getAndSet(0), schedulerMsgCounter.getAndSet(0),
+                    subscriptionMsgCounter.getAndSet(0), toCoreNotificationsCounter.getAndSet(0));
         }
     }
 

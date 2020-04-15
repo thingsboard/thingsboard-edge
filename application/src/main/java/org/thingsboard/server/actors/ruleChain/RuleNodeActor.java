@@ -37,8 +37,8 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 public class RuleNodeActor extends ComponentActor<RuleNodeId, RuleNodeActorMessageProcessor> {
 
@@ -66,13 +66,11 @@ public class RuleNodeActor extends ComponentActor<RuleNodeId, RuleNodeActorMessa
             case RULE_TO_SELF_MSG:
                 onRuleNodeToSelfMsg((RuleNodeToSelfMsg) msg);
                 break;
-            case CLUSTER_EVENT_MSG:
-                onClusterEventMsg((ClusterEventMsg) msg);
-                break;
             case STATS_PERSIST_TICK_MSG:
                 onStatsPersistTick(id);
                 break;
             case PARTITION_CHANGE_MSG:
+                onClusterEventMsg((PartitionChangeMsg) msg);
                 break;
             default:
                 return false;

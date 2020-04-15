@@ -30,12 +30,16 @@
  */
 package org.thingsboard.server.service.scheduler;
 
+import org.springframework.context.ApplicationListener;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 
 /**
  * Created by ashvayka on 25.06.18.
  */
-public interface SchedulerService {
+public interface SchedulerService extends ApplicationListener<PartitionChangeEvent> {
 
     void onSchedulerEventAdded(SchedulerEventInfo event);
 
@@ -43,7 +47,6 @@ public interface SchedulerService {
 
     void onSchedulerEventDeleted(SchedulerEventInfo event);
 
-    void onRemoteMsg(ServerAddress serverAddress, byte[] bytes);
+    void onQueueMsg(SchedulerServiceMsgProto msg, TbCallback bytes);
 
-    void onClusterUpdate();
 }

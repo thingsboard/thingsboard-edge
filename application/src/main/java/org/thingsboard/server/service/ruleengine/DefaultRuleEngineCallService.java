@@ -31,14 +31,10 @@
 package org.thingsboard.server.service.ruleengine;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -57,13 +53,15 @@ import java.util.function.Consumer;
 @Slf4j
 public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
-    @Autowired
-    @Lazy
-    private ActorService actorService;
+    private final TbClusterService clusterService;
 
     private ScheduledExecutorService rpcCallBackExecutor;
 
     private final ConcurrentMap<UUID, Consumer<TbMsg>> requests = new ConcurrentHashMap<>();
+
+    public DefaultRuleEngineCallService(TbClusterService clusterService) {
+        this.clusterService = clusterService;
+    }
 
     @PostConstruct
     public void initExecutor() {
@@ -86,6 +84,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         scheduleTimeout(request, requestId, requests);
     }
 
+    //TODO 2.5
     @Override
     public void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response) {
         Consumer<TbMsg> consumer = requests.remove(requestId);
@@ -97,7 +96,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
-        actorService.onMsg(new SendToClusterMsg(msg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, msg)));
+        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, null);
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {
