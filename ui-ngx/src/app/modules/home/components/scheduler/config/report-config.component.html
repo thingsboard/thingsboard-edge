@@ -112,6 +112,7 @@
   </div>
   <div fxLayout="row">
     <button *ngIf="!disabled" mat-button mat-raised-button color="primary"
+            type="button"
             [disabled]="(isLoading$ | async) || reportConfigFormGroup.invalid"
             (click)="generateTestReport()">
       {{ 'report.generate-test-report' | translate }}

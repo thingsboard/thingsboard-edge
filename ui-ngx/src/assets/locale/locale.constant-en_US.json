@@ -2393,7 +2393,10 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "time-interval-required": "Time interval is required",
-        "time-unit-required": "Time unit is required"
+        "time-unit-required": "Time unit is required",
+        "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
+        "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
     },
     "report": {
         "report-config": "Report configuration",
@@ -2436,10 +2439,13 @@
         "name": "Name",
         "type": "Type",
         "created_customer": "Created by Customer",
+        "selected-blob-entities": "{ count, plural, 1 {1 file} other {# files} } selected",
         "download-blob-entity": "Download file",
         "delete-blob-entity": "Delete file",
         "delete-blob-entity-title": "Are you sure you want to delete file '{{blobEntityName}}'?",
-        "delete-blob-entity-text": "Be careful, after the confirmation file data will become unrecoverable."
+        "delete-blob-entity-text": "Be careful, after the confirmation file data will become unrecoverable.",
+        "delete-blob-entities-title": "Are you sure you want to delete { count, plural, 1 {1 file} other {# files} }?",
+        "delete-blob-entities-text": "Be careful, after the confirmation all selected files will be removed and all related data will become unrecoverable."
     },
     "timezone": {
         "timezone": "Timezone",

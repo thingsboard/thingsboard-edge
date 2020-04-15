@@ -197,9 +197,12 @@
                                'mat-selected': dataSource.selection.isSelected(schedulerEvent)}"
                    *matRowDef="let schedulerEvent; columns: displayedColumns;" (click)="dataSource.selection.toggle(schedulerEvent)"></mat-row>
         </mat-table>
-        <span [fxShow]="dataSource.isEmpty() | async"
+        <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
               fxLayoutAlign="center center"
               class="no-data-found" translate>{{ 'scheduler.no-scheduler-events' }}</span>
+        <span [fxShow]="dataSource.dataLoading"
+              fxLayoutAlign="center center"
+              class="no-data-found">{{ 'common.loading' | translate }}</span>
       </div>
       <mat-divider *ngIf="displayPagination"></mat-divider>
       <mat-paginator *ngIf="displayPagination"

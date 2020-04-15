@@ -1,0 +1,184 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
+  <div [fxShow]="showData"
+       fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <span *ngIf="widgetMode; else blobEntitiesTitle" class="tb-blob-entities-title">{{ctx.widgetTitle}}</span>
+        <ng-template #blobEntitiesTitle>
+          <span class="tb-blob-entities-title" translate>blob-entity.files</span>
+        </ng-template>
+        <tb-timewindow [(ngModel)]="timewindow"
+                       (ngModelChange)="onTimewindowChange()"
+                       asButton historyOnly></tb-timewindow>
+      </div>
+      <section *ngIf="!widgetMode" fxFlex fxLayout="row">
+        <span fxFlex></span>
+        <button [disabled]="isLoading$ | async"
+                mat-button mat-icon-button
+                (click)="enterFilterMode()"
+                matTooltip="{{'action.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <button [disabled]="isLoading$ | async"
+                mat-button mat-icon-button
+                (click)="reloadBlobEntities()"
+                matTooltip="{{'action.refresh' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </section>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+        <button mat-button mat-icon-button
+                matTooltip="{{ 'blob-entity.search' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>search</mat-icon>
+        </button>
+        <mat-form-field fxFlex>
+          <mat-label>&nbsp;</mat-label>
+          <input #searchInput matInput
+                 [(ngModel)]="pageLink.textSearch"
+                 placeholder="{{ 'blob-entity.search' | translate }}"/>
+        </mat-form-field>
+        <button mat-button mat-icon-button (click)="exitFilterMode()"
+                matTooltip="{{ 'action.close' | translate }}"
+                matTooltipPosition="above">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <mat-toolbar class="mat-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+      <div class="mat-toolbar-tools">
+                <span>
+                  {{ translate.get('blob-entity.selected-blob-entities', {count: dataSource.selection.selected.length}) | async }}
+                </span>
+        <span fxFlex></span>
+        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                matTooltip="{{ 'action.delete' | translate }}"
+                matTooltipPosition="above"
+                (click)="deleteBlobEntities($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+    <div fxFlex fxLayout="column">
+      <div fxFlex class="table-container">
+        <mat-table [dataSource]="dataSource"
+                   matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
+          <ng-container matColumnDef="select" sticky>
+            <mat-header-cell *matHeaderCellDef style="width: 30px;">
+              <mat-checkbox (change)="$event ? dataSource.masterToggle() : null"
+                            [checked]="dataSource.selection.hasValue() && (dataSource.isAllSelected() | async)"
+                            [indeterminate]="dataSource.selection.hasValue() && !(dataSource.isAllSelected() | async)">
+              </mat-checkbox>
+            </mat-header-cell>
+            <mat-cell *matCellDef="let relation">
+              <mat-checkbox (click)="$event.stopPropagation()"
+                            (change)="$event ? dataSource.selection.toggle(relation) : null"
+                            [checked]="dataSource.selection.isSelected(relation)">
+              </mat-checkbox>
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="createdTime">
+            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'blob-entity.created-time' | translate }} </mat-header-cell>
+            <mat-cell *matCellDef="let blobEntity">
+              {{ blobEntity.createdTime | date:'yyyy-MM-dd HH:mm:ss' }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'blob-entity.name' | translate }} </mat-header-cell>
+            <mat-cell *matCellDef="let blobEntity">
+              {{ blobEntity.name }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="type">
+            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'blob-entity.type' | translate }} </mat-header-cell>
+            <mat-cell *matCellDef="let blobEntity">
+              {{ blobEntity.typeName }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="customerTitle">
+            <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'blob-entity.created_customer' | translate }} </mat-header-cell>
+            <mat-cell *matCellDef="let blobEntity">
+              {{ blobEntity.customerTitle }}
+            </mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="actions" stickyEnd>
+            <mat-header-cell *matHeaderCellDef style="min-width: 100px; max-width: 100px; width: 100px">
+            </mat-header-cell>
+            <mat-cell *matCellDef="let blobEntity">
+              <div fxFlex fxLayout="row" fxLayoutAlign="end">
+                <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        matTooltip="{{ 'blob-entity.download-blob-entity' | translate }}"
+                        matTooltipPosition="above"
+                        (click)="downloadBlobEntity($event, blobEntity)">
+                  <mat-icon>file_download</mat-icon>
+                </button>
+                <button *ngIf="deleteEnabled"
+                        mat-button mat-icon-button [disabled]="isLoading$ | async"
+                        matTooltip="{{ 'blob-entity.delete-blob-entity' | translate }}"
+                        matTooltipPosition="above"
+                        (click)="deleteBlobEntity($event, blobEntity)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-cell>
+          </ng-container>
+          <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+          <mat-row [ngClass]="{'mat-row-select': true,
+                               'mat-selected': dataSource.selection.isSelected(blobEntity)}"
+                   *matRowDef="let blobEntity; columns: displayedColumns;" (click)="dataSource.selection.toggle(blobEntity)"></mat-row>
+        </mat-table>
+        <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
+              fxLayoutAlign="center center"
+              class="no-data-found" translate>{{ 'blob-entity.no-blob-entities-prompt' }}</span>
+        <span [fxShow]="dataSource.dataLoading"
+              fxLayoutAlign="center center"
+              class="no-data-found">{{ 'common.loading' | translate }}</span>
+      </div>
+      <mat-divider *ngIf="displayPagination"></mat-divider>
+      <mat-paginator *ngIf="displayPagination"
+                     [length]="dataSource.total() | async"
+                     [pageIndex]="pageLink.page"
+                     [pageSize]="pageLink.pageSize"
+                     [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+    </div>
+  </div>
+  <span [fxShow]="!showData" fxLayoutAlign="center center"
+        style="text-transform: uppercase; display: flex;"
+        class="tb-absolute-fill" translate>entity.no-data</span>
+</div>
