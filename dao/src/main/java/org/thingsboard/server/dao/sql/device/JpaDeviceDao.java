@@ -86,14 +86,14 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                     deviceRepository.findByTenantId(
                             fromTimeUUID(tenantId),
                             pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                            new PageRequest(0, pageLink.getLimit())));
+                            PageRequest.of(0, pageLink.getLimit())));
         } else {
             return DaoUtil.convertDataList(
                     deviceRepository.findByTenantId(
                             fromTimeUUID(tenantId),
                             Objects.toString(pageLink.getTextSearch(), ""),
                             pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                            new PageRequest(0, pageLink.getLimit())));
+                            PageRequest.of(0, pageLink.getLimit())));
         }
     }
 
@@ -110,7 +110,7 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         fromTimeUUID(customerId),
                         Objects.toString(pageLink.getTextSearch(), ""),
                         pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override
@@ -133,7 +133,7 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override
@@ -145,7 +145,7 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override

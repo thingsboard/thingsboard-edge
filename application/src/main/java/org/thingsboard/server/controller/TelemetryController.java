@@ -86,8 +86,8 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.telemetry.AttributeData;
@@ -114,6 +114,7 @@ import java.util.stream.Collectors;
  * Created by ashvayka on 22.03.18.
  */
 @RestController
+@TbCoreComponent
 @RequestMapping(TbUrlConstants.TELEMETRY_URL_PREFIX)
 @Slf4j
 public class TelemetryController extends BaseController {
@@ -377,9 +378,8 @@ public class TelemetryController extends BaseController {
                             DeviceId deviceId = new DeviceId(entityId.getId());
                             Set<AttributeKey> keysToNotify = new HashSet<>();
                             keys.forEach(key -> keysToNotify.add(new AttributeKey(scope, key)));
-                            DeviceAttributesEventNotificationMsg notificationMsg = DeviceAttributesEventNotificationMsg.onDelete(
-                                    user.getTenantId(), deviceId, keysToNotify);
-                            actorService.onMsg(new SendToClusterMsg(deviceId, notificationMsg));
+                            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
+                                    user.getTenantId(), deviceId, keysToNotify), null);
                         }
                         result.setResult(new ResponseEntity<>(HttpStatus.OK));
                     }
@@ -413,9 +413,8 @@ public class TelemetryController extends BaseController {
                         logAttributesUpdated(user, entityId, scope, attributes, null);
                         if (entityId.getEntityType() == EntityType.DEVICE) {
                             DeviceId deviceId = new DeviceId(entityId.getId());
-                            DeviceAttributesEventNotificationMsg notificationMsg = DeviceAttributesEventNotificationMsg.onUpdate(
-                                    user.getTenantId(), deviceId, scope, attributes);
-                            actorService.onMsg(new SendToClusterMsg(deviceId, notificationMsg));
+                            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onUpdate(
+                                    user.getTenantId(), deviceId, scope, attributes), null);
                         }
                         result.setResult(new ResponseEntity(HttpStatus.OK));
                     }

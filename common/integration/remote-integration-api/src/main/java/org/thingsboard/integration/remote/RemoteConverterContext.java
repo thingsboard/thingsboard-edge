@@ -38,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
@@ -55,8 +53,8 @@ public class RemoteConverterContext implements ConverterContext {
     private final int port;
 
     @Override
-    public ServerAddress getServerAddress() {
-        return new ServerAddress(clientId, port, ServerType.CORE);
+    public String getServiceId() {
+        return "[" + clientId + ":" + port + "]";
     }
 
     @Override

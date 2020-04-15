@@ -30,6 +30,6 @@
  */
 package org.thingsboard.server.common.data;
 
-public interface TenantEntity extends HasTenantId, HasEntityType{
+public interface TenantEntity extends HasTenantId, HasEntityType {
 
 }

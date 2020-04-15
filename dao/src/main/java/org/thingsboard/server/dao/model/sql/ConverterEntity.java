@@ -96,7 +96,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
 
     public ConverterEntity(Converter converter) {
         if (converter.getId() != null) {
-            this.setId(converter.getId().getId());
+            this.setUuid(converter.getId().getId());
         }
         if (converter.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(converter.getTenantId().getId());

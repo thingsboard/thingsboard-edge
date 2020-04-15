@@ -50,19 +50,19 @@ import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.service.AbstractTransportService;
-import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayRequestMsg;
-import org.thingsboard.server.gen.transport.GetOrCreateDeviceFromGatewayResponseMsg;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.SessionEvent;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.transport.mqtt.MqttTransportContext;
 import org.thingsboard.server.transport.mqtt.MqttTransportHandler;
 import org.thingsboard.server.transport.mqtt.adaptors.JsonMqttAdaptor;
@@ -143,7 +143,7 @@ public class GatewaySessionHandler {
                             if (devices.putIfAbsent(deviceName, deviceSessionCtx) == null) {
                                 SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                 transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
-                                transportService.process(deviceSessionInfo, AbstractTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
+                                transportService.process(deviceSessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
                                 transportService.process(deviceSessionInfo, SubscribeToRPCMsg.getDefaultInstance(), null);
                                 transportService.process(deviceSessionInfo, SubscribeToAttributeUpdatesMsg.getDefaultInstance(), null);
                             }
@@ -398,7 +398,7 @@ public class GatewaySessionHandler {
 
     private void deregisterSession(String deviceName, GatewayDeviceSessionCtx deviceSessionCtx) {
         transportService.deregisterSession(deviceSessionCtx.getSessionInfo());
-        transportService.process(deviceSessionCtx.getSessionInfo(), AbstractTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
+        transportService.process(deviceSessionCtx.getSessionInfo(), DefaultTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
         log.debug("[{}] Removed device [{}] from the gateway session", sessionId, deviceName);
     }
 

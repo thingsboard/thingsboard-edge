@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.update.UpdateService;
 
@@ -66,6 +67,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api/admin")
 public class AdminController extends BaseController {
 
@@ -73,7 +75,7 @@ public class AdminController extends BaseController {
 
     @Autowired
     private MailService mailService;
-    
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
@@ -91,7 +93,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public AdminSettings getAdminSettings(@PathVariable("key") String key,
                                           @RequestParam(required = false,
-                                                        defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
+                                                  defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
@@ -107,7 +109,7 @@ public class AdminController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public AdminSettings saveAdminSettings(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
@@ -160,8 +162,8 @@ public class AdminController extends BaseController {
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
-               String email = getCurrentUser().getEmail();
-               mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
+                String email = getCurrentUser().getEmail();
+                mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -186,7 +188,8 @@ public class AdminController extends BaseController {
         if (!StringUtils.isEmpty(jsonString)) {
             try {
                 jsonValue = objectMapper.readTree(jsonString);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonValue == null) {
             if (systemByDefault) {
@@ -209,7 +212,8 @@ public class AdminController extends BaseController {
         if (jsonValue != null) {
             try {
                 jsonString = objectMapper.writeValueAsString(jsonValue);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonString == null) {
             jsonString = "";

@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.scheduler;
 
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 /**
  * Created by ashvayka on 25.06.18.

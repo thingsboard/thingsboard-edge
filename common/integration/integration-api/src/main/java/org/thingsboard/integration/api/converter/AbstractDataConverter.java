@@ -85,7 +85,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                                 String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
                 .put("in", convertToString(inMessageType, inMessage))

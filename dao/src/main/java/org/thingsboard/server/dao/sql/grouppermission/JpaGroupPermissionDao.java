@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
@@ -105,7 +105,7 @@ public class JpaGroupPermissionDao extends JpaAbstractSearchTimeDao<GroupPermiss
         Specification<GroupPermissionEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, "id");
         Specification<GroupPermissionEntity> fieldsSpec = getEntityFieldsSpec(tenantId, userGroupId, entityGroupId, roleId);
         Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = new PageRequest(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
+        Pageable pageable = PageRequest.of(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
         return DaoUtil.convertDataList(groupPermissionRepository.findAll(where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
     }
 

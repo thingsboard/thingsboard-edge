@@ -38,7 +38,6 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 @Data
 public class LocalConverterContext implements ConverterContext {
@@ -48,8 +47,8 @@ public class LocalConverterContext implements ConverterContext {
     private final ConverterId converterId;
 
     @Override
-    public ServerAddress getServerAddress() {
-        return ctx.getDiscoveryService().getCurrentServer().getServerAddress();
+    public String getServiceId() {
+        return ctx.getServiceInfoProvider().getServiceId();
     }
 
     @Override

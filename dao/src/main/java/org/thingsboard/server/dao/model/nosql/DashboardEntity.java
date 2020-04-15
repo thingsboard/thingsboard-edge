@@ -114,11 +114,11 @@ public final class DashboardEntity implements SearchTextEntity<Dashboard> {
         this.configuration = dashboard.getConfiguration();
     }
     
-    public UUID getId() {
+    public UUID getUuid() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setUuid(UUID id) {
         this.id = id;
     }
 

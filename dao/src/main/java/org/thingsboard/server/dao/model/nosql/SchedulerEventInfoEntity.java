@@ -101,11 +101,13 @@ public final class SchedulerEventInfoEntity implements SearchTextEntity<Schedule
         this.schedule = schedulerEventInfo.getSchedule();
     }
 
-    public UUID getId() {
+    @Override
+    public UUID getUuid() {
         return id;
     }
 
-    public void setId(UUID id) {
+    @Override
+    public void setUuid(UUID id) {
         this.id = id;
     }
 

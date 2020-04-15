@@ -32,7 +32,6 @@ package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -44,7 +43,7 @@ public interface ConverterContext {
      *
      * @return server address
      */
-    ServerAddress getServerAddress();
+    String getServiceId();
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the converter

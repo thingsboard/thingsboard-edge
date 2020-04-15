@@ -35,6 +35,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 @ConditionalOnProperty(prefix = "js", value = "evaluator", havingValue = "local", matchIfMissing = true)
 @Service
@@ -51,6 +53,9 @@ public class NashornJsInvokeService extends AbstractNashornJsInvokeService {
 
     @Value("${js.local.max_errors}")
     private int maxErrors;
+
+    @Value("${js.local.max_black_list_duration_sec:60}")
+    private int maxBlackListDurationSec;
 
     @Override
     protected boolean useJsSandbox() {
@@ -70,5 +75,10 @@ public class NashornJsInvokeService extends AbstractNashornJsInvokeService {
     @Override
     protected int getMaxErrors() {
         return maxErrors;
+    }
+
+    @Override
+    protected long getMaxBlacklistDuration() {
+        return TimeUnit.SECONDS.toMillis(maxBlackListDurationSec);
     }
 }

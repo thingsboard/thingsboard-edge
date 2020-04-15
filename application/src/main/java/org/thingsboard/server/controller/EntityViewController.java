@@ -33,8 +33,8 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import io.swagger.annotations.ApiParam;
 import com.google.common.util.concurrent.MoreExecutors;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -86,6 +87,7 @@ import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GRO
  * Created by Victor Basanets on 8/28/2017.
  */
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class EntityViewController extends BaseController {

@@ -47,8 +47,10 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class EventController extends BaseController {
 

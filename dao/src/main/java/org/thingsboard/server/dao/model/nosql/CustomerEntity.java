@@ -120,11 +120,11 @@ public final class CustomerEntity implements SearchTextEntity<Customer> {
         this.additionalInfo = customer.getAdditionalInfo();
     }
     
-    public UUID getId() {
+    public UUID getUuid() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setUuid(UUID id) {
         this.id = id;
     }
 

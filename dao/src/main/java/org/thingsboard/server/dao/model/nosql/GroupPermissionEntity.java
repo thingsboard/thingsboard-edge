@@ -112,6 +112,16 @@ public class GroupPermissionEntity implements BaseEntity<GroupPermission> {
     }
 
     @Override
+    public UUID getUuid() {
+        return id;
+    }
+
+    @Override
+    public void setUuid(UUID id) {
+        this.id = id;
+    }
+
+    @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(id));
         groupPermission.setCreatedTime(UUIDs.unixTimestamp(id));

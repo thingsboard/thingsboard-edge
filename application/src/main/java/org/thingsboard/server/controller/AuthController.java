@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
@@ -74,6 +75,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class AuthController extends BaseController {

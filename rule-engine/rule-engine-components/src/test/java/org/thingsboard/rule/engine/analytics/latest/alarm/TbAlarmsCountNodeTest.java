@@ -123,8 +123,7 @@ public class TbAlarmsCountNodeTest {
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[1];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[2];
             String data = (String) (invocationOnMock.getArguments())[3];
-            return new TbMsg(UUIDs.timeBased(), type, originator, metaData.copy(), data,
-                    ruleChainId, ruleNodeId, 0);
+            return TbMsg.newMsg(type, originator, metaData.copy(), data);
         }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(EntityId.class),
                 Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
 

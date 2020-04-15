@@ -132,6 +132,16 @@ public class IntegrationEntity implements SearchTextEntity<Integration> {
     }
 
     @Override
+    public UUID getUuid() {
+        return id;
+    }
+
+    @Override
+    public void setUuid(UUID id) {
+        this.id = id;
+    }
+
+    @Override
     public String getSearchTextSource() {
         return getName();
     }

@@ -52,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
@@ -102,7 +102,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
         Specification<BlobEntityInfoEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, ID_PROPERTY);
         Specification<BlobEntityInfoEntity> fieldsSpec = getEntityFieldsSpec(tenantId, customerId, type);
         Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = new PageRequest(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
+        Pageable pageable = PageRequest.of(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
         return DaoUtil.convertDataList(blobEntityInfoRepository.findAll(where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
     }
 

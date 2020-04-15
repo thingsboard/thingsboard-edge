@@ -89,7 +89,7 @@ public final class BlobEntityInfoEntity extends BaseSqlEntity<BlobEntityInfo> im
 
     public BlobEntityInfoEntity(BlobEntityInfo blobEntityInfo) {
         if (blobEntityInfo.getId() != null) {
-            this.setId(blobEntityInfo.getId().getId());
+            this.setUuid(blobEntityInfo.getId().getId());
         }
         if (blobEntityInfo.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(blobEntityInfo.getTenantId().getId());

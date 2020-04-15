@@ -31,7 +31,7 @@
 package org.thingsboard.rule.engine.api;
 
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
+import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 import java.util.concurrent.ExecutionException;
 
@@ -46,6 +46,6 @@ public interface TbNode {
 
     void destroy();
 
-    default void onClusterEventMsg(TbContext ctx, ClusterEventMsg msg) {}
+    default void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {}
 
 }

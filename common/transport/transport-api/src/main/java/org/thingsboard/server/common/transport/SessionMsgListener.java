@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.common.transport;
 
-import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
-import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 
 /**
  * Created by ashvayka on 04.10.18.

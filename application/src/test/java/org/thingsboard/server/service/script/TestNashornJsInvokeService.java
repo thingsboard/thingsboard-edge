@@ -66,4 +66,9 @@ public class TestNashornJsInvokeService extends AbstractNashornJsInvokeService {
     protected int getMaxErrors() {
         return maxErrors;
     }
+
+    @Override
+    protected long getMaxBlacklistDuration() {
+        return 100000;
+    }
 }

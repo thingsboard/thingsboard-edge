@@ -46,9 +46,19 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.kv.*;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -117,7 +127,7 @@ public class TbGetCustomerAttributeNodeTest {
         User user = new User();
         user.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", userId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
         when(ctx.getUserService()).thenReturn(userService);
         when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
@@ -142,7 +152,7 @@ public class TbGetCustomerAttributeNodeTest {
         User user = new User();
         user.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", userId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
         when(ctx.getUserService()).thenReturn(userService);
         when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
@@ -167,7 +177,7 @@ public class TbGetCustomerAttributeNodeTest {
         User user = new User();
         user.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", userId, new TbMsgMetaData(), TbMsgDataType.JSON,"{}", ruleChainId, ruleNodeId);
 
         when(ctx.getUserService()).thenReturn(userService);
         when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(null));
@@ -181,7 +191,7 @@ public class TbGetCustomerAttributeNodeTest {
     @Test
     public void customerAttributeAddedInMetadata() {
         CustomerId customerId = new CustomerId(UUIDs.timeBased());
-        msg = new TbMsg(UUIDs.timeBased(), "CUSTOMER", customerId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "CUSTOMER", customerId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
         entityAttributeFetched(customerId);
     }
 
@@ -192,7 +202,7 @@ public class TbGetCustomerAttributeNodeTest {
         User user = new User();
         user.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", userId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", userId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
         when(ctx.getUserService()).thenReturn(userService);
         when(userService.findUserByIdAsync(any(), eq(userId))).thenReturn(Futures.immediateFuture(user));
@@ -207,7 +217,7 @@ public class TbGetCustomerAttributeNodeTest {
         Asset asset = new Asset();
         asset.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", assetId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", assetId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
         when(ctx.getAssetService()).thenReturn(assetService);
         when(assetService.findAssetByIdAsync(any(), eq(assetId))).thenReturn(Futures.immediateFuture(asset));
@@ -222,7 +232,7 @@ public class TbGetCustomerAttributeNodeTest {
         Device device = new Device();
         device.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", deviceId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", deviceId, new TbMsgMetaData(), TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
         when(ctx.getDeviceService()).thenReturn(deviceService);
         when(deviceService.findDeviceByIdAsync(any(), eq(deviceId))).thenReturn(Futures.immediateFuture(device));
@@ -249,7 +259,7 @@ public class TbGetCustomerAttributeNodeTest {
         Device device = new Device();
         device.setCustomerId(customerId);
 
-        msg = new TbMsg(UUIDs.timeBased(), "USER", deviceId, new TbMsgMetaData(), "{}", ruleChainId, ruleNodeId, 0L);
+        msg = TbMsg.newMsg( "USER", deviceId, new TbMsgMetaData(), TbMsgDataType.JSON,"{}", ruleChainId, ruleNodeId);
 
         when(ctx.getDeviceService()).thenReturn(deviceService);
         when(deviceService.findDeviceByIdAsync(any(), eq(deviceId))).thenReturn(Futures.immediateFuture(device));
@@ -261,7 +271,7 @@ public class TbGetCustomerAttributeNodeTest {
                 .thenReturn(Futures.immediateFuture(timeseries));
 
         node.onMsg(ctx, msg);
-        verify(ctx).tellNext(msg, SUCCESS);
+        verify(ctx).tellSuccess(msg);
         assertEquals(msg.getMetaData().getValue("tempo"), "highest");
     }
 
@@ -273,7 +283,7 @@ public class TbGetCustomerAttributeNodeTest {
                 .thenReturn(Futures.immediateFuture(attributes));
 
         node.onMsg(ctx, msg);
-        verify(ctx).tellNext(msg, SUCCESS);
+        verify(ctx).tellSuccess(msg);
         assertEquals(msg.getMetaData().getValue("tempo"), "high");
     }
 }

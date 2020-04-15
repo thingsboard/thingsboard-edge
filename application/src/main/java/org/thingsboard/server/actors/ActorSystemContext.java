@@ -47,14 +47,12 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleChainTransactionService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.DataConstants;
@@ -62,10 +60,11 @@ import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
-import org.thingsboard.server.common.transport.auth.DeviceAuthService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -88,20 +87,19 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.kafka.TbNodeIdProvider;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
-import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
-import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
-import org.thingsboard.server.service.executors.ClusterRpcCallbackExecutorService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
-import org.thingsboard.server.service.rpc.DeviceRpcService;
+import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
@@ -109,7 +107,7 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
-import org.thingsboard.server.service.transport.RuleEngineTransportService;
+import org.thingsboard.server.service.transport.TbCoreToTransportService;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -133,13 +131,14 @@ public class ActorSystemContext {
         return debugPerTenantLimits;
     }
 
+    @Autowired
+    @Getter
+    @Setter
+    private TbServiceInfoProvider serviceInfoProvider;
+
     @Getter
     @Setter
     private ActorService actorService;
-
-    @Autowired
-    @Getter
-    private DiscoveryService discoveryService;
 
     @Autowired
     @Getter
@@ -148,19 +147,7 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private ClusterRoutingService routingService;
-
-    @Autowired
-    @Getter
-    private ClusterRpcService rpcService;
-
-    @Autowired
-    @Getter
     private DataDecodingEncodingService encodingService;
-
-    @Autowired
-    @Getter
-    private DeviceAuthService deviceAuthService;
 
     @Autowired
     @Getter
@@ -189,6 +176,13 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private RuleChainService ruleChainService;
+
+    @Autowired
+    private PartitionService partitionService;
+
+    @Autowired
+    @Getter
+    private TbClusterService clusterService;
 
     @Autowired
     @Getter
@@ -221,10 +215,6 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private TelemetrySubscriptionService tsSubService;
-
-    @Autowired
-    @Getter
-    private DeviceRpcService deviceRpcService;
 
     @Autowired
     @Getter
@@ -261,10 +251,6 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private ClusterRpcCallbackExecutorService clusterRpcCallbackExecutor;
-
-    @Autowired
-    @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
@@ -279,18 +265,18 @@ public class ActorSystemContext {
     @Getter
     private MailService mailService;
 
-    @Autowired
+    //TODO: separate context for TbCore and TbRuleEngine
+    @Autowired(required = false)
     @Getter
     private DeviceStateService deviceStateService;
 
-    @Autowired
+    @Autowired(required = false)
     @Getter
     private DeviceSessionCacheService deviceSessionCacheService;
 
-    @Lazy
-    @Autowired
+    @Autowired(required = false)
     @Getter
-    private RuleEngineTransportService ruleEngineTransportService;
+    private TbCoreToTransportService tbCoreToTransportService;
 
     @Autowired
     @Getter
@@ -304,14 +290,19 @@ public class ActorSystemContext {
     @Getter
     private OwnersCacheService ownersCacheService;
 
-    @Lazy
-    @Autowired
+    /**
+     * The following Service will be null if we operate in tb-core mode
+     */
+    @Autowired(required = false)
     @Getter
-    private RuleChainTransactionService ruleChainTransactionService;
+    private TbRuleEngineDeviceRpcService tbRuleEngineDeviceRpcService;
 
-    @Value("${cluster.partition_id}")
+    /**
+     * The following Service will be null if we operate in tb-rule-engine mode
+     */
+    @Autowired(required = false)
     @Getter
-    private long queuePartitionId;
+    private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
     @Autowired
     @Getter private PlatformIntegrationService platformIntegrationService;
@@ -334,10 +325,6 @@ public class ActorSystemContext {
     @Value("${actors.queue.timeout}")
     @Getter
     private long queuePersistenceTimeout;
-
-    @Value("${actors.client_side_rpc.timeout}")
-    @Getter
-    private long clientSideRpcTimeout;
 
     @Value("${actors.rule.chain.error_persist_frequency}")
     @Getter
@@ -400,11 +387,6 @@ public class ActorSystemContext {
     @Setter
     private ActorSystem actorSystem;
 
-    @Autowired
-    @Getter
-    private TbNodeIdProvider nodeIdProvider;
-
-    @Getter
     @Setter
     private ActorRef appActor;
 
@@ -431,6 +413,8 @@ public class ActorSystemContext {
         config = ConfigFactory.parseResources(AKKA_CONF_FILE_NAME).withFallback(ConfigFactory.load());
     }
 
+
+
     public Scheduler getScheduler() {
         return actorSystem.scheduler();
     }
@@ -440,7 +424,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.ERROR);
-        event.setBody(toBodyJson(discoveryService.getCurrentServer().getServerAddress(), method, toString(e)));
+        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, toString(e)));
         persistEvent(event);
     }
 
@@ -449,7 +433,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.LC_EVENT);
-        event.setBody(toBodyJson(discoveryService.getCurrentServer().getServerAddress(), lcEvent, Optional.ofNullable(e)));
+        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
         persistEvent(event);
     }
 
@@ -463,8 +447,8 @@ public class ActorSystemContext {
         return sw.toString();
     }
 
-    private JsonNode toBodyJson(ServerAddress server, ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", server.toString()).put("event", event.name());
+    private JsonNode toBodyJson(String serviceId, ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = mapper.createObjectNode().put("server", serviceId).put("event", event.name());
         if (e.isPresent()) {
             node = node.put("success", false);
             node = node.put("error", toString(e.get()));
@@ -474,12 +458,21 @@ public class ActorSystemContext {
         return node;
     }
 
-    private JsonNode toBodyJson(ServerAddress server, String method, String body) {
-        return mapper.createObjectNode().put("server", server.toString()).put("method", method).put("error", body);
+    private JsonNode toBodyJson(String serviceId, String method, String body) {
+        return mapper.createObjectNode().put("server", serviceId).put("method", method).put("error", body);
     }
 
-    public String getServerAddress() {
-        return discoveryService.getCurrentServer().getServerAddress().toString();
+    public TopicPartitionInfo resolve(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
+        return partitionService.resolve(serviceType, tenantId, entityId);
+    }
+
+    public TopicPartitionInfo resolve(ServiceType serviceType, String queueName, TenantId tenantId, EntityId entityId) {
+        return partitionService.resolve(serviceType, queueName, tenantId, entityId);
+    }
+
+
+    public String getServiceId() {
+        return serviceInfoProvider.getServiceId();
     }
 
     public void persistDebugInput(TenantId tenantId, EntityId entityId, TbMsg tbMsg, String relationType) {
@@ -510,7 +503,7 @@ public class ActorSystemContext {
 
                 ObjectNode node = mapper.createObjectNode()
                         .put("type", type)
-                        .put("server", getServerAddress())
+                        .put("server", getServiceId())
                         .put("entityId", tbMsg.getOriginator().getId().toString())
                         .put("entityName", tbMsg.getOriginator().getEntityType().name())
                         .put("msgId", tbMsg.getId().toString())
@@ -570,7 +563,7 @@ public class ActorSystemContext {
 
         ObjectNode node = mapper.createObjectNode()
                 //todo: what fields are needed here?
-                .put("server", getServerAddress())
+                .put("server", getServiceId())
                 .put("message", "Reached debug mode rate limit!");
 
         if (error != null) {
@@ -596,4 +589,7 @@ public class ActorSystemContext {
         return Exception.class.isInstance(error) ? (Exception) error : new Exception(error);
     }
 
+    public void tell(TbActorMsg tbActorMsg, ActorRef sender) {
+        appActor.tell(tbActorMsg, sender);
+    }
 }

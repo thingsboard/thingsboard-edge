@@ -71,7 +71,7 @@ public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> 
 
     public UserCredentialsEntity(UserCredentials userCredentials) {
         if (userCredentials.getId() != null) {
-            this.setId(userCredentials.getId().getId());
+            this.setUuid(userCredentials.getId().getId());
         }
         if (userCredentials.getUserId() != null) {
             this.userId = toString(userCredentials.getUserId().getId());
@@ -84,8 +84,8 @@ public final class UserCredentialsEntity extends BaseSqlEntity<UserCredentials> 
 
     @Override
     public UserCredentials toData() {
-        UserCredentials userCredentials = new UserCredentials(new UserCredentialsId(getId()));
-        userCredentials.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        UserCredentials userCredentials = new UserCredentials(new UserCredentialsId(this.getUuid()));
+        userCredentials.setCreatedTime(UUIDs.unixTimestamp(this.getUuid()));
         if (userId != null) {
             userCredentials.setUserId(new UserId(toUUID(userId)));
         }

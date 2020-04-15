@@ -33,7 +33,6 @@ package org.thingsboard.integration.remote;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +44,6 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
@@ -82,8 +79,8 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public ServerAddress getServerAddress() {
-        return new ServerAddress(clientId, port, ServerType.CORE);
+    public String getServiceId() {
+        return "[" + clientId + ":" + port + "]";
     }
 
     @Override
@@ -103,7 +100,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(TbMsg.toByteString(msg)).build(), callback);
     }
 
     @Override

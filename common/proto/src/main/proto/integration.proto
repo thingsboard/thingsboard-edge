@@ -34,7 +34,7 @@ option java_multiple_files = true;
 option java_package = "org.thingsboard.server.gen.integration";
 option java_outer_classname = "IntegrationProtos";
 
-import "transport.proto";
+import "queue.proto";
 
 package integration;
 

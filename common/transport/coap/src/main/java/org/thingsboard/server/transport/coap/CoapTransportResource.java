@@ -47,20 +47,20 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
-import org.thingsboard.server.gen.transport.SessionEvent;
-import org.thingsboard.server.gen.transport.SessionEventMsg;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SessionType;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionEventMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -331,6 +331,8 @@ public class CoapTransportResource extends CoapResource {
                         .setDeviceIdLSB(deviceInfoProto.getDeviceIdLSB())
                         .setSessionIdMSB(sessionId.getMostSignificantBits())
                         .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                        .setDeviceName(msg.getDeviceInfo().getDeviceName())
+                        .setDeviceType(msg.getDeviceInfo().getDeviceType())
                         .build();
                 onSuccess.accept(sessionInfo);
             } else {

@@ -45,8 +45,8 @@ import org.thingsboard.server.transport.mqtt.adaptors.MqttTransportAdaptor;
  * Created by ashvayka on 04.10.18.
  */
 @Slf4j
-@ConditionalOnExpression("'${transport.type:null}'=='null' || ('${transport.type}'=='local' && '${transport.mqtt.enabled}'=='true')")
 @Component
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.mqtt.enabled}'=='true')")
 public class MqttTransportContext extends TransportContext {
 
     @Getter

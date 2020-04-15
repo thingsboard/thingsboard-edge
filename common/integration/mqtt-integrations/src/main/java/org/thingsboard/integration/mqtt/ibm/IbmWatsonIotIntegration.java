@@ -42,6 +42,7 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.BasicCredentials;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.security.Security;
@@ -88,7 +89,7 @@ public class IbmWatsonIotIntegration extends BasicMqttIntegration {
         try {
             Security.addProvider(new BouncyCastleProvider());
             return Optional.of(SslContextBuilder.forClient()
-                    .keyManager(null)
+                    .keyManager((KeyManagerFactory) null)
                     .trustManager((File) null)
                     .clientAuth(ClientAuth.NONE)
                     .build());
