@@ -42,12 +42,13 @@ import { Router } from '@angular/router';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation } from '@shared/models/security.models';
-import { EntityGroup } from '@shared/models/entity-group.models';
+import { EntityGroup, EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { BroadcastService } from '@core/services/broadcast.service';
 
 export interface SelectEntityGroupDialogResult {
   groupId: string;
+  group?: EntityGroupInfo;
   isNew: boolean;
 }
 
@@ -163,7 +164,7 @@ export class SelectEntityGroupDialogComponent extends
         ownerId: this.ownerId
       };
       this.entityGroupService.saveEntityGroup(newEntityGroup).subscribe((entityGroup) => {
-        this.groupSelected({groupId: entityGroup.id.id, isNew: true});
+        this.groupSelected({groupId: entityGroup.id.id, group: entityGroup, isNew: true});
         if (this.userPermissionsService.isDirectlyOwnedGroup(entityGroup)) {
           this.broadcast.broadcast(`${this.targetGroupType}changed`);
         }

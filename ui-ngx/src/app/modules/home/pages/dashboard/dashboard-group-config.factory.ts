@@ -37,7 +37,7 @@ import {
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -56,7 +56,9 @@ import {
   PublicDashboardLinkDialogComponent,
   PublicDashboardLinkDialogData
 } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
+import { WINDOW } from '@core/services/window.service';
 
+// @dynamic
 @Injectable()
 export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactory<Dashboard> {
 
@@ -69,7 +71,8 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
               private dialog: MatDialog,
               private importExport: ImportExportService,
               private homeDialogs: HomeDialogsService,
-              private dashboardService: DashboardService) {
+              private dashboardService: DashboardService,
+              @Inject(WINDOW) private window: Window) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Dashboard>): Observable<GroupEntityTableConfig<Dashboard>> {
@@ -89,7 +92,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     config.saveEntity = dashboard => this.dashboardService.saveDashboard(dashboard);
     config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
 
-    config.onEntityAction = action => this.onDashboardAction(action, config);
+    config.onEntityAction = action => this.onDashboardAction(action, config,params);
 
     if (config.entityGroup.additionalInfo && config.entityGroup.additionalInfo.isPublic) {
       config.cellActionDescriptors.push(
@@ -112,7 +115,7 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
           icon: 'dashboard',
           isEnabled: () => true,
           onAction: ($event, entity) => {
-            this.openDashboard($event, entity, config);
+            this.openDashboard($event, entity, config, params);
           }
         }
       );
@@ -142,12 +145,19 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
-  openDashboard($event: Event, dashboard: ShortEntityView | Dashboard, config: GroupEntityTableConfig<Dashboard>) {
+  openDashboard($event: Event, dashboard: ShortEntityView | Dashboard, config: GroupEntityTableConfig<Dashboard>,
+                params: EntityGroupParams) {
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.table.route});
-    this.router.navigateByUrl(url);
+    if (params.hierarchyView) {
+      const url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
+        params.customerId, 'dashboardGroups', params.childEntityGroupId, dashboard.id.id]);
+      this.window.open(window.location.origin + url, '_blank');
+    } else {
+      const url = this.router.createUrlTree([dashboard.id.id], {relativeTo: config.table.route});
+      this.router.navigateByUrl(url);
+    }
   }
 
   exportDashboard($event: Event, dashboard: ShortEntityView | Dashboard) {
@@ -186,10 +196,10 @@ export class DashboardGroupConfigFactory implements EntityGroupStateConfigFactor
     })
   }
 
-  onDashboardAction(action: EntityAction<Dashboard>, config: GroupEntityTableConfig<Dashboard>): boolean {
+  onDashboardAction(action: EntityAction<Dashboard>, config: GroupEntityTableConfig<Dashboard>, params: EntityGroupParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openDashboard(action.event, action.entity, config);
+        this.openDashboard(action.event, action.entity, config, params);
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);

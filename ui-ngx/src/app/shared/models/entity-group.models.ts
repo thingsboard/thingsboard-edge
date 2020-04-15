@@ -36,6 +36,7 @@ import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { isEqual } from '@core/utils';
+import { Customer } from '@shared/models/customer.model';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -311,12 +312,29 @@ export function entityGroupsTitle(groupType: EntityType) {
   }
 }
 
+export interface HierarchyCallbacks {
+  groupSelected?: (parentNodeId: string, groupId: string) => void;
+  customerGroupsSelected?: (parentNodeId: string, customerId: string, groupsType: EntityType) => void;
+  refreshEntityGroups?: (internalId: string) => void;
+  refreshCustomerGroups?: (customerGroupIds: string[]) => void;
+  groupUpdated?: (entityGroup: EntityGroupInfo) => void;
+  groupDeleted?: (groupNodeId: string, entityGroupId: string) => void;
+  groupAdded?: (entityGroup: EntityGroupInfo, existingGroupId: string) => void;
+  customerAdded?: (parentNodeId: string, customer: Customer) => void;
+  customerUpdated?: (customer: Customer) => void;
+  customersDeleted?: (customerIds: string[]) => void;
+}
+
 export interface EntityGroupParams {
   customerId?: string;
   entityGroupId?: string;
   childEntityGroupId?: string;
   groupType?: EntityType;
   childGroupType?: EntityType;
+  hierarchyView?: boolean;
+  nodeId?: string;
+  internalId?: string;
+  hierarchyCallbacks?: HierarchyCallbacks;
 }
 
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {

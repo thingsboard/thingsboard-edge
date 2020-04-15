@@ -136,6 +136,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
             if (!this.customerId) {
               this.broadcast.broadcast(this.groupType + 'changed');
             }
+            if (!this.componentsData.isGroupEntitiesView && params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEntityGroups(params.internalId);
+            }
           }
         ));
     };
@@ -145,6 +148,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         tap(() => {
             if (!this.customerId) {
               this.broadcast.broadcast(this.groupType + 'changed');
+            }
+            if (!this.componentsData.isGroupEntitiesView && params.hierarchyView) {
+              params.hierarchyCallbacks.refreshEntityGroups(params.internalId);
             }
           }
         ));
@@ -243,8 +249,12 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.table.route});
-    this.router.navigateByUrl(url);
+    if (this.params.hierarchyView) {
+      this.params.hierarchyCallbacks.groupSelected(this.params.nodeId, entityGroup.id.id);
+    } else {
+      const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.table.route});
+      this.router.navigateByUrl(url);
+    }
   }
 
   private onEntityGroupAction(action: EntityAction<EntityGroupInfo>): boolean {

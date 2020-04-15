@@ -50,6 +50,8 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
 
   public currentEntity: T = null;
 
+  public dataLoading = true;
+
   constructor(private fetchFunction: EntitiesFetchFunction<T, P>,
               protected selectionEnabledFunction: EntityBooleanFunction<T>,
               protected dataLoadedFunction: (col?: number, row?: number) => void) {}
@@ -71,6 +73,7 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
   }
 
   loadEntities(pageLink: P): Observable<PageData<T>> {
+    this.dataLoading = true;
     const result = new ReplaySubject<PageData<T>>();
     this.fetchFunction(pageLink).pipe(
       tap(() => {
@@ -83,6 +86,7 @@ export class EntitiesDataSource<T extends BaseData<HasId>, P extends PageLink = 
         this.pageDataSubject.next(pageData);
         result.next(pageData);
         this.dataLoadedFunction();
+        this.dataLoading = false;
       }
     );
     return result;

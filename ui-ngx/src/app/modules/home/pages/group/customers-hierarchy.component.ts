@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { LoadNodesCallback, NavTreeEditCallbacks, NodeSelectedCallback } from '@shared/components/nav-tree.component';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityGroupInfo, EntityGroupParams } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, EntityGroupParams, HierarchyCallbacks } from '@shared/models/entity-group.models';
 import {
   CustomerNodeData,
   customerNodeText,
@@ -57,6 +57,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityGroupsTableConfig } from '@home/pages/group/entity-groups-table-config';
+import { deepClone } from '@core/utils';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -89,9 +90,24 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   internalIdToParentNodeIds: {[internalId: string]: string[]} = {};
   nodeIdToInternalId: {[nodeId: string]: string} = {};
 
+  private hierarchyCallbacks: HierarchyCallbacks = {
+    groupSelected: this.onGroupSelected.bind(this),
+    customerGroupsSelected: this.onCustomerGroupsSelected.bind(this),
+    refreshEntityGroups: this.refreshEntityGroups.bind(this),
+    refreshCustomerGroups: this.refreshCustomerGroups.bind(this),
+    groupUpdated: this.groupUpdated.bind(this),
+    groupDeleted: this.groupDeleted.bind(this),
+    groupAdded: this.groupAdded.bind(this),
+    customerAdded: this.customerAdded.bind(this),
+    customerUpdated: this.customerUpdated.bind(this),
+    customersDeleted: this.customersDeleted.bind(this)
+  };
+
   viewMode: CustomersHierarchyViewMode = 'groups';
   entityGroupParams: EntityGroupParams = {
-    groupType: EntityType.CUSTOMER
+    groupType: EntityType.CUSTOMER,
+    hierarchyView: true,
+    hierarchyCallbacks: this.hierarchyCallbacks
   };
   entityGroupsTableConfig: EntityGroupsTableConfig = this.resolveEntityGroupTableConfig(this.entityGroupParams);
   entityGroupStateInfo: EntityGroupStateInfo<BaseData<HasId>> = null;
@@ -120,7 +136,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     if (node.id === '#') {
       this.entityGroupService.getEntityGroups(EntityType.CUSTOMER, {ignoreLoading: true}).subscribe((entityGroups) => {
         cb(this.entityGroupsToNodes(node.id, null, entityGroups));
-        // TODO: load root view
+        this.entityGroupParams.nodeId = node.id;
       });
     } else if (node.data && node.data.type) {
       if (node.data.type === 'group') {
@@ -158,9 +174,14 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     }
     if (this.selectedNodeId !== nodeId) {
       this.selectedNodeId = nodeId;
-      const entityGroupParams: EntityGroupParams = {};
+      const entityGroupParams: EntityGroupParams = {
+        hierarchyView: true,
+        hierarchyCallbacks: this.hierarchyCallbacks
+      };
       if (nodeId === -1) {
         entityGroupParams.groupType = EntityType.CUSTOMER;
+        entityGroupParams.nodeId = '#';
+        entityGroupParams.internalId = '#';
         this.updateGroupsView(entityGroupParams);
       } else if (node.data.type === 'groups' || node.data.type === 'group') {
         if (node.data.type === 'groups') {
@@ -173,6 +194,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
             entityGroupParams.groupType = node.data.groupsType;
           }
           entityGroupParams.customerId = node.data.customer.id.id;
+          entityGroupParams.nodeId = node.id;
+          entityGroupParams.internalId = node.data.internalId;
           this.updateGroupsView(entityGroupParams, node.data.customer);
         } else {
           const entityGroup = node.data.entity;
@@ -191,6 +214,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           } else {
             entityGroupParams.customerId = null;
           }
+          entityGroupParams.nodeId = node.id;
+          entityGroupParams.internalId = node.data.internalId;
           this.updateGroupView(entityGroupParams, entityGroup);
         }
       }
@@ -203,7 +228,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   }
 
   private updateGroupView(entityGroupParams: EntityGroupParams, entityGroup: EntityGroupInfo) {
-    this.entityGroupConfigResolver.constructGroupConfig(this.entityGroupParams, entityGroup).subscribe(
+    this.entityGroupConfigResolver.constructGroupConfig(entityGroupParams, entityGroup).subscribe(
       (entityGroupStateInfo) => {
         this.updateView('group', entityGroupParams, null, entityGroupStateInfo);
       }
@@ -219,6 +244,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       this.entityGroupParams = entityGroupParams;
       this.entityGroupsTableConfig = entityGroupsTableConfig;
       this.entityGroupStateInfo = entityGroupStateInfo;
+      this.cd.detectChanges();
     }, 0);
   }
 
@@ -354,6 +380,167 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       parentNodeIds.push(parentNodeId);
     }
     this.nodeIdToInternalId[node.id] = node.data.internalId;
+  }
+
+  private onGroupSelected(parentNodeId: string, groupId: string) {
+    const nodesMap = this.entityGroupNodesMap[parentNodeId];
+    if (nodesMap) {
+      const nodeId = nodesMap[groupId];
+      if (nodeId) {
+        setTimeout(() => {
+          this.nodeEditCallbacks.selectNode(nodeId);
+          if (!this.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+            this.nodeEditCallbacks.openNode(nodeId);
+          }
+        }, 0);
+      }
+    } else {
+      this.openNode(parentNodeId, () => {this.onGroupSelected(parentNodeId, groupId)});
+    }
+  }
+
+  private onCustomerGroupsSelected(parentNodeId: string, customerId: string, groupsType: EntityType) {
+    const nodesMap = this.customerNodesMap[parentNodeId];
+    if (nodesMap) {
+      const customerNodeId = nodesMap[customerId];
+      if (customerNodeId) {
+        const customerGroupNodeMap = this.customerGroupsNodesMap[customerNodeId];
+        if (customerGroupNodeMap) {
+          const nodeId = customerGroupNodeMap[groupsType];
+          if (nodeId) {
+            setTimeout(() => {
+              this.nodeEditCallbacks.selectNode(nodeId);
+              if (!this.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+                this.nodeEditCallbacks.openNode(nodeId);
+              }
+            }, 0);
+          }
+        } else {
+          this.openNode(customerNodeId, () => {this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+        }
+      }
+    } else {
+      this.openNode(parentNodeId, () => {this.onCustomerGroupsSelected(parentNodeId, customerId, groupsType)});
+    }
+  }
+
+  private refreshEntityGroups(internalId: string) {
+    let nodeIds: string[];
+    if (internalId && internalId !== '#') {
+      nodeIds = this.internalIdToNodeIds[internalId];
+    } else {
+      nodeIds = ['#'];
+    }
+    if (nodeIds) {
+      nodeIds.forEach((nodeId) => {
+        if (this.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
+          this.nodeEditCallbacks.refreshNode(nodeId);
+        }
+      });
+    }
+  }
+
+  private refreshCustomerGroups(customerGroupIds: string[]) {
+    customerGroupIds.forEach((groupId) => {
+      const nodeIds = this.internalIdToNodeIds[groupId];
+      if (nodeIds) {
+        nodeIds.forEach((nodeId) => {
+          if (this.nodeEditCallbacks.nodeIsLoaded(nodeId)) {
+            this.nodeEditCallbacks.refreshNode(nodeId);
+          }
+        });
+      }
+    });
+  }
+
+  private groupUpdated(entityGroup: EntityGroupInfo) {
+    const nodeIds = this.internalIdToNodeIds[entityGroup.id.id];
+    if (nodeIds) {
+      const nodeText = entityGroupNodeText(entityGroup);
+      nodeIds.forEach((nodeId) => {
+        this.nodeEditCallbacks.updateNode(nodeId, nodeText);
+      });
+    }
+  }
+
+  private groupDeleted(groupNodeId: string, entityGroupId: string) {
+    const parentId = this.nodeEditCallbacks.getParentNodeId(groupNodeId);
+    if (parentId) {
+      setTimeout(() => {
+        this.nodeEditCallbacks.selectNode(parentId);
+      }, 0);
+    }
+    const nodeIds = this.internalIdToNodeIds[entityGroupId];
+    nodeIds.forEach((nodeId) => {
+      this.nodeEditCallbacks.deleteNode(nodeId);
+    });
+  }
+
+  private groupAdded(entityGroup: EntityGroupInfo, existingGroupId: string) {
+    const parentNodeIds = this.internalIdToParentNodeIds[existingGroupId];
+    if (parentNodeIds) {
+      parentNodeIds.forEach((parentNodeId) => {
+        if (this.nodeEditCallbacks.nodeIsLoaded(parentNodeId)) {
+          let parentEntityGroupId = null;
+          const parentNode = this.nodeEditCallbacks.getNode(parentNodeId) as CustomersHierarchyNode;
+          if (parentNode && parentNode.data && parentNode.data.parentEntityGroupId) {
+            parentEntityGroupId = parentNode.data.parentEntityGroupId;
+          }
+          const node = this.createEntityGroupNode(parentNodeId, entityGroup, parentEntityGroupId);
+          this.nodeEditCallbacks.createNode(parentNodeId, node, 'last');
+        }
+      });
+    }
+  }
+
+  private customerAdded(parentNodeId: string, customer: Customer) {
+    const parentInternalId = this.nodeIdToInternalId[parentNodeId];
+    const parentNodeIds = this.internalIdToNodeIds[parentInternalId];
+    if (parentNodeIds) {
+      const targetParentNodeIds = deepClone(parentNodeIds);
+      parentNodeIds.forEach((nodeId) => {
+        const groupAllParentId = this.nodeEditCallbacks.getParentNodeId(nodeId);
+        if (groupAllParentId) {
+          const groupAllNodeId = this.parentIdToGroupAllNodeId[groupAllParentId];
+          if (groupAllNodeId && targetParentNodeIds.indexOf(groupAllNodeId) === -1) {
+            targetParentNodeIds.push(groupAllNodeId);
+          }
+        }
+      });
+      targetParentNodeIds.forEach((targetParentNodeId) => {
+        if (this.nodeEditCallbacks.nodeIsLoaded(targetParentNodeId)) {
+          const groupId = this.nodeIdToInternalId[targetParentNodeId];
+          if (groupId) {
+            const node = this.createCustomerNode(targetParentNodeId, customer, groupId);
+            this.nodeEditCallbacks.createNode(targetParentNodeId, node, 'last');
+          }
+        }
+      });
+    }
+  }
+
+  private customerUpdated(customer: Customer) {
+    const nodeIds = this.internalIdToNodeIds[customer.id.id];
+    if (nodeIds) {
+      nodeIds.forEach((nodeId) => {
+        this.nodeEditCallbacks.updateNode(nodeId, customerNodeText(customer));
+      });
+    }
+  }
+
+  private customersDeleted(customerIds: string[]) {
+    customerIds.forEach((customerId) => {
+      const nodeIds = this.internalIdToNodeIds[customerId];
+      nodeIds.forEach((nodeId) => {
+        this.nodeEditCallbacks.deleteNode(nodeId);
+      });
+    });
+  }
+
+  private openNode(nodeId: string, openCb: () => void) {
+    if (!this.nodeEditCallbacks.nodeIsOpen(nodeId)) {
+      this.nodeEditCallbacks.openNode(nodeId, openCb);
+    }
   }
 
 }

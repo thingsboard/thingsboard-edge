@@ -42,7 +42,9 @@ import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { Router } from '@angular/router';
 import {
   EntityGroupColumn,
-  EntityGroupColumnType, EntityGroupDetailsMode, entityGroupEntityFields,
+  EntityGroupColumnType,
+  EntityGroupDetailsMode,
+  entityGroupEntityFields,
   EntityGroupParams,
   EntityGroupSortOrder,
   ShortEntityView
@@ -54,12 +56,13 @@ import { WidgetActionDescriptor, WidgetActionType } from '@shared/models/widget.
 import { deepClone, isDefined, objToBase64 } from '@core/utils';
 import {
   CellActionDescriptor,
-  CellContentFunction, CellStyleFunction,
+  CellContentFunction,
+  CellStyleFunction,
   EntityTableColumn
 } from '@home/models/entity/entities-table-config.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { catchError, map, mergeMap } from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { forkJoin, Observable, of } from 'rxjs';
 import { EntityType } from '@shared/models/entity-type.models';
 import { SelectEntityGroupDialogResult } from '@home/dialogs/select-entity-group-dialog.component';
@@ -95,6 +98,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         return this.addGroupEntity(config);
       };
     }
+
     config.handleRowClick = (event, entity) => {
       return this.onRowClick(config, event, entity);
     };
@@ -200,7 +204,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
           icon: 'assignment_ind',
           isEnabled: true,
           onAction: ($event, entities) => {
-            this.changeEntitiesOwner($event, entities, config);
+            this.changeEntitiesOwner($event, entities, config, params);
           }
         }
       );
@@ -214,7 +218,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
           icon: 'add_circle',
           isEnabled: config.settings.enableGroupTransfer,
           onAction: ($event, entities) => {
-            this.addEntitiesToEntityGroup($event, entities, config);
+            this.addEntitiesToEntityGroup($event, entities, config, params);
           }
         }
       );
@@ -229,7 +233,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             icon: 'swap_vertical_circle',
             isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
             onAction: ($event, entities) => {
-              this.moveEntitiesToEntityGroup($event, entities, config);
+              this.moveEntitiesToEntityGroup($event, entities, config, params);
             }
           }
         );
@@ -240,7 +244,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
           icon: 'remove_circle',
           isEnabled: config.settings.enableGroupTransfer && !config.entityGroup.groupAll,
           onAction: ($event, entities) => {
-            this.removeEntitiesFromEntityGroup($event, entities, config);
+            this.removeEntitiesFromEntityGroup($event, entities, config, params);
           }
         }
       );
@@ -249,7 +253,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     return config;
   }
 
-  private changeEntitiesOwner($event: MouseEvent, entities: ShortEntityView[], config: GroupEntityTableConfig<T>) {
+  private changeEntitiesOwner($event: MouseEvent, entities: ShortEntityView[],
+                              config: GroupEntityTableConfig<T>,
+                              params: EntityGroupParams) {
     const ignoreErrors = entities.length > 1;
     const onOwnerSelected = (targetOwnerId: EntityId) => {
       return this.homeDialogs.confirm(
@@ -257,7 +263,32 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         this.translate.instant('entity-group.confirm-change-owner-text')).pipe(
         mergeMap((res) => {
             if (res) {
+              const isHierarchyCustomerView = config.entityGroup.type === EntityType.CUSTOMER &&
+                params.hierarchyView;
+              const refreshEntityGroupIds: string[] = [];
+              let groupIdsObservable: Observable<any>;
+              if (isHierarchyCustomerView) {
+                const groupIdsObservables: Observable<any>[] = [];
+                entities.forEach((entity) => {
+                  groupIdsObservables.push(this.entityGroupService.
+                                 getEntityGroupIdsForEntityId(entity.id.entityType as EntityType, entity.id.id,
+                    {ignoreErrors: true}).pipe(
+                    tap((entityGroupIds) => {
+                      entityGroupIds.forEach((entityGroupId) => {
+                        const id = entityGroupId.id;
+                        if (refreshEntityGroupIds.indexOf(id) === -1) {
+                          refreshEntityGroupIds.push(id);
+                        }
+                      });
+                    })
+                  ));
+                });
+                groupIdsObservable = forkJoin(groupIdsObservables);
+              } else {
+                groupIdsObservable = of(null);
+              }
               const changeOwnerObservables: Observable<any>[] = [];
+              changeOwnerObservables.push(groupIdsObservable);
               entities.forEach((entity) => {
                 changeOwnerObservables.push(
                   this.entityGroupService.changeEntityOwner(targetOwnerId, entity.id, {ignoreErrors}).pipe(
@@ -271,18 +302,38 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
                   )
                 );
               });
+
+              let changeOwnerCompletedObservable: Observable<boolean>;
+              if (isHierarchyCustomerView) {
+                changeOwnerCompletedObservable =
+                  this.entityGroupService.getEntityGroupAllByOwnerId(targetOwnerId.entityType as EntityType,
+                    targetOwnerId.id, config.entityGroup.type, {ignoreErrors: true}).pipe(
+                      map((entityGroup) => {
+                        refreshEntityGroupIds.push(entityGroup.id.id);
+                        params.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
+                        return true;
+                      }),
+                    catchError((err) => {
+                       params.hierarchyCallbacks.refreshCustomerGroups(refreshEntityGroupIds);
+                       return of(true);
+                    })
+                  );
+              } else {
+                changeOwnerCompletedObservable = of(true);
+              }
+
               return forkJoin(changeOwnerObservables).pipe(
-                map(() => {
-                    return true;
-                  },
+                  mergeMap(() => {
+                    return changeOwnerCompletedObservable;
+                  }),
                   catchError((err) => {
                     if (ignoreErrors) {
-                      return of(true);
+                      return changeOwnerCompletedObservable;
                     } else {
                       throw err;
                     }
                   })
-                ));
+                );
             } else {
               return of(false);
             }
@@ -309,11 +360,24 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     );
   }
 
-  private addEntitiesToEntityGroup($event: MouseEvent, entities: ShortEntityView[], config: GroupEntityTableConfig<T>) {
+  private addEntitiesToEntityGroup($event: MouseEvent, entities: ShortEntityView[],
+                                   config: GroupEntityTableConfig<T>, params: EntityGroupParams) {
     const onEntityGroupSelected = (result: SelectEntityGroupDialogResult) => {
+      if (result.isNew) {
+        if (params.hierarchyView) {
+          params.hierarchyCallbacks.groupAdded(result.group, config.entityGroup.id.id);
+        }
+      }
       const entityIds = entities.map((entity) => entity.id.id);
       return this.entityGroupService.addEntitiesToEntityGroup(result.groupId, entityIds).pipe(
-        map(() => true)
+        map(() => {
+          if (config.entityGroup.type === EntityType.CUSTOMER) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshCustomerGroups([result.groupId]);
+            }
+          }
+          return true;
+        })
       );
     };
     let ownerId = this.userPermissionsService.getUserOwnerId();
@@ -337,14 +401,28 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     );
   }
 
-  private moveEntitiesToEntityGroup($event: MouseEvent, entities: ShortEntityView[], config: GroupEntityTableConfig<T>) {
+  private moveEntitiesToEntityGroup($event: MouseEvent, entities: ShortEntityView[],
+                                    config: GroupEntityTableConfig<T>,
+                                    params: EntityGroupParams) {
     const entityIds = entities.map((entity) => entity.id.id);
     const onEntityGroupSelected = (result: SelectEntityGroupDialogResult) => {
+      if (result.isNew) {
+        if (params.hierarchyView) {
+          params.hierarchyCallbacks.groupAdded(result.group, config.entityGroup.id.id);
+        }
+      }
       return forkJoin([
         this.entityGroupService.removeEntitiesFromEntityGroup(config.entityGroup.id.id, entityIds),
         this.entityGroupService.addEntitiesToEntityGroup(result.groupId, entityIds)
       ]).pipe(
-        map(() => true)
+        map(() => {
+          if (config.entityGroup.type === EntityType.CUSTOMER) {
+            if (params.hierarchyView) {
+              params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id, result.groupId]);
+            }
+          }
+          return true;
+        })
       );
     };
     let ownerId = this.userPermissionsService.getUserOwnerId();
@@ -368,7 +446,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     );
   }
 
-  private removeEntitiesFromEntityGroup($event: MouseEvent, entities: ShortEntityView[], config: GroupEntityTableConfig<T>) {
+  private removeEntitiesFromEntityGroup($event: MouseEvent, entities: ShortEntityView[],
+                                        config: GroupEntityTableConfig<T>,
+                                        params: EntityGroupParams) {
     const title = this.translate.instant('entity-group.remove-from-group');
     const content = this.translate.instant(config.entityTranslations.removeFromGroup,
       {count: entities.length, entityGroup: config.entityGroup.name});
@@ -379,6 +459,11 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
           this.entityGroupService.removeEntitiesFromEntityGroup(config.entityGroup.id.id, entityIds).subscribe(
             () => {
               config.table.updateData();
+              if (config.entityGroup.type === EntityType.CUSTOMER) {
+                if (params.hierarchyView) {
+                  params.hierarchyCallbacks.refreshCustomerGroups([config.entityGroup.id.id]);
+                }
+              }
             }
           );
         }

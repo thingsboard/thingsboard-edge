@@ -151,6 +151,9 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   onEntityGroupUpdated(entity: BaseData<HasId>) {
     const entityGroup = entity as EntityGroupInfo;
+    if (this.groupParams.hierarchyView) {
+      this.groupParams.hierarchyCallbacks.groupUpdated(entityGroup);
+    }
     this.reloadEntityGroupConfig(entityGroup);
   }
 
@@ -190,7 +193,11 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       if (result) {
         this.entityGroupDetailsConfig.deleteEntity(entity.id).subscribe(
           () => {
-            this.window.history.back();
+            if (this.groupParams.hierarchyView) {
+              this.groupParams.hierarchyCallbacks.groupDeleted(this.groupParams.nodeId, entity.id.id);
+            } else {
+              this.window.history.back();
+            }
           }
         );
       }
@@ -202,7 +209,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       this.isGroupDetailsOpen = false;
     }
     this.entityGroup = entityGroup;
-    this.groupParams = this.groupParams || resolveGroupParams(this.route.snapshot);
+    this.groupParams = groupParams || resolveGroupParams(this.route.snapshot);
     this.entityGroupConfig = entityGroup.entityGroupConfig;
     this.entityGroupConfig.onToggleEntityGroupDetails = this.onToggleEntityGroupDetails.bind(this);
     this.entityGroupConfig.onToggleEntityDetails = this.onToggleEntityDetails.bind(this);
