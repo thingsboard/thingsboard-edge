@@ -31,67 +31,50 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset >
+    <fieldset>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.group-id</mat-label>
             <input matInput formControlName="groupId" required>
-            <div *ngIf="form.get('groupId')?.dirty">
-                <mat-error translate *ngIf="form.get('groupId')?.errors?.required">integration.group-id-required
-                </mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('groupId')?.hasError('required')">integration.group-id-required
+            </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId" required>
-            <div *ngIf="form.get('clientId')?.dirty">
-                <mat-error translate *ngIf="form.get('clientId')?.errors?.required">integration.clientId-id-required
-                </mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('clientId')?.hasError('required')">integration.clientId-id-required
+            </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.topics</mat-label>
             <input matInput formControlName="topics" required>
-            <div *ngIf="form.get('topics')?.dirty">
-                <mat-error translate *ngIf="form.get('topics')?.errors?.required">integration.topics-required</mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('topics')?.hasError('required')">integration.topics-required
+            </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.bootstrap-servers</mat-label>
             <input matInput formControlName="bootstrapServers" required>
-            <div *ngIf="form.get('bootstrapServers')?.dirty">
-                <mat-error translate *ngIf="form.get('bootstrapServers')?.errors?.required">
-                    integration.bootstrap-servers-required</mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('bootstrapServers')?.hasError('required')">
+                integration.bootstrap-servers-required</mat-error>
         </mat-form-field>
 
         <mat-form-field fxFlex="40" class="mat-block">
             <mat-label translate>integration.poll-interval</mat-label>
             <input matInput type="number" required formControlName="pollInterval" step="1">
-            <div *ngIf="form.get('pollInterval')?.dirty">
-                <mat-error translate *ngIf="form.get('pollInterval')?.errors?.required">
-                    integration.poll-interval-required</mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('pollInterval')?.hasError('required')">
+                integration.poll-interval-required</mat-error>
         </mat-form-field>
-        <mat-checkbox 
-            aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
+        <mat-checkbox aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
             style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
             <span translate>integration.auto-create-topics</span>
         </mat-checkbox>
-        <mat-accordion class="tb-integration-panel-group" 
-           >
+        <mat-accordion class="tb-integration-panel-group">
             <mat-expansion-panel>
-
-                <mat-expansion-panel-header >
-                    <div class="tb-panel-title" translate>integration.other-properties</div>
-                    <span fxFlex></span>
-                    
+                <mat-expansion-panel-header>
+                    <mat-panel-title translate>integration.other-properties</mat-panel-title>
                 </mat-expansion-panel-header>
-                
-                    <tb-key-val-map titleText="{{'integration.other-properties' | translate}}"
-                         key-val-map="otherProperties"></tb-key-val-map>
-                
-
+                <tb-key-val-map titleText="integration.other-properties"
+                    formControlName="otherProperties"></tb-key-val-map>
             </mat-expansion-panel>
         </mat-accordion>
     </fieldset>

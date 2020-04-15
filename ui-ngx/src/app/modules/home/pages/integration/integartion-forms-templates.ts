@@ -39,6 +39,21 @@ export const tcpTextMessageSeparator = {
   }
 }
 
+export const mqttCredentialTypes = {
+  anonymous: {
+    value: 'anonymous',
+    name: 'extension.anonymous'
+  },
+  basic: {
+    value: 'basic',
+    name: 'extension.basic'
+  },
+  'cert.PEM': {
+    value: 'cert.PEM',
+    name: 'extension.pem'
+  }
+}
+
 export const templates = {
   http: {
     baseUrl: baseUrl(),
@@ -51,7 +66,7 @@ export const templates = {
     asKey: '',
     clientIdNew: '',
     clientSecret: '',
-    maxTimeDiffInSeconds: '',
+    maxTimeDiffInSeconds: 60,
     httpEndpoint: '',
     headersFilter: ''
   },
@@ -64,7 +79,7 @@ export const templates = {
       connectTimeoutSec: 10,
       clientId: '',
       credentials: {
-        type: 'annonymus',
+        type: mqttCredentialTypes.anonymous.value,
         username: ' ',
         password: ' '
       },
@@ -149,12 +164,12 @@ export const templates = {
         username: ' ',
         password: ' '
       },
-      topicFilters: [{
-        filter: '+/devices/+/up',
-        qos: 0
-      }],
-      downlinkTopicPattern: ''
-    }
+    },
+    topicFilters: [{
+      filter: '+/devices/+/up',
+      qos: 0
+    }],
+    downlinkTopicPattern: ''
   },
   [IntegrationType.AZURE_EVENT_HUB]: {
     connectTimeoutSec: 10,
@@ -223,8 +238,8 @@ export const templates = {
   },
   [IntegrationType.KAFKA]: {
     clientConfiguration: {
-      groupId: '' ,
-      clientId: '' ,
+      groupId: '',
+      clientId: '',
       topics: 'my-topic-output',
       bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
@@ -234,21 +249,6 @@ export const templates = {
   [IntegrationType.CUSTOM]: {
     clazz: '',
     configuration: ''
-  }
-}
-
-export const mqttCredentialTypes = {
-  anonymous: {
-    value: 'anonymous',
-    name: 'extension.anonymous'
-  },
-  basic: {
-    value: 'basic',
-    name: 'extension.basic'
-  },
-  'cert.PEM': {
-    value: 'cert.PEM',
-    name: 'extension.pem'
   }
 }
 

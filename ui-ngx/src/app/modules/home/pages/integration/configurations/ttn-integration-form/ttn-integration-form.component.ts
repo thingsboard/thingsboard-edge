@@ -23,6 +23,7 @@ export class TtnIntegrationFormComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    console.log(this.form, this.topicFilters);    
     this.form.get('credentials').get('username').valueChanges.subscribe(name => {
       this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
     })

@@ -1,7 +1,6 @@
-import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { Integration, IntegrationType } from '@shared/models/integration.models';
+import { Component, Input, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -10,10 +9,10 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'tb-http-integration-form',
   templateUrl: './http-integration-form.component.html',
-  styleUrls: ['./http-integration-form.component.scss']
+  styleUrls: ['./http-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HttpIntegrationFormComponent implements AfterViewInit {
-
 
   @Input() form: FormGroup;
   @Input() integrationType: IntegrationType;
@@ -25,24 +24,23 @@ export class HttpIntegrationFormComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.integrationBaseUrlChanged();
-    this.form.get('httpEndpoint').disable();
   }
 
   httpEnableSecurityChanged = () => {
+    const headersFilter = this.form.get('headersFilter');
     if (this.form.get('enableSecurity').value &&
-      !this.form.get('headersFilter').value) {
-      this.form.get('headersFilter').patchValue({});
+      !headersFilter.value) {
+      headersFilter.patchValue({});
+      headersFilter.setValidators(Validators.required);
+      headersFilter.updateValueAndValidity();
     } else if (!this.form.get('enableSecurity').value) {
-      this.form.get('headersFilter').patchValue(null)
+      headersFilter.patchValue(null);
+      headersFilter.setValidators([]);
     }
   };
 
   thingparkEnableSecurityChanged = () => {
-    if (this.form.get('enableSecurity').value &&
-      !this.form.get('maxTimeDiffInSeconds').value) {
-      this.form.get('maxTimeDiffInSeconds').patchValue(60);
-    }
-    else {
+    if (!this.form.get('enableSecurity').value) {
       this.form.get('enableSecurityNew').patchValue(false);
       this.form.get('clientIdNew').patchValue(null);
       this.form.get('clientSecret').patchValue(null);
@@ -67,6 +65,8 @@ export class HttpIntegrationFormComponent implements AfterViewInit {
     const type = this.integrationType ? this.integrationType.toLowerCase() : '';
     const key = this.routingKey || '';
     url += `/api/v1/integrations/${type}/${key}`;
-    this.form.get('httpEndpoint').patchValue(url);
+    setTimeout(() => {
+      this.form.get('httpEndpoint').patchValue(url);
+    }, 0);
   };
 }

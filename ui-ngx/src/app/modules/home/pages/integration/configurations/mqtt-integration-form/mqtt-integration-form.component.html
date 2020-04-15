@@ -31,98 +31,86 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset >
-        <div fxLayout="column" fxLayout="row">
+    <fieldset>
+        <div fxLayout="column" fxLayout="row" fxLayoutGap="20px">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
-                <div *ngIf="form.get('host')?.dirty">
-                    <mat-error translate *ngIf="form.get('host')?.errors?.required">integration.host-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('host')?.hasError('required')">integration.host-required
+                </mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
-                <div *ngIf="form.get('port')?.dirty">
-                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.min">integration.port-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.max">integration.port-range</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('port')?.hasError('required')">integration.port-required
+                </mat-error>
+                <mat-error translate *ngIf="form.get('')?.hasError('min')">integration.port-range</mat-error>
+                <mat-error translate *ngIf="form.get('')?.hasError('max')">integration.port-range</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.connect-timeout</mat-label>
                 <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-                <div *ngIf="form.get('connectTimeoutSec')?.dirty">
-                    <mat-error translate *ngIf="form.get('connectTimeoutSec')?.errors?.required">
-                        integration.connect-timeout-required</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.min">integration.connect-timeout-range</mat-error>
-                    <mat-error translate *ngIf="form.get('')?.errors?.max">integration.connect-timeout-range</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('required')">
+                    integration.connect-timeout-required</mat-error>
+                <mat-error translate *ngIf="form.get('')?.hasError('min')">integration.connect-timeout-range</mat-error>
+                <mat-error translate *ngIf="form.get('')?.hasError('max')">integration.connect-timeout-range</mat-error>
             </mat-form-field>
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId" ng-pattern="/^[a-zA-Z0-9]*$/" ng-maxlength="23">
-            <div *ngIf="form.get('clientId')?.dirty">
-                <mat-error translate *ngIf="form.get('clientId')?.errors?.pattern">integration.client-id-pattern
-                </mat-error>
-                <mat-error translate *ngIf="form.get('clientId')?.errors?.maxlength">integration.client-id-range</mat-error>
-            </div>
+            <mat-error translate *ngIf="form.get('clientId')?.hasError('pattern')">integration.client-id-pattern
+            </mat-error>
+            <mat-error translate *ngIf="form.get('clientId')?.hasError('maxlength')">integration.client-id-range
+            </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox 
-                aria-label="'integration.clean-session | translate" formControlName="cleanSession">
+            <mat-checkbox aria-label="'integration.clean-session | translate" formControlName="cleanSession">
                 {{ 'integration.clean-session' | translate }}
             </mat-checkbox>
-            <mat-checkbox  aria-label="'integration.enable-ssl | translate"
-                formControlName="ssl">
+            <mat-checkbox aria-label="'integration.enable-ssl | translate" formControlName="ssl">
                 {{ 'integration.enable-ssl' | translate }}
             </mat-checkbox>
         </div>
-        <mat-accordion class="tb-integration-panel-group" >
+        <mat-accordion class="tb-integration-panel-group">
             <mat-expansion-panel>
                 <mat-expansion-panel-header fxFlex>
-                    <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
-                    <div class="tb-panel-prompt">
-                        {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}</div>
-                    <span fxFlex></span>
+                    <mat-panel-title translate>integration.credentials</mat-panel-title>
+                    <mat-panel-description>
+                        {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}
+                    </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div formGroupName="credentials">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="type"
-                            >
+                        <mat-select required formControlName="type">
                             <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
-                                [value]="credentialsType?.key">
+                                [value]="credentialsType?.value.value">
                                 {{credentialsType?.value.name | translate}}
                             </mat-option>
                         </mat-select>
-                        <div *ngIf="form.get('credentials').get('type')?.dirty">
-                            <mat-error translate *ngIf="form.get('credentials').get('type')?.errors?.required">
-                                integration.credentials-type-required</mat-error>
-                        </div>
+                        <mat-error translate *ngIf="form.get('credentials').get('type')?.hasError('required')">
+                            integration.credentials-type-required</mat-error>
                     </mat-form-field>
-                    <section *ngIf="form?.get('credentials').get('credentialsType')?.value === mqttCredentialTypes.basic.value">
+                    <section
+                        *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
                             <input matInput required formControlName="username">
-                            <div *ngIf="form.get('credentials').get('username')?.dirty">
-                                <mat-error translate *ngIf="form.get('credentials').get('username')?.errors?.required">
-                                    integration.username-required</mat-error>
-                            </div>
+                            <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
+                                integration.username-required</mat-error>
                         </mat-form-field>
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.password</mat-label>
                             <input matInput type="password" required formControlName="password">
-                            <div *ngIf="form.get('credentials').get('password')?.dirty">
-                                <mat-error translate *ngIf="form.get('credentials').get('password')?.errors?.required">
-                                    integration.password-required</mat-error>
-                            </div>
+                            <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
+                                integration.password-required</mat-error>
                         </mat-form-field>
                     </section>
-                    <section *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes['cert.PEM'].value"
+                    <section
+                        *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes['cert.PEM'].value"
                         class="dropdown-section">
-                        <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>              
+                        <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.private-key-password</mat-label>
                             <input matInput type="password" formControlName="privateKeyPassword">
@@ -132,16 +120,15 @@
             </mat-expansion-panel>
         </mat-accordion>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters"  disable-mqtt-topics="false">
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters" disable-mqtt-topics="false">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required 
-            [formControl]="downlinkTopicPattern">
-        <div *ngIf="downlinkTopicPattern.dirty">
-            <mat-error translate *ngIf="downlinkTopicPattern.errors?.required">
+        <input matInput required [formControl]="downlinkTopicPattern">
+        
+            <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
                 integration.downlink-topic-pattern-required</mat-error>
-        </div>
+        
     </mat-form-field>
 </section>

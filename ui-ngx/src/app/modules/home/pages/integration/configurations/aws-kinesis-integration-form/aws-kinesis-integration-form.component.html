@@ -31,80 +31,66 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset  class="flex column">
-        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+    <fieldset class="flex column">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-stream-name</mat-label>
                 <input matInput required formControlName="streamName">
-                <div *ngIf="form.get('streamName')?.dirty">
-                    <mat-error translate *ngIf="form.get('streamName')?.errors?.required">
-                        integration.kinesis-stream-name-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('streamName')?.hasError('required')">
+                    integration.kinesis-stream-name-required</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-region</mat-label>
                 <input matInput required formControlName="region">
-                <div *ngIf="form.get('region')?.dirty">
-                    <mat-error translate *ngIf="form.get('region')?.errors?.required">
-                        integration.kinesis-region-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('region')?.hasError('required')">
+                    integration.kinesis-region-required</mat-error>
             </mat-form-field>
         </div>
-        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
-                <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value"
-                    formControlName="accessKeyId">
-                <div *ngIf="form.get('accessKeyId')?.dirty">
-                    <mat-error translate *ngIf="form.get('accessKeyId')?.errors?.required">
-                        integration.kinesis-access-key-id-required</mat-error>
-                </div>
+                <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
+                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" formControlName="accessKeyId">
+                <mat-error translate *ngIf="form.get('accessKeyId')?.hasError('required')">
+                    integration.kinesis-access-key-id-required</mat-error>
             </mat-form-field>
-
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-secret-access-key</mat-label>
-                <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
+                <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
+                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
                     formControlName="secretAccessKey">
-                <div *ngIf="form.get('secretAccessKey')?.dirty">
-                    <mat-error translate *ngIf="form.get('secretAccessKey')?.errors?.required">
-                        integration.kinesis-secret-access-key-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('secretAccessKey')?.hasError('required')">
+                    integration.kinesis-secret-access-key-required</mat-error>
             </mat-form-field>
         </div>
-        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <div class="mat-block">
-                <mat-checkbox matInput 
+                <mat-checkbox matInput
                     aria-label="'integration.kinesis-use-credentials-from-instance-metadata | translate"
                     formControlName="useCredentialsFromInstanceMetadata">
                     {{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}
                 </mat-checkbox>
             </div>
         </div>
-        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-application-name</mat-label>
                 <input matInput formControlName="applicationName">
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
-                <mat-select required 
-                    formControlName="initialPositionInStream">
+                <mat-select required formControlName="initialPositionInStream">
                     <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.key">
                         {{stream?.value}}
                     </mat-option>
                 </mat-select>
-                <div *ngIf="form.get('initialPositionInStream')?.dirty">
-                    <mat-error translate *ngIf="form.get('initialPositionInStream')?.errors?.required">
-                        integration.kinesis-initial-position-in-stream-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('initialPositionInStream')?.hasError('required')">
+                    integration.kinesis-initial-position-in-stream-required</mat-error>
             </mat-form-field>
         </div>
-        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <div class="mat-block">
-                <mat-checkbox 
-                    aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"
+                <mat-checkbox aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"
                     formControlName="useConsumersWithEnhancedFanOut">
                     {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
                 </mat-checkbox>

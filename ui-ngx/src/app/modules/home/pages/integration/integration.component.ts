@@ -106,6 +106,9 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         )
       }
     );
+    form.valueChanges.subscribe(()=>{
+      console.log('FORM', form)
+    })
     form.get('type').valueChanges.subscribe((type: IntegrationType) => {
       this.integrationType = type;
       this.setConfigurationForm(type);
@@ -145,7 +148,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   private integrationTypeChanged(form: FormGroup) {
-    form.get('configuration').patchValue({}, { emitEvent: false });
+   // form.get('configuration').patchValue({}, { emitEvent: false });
     form.get('metadata').patchValue({}, { emitEvent: false });
     this.checkIsRemote(form);
   }

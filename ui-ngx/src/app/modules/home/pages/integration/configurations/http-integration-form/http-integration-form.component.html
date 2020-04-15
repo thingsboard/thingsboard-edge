@@ -31,39 +31,34 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset >
+    <fieldset>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.base-url</mat-label>
-            <input matInput formControlName="baseUrl" (change)="integrationBaseUrlChanged()">
-            <div *ngIf="form.get('baseUrl')?.dirty">
-                <mat-error translate *ngIf="form.get('baseUrl')?.errors?.required">integration.base-url-required
-                </mat-error>
-            </div>
+            <input matInput formControlName="baseUrl" required (change)="integrationBaseUrlChanged()">
+            <mat-error translate *ngIf="form.get('baseUrl')?.hasError('required')">integration.base-url-required
+            </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox 
-                aria-label="'integration.replace-no-content-to-ok | translate"
+            <mat-checkbox aria-label="'integration.replace-no-content-to-ok | translate"
                 formControlName="replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' |
                 translate }}
             </mat-checkbox>
         </div>
         <section *ngIf="integrationType === integrationTypes.HTTP ||
                                                 integrationType === integrationTypes.SIGFOX">
-            <mat-checkbox 
-                aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
+            <mat-checkbox aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
                 (change)="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
             </mat-checkbox>
-            <mat-accordion *ngIf="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters"
-                >
+            <mat-accordion *ngIf="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters">
                 <mat-expansion-panel>
                     <mat-expansion-panel-header>
-                        <div class="tb-panel-title">{{ 'integration.headers-filter' | translate }}</div>
-                        <span fxFlex></span>
-
+                        <mat-panel-title translate>integration.headers-filter</mat-panel-title>
                     </mat-expansion-panel-header>
-                    <tb-key-val-map noDataText="integration.no-headers-filter"
-                        key-placeholder-text="integration.header" 
-                        key-val-map="headersFilter"></tb-key-val-map>
+                    <tb-key-val-map noDataText="integration.no-headers-filter" keyPlaceholderText="integration.header"
+                        formControlName="headersFilter"></tb-key-val-map>
+                    <mat-error translate *ngIf="form.get('headersFilter')?.hasError('required')">
+                        integration.header-required
+                    </mat-error>
                 </mat-expansion-panel>
             </mat-accordion>
         </section>
@@ -72,28 +67,22 @@
                 <mat-label translate>integration.downlink-url</mat-label>
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
-            <div fxLayout="row">
-                <mat-checkbox 
-                    aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
+            <div fxLayout="row" fxLayoutGap="20px">
+                <mat-checkbox fxFlex="50" aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
                     (change)="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' |
                         translate }}
                 </mat-checkbox>
-                <mat-form-field fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value">
-                    <mat-checkbox 
-                        aria-label="'integration.enable-security-new | translate"
-                        formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
+                <mat-checkbox fxFlex="50" fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
+                    aria-label="'integration.enable-security-new | translate" formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
                         translate}}
-                    </mat-checkbox>
-                </mat-form-field>
+                </mat-checkbox>
             </div>
-            <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout="row">
+            <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout="row" fxLayoutGap="20px">
                 <mat-form-field fxFlex *ngIf="!form.get('enableSecurityNew')?.value" class="mat-block">
                     <mat-label translate>integration.as-id</mat-label>
                     <input matInput required formControlName="asId">
-                    <div *ngIf="form.get('asId')?.dirty">
-                        <mat-error translate *ngIf="form.get('asId')?.errors?.required">integration.as-id-required
-                        </mat-error>
-                    </div>
+                    <mat-error translate *ngIf="form.get('asId')?.hasError('required')">integration.as-id-required
+                    </mat-error>
                 </mat-form-field>
                 <mat-form-field fxFlex *ngIf="form.get('enableSecurityNew')?.value" class="mat-block">
                     <mat-label translate>integration.as-id</mat-label>
@@ -102,49 +91,41 @@
                 <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>integration.as-key</mat-label>
                     <input matInput required formControlName="asKey">
-                    <div *ngIf="form.get('asKey')?.dirty">
-                        <mat-error translate *ngIf="form.get('asKey')?.errors?.required">integration.as-key-required
-                        </mat-error>
-                    </div>
+                    <mat-error translate *ngIf="form.get('asKey')?.hasError('required')">integration.as-key-required
+                    </mat-error>
                 </mat-form-field>
             </section>
-            <section *ngIf="form.get('enableSecurityNew')?.value" fxLayout="column" fxLayout="row">
+            <section *ngIf="form.get('enableSecurityNew')?.value" fxLayout="column" fxLayout="row" fxLayoutGap="20px">
                 <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>integration.client-id-new</mat-label>
                     <input matInput required formControlName="clientIdNew">
-                    <div *ngIf="form.get('clientIdNew')?.dirty">
-                        <mat-error translate *ngIf="form.get('clientIdNew')?.errors?.required">
-                            integration.client-id-new-required</mat-error>
-                    </div>
+                    <mat-error translate *ngIf="form.get('clientIdNew')?.hasError('required')">
+                        integration.client-id-new-required</mat-error>
                 </mat-form-field>
                 <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>integration.client-secret</mat-label>
                     <input matInput required formControlName="clientSecret">
-                    <div *ngIf="form.get('clientSecret')?.dirty">
-                        <mat-error translate *ngIf="form.get('clientSecret')?.errors?.required">
-                            integration.client-secret-required</mat-error>
-                    </div>
+                    <mat-error translate *ngIf="form.get('clientSecret')?.hasError('required')">
+                        integration.client-secret-required</mat-error>
                 </mat-form-field>
             </section>
             <mat-form-field class="mat-block" *ngIf="form.get('enableSecurity')?.value">
                 <mat-label translate>integration.max-time-diff-in-seconds</mat-label>
                 <input matInput type="number" min="0" step="1" required formControlName="maxTimeDiffInSeconds">
-                <div *ngIf="form.get('maxTimeDiffInSeconds')?.dirty">
-                    <mat-error translate *ngIf="form.get('maxTimeDiffInSeconds')?.errors?.required">
-                        integration.max-time-diff-in-seconds-required</mat-error>
-                </div>
+                <mat-error translate *ngIf="form.get('maxTimeDiffInSeconds')?.hasError('required')">
+                    integration.max-time-diff-in-seconds-required</mat-error>
             </mat-form-field>
         </section>
     </fieldset>
-    <div fxLayout="row">
+    <div fxLayout="row" fxLayoutGap="20px">
         <mat-form-field class="mat-block" fxFlex>
             <mat-label translate>integration.http-endpoint</mat-label>
-            <input matInput formControlName="httpEndpoint" disabled="true">
+            <input matInput formControlName="httpEndpoint" readonly="true">
         </mat-form-field>
         <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
-        [cbContent]="form.get('httpEndpoint')?.value"
-        [matTooltip]="'integration.copy-http-endpoint-url' | translate">
-        <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-      </button> 
+            [cbContent]="form.get('httpEndpoint')?.value"
+            [matTooltip]="'integration.copy-http-endpoint-url' | translate">
+            <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        </button>
     </div>
 </section>

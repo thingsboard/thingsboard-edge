@@ -36,20 +36,23 @@
             ng-class="{'disabled': $root.loading || !isEdit}">
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
-                    <div class="tb-panel-title">{{ 'integration.subscription-tags' | translate }}</div>
+                    <mat-panel-title translate>integration.subscription-tags</mat-panel-title>
+                    <mat-panel-description translate *ngIf="!subscriptionTagsForm.controls.length">
+                        integration.add-subscription-tag-prompt</mat-panel-description>
                 </mat-expansion-panel-header>
-                <div fxFlex fxLayout="row" *ngFor="let subscriptionTag of subscriptionTagsForm.controls; let i = index"
+                <div fxFlex fxLayout="row" fxLayoutGap="20px"
+                    *ngFor="let subscriptionTag of subscriptionTagsForm.controls; let i = index"
                     style="max-height: 60px;" fxLayout-align="start center" [formGroup]="subscriptionTag">
                     <mat-form-field fxFlex md-no-float class="md-block"
                         style="margin: 10px 0px 0px 0px; max-height: 40px;">
                         <mat-label translate>integration.key</mat-label>
-                        <input matInput placeholder="{{ 'integration.key' | translate }}" ng-required="true"
+                        <input matInput placeholder="{{ 'integration.key' | translate }}" [required]="true"
                             formControlName="key">
                     </mat-form-field>
                     <mat-form-field fxFlex md-no-float class="md-block"
                         style="margin: 10px 0px 0px 0px; max-height: 40px;">
                         <mat-label translate>integration.path</mat-label>
-                        <input matInput placeholder="{{ 'integration.path' | translate }}" ng-required="true"
+                        <input matInput placeholder="{{ 'integration.path' | translate }}" [required]="true"
                             formControlName="path">
                     </mat-form-field>
                     <mat-checkbox aria-label="'integration.required' | translate" formControlName="required">
