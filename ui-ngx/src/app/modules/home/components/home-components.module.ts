@@ -94,6 +94,7 @@ import { GroupEntityTabsComponent } from '@home/components/group/group-entity-ta
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { RegistrationPermissionsComponent } from './role/registration-permissions.component';
 
 @NgModule({
   declarations:
@@ -154,7 +155,8 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
       GroupEntitiesTableComponent,
       GroupEntityTabsComponent,
       GroupEntityTableHeaderComponent,
-      AddGroupEntityDialogComponent
+      AddGroupEntityDialogComponent,
+      RegistrationPermissionsComponent
     ],
   imports: [
     CommonModule,
@@ -208,7 +210,8 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
     GroupEntitiesTableComponent,
     GroupEntityTabsComponent,
     GroupEntityTableHeaderComponent,
-    AddGroupEntityDialogComponent
+    AddGroupEntityDialogComponent,
+    RegistrationPermissionsComponent
   ],
   providers: [
     WidgetComponentService,

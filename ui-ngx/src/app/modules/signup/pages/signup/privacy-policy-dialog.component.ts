@@ -29,50 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { Router } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { SelfRegistrationService } from '@core/http/self-register.service';
 
-import { AppRoutingModule } from './app-routing.module';
-import { CoreModule } from '@core/core.module';
-import { LoginModule } from '@modules/login/login.module';
-import { HomeModule } from '@home/home.module';
+@Component({
+  selector: 'tb-privacy-policy-dialog',
+  templateUrl: './privacy-policy-dialog.component.html',
+  styleUrls: []
+})
+export class PrivacyPolicyDialogComponent extends DialogComponent<PrivacyPolicyDialogComponent, boolean> implements OnInit {
 
-import { AppComponent } from './app.component';
-import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
-import { RouterModule, Routes } from '@angular/router';
-import { SignupModule } from '@modules/signup/signup.module';
+  privacyPolicyText: SafeHtml;
 
-const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
+  constructor(protected store: Store<AppState>,
+              protected router: Router,
+              private selfRegistrationService: SelfRegistrationService,
+              private domSanitizer: DomSanitizer,
+              public dialogRef: MatDialogRef<PrivacyPolicyDialogComponent, boolean>) {
+    super(store, router, dialogRef);
   }
-];
 
-@NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class PageNotFoundRoutingModule { }
+  ngOnInit(): void {
+    this.selfRegistrationService.loadPrivacyPolicy().subscribe((privacyPolicy) => {
+      this.privacyPolicyText = this.domSanitizer.bypassSecurityTrustHtml(privacyPolicy);
+    });
+  }
 
+  cancel(): void {
+    this.dialogRef.close(false);
+  }
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    CoreModule,
-    LoginModule,
-    SignupModule,
-    HomeModule,
-    DashboardRoutingModule,
-    PageNotFoundRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
+  accept(): void {
+    this.dialogRef.close(true);
+  }
+}

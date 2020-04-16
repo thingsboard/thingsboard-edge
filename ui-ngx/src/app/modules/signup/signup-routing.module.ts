@@ -29,50 +29,46 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-
-import { AppRoutingModule } from './app-routing.module';
-import { CoreModule } from '@core/core.module';
-import { LoginModule } from '@modules/login/login.module';
-import { HomeModule } from '@home/home.module';
-
-import { AppComponent } from './app.component';
-import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
 import { RouterModule, Routes } from '@angular/router';
-import { SignupModule } from '@modules/signup/signup.module';
+
+import { AuthGuard } from '@core/guards/auth.guard';
+import { SignupComponent } from '@modules/signup/pages/signup/signup.component';
+import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
+import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
 
 const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
+  {
+    path: 'signup',
+    component: SignupComponent,
+    data: {
+      title: 'signup.signup',
+      module: 'public'
+    },
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'signup/emailVerification',
+    component: EmailVerificationComponent,
+    data: {
+      title: 'signup.email-verification',
+      module: 'public'
+    },
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'signup/emailVerified',
+    component: EmailVerifiedComponent,
+    data: {
+      title: 'signup.account-activation-title',
+      module: 'public'
+    },
+    canActivate: [AuthGuard]
   }
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class PageNotFoundRoutingModule { }
-
-
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    CoreModule,
-    LoginModule,
-    SignupModule,
-    HomeModule,
-    DashboardRoutingModule,
-    PageNotFoundRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
+export class SignupRoutingModule { }

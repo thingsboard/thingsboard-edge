@@ -182,6 +182,21 @@ public class GroupPermissionController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/userGroup/groupPermissions/info", method = RequestMethod.POST)
+    @ResponseBody
+    public List<GroupPermissionInfo> loadUserGroupPermissionInfos(
+           @RequestBody List<GroupPermission> permissions) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
+            List<GroupPermissionInfo> permissionInfoList = groupPermissionService.loadUserGroupPermissionInfoListAsync(tenantId, permissions).get();
+            return applyPermissionInfo(permissionInfoList);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
     public List<GroupPermissionInfo> getEntityGroupPermissions(

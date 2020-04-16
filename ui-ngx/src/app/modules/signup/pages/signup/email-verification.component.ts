@@ -29,50 +29,51 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AuthService } from '@core/auth/auth.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { PageComponent } from '@shared/components/page.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
-import { AppRoutingModule } from './app-routing.module';
-import { CoreModule } from '@core/core.module';
-import { LoginModule } from '@modules/login/login.module';
-import { HomeModule } from '@home/home.module';
+@Component({
+  selector: 'tb-email-verification',
+  templateUrl: './email-verification.component.html',
+  styleUrls: ['./email-verification.component.scss']
+})
+export class EmailVerificationComponent extends PageComponent implements OnInit, OnDestroy {
 
-import { AppComponent } from './app.component';
-import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
-import { RouterModule, Routes } from '@angular/router';
-import { SignupModule } from '@modules/signup/signup.module';
+  email = '';
+  sub: Subscription;
 
-const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
+  constructor(protected store: Store<AppState>,
+              private route: ActivatedRoute,
+              private router: Router,
+              public wl: WhiteLabelingService,
+              private authService: AuthService) {
+    super(store);
   }
-];
 
-@NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class PageNotFoundRoutingModule { }
+  ngOnInit() {
+    this.sub = this.route
+      .queryParams
+      .subscribe(params => {
+        this.email = params.email || '';
+      });
+  }
 
+  ngOnDestroy(): void {
+    super.ngOnDestroy();
+    this.sub.unsubscribe();
+  }
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    CoreModule,
-    LoginModule,
-    SignupModule,
-    HomeModule,
-    DashboardRoutingModule,
-    PageNotFoundRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
+  resendEmail(): void {
+    this.authService.resendEmailActivation(this.email).subscribe(
+      () => {
+        this.router.navigateByUrl('/signup/emailVerification?email=' + this.email);
+      }
+    );
+  }
+}

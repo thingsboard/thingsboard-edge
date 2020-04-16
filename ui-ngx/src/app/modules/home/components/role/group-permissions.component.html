@@ -30,13 +30,14 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="mat-padding tb-entity-table tb-absolute-fill">
+<div class="mat-padding tb-entity-table" [ngClass]="{'tb-absolute-fill': groupPermissionsMode === 'group'}">
   <div fxFlex fxLayout="column" class="mat-elevation-z1 tb-entity-table-content">
     <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span class="tb-entity-table-title">{{(isUserGroup ? 'group-permission.user-group-roles' : 'group-permission.entity-group-permissions') | translate}}</span>
         <span fxFlex></span>
         <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                type="button"
                 *ngIf="addEnabled"
                 (click)="addGroupPermission($event)"
                 matTooltip="{{ 'action.add' | translate }}"
@@ -44,11 +45,13 @@
           <mat-icon>add</mat-icon>
         </button>
         <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="enterFilterMode()"
+                type="button"
                 matTooltip="{{ 'action.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
         <button mat-button mat-icon-button [disabled]="isLoading$ | async" (click)="reloadGroupPermissions()"
+                type="button"
                 matTooltip="{{ 'action.refresh' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>refresh</mat-icon>
@@ -58,6 +61,7 @@
     <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-button mat-icon-button
+                type="button"
                 matTooltip="{{ 'action.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
@@ -69,6 +73,7 @@
                  placeholder="{{ 'common.enter-search' | translate }}"/>
         </mat-form-field>
         <button mat-button mat-icon-button (click)="exitFilterMode()"
+                type="button"
                 matTooltip="{{ 'action.close' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>close</mat-icon>
@@ -82,6 +87,7 @@
           </span>
         <span fxFlex></span>
         <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                type="button"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
                 (click)="deleteGroupPermissions($event)">
@@ -89,7 +95,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <div fxFlex class="table-container">
+    <div [fxFlex]="groupPermissionsMode === 'group'" class="table-container">
       <mat-table [dataSource]="dataSource"
                  matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
         <ng-container matColumnDef="select" sticky>
@@ -108,13 +114,12 @@
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="roleName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: isUserGroup ? '20%' : '33%'}"> {{ 'group-permission.role-name' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.roleName}"> {{ 'group-permission.role-name' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
-            <div fxLayout="row">
-              <span fxFlex style="line-height: 40px;">
-                           {{groupPermission.roleName}}
-              </span>
+            <div fxLayout="row" fxLayoutAlign="start center">
+              <span fxFlex>{{ groupPermission.roleName }}</span>
               <button mat-icon-button (click)="viewRole($event, groupPermission)"
+                      type="button"
                 matTooltip="{{ 'role.view' | translate }}"
                 matTooltipPosition="above">
                 <mat-icon>more_horiz</mat-icon>
@@ -123,37 +128,37 @@
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="isUserGroup" matColumnDef="roleTypeName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 15%"> {{ 'group-permission.role-type' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.roleTypeName}"> {{ 'group-permission.role-type' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.roleTypeName }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupTypeName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 15%"> {{ 'group-permission.group-type' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.entityGroupTypeName}"> {{ 'group-permission.group-type' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.entityGroupTypeName }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'group-permission.group-name' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.entityGroupName}"> {{ 'group-permission.group-name' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.entityGroupName }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="isUserGroup" matColumnDef="entityGroupOwnerFullName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 25%"> {{ 'group-permission.group-owner' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.entityGroupOwnerFullName}"> {{ 'group-permission.group-owner' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.entityGroupOwnerFullName }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'group-permission.user-group-name' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.userGroupName}"> {{ 'group-permission.user-group-name' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.userGroupName }}
           </mat-cell>
         </ng-container>
         <ng-container *ngIf="!isUserGroup" matColumnDef="userGroupOwnerFullName">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%"> {{ 'group-permission.user-group-owner' | translate }} </mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header [ngStyle]="{width: columnsWidth.userGroupOwnerFullName}"> {{ 'group-permission.user-group-owner' | translate }} </mat-header-cell>
           <mat-cell *matCellDef="let groupPermission">
             {{ groupPermission.userGroupOwnerFullName }}
           </mat-cell>
@@ -164,6 +169,7 @@
           <mat-cell *matCellDef="let groupPermission">
             <div fxFlex fxLayout="row" fxLayoutAlign="end">
               <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      type="button"
                       [style.visibility]="!groupPermission.readOnly && editEnabled ? 'visible' : 'hidden'"
                       matTooltip="{{ 'group-permission.edit' | translate }}"
                       matTooltipPosition="above"
@@ -171,6 +177,7 @@
                 <mat-icon>edit</mat-icon>
               </button>
               <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+                      type="button"
                       [style.visibility]="!groupPermission.readOnly && deleteEnabled ? 'visible' : 'hidden'"
                       matTooltip="{{ 'group-permission.delete' | translate }}"
                       matTooltipPosition="above"

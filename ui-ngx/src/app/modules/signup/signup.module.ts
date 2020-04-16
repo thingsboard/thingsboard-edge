@@ -29,50 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-
-import { AppRoutingModule } from './app-routing.module';
-import { CoreModule } from '@core/core.module';
-import { LoginModule } from '@modules/login/login.module';
-import { HomeModule } from '@home/home.module';
-
-import { AppComponent } from './app.component';
-import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
-import { RouterModule, Routes } from '@angular/router';
-import { SignupModule } from '@modules/signup/signup.module';
-
-const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
-  }
-];
-
-@NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class PageNotFoundRoutingModule { }
-
+import { SignupRoutingModule } from '@modules/signup/signup-routing.module';
+import { SignupComponent } from '@modules/signup/pages/signup/signup.component';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
+import { EmailVerificationComponent } from '@modules/signup/pages/signup/email-verification.component';
+import { EmailVerifiedComponent } from '@modules/signup/pages/signup/email-verified.component';
+import { PrivacyPolicyDialogComponent } from '@modules/signup/pages/signup/privacy-policy-dialog.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    SignupComponent,
+    PrivacyPolicyDialogComponent,
+    EmailVerificationComponent,
+    EmailVerifiedComponent
   ],
   imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    CoreModule,
-    LoginModule,
-    SignupModule,
-    HomeModule,
-    DashboardRoutingModule,
-    PageNotFoundRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    CommonModule,
+    SharedModule,
+    RecaptchaModule,
+    RecaptchaFormsModule,
+    SignupRoutingModule
+  ]
 })
-export class AppModule { }
+export class SignupModule { }

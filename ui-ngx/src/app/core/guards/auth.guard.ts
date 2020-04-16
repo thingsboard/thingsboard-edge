@@ -103,7 +103,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
 
     return this.getAuthState().pipe(
       mergeMap((authState) => {
-        if (!authState.isAuthenticated) {
+        if (!authState.isAuthenticated || isPublic) {
           if (publicId && publicId.length > 0) {
             this.authService.setUserFromJwtToken(null, null, false);
             this.authService.reloadUser();
@@ -115,11 +115,17 @@ export class AuthGuard implements CanActivate, CanActivateChild {
           } else {
             const tasks: Observable<any>[] = [];
             tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
-            if (path === 'login') {
+            if (path === 'login' || path === 'signup') {
               tasks.push(this.selfRegistrationService.loadSelfRegistrationParams());
             }
             return forkJoin(tasks).pipe(
-              map(() => true)
+              map(() => {
+                if (path === 'signup' && !this.selfRegistrationService.signUpParams.activate) {
+                  return this.authService.defaultUrl(false);
+                } else {
+                  return true;
+                }
+              })
             );
           }
         } else {

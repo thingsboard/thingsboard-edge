@@ -37,7 +37,7 @@ import { AppState } from '@core/core.state';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { GroupPermissionFullInfo } from '@shared/models/group-permission.models';
+import { GroupPermission, GroupPermissionFullInfo } from '@shared/models/group-permission.models';
 import { RoleService } from '@core/http/role.service';
 import { RoleType, roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -47,6 +47,7 @@ export interface GroupPermissionDialogData {
   isUserGroup: boolean;
   isAdd: boolean;
   groupPermission: GroupPermissionFullInfo;
+  groupPermissionsMode: 'group' | 'registration';
 }
 
 @Component({
@@ -56,7 +57,7 @@ export interface GroupPermissionDialogData {
   styleUrls: ['./group-permission-dialog.component.scss']
 })
 export class GroupPermissionDialogComponent
-  extends DialogComponent<GroupPermissionDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+  extends DialogComponent<GroupPermissionDialogComponent, boolean | GroupPermission> implements OnInit, ErrorStateMatcher {
 
   groupPermissionFormGroup: FormGroup;
 
@@ -78,7 +79,7 @@ export class GroupPermissionDialogComponent
               private roleService: RoleService,
               private userPermissionsService: UserPermissionsService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<GroupPermissionDialogComponent, boolean>,
+              public dialogRef: MatDialogRef<GroupPermissionDialogComponent, boolean | GroupPermission>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     if (this.isUserGroup) {
@@ -86,7 +87,7 @@ export class GroupPermissionDialogComponent
         this.groupPermission.entityGroupId = null;
         this.groupPermission.entityGroupType = null;
       }
-      if (this.isAdd) {
+      if (this.isAdd || this.data.groupPermissionsMode === 'registration') {
         this.groupPermission.entityGroupOwnerId = this.userPermissionsService.getUserOwnerId();
       }
     } else {
@@ -165,9 +166,13 @@ export class GroupPermissionDialogComponent
         this.groupPermission.entityGroupId = null;
         this.groupPermission.entityGroupType = null;
       }
-      this.roleService.saveGroupPermission(this.groupPermission).subscribe(() => {
-        this.dialogRef.close(true);
-      });
+      if (this.data.groupPermissionsMode === 'group') {
+        this.roleService.saveGroupPermission(this.groupPermission).subscribe(() => {
+          this.dialogRef.close(true);
+        });
+      } else {
+        this.dialogRef.close(this.groupPermission);
+      }
     }
   }
 }

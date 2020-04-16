@@ -29,43 +29,13 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  width: 100%;
-  height: 100%;
-  .tb-entity-table {
-    width: 100%;
-    height: 100%;
-    .tb-entity-table-content {
-      width: 100%;
-      height: 100%;
-      background: #fff;
+  display: flex;
+  flex: 1 1 0%;
 
-      .tb-entity-table-title {
-        padding-right: 20px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .table-container {
-        overflow: auto;
-        .mat-row {
-          &.tb-read-only {
-            .mat-cell {
-              color: rgba(0, 0, 0, .38);
-            }
-          }
-        }
-      }
-
-      .mat-divider {
-        position: relative;
-      }
+  .tb-email-verified-content {
+    background-color: rgb(250, 250, 250);
+    .tb-email-verification {
+      font-size: 18px;
     }
-  }
-}
-
-:host ::ng-deep {
-  .mat-sort-header-sorted .mat-sort-header-arrow {
-    opacity: 1 !important;
   }
 }

@@ -105,4 +105,10 @@ export class RoleService {
     return this.http.get<GroupPermissionInfo>(`/api/groupPermission/info/${groupPermissionId}?isUserGroup=${isUserGroup}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+  public loadUserGroupPermissionInfos(groupPermissions: Array<GroupPermission>,
+                                      config?: RequestConfig): Observable<Array<GroupPermissionInfo>> {
+    return this.http.post<Array<GroupPermissionInfo>>('/api/userGroup/groupPermissions/info', groupPermissions,
+      defaultHttpOptionsFromConfig(config));
+  }
 }

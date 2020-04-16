@@ -400,13 +400,13 @@ export class WhiteLabelingService {
     const primaryPalette = paletteSettings.primaryPalette;
     const accentPalette = paletteSettings.accentPalette;
 
-    if (primaryPalette.type === 'tb-primary' &&
+    /* if (primaryPalette.type === 'tb-primary' &&
       accentPalette.type === 'tb-accent') {
       this.primaryPaletteName = primaryPalette.type;
       this.accentPaletteName = accentPalette.type;
       this.cleanupThemeStyle(false);
       return of(null);
-    }
+    }*/
 
     if (primaryPalette.type !== 'custom') {
       this.primaryPaletteName = primaryPalette.type;
@@ -436,13 +436,13 @@ export class WhiteLabelingService {
   }
 
   private applyLoginThemePalettes(paletteSettings: PaletteSettings, darkForeground: boolean): Observable<any> {
-    const primaryPalette = paletteSettings.primaryPalette;
-    const accentPalette = paletteSettings.accentPalette;
-    if (primaryPalette.type === 'tb-primary' &&
+    // const primaryPalette = paletteSettings.primaryPalette;
+    // const accentPalette = paletteSettings.accentPalette;
+    /* if (primaryPalette.type === 'tb-primary' &&
       accentPalette.type === 'tb-accent' && !darkForeground) {
       this.cleanupThemeStyle(true);
       return of(null);
-    }
+    } */
     return this.generateThemeStyle(paletteSettings, true, darkForeground);
   }
 

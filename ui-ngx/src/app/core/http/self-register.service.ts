@@ -87,7 +87,8 @@ export class SelfRegistrationService {
 
   public saveSelfRegistrationParams(selfRegistrationParams: SelfRegistrationParams,
                                     config?: RequestConfig): Observable<SelfRegistrationParams> {
-    return this.http.post<SelfRegistrationParams>('api/selfRegistration', selfRegistrationParams, defaultHttpOptionsFromConfig(config));
+    return this.http.post<SelfRegistrationParams>('/api/selfRegistration/selfRegistrationParams',
+      selfRegistrationParams, defaultHttpOptionsFromConfig(config));
   }
 
   public getSelfRegistrationParams(config?: RequestConfig): Observable<SelfRegistrationParams> {

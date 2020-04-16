@@ -51,6 +51,7 @@ import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { CustomMenu } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
+import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -217,6 +218,19 @@ const routes: Routes = [
           breadcrumb: {
             label: 'admin.security-settings',
             icon: 'security'
+          }
+        }
+      },
+      {
+        path: 'selfRegistration',
+        component: SelfRegistrationComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'self-registration.self-registration',
+          breadcrumb: {
+            label: 'self-registration.self-registration',
+            icon: 'group_add'
           }
         }
       }

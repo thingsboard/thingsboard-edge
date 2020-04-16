@@ -29,50 +29,57 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { PageComponent } from '@shared/components/page.component';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { GroupPermission } from '@shared/models/group-permission.models';
 
-import { AppRoutingModule } from './app-routing.module';
-import { CoreModule } from '@core/core.module';
-import { LoginModule } from '@modules/login/login.module';
-import { HomeModule } from '@home/home.module';
+@Component({
+  selector: 'tb-registration-permissions',
+  templateUrl: './registration-permissions.component.html',
+  styleUrls: ['./registration-permissions.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => RegistrationPermissionsComponent),
+      multi: true
+    }
+  ]
+})
+export class RegistrationPermissionsComponent extends PageComponent implements ControlValueAccessor, OnInit {
 
-import { AppComponent } from './app.component';
-import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
-import { RouterModule, Routes } from '@angular/router';
-import { SignupModule } from '@modules/signup/signup.module';
+  @Input() disabled: boolean;
 
-const routes: Routes = [
-  { path: '**',
-    redirectTo: 'home'
+  registrationPermissions: Array<GroupPermission>;
+
+  private propagateChange = null;
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
   }
-];
 
-@NgModule({
-  imports: [
-    RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class PageNotFoundRoutingModule { }
+  ngOnInit(): void {
+  }
 
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
 
-@NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    CoreModule,
-    LoginModule,
-    SignupModule,
-    HomeModule,
-    DashboardRoutingModule,
-    PageNotFoundRoutingModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
-export class AppModule { }
+  registerOnTouched(fn: any): void {
+  }
+
+  setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
+
+  writeValue(permissions: Array<GroupPermission>): void {
+    this.registrationPermissions = permissions || [];
+  }
+
+  registrationPermissionsChanged() {
+    this.propagateChange(this.registrationPermissions);
+  }
+
+}
