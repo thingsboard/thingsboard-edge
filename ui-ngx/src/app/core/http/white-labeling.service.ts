@@ -211,7 +211,7 @@ export class WhiteLabelingService {
     return this.http.get<LoginWhiteLabelingParams>(url).pipe(
       mergeMap((loginWlParams) => {
         this.loginWlParams = mergeDefaults(loginWlParams, defaultLoginWlParams);
-        this.updateImages(this.loginWlParams, 'login');
+        updateImages(this.loginWlParams, 'login');
         return this.onLoginWlParamsLoaded().pipe(map(() => this.loginWlParams));
       }),
       catchError((err) => {
@@ -229,7 +229,7 @@ export class WhiteLabelingService {
     let observable: Observable<any>;
     if (loginWlChanged) {
       this.applyLoginWlParams(this.currentLoginWLParams);
-      this.applyCustomCss(this.currentLoginWLParams.customCss, true);
+      applyCustomCss(this.currentLoginWLParams.customCss, true);
       observable = this.applyLoginThemePalettes(this.currentLoginWLParams.paletteSettings, this.currentLoginWLParams.darkForeground);
     } else {
       observable = of(null);
@@ -259,7 +259,7 @@ export class WhiteLabelingService {
     return this.http.get<WhiteLabelingParams>(url).pipe(
       mergeMap((userWlParams) => {
         this.userWlParams = mergeDefaults(userWlParams);
-        this.updateImages(this.userWlParams, 'user');
+        updateImages(this.userWlParams, 'user');
         return this.onUserWlParamsLoaded().pipe(map(() => this.userWlParams));
       }),
       catchError((err) => {
@@ -354,7 +354,7 @@ export class WhiteLabelingService {
   }
 
   private wlChanged(): Observable<any> {
-    this.applyCustomCss(this.currentWLParams.customCss, false);
+    applyCustomCss(this.currentWLParams.customCss, false);
     return this.applyThemePalettes(this.currentWLParams.paletteSettings).pipe(
       tap(() => {
         this.notifyWlChanged();
@@ -400,13 +400,13 @@ export class WhiteLabelingService {
     const primaryPalette = paletteSettings.primaryPalette;
     const accentPalette = paletteSettings.accentPalette;
 
-    /* if (primaryPalette.type === 'tb-primary' &&
+    if (primaryPalette.type === 'tb-primary' &&
       accentPalette.type === 'tb-accent') {
       this.primaryPaletteName = primaryPalette.type;
       this.accentPaletteName = accentPalette.type;
-      this.cleanupThemeStyle(false);
+      cleanupThemeStyle(false);
       return of(null);
-    }*/
+    }
 
     if (primaryPalette.type !== 'custom') {
       this.primaryPaletteName = primaryPalette.type;
@@ -436,13 +436,13 @@ export class WhiteLabelingService {
   }
 
   private applyLoginThemePalettes(paletteSettings: PaletteSettings, darkForeground: boolean): Observable<any> {
-    // const primaryPalette = paletteSettings.primaryPalette;
-    // const accentPalette = paletteSettings.accentPalette;
-    /* if (primaryPalette.type === 'tb-primary' &&
+    const primaryPalette = paletteSettings.primaryPalette;
+    const accentPalette = paletteSettings.accentPalette;
+    if (primaryPalette.type === 'tb-primary' &&
       accentPalette.type === 'tb-accent' && !darkForeground) {
-      this.cleanupThemeStyle(true);
+      cleanupThemeStyle(true);
       return of(null);
-    } */
+    }
     return this.generateThemeStyle(paletteSettings, true, darkForeground);
   }
 
@@ -483,89 +483,9 @@ export class WhiteLabelingService {
           localStorage.setItem(prefix+'_theme_checksum', themeChecksum);
           localStorage.setItem(prefix+'_theme_css', themeCss);
         }
-        this.applyThemeStyle(themeCss, isLoginTheme);
+        applyThemeStyle(themeCss, isLoginTheme);
       })
     );
-  }
-
-  private cleanupThemeStyle(isLoginTheme: boolean) {
-    const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
-    const targetStyle = $(`#${target}`);
-    if (targetStyle.length) {
-      targetStyle.text('');
-    }
-  }
-
-  private applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
-    const favicon = $('link[rel="icon"]');
-    const afterStyle = favicon.next('style').next('style');
-    const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
-    let targetStyle = $(`#${target}`);
-    if (!targetStyle.length) {
-      targetStyle = $(`<style id="${target}"></style>`);
-      if (isLoginTheme) {
-        const appThemeStyle = $('#tb-app-theme');
-        if (!appThemeStyle.length) {
-          targetStyle.insertAfter(afterStyle);
-        } else {
-          targetStyle.insertAfter(appThemeStyle);
-        }
-      } else {
-        const loginThemeStyle = $('#tb-login-theme');
-        if (!loginThemeStyle.length) {
-          targetStyle.insertAfter(afterStyle);
-        } else {
-          targetStyle.insertBefore(loginThemeStyle);
-        }
-      }
-    }
-    targetStyle.text(themeCss);
-  }
-
-  private applyCustomCss(customCss: string, isLoginTheme: boolean) {
-    const target = isLoginTheme ? 'tb-login-custom-css' : 'tb-app-custom-css';
-    let targetStyle = $(`#${target}`);
-    if (!targetStyle.length) {
-      targetStyle = $(`<style id="${target}"></style>`);
-      $('head').append(targetStyle);
-    }
-    let css;
-    if (customCss && customCss.length) {
-      const namespace = isLoginTheme ? 'tb-dark' : 'tb-default';
-      cssParser.cssPreviewNamespace = namespace;
-      css = cssParser.applyNamespacing(customCss);
-      if (typeof css !== 'string') {
-        css = cssParser.getCSSForEditor(css);
-      }
-    } else {
-      css = '';
-    }
-    targetStyle.text(css);
-  }
-
-  private updateImages(wlParams: WhiteLabelingParams, prefix: string) {
-    const storedLogoImageChecksum = localStorage.getItem(prefix+'_logo_image_checksum');
-    const storedFaviconChecksum = localStorage.getItem(prefix+'_favicon_checksum');
-    const logoImageChecksum = wlParams.logoImageChecksum;
-    if (logoImageChecksum && !isEqual(storedLogoImageChecksum, logoImageChecksum)) {
-      const logoImageUrl = wlParams.logoImageUrl;
-      localStorage.setItem(prefix+'_logo_image_checksum', logoImageChecksum);
-      localStorage.setItem(prefix+'_logo_image_url', logoImageUrl);
-    } else {
-      wlParams.logoImageUrl = localStorage.getItem(prefix+'_logo_image_url');
-    }
-    const faviconChecksum = wlParams.faviconChecksum;
-    if (faviconChecksum && !isEqual(storedFaviconChecksum, faviconChecksum)) {
-      const favicon = wlParams.favicon;
-      localStorage.setItem(prefix+'_favicon_checksum', faviconChecksum);
-      localStorage.setItem(prefix+'_favicon_url', favicon.url);
-      localStorage.setItem(prefix+'_favicon_type', favicon.type);
-    } else {
-      wlParams.favicon = {
-        url: localStorage.getItem(prefix+'_favicon_url'),
-        type: localStorage.getItem(prefix+'_favicon_type'),
-      };
-    }
   }
 
   private asWhiteLabelingObservable<T> (valueSource: () => T): Observable<T> {
@@ -574,4 +494,75 @@ export class WhiteLabelingService {
     );
   }
 
+}
+
+function cleanupThemeStyle(isLoginTheme: boolean) {
+  const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
+  const targetStyle = $(`#${target}`);
+  if (targetStyle.length) {
+    targetStyle.text('');
+  }
+}
+
+function applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
+  const favicon = $('link[rel="icon"]');
+  const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
+  let targetStyle = $(`#${target}`);
+  if (!targetStyle.length) {
+    targetStyle = $(`<style id="${target}"></style>`);
+    let afterStyle = favicon.next('style');
+    if (isLoginTheme) {
+      afterStyle = afterStyle.next('style');
+      if (afterStyle.attr('id') === 'tb-app-theme') {
+        afterStyle = afterStyle.next('style');
+      }
+    }
+    targetStyle.insertAfter(afterStyle);
+  }
+  targetStyle.text(themeCss);
+}
+
+function applyCustomCss(customCss: string, isLoginTheme: boolean) {
+  const target = isLoginTheme ? 'tb-login-custom-css' : 'tb-app-custom-css';
+  let targetStyle = $(`#${target}`);
+  if (!targetStyle.length) {
+    targetStyle = $(`<style id="${target}"></style>`);
+    $('head').append(targetStyle);
+  }
+  let css;
+  if (customCss && customCss.length) {
+    cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-dark' : 'tb-default';
+    css = cssParser.applyNamespacing(customCss);
+    if (typeof css !== 'string') {
+      css = cssParser.getCSSForEditor(css);
+    }
+  } else {
+    css = '';
+  }
+  targetStyle.text(css);
+}
+
+function updateImages(wlParams: WhiteLabelingParams, prefix: string) {
+  const storedLogoImageChecksum = localStorage.getItem(prefix+'_logo_image_checksum');
+  const storedFaviconChecksum = localStorage.getItem(prefix+'_favicon_checksum');
+  const logoImageChecksum = wlParams.logoImageChecksum;
+  if (logoImageChecksum && !isEqual(storedLogoImageChecksum, logoImageChecksum)) {
+    const logoImageUrl = wlParams.logoImageUrl;
+    localStorage.setItem(prefix+'_logo_image_checksum', logoImageChecksum);
+    localStorage.setItem(prefix+'_logo_image_url', logoImageUrl);
+  } else {
+    wlParams.logoImageUrl = localStorage.getItem(prefix+'_logo_image_url');
+  }
+  const faviconChecksum = wlParams.faviconChecksum;
+  if (faviconChecksum && !isEqual(storedFaviconChecksum, faviconChecksum)) {
+    const favicon = wlParams.favicon;
+    localStorage.setItem(prefix+'_favicon_checksum', faviconChecksum);
+    localStorage.setItem(prefix+'_favicon_url', favicon.url);
+    localStorage.setItem(prefix+'_favicon_type', favicon.type);
+  } else {
+    wlParams.favicon = {
+      url: localStorage.getItem(prefix+'_favicon_url'),
+      type: localStorage.getItem(prefix+'_favicon_type'),
+    };
+  }
 }
