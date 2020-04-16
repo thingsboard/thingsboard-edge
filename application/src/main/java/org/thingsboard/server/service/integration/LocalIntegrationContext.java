@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,16 +63,12 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.utils.JsonUtils;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -110,13 +105,15 @@ public class LocalIntegrationContext implements IntegrationContext {
         Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
         UUID sessionId = UUID.randomUUID();
-        SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
+        TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
                 .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
                 .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
                 .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                .setDeviceName(device.getName())
+                .setDeviceType(device.getType())
                 .build();
 
         if (data.hasPostTelemetryMsg()) {
@@ -140,35 +137,15 @@ public class LocalIntegrationContext implements IntegrationContext {
             data.getPostTelemetryMsg().getTsKvListList()
                     .forEach(tsKvListProto -> {
                         JsonObject json = JsonUtils.getJsonObject(tsKvListProto.getKvList());
-                        TbMsg tbMsg = new TbMsg(
-                                UUIDs.timeBased(),
-                                POST_TELEMETRY_REQUEST.name(),
-                                asset.getId(),
-                                tbMsgMetaData,
-                                TbMsgDataType.JSON,
-                                gson.toJson(json),
-                                null,
-                                null,
-                                0L);
-
-                        ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(asset.getTenantId(), tbMsg)));
+                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
                     });
         }
 
         if (data.hasPostAttributesMsg()) {
             JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = new TbMsg(
-                    UUIDs.timeBased(),
-                    POST_ATTRIBUTES_REQUEST.name(),
-                    asset.getId(),
-                    tbMsgMetaData,
-                    TbMsgDataType.JSON,
-                    gson.toJson(json),
-                    null,
-                    null,
-                    0L);
-
-            ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(asset.getTenantId(), tbMsg)));
+            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+            ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
         }
     }
 
@@ -178,8 +155,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        ctx.getActorService().onMsg(new SendToClusterMsg(this.configuration.getId(), new ServiceToRuleEngineMsg(this.configuration.getTenantId(), msg)));
+    public void processCustomMsg(TbMsg tbMsg, IntegrationCallback<Void> callback) {
+        ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, callback);
         if (callback != null) {
             callback.onSuccess(null);
         }
@@ -277,7 +254,7 @@ public class LocalIntegrationContext implements IntegrationContext {
             }
 
             createRelationFromIntegration(device.getId());
-            ctx.getActorService().onDeviceAdded(device);
+            ctx.getDeviceStateService().onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(device);
         }
         return device;
@@ -391,8 +368,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushDeviceCreatedEventToRuleEngine(Device device) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
         }
@@ -401,8 +378,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
         }
@@ -411,8 +388,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushAssetCreatedEventToRuleEngine(Asset asset) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(asset), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(asset.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(asset), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
         }
@@ -421,8 +398,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushEntityGroupCreatedEventToRuleEngine(EntityGroup entityGroup) {
         try {
             ObjectNode entityNode = mapper.valueToTree(entityGroup);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, entityGroup.getId(), entityGroupActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(entityGroup.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), entityGroupActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
         }
@@ -460,8 +437,8 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public ServerAddress getServerAddress() {
-        return ctx.getDiscoveryService().getCurrentServer().getServerAddress();
+    public String getServiceId() {
+        return ctx.getServiceInfoProvider().getServiceId();
     }
 
     @Override

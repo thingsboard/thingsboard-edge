@@ -96,7 +96,7 @@ public class TbCoreConsumerStats {
         schedulerMsgCounter.incrementAndGet();
     }
 
-    public void log(ToCoreNotificationMsg msg) {
+    public void logToCoreNotification() {
         totalCounter.incrementAndGet();
         toCoreNotificationsCounter.incrementAndGet();
     }

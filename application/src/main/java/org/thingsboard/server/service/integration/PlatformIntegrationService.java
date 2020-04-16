@@ -30,24 +30,26 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.context.ApplicationListener;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryServiceListener;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 
 /**
  * Created by ashvayka on 02.12.17.
  */
-public interface PlatformIntegrationService extends DiscoveryServiceListener {
+public interface PlatformIntegrationService extends ApplicationListener<PartitionChangeEvent> {
 
     void validateIntegrationConfiguration(Integration integration);
 
@@ -59,14 +61,11 @@ public interface PlatformIntegrationService extends DiscoveryServiceListener {
 
     ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
 
-    void onDownlinkMsg(IntegrationDownlinkMsg msg, FutureCallback<Void> callback);
-
-    void onRemoteDownlinkMsg(ServerAddress serverAddress, byte[] bytes);
+    void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msg, TbCallback callback);
 
     void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
 
     void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback);
 
-    void process(SessionInfoProto sessionInfo, GetAttributeRequestMsg msg, IntegrationCallback<Void> callback);
-
+    void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
 }

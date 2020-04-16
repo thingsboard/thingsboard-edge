@@ -58,6 +58,7 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
@@ -97,12 +98,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
+    private final PlatformIntegrationService platformIntegrationService;
     private final TbCoreConsumerStats stats = new TbCoreConsumerStats();
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
                                         DeviceStateService stateService, SchedulerService schedulerService,
                                         TbLocalSubscriptionService localSubscriptionService, SubscriptionManagerService subscriptionManagerService,
-                                        DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService) {
+                                        DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService,
+                                        PlatformIntegrationService platformIntegrationService) {
         super(actorContext, encodingService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.stateService = stateService;
@@ -110,6 +113,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
+        this.platformIntegrationService = platformIntegrationService;
     }
 
     @PostConstruct
@@ -155,6 +159,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                             } else if (toCoreMsg.hasSchedulerServiceMsg()) {
                                 log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
                                 forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
+                            } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
+                                log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
+                                forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
                             } else if (toCoreMsg.getToDeviceActorNotificationMsg() != null && !toCoreMsg.getToDeviceActorNotificationMsg().isEmpty()) {
                                 Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreMsg.getToDeviceActorNotificationMsg().toByteArray());
                                 if (actorMsg.isPresent()) {
@@ -212,6 +219,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasFromDeviceRpcResponse()) {
             log.trace("[{}] Forwarding message to RPC service {}", id, toCoreNotification.getFromDeviceRpcResponse());
             forwardToCoreRpcService(toCoreNotification.getFromDeviceRpcResponse(), callback);
+        } else if (toCoreNotification.hasIntegrationDownlinkMsg()) {
+            log.trace("[{}] Forwarding message to Integration service {}", id, toCoreNotification.getIntegrationDownlinkMsg());
+            forwardToIntegrationService(toCoreNotification.getIntegrationDownlinkMsg(), callback);
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getComponentLifecycleMsg().toByteArray());
             if (actorMsg.isPresent()) {
@@ -221,7 +231,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.log(toCoreNotification);
+            stats.logToCoreNotification();
         }
     }
 
@@ -289,6 +299,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         }
         schedulerService.onQueueMsg(schedulerServiceMsg, callback);
     }
+
+    private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.logToCoreNotification();
+        }
+        platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
+    }
+
 
     private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
         if (statsEnabled) {

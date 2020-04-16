@@ -94,7 +94,7 @@ public class JsConverterEvaluatorTest {
 
         TbMsgMetaData metaData = new TbMsgMetaData();
         IntegrationMetaData integrationMetaData = new IntegrationMetaData(Collections.singletonMap("topicPrefix", "sensor"));
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg("USER", null, metaData, rawJson);
 
         JsonNode result = eval.execute(msg, integrationMetaData);
         Assert.assertTrue(result.isObject());

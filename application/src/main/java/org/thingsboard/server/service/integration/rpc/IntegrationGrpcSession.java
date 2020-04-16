@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,8 +62,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -83,10 +81,7 @@ import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
-import org.thingsboard.server.gen.transport.KeyValueProto;
-import org.thingsboard.server.gen.transport.KeyValueType;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TsKvListProto;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.Nullable;
@@ -211,13 +206,15 @@ public final class IntegrationGrpcSession implements Closeable {
                     Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
 
                     UUID sessionId = UUID.randomUUID();
-                    SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
+                    TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
                             .setSessionIdMSB(sessionId.getMostSignificantBits())
                             .setSessionIdLSB(sessionId.getLeastSignificantBits())
                             .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
                             .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
                             .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
                             .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                            .setDeviceName(device.getName())
+                            .setDeviceType(device.getType())
                             .build();
 
                     if (data.hasPostTelemetryMsg()) {
@@ -229,6 +226,8 @@ public final class IntegrationGrpcSession implements Closeable {
                     }
                 }
             }
+
+            //TODO 2.5 Asset Data???
 
             if (msg.getEntityViewDataCount() > 0) {
                 for (EntityViewDataProto data : msg.getEntityViewDataList()) {
@@ -266,8 +265,8 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getTbMsgCount() > 0) {
                 for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                    TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
-                    ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(configuration.getTenantId(), tbMsg)));
+                    TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
                 }
             }
         } catch (Exception e) {
@@ -332,7 +331,7 @@ public final class IntegrationGrpcSession implements Closeable {
             }
             device = ctx.getDeviceService().saveDevice(device);
             createRelationFromIntegration(device.getId());
-            ctx.getActorService().onDeviceAdded(device);
+            ctx.getDeviceStateService().onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(device);
         }
         return device;
@@ -403,11 +402,12 @@ public final class IntegrationGrpcSession implements Closeable {
                 .build();
     }
 
+    //TODO 2.5 Entity Group Created Event Simular to Local Integration Context
     private void pushDeviceCreatedEventToRuleEngine(Device device) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
         }
@@ -416,12 +416,33 @@ public final class IntegrationGrpcSession implements Closeable {
     private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
-            ctx.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
+            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
+
+//    private void pushAssetCreatedEventToRuleEngine(Asset asset) {
+//        try {
+//            ObjectNode entityNode = mapper.valueToTree(asset);
+//            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(asset), mapper.writeValueAsString(entityNode));
+//            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
+//        } catch (JsonProcessingException | IllegalArgumentException e) {
+//            log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
+//        }
+//    }
+//
+//    private void pushEntityGroupCreatedEventToRuleEngine(EntityGroup entityGroup) {
+//        try {
+//            ObjectNode entityNode = mapper.valueToTree(entityGroup);
+//            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), entityGroupActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
+//            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
+//        } catch (JsonProcessingException | IllegalArgumentException e) {
+//            log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
+//        }
+//    }
+
 
     private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
         TbMsgMetaData metaData = getTbMsgMetaData();
@@ -497,7 +518,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                 DeviceDownlinkDataProto.newBuilder()
                                         .setDeviceName(device.getName())
                                         .setDeviceType(device.getType())
-                                        .setTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg.getTbMsg())))
+                                        .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
                                         .build()
                         )
                         .build())
@@ -506,13 +527,13 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private void processIntegrationStatistics(IntegrationStatisticsProto data) {
         List<TsKvEntry> statsTs = new ArrayList<>();
-        for (TsKvListProto tsKvListProto : data.getPostTelemetryMsg().getTsKvListList()) {
-            for (KeyValueProto keyValueProto : tsKvListProto.getKvList()) {
-                if (keyValueProto.getType().equals(KeyValueType.LONG_V)) {
+        for (TransportProtos.TsKvListProto tsKvListProto : data.getPostTelemetryMsg().getTsKvListList()) {
+            for (TransportProtos.KeyValueProto keyValueProto : tsKvListProto.getKvList()) {
+                if (keyValueProto.getType().equals(TransportProtos.KeyValueType.LONG_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new LongDataEntry(keyValueProto.getKey(), keyValueProto.getLongV())));
-                } else if (keyValueProto.getType().equals(KeyValueType.DOUBLE_V)) {
+                } else if (keyValueProto.getType().equals(TransportProtos.KeyValueType.DOUBLE_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new DoubleDataEntry(keyValueProto.getKey(), keyValueProto.getDoubleV())));
-                } else if (keyValueProto.getType().equals(KeyValueType.BOOLEAN_V)) {
+                } else if (keyValueProto.getType().equals(TransportProtos.KeyValueType.BOOLEAN_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new BooleanDataEntry(keyValueProto.getKey(), keyValueProto.getBoolV())));
                 } else {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new StringDataEntry(keyValueProto.getKey(), keyValueProto.getStringV())));

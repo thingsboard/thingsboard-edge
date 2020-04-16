@@ -41,7 +41,7 @@ import java.util.function.Consumer;
  */
 public interface RuleEngineCallService {
 
-    void processRestAPICallToRuleEngine(TenantId tenantId, TbMsg request, Consumer<TbMsg> response);
+    void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> response);
 
     void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response);
 

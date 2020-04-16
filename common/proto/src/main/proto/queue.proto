@@ -260,7 +260,7 @@ message TransportToRuleEngineMsg {
   ToServerRpcRequestMsg toServerRPCCallRequest = 5;
 }
 
-message IntegrationDownlinkProto {
+message IntegrationDownlinkMsgProto {
     int64 tenantIdMSB = 1;
     int64 tenantIdLSB = 2;
     int64 integrationIdMSB = 3;
@@ -437,6 +437,7 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4;
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
+  IntegrationDownlinkMsgProto integrationDownlinkMsg = 6;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -444,6 +445,7 @@ message ToCoreNotificationMsg {
   LocalSubscriptionServiceMsgProto toLocalSubscriptionServiceMsg = 1;
   FromDeviceRPCResponseProto fromDeviceRpcResponse = 2;
   bytes componentLifecycleMsg = 3;
+  IntegrationDownlinkMsgProto integrationDownlinkMsg = 4;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

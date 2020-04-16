@@ -76,9 +76,8 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, TbMsg request, Consumer<TbMsg> consumer) {
+    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> consumer) {
         log.trace("[{}] Processing REST API call to rule engine [{}]", tenantId, request.getOriginator());
-        UUID requestId = request.getId();
         requests.put(requestId, consumer);
         sendRequestToRuleEngine(tenantId, request);
         scheduleTimeout(request, requestId, requests);

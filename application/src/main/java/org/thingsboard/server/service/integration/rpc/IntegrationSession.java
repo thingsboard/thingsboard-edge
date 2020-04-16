@@ -31,13 +31,12 @@
 package org.thingsboard.server.service.integration.rpc;
 
 import lombok.Data;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 import java.io.Serializable;
 
 @Data
 public class IntegrationSession implements Serializable {
 
-    private final ServerAddress serverAddress;
+    private final String serviceId;
 
 }

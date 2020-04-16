@@ -47,6 +47,6 @@ public interface SchedulerService extends ApplicationListener<PartitionChangeEve
 
     void onSchedulerEventDeleted(SchedulerEventInfo event);
 
-    void onQueueMsg(SchedulerServiceMsgProto msg, TbCallback bytes);
+    void onQueueMsg(SchedulerServiceMsgProto msg, TbCallback callback);
 
 }

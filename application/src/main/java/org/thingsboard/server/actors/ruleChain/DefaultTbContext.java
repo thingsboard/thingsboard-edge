@@ -45,8 +45,6 @@ import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RpcError;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcRequest;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceRpcResponse;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -64,7 +62,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -174,7 +171,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setTbMsg(TbMsg.toByteString(tbMsg)).build();
-        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(),  msg, new SimpleTbQueueCallback(onSuccess, onFailure));
+        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
     @Override
@@ -231,7 +228,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (failureMessage != null) {
             msg.setFailureMessage(failureMessage);
         }
-        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(),  msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
+        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
     @Override
@@ -546,25 +543,26 @@ class DefaultTbContext implements TbContext, TbPeContext {
             requestUUID = null;
         }
 
-        mainCtx.getPlatformIntegrationService().onDownlinkMsg(new DefaultIntegrationDownlinkMsg(getTenantId(), integrationId, msg), new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(@Nullable Void aVoid) {
-                if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                    mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
-                }
-                callback.onSuccess(aVoid);
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                    mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
-                }
-                callback.onFailure(throwable);
-            }
-        });
+        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+                .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
+                .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
+                .setData(TbMsg.toByteString(msg)).build();
+        mainCtx.getClusterService().pushMsgToCore(getTenantId(), integrationId, TransportProtos.ToCoreMsg.newBuilder().setIntegrationDownlinkMsg(downlinkMsgProto).build(),
+                new SimpleTbQueueCallback(() -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
+                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                    }
+                    callback.onSuccess(null);
+                }, error -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                    }
+                    callback.onFailure(error);
+                }));
     }
 
     @Override
