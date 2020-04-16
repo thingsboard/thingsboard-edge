@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { handlerConfigurationTypes } from '../../integartion-forms-templates';
@@ -7,7 +7,8 @@ import { handlerConfigurationTypes } from '../../integartion-forms-templates';
 @Component({
   selector: 'tb-udp-integration-form',
   templateUrl: './udp-integration-form.component.html',
-  styleUrls: ['./udp-integration-form.component.scss']
+  styleUrls: ['./udp-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class UdpIntegrationFormComponent implements OnInit {
 

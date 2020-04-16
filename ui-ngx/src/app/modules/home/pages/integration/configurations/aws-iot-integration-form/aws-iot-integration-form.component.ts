@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
 @Component({
   selector: 'tb-aws-iot-integration-form',
   templateUrl: './aws-iot-integration-form.component.html',
-  styleUrls: ['./aws-iot-integration-form.component.scss']
+  styleUrls: ['./aws-iot-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class AwsIotIntegrationFormComponent implements OnInit {
 

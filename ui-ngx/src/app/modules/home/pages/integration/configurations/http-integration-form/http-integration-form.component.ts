@@ -10,7 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
   selector: 'tb-http-integration-form',
   templateUrl: './http-integration-form.component.html',
   styleUrls: ['./http-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class HttpIntegrationFormComponent implements AfterViewInit {
 

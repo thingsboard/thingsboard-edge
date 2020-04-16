@@ -39,6 +39,13 @@ export const tcpTextMessageSeparator = {
   }
 }
 
+export const opcSecurityTypes = {
+  Basic128Rsa15: 'Basic128Rsa15',
+  Basic256: 'Basic256',
+  Basic256Sha256: 'Basic256Sha256',
+  None: 'None'
+}
+
 export const mqttCredentialTypes = {
   anonymous: {
     value: 'anonymous',
@@ -150,14 +157,10 @@ export const templates = {
   },
   [IntegrationType.TTN]: {
     clientConfiguration: {
-      currentHostType: '',
       host: '',
+      customHost: false,
       port: 8883,
       ssl: true,
-      $parent: {
-        hostRegion: '',
-        hostCustom: ''
-      },
       connectTimeoutSec: 10,
       credentials: {
         type: 'basic',
@@ -187,7 +190,7 @@ export const templates = {
       port: 49320,
       scanPeriodInSeconds: 10,
       timeoutInMillis: 5000,
-      security: '',
+      security: opcSecurityTypes.Basic128Rsa15,
       identity: {
         password: ' ',
         username: ' ',
@@ -210,7 +213,9 @@ export const templates = {
       soBroadcast: true,
       soRcvBuf: 64,
       handlerConfiguration: {
-        handlerType: handlerConfigurationTypes.binary.value
+        handlerType: handlerConfigurationTypes.binary.value,
+        charsetName: 'UTF-8',
+        maxFrameLength: 128
       }
     }
   },
@@ -244,6 +249,7 @@ export const templates = {
       bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
       autoCreateTopics: false,
+      otherProperties: ''
     }
   },
   [IntegrationType.CUSTOM]: {
@@ -271,12 +277,7 @@ export const initialPositionInStream = {
 export const topicFilters = {
 
 }
-export const opcSecurityTypes = {
-  Basic128Rsa15: 'Basic128Rsa15',
-  Basic256: 'Basic256',
-  Basic256Sha256: 'Basic256Sha256',
-  None: 'None'
-}
+
 
 export const identityType = {
   anonymous: 'extension.anonymous',

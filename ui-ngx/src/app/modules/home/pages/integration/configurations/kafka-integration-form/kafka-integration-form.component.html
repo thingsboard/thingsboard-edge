@@ -63,7 +63,7 @@
             <mat-error translate *ngIf="form.get('pollInterval')?.hasError('required')">
                 integration.poll-interval-required</mat-error>
         </mat-form-field>
-        <mat-checkbox aria-label="'integration.enable-ssl | translate" formControlName="autoCreateTopics"
+        <mat-checkbox [aria-label]="'integration.enable-ssl' | translate" formControlName="autoCreateTopics"
             style="margin-bottom: 32px;">
             {{ 'integration.auto-create-topics' | translate }}
             <span translate>integration.auto-create-topics</span>
@@ -73,7 +73,7 @@
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.other-properties</mat-panel-title>
                 </mat-expansion-panel-header>
-                <tb-key-val-map titleText="integration.other-properties"
+                <tb-key-val-map required titleText="integration.other-properties"
                     formControlName="otherProperties"></tb-key-val-map>
             </mat-expansion-panel>
         </mat-accordion>

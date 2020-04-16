@@ -41,13 +41,13 @@
             <input matInput formControlName="applicationUri">
         </mat-form-field>
         <div fxFlex fxLayout="column" fxLayout="row" fxLayoutGap="20px">
-            <mat-form-field fxFlex="40" class="mat-block">
+            <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
                 <mat-error translate *ngIf="form.get('host')?.hasError('required')">integration.host-required
                 </mat-error>
             </mat-form-field>
-            <mat-form-field fxFlex="20" class="mat-block">
+            <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
                 <mat-error translate *ngIf="form.get('port')?.hasError('required')">integration.port-required
@@ -74,8 +74,7 @@
         <div form fxFlex fxLayout="column" formGroupName="identity" fxLayout="row" fxLayoutGap="20px">
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-security</mat-label>
-                <mat-select required (selectionChange)="opcUaSecurityTypeChanged()"
-                    [formControl]="form.get('security')">
+                <mat-select required [formControl]="form.get('security')">
                     <mat-option [value]="security.key" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{security.value}}</span></mat-option>
                 </mat-select>
@@ -84,7 +83,7 @@
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-identity</mat-label>
-                <mat-select required formControlName="type">
+                <mat-select required formControlName="type" (selectionChange)="identityTypeChanged($event)">
                     <mat-option [value]="identity.key" *ngFor="let identity of identityType | keyvalue">
                         <span>{{identity.value | translate}}</span></mat-option>
                 </mat-select>
@@ -93,7 +92,7 @@
                 </mat-error>
             </mat-form-field>
         </div>
-        <div fxLayout="row" fxLayoutGap="20px" *ngIf="form.get('identity').get('type').value === 'username'">
+        <div formGroupName="identity" fxLayout="row" fxLayoutGap="20px" *ngIf="showIdentityForm">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.username</mat-label>
                 <input matInput required formControlName="username">
@@ -112,8 +111,9 @@
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-keystore</mat-panel-title>
-                    <mat-panel-description translate>
-                        integration.add-opc-ua-keystore-prompt
+                    <mat-panel-description>
+                        <mat-error *ngIf="!form.get('keystore').valid" translate>integration.add-opc-ua-keystore-prompt
+                        </mat-error>
                     </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div from formGroupName="keystore">
@@ -123,37 +123,33 @@
                             <mat-option [value]="keystore.key" *ngFor="let keystore of extensionKeystoreType|keyvalue">
                                 <span>{{keystore.value}}</span></mat-option>
                         </mat-select>
-
-                        <mat-error translate *ngIf="form.get('keystore')?.hasError('required')">
+                        <mat-error translate *ngIf="form.get('keystore').get('type')?.hasError('required')">
                             integration.opc-ua-keystore-type-required
                         </mat-error>
-
                     </mat-form-field>
                     <section class="dropdown-section">
                         <div class="tb-container">
-                            <div class="tb-container">
-                                <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
-                                <tb-file-input [existingFileName]="form?.get('keystore').get('location').value"
-                                    formControlName="fileContent" dropLabel="{{ 'integration.drop-file' | translate }}"
-                                    mat-label="integration.opc-ua-keystore-location"
-                                    (fileNameChanged)="form?.get('keystore').get('location').patchValue($event)"
-                                    inputId="location">
-                                </tb-file-input>
-                            </div>
+                            <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
+                            <tb-file-input [existingFileName]="form?.get('keystore').get('location').value"
+                                formControlName="fileContent" dropLabel="{{ 'integration.drop-file' | translate }}"
+                                mat-label="integration.opc-ua-keystore-location"
+                                (fileNameChanged)="form?.get('keystore').get('location').patchValue($event)"
+                                inputId="location">
+                            </tb-file-input>
                         </div>
                     </section>
                     <div fxFlex fxLayout="row" fxLayoutGap="20px">
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-password</mat-label>
                             <input matInput required formControlName="password">
-                            <mat-error translate *ngIf="form.get('keystore')?.hasError('required')">
+                            <mat-error translate *ngIf="form.get('keystore').get('password')?.hasError('required')">
                                 integration.opc-ua-keystore-password-required
                             </mat-error>
                         </mat-form-field>
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
                             <input matInput required formControlName="alias">
-                            <mat-error translate *ngIf="form.get('alias')?.hasError('required')">
+                            <mat-error translate *ngIf="form.get('keystore').get('alias')?.hasError('required')">
                                 integration.opc-ua-keystore-alias-required
                             </mat-error>
                         </mat-form-field>
@@ -161,7 +157,7 @@
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.opc-ua-keystore-key-password</mat-label>
                         <input matInput required formControlName="keyPassword">
-                        <mat-error translate *ngIf="form.get('keyPassword')?.hasError('required')">
+                        <mat-error translate *ngIf="form.get('keystore').get('keyPassword')?.hasError('required')">
                             integration.opc-ua-keystore-key-password-required
                         </mat-error>
                     </mat-form-field>
@@ -172,16 +168,19 @@
             <mat-expansion-panel>
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-mapping</mat-panel-title>
-                    <mat-panel-description translate>
-                        integration.add-opc-ua-mapping-prompt</mat-panel-description>
+                    <mat-panel-description>
+                        <mat-error *ngIf="!form.get('mapping')['length']" translate>integration.add-opc-ua-mapping-prompt
+                        </mat-error>
+                    </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div *ngIf="form.get('mapping')['length'] > 0">
                     <ol class="list-group">
                         <li class="list-group-item"
                             *ngFor="let map of form.get('mapping')['controls'];let mapIndex = index">
-                            <button mat-button aria-label="'action.remove | translate" class="mat-icon-button"
-                                (click)="form.get('mapping').reset(mapIndex)" matTooltip="'action.remove' | translate"
+                            <button mat-icon-button  class="mat-icon-button"
+                                (click)="$any(form.get('mapping')).removeAt(mapIndex)" [matTooltip]="'action.remove' | translate"
                                 matTooltipPosition="above">
+                                <mat-icon>close</mat-icon>
                             </button>
                             <mat-card>
                                 <mat-card-content [formGroup]="map">
@@ -203,10 +202,8 @@
                                                     {{mapping.value}}
                                                 </mat-option>
                                             </mat-select>
-
                                             <mat-error translate *ngIf="map.get('mappingType')?.hasError('required')">
                                                 integration.opc-ua-mapping-type-required</mat-error>
-
                                         </mat-form-field>
                                     </div>
                                     <div fxFlex fxLayout="row" fxLayoutGap="20px">
@@ -215,11 +212,9 @@
                                             <input matInput
                                                 placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
                                                 required formControlName="deviceNodePattern">
-
                                             <mat-error translate
-                                                *ngIf="form.get('deviceNodePattern')?.hasError('required')">
+                                                *ngIf="map.get('deviceNodePattern')?.hasError('required')">
                                                 integration.opc-ua-device-node-pattern-required</mat-error>
-
                                         </mat-form-field>
                                     </div>
                                     <tb-opc-ua-subscription-tags [subscriptionTagsForm]="map.get('subscriptionTags')">
@@ -229,11 +224,11 @@
                         </li>
                     </ol>
                 </div>
-                <span *ngIf="!form.get('mapping')['length']" fxLayout-align="center center" class="no-data-found"
+                <span *ngIf="!form.get('mapping')['length']" fxLayoutAlign="center center" class="no-data-found"
                     translate>integration.add-opc-ua-mapping-prompt</span>
                 <div>
                     <button mat-button class="mat-primary mat-raised" (click)="addMap()"
-                        aria-label="'action.add | translate" matTooltip="'integration.opc-ua-add-map' | translate"
+                         [matTooltip]="'integration.opc-ua-add-map' | translate"
                         matTooltipPosition="above">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.opc-ua-add-map</span>

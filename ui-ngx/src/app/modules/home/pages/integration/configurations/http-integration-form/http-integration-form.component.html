@@ -39,14 +39,14 @@
             </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox aria-label="'integration.replace-no-content-to-ok | translate"
+            <mat-checkbox [aria-label]="'integration.replace-no-content-to-ok' | translate"
                 formControlName="replaceNoContentToOk"> {{ 'integration.replace-no-content-to-ok' |
                 translate }}
             </mat-checkbox>
         </div>
         <section *ngIf="integrationType === integrationTypes.HTTP ||
                                                 integrationType === integrationTypes.SIGFOX">
-            <mat-checkbox aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
+            <mat-checkbox [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity"
                 (change)="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
             </mat-checkbox>
             <mat-accordion *ngIf="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters">
@@ -68,12 +68,12 @@
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
             <div fxLayout="row" fxLayoutGap="20px">
-                <mat-checkbox fxFlex="50" aria-label="'integration.enable-security | translate" formControlName="enableSecurity"
+                <mat-checkbox fxFlex="50" [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity"
                     (change)="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' |
                         translate }}
                 </mat-checkbox>
                 <mat-checkbox fxFlex="50" fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
-                    aria-label="'integration.enable-security-new | translate" formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
+                    [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
                         translate}}
                 </mat-checkbox>
             </div>

@@ -66,7 +66,7 @@
         <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <div class="mat-block">
                 <mat-checkbox matInput
-                    aria-label="'integration.kinesis-use-credentials-from-instance-metadata | translate"
+                    [aria-label]="'integration.kinesis-use-credentials-from-instance-metadata' | translate"
                     formControlName="useCredentialsFromInstanceMetadata">
                     {{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}
                 </mat-checkbox>
@@ -90,7 +90,7 @@
         </div>
         <div fxFlex fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <div class="mat-block">
-                <mat-checkbox aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"
+                <mat-checkbox [aria-label]="'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate"
                     formControlName="useConsumersWithEnhancedFanOut">
                     {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
                 </mat-checkbox>

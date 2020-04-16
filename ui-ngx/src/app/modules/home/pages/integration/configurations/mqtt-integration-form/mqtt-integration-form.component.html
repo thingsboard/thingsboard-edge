@@ -65,10 +65,10 @@
             </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox aria-label="'integration.clean-session | translate" formControlName="cleanSession">
+            <mat-checkbox [aria-label]="'integration.clean-session' | translate" formControlName="cleanSession">
                 {{ 'integration.clean-session' | translate }}
             </mat-checkbox>
-            <mat-checkbox aria-label="'integration.enable-ssl | translate" formControlName="ssl">
+            <mat-checkbox [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
                 {{ 'integration.enable-ssl' | translate }}
             </mat-checkbox>
         </div>

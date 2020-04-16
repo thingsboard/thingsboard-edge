@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { generateId } from '@app/core/utils';
@@ -7,13 +7,15 @@ import { generateId } from '@app/core/utils';
 @Component({
   selector: 'tb-kafka-integration-form',
   templateUrl: './kafka-integration-form.component.html',
-  styleUrls: ['./kafka-integration-form.component.scss']
+  styleUrls: ['./kafka-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class KafkaIntegrationFormComponent implements OnInit {
 
   @Input() form: FormGroup;
 
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
     if (!this.form.get('groupId').value)

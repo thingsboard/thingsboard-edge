@@ -30,37 +30,34 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column">
     <fieldset>
         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host-type</mat-label>
-                <mat-select required formControlName="currentHostType">
-                    <mat-option *ngFor="let  type of hostTypes | keyvalue" [value]="type.value">
-                        {{type.value | translate}}
+                <mat-select required [formControl]="currentHostType">
+                    <mat-option *ngFor="let  type of hostTypes" [value]="type">
+                        {{type | translate}}
                     </mat-option>
                 </mat-select>
-                <mat-error translate *ngIf="form.get('currentHostType')?.hasError('required')">
+                <mat-error translate *ngIf="currentHostType.hasError('required')">
                     integration.host-type-required</mat-error>
             </mat-form-field>
-            <div fxFlex="50" fxLayout="row" fxLayoutGap="20px" formGroupName="$parent">
-                <mat-form-field *ngIf="form.get('currentHostType').value === hostTypes.region" fxFlex="60"
-                    class="mat-block">
+            <div fxFlex="50" fxLayout="row" fxLayoutGap="20px">
+                <mat-form-field *ngIf="currentHostType.value === 'Region'" fxFlex="60" class="mat-block">
                     <mat-label translate>integration.region</mat-label>
-                    <input matInput required formControlName="hostRegion" (change)="buildHostName()">
-                    <mat-error translate *ngIf="form.get('$parent').get('hostRegion')?.hasError('required')">
+                    <input matInput required [formControl]="hostRegion" (change)="buildHostName()">
+                    <mat-error translate *ngIf="hostRegion?.hasError('required')">
                         integration.region-required
                     </mat-error>
                 </mat-form-field>
-                <div *ngIf="form.get('currentHostType').value === hostTypes.region" fxFlex="40" fxLayout="column"
-                    fxLayout-align="center start">
-                    <mat-label style="padding-left: 5px; padding-bottom: 24px;">.thethings.network</mat-label>
+                <div *ngIf="currentHostType.value === 'Region'" fxFlex="40" fxLayout="column" fxLayoutAlign="center end">
+                    <mat-label>.thethings.network</mat-label>
                 </div>
-                <mat-form-field *ngIf="form.get('currentHostType').value === hostTypes.custom" fxFlex="100"
-                    class="mat-block">
+                <mat-form-field *ngIf="currentHostType.value === 'Custom'" fxFlex="100" class="mat-block">
                     <mat-label translate>integration.custom-host</mat-label>
-                    <input matInput required formControlName="hostCustom" (change)="buildHostName()">
-                    <mat-error translate *ngIf="form.get('$parent').get('hostCustom')?.hasError('required')">
+                    <input matInput required [formControl]="hostCustom" (change)="buildHostName()">
+                    <mat-error translate *ngIf="hostCustom?.hasError('required')">
                         integration.custom-host-required</mat-error>
                 </mat-form-field>
             </div>
@@ -95,7 +92,7 @@
             </mat-form-field>
         </div>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters" disableMqttTopics>
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters" [disableMqttTopics]="true">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
@@ -104,4 +101,4 @@
         <mat-error translate *ngIf="form.get('downlinkTopicPattern')?.hasError('required')">
             integration.downlink-topic-pattern-required</mat-error>
     </mat-form-field>
-</mat-form-field>
+</section>

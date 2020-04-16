@@ -64,9 +64,9 @@
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soRcvBuf">
                     <mat-error translate *ngIf="form.get('soRcvBuf')?.hasError('required')">
                         integration.so-rcv-buf-required</mat-error>
-                    <mat-error translate *ngIf="form.get('soRcvBuf').hasError('min')">integration.so-rcv-buf-range
+                    <mat-error translate *ngIf="form.get('soRcvBuf')?.hasError('min')">integration.so-rcv-buf-range
                     </mat-error>
-                    <mat-error translate *ngIf="form.get('soRcvBuf').hasError('max')">integration.so-rcv-buf-range
+                    <mat-error translate *ngIf="form.get('soRcvBuf')?.hasError('max')">integration.so-rcv-buf-range
                     </mat-error>
                 </mat-form-field>
             </div>
@@ -76,16 +76,17 @@
                     <input matInput type="number" step="1" min="1" max="65535" required formControlName="soSndBuf">
                     <mat-error translate *ngIf="form.get('soSndBuf')?.hasError('required')">
                         integration.so-snd-buf-required</mat-error>
-                    <mat-error translate *ngIf="form.get('soSndBuf').hasError('min')">integration.so-snd-buf-range
+                    <mat-error translate *ngIf="form.get('soSndBuf')?.hasError('min')">integration.so-snd-buf-range
                     </mat-error>
-                    <mat-error translate *ngIf="form.get('soSndBuf').hasError('max')">integration.so-snd-buf-range
+                    <mat-error translate *ngIf="form.get('soSndBuf')?.hasError('max')">integration.so-snd-buf-range
                     </mat-error>
                 </mat-form-field>
             </div>
-            <mat-checkbox aria-label="'integration.so-keepalive-option | translate" formControlName="soKeepaliveOption">
+            <mat-checkbox [aria-label]="'integration.so-keepalive-option' | translate"
+                formControlName="soKeepaliveOption">
                 {{ 'integration.so-keepalive-option' | translate }}
             </mat-checkbox>
-            <mat-checkbox aria-label="'integration.tcp-no-delay | translate" formControlName="tcpNoDelay">
+            <mat-checkbox [aria-label]="'integration.tcp-no-delay' | translate" formControlName="tcpNoDelay">
                 {{ 'integration.tcp-no-delay' | translate }}
             </mat-checkbox>
         </div>
@@ -105,7 +106,8 @@
                                 {{handlerConfigurationType.value.name | translate}}
                             </mat-option>
                         </mat-select>
-                        <mat-error translate *ngIf="form.get('handlerConfigurationType')?.hasError('required')">
+                        <mat-error translate
+                            *ngIf="form.get('handlerConfiguration').get('handlerType')?.hasError('required')">
                             integration.handler-configuration-type-required</mat-error>
                     </mat-form-field>
                     <section
@@ -115,20 +117,24 @@
                                 <mat-label translate>integration.max-frame-length</mat-label>
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
-                                <mat-error translate *ngIf="form.get('maxFrameLength')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
                                     integration.max-frame-length-required</mat-error>
-                                <mat-error translate *ngIf="form.get('maxFrameLength')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('min')">
                                     integration.min-frame-length-range</mat-error>
-                                <mat-error translate *ngIf="form.get('maxFrameLength')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('max')">
                                     integration.max-frame-length-range</mat-error>
                             </mat-form-field>
                         </div>
-                        <mat-checkbox aria-label="'integration.strip-delimiter | translate"
+                        <mat-checkbox [aria-label]="'integration.strip-delimiter' | translate"
                             formControlName="stripDelimiter">
                             {{ 'integration.strip-delimiter' | translate }}
                         </mat-checkbox>
                         <p class="mat-subhead" translate>integration.message-separator</p>
-                        <mat-radio-group formControlName="messageSeparator">
+                        <mat-radio-group formControlName="messageSeparator" fxFlex fxLayout="column" class="radio-box"
+                            fxLayoutGap="20px">
                             <mat-radio-button [value]="tcpTextMessageSeparator.systemLineSeparator.value">
                                 {{ 'integration.tcp.system-line-separator' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpTextMessageSeparator.nulDelimiter.value">
@@ -138,7 +144,8 @@
                     <section
                         *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.binary.value">
                         <p class="mat-subhead" translate>integration.byte-order</p>
-                        <mat-radio-group formControlName="byteOrder" fxFlex fxLayout="column">
+                        <mat-radio-group formControlName="byteOrder" fxFlex fxLayout="column" class="radio-box"
+                            fxLayoutGap="20px">
                             <mat-radio-button [value]="tcpBinaryByteOrder.littleEndian.value">
                                 {{ 'integration.tcp.byte-order-little-endian' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpBinaryByteOrder.bigEndian.value">
@@ -149,11 +156,14 @@
                                 <mat-label translate>integration.max-frame-length</mat-label>
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
-                                <mat-error translate *ngIf="form.get('maxFrameLength')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
                                     integration.max-frame-length-required</mat-error>
-                                <mat-error translate *ngIf="form.get('maxFrameLength').hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('min')">
                                     integration.max-frame-length-range</mat-error>
-                                <mat-error translate *ngIf="form.get('maxFrameLength').hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('max')">
                                     integration.max-frame-length-range</mat-error>
                             </mat-form-field>
                         </div>
@@ -162,11 +172,14 @@
                                 <mat-label translate>integration.length-field-offset</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldOffset">
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldOffset')?.hasError('required')">
                                     integration.length-field-offset-required</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldOffset')?.hasError('min')">
                                     integration.length-field-offset-range</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldOffset')?.hasError('max')">
                                     integration.length-field-offset-range</mat-error>
                             </mat-form-field>
                         </div>
@@ -175,11 +188,14 @@
                                 <mat-label translate>integration.length-field-length</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthFieldLength">
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldLength')?.hasError('required')">
                                     integration.length-field-length-required</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldLength')?.hasError('min')">
                                     integration.length-field-length-range</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthFieldOffset')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthFieldLength')?.hasError('max')">
                                     integration.length-field-length-range</mat-error>
                             </mat-form-field>
                         </div>
@@ -188,11 +204,14 @@
                                 <mat-label translate>integration.length-adjustment</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="lengthAdjustment">
-                                <mat-error translate *ngIf="form.get('lengthAdjustment')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthAdjustment')?.hasError('required')">
                                     integration.length-adjustment-required</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthAdjustment')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthAdjustment')?.hasError('min')">
                                     integration.length-adjustment-range</mat-error>
-                                <mat-error translate *ngIf="form.get('lengthAdjustment')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('lengthAdjustment')?.hasError('max')">
                                     integration.length-adjustment-range</mat-error>
                             </mat-form-field>
                         </div>
@@ -201,15 +220,18 @@
                                 <mat-label translate>integration.initial-bytes-to-strip</mat-label>
                                 <input matInput type="number" step="1" min="0" max="8" required
                                     formControlName="initialBytesToStrip">
-                                <mat-error translate *ngIf="form.get('initialBytesToStrip')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('initialBytesToStrip')?.hasError('required')">
                                     integration.initial-bytes-to-strip-required</mat-error>
-                                <mat-error translate *ngIf="form.get('initialBytesToStrip')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('initialBytesToStrip')?.hasError('min')">
                                     integration.initial-bytes-to-strip-range</mat-error>
-                                <mat-error translate *ngIf="form.get('initialBytesToStrip')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('initialBytesToStrip')?.hasError('max')">
                                     integration.initial-bytes-to-strip-range</mat-error>
                             </mat-form-field>
                         </div>
-                        <mat-checkbox aria-label="'integration.fail-fast | translate" formControlName="failFast">
+                        <mat-checkbox [aria-label]="'integration.fail-fast' | translate" formControlName="failFast">
                             {{ 'integration.fail-fast' | translate }}
                         </mat-checkbox>
                     </section>

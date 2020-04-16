@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integartion-forms-templates';
@@ -7,7 +7,8 @@ import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator 
 @Component({
   selector: 'tb-tcp-integration-form',
   templateUrl: './tcp-integration-form.component.html',
-  styleUrls: ['./tcp-integration-form.component.scss']
+  styleUrls: ['./tcp-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class TcpIntegrationFormComponent implements OnInit {
 
