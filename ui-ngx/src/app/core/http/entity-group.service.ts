@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { PageLink } from '@shared/models/page/page-link';
+import { defaultPageLinkSearchFunction, PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
@@ -109,7 +109,7 @@ export class EntityGroupService {
   public getEntityGroupsByPageLink(pageLink: PageLink, groupType: EntityType,
                                    config?: RequestConfig): Observable<PageData<EntityGroupInfo>> {
     return this.getEntityGroups(groupType, config).pipe(
-      map((entityGroups) => pageLink.filterData(entityGroups)));
+      map((entityGroups) => pageLink.filterData(entityGroups, defaultPageLinkSearchFunction( 'name'))));
   }
 
   public addEntityToEntityGroup(entityGroupId: string, entityId: string, config?: RequestConfig): Observable<any> {

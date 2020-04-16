@@ -48,7 +48,7 @@
         <td class="tb-legend-label"
             (click)="toggleHideData(legendKey.dataIndex)"
             [ngClass]="{ 'tb-hidden-label': legendData.keys[legendKey.dataIndex].dataKey.hidden, 'tb-horizontal': isHorizontal }">
-          {{ legendKey.dataKey.label }}
+          {{ getDataKeyLabel(legendKey.dataKey.label) }}
         </td>
         <td class="tb-legend-value" *ngIf="legendConfig.showMin === true">{{ legendData.data[legendKey.dataIndex].min }}</td>
         <td class="tb-legend-value" *ngIf="legendConfig.showMax === true">{{ legendData.data[legendKey.dataIndex].max }}</td>
@@ -63,7 +63,7 @@
         <span class="tb-legend-label"
               (click)="toggleHideData(legendKey.dataIndex)"
               [ngClass]="{ 'tb-hidden-label': legendData.keys[legendKey.dataIndex].dataKey.hidden}">
-                  {{ legendKey.dataKey.label }}
+                  {{ getDataKeyLabel(legendKey.dataKey.label) }}
         </span>
       </td>
     </tr>

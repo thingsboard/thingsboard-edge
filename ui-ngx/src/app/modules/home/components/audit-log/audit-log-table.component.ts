@@ -44,6 +44,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-audit-log-table',
@@ -117,6 +118,7 @@ export class AuditLogTableComponent implements OnInit {
 
   constructor(private auditLogService: AuditLogService,
               private translate: TranslateService,
+              private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
               private store: Store<AppState>) {
@@ -135,6 +137,7 @@ export class AuditLogTableComponent implements OnInit {
     this.auditLogTableConfig = new AuditLogTableConfig(
       this.auditLogService,
       this.translate,
+      this.utils,
       this.datePipe,
       this.dialog,
       this.auditLogMode,

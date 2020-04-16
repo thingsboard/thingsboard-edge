@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -55,6 +57,11 @@ import javax.persistence.Table;
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
 public final class CustomerEntity extends BaseSqlEntity<Customer> implements SearchTextEntity<Customer> {
+
+    public static final Map<String,String> customerColumnMap = new HashMap<>();
+    static {
+        customerColumnMap.put("name", "title");
+    }
 
     @Column(name = ModelConstants.CUSTOMER_TENANT_ID_PROPERTY)
     private String tenantId;

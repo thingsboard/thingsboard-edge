@@ -58,13 +58,17 @@ import {
   AlarmDetailsDialogComponent,
   AlarmDetailsDialogData
 } from '@home/components/alarm/alarm-details-dialog.component';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
 
   searchStatus: AlarmSearchStatus;
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
 
   constructor(private alarmService: AlarmService,
               private dialogService: DialogService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
@@ -133,8 +137,9 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
         data: {
           alarmId: entity.id.id,
-          allowAcknowledgment: true,
-          allowClear: true,
+          alarm: entity,
+          allowAcknowledgment: !this.readonly,
+          allowClear: !this.readonly,
           displayDetails: true
         }
       }).afterClosed().subscribe(

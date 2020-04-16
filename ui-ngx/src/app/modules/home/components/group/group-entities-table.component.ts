@@ -31,7 +31,8 @@
 
 import {
   AfterViewInit,
-  ChangeDetectionStrategy, ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Inject,
   Input,
@@ -51,7 +52,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
 import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import {
   EntityGroupInfo,
   EntityGroupParams,
@@ -65,6 +65,7 @@ import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityGroupsTableConfig } from '../../pages/group/entity-groups-table-config';
 
 // @dynamic
 @Component({
@@ -87,7 +88,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   entityGroupConfig: GroupEntityTableConfig<BaseData<HasId>>;
 
-  entityGroupDetailsConfig: EntityTableConfig<EntityGroupInfo>;
+  entityGroupDetailsConfig: EntityGroupsTableConfig;
 
   private rxSubscriptions = new Array<Subscription>();
 
@@ -150,6 +151,9 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   onEntityGroupUpdated(entity: BaseData<HasId>) {
     const entityGroup = entity as EntityGroupInfo;
+    if (this.groupParams.hierarchyView) {
+      this.groupParams.hierarchyCallbacks.groupUpdated(entityGroup);
+    }
     this.reloadEntityGroupConfig(entityGroup);
   }
 
@@ -189,7 +193,11 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       if (result) {
         this.entityGroupDetailsConfig.deleteEntity(entity.id).subscribe(
           () => {
-            this.window.history.back();
+            if (this.groupParams.hierarchyView) {
+              this.groupParams.hierarchyCallbacks.groupDeleted(this.groupParams.nodeId, entity.id.id);
+            } else {
+              this.window.history.back();
+            }
           }
         );
       }
@@ -201,7 +209,7 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
       this.isGroupDetailsOpen = false;
     }
     this.entityGroup = entityGroup;
-    this.groupParams = this.groupParams || resolveGroupParams(this.route.snapshot);
+    this.groupParams = groupParams || resolveGroupParams(this.route.snapshot);
     this.entityGroupConfig = entityGroup.entityGroupConfig;
     this.entityGroupConfig.onToggleEntityGroupDetails = this.onToggleEntityGroupDetails.bind(this);
     this.entityGroupConfig.onToggleEntityDetails = this.onToggleEntityDetails.bind(this);
@@ -210,7 +218,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
         this.isGroupDetailsOpen = false;
       }
     });
-    this.entityGroupDetailsConfig = this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams);
+    this.entityGroupDetailsConfig =
+      this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityGroupsTableConfig;
     this.entityGroupDetailsConfig.componentsData = {
       isGroupEntitiesView: true,
       reloadEntityGroup: this.reloadEntityGroup.bind(this)

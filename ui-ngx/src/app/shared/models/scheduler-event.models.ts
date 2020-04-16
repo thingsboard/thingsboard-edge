@@ -83,6 +83,14 @@ export const schedulerTimeUnitTranslationMap = new Map<SchedulerTimeUnit, string
   ]
 );
 
+export const schedulerTimeUnitRepeatTranslationMap = new Map<SchedulerTimeUnit, string>(
+  [
+    [SchedulerTimeUnit.HOURS, 'scheduler.every-hour'],
+    [SchedulerTimeUnit.MINUTES, 'scheduler.every-minute'],
+    [SchedulerTimeUnit.SECONDS, 'scheduler.every-second']
+  ]
+);
+
 export const schedulerWeekday: string[] =
   [
     'scheduler.sunday',

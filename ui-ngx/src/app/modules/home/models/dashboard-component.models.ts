@@ -30,7 +30,7 @@
 ///
 
 import { GridsterComponent, GridsterConfig, GridsterItem, GridsterItemComponentInterface } from 'angular-gridster2';
-import { Widget, widgetType, WidgetPosition } from '@app/shared/models/widget.models';
+import { Widget, widgetType, WidgetPosition, WidgetExportType } from '@app/shared/models/widget.models';
 import { WidgetLayout, WidgetLayouts } from '@app/shared/models/dashboard.models';
 import { IDashboardWidget, WidgetAction, WidgetContext, WidgetHeaderAction } from './widget-component.models';
 import { Timewindow } from '@shared/models/time/time.models';
@@ -38,6 +38,7 @@ import { Observable, of, Subject } from 'rxjs';
 import { guid, isDefined, isEqual, isUndefined } from '@app/core/utils';
 import { IterableDiffer, KeyValueDiffer, NgZone } from '@angular/core';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface WidgetsData {
   widgets: Array<Widget>;
@@ -70,6 +71,7 @@ export interface DashboardCallbacks {
 }
 
 export interface IDashboardComponent {
+  utils: UtilsService;
   gridsterOpts: GridsterConfig;
   gridster: GridsterComponent;
   dashboardWidgets: DashboardWidgets;
@@ -309,6 +311,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
   margin: string;
 
   title: string;
+  customTranslatedTitle: string;
   titleTooltip: string;
   showTitle: boolean;
   titleStyle: {[klass: string]: any};
@@ -319,6 +322,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
   dropShadow: boolean;
   enableFullscreen: boolean;
+  enableDataExport: boolean;
 
   hasTimewindow: boolean;
 
@@ -372,6 +376,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
     this.title = isDefined(this.widgetContext.widgetTitle)
       && this.widgetContext.widgetTitle.length ? this.widgetContext.widgetTitle : this.widget.config.title;
+    this.customTranslatedTitle = this.dashboard.utils.customTranslation(this.title, this.title);
     this.titleTooltip = isDefined(this.widgetContext.widgetTitleTooltip)
       && this.widgetContext.widgetTitleTooltip.length ? this.widgetContext.widgetTitleTooltip : this.widget.config.titleTooltip;
     this.showTitle = isDefined(this.widget.config.showTitle) ? this.widget.config.showTitle : true;
@@ -389,6 +394,12 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
     this.dropShadow = isDefined(this.widget.config.dropShadow) ? this.widget.config.dropShadow : true;
     this.enableFullscreen = isDefined(this.widget.config.enableFullscreen) ? this.widget.config.enableFullscreen : true;
+    if (this.widget.type === widgetType.timeseries || this.widget.type === widgetType.latest ||
+        this.widget.type === widgetType.alarm) {
+      this.enableDataExport = isDefined(this.widget.config.enableDataExport) ? this.widget.config.enableDataExport : true;
+    } else {
+      this.enableDataExport = false;
+    }
 
     this.hasTimewindow = (this.widget.type === widgetType.timeseries || this.widget.type === widgetType.alarm) ?
       (isDefined(this.widget.config.useDashboardTimewindow) ?
@@ -414,6 +425,10 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
     this.customHeaderActions = this.widgetContext.customHeaderActions ? this.widgetContext.customHeaderActions : [];
     this.widgetActions = this.widgetContext.widgetActions ? this.widgetContext.widgetActions : [];
+  }
+
+  exportWidgetData($event: Event, widgetExportType: WidgetExportType) {
+    this.widgetContext.exportWidgetData(widgetExportType);
   }
 
   get x(): number {

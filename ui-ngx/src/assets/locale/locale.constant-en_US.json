@@ -420,7 +420,8 @@
         "enter-username": "Enter username",
         "enter-password": "Enter password",
         "enter-search": "Enter search",
-        "created-time": "Created time"
+        "created-time": "Created time",
+        "loading": "Loading..."
     },
     "converter": {
         "converter": "Data converter",
@@ -1979,13 +1980,13 @@
         "no-captcha-message": "You must confirm that you are not a robot",
         "password-length-message": "Your password must be at least 6 characters long",
         "email-verification": "Email verification",
-        "email-verification-message": "An email with verification details was sent to the specified email address.</br>Please follow instructions provided in the email in order to complete your sign up procedure.</br>Note: if you haven't seen the email for a while, please check your 'spam' folder or try to resend email by clicking 'Resend' button.",
+        "email-verification-message": "An email with verification details was sent to the specified email address.<br>Please follow instructions provided in the email in order to complete your sign up procedure.<br>Note: if you haven't seen the email for a while, please check your 'spam' folder or try to resend email by clicking 'Resend' button.",
         "account-activation-title": "Account activation",
         "account-activated": "Account successfully activated!",
-        "account-activated-text": "Congratulations!</br>Your account has been activated.</br>Now you can login to your ThingsBoard space.",
+        "account-activated-text": "Congratulations!<br>Your account has been activated.<br>Now you can login to your ThingsBoard space.",
         "resend": "Resend",
         "inactive-user-exists-title": "Inactive user already exists",
-        "inactive-user-exists-text": "There is already registered user with unverified email address.</br>Click 'Resend' button if you wish to resend verification email.",
+        "inactive-user-exists-text": "There is already registered user with unverified email address.<br>Click 'Resend' button if you wish to resend verification email.",
         "activating-account": "Activating account...",
         "activating-account-text": "Your account is currently activating. Please wait...",
         "accept-privacy-policy": "Accept Privacy Policy",
@@ -2395,7 +2396,10 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "time-interval-required": "Time interval is required",
-        "time-unit-required": "Time unit is required"
+        "time-unit-required": "Time unit is required",
+        "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
+        "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
     },
     "report": {
         "report-config": "Report configuration",
@@ -2438,10 +2442,13 @@
         "name": "Name",
         "type": "Type",
         "created_customer": "Created by Customer",
+        "selected-blob-entities": "{ count, plural, 1 {1 file} other {# files} } selected",
         "download-blob-entity": "Download file",
         "delete-blob-entity": "Delete file",
         "delete-blob-entity-title": "Are you sure you want to delete file '{{blobEntityName}}'?",
-        "delete-blob-entity-text": "Be careful, after the confirmation file data will become unrecoverable."
+        "delete-blob-entity-text": "Be careful, after the confirmation file data will become unrecoverable.",
+        "delete-blob-entities-title": "Are you sure you want to delete { count, plural, 1 {1 file} other {# files} }?",
+        "delete-blob-entities-text": "Be careful, after the confirmation all selected files will be removed and all related data will become unrecoverable."
     },
     "timezone": {
         "timezone": "Timezone",

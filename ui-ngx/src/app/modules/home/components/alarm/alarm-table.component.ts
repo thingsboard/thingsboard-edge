@@ -39,6 +39,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { AlarmTableConfig } from './alarm-table-config';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
 import { AlarmService } from '@app/core/http/alarm.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-alarm-table',
@@ -81,6 +82,7 @@ export class AlarmTableComponent implements OnInit {
 
   constructor(private alarmService: AlarmService,
               private dialogService: DialogService,
+              private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialog: MatDialog) {
@@ -91,6 +93,7 @@ export class AlarmTableComponent implements OnInit {
     this.alarmTableConfig = new AlarmTableConfig(
       this.alarmService,
       this.dialogService,
+      this.userPermissionsService,
       this.translate,
       this.datePipe,
       this.dialog,

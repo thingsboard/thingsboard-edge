@@ -33,15 +33,19 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormBuilder, FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
-import { Integration, IntegrationType, integrationTypeInfoMap, IntegrationTypeInfo } from '@shared/models/integration.models';
+import {
+  Integration,
+  IntegrationType,
+  IntegrationTypeInfo,
+  integrationTypeInfoMap
+} from '@shared/models/integration.models';
 import { guid, isDefined, isUndefined, removeEmptyObjects } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
-import { ClipboardService } from 'ngx-clipboard';
-import { templates } from './integartion-forms-templates';
+import { templates } from './integration-forms-templates';
 import _ from 'lodash';
 
 @Component({

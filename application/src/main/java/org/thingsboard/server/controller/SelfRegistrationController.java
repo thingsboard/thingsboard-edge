@@ -68,11 +68,16 @@ public class SelfRegistrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public SelfRegistrationParams saveSelfRegistrationParams(@RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         try {
-            Authority authority = getCurrentUser().getAuthority();
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
             checkSelfRegistrationPermissions(Operation.WRITE);
             SelfRegistrationParams savedSelfRegistrationParams = null;
             if (authority == Authority.TENANT_ADMIN) {
                 savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
+                JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
             }
             return savedSelfRegistrationParams;
         } catch (Exception e) {

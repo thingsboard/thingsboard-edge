@@ -46,4 +46,11 @@ export interface BlobEntityInfo extends BaseData<BlobEntityId> {
 export interface BlobEntityWithCustomerInfo extends BlobEntityInfo {
   customerTitle: string;
   customerIsPublic: boolean;
+  typeName?: string;
 }
+
+export const blobEntityTypeTranslationMap = new Map<string, string>(
+  [
+    ['report', 'blob-entity.report']
+  ]
+);

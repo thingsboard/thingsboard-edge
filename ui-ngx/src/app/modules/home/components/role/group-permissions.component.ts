@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { MatPaginator } from '@angular/material/paginator';
@@ -49,7 +49,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { GroupPermissionsDatasource } from '@home/models/datasource/group-permissions.datasource';
 import { RoleService } from '@core/http/role.service';
-import { GroupPermissionFullInfo } from '@shared/models/group-permission.models';
+import { GroupPermission, GroupPermissionFullInfo } from '@shared/models/group-permission.models';
 import { deepClone } from '@core/utils';
 import {
   GroupPermissionDialogComponent,
@@ -64,7 +64,10 @@ import { ViewRoleDialogComponent, ViewRoleDialogData } from '@home/components/ro
 })
 export class GroupPermissionsComponent extends PageComponent implements AfterViewInit, OnInit {
 
+  groupPermissionsMode: 'group' | 'registration';
+
   displayedColumns: string[] = [];
+  columnsWidth: {[key: string]: string} = {};
 
   editEnabled = false;
   addEnabled = false;
@@ -79,6 +82,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   activeValue = false;
   dirtyValue = false;
   entityGroupValue: EntityGroupInfo;
+
+  registrationPermissionsValue: Array<GroupPermission>;
 
   viewsInited = false;
 
@@ -113,6 +118,24 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
     return this.entityGroupValue;
   }
 
+  @Input()
+  set registrationPermissions(registrationPermissions: Array<GroupPermission>) {
+    if (this.registrationPermissionsValue !== registrationPermissions) {
+      this.registrationPermissionsValue = registrationPermissions;
+      this.registrationPermissionsUpdated(registrationPermissions);
+      if (this.viewsInited) {
+        this.resetSortAndFilter(this.activeValue);
+        if (!this.activeValue) {
+          this.dirtyValue = true;
+        }
+      }
+    }
+  }
+
+  get registrationPermissions(): Array<GroupPermission> {
+    return this.registrationPermissionsValue;
+  }
+
   private readonlyValue: boolean;
   get readonly(): boolean {
     return this.readonlyValue;
@@ -122,6 +145,9 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   set readonly(value: boolean) {
     this.readonlyValue = coerceBooleanProperty(value);
   }
+
+  @Output()
+  registrationPermissionsChanged = new EventEmitter();
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -145,16 +171,26 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   }
 
   private entityGroupUpdated(entityGroup: EntityGroupInfo) {
+    this.groupPermissionsMode = 'group';
     this.editEnabled = false;
     this.addEnabled = false;
     this.deleteEnabled = false;
     this.isUserGroup = entityGroup.type === EntityType.USER;
     const readOnlyGroup = !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     if (!readOnlyGroup) {
-      this.editEnabled = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.WRITE);
-      this.addEnabled = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
-      this.deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.DELETE);
+      this.editEnabled = !this.readonly && this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.WRITE);
+      this.addEnabled = !this.readonly && this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE);
+      this.deleteEnabled = !this.readonly && this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.DELETE);
     }
+    this.updateColumns();
+  }
+
+  private registrationPermissionsUpdated(registrationPermissions: Array<GroupPermission>) {
+    this.groupPermissionsMode = 'registration';
+    this.editEnabled = !this.readonly;
+    this.addEnabled = !this.readonly;
+    this.deleteEnabled = !this.readonly;
+    this.isUserGroup = true;
     this.updateColumns();
   }
 
@@ -165,9 +201,25 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
     }
     this.displayedColumns.push('roleName');
     if (this.isUserGroup) {
-      this.displayedColumns.push('roleTypeName', 'entityGroupTypeName', 'entityGroupName', 'entityGroupOwnerFullName');
+      this.displayedColumns.push('roleTypeName', 'entityGroupTypeName', 'entityGroupName');
+      if (this.groupPermissionsMode === 'group') {
+        this.displayedColumns.push('entityGroupOwnerFullName');
+        this.columnsWidth.roleName = '20%';
+        this.columnsWidth.roleTypeName = '15%';
+        this.columnsWidth.entityGroupTypeName = '15%';
+        this.columnsWidth.entityGroupName = '25%';
+        this.columnsWidth.entityGroupOwnerFullName = '25%';
+      } else {
+        this.columnsWidth.roleName = '40%';
+        this.columnsWidth.roleTypeName = '20%';
+        this.columnsWidth.entityGroupTypeName = '20%';
+        this.columnsWidth.entityGroupName = '20%';
+      }
     } else {
       this.displayedColumns.push('userGroupName', 'userGroupOwnerFullName');
+      this.columnsWidth.roleName = '33%';
+      this.columnsWidth.userGroupName = '33%';
+      this.columnsWidth.userGroupOwnerFullName = '33%';
     }
     this.displayedColumns.push('actions');
   }
@@ -194,7 +246,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
       .subscribe();
 
     this.viewsInited = true;
-    if (this.activeValue && this.entityGroupValue) {
+    if (this.activeValue && (this.entityGroupValue || this.registrationPermissionsValue)) {
       this.updateData(true);
     }
   }
@@ -204,7 +256,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
     this.pageLink.pageSize = this.paginator.pageSize;
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
-    this.dataSource.loadGroupPermissions(this.entityGroupValue, this.pageLink, reload);
+    this.dataSource.loadGroupPermissions(this.entityGroupValue, this.registrationPermissionsValue, this.pageLink, reload);
   }
 
   enterFilterMode() {
@@ -261,11 +313,20 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
       true
     ).subscribe((result) => {
       if (result) {
-        this.roleService.deleteGroupPermission(groupPermission.id.id).subscribe(
-          () => {
+        if (this.groupPermissionsMode === 'registration') {
+          const index = this.registrationPermissionsValue.indexOf(groupPermission.sourceGroupPermission);
+          if (index > -1) {
+            this.registrationPermissionsValue.splice(index, 1);
+            this.registrationPermissionsChanged.emit();
             this.reloadGroupPermissions();
           }
-        );
+        } else {
+          this.roleService.deleteGroupPermission(groupPermission.id.id).subscribe(
+            () => {
+              this.reloadGroupPermissions();
+            }
+          );
+        }
       }
     });
   }
@@ -287,15 +348,26 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
         true
       ).subscribe((result) => {
         if (result) {
-          const tasks: Observable<any>[] = [];
-          this.dataSource.selection.selected.forEach((groupPermission) => {
-            tasks.push(this.roleService.deleteGroupPermission(groupPermission.id.id));
-          });
-          forkJoin(tasks).subscribe(
-            () => {
-              this.reloadGroupPermissions();
-            }
-          );
+          if (this.groupPermissionsMode === 'registration') {
+            this.dataSource.selection.selected.forEach((groupPermission) => {
+              const index = this.registrationPermissionsValue.indexOf(groupPermission.sourceGroupPermission);
+              if (index > -1) {
+                this.registrationPermissionsValue.splice(index, 1);
+              }
+            });
+            this.registrationPermissionsChanged.emit();
+            this.reloadGroupPermissions();
+          } else {
+            const tasks: Observable<any>[] = [];
+            this.dataSource.selection.selected.forEach((groupPermission) => {
+              tasks.push(this.roleService.deleteGroupPermission(groupPermission.id.id));
+            });
+            forkJoin(tasks).subscribe(
+              () => {
+                this.reloadGroupPermissions();
+              }
+            );
+          }
         }
       });
     }
@@ -306,14 +378,17 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
       $event.stopPropagation();
     }
     let isAdd = false;
+    let index = -1;
     if (!groupPermission) {
       isAdd = true;
       groupPermission = {} as GroupPermissionFullInfo;
       if (this.isUserGroup) {
-        groupPermission.userGroupId = {
-          entityType: EntityType.ENTITY_GROUP,
-          id: this.entityGroup.id.id
-        };
+        if (this.groupPermissionsMode === 'group') {
+          groupPermission.userGroupId = {
+            entityType: EntityType.ENTITY_GROUP,
+            id: this.entityGroup.id.id
+          };
+        }
       } else {
         groupPermission.entityGroupId = {
           entityType: EntityType.ENTITY_GROUP,
@@ -322,19 +397,31 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
         groupPermission.entityGroupType = this.entityGroup.type;
       }
     } else {
-      groupPermission = deepClone(groupPermission);
+      if (this.groupPermissionsMode === 'registration') {
+        index = this.registrationPermissionsValue.indexOf(groupPermission.sourceGroupPermission);
+      }
+      groupPermission = deepClone(groupPermission, ['sourceGroupPermission']);
     }
-    this.dialog.open<GroupPermissionDialogComponent, GroupPermissionDialogData, boolean>(GroupPermissionDialogComponent, {
+    this.dialog.open<GroupPermissionDialogComponent, GroupPermissionDialogData, boolean | GroupPermission>(GroupPermissionDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         isAdd,
         isUserGroup: this.isUserGroup,
-        groupPermission
+        groupPermission,
+        groupPermissionsMode: this.groupPermissionsMode
       }
     }).afterClosed().subscribe(
       (res) => {
         if (res) {
+          if (this.groupPermissionsMode === 'registration') {
+            if (isAdd) {
+              this.registrationPermissionsValue.push(res as GroupPermission);
+            } else {
+              this.registrationPermissionsValue[index] = res as GroupPermission;
+            }
+            this.registrationPermissionsChanged.emit();
+          }
           this.reloadGroupPermissions();
         }
       }

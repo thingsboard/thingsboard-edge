@@ -73,15 +73,24 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
       let relationTypeText;
       let rootEntityText;
       let directionText;
+      let count: number;
       switch (this.filter.type) {
         case AliasFilterType.singleEntity:
           entityType = this.filter.singleEntity.entityType;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).list,
             {count: 1});
           break;
+        case AliasFilterType.entityGroup:
+          if (this.filter.groupStateEntity) {
+            this.filterDisplayValue = this.translate.instant('alias.entities-of-group-state-entity');
+          } else {
+            entityType = this.filter.groupType;
+            this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).group);
+          }
+          break;
         case AliasFilterType.entityList:
           entityType = this.filter.entityType;
-          const count = this.filter.entityList.length;
+          count = this.filter.entityList.length;
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).list,
             {count});
           break;
@@ -91,8 +100,28 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).nameStartsWith,
             {prefix});
           break;
+        case AliasFilterType.entityGroupList:
+          entityType = this.filter.groupType;
+          count = this.filter.entityGroupList.length;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).groupList,
+            {count});
+          break;
+        case AliasFilterType.entityGroupName:
+          entityType = this.filter.groupType;
+          prefix = this.filter.entityGroupNameFilter;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).groupNameStartsWith,
+            {prefix});
+          break;
+        case AliasFilterType.entitiesByGroupName:
+          entityType = this.filter.groupType;
+          prefix = this.filter.entityGroupNameFilter;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).group) + ': ' + prefix;
+          break;
         case AliasFilterType.stateEntity:
           this.filterDisplayValue = this.translate.instant('alias.filter-type-state-entity-description');
+          break;
+        case AliasFilterType.stateEntityOwner:
+          this.filterDisplayValue = this.translate.instant('alias.filter-type-state-entity-owner-description');
           break;
         case AliasFilterType.assetType:
           const assetType = this.filter.assetType;

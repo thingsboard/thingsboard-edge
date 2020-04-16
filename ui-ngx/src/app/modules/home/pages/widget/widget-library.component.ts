@@ -54,6 +54,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 import { EntityService } from '@core/http/entity.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-widget-library',
@@ -65,6 +67,9 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
   authUser: AuthUser;
 
   isReadOnly: boolean;
+  editEnabled = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.WRITE);
+  addEnabled = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.CREATE);
+  deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.DELETE);
 
   widgetsBundle: WidgetsBundle;
 
@@ -110,6 +115,7 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
   @ViewChild('dashboard', {static: true}) dashboard: IDashboardComponent;
 
   constructor(protected store: Store<AppState>,
+              private userPermissionsService: UserPermissionsService,
               private route: ActivatedRoute,
               private router: Router,
               private widgetService: WidgetService,

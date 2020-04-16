@@ -77,7 +77,7 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
         return DaoUtil.toPageData(customerRepository.findByTenantId(
                 UUIDConverter.fromTimeUUID(tenantId),
                 Objects.toString(pageLink.getTextSearch(), ""),
-                DaoUtil.toPageable(pageLink)));
+                DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
     @Override
@@ -97,7 +97,7 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
                 .findByEntityGroupId(
                         fromTimeUUID(groupId),
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
     @Override
@@ -107,6 +107,6 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
                         fromTimeUUIDs(groupIds),
                         additionalCustomerIds != null && !additionalCustomerIds.isEmpty() ? fromTimeUUIDs(additionalCustomerIds) : null,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 }

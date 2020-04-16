@@ -226,9 +226,9 @@ export class AddWidgetToDashboardDialogComponent extends
                 params: {}
               };
               const state = objToBase64([ stateObject ]);
-              url = `/dashboard/${theDashboard.id.id}?state=${state}&edit=true`;
+              url = `/dashboards/${theDashboard.id.id}?state=${state}&edit=true`;
             } else {
-              url = `/dashboard/${theDashboard.id.id}?edit=true`;
+              url = `/dashboards/${theDashboard.id.id}?edit=true`;
             }
             this.router.navigateByUrl(url);
           }

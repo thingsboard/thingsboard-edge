@@ -34,8 +34,14 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
 import { Datasource } from '@shared/models/widget.models';
 import { isDefined, isUndefined } from '@core/utils';
-import { EntityRelationsQuery, EntitySearchDirection, RelationTypeGroup } from '@shared/models/relation.models';
+import {
+  EntityRelationsQuery,
+  EntitySearchDirection,
+  EntityTypeFilter,
+  RelationTypeGroup
+} from '@shared/models/relation.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 export interface EntitiesHierarchyWidgetSettings {
   nodeRelationQueryFunction: string;
@@ -105,20 +111,29 @@ export function iconUrlHtml(iconUrl: string): string {
 
 export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeCtx => {
   const entity = nodeCtx.entity;
+  const entityType = entity.id.entityType;
+  let relationTypeGroup = RelationTypeGroup.COMMON;
+  let filters: EntityTypeFilter[] = [
+    {
+      relationType: 'Contains',
+      entityTypes: []
+    }
+  ];
+  if (entityType === EntityType.ENTITY_GROUP) {
+    relationTypeGroup = RelationTypeGroup.FROM_ENTITY_GROUP
+  } else if (entityType === EntityType.TENANT || entityType === EntityType.CUSTOMER){
+    relationTypeGroup = RelationTypeGroup.TO_ENTITY_GROUP;
+    filters = [];
+  }
   const query: EntityRelationsQuery = {
     parameters: {
       rootId: entity.id.id,
       rootType: entity.id.entityType as EntityType,
       direction: EntitySearchDirection.FROM,
-      relationTypeGroup: RelationTypeGroup.COMMON,
+      relationTypeGroup,
       maxLevel: 1
     },
-    filters: [
-      {
-        relationType: 'Contains',
-        entityTypes: []
-      }
-    ]
+    filters
   };
   return query;
 };
@@ -127,40 +142,51 @@ export const defaultNodeIconFunction: NodeIconFunction = nodeCtx => {
   let materialIcon = 'insert_drive_file';
   const entity = nodeCtx.entity;
   if (entity && entity.id && entity.id.entityType) {
-    switch (entity.id.entityType as EntityType | string) {
-      case 'function':
-        materialIcon = 'functions';
-        break;
-      case EntityType.DEVICE:
-        materialIcon = 'devices_other';
-        break;
-      case EntityType.ASSET:
-        materialIcon = 'domain';
-        break;
-      case EntityType.TENANT:
-        materialIcon = 'supervisor_account';
-        break;
-      case EntityType.CUSTOMER:
-        materialIcon = 'supervisor_account';
-        break;
-      case EntityType.USER:
-        materialIcon = 'account_circle';
-        break;
-      case EntityType.DASHBOARD:
-        materialIcon = 'dashboards';
-        break;
-      case EntityType.ALARM:
-        materialIcon = 'notifications_active';
-        break;
-      case EntityType.ENTITY_VIEW:
-        materialIcon = 'view_quilt';
-        break;
+    const entityType = entity.id.entityType;
+    if (entityType === EntityType.ENTITY_GROUP) {
+      materialIcon = materialIconByEntityType((entity as EntityGroupInfo).type);
+    } else {
+      materialIcon = materialIconByEntityType(entityType);
     }
   }
   return {
     materialIcon
   };
 };
+
+function materialIconByEntityType (entityType: EntityType | string): string {
+  let materialIcon = 'insert_drive_file';
+  switch (entityType) {
+    case 'function':
+      materialIcon = 'functions';
+      break;
+    case EntityType.DEVICE:
+      materialIcon = 'devices_other';
+      break;
+    case EntityType.ASSET:
+      materialIcon = 'domain';
+      break;
+    case EntityType.TENANT:
+      materialIcon = 'supervisor_account';
+      break;
+    case EntityType.CUSTOMER:
+      materialIcon = 'supervisor_account';
+      break;
+    case EntityType.USER:
+      materialIcon = 'account_circle';
+      break;
+    case EntityType.DASHBOARD:
+      materialIcon = 'dashboards';
+      break;
+    case EntityType.ALARM:
+      materialIcon = 'notifications_active';
+      break;
+    case EntityType.ENTITY_VIEW:
+      materialIcon = 'view_quilt';
+      break;
+  }
+  return materialIcon;
+}
 
 export const defaultNodeOpenedFunction: NodeOpenedFunction = nodeCtx => {
   return nodeCtx.level <= 4;
@@ -169,7 +195,12 @@ export const defaultNodeOpenedFunction: NodeOpenedFunction = nodeCtx => {
 export const defaultNodesSortFunction: NodesSortFunction = (nodeCtx1, nodeCtx2) => {
   let result = nodeCtx1.entity.id.entityType.localeCompare(nodeCtx2.entity.id.entityType);
   if (result === 0) {
-    result = nodeCtx1.entity.name.localeCompare(nodeCtx2.entity.name);
+    if (nodeCtx1.entity.id.entityType === EntityType.ENTITY_GROUP) {
+      result = (nodeCtx1.entity as EntityGroupInfo).type.localeCompare((nodeCtx2.entity as EntityGroupInfo).type);
+    }
+    if (result === 0) {
+      result = nodeCtx1.entity.name.localeCompare(nodeCtx2.entity.name);
+    }
   }
   return result;
 };

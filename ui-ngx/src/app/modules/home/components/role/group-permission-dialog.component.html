@@ -74,6 +74,7 @@
         <label translate class="tb-title no-padding">group-permission.entity-group</label>
         <section fxLayout="row" fxLayoutGap="8px">
           <tb-owner-autocomplete
+              [fxShow]="data.groupPermissionsMode === 'group'"
               formControlName="entityGroupOwnerId"
               required
               placeholderText="group-permission.group-owner"

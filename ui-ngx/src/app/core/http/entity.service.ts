@@ -458,7 +458,11 @@ export class EntityService {
         break;
       case EntityType.ENTITY_GROUP:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+        if (subType && subType.length) {
+          entitiesObservable = this.entityGroupService.getEntityGroupsByPageLink(pageLink, subType as EntityType, config);
+        } else {
+          entitiesObservable = of(null);
+        }
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
@@ -1002,7 +1006,7 @@ export class EntityService {
         );
         break;
       case AliasFilterType.entityGroupList:
-        this.getEntities(EntityType.ENTITY_GROUP, filter.entityGroupList, {ignoreLoading: true, ignoreErrors: true}).pipe(
+        return this.getEntities(EntityType.ENTITY_GROUP, filter.entityGroupList, {ignoreLoading: true, ignoreErrors: true}).pipe(
           map((entities) => {
               if (entities && entities.length || !failOnEmpty) {
                 result.entities = this.entitiesToEntitiesInfo(entities);
@@ -1030,7 +1034,7 @@ export class EntityService {
         break;
       case AliasFilterType.entitiesByGroupName:
         result.stateEntity = filter.groupStateEntity;
-        this.getEntitiesByGroupName(filter.groupType, filter.entityGroupNameFilter, maxItems, stateEntityId,
+        return this.getEntitiesByGroupName(filter.groupType, filter.entityGroupNameFilter, maxItems, stateEntityId,
           {ignoreLoading: true, ignoreErrors: true}).pipe(
           map((entities) => {
               if (entities && entities.length || !failOnEmpty) {

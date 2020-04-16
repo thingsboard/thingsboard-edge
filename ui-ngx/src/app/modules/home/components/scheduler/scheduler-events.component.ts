@@ -42,8 +42,7 @@ import {
   SchedulerEvent,
   SchedulerEventWithCustomerInfo,
   SchedulerRepeatType,
-  schedulerRepeatTypeToUnitMap,
-  schedulerTimeUnitToUnitMap,
+  schedulerRepeatTypeToUnitMap, schedulerTimeUnitRepeatTranslationMap,
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
@@ -189,7 +188,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.initializeWidgetConfig();
       this.ctx.updateWidgetParams();
     } else {
-      this.displayedColumns = ['select', 'createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
+      this.displayedColumns = ['createdTime', 'name', 'typeName', 'customerTitle', 'actions'];
+      if (this.deleteEnabled) {
+        this.displayedColumns.unshift('select');
+      }
       const sortOrder: SortOrder = { property: this.defaultSortOrder, direction: Direction.ASC };
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
@@ -206,7 +208,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     const displayCustomer = isDefined(this.settings.displayCustomer) ? this.settings.displayCustomer : true;
 
     this.displayedColumns = [];
-    this.displayedColumns.push('select');
+    if (this.deleteEnabled) {
+      this.displayedColumns.push('select');
+    }
     if (displayCreatedTime) {
       this.displayedColumns.push('createdTime');
     }
@@ -590,7 +594,15 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   eventRender(arg: EventHandlerArg<'eventRender'>) {
-    const props: {name: string, type: string, info: string} = arg.event.extendedProps;
+    const props: {name: string, type: string, info: string, htmlTitle: string} = arg.event.extendedProps;
+    if (props.htmlTitle) {
+      if(arg.el.getElementsByClassName('fc-title').length > 0) {
+        arg.el.getElementsByClassName('fc-title')[0].innerHTML = props.htmlTitle;
+      }
+      if(arg.el.getElementsByClassName('fc-list-item-title').length > 0) {
+        arg.el.getElementsByClassName('fc-list-item-title')[0].innerHTML = props.htmlTitle;
+      }
+    }
     const element = $(arg.el);
     element.tooltipster(
       {
@@ -645,51 +657,57 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
           if (event.schedule.repeat) {
             const endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
             const repeatEndsOn = _moment(event.schedule.repeat.endsOn - endOffset);
-            let currentTime: _moment.Moment;
-            let eventStartOffsetUnits = 0;
-            if (rangeStart.isSameOrBefore(eventStart)) {
-              currentTime = eventStart.clone();
+            if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
+              calendarEvent = this.toCalendarEvent(event,
+                eventStart,
+                repeatEndsOn);
+              events.push(calendarEvent);
             } else {
-              switch (event.schedule.repeat.type) {
-                case SchedulerRepeatType.YEARLY:
-                case SchedulerRepeatType.MONTHLY:
-                  const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
-                  const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
-                  eventStartOffsetUnits =
-                    Math.ceil(eventStartOffsetDuration.as(offsetUnits));
-                  currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
-                  break;
-                default:
-                  currentTime = rangeStart.clone();
-                  currentTime.hours(eventStart.hours());
-                  currentTime.minutes(eventStart.minutes());
+              let currentTime: _moment.Moment;
+              let eventStartOffsetUnits = 0;
+              if (rangeStart.isSameOrBefore(eventStart)) {
+                currentTime = eventStart.clone();
+              } else {
+                switch (event.schedule.repeat.type) {
+                  case SchedulerRepeatType.YEARLY:
+                  case SchedulerRepeatType.MONTHLY:
+                    const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
+                    const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
+                    eventStartOffsetUnits =
+                      Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                    currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
+                    break;
+                  default:
+                    currentTime = rangeStart.clone();
+                    currentTime.hours(eventStart.hours());
+                    currentTime.minutes(eventStart.minutes());
+                    currentTime.seconds(eventStart.seconds())
+                }
               }
-            }
-            let endDate: _moment.Moment;
-            if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
-              endDate = repeatEndsOn.clone();
-            } else {
-              endDate = rangeEnd.clone();
-            }
-            while (currentTime.isBefore(endDate)) {
-              const day = currentTime.day();
-              if (event.schedule.repeat.type !== SchedulerRepeatType.WEEKLY ||
+              let eventEnd;
+              if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
+                eventEnd = repeatEndsOn.clone();
+              } else {
+                eventEnd = rangeEnd.clone();
+              }
+              while (currentTime.isBefore(eventEnd)) {
+                const day = currentTime.day();
+                if (event.schedule.repeat.type !== SchedulerRepeatType.WEEKLY ||
                   event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
-                const currentEventStart = currentTime.clone();
-                calendarEvent = this.toCalendarEvent(event, currentEventStart);
-                events.push(calendarEvent);
-              }
-              switch (event.schedule.repeat.type) {
-                case SchedulerRepeatType.TIMER:
-                  currentTime.add(event.schedule.repeat.repeatInterval, schedulerTimeUnitToUnitMap.get(event.schedule.repeat.timeUnit));
-                  break;
-                case SchedulerRepeatType.YEARLY:
-                case SchedulerRepeatType.MONTHLY:
-                  eventStartOffsetUnits++;
-                  currentTime = eventStart.clone().add(eventStartOffsetUnits, schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type));
-                  break;
-                default:
-                  currentTime.add(1, 'days');
+                  const currentEventStart = currentTime.clone();
+                  calendarEvent = this.toCalendarEvent(event, currentEventStart);
+                  events.push(calendarEvent);
+                }
+                switch (event.schedule.repeat.type) {
+                  case SchedulerRepeatType.YEARLY:
+                  case SchedulerRepeatType.MONTHLY:
+                    eventStartOffsetUnits++;
+                    currentTime = eventStart.clone()
+                      .add(eventStartOffsetUnits, schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type));
+                    break;
+                  default:
+                    currentTime.add(1, 'days');
+                }
               }
             }
           } else if (rangeStart.isSameOrBefore(eventStart)) {
@@ -702,14 +720,23 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     successCallback(events);
   }
 
-  private toCalendarEvent(event: SchedulerEventWithCustomerInfo, start: _moment.Moment): EventInput {
+  private toCalendarEvent(event: SchedulerEventWithCustomerInfo, start: _moment.Moment, end?: _moment.Moment): EventInput {
+    const title = `${event.name} - ${event.typeName}`;
+    let htmlTitle = null;
+    if (event.schedule.repeat && event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
+      const repeatInterval = this.translate.instant(schedulerTimeUnitRepeatTranslationMap.get(event.schedule.repeat.timeUnit),
+        {count: event.schedule.repeat.repeatInterval});
+      htmlTitle = ` <b>${repeatInterval}</b> ${title}`;
+    }
     const calendarEvent: EventInput = {
       id: event.id.id,
-      title: `${event.name} - ${event.typeName}`,
+      title,
       name: event.name,
       type: event.typeName,
       info: this.eventInfo(event),
-      start: start.toDate()
+      start: start.toDate(),
+      end: end ? end.toDate() : null,
+      htmlTitle
     };
     return calendarEvent;
   }
@@ -732,7 +759,9 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       } else if (event.schedule.repeat.type === SchedulerRepeatType.YEARLY) {
         info += this.translate.instant('scheduler.yearly') + ', ';
       } else if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
-        info += this.translate.instant('scheduler.timer') + ', ';
+          const repeatInterval = this.translate.instant(schedulerTimeUnitRepeatTranslationMap.get(event.schedule.repeat.timeUnit),
+            {count: event.schedule.repeat.repeatInterval});
+        info += repeatInterval + ', ';
       } else {
         info += this.translate.instant('scheduler.weekly') + ' ' + this.translate.instant('scheduler.on') + ' ';
         event.schedule.repeat.repeatOn.forEach((day) => {
@@ -758,6 +787,8 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   private allEntities: Observable<Array<SchedulerEventWithCustomerInfo>>;
 
+  public dataLoading = true;
+
   constructor(private schedulerEventService: SchedulerEventService,
               private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType}) {
   }
@@ -780,6 +811,7 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   loadEntities(pageLink: PageLink, eventType: string,
                reload: boolean = false): Observable<PageData<SchedulerEventWithCustomerInfo>> {
+    this.dataLoading = true;
     if (reload) {
       this.allEntities = null;
     }
@@ -794,6 +826,7 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
         this.entitiesSubject.next(pageData.data);
         this.pageDataSubject.next(pageData);
         result.next(pageData);
+        this.dataLoading = false;
       }
     );
     return result;

@@ -47,9 +47,9 @@
               [widgets]="widgetsData.widgets"
               [widgetLayouts]="widgetsData.widgetLayouts"
               [isEdit]="false"
-              [isEditActionEnabled]="true"
+              [isEditActionEnabled]="editEnabled"
               [isExportActionEnabled]="true"
-              [isRemoveActionEnabled]="!isReadOnly"
+              [isRemoveActionEnabled]="!isReadOnly && deleteEnabled"
               [callbacks]="dashboardCallbacks"></tb-dashboard>
-<tb-footer-fab-buttons [fxShow]="!isReadOnly" [footerFabButtons]="footerFabButtons">
+<tb-footer-fab-buttons [fxShow]="!isReadOnly && addEnabled" [footerFabButtons]="footerFabButtons">
 </tb-footer-fab-buttons>

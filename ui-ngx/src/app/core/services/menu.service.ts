@@ -375,7 +375,7 @@ export class MenuService {
         {
           name: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
-          path: '/customers-hierarchy',
+          path: '/customersHierarchy',
           icon: 'sort',
           disabled: disabledItems.indexOf('customers_hierarchy') > -1
         }
@@ -589,7 +589,7 @@ export class MenuService {
             {
               name: 'customers-hierarchy.customers-hierarchy',
               icon: 'sort',
-              path: '/customers-hierarchy',
+              path: '/customersHierarchy',
               disabled: disabledItems.indexOf('customers_hierarchy') > -1
             }
           ]
@@ -790,7 +790,7 @@ export class MenuService {
         {
           name: 'customers-hierarchy.customers-hierarchy',
           type: 'link',
-          path: '/customers-hierarchy',
+          path: '/customersHierarchy',
           icon: 'sort',
           disabled: disabledItems.indexOf('customers_hierarchy') > -1
         }
@@ -927,7 +927,7 @@ export class MenuService {
             {
               name: 'customers-hierarchy.customers-hierarchy',
               icon: 'sort',
-              path: '/customers-hierarchy',
+              path: '/customersHierarchy',
               disabled: disabledItems.indexOf('customers_hierarchy') > -1
             }
           ]

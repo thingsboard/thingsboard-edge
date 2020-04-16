@@ -48,9 +48,11 @@ import { AlarmService } from '@core/http/alarm.service';
 import { share, tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface AlarmDetailsDialogData {
-  alarmId: string;
+  alarmId?: string;
+  alarm?: AlarmInfo;
   allowAcknowledgment: boolean;
   allowClear: boolean;
   displayDetails: boolean;
@@ -63,6 +65,7 @@ export interface AlarmDetailsDialogData {
 })
 export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDialogComponent, boolean> implements OnInit {
 
+  alarmId: string;
   alarmFormGroup: FormGroup;
 
   allowAcknowledgment: boolean;
@@ -83,6 +86,7 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   constructor(protected store: Store<AppState>,
               protected router: Router,
               private datePipe: DatePipe,
+              private utils: UtilsService,
               private translate: TranslateService,
               @Inject(MAT_DIALOG_DATA) public data: AlarmDetailsDialogData,
               private alarmService: AlarmService,
@@ -109,12 +113,17 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
       }
     );
 
-    this.loadAlarm();
-
+    if (!this.data.alarm) {
+      this.alarmId = this.data.alarmId;
+      this.loadAlarm();
+    } else {
+      this.alarmId = this.data.alarm?.id?.id;
+      this.loadAlarmSubject.next(this.data.alarm);
+    }
   }
 
   loadAlarm() {
-    this.alarmService.getAlarmInfo(this.data.alarmId).subscribe(
+    this.alarmService.getAlarmInfo(this.alarmId).subscribe(
       alarm => this.loadAlarmSubject.next(alarm)
     );
   }
@@ -140,12 +149,19 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
       this.alarmFormGroup.get('clearTime')
         .patchValue(this.datePipe.transform(alarm.clearTs, 'yyyy-MM-dd HH:mm:ss'));
     }
-    this.alarmFormGroup.get('type').patchValue(alarm.type);
+    this.alarmFormGroup.get('type').patchValue(this.utils.customTranslation(alarm.type, alarm.type));
     this.alarmFormGroup.get('alarmSeverity')
       .patchValue(this.translate.instant(alarmSeverityTranslations.get(alarm.severity)));
     this.alarmFormGroup.get('alarmStatus')
       .patchValue(this.translate.instant(alarmStatusTranslations.get(alarm.status)));
-    this.alarmFormGroup.get('alarmDetails').patchValue(alarm.details);
+    if (alarm.details) {
+      let stringDetails = JSON.stringify(alarm.details, undefined, 2);
+      stringDetails = this.utils.customTranslation(stringDetails, stringDetails);
+      const details = JSON.parse(stringDetails);
+      this.alarmFormGroup.get('alarmDetails').patchValue(details);
+    } else {
+      this.alarmFormGroup.get('alarmDetails').patchValue(null);
+    }
   }
 
   ngOnInit(): void {
@@ -156,15 +172,25 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   }
 
   acknowledge(): void {
-    this.alarmService.ackAlarm(this.data.alarmId).subscribe(
-      () => { this.alarmUpdated = true; this.loadAlarm(); }
-    );
+    if (this.alarmId) {
+      this.alarmService.ackAlarm(this.alarmId).subscribe(
+        () => {
+          this.alarmUpdated = true;
+          this.loadAlarm();
+        }
+      );
+    }
   }
 
   clear(): void {
-    this.alarmService.clearAlarm(this.data.alarmId).subscribe(
-      () => { this.alarmUpdated = true; this.loadAlarm(); }
-    );
+    if (this.alarmId) {
+      this.alarmService.clearAlarm(this.alarmId).subscribe(
+        () => {
+          this.alarmUpdated = true;
+          this.loadAlarm();
+        }
+      );
+    }
   }
 
 }

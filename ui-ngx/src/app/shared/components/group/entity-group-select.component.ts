@@ -38,7 +38,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { EntityService } from '@core/http/entity.service';
 import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { EntityGroupInfo, entityGroupTypes } from '@shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-group-select',
@@ -119,20 +119,11 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
 
   ngOnInit() {
 
-    const groupTypes: Array<EntityType> = [
-      EntityType.CUSTOMER,
-      EntityType.ASSET,
-      EntityType.DEVICE,
-      EntityType.USER,
-      EntityType.ENTITY_VIEW,
-      EntityType.DASHBOARD
-    ];
-
-    this.entityGroupTypes = groupTypes;
+    this.entityGroupTypes = [...entityGroupTypes];
 
     if (this.allowedGroupTypes && this.allowedGroupTypes.length) {
       this.entityGroupTypes = [];
-      groupTypes.forEach((groupType) => {
+      entityGroupTypes.forEach((groupType) => {
         if (this.allowedGroupTypes.indexOf(groupType) !== -1) {
           this.entityGroupTypes.push(groupType);
         }

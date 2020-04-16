@@ -45,6 +45,7 @@ import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.compone
 import { PaletteComponent } from '@home/pages/admin/palette.component';
 import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
 import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
+import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 
 @NgModule({
   declarations:
@@ -58,7 +59,8 @@ import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.co
       SecuritySettingsComponent,
       PaletteComponent,
       PaletteDialogComponent,
-      CustomCssDialogComponent
+      CustomCssDialogComponent,
+      SelfRegistrationComponent
     ],
   imports: [
     CommonModule,

@@ -32,19 +32,19 @@
 import { GroupPermission } from '@shared/models/group-permission.models';
 
 export interface SignUpSelfRegistrationParams {
-  signUpTextMessage: string;
-  captchaSiteKey: string;
+  signUpTextMessage?: string;
+  captchaSiteKey?: string;
   activate?: boolean;
 }
 
 export interface SelfRegistrationParams extends SignUpSelfRegistrationParams {
-  adminSettingsId: string;
-  domainName: string;
-  captchaSecretKey: string;
-  privacyPolicy: string;
-  notificationEmail: string;
-  defaultDashboardId: string;
-  defaultDashboardFullscreen: boolean;
-  permissions: GroupPermission[];
+  adminSettingsId?: string;
+  domainName?: string;
+  captchaSecretKey?: string;
+  privacyPolicy?: string;
+  notificationEmail?: string;
+  defaultDashboardId?: string;
+  defaultDashboardFullscreen?: boolean;
+  permissions?: GroupPermission[];
 }
 

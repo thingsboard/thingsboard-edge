@@ -60,6 +60,7 @@ import {
   widgetActionSources,
   WidgetActionType,
   WidgetComparisonSettings,
+  WidgetExportType,
   WidgetResource,
   widgetType,
   WidgetTypeParameters
@@ -70,7 +71,7 @@ import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
 import { UtilsService } from '@core/services/utils.service';
 import { forkJoin, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
-import { deepClone, isDefined, objToBase64 } from '@core/utils';
+import { deepClone, isDefined, isFunction, objToBase64 } from '@core/utils';
 import {
   IDynamicWidgetComponent,
   WidgetContext,
@@ -107,6 +108,7 @@ import { WidgetSubscription } from '@core/api/widget-subscription';
 import { EntityService } from '@core/http/entity.service';
 import { DatePipe } from '@angular/common';
 import { ServicesMap } from '@home/models/services.map';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 
 @Component({
   selector: 'tb-widget',
@@ -137,6 +139,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   widgetTypeInstance: WidgetTypeInstance;
   widgetErrorData: ExceptionData;
   loadingData: boolean;
+  displayNoData = false;
 
   displayLegend: boolean;
   legendConfig: LegendConfig;
@@ -177,6 +180,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
               private alarmService: AlarmService,
               private dashboardService: DashboardService,
               private datasourceService: DatasourceService,
+              private importExport: ImportExportService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private raf: RafService,
@@ -284,6 +288,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       elementClick: this.elementClick.bind(this),
       getActiveEntityInfo: this.getActiveEntityInfo.bind(this)
     };
+
+    this.widgetContext.exportWidgetData = this.exportWidgetData.bind(this);
 
     this.widgetContext.customHeaderActions = [];
     const headerActionsDescriptors = this.getActionDescriptors(widgetActionSources.headerButton.value);
@@ -496,6 +502,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
             this.widgetTypeInstance.onInit();
           } else {
             this.loadingData = false;
+            this.displayNoData = true;
           }
           this.detectChanges();
         } catch (e) {
@@ -628,6 +635,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
           subscriptionChanged = subscriptionChanged || subscription.onAliasesChanged(aliasIds);
         }
         if (subscriptionChanged && !this.typeParameters.useCustomDatasources) {
+          this.displayNoData = false;
           this.reInit();
         }
       }
@@ -1130,6 +1138,33 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       messageToShow += `<div>${error}</div>`;
     });
     this.store.dispatch(new ActionNotificationShow({message: messageToShow, type: 'error'}));
+  }
+
+  private exportWidgetData(widgetExportType: WidgetExportType) {
+    let filename: string;
+    if (this.widgetContext.widgetTitle && this.widgetContext.widgetTitle.length) {
+      filename = this.widgetContext.widgetTitle;
+    } else {
+      filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
+    }
+    const data = this.prepareWidgetExportData();
+    if (widgetExportType === WidgetExportType.csv) {
+      this.importExport.exportCsv(data, filename);
+    } else if (widgetExportType === WidgetExportType.xls) {
+      this.importExport.exportXls(data, filename);
+    } else if (widgetExportType === WidgetExportType.xlsx) {
+      this.importExport.exportXlsx(data, filename);
+    }
+  }
+
+  private prepareWidgetExportData(): {[key: string]: any}[] {
+    if (isFunction(this.widgetContext.customDataExport)) {
+      return this.widgetContext.customDataExport();
+    } else if (this.widgetContext.defaultSubscription){
+      return this.widgetContext.defaultSubscription.exportData();
+    } else {
+      return [];
+    }
   }
 
   private getActiveEntityInfo(): SubscriptionEntityInfo {

@@ -337,6 +337,20 @@ export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
   ]
 );
 
+export enum WidgetExportType {
+  csv = 'csv',
+  xls = 'xls',
+  xlsx = 'xlsx'
+}
+
+export const widgetExportTypeTranslationMap = new Map<WidgetExportType, string>(
+  [
+    [ WidgetExportType.csv, 'widget.export-to-csv' ],
+    [ WidgetExportType.xls, 'widget.export-to-excel' ],
+    [ WidgetExportType.xlsx, 'widget.export-to-excel-xlsx' ]
+  ]
+);
+
 export interface CustomActionDescriptor {
   customFunction?: string;
   customResources?: Array<WidgetResource>;
@@ -372,6 +386,7 @@ export interface WidgetConfig {
   titleTooltip?: string;
   dropShadow?: boolean;
   enableFullscreen?: boolean;
+  enableDataExport?: boolean;
   useDashboardTimewindow?: boolean;
   displayTimewindow?: boolean;
   showLegend?: boolean;

@@ -374,7 +374,11 @@ export enum MessageType {
   ENTITY_ASSIGNED = 'ENTITY_ASSIGNED',
   ENTITY_UNASSIGNED = 'ENTITY_UNASSIGNED',
   ATTRIBUTES_UPDATED = 'ATTRIBUTES_UPDATED',
-  ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED'
+  ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
+  REST_API_REQUEST = 'REST_API_REQUEST',
+  generateReport = 'generateReport'
 }
 
 export const messageTypeNames = new Map<MessageType, string>(
@@ -393,7 +397,11 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ENTITY_ASSIGNED, 'Entity Assigned'],
     [MessageType.ENTITY_UNASSIGNED, 'Entity Unassigned'],
     [MessageType.ATTRIBUTES_UPDATED, 'Attributes Updated'],
-    [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted']
+    [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
+    [MessageType.ADDED_TO_ENTITY_GROUP, 'Added to Group'],
+    [MessageType.REMOVED_FROM_ENTITY_GROUP, 'Removed from Group'],
+    [MessageType.REST_API_REQUEST, 'REST API request'],
+    [MessageType.generateReport, 'Generate Report']
   ]
 );
 

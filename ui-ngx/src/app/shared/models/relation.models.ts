@@ -47,6 +47,8 @@ export enum RelationTypeGroup {
   DASHBOARD = 'DASHBOARD',
   RULE_CHAIN = 'RULE_CHAIN',
   RULE_NODE = 'RULE_NODE',
+  FROM_ENTITY_GROUP = 'FROM_ENTITY_GROUP',
+  TO_ENTITY_GROUP = 'TO_ENTITY_GROUP'
 }
 
 export enum EntitySearchDirection {

@@ -48,6 +48,7 @@ import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { UserModule } from '@home/pages/user/user.module';
 import { CustomerModule } from '@home/pages/customer/customer.module';
+import { CustomersHierarchyComponent } from './customers-hierarchy.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +57,8 @@ import { CustomerModule } from '@home/pages/customer/customer.module';
     EntityGroupSettingsComponent,
     EntityGroupColumnComponent,
     EntityGroupColumnsComponent,
-    EntityGroupColumnDialogComponent
+    EntityGroupColumnDialogComponent,
+    CustomersHierarchyComponent
   ],
   imports: [
     CommonModule,

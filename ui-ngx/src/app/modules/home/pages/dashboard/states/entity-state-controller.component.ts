@@ -44,6 +44,7 @@ import { EntityService } from '@core/http/entity.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { map, tap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 // @dynamic
 @Component({
@@ -317,6 +318,9 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
             tap((entity) => {
               params.entityName = entity.name;
               params.entityLabel = entity.label;
+              if (params.entityId.entityType === EntityType.ENTITY_GROUP) {
+                params.entityGroupType = (entity as EntityGroupInfo).type;
+              }
             }),
           map(() => null)
         );
@@ -327,6 +331,9 @@ export class EntityStateControllerComponent extends StateControllerComponent imp
   }
 
   private isEntityResolved(params: StateParams): boolean {
+    if (params.entityId && params.entityId.entityType === EntityType.ENTITY_GROUP && !params.entityGroupType) {
+      return false;
+    }
     if (!params.entityName || !params.entityName.length) {
       return false;
     }

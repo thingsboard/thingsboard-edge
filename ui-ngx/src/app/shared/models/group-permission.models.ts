@@ -64,4 +64,5 @@ export interface GroupPermissionFullInfo extends GroupPermissionInfo {
   entityGroupTypeName?: string;
   entityGroupOwnerFullName?: string;
   userGroupOwnerFullName?: string;
+  sourceGroupPermission?: GroupPermission;
 }

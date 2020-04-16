@@ -31,11 +31,21 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData, HasId } from '@shared/models/base-data';
+import { BaseData } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
-import { ActivatedRouteSnapshot, Params } from '@angular/router';
-import { Observable } from 'rxjs';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { isEqual } from '@core/utils';
+import { Customer } from '@shared/models/customer.model';
+
+export const entityGroupTypes: EntityType[] = [
+  EntityType.CUSTOMER,
+  EntityType.ASSET,
+  EntityType.DEVICE,
+  EntityType.USER,
+  EntityType.ENTITY_VIEW,
+  EntityType.DASHBOARD
+];
 
 export const entityGroupActionTypes: WidgetActionType[] = [
   WidgetActionType.openDashboard,
@@ -302,13 +312,29 @@ export function entityGroupsTitle(groupType: EntityType) {
   }
 }
 
+export interface HierarchyCallbacks {
+  groupSelected?: (parentNodeId: string, groupId: string) => void;
+  customerGroupsSelected?: (parentNodeId: string, customerId: string, groupsType: EntityType) => void;
+  refreshEntityGroups?: (internalId: string) => void;
+  refreshCustomerGroups?: (customerGroupIds: string[]) => void;
+  groupUpdated?: (entityGroup: EntityGroupInfo) => void;
+  groupDeleted?: (groupNodeId: string, entityGroupId: string) => void;
+  groupAdded?: (entityGroup: EntityGroupInfo, existingGroupId: string) => void;
+  customerAdded?: (parentNodeId: string, customer: Customer) => void;
+  customerUpdated?: (customer: Customer) => void;
+  customersDeleted?: (customerIds: string[]) => void;
+}
+
 export interface EntityGroupParams {
   customerId?: string;
   entityGroupId?: string;
   childEntityGroupId?: string;
   groupType?: EntityType;
   childGroupType?: EntityType;
-  entityGroup?: EntityGroupInfo;
+  hierarchyView?: boolean;
+  nodeId?: string;
+  internalId?: string;
+  hierarchyCallbacks?: HierarchyCallbacks;
 }
 
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
@@ -316,15 +342,21 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
   let routeData = {...route.data};
   while (route.parent !== null) {
     route = route.parent;
+    if (routeParams.entityGroupId && route.params.entityGroupId &&
+        !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
+      routeParams.childEntityGroupId = routeParams.entityGroupId;
+    }
+    if (routeData.groupType && route.data.groupType && !isEqual(routeData.groupType, route.data.groupType)) {
+      routeData.childGroupType = routeData.groupType;
+    }
     routeParams = {...routeParams, ...route.params};
-    routeData = {...routeData, ...route.data};
+    routeData = { ...routeData, ...route.data };
   }
   return {
     customerId: routeParams.customerId,
     entityGroupId: routeParams.entityGroupId,
-    childEntityGroupId: routeParams.childEntityGroupId,
     groupType: routeData.groupType,
-    childGroupType: routeData.childGroupType,
-    entityGroup: routeData.entityGroup
+    childEntityGroupId: routeParams.childEntityGroupId,
+    childGroupType: routeData.childGroupType
   }
 }

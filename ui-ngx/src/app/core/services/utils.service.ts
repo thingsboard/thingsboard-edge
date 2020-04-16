@@ -190,7 +190,7 @@ export class UtilsService {
     return deepClone(this.defaultAlarmDataKeys);
   }
 
-  public defaultAlarmFieldContent(key: DataKey, value: any): string {
+  public defaultAlarmFieldContent(key: DataKey | {name: string}, value: any): string {
     if (isDefined(value)) {
       const alarmField = alarmFields[key.name];
       if (alarmField) {
@@ -562,6 +562,14 @@ export class UtilsService {
       return value;
     } else {
       return defaultValue;
+    }
+  }
+
+  public translateText(text: string): string {
+    if (text.startsWith('${') && text.endsWith('}')) {
+      return this.translate.instant(text.substring(2, text.length - 1))
+    } else {
+      return text;
     }
   }
 }

@@ -105,6 +105,7 @@ import { EntityTypeSelectComponent } from '@shared/components/entity/entity-type
 import { EntitySelectComponent } from '@shared/components/entity/entity-select.component';
 import { EntityGroupAutocompleteComponent } from '@shared/components/group/entity-group-autocomplete.component';
 import { EntityGroupSelectComponent } from '@shared/components/group/entity-group-select.component';
+import { EntityGroupListComponent } from '@shared/components/group/entity-group-list.component';
 import { DatetimeComponent } from '@shared/components/time/datetime.component';
 import { TimezoneSelectComponent } from '@shared/components/time/timezone-select.component';
 import { EntityKeysListComponent } from '@shared/components/entity/entity-keys-list.component';
@@ -215,6 +216,7 @@ import { DndModule } from 'ngx-drag-drop';
     EntitySelectComponent,
     EntityGroupAutocompleteComponent,
     EntityGroupSelectComponent,
+    EntityGroupListComponent,
     OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,
@@ -344,6 +346,7 @@ import { DndModule } from 'ngx-drag-drop';
     EntitySelectComponent,
     EntityGroupAutocompleteComponent,
     EntityGroupSelectComponent,
+    EntityGroupListComponent,
     OriginatorSelectComponent,
     EntityKeysListComponent,
     EntityListSelectComponent,

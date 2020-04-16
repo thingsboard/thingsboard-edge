@@ -31,6 +31,7 @@
 
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { LegendConfig, LegendData, LegendDirection, LegendKey, LegendPosition } from '@shared/models/widget.models';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-legend',
@@ -54,6 +55,9 @@ export class LegendComponent implements OnInit {
 
   isRowDirection: boolean;
 
+  constructor(private utils: UtilsService) {
+  }
+
   ngOnInit(): void {
     this.displayHeader = this.legendConfig.showMin === true ||
       this.legendConfig.showMax === true ||
@@ -76,6 +80,10 @@ export class LegendComponent implements OnInit {
   legendKeys(): LegendKey[] {
     return this.legendData.keys
       .filter(legendKey => this.legendData.keys[legendKey.dataIndex].dataKey.inLegend);
+  }
+
+  getDataKeyLabel(label: string): string {
+    return this.utils.customTranslation(label, label);
   }
 
 }

@@ -36,7 +36,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { catchError, map, publishReplay, refCount, take, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { GroupPermissionFullInfo } from '@shared/models/group-permission.models';
+import { GroupPermission, GroupPermissionFullInfo } from '@shared/models/group-permission.models';
 import { RoleService } from '@core/http/role.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
@@ -64,12 +64,13 @@ export class GroupPermissionsDatasource implements DataSource<GroupPermissionFul
   }
 
   loadGroupPermissions(entityGroup: EntityGroupInfo,
+                       registrationPermissions: Array<GroupPermission>,
                        pageLink: PageLink, reload: boolean = false): Observable<PageData<GroupPermissionFullInfo>> {
     if (reload) {
       this.allGroupPermissions = null;
     }
     const result = new ReplaySubject<PageData<GroupPermissionFullInfo>>();
-    this.fetchGroupPermissions(entityGroup, pageLink).pipe(
+    this.fetchGroupPermissions(entityGroup, registrationPermissions, pageLink).pipe(
       tap(() => {
         this.selection.clear();
       }),
@@ -85,24 +86,40 @@ export class GroupPermissionsDatasource implements DataSource<GroupPermissionFul
   }
 
   fetchGroupPermissions(entityGroup: EntityGroupInfo,
+                        registrationPermissions: Array<GroupPermission>,
                         pageLink: PageLink): Observable<PageData<GroupPermissionFullInfo>> {
-    return this.getAllGroupPermissions(entityGroup).pipe(
+    return this.getAllGroupPermissions(entityGroup, registrationPermissions).pipe(
       map((data) => pageLink.filterData(data))
     );
   }
 
-  getAllGroupPermissions(entityGroup: EntityGroupInfo): Observable<Array<GroupPermissionFullInfo>> {
+  getAllGroupPermissions(entityGroup: EntityGroupInfo,
+                         registrationPermissions: Array<GroupPermission>): Observable<Array<GroupPermissionFullInfo>> {
     if (!this.allGroupPermissions) {
       let groupPermissionsObservable: Observable<Array<GroupPermissionFullInfo>>;
-      const isUserGroup = entityGroup.type === EntityType.USER;
-      if (isUserGroup) {
-        groupPermissionsObservable = this.roleService.getUserGroupPermissions(entityGroup.id.id);
+      let isUserGroup: boolean;
+      if (entityGroup) {
+        isUserGroup = entityGroup.type === EntityType.USER;
+        if (isUserGroup) {
+          groupPermissionsObservable = this.roleService.getUserGroupPermissions(entityGroup.id.id);
+        } else {
+          groupPermissionsObservable = this.roleService.getEntityGroupPermissions(entityGroup.id.id);
+        }
       } else {
-        groupPermissionsObservable = this.roleService.getEntityGroupPermissions(entityGroup.id.id);
+        isUserGroup = true;
+        if (registrationPermissions && registrationPermissions.length) {
+          groupPermissionsObservable = this.roleService.loadUserGroupPermissionInfos(registrationPermissions);
+        } else {
+          groupPermissionsObservable = of([]);
+        }
       }
       this.allGroupPermissions = groupPermissionsObservable.pipe(
         map(groupPermissions => {
-          groupPermissions.forEach(groupPermission => {
+          for (let i = 0; i < groupPermissions.length; i++) {
+            const groupPermission = groupPermissions[i];
+            if (registrationPermissions) {
+              groupPermission.sourceGroupPermission = registrationPermissions[i];
+            }
             groupPermission.roleName = groupPermission.role.name;
             if (isUserGroup) {
               groupPermission.roleTypeName = this.translate.instant(`role.display-type.${groupPermission.role.type}`);
@@ -126,7 +143,7 @@ export class GroupPermissionsDatasource implements DataSource<GroupPermissionFul
               userGroupOwnerFullName += ` (${this.translate.instant(entityTypeTranslations.get(userGroupOwnerType).type)})`;
               groupPermission.userGroupOwnerFullName = userGroupOwnerFullName;
             }
-          });
+          }
           return groupPermissions;
         }),
         publishReplay(1),
