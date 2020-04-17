@@ -39,6 +39,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { ShortEntityView } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 
+// @dynamic
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class GroupEntityComponent<T extends BaseData<HasId>>
