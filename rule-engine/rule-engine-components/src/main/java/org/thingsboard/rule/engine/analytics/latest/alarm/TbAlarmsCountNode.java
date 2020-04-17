@@ -66,7 +66,7 @@ import java.util.function.Predicate;
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
         icon = "functions"
 )

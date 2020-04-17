@@ -51,7 +51,7 @@ import java.util.List;
         nodeDescription = "Duplicates message to related entities fetched by relation query",
         nodeDetails = "Related Entities found using configured relation direction and Relation Type. " +
                 "For each found related entity new message is created with related entity as originator and message parameters copied from original message.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToRelatedConfig",
         icon = "call_split"
 )

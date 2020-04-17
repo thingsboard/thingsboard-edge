@@ -57,7 +57,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         configClazz = TbGenerateReportNodeConfiguration.class,
         nodeDescription = "Generates report",
         nodeDetails = "Generates dashboard based reports.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGenerateReportConfig",
         icon = "description"
 )

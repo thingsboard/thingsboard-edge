@@ -77,7 +77,7 @@ import java.util.function.Consumer;
                 "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
                 "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with the results of the aggregation for particular interval.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
 )
