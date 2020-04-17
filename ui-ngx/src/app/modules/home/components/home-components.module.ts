@@ -86,7 +86,6 @@ import { OperationTypeListComponent } from '@home/components/role/operation-type
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
 import { GroupPermissionsComponent } from '@home/components/role/group-permissions.component';
-import { OwnerAutocompleteComponent } from '@home/components/role/owner-autocomplete.component';
 import { GroupPermissionDialogComponent } from '@home/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
@@ -160,7 +159,6 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
       GroupPermissionsComponent,
       GroupPermissionDialogComponent,
       ViewRoleDialogComponent,
-      OwnerAutocompleteComponent,
       GroupEntitiesTableComponent,
       GroupEntityTabsComponent,
       GroupEntityTableHeaderComponent,
@@ -222,7 +220,6 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ViewRoleDialogComponent,
-    OwnerAutocompleteComponent,
     GroupEntitiesTableComponent,
     GroupEntityTabsComponent,
     GroupEntityTableHeaderComponent,
