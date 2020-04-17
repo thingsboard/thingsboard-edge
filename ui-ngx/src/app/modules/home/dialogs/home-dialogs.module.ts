@@ -32,8 +32,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
-import { AssignToCustomerDialogComponent } from '@modules/home/dialogs/assign-to-customer-dialog.component';
-import { AddEntitiesToCustomerDialogComponent } from '@modules/home/dialogs/add-entities-to-customer-dialog.component';
 import { HomeDialogsService } from './home-dialogs.service';
 import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.component';
 import { HomeComponentsModule } from '@home/components/home-components.module';
