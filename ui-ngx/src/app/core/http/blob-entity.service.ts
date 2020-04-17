@@ -41,6 +41,7 @@ import { DOCUMENT } from '@angular/common';
 import { WINDOW } from '@core/services/window.service';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 
+// @dynamic
 @Injectable({
   providedIn: 'root'
 })
