@@ -64,6 +64,7 @@ export interface SelectEntityGroupDialogData {
   onEntityGroupSelected: (result: SelectEntityGroupDialogResult) => Observable<boolean>;
 }
 
+// @dynamic
 @Component({
   selector: 'tb-select-entity-group-dialog',
   templateUrl: './select-entity-group-dialog.component.html',

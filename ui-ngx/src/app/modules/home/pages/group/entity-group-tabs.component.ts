@@ -41,6 +41,7 @@ import {
 } from '@shared/models/entity-group.models';
 import { WidgetActionsData } from '@home/components/widget/action/manage-widget-actions.component.models';
 
+// @dynamic
 @Component({
   selector: 'tb-entity-group-tabs',
   templateUrl: './entity-group-tabs.component.html',

@@ -41,6 +41,7 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { Operation, publicGroupTypes } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
+// @dynamic
 @Component({
   selector: 'tb-entity-group',
   templateUrl: './entity-group.component.html',
