@@ -95,6 +95,15 @@ import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-
 import { GroupEntityTableHeaderComponent } from '@home/components/group/group-entity-table-header.component';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { RegistrationPermissionsComponent } from './role/registration-permissions.component';
+import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
+import { EntityGroupComponent } from '@home/components/group/entity-group.component';
+import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
+import { EntityGroupSettingsComponent } from '@home/components/group/entity-group-settings.component';
+import { EntityGroupColumnsComponent } from '@home/components/group/entity-group-columns.component';
+import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
+import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 
 @NgModule({
   declarations:
@@ -155,13 +164,20 @@ import { RegistrationPermissionsComponent } from './role/registration-permission
       GroupEntitiesTableComponent,
       GroupEntityTabsComponent,
       GroupEntityTableHeaderComponent,
+      EntityGroupComponent,
+      EntityGroupTabsComponent,
+      EntityGroupSettingsComponent,
+      EntityGroupColumnComponent,
+      EntityGroupColumnsComponent,
+      EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
       RegistrationPermissionsComponent
     ],
   imports: [
     CommonModule,
     SharedModule,
-    SharedHomeComponentsModule
+    SharedHomeComponentsModule,
+    HomeDialogsModule
   ],
   exports: [
     EntitiesTableComponent,
@@ -210,6 +226,12 @@ import { RegistrationPermissionsComponent } from './role/registration-permission
     GroupEntitiesTableComponent,
     GroupEntityTabsComponent,
     GroupEntityTableHeaderComponent,
+    EntityGroupComponent,
+    EntityGroupTabsComponent,
+    EntityGroupSettingsComponent,
+    EntityGroupColumnComponent,
+    EntityGroupColumnsComponent,
+    EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
     RegistrationPermissionsComponent
   ],
@@ -217,7 +239,9 @@ import { RegistrationPermissionsComponent } from './role/registration-permission
     WidgetComponentService,
     CustomDialogService,
     ImportExportService,
-    GroupConfigTableConfigService
+    GroupConfigTableConfigService,
+    EntityGroupsTableConfigResolver,
+    EntityGroupConfigResolver
   ]
 })
 export class HomeComponentsModule { }

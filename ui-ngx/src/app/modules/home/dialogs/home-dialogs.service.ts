@@ -51,7 +51,6 @@ import {
   SelectEntityGroupDialogResult
 } from '@home/dialogs/select-entity-group-dialog.component';
 
-// @dynamic
 @Injectable()
 export class HomeDialogsService {
   constructor(

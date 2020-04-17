@@ -52,12 +52,12 @@ import { Customer } from '@shared/models/customer.model';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { groupResourceByGroupType, Operation } from '@shared/models/security.models';
 import { TranslateService } from '@ngx-translate/core';
-import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { BaseData, HasId } from '@shared/models/base-data';
-import { EntityGroupsTableConfig } from '@home/pages/group/entity-groups-table-config';
 import { deepClone } from '@core/utils';
+import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,

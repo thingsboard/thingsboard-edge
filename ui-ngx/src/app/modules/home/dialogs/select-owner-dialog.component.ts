@@ -50,7 +50,6 @@ export interface SelectOwnerDialogData {
   onOwnerSelected: (targetOwnerId: EntityId) => Observable<boolean>;
 }
 
-// @dynamic
 @Component({
   selector: 'tb-select-owner-dialog',
   templateUrl: './select-owner-dialog.component.html',

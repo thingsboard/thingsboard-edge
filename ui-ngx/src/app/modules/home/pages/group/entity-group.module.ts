@@ -34,15 +34,8 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
-import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
 import { EntityGroupRoutingModule } from '@home/pages/group/entity-group-routing.module';
-import { EntityGroupSettingsComponent } from '@home/pages/group/entity-group-settings.component';
-import { EntityGroupColumnComponent } from '@home/pages/group/entity-group-column.component';
-import { EntityGroupColumnsComponent } from '@home/pages/group/entity-group-columns.component';
-import { EntityGroupColumnDialogComponent } from '@home/pages/group/entity-group-column-dialog.component';
 import { DeviceModule } from '@home/pages/device/device.module';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { AssetModule } from '@home/pages/asset/asset.module';
 import { EntityViewModule } from '@home/pages/entity-view/entity-view.module';
 import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
@@ -52,12 +45,6 @@ import { CustomersHierarchyComponent } from './customers-hierarchy.component';
 
 @NgModule({
   declarations: [
-    EntityGroupComponent,
-    EntityGroupTabsComponent,
-    EntityGroupSettingsComponent,
-    EntityGroupColumnComponent,
-    EntityGroupColumnsComponent,
-    EntityGroupColumnDialogComponent,
     CustomersHierarchyComponent
   ],
   imports: [
@@ -74,7 +61,6 @@ import { CustomersHierarchyComponent } from './customers-hierarchy.component';
     EntityGroupRoutingModule
   ],
   providers: [
-    EntityGroupConfigResolver
   ]
 })
 export class EntityGroupModule { }

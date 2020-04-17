@@ -32,16 +32,14 @@
 import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
+import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
 import {
   entityGroupActionSources,
-  entityGroupActionTypes, EntityGroupColumn,
-  EntityGroupInfo,
-  EntityGroupSettings
+  entityGroupActionTypes,
+  EntityGroupInfo
 } from '@shared/models/entity-group.models';
 import { WidgetActionsData } from '@home/components/widget/action/manage-widget-actions.component.models';
 
-// @dynamic
 @Component({
   selector: 'tb-entity-group-tabs',
   templateUrl: './entity-group-tabs.component.html',

@@ -46,13 +46,13 @@ import { UtilsService } from '@core/services/utils.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { EntityGroupComponent } from '@home/pages/group/entity-group.component';
-import { EntityGroupTabsComponent } from '@home/pages/group/entity-group-tabs.component';
 import { isDefinedAndNotNull } from '@core/utils';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Operation, publicGroupTypes, resourceByEntityType } from '@shared/models/security.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
+import { EntityGroupComponent } from '@home/components/group/entity-group.component';
+import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 

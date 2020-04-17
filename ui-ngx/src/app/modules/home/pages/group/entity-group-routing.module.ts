@@ -32,13 +32,11 @@
 import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
 
-import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
+import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
-import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Observable } from 'rxjs';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
@@ -50,6 +48,8 @@ import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { map } from 'rxjs/operators';
 import { dashboardBreadcumbLabelFunction } from '@home/pages/dashboard/dashboard-routing.module';
 import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarchy.component';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -520,7 +520,6 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    EntityGroupsTableConfigResolver,
     EntityGroupResolver,
     DashboardResolver,
     {

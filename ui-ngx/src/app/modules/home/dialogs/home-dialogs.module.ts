@@ -47,8 +47,7 @@ import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-gr
   ],
   imports: [
     CommonModule,
-    SharedModule,
-    HomeComponentsModule
+    SharedModule
   ],
   exports: [
     SelectOwnerDialogComponent,

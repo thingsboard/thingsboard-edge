@@ -43,7 +43,7 @@ import { map } from 'rxjs/operators';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerService } from '@core/http/customer.service';
-import { EntityGroupsTableConfig } from '@home/pages/group/entity-groups-table-config';
+import { EntityGroupsTableConfig } from './entity-groups-table-config';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTableConfig> {

@@ -48,7 +48,7 @@ import { MatDialog } from '@angular/material/dialog';
 import {
   EntityGroupColumnDialogComponent,
   EntityGroupColumnDialogData
-} from '@home/pages/group/entity-group-column-dialog.component';
+} from '@home/components/group/entity-group-column-dialog.component';
 import { deepClone } from '@core/utils';
 
 @Component({

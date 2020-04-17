@@ -32,7 +32,7 @@
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
+import { EntityComponent } from '@home/components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,7 +41,6 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { Operation, publicGroupTypes } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
-// @dynamic
 @Component({
   selector: 'tb-entity-group',
   templateUrl: './entity-group.component.html',
