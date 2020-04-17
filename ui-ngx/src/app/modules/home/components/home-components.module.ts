@@ -178,6 +178,7 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
     HomeDialogsModule
   ],
   exports: [
+    SharedHomeComponentsModule,
     EntitiesTableComponent,
     AddEntityDialogComponent,
     DetailsPanelComponent,

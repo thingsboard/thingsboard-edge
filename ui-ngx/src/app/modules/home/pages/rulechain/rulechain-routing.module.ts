@@ -64,7 +64,6 @@ import * as TranslateCore from '@ngx-translate/core';
 import * as TbCore from '@core/public-api';
 import * as TbShared from '@shared/public-api';
 import * as TbHomeComponents from '@home/components/public-api';
-import * as TbSharedHomeComponents from '@home/components/shared-public-api';
 import { ItemBufferService } from '@core/public-api';
 
 declare const SystemJS;
@@ -83,8 +82,7 @@ const ruleNodeConfigResourcesModulesMap = {
   '@ngx-translate/core': SystemJS.newModule(TranslateCore),
   '@core/public-api': SystemJS.newModule(TbCore),
   '@shared/public-api': SystemJS.newModule(TbShared),
-  '@home/components/public-api': SystemJS.newModule(TbHomeComponents),
-  '@home/components/shared-public-api': SystemJS.newModule(TbSharedHomeComponents)
+  '@home/components/public-api': SystemJS.newModule(TbHomeComponents)
 };
 
 const t = SystemJS.newModule(AngularCore);
