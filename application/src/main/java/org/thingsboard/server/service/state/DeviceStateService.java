@@ -56,6 +56,6 @@ public interface DeviceStateService extends ApplicationListener<PartitionChangeE
 
     void onDeviceInactivityTimeoutUpdate(DeviceId deviceId, long inactivityTimeout);
 
-    void onQueueMsg(TransportProtos.DeviceStateServiceMsgProto serverAddress, TbCallback bytes);
+    void onQueueMsg(TransportProtos.DeviceStateServiceMsgProto proto, TbCallback bytes);
 
 }

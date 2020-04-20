@@ -42,11 +42,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ProcessingAttemptContext {
 
     private final TbRuleEngineSubmitStrategy submitStrategy;
 
+    private final AtomicInteger pendingCount;
     private final CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
     @Getter
     private final ConcurrentMap<UUID, TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> pendingMap;
@@ -60,6 +62,7 @@ public class ProcessingAttemptContext {
     public ProcessingAttemptContext(TbRuleEngineSubmitStrategy submitStrategy) {
         this.submitStrategy = submitStrategy;
         this.pendingMap = submitStrategy.getPendingMap();
+        this.pendingCount = new AtomicInteger(pendingMap.size());
     }
 
     public boolean await(long packProcessingTimeout, TimeUnit milliseconds) throws InterruptedException {
@@ -69,16 +72,12 @@ public class ProcessingAttemptContext {
     public void onSuccess(UUID id) {
         TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg> msg;
         boolean empty = false;
-        synchronized (pendingMap) {
-            msg = pendingMap.remove(id);
-            if (msg != null) {
-                empty = pendingMap.isEmpty();
-            }
-        }
+        msg = pendingMap.remove(id);
         if (msg != null) {
+            empty = pendingCount.decrementAndGet() == 0;
             successMap.put(id, msg);
+            submitStrategy.onSuccess(id);
         }
-        submitStrategy.onSuccess(id);
         if (empty) {
             processingTimeoutLatch.countDown();
         }
@@ -87,13 +86,9 @@ public class ProcessingAttemptContext {
     public void onFailure(TenantId tenantId, UUID id, RuleEngineException e) {
         TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg> msg;
         boolean empty = false;
-        synchronized (pendingMap) {
-            msg = pendingMap.remove(id);
-            if (msg != null) {
-                empty = pendingMap.isEmpty();
-            }
-        }
+        msg = pendingMap.remove(id);
         if (msg != null) {
+            empty = pendingCount.decrementAndGet() == 0;
             failedMap.put(id, msg);
             exceptionsMap.putIfAbsent(tenantId, e);
         }

@@ -2420,6 +2420,11 @@
         "no-timezones-matching": "No timezones matching '{{timezone}}' were found.",
         "timezone-required": "Timezone is required."
     },
+    "queue": {
+        "select_name": "Select queue name",
+        "name": "Queue Name",
+        "name_required": "Queue name is required!"
+    },
     "tenant": {
         "tenant": "Tenant",
         "tenants": "Tenants",

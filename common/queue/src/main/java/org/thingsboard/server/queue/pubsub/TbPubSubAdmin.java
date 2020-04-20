@@ -136,6 +136,11 @@ public class TbPubSubAdmin implements TbQueueAdmin {
         }
     }
 
+    @Override
+    public void destroy() {
+
+    }
+
     private void createSubscriptionIfNotExists(String partition, ProjectTopicName topicName) {
         ProjectSubscriptionName subscriptionName =
                 ProjectSubscriptionName.of(pubSubSettings.getProjectId(), partition);

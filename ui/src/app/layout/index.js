@@ -78,6 +78,7 @@ import thingsboardScheduler from '../scheduler';
 import thingsboardBlobEntity from '../blob-entity';
 import thingsboardRole from '../role';
 import thingsboardIFrame from '../iframe';
+import thingsboardQueue from '../components/queue';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -116,6 +117,7 @@ export default angular.module('thingsboard.home', [
     thingsboardBlobEntity,
     thingsboardRole,
     thingsboardIFrame,
+    thingsboardQueue,
     thingsboardJsonForm,
     thingsboardApiDevice,
     thingsboardApiLogin,

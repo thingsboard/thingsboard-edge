@@ -28,18 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.kafka;
+import thingsboardApiQueue from '../../api/queue.service';
+import queueTypeList from "./queue-type-list.directive";
 
-import org.apache.kafka.clients.producer.Partitioner;
-import org.apache.kafka.common.PartitionInfo;
-
-import java.util.List;
-
-/**
- * Created by ashvayka on 25.09.18.
- */
-public interface TbKafkaPartitioner<T> extends Partitioner {
-
-    int partition(String topic, String key, T value, byte[] encodedValue, List<PartitionInfo> partitions);
-
-}
+export default angular.module('thingsboard.queue', [
+    thingsboardApiQueue
+])
+    .directive('tbQueueTypeList', queueTypeList)
+    .name;
