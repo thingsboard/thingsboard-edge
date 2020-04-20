@@ -34,6 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
@@ -83,15 +86,16 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         scheduleTimeout(request, requestId, requests);
     }
 
-    //TODO 2.5
     @Override
-    public void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response) {
+    public void onQueueMsg(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+        UUID requestId = new UUID(restApiCallResponseMsg.getRequestIdMSB(), restApiCallResponseMsg.getRequestIdLSB());
         Consumer<TbMsg> consumer = requests.remove(requestId);
         if (consumer != null) {
-            consumer.accept(response);
+            consumer.accept(TbMsg.fromBytes(restApiCallResponseMsg.getResponse().toByteArray(), TbMsgCallback.EMPTY));
         } else {
-            log.trace("[{}] Unknown or stale rest api call response received [{}]", requestId, response);
+            log.trace("[{}] Unknown or stale rest api call response received", requestId);
         }
+        callback.onSuccess();
     }
 
     private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
@@ -99,7 +103,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {
-        Long expirationTime = Long.valueOf(request.getMetaData().getValue("expirationTime"));
+        long expirationTime = Long.parseLong(request.getMetaData().getValue("expirationTime"));
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
         rpcCallBackExecutor.schedule(() -> {

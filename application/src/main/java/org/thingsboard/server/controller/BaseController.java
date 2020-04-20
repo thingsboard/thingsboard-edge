@@ -139,6 +139,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
@@ -277,6 +278,9 @@ public abstract class BaseController {
 
     @Autowired
     protected PartitionService partitionService;
+
+    @Autowired
+    protected TbServiceInfoProvider serviceInfoProvider;
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;

@@ -89,7 +89,7 @@ public class RuleEngineController extends BaseController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(@RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest( null, null, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -125,6 +125,7 @@ public class RuleEngineController extends BaseController {
                     long expTime = System.currentTimeMillis() + timeout;
                     HashMap<String, String> metaData = new HashMap<>();
                     UUID requestId = UUID.randomUUID();
+                    metaData.put("serviceId", serviceInfoProvider.getServiceId());
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
                     TbMsg msg = TbMsg.newMsg(DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);

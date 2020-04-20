@@ -34,6 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.context.ApplicationListener;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -68,4 +70,10 @@ public interface PlatformIntegrationService extends ApplicationListener<Partitio
     void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback);
 
     void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
+
+    Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName);
+
+    Asset getOrCreateAsset(Integration configuration, String assetName, String assetType, String customerName, String groupName);
+
+    EntityView getOrCreateEntityView(Integration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
 }

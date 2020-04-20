@@ -132,8 +132,13 @@ public class DefaultTbRuleEngineRpcService implements TbRuleEngineDeviceRpcServi
     }
 
     @Override
-    public void sendRestApiCallReply(UUID requestId, TbMsg msg) {
-        //TODO 2.5: ashvayka
+    public void sendRestApiCallReply(String serviceIdStr, UUID requestId, TbMsg tbMsg) {
+        TransportProtos.RestApiCallResponseMsgProto msg = TransportProtos.RestApiCallResponseMsgProto.newBuilder()
+                .setRequestIdMSB(requestId.getMostSignificantBits())
+                .setRequestIdLSB(requestId.getLeastSignificantBits())
+                .setResponse(TbMsg.toByteString(tbMsg))
+                .build();
+        clusterService.pushNotificationToCore(serviceId, msg, null);
     }
 
     @Override

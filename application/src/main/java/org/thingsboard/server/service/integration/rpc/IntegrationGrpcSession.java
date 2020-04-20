@@ -34,6 +34,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
@@ -45,6 +47,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -63,6 +66,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -70,6 +74,7 @@ import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.ConverterUpdateMsg;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
@@ -95,12 +100,16 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
+
 @Data
 @Slf4j
 public final class IntegrationGrpcSession implements Closeable {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     public static final ObjectMapper mapper = new ObjectMapper();
+    private final Gson gson = new Gson();
 
     private final UUID sessionId;
     private final BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener;
@@ -203,7 +212,7 @@ public final class IntegrationGrpcSession implements Closeable {
         try {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
-                    Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
+                    Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
                     UUID sessionId = UUID.randomUUID();
                     TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
@@ -218,6 +227,7 @@ public final class IntegrationGrpcSession implements Closeable {
                             .build();
 
                     if (data.hasPostTelemetryMsg()) {
+                        //TODO: Empty callback may cause message to be acknowledged faster then it is pushed to queue?
                         ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
                     }
 
@@ -227,11 +237,36 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
 
-            //TODO 2.5 Asset Data???
+            if (msg.getAssetDataCount() > 0) {
+                for (AssetUplinkDataProto data : msg.getAssetDataList()) {
+                    Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
+
+                    TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
+                    tbMsgMetaData.putValue("assetName", data.getAssetName());
+                    tbMsgMetaData.putValue("assetType", data.getAssetType());
+
+                    if (data.hasPostTelemetryMsg()) {
+                        data.getPostTelemetryMsg().getTsKvListList()
+                                .forEach(tsKvListProto -> {
+                                    JsonObject json = JsonUtils.getJsonObject(tsKvListProto.getKvList());
+                                    TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+                                    ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
+                                });
+                    }
+
+                    if (data.hasPostAttributesMsg()) {
+                        JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
+                        TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
+                    }
+                }
+            }
 
             if (msg.getEntityViewDataCount() > 0) {
                 for (EntityViewDataProto data : msg.getEntityViewDataList()) {
-                    createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
+                    Device device = ctx.getPlatformIntegrationService()
+                            .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null);
+                    ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
                 }
             }
 
@@ -295,84 +330,6 @@ public final class IntegrationGrpcSession implements Closeable {
         }
     }
 
-    private Device getOrCreateDevice(String deviceName, String deviceType, String customerName) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device == null) {
-            entityCreationLock.lock();
-            try {
-                return processGetOrCreateDevice(deviceName, deviceType, customerName);
-            } finally {
-                entityCreationLock.unlock();
-            }
-        }
-        return device;
-    }
-
-    private Device processGetOrCreateDevice(String deviceName, String deviceType, String customerName) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device == null) {
-            device = new Device();
-            device.setName(deviceName);
-            device.setType(deviceType);
-            device.setTenantId(configuration.getTenantId());
-            if (!StringUtils.isEmpty(customerName)) {
-                Customer customer;
-                Optional<Customer> customerOptional = ctx.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), customerName);
-                if (customerOptional.isPresent()) {
-                    customer = customerOptional.get();
-                } else {
-                    customer = new Customer();
-                    customer.setTitle(customerName);
-                    customer.setTenantId(configuration.getTenantId());
-                    customer = ctx.getCustomerService().saveCustomer(customer);
-                    pushCustomerCreatedEventToRuleEngine(customer);
-                }
-                device.setCustomerId(customer.getId());
-            }
-            device = ctx.getDeviceService().saveDevice(device);
-            createRelationFromIntegration(device.getId());
-            ctx.getDeviceStateService().onDeviceAdded(device);
-            pushDeviceCreatedEventToRuleEngine(device);
-        }
-        return device;
-    }
-
-    private void createEntityViewForDeviceIfAbsent(Device device, EntityViewDataProto proto) {
-        String entityViewName = proto.getViewName();
-        EntityView entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
-        if (entityView == null) {
-            entityCreationLock.lock();
-            try {
-                entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
-                if (entityView == null) {
-                    entityView = new EntityView();
-                    entityView.setName(entityViewName);
-                    entityView.setType(proto.getViewType());
-                    entityView.setTenantId(configuration.getTenantId());
-                    entityView.setEntityId(device.getId());
-
-                    TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
-                    telemetryEntityView.setTimeseries(proto.getTelemetryKeysList());
-                    entityView.setKeys(telemetryEntityView);
-
-                    entityView = ctx.getEntityViewService().saveEntityView(entityView);
-                    createRelationFromIntegration(entityView.getId());
-                }
-            } finally {
-                entityCreationLock.unlock();
-            }
-        }
-    }
-
-    private void createRelationFromIntegration(EntityId entityId) {
-        EntityRelation relation = new EntityRelation();
-        relation.setFrom(configuration.getId());
-        relation.setTo(entityId);
-        relation.setTypeGroup(RelationTypeGroup.COMMON);
-        relation.setType(EntityRelation.INTEGRATION_TYPE);
-        ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
-    }
-
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
         return IntegrationConfigurationProto.newBuilder()
                 .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
@@ -400,68 +357,6 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setConfiguration(mapper.writeValueAsString(converter.getConfiguration()))
                 .setAdditionalInfo(mapper.writeValueAsString(converter.getAdditionalInfo()))
                 .build();
-    }
-
-    //TODO 2.5 Entity Group Created Event Simular to Local Integration Context
-    private void pushDeviceCreatedEventToRuleEngine(Device device) {
-        try {
-            ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode));
-            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-        }
-    }
-
-    private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
-        try {
-            ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
-            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
-        }
-    }
-
-//    private void pushAssetCreatedEventToRuleEngine(Asset asset) {
-//        try {
-//            ObjectNode entityNode = mapper.valueToTree(asset);
-//            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), assetActionTbMsgMetaData(asset), mapper.writeValueAsString(entityNode));
-//            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
-//        } catch (JsonProcessingException | IllegalArgumentException e) {
-//            log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
-//        }
-//    }
-//
-//    private void pushEntityGroupCreatedEventToRuleEngine(EntityGroup entityGroup) {
-//        try {
-//            ObjectNode entityNode = mapper.valueToTree(entityGroup);
-//            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), entityGroupActionTbMsgMetaData(), mapper.writeValueAsString(entityNode));
-//            ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
-//        } catch (JsonProcessingException | IllegalArgumentException e) {
-//            log.warn("[{}] Failed to push entityGroup action to rule engine: {}", entityGroup.getId(), DataConstants.ENTITY_CREATED, e);
-//        }
-//    }
-
-
-    private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = getTbMsgMetaData();
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
-    private TbMsgMetaData customerActionTbMsgMetaData() {
-        return getTbMsgMetaData();
-    }
-
-    private TbMsgMetaData getTbMsgMetaData() {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", configuration.getId().toString());
-        metaData.putValue("integrationName", configuration.getName());
-        return metaData;
     }
 
     @Override
