@@ -110,6 +110,7 @@ public abstract class AbstractMqttTelemetryIntegrationTest extends AbstractContr
         assertEquals("true", values.get("key2").get(0).get("value"));
         assertEquals("3.0", values.get("key3").get(0).get("value"));
         assertEquals("4", values.get("key4").get(0).get("value"));
+        client.disconnect();
     }
 
     @Test
@@ -133,6 +134,7 @@ public abstract class AbstractMqttTelemetryIntegrationTest extends AbstractContr
         latch.await(10, TimeUnit.SECONDS);
         assertEquals(payload, callback.getPayload());
         assertEquals(MqttQoS.AT_MOST_ONCE.value(), callback.getQoS());
+        client.disconnect();
     }
 
     private static class TestMqttCallback implements MqttCallback {

@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.

@@ -280,7 +280,7 @@ public class TbAlarmsCountNodeTest {
         int totalEntities = parentCount + totalChildCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(totalEntities)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(totalEntities)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -289,18 +289,17 @@ public class TbAlarmsCountNodeTest {
 
         if (failureCount > 0) {
             ArgumentCaptor<TbMsg> failureMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-            ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
+            ArgumentCaptor<String> throwableCaptor = ArgumentCaptor.forClass(String.class);
 
-            verify(ctx, new Times(failureCount)).tellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
+            verify(ctx, new Times(failureCount)).enqueueForTellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
 
             List<TbMsg> failedMessages = failureMsgCaptor.getAllValues();
-            List<Throwable> throwables = throwableCaptor.getAllValues();
+            List<String> throwables = throwableCaptor.getAllValues();
             for (int i=0;i<failedMessages.size();i++) {
                 TbMsg failedMsg = failedMessages.get(i);
-                Throwable t = throwables.get(i);
-                Assert.assertTrue(t instanceof RuntimeException);
-                Assert.assertTrue(t.getMessage().startsWith("Failed to fetch child entities for parent entity"));
-                Assert.assertTrue(t.getMessage().contains(failedMsg.getOriginator().toString()));
+                String t = throwables.get(i);
+                Assert.assertTrue(t.startsWith("Failed to fetch child entities for parent entity"));
+                Assert.assertTrue(t.contains(failedMsg.getOriginator().toString()));
             }
         }
     }

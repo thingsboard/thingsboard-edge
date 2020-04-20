@@ -49,15 +49,29 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.thingsboard.common.util.ListeningExecutor;
-import org.thingsboard.rule.engine.api.*;
-import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.relation.*;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -67,12 +81,18 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.script.ScriptException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -300,7 +320,7 @@ public class TbAggLatestTelemetryNodeTest {
         node.init(ctx, nodeConfiguration);
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(parentCount * 2)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(parentCount * 2)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -375,7 +395,7 @@ public class TbAggLatestTelemetryNodeTest {
         int successMsgCount = parentCount + successAvgTempCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(successMsgCount)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(successMsgCount)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -386,20 +406,19 @@ public class TbAggLatestTelemetryNodeTest {
 
         if (failedMsgCount > 0) {
             ArgumentCaptor<TbMsg> failureMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-            ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
+            ArgumentCaptor<String> throwableCaptor = ArgumentCaptor.forClass(String.class);
 
-            verify(ctx, new Times(failedMsgCount)).tellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
+            verify(ctx, new Times(failedMsgCount)).enqueueForTellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
 
             List<TbMsg> failedMessages = failureMsgCaptor.getAllValues();
-            List<Throwable> throwables = throwableCaptor.getAllValues();
+            List<String> throwables = throwableCaptor.getAllValues();
             for (int i = 0; i < failedMessages.size(); i++) {
                 TbMsg failedMsg = failedMessages.get(i);
-                Throwable t = throwables.get(i);
-                Assert.assertTrue(t instanceof IllegalArgumentException);
-                Assert.assertTrue(t.getMessage().startsWith("Aggregation failed. Unable to parse value"));
+                String t = throwables.get(i);
+                Assert.assertTrue(t.startsWith("Aggregation failed. Unable to parse value"));
                 String invalidValue = invalidValueMap.get(failedMsg.getOriginator());
                 Assert.assertNotNull(invalidValue);
-                Assert.assertTrue(t.getMessage().contains(invalidValue));
+                Assert.assertTrue(t.contains(invalidValue));
             }
         }
     }
