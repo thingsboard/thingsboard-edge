@@ -57,7 +57,7 @@
     "compass-sass-mixins": "^0.12.7",
     "core-js": "^3.6.5",
     "date-fns": "^2.12.0",
-    "exceljs": "~3.8.2",
+    "exceljs": "~3.4.0",
     "flot": "git://github.com/thingsboard/flot.git#0.9-work",
     "flot.curvedlines": "git://github.com/MichaelZinsmaier/CurvedLines.git#master",
     "font-awesome": "^4.7.0",
