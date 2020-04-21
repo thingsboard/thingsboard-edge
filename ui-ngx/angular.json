@@ -32,8 +32,14 @@
               { "glob": "**/*", "input": "node_modules/tinymce", "output": "/tinymce/" }
             ],
             "styles": [
-              "src/theme/app-theme.scss",
-              "src/theme/login-theme.scss",
+              {
+                "input": "src/theme/app-theme.scss",
+                "bundleName": "app-theme"
+              },
+              {
+                "input": "src/theme/login-theme.scss",
+                "bundleName": "login-theme"
+              },
               "src/styles.scss",
               "node_modules/jquery.terminal/css/jquery.terminal.min.css",
               "node_modules/tooltipster/dist/css/tooltipster.bundle.min.css",

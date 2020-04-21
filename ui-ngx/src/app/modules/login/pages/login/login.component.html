@@ -38,7 +38,7 @@
         <fieldset [disabled]="isLoading$ | async" fxLayout="column">
           <div fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
-              <img [src]="wl.loginLogo$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
+              <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
               <section class="version center"
                        *ngIf="(wl.loginShowNameVersion$ | async) && !(wl.showNameBottom$ | async)">{{ platformNameAndVersion$() | async}}</section>
             </div>

@@ -32,6 +32,7 @@
 import { environment as env } from '@env/environment';
 import { deepClone, isDefined, isUndefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
+import { SafeUrl } from '@angular/platform-browser';
 
 export interface Favicon {
   url?: string;
@@ -51,6 +52,7 @@ export interface PaletteSettings {
 
 export interface WhiteLabelingParams {
   logoImageUrl?: string;
+  logoImageSafeUrl?: SafeUrl;
   logoImageChecksum?: string;
   logoImageHeight?: number;
   appTitle?: string;
