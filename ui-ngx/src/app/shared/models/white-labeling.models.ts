@@ -73,7 +73,7 @@ export interface LoginWhiteLabelingParams extends WhiteLabelingParams {
   showNameBottom?: boolean;
 }
 
-const defaultImageUrl = require('../../../assets/logo_title_white_pe.svg');
+const defaultImageUrl = require('../../../assets/logo_title_white_pe.svg').default;
 
 export const defaultWLParams: WhiteLabelingParams = {
   logoImageUrl: defaultImageUrl,
