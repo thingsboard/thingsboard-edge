@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -39,6 +39,7 @@ import { isDefined } from '@core/utils';
 import { IWidgetSubscription, SubscriptionInfo, WidgetSubscriptionOptions } from '@core/api/widget-api.models';
 import { DatasourceType, widgetType } from '@shared/models/widget.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 type RetrieveValueMethod = 'rpc' | 'attribute' | 'timeseries';
 
@@ -103,7 +104,7 @@ export class RoundSwitchComponent extends PageComponent implements OnInit, OnDes
   private switchErrorContainer: JQuery<HTMLElement>;
   private switchError: JQuery<HTMLElement>;
 
-  private switchResizeListener: any;
+  private switchResize$: ResizeObserver;
 
   constructor(private utils: UtilsService,
               protected store: Store<AppState>) {
@@ -125,20 +126,19 @@ export class RoundSwitchComponent extends PageComponent implements OnInit, OnDes
       this.onValue();
     });
 
-    this.switchResizeListener = this.resize.bind(this);
-    // @ts-ignore
-    addResizeListener(this.switchContainerRef.nativeElement, this.switchResizeListener);
+    this.switchResize$ = new ResizeObserver(() => {
+      this.resize();
+    });
+    this.switchResize$.observe(this.switchContainerRef.nativeElement);
     this.init();
-    // this.ctx.resize = this.resize.bind(this);
   }
 
   ngOnDestroy(): void {
     if (this.valueSubscription) {
       this.ctx.subscriptionApi.removeSubscription(this.valueSubscription.id);
     }
-    if (this.switchResizeListener) {
-      // @ts-ignore
-      removeResizeListener(this.switchContainerRef.nativeElement, this.switchResizeListener);
+    if (this.switchResize$) {
+      this.switchResize$.disconnect();
     }
   }
 

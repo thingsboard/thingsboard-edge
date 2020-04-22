@@ -61,6 +61,7 @@ import {
 } from '@home/pages/widget/save-widget-type-as-dialog.component';
 import { Subscription } from 'rxjs';
 import Timeout = NodeJS.Timeout;
+import { ResizeObserver } from '@juggle/resize-observer';
 
 // @dynamic
 @Component({
@@ -139,7 +140,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   jsonSettingsEditor: ace.Ace.Editor;
   dataKeyJsonSettingsEditor: ace.Ace.Editor;
   jsEditor: ace.Ace.Editor;
-  aceResizeListeners: { element: any, resizeListener: any }[] = [];
+  aceResizeObservers: ResizeObserver[] = [];
 
   onWindowMessageListener = this.onWindowMessage.bind(this);
 
@@ -208,9 +209,8 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
 
   ngOnDestroy(): void {
     this.window.removeEventListener('message', this.onWindowMessageListener);
-    this.aceResizeListeners.forEach((resizeListener) => {
-      // @ts-ignore
-      removeResizeListener(resizeListener.element, resizeListener.resizeListener);
+    this.aceResizeObservers.forEach((resize$) => {
+      resize$.disconnect();
     });
     this.rxSubscriptions.forEach((subscription) => {
       subscription.unsubscribe();
@@ -358,11 +358,11 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     aceEditor.session.setUseWrapMode(true);
     this.aceEditors.push(aceEditor);
 
-    const resizeListener = this.onAceEditorResize.bind(this, aceEditor);
-
-    // @ts-ignore
-    addResizeListener(editorElement, resizeListener);
-    this.aceResizeListeners.push({element: editorElement, resizeListener});
+    const resize$ = new ResizeObserver(() => {
+      this.onAceEditorResize(aceEditor);
+    });
+    resize$.observe(editorElement);
+    this.aceResizeObservers.push(resize$);
     return aceEditor;
   }
 

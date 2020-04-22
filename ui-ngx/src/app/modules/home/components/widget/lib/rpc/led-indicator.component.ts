@@ -40,6 +40,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { IWidgetSubscription, SubscriptionInfo, WidgetSubscriptionOptions } from '@core/api/widget-api.models';
 import { DatasourceType, widgetType } from '@shared/models/widget.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { ResizeObserver } from '@juggle/resize-observer';
 import Timeout = NodeJS.Timeout;
 
 const tinycolor = tinycolor_;
@@ -108,7 +109,7 @@ export class LedIndicatorComponent extends PageComponent implements OnInit, OnDe
   private ledErrorContainer: JQuery<HTMLElement>;
   private ledError: JQuery<HTMLElement>;
 
-  private ledResizeListener: any;
+  private ledResize$: ResizeObserver;
 
   private subscriptionOptions: WidgetSubscriptionOptions = {
     callbacks: {
@@ -137,9 +138,10 @@ export class LedIndicatorComponent extends PageComponent implements OnInit, OnDe
     this.ledErrorContainer = $(this.ledErrorContainerRef.nativeElement);
     this.ledError = $(this.ledErrorRef.nativeElement);
 
-    this.ledResizeListener = this.resize.bind(this);
-    // @ts-ignore
-    addResizeListener(this.ledContainerRef.nativeElement, this.ledResizeListener);
+    this.ledResize$ = new ResizeObserver(() => {
+      this.resize();
+    });
+    this.ledResize$.observe(this.ledContainerRef.nativeElement);
     this.init();
   }
 
@@ -151,9 +153,8 @@ export class LedIndicatorComponent extends PageComponent implements OnInit, OnDe
     if (this.subscription) {
       this.ctx.subscriptionApi.removeSubscription(this.subscription.id);
     }
-    if (this.ledResizeListener) {
-      // @ts-ignore
-      removeResizeListener(this.ledContainerRef.nativeElement, this.ledResizeListener);
+    if (this.ledResize$) {
+      this.ledResize$.disconnect();
     }
   }
 

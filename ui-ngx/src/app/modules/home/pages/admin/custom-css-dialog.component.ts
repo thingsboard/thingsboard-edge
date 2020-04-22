@@ -39,6 +39,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { css_beautify } from 'js-beautify';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 export interface CustomCssDialogData {
   customCss: string;
@@ -57,7 +58,7 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
 
   private cssEditor: ace.Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
-  private editorResizeListener: any;
+  private editorResize$: ResizeObserver;
 
   customCss: string;
   readonly: boolean;
@@ -105,16 +106,15 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
     this.cssEditor.session.on('changeAnnotation', () => {
       this.validate();
     });
-    this.editorResizeListener = this.onAceEditorResize.bind(this);
-    // @ts-ignore
-    addResizeListener(editorElement, this.editorResizeListener);
+    this.editorResize$ = new ResizeObserver(() => {
+      this.onAceEditorResize();
+    });
+    this.editorResize$.observe(editorElement);
   }
 
   ngOnDestroy(): void {
-    if (this.editorResizeListener) {
-      const editorElement = this.cssEditorElmRef.nativeElement;
-      // @ts-ignore
-      removeResizeListener(editorElement, this.editorResizeListener);
+    if (this.editorResize$) {
+      this.editorResize$.disconnect();
     }
   }
 
