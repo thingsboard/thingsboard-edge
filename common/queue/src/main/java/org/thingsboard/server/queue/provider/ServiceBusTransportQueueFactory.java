@@ -44,6 +44,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.azure.servicebus.TbServiceBusConsumerTemplate;
 import org.thingsboard.server.queue.azure.servicebus.TbServiceBusProducerTemplate;
 import org.thingsboard.server.queue.azure.servicebus.TbServiceBusSettings;
+import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
 
@@ -56,17 +57,20 @@ public class ServiceBusTransportQueueFactory implements TbTransportQueueFactory 
     private final TbServiceBusSettings serviceBusSettings;
     private final TbQueueAdmin admin;
     private final TbServiceInfoProvider serviceInfoProvider;
+    private final TbQueueCoreSettings coreSettings;
 
     public ServiceBusTransportQueueFactory(TbQueueTransportApiSettings transportApiSettings,
                                             TbQueueTransportNotificationSettings transportNotificationSettings,
                                             TbServiceBusSettings serviceBusSettings,
                                             TbServiceInfoProvider serviceInfoProvider,
+                                           TbQueueCoreSettings coreSettings,
                                             TbQueueAdmin admin) {
         this.transportApiSettings = transportApiSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.serviceBusSettings = serviceBusSettings;
         this.admin = admin;
         this.serviceInfoProvider = serviceInfoProvider;
+        this.coreSettings = coreSettings;
     }
 
     @Override
@@ -97,7 +101,7 @@ public class ServiceBusTransportQueueFactory implements TbTransportQueueFactory 
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> createTbCoreMsgProducer() {
-        return new TbServiceBusProducerTemplate<>(admin, serviceBusSettings, transportApiSettings.getRequestsTopic());
+        return new TbServiceBusProducerTemplate<>(admin, serviceBusSettings, coreSettings.getTopic());
     }
 
     @Override

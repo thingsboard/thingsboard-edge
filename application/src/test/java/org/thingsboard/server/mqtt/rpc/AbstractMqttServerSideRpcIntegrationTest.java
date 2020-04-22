@@ -52,6 +52,7 @@ import org.thingsboard.server.service.security.AccessValidator;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -70,6 +71,8 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
     private User tenantAdmin;
     private Long asyncContextTimeoutToUseRpcPlugin;
 
+    private static final AtomicInteger atomicInteger = new AtomicInteger(2);
+
 
     @Before
     public void beforeTest() throws Exception {
@@ -85,7 +88,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
+        tenantAdmin.setEmail("tenant" + atomicInteger.getAndIncrement() + "@thingsboard.org");
         tenantAdmin.setFirstName("Joe");
         tenantAdmin.setLastName("Downs");
 
@@ -144,7 +147,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String accessToken = deviceCredentials.getCredentialsId();
         assertNotNull(accessToken);
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1},\"timeout\": 6000}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"24\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
         doPostAsync("/api/plugins/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
@@ -153,7 +156,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
     @Test
     public void testServerMqttOneWayRpcDeviceDoesNotExist() throws Exception {
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"25\",\"value\": 1}}";
         String nonExistentDeviceId = UUIDs.timeBased().toString();
 
         String result = doPostAsync("/api/plugins/rpc/oneway/" + nonExistentDeviceId, setGpioRequest, String.class,
@@ -183,7 +186,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
         Thread.sleep(2000);
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"26\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
 
         String result = doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
@@ -201,7 +204,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String accessToken = deviceCredentials.getCredentialsId();
         assertNotNull(accessToken);
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1},\"timeout\": 6000}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"27\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
         doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
@@ -210,7 +213,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
     @Test
     public void testServerMqttTwoWayRpcDeviceDoesNotExist() throws Exception {
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"28\",\"value\": 1}}";
         String nonExistentDeviceId = UUIDs.timeBased().toString();
 
         String result = doPostAsync("/api/plugins/rpc/twoway/" + nonExistentDeviceId, setGpioRequest, String.class,

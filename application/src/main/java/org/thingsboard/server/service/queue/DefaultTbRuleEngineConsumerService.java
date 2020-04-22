@@ -189,7 +189,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
                         }));
 
                         boolean timeout = false;
-                        if (!ctx.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {
+                        if (!ctx.await(configuration.getPackProcessingTimeout(), TimeUnit.MILLISECONDS)) {
                             timeout = true;
                         }
 
