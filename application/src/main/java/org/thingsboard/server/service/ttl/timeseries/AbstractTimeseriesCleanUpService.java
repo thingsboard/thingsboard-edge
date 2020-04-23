@@ -28,75 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl;
+package org.thingsboard.server.service.ttl.timeseries;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.thingsboard.server.dao.util.PsqlTsAnyDao;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.Statement;
 
 @PsqlTsAnyDao
 @Slf4j
-public abstract class AbstractTimeseriesCleanUpService {
+public abstract class AbstractTimeseriesCleanUpService extends AbstractCleanUpService {
 
-    @Value("${sql.ttl.ts_key_value_ttl}")
+    @Value("${sql.ttl.ts.ts_key_value_ttl}")
     protected long systemTtl;
 
-    @Value("${sql.ttl.enabled}")
+    @Value("${sql.ttl.ts.enabled}")
     private boolean ttlTaskExecutionEnabled;
 
-    @Value("${spring.datasource.url}")
-    private String dbUrl;
-
-    @Value("${spring.datasource.username}")
-    private String dbUserName;
-
-    @Value("${spring.datasource.password}")
-    private String dbPassword;
-
-    @Scheduled(initialDelayString = "${sql.ttl.execution_interval_ms}", fixedDelayString = "${sql.ttl.execution_interval_ms}")
+    @Scheduled(initialDelayString = "${sql.ttl.ts.execution_interval_ms}", fixedDelayString = "${sql.ttl.ts.execution_interval_ms}")
     public void cleanUp() {
         if (ttlTaskExecutionEnabled) {
             try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                 doCleanUp(conn);
             } catch (SQLException e) {
                 log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
-    }
-
-    protected abstract void doCleanUp(Connection connection);
-
-    protected long executeQuery(Connection conn, String query) {
-        long removed = 0L;
-        try {
-            Statement statement = conn.createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            getWarnings(statement);
-            resultSet.next();
-            removed = resultSet.getLong(1);
-            log.debug("Successfully executed query: {}", query);
-        } catch (SQLException e) {
-            log.debug("Failed to execute query: {} due to: {}", query, e.getMessage());
-        }
-        return removed;
-    }
-
-    private void getWarnings(Statement statement) throws SQLException {
-        SQLWarning warnings = statement.getWarnings();
-        if (warnings != null) {
-            log.debug("{}", warnings.getMessage());
-            SQLWarning nextWarning = warnings.getNextWarning();
-            while (nextWarning != null) {
-                log.debug("{}", nextWarning.getMessage());
-                nextWarning = nextWarning.getNextWarning();
             }
         }
     }

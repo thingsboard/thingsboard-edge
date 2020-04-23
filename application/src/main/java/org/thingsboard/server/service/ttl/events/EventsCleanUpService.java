@@ -28,42 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller;
+package org.thingsboard.server.service.ttl.events;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-@RestController
-@TbCoreComponent
-@RequestMapping("/api")
-public class QueueController extends BaseController {
+@PsqlDao
+@Slf4j
+@Service
+public class EventsCleanUpService extends AbstractCleanUpService {
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/queues", params = {"serviceType"}, method = RequestMethod.GET)
-    @ResponseBody
-    public List<String> getTenantQueuesByServiceType(@RequestParam String serviceType) throws ThingsboardException {
-        checkParameter("serviceType", serviceType);
-        try {
-            ServiceType type = ServiceType.valueOf(serviceType);
-            switch (type) {
-                case TB_RULE_ENGINE:
-                    return Arrays.asList("Main", "HighPriority", "SequentialByOriginator");
-                default:
-                    return Collections.emptyList();
+    @Value("${sql.ttl.events.events_ttl}")
+    private long ttl;
+
+    @Value("${sql.ttl.events.debug_events_ttl}")
+    private long debugTtl;
+
+    @Value("${sql.ttl.events.enabled}")
+    private boolean ttlTaskExecutionEnabled;
+
+    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled) {
+            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                doCleanUp(conn);
+            } catch (SQLException e) {
+                log.error("SQLException occurred during TTL task execution ", e);
             }
-        } catch (Exception e) {
-            throw handleException(e);
         }
+    }
+
+    @Override
+    protected void doCleanUp(Connection connection) {
+        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
+        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
     }
 }

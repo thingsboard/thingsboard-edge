@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.EPOCH_DIFF;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 

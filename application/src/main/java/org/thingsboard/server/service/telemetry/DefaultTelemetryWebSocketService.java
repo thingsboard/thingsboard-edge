@@ -361,6 +361,8 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 keys.forEach(key -> subState.put(key, 0L));
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
+                TbAttributeSubscriptionScope scope = StringUtils.isEmpty(cmd.getScope()) ? TbAttributeSubscriptionScope.SERVER_SCOPE : TbAttributeSubscriptionScope.valueOf(cmd.getScope());
+
                 TbAttributeSubscription sub = TbAttributeSubscription.builder()
                         .serviceId(serviceId)
                         .sessionId(sessionId)
@@ -369,7 +371,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                         .entityId(entityId)
                         .allKeys(false)
                         .keyStates(subState)
-                        .scope(TbAttributeSubscriptionScope.valueOf(cmd.getScope())).build();
+                        .scope(scope).build();
                 subService.addSubscription(sub);
             }
 
@@ -457,6 +459,8 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 Map<String, Long> subState = new HashMap<>(attributesData.size());
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
+                TbAttributeSubscriptionScope scope = StringUtils.isEmpty(cmd.getScope()) ? TbAttributeSubscriptionScope.SERVER_SCOPE : TbAttributeSubscriptionScope.valueOf(cmd.getScope());
+
                 TbAttributeSubscription sub = TbAttributeSubscription.builder()
                         .serviceId(serviceId)
                         .sessionId(sessionId)
@@ -465,7 +469,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                         .entityId(entityId)
                         .allKeys(true)
                         .keyStates(subState)
-                        .scope(TbAttributeSubscriptionScope.valueOf(cmd.getScope())).build();
+                        .scope(scope).build();
                 subService.addSubscription(sub);
             }
 

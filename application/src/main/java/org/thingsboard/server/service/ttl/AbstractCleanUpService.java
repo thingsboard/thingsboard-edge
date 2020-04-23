@@ -28,42 +28,59 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller;
+package org.thingsboard.server.service.ttl;
 
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.thingsboard.server.dao.util.PsqlDao;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.Statement;
 
-@RestController
-@TbCoreComponent
-@RequestMapping("/api")
-public class QueueController extends BaseController {
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/queues", params = {"serviceType"}, method = RequestMethod.GET)
-    @ResponseBody
-    public List<String> getTenantQueuesByServiceType(@RequestParam String serviceType) throws ThingsboardException {
-        checkParameter("serviceType", serviceType);
+@Slf4j
+@PsqlDao
+public abstract class AbstractCleanUpService {
+
+    @Value("${spring.datasource.url}")
+    protected String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    protected String dbUserName;
+
+    @Value("${spring.datasource.password}")
+    protected String dbPassword;
+
+    protected long executeQuery(Connection conn, String query) {
+        long removed = 0L;
         try {
-            ServiceType type = ServiceType.valueOf(serviceType);
-            switch (type) {
-                case TB_RULE_ENGINE:
-                    return Arrays.asList("Main", "HighPriority", "SequentialByOriginator");
-                default:
-                    return Collections.emptyList();
+            Statement statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+            getWarnings(statement);
+            resultSet.next();
+            removed = resultSet.getLong(1);
+            log.debug("Successfully executed query: {}", query);
+        } catch (SQLException e) {
+            log.debug("Failed to execute query: {} due to: {}", query, e.getMessage());
+        }
+        return removed;
+    }
+
+    private void getWarnings(Statement statement) throws SQLException {
+        SQLWarning warnings = statement.getWarnings();
+        if (warnings != null) {
+            log.debug("{}", warnings.getMessage());
+            SQLWarning nextWarning = warnings.getNextWarning();
+            while (nextWarning != null) {
+                log.debug("{}", nextWarning.getMessage());
+                nextWarning = nextWarning.getNextWarning();
             }
-        } catch (Exception e) {
-            throw handleException(e);
         }
     }
+
+    protected abstract void doCleanUp(Connection connection);
+
 }

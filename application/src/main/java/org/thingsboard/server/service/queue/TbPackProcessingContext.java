@@ -30,39 +30,29 @@
  */
 package org.thingsboard.server.service.queue;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategy;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ProcessingAttemptContext {
-
-    private final TbRuleEngineSubmitStrategy submitStrategy;
+@Slf4j
+public class TbPackProcessingContext<T> {
 
     private final AtomicInteger pendingCount;
-    private final CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
-    @Getter
-    private final ConcurrentMap<UUID, TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> pendingMap;
-    @Getter
-    private final ConcurrentMap<UUID, TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> successMap = new ConcurrentHashMap<>();
-    @Getter
-    private final ConcurrentMap<UUID, TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> failedMap = new ConcurrentHashMap<>();
-    @Getter
-    private final ConcurrentMap<TenantId, RuleEngineException> exceptionsMap = new ConcurrentHashMap<>();
+    private final CountDownLatch processingTimeoutLatch;
+    private final ConcurrentMap<UUID, T> ackMap;
+    private final ConcurrentMap<UUID, T> failedMap;
 
-    public ProcessingAttemptContext(TbRuleEngineSubmitStrategy submitStrategy) {
-        this.submitStrategy = submitStrategy;
-        this.pendingMap = submitStrategy.getPendingMap();
-        this.pendingCount = new AtomicInteger(pendingMap.size());
+    public TbPackProcessingContext(CountDownLatch processingTimeoutLatch,
+                                   ConcurrentMap<UUID, T> ackMap,
+                                   ConcurrentMap<UUID, T> failedMap) {
+        this.processingTimeoutLatch = processingTimeoutLatch;
+        this.pendingCount = new AtomicInteger(ackMap.size());
+        this.ackMap = ackMap;
+        this.failedMap = failedMap;
     }
 
     public boolean await(long packProcessingTimeout, TimeUnit milliseconds) throws InterruptedException {
@@ -70,30 +60,46 @@ public class ProcessingAttemptContext {
     }
 
     public void onSuccess(UUID id) {
-        TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg> msg;
         boolean empty = false;
-        msg = pendingMap.remove(id);
+        T msg = ackMap.remove(id);
         if (msg != null) {
             empty = pendingCount.decrementAndGet() == 0;
-            successMap.put(id, msg);
-            submitStrategy.onSuccess(id);
+        }
+        if (empty) {
+            processingTimeoutLatch.countDown();
+        } else {
+            if (log.isTraceEnabled()) {
+                log.trace("Items left: {}", ackMap.size());
+                for (T t : ackMap.values()) {
+                    log.trace("left item: {}", t);
+                }
+            }
+        }
+    }
+
+    public void onFailure(UUID id, Throwable t) {
+        boolean empty = false;
+        T msg = ackMap.remove(id);
+        if (msg != null) {
+            empty = pendingCount.decrementAndGet() == 0;
+            failedMap.put(id, msg);
+            if (log.isTraceEnabled()) {
+                log.trace("Items left: {}", ackMap.size());
+                for (T v : ackMap.values()) {
+                    log.trace("left item: {}", v);
+                }
+            }
         }
         if (empty) {
             processingTimeoutLatch.countDown();
         }
     }
 
-    public void onFailure(TenantId tenantId, UUID id, RuleEngineException e) {
-        TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg> msg;
-        boolean empty = false;
-        msg = pendingMap.remove(id);
-        if (msg != null) {
-            empty = pendingCount.decrementAndGet() == 0;
-            failedMap.put(id, msg);
-            exceptionsMap.putIfAbsent(tenantId, e);
-        }
-        if (empty) {
-            processingTimeoutLatch.countDown();
-        }
+    public ConcurrentMap<UUID, T> getAckMap() {
+        return ackMap;
+    }
+
+    public ConcurrentMap<UUID, T> getFailedMap() {
+        return failedMap;
     }
 }
