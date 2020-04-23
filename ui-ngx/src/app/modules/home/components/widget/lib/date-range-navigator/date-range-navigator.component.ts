@@ -99,9 +99,6 @@ export class DateRangeNavigatorWidgetComponent extends PageComponent implements 
   }
 
   ngOnInit(): void {
-    this.dashboardTimewindowChangedSubscription = this.ctx.dashboard.dashboardTimewindowChanged.subscribe(() => {
-      this.widgetContextTimewindowSync();
-    });
     this.settings = this.ctx.settings;
     this.settings.useSessionStorage = isDefined(this.settings.useSessionStorage) ? this.settings.useSessionStorage : true;
     let selection;
@@ -125,6 +122,9 @@ export class DateRangeNavigatorWidgetComponent extends PageComponent implements 
     }
     this.selectedStepSize = this.datesMap[this.settings.stepSize || 'day'].ts;
     this.widgetContextTimewindowSync();
+    this.dashboardTimewindowChangedSubscription = this.ctx.dashboard.dashboardTimewindowChanged.subscribe(() => {
+      this.widgetContextTimewindowSync();
+    });
   }
 
   ngOnDestroy(): void {

@@ -134,7 +134,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           icon = breadcrumbConfig.icon || 'home';
           isMdiIcon = icon.startsWith('mdi:');
           link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
-          queryParams = route.queryParams;
         }
         const breadcrumb = {
           label,

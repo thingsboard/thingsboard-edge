@@ -529,8 +529,8 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     const parentHeight = this.gridster.el.offsetHeight;
     if (this.isMobileSize && this.mobileAutofillHeight && parentHeight) {
       this.updateMobileOpts(parentHeight);
-      this.notifyGridsterOptionsChanged();
     }
+    this.notifyGridsterOptionsChanged();
   }
 
   private updateLayoutOpts() {

@@ -30,7 +30,6 @@
 ///
 
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   forwardRef,
@@ -124,6 +123,8 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
 
   private propagateChange = null;
   private propagateChangePending = false;
+  private writingValue = false;
+  private updateViewPending = false;
 
   constructor(public elementRef: ElementRef,
               private translate: TranslateService,
@@ -162,6 +163,7 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
   }
 
   writeValue(data: JsonFormComponentData): void {
+    this.writingValue = true;
     this.data = data;
     this.schema = this.data && this.data.schema ? deepClone(this.data.schema) : {
       type: 'object'
@@ -173,19 +175,29 @@ export class JsonFormComponent implements OnInit, ControlValueAccessor, Validato
     this.model = inspector.sanitize(this.schema, this.model).data;
     this.updateAndRender();
     this.isModelValid = this.validateModel();
-    if (!this.isModelValid) {
+    this.writingValue = false;
+    if (!this.isModelValid || this.updateViewPending) {
       this.updateView();
     }
 }
 
   updateView() {
-    if (this.data) {
-      this.data.model = this.model;
-      if (this.propagateChange) {
-        this.propagateChange(this.data);
-      } else {
-        this.propagateChangePending = true;
+    if (!this.writingValue) {
+      this.updateViewPending = false;
+      if (this.data) {
+        this.data.model = this.model;
+        if (this.propagateChange) {
+          try {
+            this.propagateChange(this.data);
+          } catch (e) {
+            this.propagateChangePending = true;
+          }
+        } else {
+          this.propagateChangePending = true;
+        }
       }
+    } else {
+      this.updateViewPending = true;
     }
   }
 
