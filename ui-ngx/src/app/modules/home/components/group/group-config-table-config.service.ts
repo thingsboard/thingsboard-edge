@@ -196,6 +196,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     if (config.entitiesDeleteEnabled) {
       config.entitiesDeleteEnabled = this.userPermissionsService.hasGroupEntityPermission(Operation.DELETE, config.entityGroup);
     }
+    if (!this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, config.entityGroup)) {
+      config.detailsReadonly = () => true;
+    }
     if (this.userPermissionsService.hasGenericEntityGroupPermission(Operation.CHANGE_OWNER, config.entityGroup) &&
       this.userPermissionsService.isOwnedGroup(config.entityGroup)) {
       config.groupActionDescriptors.push(
