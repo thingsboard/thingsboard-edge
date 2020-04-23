@@ -51,7 +51,7 @@ export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Devic
 
   deviceTypeChanged(deviceType: string) {
     this.entitiesTableConfig.componentsData.deviceType = deviceType;
-    this.entitiesTableConfig.table.updateData();
+    this.entitiesTableConfig.table.resetSortAndFilter(true);
   }
 
 }
