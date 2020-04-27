@@ -69,7 +69,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -343,28 +343,28 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     private EntityId bytesToOwner(byte[] data) throws InvalidProtocolBufferException {
-        ClusterAPIProtos.EntityIdProto proto = ClusterAPIProtos.EntityIdProto.parseFrom(data);
+        TransportProtos.EntityIdProto proto = TransportProtos.EntityIdProto.parseFrom(data);
         return EntityIdFactory.getByTypeAndUuid(proto.getEntityType(), new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
     }
 
     private Set<EntityId> bytesToOwners(byte[] data) throws InvalidProtocolBufferException {
-        ClusterAPIProtos.OwnersListProto proto = ClusterAPIProtos.OwnersListProto.parseFrom(data);
+        TransportProtos.OwnersListProto proto = TransportProtos.OwnersListProto.parseFrom(data);
         return proto.getEntityIdsList().stream().map(entityIdProto ->
                 EntityIdFactory.getByTypeAndUuid(entityIdProto.getEntityType(),
                         new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toSet());
     }
 
     private byte[] toBytes(EntityId entityId) {
-        return ClusterAPIProtos.EntityIdProto.newBuilder()
+        return TransportProtos.EntityIdProto.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                 .setEntityType(entityId.getEntityType().name()).build().toByteArray();
     }
 
     private byte[] toBytes(Set<EntityId> result) {
-        ClusterAPIProtos.OwnersListProto.Builder builder = ClusterAPIProtos.OwnersListProto.newBuilder();
+        TransportProtos.OwnersListProto.Builder builder = TransportProtos.OwnersListProto.newBuilder();
         builder.addAllEntityIds(result.stream().map(entityId ->
-                ClusterAPIProtos.EntityIdProto.newBuilder()
+                TransportProtos.EntityIdProto.newBuilder()
                         .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                         .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                         .setEntityType(entityId.getEntityType().name()).build()).collect(Collectors.toList()));

@@ -31,7 +31,7 @@
 package org.thingsboard.server.actors.device;
 
 import lombok.Data;
-import org.thingsboard.server.gen.transport.SessionType;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 
 import java.util.UUID;
 

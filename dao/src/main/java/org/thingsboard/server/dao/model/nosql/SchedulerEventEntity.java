@@ -105,11 +105,11 @@ public final class SchedulerEventEntity implements SearchTextEntity<SchedulerEve
         this.schedule = schedulerEvent.getSchedule();
     }
 
-    public UUID getId() {
+    public UUID getUuid() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setUuid(UUID id) {
         this.id = id;
     }
 

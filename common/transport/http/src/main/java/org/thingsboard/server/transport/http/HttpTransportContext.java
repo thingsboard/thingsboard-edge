@@ -41,7 +41,7 @@ import org.thingsboard.server.common.transport.TransportContext;
  * Created by ashvayka on 04.10.18.
  */
 @Slf4j
-@ConditionalOnExpression("'${transport.type:null}'=='null' || ('${transport.type}'=='local' && '${transport.http.enabled}'=='true')")
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.http.enabled}'=='true')")
 @Component
 public class HttpTransportContext extends TransportContext {
 

@@ -37,8 +37,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.annotation.Nullable;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
 /**
  * Created by ashvayka on 02.04.18.
  */
@@ -49,7 +47,7 @@ class TelemetryNodeCallback implements FutureCallback<Void> {
 
     @Override
     public void onSuccess(@Nullable Void result) {
-        ctx.tellNext(msg, SUCCESS);
+        ctx.tellSuccess(msg);
     }
 
     @Override

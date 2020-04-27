@@ -83,7 +83,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
                                 NULL_UUID_STR,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                                new PageRequest(0, pageLink.getLimit())));
+                                PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override
@@ -94,7 +94,7 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
                                 UUIDConverter.fromTimeUUID(tenantId),
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                                new PageRequest(0, pageLink.getLimit())));
+                                PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override
@@ -106,6 +106,6 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
                                 NULL_UUID_STR,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                                new PageRequest(0, pageLink.getLimit())));
+                                PageRequest.of(0, pageLink.getLimit())));
     }
 }

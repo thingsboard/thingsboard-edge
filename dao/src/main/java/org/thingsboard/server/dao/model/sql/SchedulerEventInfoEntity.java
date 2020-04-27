@@ -88,7 +88,7 @@ public final class SchedulerEventInfoEntity extends BaseSqlEntity<SchedulerEvent
 
     public SchedulerEventInfoEntity(SchedulerEventInfo schedulerEventInfo) {
         if (schedulerEventInfo.getId() != null) {
-            this.setId(schedulerEventInfo.getId().getId());
+            this.setUuid(schedulerEventInfo.getId().getId());
         }
         if (schedulerEventInfo.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getTenantId().getId());

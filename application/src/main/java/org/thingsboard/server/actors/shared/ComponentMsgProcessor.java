@@ -37,7 +37,7 @@ import org.thingsboard.server.actors.stats.StatsPersistTick;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
-import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
+import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 @Slf4j
 public abstract class ComponentMsgProcessor<T extends EntityId> extends AbstractContextAwareMsgProcessor {
@@ -58,7 +58,7 @@ public abstract class ComponentMsgProcessor<T extends EntityId> extends Abstract
 
     public abstract void stop(ActorContext context) throws Exception;
 
-    public abstract void onClusterEventMsg(ClusterEventMsg msg) throws Exception;
+    public abstract void onPartitionChangeMsg(PartitionChangeMsg msg) throws Exception;
 
     public void onCreated(ActorContext context) throws Exception {
         start(context);

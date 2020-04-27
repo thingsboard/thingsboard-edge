@@ -30,18 +30,13 @@
  */
 package org.thingsboard.server.service.scheduler;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -53,23 +48,26 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
-import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
-import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -83,34 +81,31 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DefaultSchedulerService implements SchedulerService {
 
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private ClusterRoutingService routingService;
-
-    @Autowired
-    private SchedulerEventService schedulerEventService;
-
-    @Autowired
-    @Lazy
-    private ActorService actorService;
-
-    @Autowired
-    private ClusterRpcService clusterRpcService;
+    private final TenantService tenantService;
+    private final TbClusterService clusterService;
+    private final PartitionService partitionService;
+    private final SchedulerEventService schedulerEventService;
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents;
-    private ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData;
+    private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
+    private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
+    private final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
     private ListeningScheduledExecutorService queueExecutor;
+
+    private volatile boolean clusterUpdatePending = false;
+    private volatile boolean firstRun = true;
+
+    public DefaultSchedulerService(TenantService tenantService, TbClusterService clusterService, PartitionService partitionService, SchedulerEventService schedulerEventService) {
+        this.tenantService = tenantService;
+        this.clusterService = clusterService;
+        this.partitionService = partitionService;
+        this.schedulerEventService = schedulerEventService;
+    }
 
     @PostConstruct
     public void init() {
-        tenantEvents = new ConcurrentHashMap<>();
-        eventsMetaData = new ConcurrentHashMap<>();
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
-        queueExecutor.submit(this::initStateFromDB);
     }
 
     @PreDestroy
@@ -122,59 +117,91 @@ public class DefaultSchedulerService implements SchedulerService {
 
     @Override
     public void onSchedulerEventAdded(SchedulerEventInfo event) {
-        queueExecutor.submit(() -> onSchedulerEventAddedSync(event));
+        sendSchedulerEvent(event.getTenantId(), event.getId(), true, false, false);
     }
 
     @Override
     public void onSchedulerEventUpdated(SchedulerEventInfo event) {
-        queueExecutor.submit(() -> onSchedulerEventUpdatedSync(event));
+        sendSchedulerEvent(event.getTenantId(), event.getId(), false, true, false);
     }
 
     @Override
     public void onSchedulerEventDeleted(SchedulerEventInfo event) {
-        queueExecutor.submit(() -> onSchedulerEventDeletedSync(event.getTenantId(), event.getId()));
+        sendSchedulerEvent(event.getTenantId(), event.getId(), false, false, true);
     }
 
     @Override
-    public void onRemoteMsg(ServerAddress serverAddress, byte[] data) {
-        ClusterAPIProtos.SchedulerServiceMsgProto proto;
-        try {
-            proto = ClusterAPIProtos.SchedulerServiceMsgProto.parseFrom(data);
-        } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException(e);
-        }
+    public void onQueueMsg(TransportProtos.SchedulerServiceMsgProto proto, TbCallback callback) {
         TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
         SchedulerEventId eventId = new SchedulerEventId(new UUID(proto.getEventIdMSB(), proto.getEventIdLSB()));
         if (proto.getDeleted()) {
-            queueExecutor.submit(() -> onSchedulerEventDeletedSync(tenantId, eventId));
+            onEventDeleted(eventId);
         } else {
-            SchedulerEventInfo eventInfo = schedulerEventService.findSchedulerEventInfoById(tenantId, eventId);
-            if (eventInfo != null) {
-                if (proto.getAdded()) {
-                    onSchedulerEventAdded(eventInfo);
-                } else if (proto.getUpdated()) {
-                    onSchedulerEventUpdated(eventInfo);
+            SchedulerEventInfo event = schedulerEventService.findSchedulerEventInfoById(tenantId, eventId);
+            if (event != null) {
+                if (proto.getAdded() && !eventsMetaData.containsKey(event.getId())) {
+                    scheduleAndAddToMap(event);
+                } else {
+                    SchedulerEventMetaData oldMd = eventsMetaData.remove(event.getId());
+                    if (oldMd != null && oldMd.getNextTaskFuture() != null) {
+                        oldMd.getNextTaskFuture().cancel(false);
+                    }
+                    scheduleAndAddToMap(event);
+                }
+            }
+        }
+        callback.onSuccess();
+    }
+
+    @Override
+    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
+            synchronized (this) {
+                if (!clusterUpdatePending) {
+                    clusterUpdatePending = true;
+                    queueExecutor.submit(() -> {
+                        clusterUpdatePending = false;
+                        initStateFromDB(partitionChangeEvent.getPartitions());
+                    });
                 }
             }
         }
     }
 
-    @Override
-    public void onClusterUpdate() {
-        queueExecutor.submit(this::onClusterUpdateSync);
-    }
+    private void initStateFromDB(Set<TopicPartitionInfo> partitions) {
+        try {
+            log.info("{}} scheduler service.", firstRun ? "Initializing" : "Updating");
+            Set<TopicPartitionInfo> addedPartitions = new HashSet<>(partitions);
+            addedPartitions.removeAll(partitionedTenants.keySet());
 
-    private void initStateFromDB() {
-        log.info("Initializing scheduler service...");
-        long ts = System.currentTimeMillis();
-        List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
-        for (Tenant tenant : tenants) {
-            if (routingService.resolveById(tenant.getId()).isPresent()) {
-                continue;
+            Set<TopicPartitionInfo> removedPartitions = new HashSet<>(partitionedTenants.keySet());
+            removedPartitions.removeAll(partitions);
+
+            // We no longer manage current partition of tenants;
+            removedPartitions.forEach(partition -> {
+                Set<TenantId> tenants = partitionedTenants.remove(partition);
+                tenants.forEach(tenantId -> {
+                    tenantEvents.getOrDefault(tenantId, Collections.emptyList()).forEach(this::onEventDeleted);
+                    tenantEvents.remove(tenantId);
+                });
+            });
+
+            addedPartitions.forEach(tpi -> partitionedTenants.computeIfAbsent(tpi, key -> ConcurrentHashMap.newKeySet()));
+
+            long ts = System.currentTimeMillis();
+            List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
+            for (Tenant tenant : tenants) {
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), tenant.getId());
+                if (addedPartitions.contains(tpi)) {
+                    addEventsForTenant(ts, tenant);
+                }
             }
-            addEventsForTenant(ts, tenant);
+
+            log.info("Scheduler service {}.", firstRun ? "initialized" : "updated");
+            firstRun = false;
+        } catch (Throwable t) {
+            log.warn("Failed to init device states from DB", t);
         }
-        log.info("Scheduler service initialized.");
     }
 
     private void addEventsForTenant(long ts, Tenant tenant) {
@@ -233,10 +260,8 @@ public class DefaultSchedulerService implements SchedulerService {
                     String msgType = getMsgType(event, configuration);
                     EntityId originatorId = getOriginatorId(eventId, configuration);
                     TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
-                    TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), msgType, originatorId, tbMsgMD,
-                            TbMsgDataType.JSON, getMsgBody(event.getConfiguration()),
-                            null, null, 0L);
-                    actorService.onMsg(new SendToClusterMsg(event.getTenantId(), new ServiceToRuleEngineMsg(event.getTenantId(), tbMsg)));
+                    TbMsg tbMsg = TbMsg.newMsg(msgType, originatorId, tbMsgMD, TbMsgDataType.JSON, getMsgBody(event.getConfiguration()));
+                    clusterService.pushMsgToRuleEngine(tenantId, originatorId, tbMsg, null);
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);
                 }
@@ -263,9 +288,9 @@ public class DefaultSchedulerService implements SchedulerService {
         if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
             JsonNode entityId = configuration.get("originatorId");
             if (entityId != null) {
-                if(entityId.has("entityType") && !entityId.get("entityType").isNull()
+                if (entityId.has("entityType") && !entityId.get("entityType").isNull()
                         && entityId.has("id") && !entityId.get("id").isNull())
-                originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
+                    originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
             }
         }
         return originatorId;
@@ -288,41 +313,10 @@ public class DefaultSchedulerService implements SchedulerService {
         return new TbMsgMetaData(metaData);
     }
 
-    private void onSchedulerEventAddedSync(SchedulerEventInfo event) {
-        Optional<ServerAddress> address = routingService.resolveById(event.getTenantId());
-        if (!address.isPresent()) {
-            if (!eventsMetaData.containsKey(event.getId())) {
-                scheduleAndAddToMap(event);
-            } else {
-                onSchedulerEventUpdated(event);
-            }
-        } else {
-            sendSchedulerEvent(event.getTenantId(), event.getId(), address.get(), true, false, false);
-        }
-    }
-
-    private void onSchedulerEventUpdatedSync(SchedulerEventInfo event) {
-        Optional<ServerAddress> address = routingService.resolveById(event.getTenantId());
-        if (!address.isPresent()) {
-            SchedulerEventMetaData oldMd = eventsMetaData.remove(event.getId());
-            if (oldMd != null && oldMd.getNextTaskFuture() != null) {
-                oldMd.getNextTaskFuture().cancel(false);
-            }
-            scheduleAndAddToMap(event);
-        } else {
-            sendSchedulerEvent(event.getTenantId(), event.getId(), address.get(), false, true, false);
-        }
-    }
-
-    private void onSchedulerEventDeletedSync(TenantId tenantId, SchedulerEventId eventId) {
-        Optional<ServerAddress> address = routingService.resolveById(tenantId);
-        if (!address.isPresent()) {
-            SchedulerEventMetaData oldMd = eventsMetaData.remove(eventId);
-            if (oldMd != null && oldMd.getNextTaskFuture() != null) {
-                oldMd.getNextTaskFuture().cancel(false);
-            }
-        } else {
-            sendSchedulerEvent(tenantId, eventId, address.get(), false, false, true);
+    private void onEventDeleted(SchedulerEventId eventId) {
+        SchedulerEventMetaData oldMd = eventsMetaData.remove(eventId);
+        if (oldMd != null && oldMd.getNextTaskFuture() != null) {
+            oldMd.getNextTaskFuture().cancel(false);
         }
     }
 
@@ -333,32 +327,8 @@ public class DefaultSchedulerService implements SchedulerService {
         eventsMetaData.put(event.getId(), eventMd);
     }
 
-    private void onClusterUpdateSync() {
-        long ts = System.currentTimeMillis();
-        List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
-        for (Tenant tenant : tenants) {
-            if (routingService.resolveById(tenant.getId()).isPresent()) {
-                List<SchedulerEventId> eventsIds = tenantEvents.remove(tenant.getId());
-                if (eventsIds != null) {
-                    for (SchedulerEventId eventId : eventsIds) {
-                        SchedulerEventMetaData md = eventsMetaData.remove(eventId);
-                        if (md != null && md.getNextTaskFuture() != null) {
-                            md.getNextTaskFuture().cancel(false);
-                        }
-                    }
-                }
-            } else {
-                List<SchedulerEventId> eventIds = tenantEvents.get(tenant.getId());
-                if (eventIds == null) {
-                    addEventsForTenant(ts, tenant);
-                }
-            }
-        }
-    }
-
-    private void sendSchedulerEvent(TenantId tenantId, SchedulerEventId eventId, ServerAddress address, boolean added, boolean updated, boolean deleted) {
-        log.trace("[{}][{}] Device is monitored on other server: {}", tenantId, eventId, address);
-        ClusterAPIProtos.SchedulerServiceMsgProto.Builder builder = ClusterAPIProtos.SchedulerServiceMsgProto.newBuilder();
+    private void sendSchedulerEvent(TenantId tenantId, SchedulerEventId eventId, boolean added, boolean updated, boolean deleted) {
+        TransportProtos.SchedulerServiceMsgProto.Builder builder = TransportProtos.SchedulerServiceMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setEventIdMSB(eventId.getId().getMostSignificantBits());
@@ -366,6 +336,8 @@ public class DefaultSchedulerService implements SchedulerService {
         builder.setAdded(added);
         builder.setUpdated(updated);
         builder.setDeleted(deleted);
-        clusterRpcService.tell(address, ClusterAPIProtos.MessageType.CLUSTER_SCHEDULER_SERVICE_MESSAGE, builder.build().toByteArray());
+        TransportProtos.SchedulerServiceMsgProto msg = builder.build();
+        // Routing by tenant id.
+        clusterService.pushMsgToCore(tenantId, tenantId, TransportProtos.ToCoreMsg.newBuilder().setSchedulerServiceMsg(msg).build(), null);
     }
 }

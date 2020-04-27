@@ -32,13 +32,13 @@ package org.thingsboard.server.transport.mqtt.session;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
@@ -63,6 +63,8 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
                 .setDeviceIdLSB(deviceInfo.getDeviceIdLSB())
                 .setTenantIdMSB(deviceInfo.getTenantIdMSB())
                 .setTenantIdLSB(deviceInfo.getTenantIdLSB())
+                .setDeviceName(deviceInfo.getDeviceName())
+                .setDeviceType(deviceInfo.getDeviceType())
                 .build();
         setDeviceInfo(deviceInfo);
     }

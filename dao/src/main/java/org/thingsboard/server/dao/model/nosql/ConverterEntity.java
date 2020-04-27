@@ -107,11 +107,13 @@ public final class ConverterEntity implements SearchTextEntity<Converter> {
         this.additionalInfo = converter.getAdditionalInfo();
     }
 
-    public UUID getId() {
+    @Override
+    public UUID getUuid() {
         return id;
     }
 
-    public void setId(UUID id) {
+    @Override
+    public void setUuid(UUID id) {
         this.id = id;
     }
 

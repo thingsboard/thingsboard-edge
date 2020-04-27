@@ -89,7 +89,7 @@ public class RuleEngineController extends BaseController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(@RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest( null, null, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -123,12 +123,13 @@ public class RuleEngineController extends BaseController {
                 @Override
                 public void onSuccess(@Nullable DeferredResult<ResponseEntity> result) {
                     long expTime = System.currentTimeMillis() + timeout;
-                    UUID msgId = UUIDs.timeBased();
                     HashMap<String, String> metaData = new HashMap<>();
-                    metaData.put("requestUUID", msgId.toString());
+                    UUID requestId = UUID.randomUUID();
+                    metaData.put("serviceId", serviceInfoProvider.getServiceId());
+                    metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.createNewMsg(msgId, DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), msg,
+                    TbMsg msg = TbMsg.newMsg(DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);
+                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 
@@ -183,7 +184,7 @@ public class RuleEngineController extends BaseController {
                 user.getCustomerId(),
                 user.getId(),
                 user.getName(),
-                (UUIDBased & EntityId) entityId,
+                entityId,
                 null,
                 ActionType.REST_API_RULE_ENGINE_CALL,
                 BaseController.toException(e),

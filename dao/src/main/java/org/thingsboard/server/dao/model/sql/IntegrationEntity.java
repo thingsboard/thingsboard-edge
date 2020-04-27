@@ -105,7 +105,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
 
     public IntegrationEntity(Integration integration) {
         if (integration.getId() != null) {
-            this.setId(integration.getId().getId());
+            this.setUuid(integration.getId().getId());
         }
         if (integration.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(integration.getTenantId().getId());

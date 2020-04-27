@@ -2425,6 +2425,11 @@
         "no-timezones-matching": "No timezones matching '{{timezone}}' were found.",
         "timezone-required": "Timezone is required."
     },
+    "queue": {
+        "select_name": "Select queue name",
+        "name": "Queue Name",
+        "name_required": "Queue name is required!"
+    },
     "tenant": {
         "tenant": "Tenant",
         "tenants": "Tenants",
@@ -2454,7 +2459,11 @@
         "selected-tenants": "{ count, plural, 1 {1 tenant} other {# tenants} } selected",
         "search": "Search tenants",
         "allow-white-labeling": "Allow White Labeling",
-        "allow-customer-white-labeling": "Allow Customer White Labeling"
+        "allow-customer-white-labeling": "Allow Customer White Labeling",
+        "isolated-tb-core": "Processing in isolated ThingsBoard Core container",
+        "isolated-tb-rule-engine": "Processing in isolated ThingsBoard Rule Engine container",
+        "isolated-tb-core-details": "Requires separate microservice(s) per isolated Tenant",
+        "isolated-tb-rule-engine-details": "Requires separate microservice(s) per isolated Tenant"
     },
     "timeinterval": {
         "seconds-interval": "{ seconds, plural, 1 {1 second} other {# seconds} }",

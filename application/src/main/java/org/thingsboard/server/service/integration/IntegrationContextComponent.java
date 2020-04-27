@@ -49,8 +49,10 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.service.cluster.discovery.DiscoveryService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.integration.downlink.DownlinkService;
+import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
@@ -69,6 +71,12 @@ public class IntegrationContextComponent {
     public void handleContextClosed(ContextClosedEvent event) {
         isClosed = true;
     }
+
+    @Autowired
+    private TbServiceInfoProvider serviceInfoProvider;
+
+    @Autowired
+    private DeviceStateService deviceStateService;
 
     @Lazy
     @Autowired
@@ -105,14 +113,6 @@ public class IntegrationContextComponent {
     @Lazy
     @Autowired
     private EventService eventService;
-
-    @Lazy
-    @Autowired
-    private DiscoveryService discoveryService;
-
-    @Lazy
-    @Autowired
-    private ActorService actorService;
 
     @Lazy
     @Autowired

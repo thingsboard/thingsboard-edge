@@ -54,31 +54,31 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.common.transport.service.AbstractTransportService;
-import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.ClaimDeviceMsg;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
-import org.thingsboard.server.gen.transport.SessionEvent;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceX509CertRequestMsg;
+import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceX509CertRequestMsg;
 import org.thingsboard.server.transport.mqtt.adaptors.MqttTransportAdaptor;
 import org.thingsboard.server.transport.mqtt.session.DeviceSessionCtx;
 import org.thingsboard.server.transport.mqtt.session.GatewaySessionHandler;
@@ -437,13 +437,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     private void processDisconnect(ChannelHandlerContext ctx) {
         ctx.close();
         log.info("[{}] Client disconnected!", sessionId);
-        if (deviceSessionCtx.isConnected()) {
-            transportService.process(sessionInfo, AbstractTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
-            transportService.deregisterSession(sessionInfo);
-            if (gatewaySessionHandler != null) {
-                gatewaySessionHandler.onGatewayDisconnect();
-            }
-        }
+        doDisconnect();
     }
 
     private MqttConnAckMessage createMqttConnAckMsg(MqttConnectReturnCode returnCode) {
@@ -512,9 +506,17 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void operationComplete(Future<? super Void> future) throws Exception {
+        doDisconnect();
+    }
+
+    private void doDisconnect() {
         if (deviceSessionCtx.isConnected()) {
-            transportService.process(sessionInfo, AbstractTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
+            transportService.process(sessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.CLOSED), null);
             transportService.deregisterSession(sessionInfo);
+            if (gatewaySessionHandler != null) {
+                gatewaySessionHandler.onGatewayDisconnect();
+            }
+            deviceSessionCtx.setDisconnected();
         }
     }
 
@@ -532,8 +534,10 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     .setDeviceIdLSB(msg.getDeviceInfo().getDeviceIdLSB())
                     .setTenantIdMSB(msg.getDeviceInfo().getTenantIdMSB())
                     .setTenantIdLSB(msg.getDeviceInfo().getTenantIdLSB())
+                    .setDeviceName(msg.getDeviceInfo().getDeviceName())
+                    .setDeviceType(msg.getDeviceInfo().getDeviceType())
                     .build();
-            transportService.process(sessionInfo, AbstractTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
+            transportService.process(sessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN), null);
             transportService.registerAsyncSession(sessionInfo, this);
             checkGatewaySession();
             ctx.writeAndFlush(createMqttConnAckMsg(CONNECTION_ACCEPTED));

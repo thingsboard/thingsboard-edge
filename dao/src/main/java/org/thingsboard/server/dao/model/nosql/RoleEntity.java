@@ -55,7 +55,6 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
-@Data
 @Table(name = ROLE_TABLE_FAMILY_NAME)
 @EqualsAndHashCode
 @ToString
@@ -114,9 +113,22 @@ public class RoleEntity implements SearchTextEntity<Role> {
         this.additionalInfo = role.getAdditionalInfo();
     }
 
+    public UUID getUuid() {
+        return id;
+    }
+
+    public void setUuid(UUID id) {
+        this.id = id;
+    }
+
     @Override
     public String getSearchTextSource() {
         return name;
+    }
+
+    @Override
+    public void setSearchText(String searchText) {
+        this.searchText = searchText;
     }
 
     @Override
