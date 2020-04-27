@@ -72,6 +72,8 @@ import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
@@ -80,6 +82,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -160,6 +163,9 @@ public class CloudManagerService {
     private DeviceService deviceService;
 
     @Autowired
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
     private DeviceStateService deviceStateService;
 
     @Autowired
@@ -216,6 +222,10 @@ public class CloudManagerService {
 
     private void cleanUp() {
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
+        deviceService.deleteDevicesByTenantId(tenantId);
+        assetService.deleteAssetsByTenantId(tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
+        dashboardService.deleteDashboardsByTenantId(tenantId);
     }
 
     private void setTenantId() {
@@ -345,8 +355,9 @@ public class CloudManagerService {
                     deviceStateService.onDeviceAdded(device);
                 } else {
                     device.setType(deviceUpdateMsg.getType());
-                    deviceService.saveDevice(device);
+                    device = deviceService.saveDevice(device);
                 }
+                updateDeviceCredentials(deviceUpdateMsg, device);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (device != null) {
@@ -356,6 +367,20 @@ public class CloudManagerService {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+    }
+
+    private void updateDeviceCredentials(DeviceUpdateMsg deviceUpdateMsg, Device device) {
+        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
+
+        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceUpdateMsg.getCredentialsType()));
+        deviceCredentials.setCredentialsId(deviceUpdateMsg.getCredentialsId());
+        deviceCredentials.setCredentialsValue(deviceUpdateMsg.getCredentialsValue());
+        deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
+        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
+
     }
 
     private void onAssetUpdate(AssetUpdateMsg assetUpdateMsg) {
