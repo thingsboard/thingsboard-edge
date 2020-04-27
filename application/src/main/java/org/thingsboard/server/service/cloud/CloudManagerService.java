@@ -210,7 +210,12 @@ public class CloudManagerService {
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
         setTenantId();
+        cleanUp();
         processHandleMessages();
+    }
+
+    private void cleanUp() {
+        ruleChainService.deleteRuleChainsByTenantId(tenantId);
     }
 
     private void setTenantId() {
