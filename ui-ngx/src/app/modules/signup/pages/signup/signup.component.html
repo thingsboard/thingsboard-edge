@@ -34,7 +34,7 @@
      [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
   <mat-card style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
-      <form #signupForm="ngForm" class="tb-signup-form" [formGroup]="signup" (ngSubmit)="signUp()">
+      <form class="tb-signup-form" [formGroup]="signup" (ngSubmit)="signUp()">
         <fieldset [disabled]="isLoading$ | async">
           <div fxFlex fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">

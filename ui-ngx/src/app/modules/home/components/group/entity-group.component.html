@@ -71,7 +71,7 @@
        [fxShow]="!isEdit && isPublic">
     {{ 'entity-group.entity-group-public' | translate }}
   </div>
-  <form #entityNgForm="ngForm" [formGroup]="entityForm">
+  <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
         <mat-label translate>entity-group.name</mat-label>

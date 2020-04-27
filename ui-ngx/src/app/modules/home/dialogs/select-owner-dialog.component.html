@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #selectOwnerForm="ngForm" [formGroup]="selectOwnerFormGroup" (ngSubmit)="selectOwner()" style="width: 800px;">
+<form [formGroup]="selectOwnerFormGroup" (ngSubmit)="selectOwner()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ selectOwnerTitle | translate }}</h2>
     <span fxFlex></span>
@@ -60,8 +60,8 @@
   <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || selectOwnerForm.invalid
-            || !selectOwnerForm.dirty">
+            [disabled]="(isLoading$ | async) || selectOwnerFormGroup.invalid
+            || !selectOwnerFormGroup.dirty">
       {{ confirmSelectTitle | translate }}
     </button>
     <button mat-button color="primary"
