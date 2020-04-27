@@ -41,15 +41,15 @@
     <artifactId>application</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard PE Server Application</name>
+    <name>ThingsBoard Edge Application</name>
     <url>https://thingsboard.io</url>
-    <description>ThingsBoard Professional Edition: IoT Platform - Device management, data collection, processing and visualization
+    <description>ThingsBoard Edge: IoT Platform - Device management, data collection, processing and visualization
     </description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/..</main.dir>
-        <pkg.name>thingsboard</pkg.name>
+        <pkg.name>tb-edge</pkg.name>
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
@@ -352,7 +352,7 @@
                 <version>${surfire.version}</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <spring.config.name>thingsboard</spring.config.name>
+                        <spring.config.name>tb-edge</spring.config.name>
                     </systemPropertyVariables>
                     <includes>
                         <include>**/*TestSuite.java</include>
@@ -420,7 +420,7 @@
                                 <resource>
                                     <directory>src/main/conf</directory>
                                     <excludes>
-                                        <exclude>thingsboard.conf</exclude>
+                                        <exclude>tb-edge.conf</exclude>
                                     </excludes>
                                     <filtering>true</filtering>
                                 </resource>

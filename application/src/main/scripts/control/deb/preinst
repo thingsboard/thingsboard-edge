@@ -15,7 +15,7 @@ if ! getent passwd ${pkg.name} >/dev/null; then
             --disabled-password \
             --home ${pkg.installFolder} \
             --no-create-home \
-            -gecos "Thingsboard application" \
+            -gecos "TB Edge application" \
             ${pkg.name}
 fi
 
