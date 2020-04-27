@@ -45,6 +45,5 @@ public class SequentialByTenantIdTbRuleEngineSubmitStrategy extends SequentialBy
     @Override
     protected EntityId getEntityId(TransportProtos.ToRuleEngineMsg msg) {
         return new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
-
     }
 }

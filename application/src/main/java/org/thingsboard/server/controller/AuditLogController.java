@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;

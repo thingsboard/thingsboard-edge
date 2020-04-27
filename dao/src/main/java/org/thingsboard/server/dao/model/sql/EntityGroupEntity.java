@@ -87,7 +87,7 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
 
     public EntityGroupEntity (EntityGroup entityGroup) {
         if (entityGroup.getId() != null) {
-            this.setId(entityGroup.getId().getId());
+            this.setUuid(entityGroup.getId().getId());
         }
         this.name = entityGroup.getName();
         this.type = entityGroup.getType();
@@ -101,8 +101,8 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
 
     @Override
     public EntityGroup toData() {
-        EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getId()));
-        entityGroup.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getUuid()));
+        entityGroup.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
         entityGroup.setName(name);
         entityGroup.setType(type);
         if (ownerId != null) {

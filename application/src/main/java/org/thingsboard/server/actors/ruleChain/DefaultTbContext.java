@@ -39,8 +39,9 @@ import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
-import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RpcError;
@@ -61,10 +62,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -93,11 +92,10 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
-import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import scala.concurrent.duration.Duration;
 
@@ -157,14 +155,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void ack(TbMsg msg) {
-        if (nodeCtx.getSelf().isDebugMode()) {
-            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, "ACK", null);
-        }
-//        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainAckMsg(nodeCtx.getSelf().getId(), msg), nodeCtx.getSelfActor());
-    }
-
-    @Override
     public void enqueue(TbMsg tbMsg, Runnable onSuccess, Consumer<Throwable> onFailure) {
         TopicPartitionInfo tpi = mainCtx.resolve(ServiceType.TB_RULE_ENGINE, getTenantId(), tbMsg.getOriginator());
         enqueue(tpi, tbMsg, onFailure, onSuccess);
@@ -181,7 +171,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setTbMsg(TbMsg.toByteString(tbMsg)).build();
-        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(),  msg, new SimpleTbQueueCallback(onSuccess, onFailure));
+        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
     @Override
@@ -238,7 +228,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (failureMessage != null) {
             msg.setFailureMessage(failureMessage);
         }
-        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(),  msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
+        mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
     @Override
@@ -543,7 +533,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         UUID requestUUID;
         if (restApiCall) {
             String tmp = msg.getMetaData().getValue("requestUUID");
-            requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUIDs.timeBased();
+            requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUID.randomUUID();
             tmp = msg.getMetaData().getValue("oneway");
             boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
             if (!oneway) {
@@ -553,25 +543,26 @@ class DefaultTbContext implements TbContext, TbPeContext {
             requestUUID = null;
         }
 
-        mainCtx.getPlatformIntegrationService().onDownlinkMsg(new DefaultIntegrationDownlinkMsg(getTenantId(), integrationId, msg), new FutureCallback<Void>() {
-            @Override
-            public void onSuccess(@Nullable Void aVoid) {
-                if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                    mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(mainCtx.getRoutingService().getCurrentServer(), response);
-                }
-                callback.onSuccess(aVoid);
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                if (restApiCall) {
-                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                    mainCtx.getDeviceRpcService().processResponseToServerSideRPCRequestFromRuleEngine(mainCtx.getRoutingService().getCurrentServer(), response);
-                }
-                callback.onFailure(throwable);
-            }
-        });
+        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+                .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
+                .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
+                .setData(TbMsg.toByteString(msg)).build();
+        mainCtx.getClusterService().pushMsgToCore(getTenantId(), integrationId, TransportProtos.ToCoreMsg.newBuilder().setIntegrationDownlinkMsg(downlinkMsgProto).build(),
+                new SimpleTbQueueCallback(() -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
+                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                    }
+                    callback.onSuccess(null);
+                }, error -> {
+                    if (restApiCall) {
+                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                        mainCtx.getTbRuleEngineDeviceRpcService().processRpcResponseFromDevice(response);
+                    }
+                    callback.onFailure(error);
+                }));
     }
 
     @Override

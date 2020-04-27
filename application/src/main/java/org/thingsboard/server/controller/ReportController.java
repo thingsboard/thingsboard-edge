@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.report.ReportConfig;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
@@ -60,6 +61,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class ReportController extends BaseController {
 

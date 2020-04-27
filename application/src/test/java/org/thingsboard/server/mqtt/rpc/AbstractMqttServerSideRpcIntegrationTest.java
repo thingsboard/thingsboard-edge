@@ -116,14 +116,13 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, clientId);
+        CountDownLatch latch = new CountDownLatch(1);
+        TestMqttCallback callback = new TestMqttCallback(client, latch);
+        client.setCallback(callback);
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(accessToken);
         client.connect(options).waitForCompletion();
-
-        CountDownLatch latch = new CountDownLatch(1);
-        TestMqttCallback callback = new TestMqttCallback(client, latch);
-        client.setCallback(callback);
 
         client.subscribe("v1/devices/me/rpc/request/+", MqttQoS.AT_MOST_ONCE.value());
 
@@ -178,12 +177,12 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, clientId);
+        client.setCallback(new TestMqttCallback(client, new CountDownLatch(1)));
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(accessToken);
         client.connect(options).waitForCompletion();
         client.subscribe("v1/devices/me/rpc/request/+", 1);
-        client.setCallback(new TestMqttCallback(client, new CountDownLatch(1)));
 
         Thread.sleep(2000);
 

@@ -60,15 +60,16 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
 
 @RestController
 @TbCoreComponent

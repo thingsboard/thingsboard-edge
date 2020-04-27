@@ -69,7 +69,7 @@ public abstract class AbstractCleanUpService {
         return removed;
     }
 
-    protected void getWarnings(Statement statement) throws SQLException {
+    private void getWarnings(Statement statement) throws SQLException {
         SQLWarning warnings = statement.getWarnings();
         if (warnings != null) {
             log.debug("{}", warnings.getMessage());

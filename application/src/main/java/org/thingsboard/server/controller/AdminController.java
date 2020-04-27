@@ -93,7 +93,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public AdminSettings getAdminSettings(@PathVariable("key") String key,
                                           @RequestParam(required = false,
-                                                        defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
+                                                  defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
             if (authority == Authority.SYS_ADMIN) {
@@ -162,8 +162,8 @@ public class AdminController extends BaseController {
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
-               String email = getCurrentUser().getEmail();
-               mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
+                String email = getCurrentUser().getEmail();
+                mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -188,7 +188,8 @@ public class AdminController extends BaseController {
         if (!StringUtils.isEmpty(jsonString)) {
             try {
                 jsonValue = objectMapper.readTree(jsonString);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonValue == null) {
             if (systemByDefault) {
@@ -211,7 +212,8 @@ public class AdminController extends BaseController {
         if (jsonValue != null) {
             try {
                 jsonString = objectMapper.writeValueAsString(jsonValue);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonString == null) {
             jsonString = "";

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
@@ -57,9 +58,12 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
@@ -92,21 +96,28 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private final TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> mainConsumer;
     private final DeviceStateService stateService;
+    private final SchedulerService schedulerService;
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
+    private final PlatformIntegrationService platformIntegrationService;
+    private final RuleEngineCallService ruleEngineCallService;
     private final TbCoreConsumerStats stats = new TbCoreConsumerStats();
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
-                                        DeviceStateService stateService, TbLocalSubscriptionService localSubscriptionService,
-                                        SubscriptionManagerService subscriptionManagerService, DataDecodingEncodingService encodingService,
-                                        TbCoreDeviceRpcService tbCoreDeviceRpcService) {
+                                        DeviceStateService stateService, SchedulerService schedulerService,
+                                        TbLocalSubscriptionService localSubscriptionService, SubscriptionManagerService subscriptionManagerService,
+                                        DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService,
+                                        PlatformIntegrationService platformIntegrationService, RuleEngineCallService ruleEngineCallService) {
         super(actorContext, encodingService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.stateService = stateService;
+        this.schedulerService = schedulerService;
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
+        this.platformIntegrationService = platformIntegrationService;
+        this.ruleEngineCallService = ruleEngineCallService;
     }
 
     @PostConstruct
@@ -155,6 +166,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                             } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
                                 log.trace("[{}] Forwarding message to state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
                                 forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
+                            } else if (toCoreMsg.hasSchedulerServiceMsg()) {
+                                log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
+                                forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
+                            } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
+                                log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
+                                forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
                             } else if (toCoreMsg.getToDeviceActorNotificationMsg() != null && !toCoreMsg.getToDeviceActorNotificationMsg().isEmpty()) {
                                 Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreMsg.getToDeviceActorNotificationMsg().toByteArray());
                                 if (actorMsg.isPresent()) {
@@ -212,6 +229,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasFromDeviceRpcResponse()) {
             log.trace("[{}] Forwarding message to RPC service {}", id, toCoreNotification.getFromDeviceRpcResponse());
             forwardToCoreRpcService(toCoreNotification.getFromDeviceRpcResponse(), callback);
+        } else if (toCoreNotification.hasIntegrationDownlinkMsg()) {
+            log.trace("[{}] Forwarding message to Integration service {}", id, toCoreNotification.getIntegrationDownlinkMsg());
+            forwardToIntegrationService(toCoreNotification.getIntegrationDownlinkMsg(), callback);
+        } else if (toCoreNotification.hasRestApiCallResponseMsg()) {
+            log.trace("[{}] Forwarding message to RuleEngineCallService service {}", id, toCoreNotification.getRestApiCallResponseMsg());
+            forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getComponentLifecycleMsg().toByteArray());
             if (actorMsg.isPresent()) {
@@ -221,7 +244,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.log(toCoreNotification);
+            stats.logToCoreNotification();
         }
     }
 
@@ -281,6 +304,27 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             stats.log(deviceStateServiceMsg);
         }
         stateService.onQueueMsg(deviceStateServiceMsg, callback);
+    }
+
+    private void forwardToSchedulerService(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.log(schedulerServiceMsg);
+        }
+        schedulerService.onQueueMsg(schedulerServiceMsg, callback);
+    }
+
+    private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.logToCoreNotification();
+        }
+        platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
+    }
+
+    private void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.logToCoreNotification();
+        }
+        ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
     private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {

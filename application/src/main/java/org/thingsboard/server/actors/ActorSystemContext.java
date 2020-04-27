@@ -54,7 +54,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleChainTransactionService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.DataConstants;
@@ -99,11 +98,11 @@ import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
-import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
-import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
+import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
@@ -308,10 +307,10 @@ public class ActorSystemContext {
     @Getter
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    @Autowired
+    @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
-    @Autowired
+    @Autowired(required = false)
     @Getter private DataConverterService dataConverterService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")

@@ -72,7 +72,6 @@
 						 ng-model="allowCustomerWhiteLabeling">{{ 'tenant.allow-customer-white-labeling' | translate }}
 			</md-checkbox>
 		</md-input-container>
-		<tb-contact contact="tenant" the-form="theForm" is-edit="isEdit"></tb-contact>
         <md-input-container class="md-block">
             <md-checkbox ng-disabled="{{theForm.$name != 'theForm'}}"
                          ng-model="tenant.isolatedTbCore">
@@ -87,5 +86,6 @@
                 <span style="font-size: 10px">{{'tenant.isolated-tb-rule-engine-details' | translate}}</span>
             </md-checkbox>
         </md-input-container>
+		<tb-contact contact="tenant" the-form="theForm" is-edit="isEdit"></tb-contact>
 	</fieldset>
 </md-content>

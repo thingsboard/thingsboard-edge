@@ -44,6 +44,6 @@ public interface RuleEngineRpcService {
 
     void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
 
-    void sendRestApiCallReply(UUID requestId, TbMsg msg);
+    void sendRestApiCallReply(String serviceIdStr, UUID requestId, TbMsg msg);
 
 }

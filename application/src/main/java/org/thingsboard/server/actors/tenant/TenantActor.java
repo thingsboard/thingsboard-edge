@@ -249,7 +249,6 @@ public class TenantActor extends RuleChainManagerActor {
                     dataConverterService.updateConverter(converter);
                 }
             }
-
         } else {
             if (isRuleEngineForCurrentTenant) {
                 ActorRef target = getEntityActorRef(msg.getEntityId());

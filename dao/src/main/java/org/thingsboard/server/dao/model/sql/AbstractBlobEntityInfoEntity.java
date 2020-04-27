@@ -90,7 +90,7 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
 
     public AbstractBlobEntityInfoEntity(BlobEntityInfo blobEntityInfo) {
         if (blobEntityInfo.getId() != null) {
-            this.setId(blobEntityInfo.getId().getId());
+            this.setUuid(blobEntityInfo.getId().getId());
         }
         if (blobEntityInfo.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(blobEntityInfo.getTenantId().getId());

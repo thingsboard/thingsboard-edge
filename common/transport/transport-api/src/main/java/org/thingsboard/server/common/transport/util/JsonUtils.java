@@ -33,7 +33,8 @@ package org.thingsboard.server.common.transport.util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.thingsboard.server.gen.transport.KeyValueProto;
+import org.thingsboard.server.gen.transport.TransportProtos.KeyValueProto;
+
 import java.util.List;
 
 public class JsonUtils {

@@ -32,8 +32,8 @@ package org.thingsboard.integration.api.data;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
 /**
  * Created by ashvayka on 04.12.17.

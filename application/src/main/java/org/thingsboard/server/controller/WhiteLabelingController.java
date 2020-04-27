@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -70,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 

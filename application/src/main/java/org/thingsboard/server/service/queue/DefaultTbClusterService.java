@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -44,6 +45,8 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -110,6 +113,20 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
+    public void pushNotificationToCore(String serviceId, IntegrationDownlinkMsg downlink, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
+        IntegrationDownlinkMsgProto.Builder builder = IntegrationDownlinkMsgProto.newBuilder()
+                .setTenantIdMSB(downlink.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(downlink.getTenantId().getId().getLeastSignificantBits())
+                .setIntegrationIdMSB(downlink.getIntegrationId().getId().getMostSignificantBits())
+                .setIntegrationIdLSB(downlink.getIntegrationId().getId().getLeastSignificantBits())
+                .setData(TbMsg.toByteString(downlink.getTbMsg()));
+        ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setIntegrationDownlinkMsg(builder).build();
+        producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(downlink.getTbMsg().getId(), msg), callback);
+        toCoreNfs.incrementAndGet();
+    }
+
+    @Override
     public void pushNotificationToCore(String serviceId, FromDeviceRpcResponse response, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
         log.trace("PUSHING msg: {} to:{}", response, tpi);
@@ -120,6 +137,14 @@ public class DefaultTbClusterService implements TbClusterService {
         response.getResponse().ifPresent(builder::setResponse);
         ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setFromDeviceRpcResponse(builder).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(response.getId(), msg), callback);
+        toCoreNfs.incrementAndGet();
+    }
+
+    @Override
+    public void pushNotificationToCore(String targetServiceId, TransportProtos.RestApiCallResponseMsgProto responseMsgProto, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, targetServiceId);
+        ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setRestApiCallResponseMsg(responseMsgProto).build();
+        producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), callback);
         toCoreNfs.incrementAndGet();
     }
 

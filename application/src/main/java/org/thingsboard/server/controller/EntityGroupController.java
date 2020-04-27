@@ -75,6 +75,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
@@ -92,6 +93,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class EntityGroupController extends BaseController {
 

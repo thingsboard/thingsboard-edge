@@ -33,10 +33,6 @@ package org.thingsboard.server.actors.ruleChain;
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-<<<<<<< HEAD
-import com.datastax.driver.core.utils.UUIDs;
-=======
->>>>>>> upstream/develop/3.0
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.server.actors.ActorSystemContext;
@@ -72,7 +68,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

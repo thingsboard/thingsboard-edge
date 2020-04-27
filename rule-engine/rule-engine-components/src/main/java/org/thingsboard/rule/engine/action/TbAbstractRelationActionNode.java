@@ -202,6 +202,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newDevice.setType(entitykey.getType());
                         newDevice.setTenantId(ctx.getTenantId());
                         Device savedDevice = deviceService.saveDevice(newDevice);
+                        //TODO: @dshvaika WTF?
                         savedDevice.setOwnerId(getOwnerId(savedDevice.getId()));
                         ctx.enqueue(ctx.deviceCreatedMsg(savedDevice, ctx.getSelfId()),
                                 () -> log.trace("Pushed Device Created message: {}", savedDevice),
@@ -237,6 +238,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newCustomer.setTitle(entitykey.getEntityName());
                         newCustomer.setTenantId(ctx.getTenantId());
                         Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                        //TODO: @dshvaika WTF?
                         savedCustomer.setOwnerId(getOwnerId(savedCustomer.getId()));
                         ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
                                 () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
