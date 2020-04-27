@@ -133,6 +133,7 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -162,6 +163,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
+@TbCoreComponent
 @Service
 @Data
 public class DefaultPlatformIntegrationService implements PlatformIntegrationService {

@@ -307,10 +307,10 @@ public class ActorSystemContext {
     @Getter
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    @Autowired
+    @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
-    @Autowired
+    @Autowired(required = false)
     @Getter private DataConverterService dataConverterService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
