@@ -61,7 +61,7 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
 
   validateAndMark() {
     this.validate();
-    this.detailsForm.control.markAsDirty()
+    this.detailsForm.markAsDirty()
   }
 
   private validate() {
@@ -75,9 +75,9 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
       if (!settingsValid) {
         errors.settings = true;
       }
-      this.detailsForm.control.setErrors(errors);
+      this.detailsForm.setErrors(errors);
     } else {
-      this.detailsForm.control.setErrors(null);
+      this.detailsForm.setErrors(null);
     }
   }
 

@@ -55,7 +55,7 @@
     [actionTypes]="entityGroupActionTypesList"
     [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName', 'servicesMap']"
     [(ngModel)]="actionsData"
-    (ngModelChange)="detailsForm.control.markAsDirty()">
+    (ngModelChange)="detailsForm.markAsDirty()">
   </tb-manage-widget-actions>
 </mat-tab>
 <mat-tab *ngIf="entity && entity.type === entityTypes.USER && !isEdit && (resource.GROUP_PERMISSION | hasGenericPermission: operation.READ)"
