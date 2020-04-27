@@ -35,7 +35,7 @@ import { FooterComponent } from '@shared/components/footer.component';
 import { LogoComponent } from '@shared/components/logo.component';
 import { TbSnackBarComponent, ToastDirective } from '@shared/components/toast.directive';
 import { BreadcrumbComponent } from '@shared/components/breadcrumb.component';
-import { NgxFlowModule, FlowInjectionToken } from '@flowjs/ngx-flow';
+import { FlowInjectionToken, NgxFlowModule } from '@flowjs/ngx-flow';
 import { NgxFlowchartModule } from 'ngx-flowchart/dist/ngx-flowchart';
 import Flow from '@flowjs/flow.js';
 
@@ -116,7 +116,11 @@ import { EntityListSelectComponent } from '@shared/components/entity/entity-list
 import { JsonObjectEditComponent } from '@shared/components/json-object-edit.component';
 import { FooterFabButtonsComponent } from '@shared/components/footer-fab-buttons.component';
 import { CircularProgressDirective } from '@shared/components/circular-progress.directive';
-import { FabToolbarComponent, FabActionsDirective, FabTriggerDirective } from '@shared/components/fab-toolbar.component';
+import {
+  FabActionsDirective,
+  FabToolbarComponent,
+  FabTriggerDirective
+} from '@shared/components/fab-toolbar.component';
 import { DashboardSelectPanelComponent } from '@shared/components/dashboard-select-panel.component';
 import { DashboardSelectComponent } from '@shared/components/dashboard-select.component';
 import { WidgetsBundleSelectComponent } from '@shared/components/widgets-bundle-select.component';
@@ -160,6 +164,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
+import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 
 @NgModule({
   providers: [
@@ -223,6 +228,7 @@ import { DndModule } from 'ngx-drag-drop';
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
+    QueueTypeListComponent,
     RelationTypeAutocompleteComponent,
     SocialSharePanelComponent,
     JsonObjectEditComponent,
@@ -354,6 +360,7 @@ import { DndModule } from 'ngx-drag-drop';
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
+    QueueTypeListComponent,
     RelationTypeAutocompleteComponent,
     SocialSharePanelComponent,
     JsonObjectEditComponent,

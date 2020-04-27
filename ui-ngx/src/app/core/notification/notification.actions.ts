@@ -30,7 +30,7 @@
 ///
 
 import { Action } from '@ngrx/store';
-import { NotificationMessage, HideNotification } from '@app/core/notification/notification.models';
+import { HideNotification, NotificationMessage } from '@app/core/notification/notification.models';
 
 export enum NotificationActionTypes {
   SHOW_NOTIFICATION = '[Notification] Show',

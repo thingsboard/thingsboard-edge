@@ -34,7 +34,7 @@
   [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
   <mat-card style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
-      <form #loginForm="ngForm" class="tb-login-form" [formGroup]="loginFormGroup" (ngSubmit)="login()">
+      <form class="tb-login-form" [formGroup]="loginFormGroup" (ngSubmit)="login()">
         <fieldset [disabled]="isLoading$ | async" fxLayout="column">
           <div fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">

@@ -29,10 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { CollectionViewer, DataSource } from '@angular/cdk/collections';
+import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
 import { BehaviorSubject, Observable, of, ReplaySubject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { SelectionModel } from '@angular/cdk/collections';
 import { PageLink } from '@shared/models/page/page-link';
 import { catchError, map, publishReplay, refCount, take, tap } from 'rxjs/operators';
 import { EntityId } from '@app/shared/models/id/entity-id';
@@ -41,8 +40,8 @@ import {
   AttributeData,
   AttributeScope,
   isClientSideTelemetryType,
-  TelemetryType,
-  TelemetrySubscriber
+  TelemetrySubscriber,
+  TelemetryType
 } from '@shared/models/telemetry/telemetry.models';
 import { AttributeService } from '@core/http/attribute.service';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';

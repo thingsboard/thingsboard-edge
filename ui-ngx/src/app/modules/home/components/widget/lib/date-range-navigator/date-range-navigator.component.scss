@@ -49,12 +49,6 @@
       margin: 4px 0;
     }
 
-    .navigation {
-      md-input-container {
-        margin: 0;
-      }
-    }
-
     .picker {
       .picker__wrapper {
         position: relative;
@@ -89,10 +83,6 @@
 
       .drn__element {
         width: 100%;
-
-        md-input-container {
-          flex: 1;
-        }
       }
 
       .picker {

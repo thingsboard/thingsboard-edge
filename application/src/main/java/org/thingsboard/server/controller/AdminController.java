@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.update.UpdateService;
 
@@ -66,6 +67,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api/admin")
 public class AdminController extends BaseController {
 
@@ -73,7 +75,7 @@ public class AdminController extends BaseController {
 
     @Autowired
     private MailService mailService;
-    
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
@@ -107,7 +109,7 @@ public class AdminController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public AdminSettings saveAdminSettings(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();

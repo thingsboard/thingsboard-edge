@@ -79,17 +79,13 @@ public class TbMsgAttributesNode implements TbNode {
             ctx.tellFailure(msg, new IllegalArgumentException("Unsupported msg type: " + msg.getType()));
             return;
         }
-
         String src = msg.getData();
         String scope = msg.getMetaData().getValue(SCOPE);
         if (StringUtils.isEmpty(scope)) {
             scope = config.getScope();
         }
         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(src));
-        ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(), scope, new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
-        if (msg.getOriginator().getEntityType() == EntityType.DEVICE && DataConstants.SHARED_SCOPE.equals(scope)) {
-            ctx.getTelemetryService().onSharedAttributesUpdate(ctx.getTenantId(), new DeviceId(msg.getOriginator().getId()), attributes);
-        }
+        ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(), config.getScope(), new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
     }
 
     @Override

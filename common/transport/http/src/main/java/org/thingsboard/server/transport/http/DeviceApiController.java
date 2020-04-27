@@ -76,7 +76,7 @@ import java.util.function.Consumer;
  * @author Andrew Shvayka
  */
 @RestController
-@ConditionalOnExpression("'${transport.type:null}'=='null' || ('${transport.type}'=='local' && '${transport.http.enabled}'=='true')")
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.http.enabled}'=='true')")
 @RequestMapping("/api/v1")
 @Slf4j
 public class DeviceApiController {
@@ -236,6 +236,8 @@ public class DeviceApiController {
                         .setDeviceIdLSB(deviceInfoProto.getDeviceIdLSB())
                         .setSessionIdMSB(sessionId.getMostSignificantBits())
                         .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                        .setDeviceName(msg.getDeviceInfo().getDeviceName())
+                        .setDeviceType(msg.getDeviceInfo().getDeviceType())
                         .build();
                 onSuccess.accept(sessionInfo);
             } else {

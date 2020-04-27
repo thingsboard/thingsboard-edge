@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { LatLngTuple } from 'leaflet';
+import { LatLngTuple, LeafletMouseEvent } from 'leaflet';
 
 export type GenericFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
 export type MarkerImageFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
@@ -39,14 +39,15 @@ export type MapSettings = {
     draggableMarker: boolean;
     initCallback?: () => any;
     defaultZoomLevel?: number;
-    dontFitMapBounds?: boolean;
     disableScrollZooming?: boolean;
     minZoomLevel?: number;
+    useClusterMarkers: boolean;
     latKeyName?: string;
     lngKeyName?: string;
     xPosKeyName?: string;
     yPosKeyName?: string;
     mapProvider: MapProviders;
+    mapProviderHere: string;
     mapUrl?: string;
     mapImageUrl?: string;
     provider?: MapProviders;
@@ -57,6 +58,13 @@ export type MapSettings = {
     gmDefaultMapType?: string;
     useLabelFunction: string;
     icon?: any;
+    zoomOnClick: boolean,
+    maxZoom: number,
+    showCoverageOnHover: boolean,
+    animate: boolean,
+    maxClusterRadius: number,
+    chunkedLoading: boolean,
+    removeOutsideVisibleBounds: boolean
 }
 
 export enum MapProviders {
@@ -69,6 +77,7 @@ export enum MapProviders {
 
 export type MarkerSettings = {
     tooltipPattern?: any;
+    tooltipAction: { [name: string]: actionsHandler };
     icon?: any;
     showLabel?: boolean;
     label: string;
@@ -77,19 +86,19 @@ export type MarkerSettings = {
     useLabelFunction: boolean;
     draggableMarker: boolean;
     showTooltip?: boolean;
+    useTooltipFunction: boolean;
+    useColorFunction: boolean;
     color?: string;
     autocloseTooltip: boolean;
-    displayTooltipAction: string;
+    showTooltipAction: string;
+    useClusterMarkers: boolean;
     currentImage?: string;
     useMarkerImageFunction?: boolean;
     markerImages?: string[];
-    useMarkerImage: boolean;
     markerImageSize: number;
     fitMapBounds: boolean;
-    markerImage: {
-        length: number
-    }
-
+    markerImage: string;
+    markerClick: { [name: string]: actionsHandler };
     colorFunction: GenericFunction;
     tooltipFunction: GenericFunction;
     labelFunction: GenericFunction;
@@ -113,16 +122,18 @@ export type PolygonSettings = {
     polygonStrokeColor: string;
     polygonColor: string;
     autocloseTooltip: boolean;
-    displayTooltipAction: string;
-
+    showTooltipAction: string;
+    tooltipAction: object;
+    polygonClick: { [name: string]: actionsHandler };
     polygonColorFunction?: GenericFunction;
 }
 
 export type PolylineSettings = {
     usePolylineDecorator: any;
     autocloseTooltip: boolean;
-    displayTooltipAction: string;
+    showTooltipAction: string;
     useColorFunction: any;
+    tooltipAction: { [name: string]: actionsHandler };
     color: string;
     useStrokeOpacityFunction: any;
     strokeOpacity: number;
@@ -145,5 +156,7 @@ export type PolylineSettings = {
 export interface HistorySelectSettings {
     buttonColor: string;
 }
+
+export type actionsHandler = ($event: Event | LeafletMouseEvent) => void;
 
 export type UnitedMapSettings = MapSettings & PolygonSettings & MarkerSettings & PolylineSettings;

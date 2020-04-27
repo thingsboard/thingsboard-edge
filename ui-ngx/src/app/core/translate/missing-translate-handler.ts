@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {MissingTranslationHandler, MissingTranslationHandlerParams} from '@ngx-translate/core';
+import { MissingTranslationHandler, MissingTranslationHandlerParams } from '@ngx-translate/core';
 import { customTranslationsPrefix } from '@app/shared/models/constants';
 
 export class TbMissingTranslationHandler implements MissingTranslationHandler {

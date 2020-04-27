@@ -52,7 +52,9 @@
               "node_modules/@fullcalendar/daygrid/main.css",
               "node_modules/@fullcalendar/list/main.css",
               "node_modules/@fullcalendar/timegrid/main.css",
-              "src/app/modules/home/components/widget/lib/maps/markers.scss"
+              "src/app/modules/home/components/widget/lib/maps/markers.scss",
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.css",
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css"
             ],
             "stylePreprocessorOptions": {
               "includePaths": [

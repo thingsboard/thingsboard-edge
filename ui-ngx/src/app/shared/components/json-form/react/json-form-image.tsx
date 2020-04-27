@@ -28,10 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-import React, {useCallback} from 'react';
-import { DropzoneState, useDropzone } from 'react-dropzone';
-import ThingsboardBaseComponent from './json-form-base-component';
+import React from 'react';
 import Dropzone from 'react-dropzone';
+import ThingsboardBaseComponent from './json-form-base-component';
 import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
 import IconButton from '@material-ui/core/IconButton';
 import ClearIcon from '@material-ui/icons/Clear';

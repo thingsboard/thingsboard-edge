@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #widgetActionForm="ngForm" [formGroup]="widgetActionFormGroup" (ngSubmit)="save()" style="min-width: 480px;">
+<form [formGroup]="widgetActionFormGroup" (ngSubmit)="save()" style="min-width: 480px;">
   <mat-toolbar color="primary">
     <h2>{{ (isAdd ? 'widget-config.add-action' : 'widget-config.edit-action' ) | translate }}</h2>
     <span fxFlex></span>

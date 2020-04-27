@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -214,6 +215,18 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
                     }
                     if (!StringUtils.isEmpty(tenant.getEmail())) {
                         validateEmail(tenant.getEmail());
+                    }
+                }
+
+                @Override
+                protected void validateUpdate(TenantId tenantId, Tenant tenant) {
+                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
+                    if (old == null) {
+                        throw new DataValidationException("Can't update non existing tenant!");
+                    } else if (old.isIsolatedTbRuleEngine() != tenant.isIsolatedTbRuleEngine()) {
+                        throw new DataValidationException("Can't update isolatedTbRuleEngine property!");
+                    } else if (old.isIsolatedTbCore() != tenant.isIsolatedTbCore()) {
+                        throw new DataValidationException("Can't update isolatedTbCore property!");
                     }
                 }
             };

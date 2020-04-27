@@ -48,8 +48,6 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class RuleNodeLinkComponent implements ControlValueAccessor, OnInit {
 
-  @ViewChild('ruleNodeLinkForm', {static: true}) ruleNodeLinkForm: NgForm;
-
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;

@@ -29,11 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Injectable} from '@angular/core';
-import {Subject, Subscription} from 'rxjs';
-import {NotificationMessage} from '@core/notification/notification.models';
-import {BroadcastEvent, BroadcastListener, BroadcastMessage} from '@core/services/broadcast.models';
-import {filter} from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { Subject, Subscription } from 'rxjs';
+import { BroadcastEvent, BroadcastListener, BroadcastMessage } from '@core/services/broadcast.models';
+import { filter } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'

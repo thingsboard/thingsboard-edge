@@ -63,6 +63,8 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
                 .setDeviceIdLSB(deviceInfo.getDeviceIdLSB())
                 .setTenantIdMSB(deviceInfo.getTenantIdMSB())
                 .setTenantIdLSB(deviceInfo.getTenantIdLSB())
+                .setDeviceName(deviceInfo.getDeviceName())
+                .setDeviceType(deviceInfo.getDeviceType())
                 .build();
         setDeviceInfo(deviceInfo);
     }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
+import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntitySearchDirection, EntityTypeFilter } from '@shared/models/relation.models';
 import { EntityInfo } from './entity.models';

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #entityAliasesForm="ngForm" [formGroup]="entityAliasesFormGroup" (ngSubmit)="save()" style="width: 700px;">
+<form [formGroup]="entityAliasesFormGroup" (ngSubmit)="save()" style="width: 700px;">
   <mat-toolbar color="primary">
     <h2>{{ title | translate }}</h2>
     <span fxFlex></span>

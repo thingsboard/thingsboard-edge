@@ -65,8 +65,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class CustomerController extends BaseController {
 

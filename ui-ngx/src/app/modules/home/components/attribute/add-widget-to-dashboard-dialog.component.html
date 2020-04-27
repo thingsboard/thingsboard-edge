@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #addWidgetForm="ngForm" [formGroup]="addWidgetFormGroup" (ngSubmit)="add()" style="min-width: 400px;">
+<form [formGroup]="addWidgetFormGroup" (ngSubmit)="add()" style="min-width: 400px;">
   <mat-toolbar color="primary">
     <h2 translate>attribute.add-widget-to-dashboard</h2>
     <span fxFlex></span>
@@ -73,7 +73,7 @@
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <mat-checkbox formControlName="openDashboard"
-                  style="margin-bottom: 0px; padding-right: 20px;">
+                  style="margin-bottom: 0; padding-right: 20px;">
       {{ 'dashboard.open-dashboard' | translate }}
     </mat-checkbox>
     <button mat-raised-button color="primary"

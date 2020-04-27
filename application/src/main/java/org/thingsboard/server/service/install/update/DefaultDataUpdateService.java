@@ -163,8 +163,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
-            case "2.5.0":
-                log.info("Updating data from version 2.5.0 to 2.5.0PE ...");
+            case "3.0.0":
+                log.info("Updating data from version 3.0.0 to 3.0.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);

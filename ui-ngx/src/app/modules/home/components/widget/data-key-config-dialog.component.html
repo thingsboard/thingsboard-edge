@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #dataKeyForm="ngForm" [formGroup]="dataKeyFormGroup" (ngSubmit)="save()" style="min-width: 480px;">
+<form [formGroup]="dataKeyFormGroup" (ngSubmit)="save()" style="min-width: 480px;">
   <mat-toolbar color="primary">
     <h2>{{ 'datakey.configuration' | translate }}</h2>
     <span fxFlex></span>
@@ -54,7 +54,7 @@
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || dataKeyForm.invalid || !dataKeyForm.dirty">
+            [disabled]="(isLoading$ | async) || dataKeyFormGroup.invalid || !dataKeyFormGroup.dirty">
       {{ 'action.save' | translate }}
     </button>
     <button mat-button color="primary"
