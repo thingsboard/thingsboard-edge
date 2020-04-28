@@ -931,12 +931,17 @@ export class WidgetSubscription implements IWidgetSubscription {
           datasourceData.data.forEach((row) => {
             let key = datasourceData.dataKey.label;
             const ts = row[0];
+            let tsKey = ts.toString();
+            if(this.type ===  widgetType.timeseries && this.datasources.length > 1){
+              tsKey += "_" + datasourceData.datasource.entityName;
+            }
             const value = row[1];
-            let tsRow = tsRows[ts];
+            let tsRow = tsRows[tsKey];
             if (!tsRow) {
               tsRow = {};
               tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
-              tsRows[ts] = tsRow;
+              tsRow["Entity Name"] = datasourceData.datasource.entityName;
+              tsRows[tsKey] = tsRow;
             }
             key = this.checkProperty(tsRow, key);
             if (!allKeys[key]) {
@@ -953,6 +958,9 @@ export class WidgetSubscription implements IWidgetSubscription {
           const tsRow = tsRows[timestamp];
           const dataObj: {[key: string]: any} = {};
           dataObj.Timestamp = tsRow.Timestamp;
+          if(this.type === widgetType.timeseries && this.datasources.length > 1) {
+            dataObj["Entity Name"] = tsRow["Entity Name"];
+          }
           rowKeys.forEach((key) => {
             if (isDefined(tsRow[key])) {
               dataObj[key] = tsRow[key];
