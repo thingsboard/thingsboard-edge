@@ -1029,7 +1029,7 @@ export default class Subscription {
     }
 
     exportData() {
-        var exportedData = [], dataObj, col, row, ts, key, value;
+        var exportedData = [], dataObj, col, row, ts, key, value, tsKey;
         if (this.type == this.ctx.types.widgetType.timeseries.value || this.type == this.ctx.types.widgetType.latest.value) {
 
             const checkProperty = (dataObj, key) => {
@@ -1049,12 +1049,17 @@ export default class Subscription {
                     for (row=0; row < this.data[col].data.length; row ++) {
                         key = this.data[col].dataKey.label;
                         ts = this.data[col].data[row][0];
+                        tsKey = ts;
+                        if(this.type === this.ctx.types.widgetType.timeseries.value && this.datasources.length > 1){
+                            tsKey += "_" + this.data[col].datasource.entityName;
+                        }
                         value = this.data[col].data[row][1];
-                        var tsRow = tsRows[ts];
+                        var tsRow = tsRows[tsKey];
                         if (!tsRow) {
                             tsRow = {};
                             tsRow["Timestamp"] = this.ctx.$filter('date')(ts, 'yyyy-MM-dd HH:mm:ss');
-                            tsRows[ts] = tsRow;
+                            tsRow["Entity Name"] = this.data[col].datasource.entityName;
+                            tsRows[tsKey] = tsRow;
                         }
                         key = checkProperty(tsRow, key);
                         if (!allKeys[key]) {
@@ -1071,6 +1076,9 @@ export default class Subscription {
                     tsRow = tsRows[timestamps[row]];
                     dataObj = {};
                     dataObj["Timestamp"] = tsRow["Timestamp"];
+                    if(this.type === this.ctx.types.widgetType.timeseries.value && this.datasources.length > 1) {
+                        dataObj["Entity Name"] = tsRow["Entity Name"];
+                    }
                     for (col=0;col<rowKeys.length;col++) {
                         key = rowKeys[col];
                         if (angular.isDefined(tsRow[key])) {

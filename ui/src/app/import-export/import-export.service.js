@@ -1065,15 +1065,22 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         downloadFile(data, filename, JSON_TYPE);
     }
 
+    function processCSVCell(cellData){
+        var result = cellData.replace(/"/g, '""');
+        if (result.search(/([",\n])/g) >= 0)
+            result = '"' + result + '"';
+        return result;
+    }
+
     function exportCsv(data, filename) {
         var colsHead;
         var colsData;
         if (data && data.length) {
             formatDataAccordingToLocale(data);
-            colsHead = Object.keys(data[0]).map(key => [key]).join(';');
+            colsHead = Object.keys(data[0]).map(key => [processCSVCell(key)]).join(';');
             colsData = data.map(obj => [ // obj === row
                 Object.keys(obj).map(col => [
-                    obj[col]
+                    processCSVCell(obj[col])
                 ]).join(';')
             ]).join('\n');
         } else {
@@ -1143,7 +1150,7 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
 
             data.forEach((item) => {
                 if (item.Timestamp) {
-                    item.Timestamp = new Date(item.Timestamp);
+                    item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
                 }
                 sheet.addRow(item).eachCell((cell) => {
                     cell.border = cellBorderStyle;
