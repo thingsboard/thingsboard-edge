@@ -65,22 +65,22 @@
             </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox [aria-label]="'integration.clean-session' | translate" formControlName="cleanSession">
+            <mat-checkbox class="checkbox" [aria-label]="'integration.clean-session' | translate" formControlName="cleanSession">
                 {{ 'integration.clean-session' | translate }}
             </mat-checkbox>
-            <mat-checkbox [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
+            <mat-checkbox class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
                 {{ 'integration.enable-ssl' | translate }}
             </mat-checkbox>
         </div>
         <mat-accordion class="tb-integration-panel-group">
-            <mat-expansion-panel>
+            <mat-expansion-panel  id="expansion-panel">
                 <mat-expansion-panel-header fxFlex>
                     <mat-panel-title translate>integration.credentials</mat-panel-title>
                     <mat-panel-description>
                         {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <div formGroupName="credentials">
+                <div formGroupName="credentials" >
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
                         <mat-select required formControlName="type">
@@ -120,7 +120,7 @@
             </mat-expansion-panel>
         </mat-accordion>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters" >
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters">
     </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">

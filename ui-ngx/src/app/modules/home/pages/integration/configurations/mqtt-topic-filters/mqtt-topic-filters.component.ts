@@ -30,8 +30,7 @@
 ///
 
 import { Component, OnInit, Input } from '@angular/core';
-import { Observable } from 'rxjs';
-import { mqttQoSTypes } from '../../integartion-forms-templates';
+import { mqttQoSTypes } from '../../integration-forms-templates';
 import { FormBuilder, FormArray, Validators } from '@angular/forms';
 
 @Component({
@@ -43,14 +42,15 @@ export class MqttTopicFiltersComponent implements OnInit {
 
   @Input() topicFilters: FormArray;
   @Input() disableMqttTopics: boolean;
-  @Input() defFilter='';
+  @Input() defFilter = '';
 
   mqttQoSTypes = mqttQoSTypes;
 
   constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
-    this.topicFilters.setValidators(Validators.required)
+    this.topicFilters.setValidators(Validators.required);
+    this.topicFilters.setErrors({ required: true });
   }
 
   addTopicFilter() {

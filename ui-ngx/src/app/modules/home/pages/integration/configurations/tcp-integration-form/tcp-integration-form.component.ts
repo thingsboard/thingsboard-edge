@@ -30,9 +30,8 @@
 ///
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integartion-forms-templates';
+import { FormGroup, Validators } from '@angular/forms';
+import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integration-forms-templates';
 
 
 @Component({
@@ -78,8 +77,20 @@ export class TcpIntegrationFormComponent implements OnInit {
     delete this.handlerTypes.hex;
   }
 
-  handlerConfigurationTypeChanged(type){
-    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value]);
+  handlerConfigurationTypeChanged(type) {
+    const handlerConf = this.defaultHandlerConfigurations[type.value];
+    const controls = (this.form.get('handlerConfiguration') as FormGroup).controls;
+    // tslint:disable-next-line: forin
+    for (const property in controls) {
+      const control = controls[property];
+      if (control) {
+        if (handlerConf[property] !== undefined)
+          control.setValidators(Validators.required)
+        else
+          control.setValidators([]);
+      }
+    }
+    this.form.get('handlerConfiguration').patchValue(handlerConf);
   };
 
 }

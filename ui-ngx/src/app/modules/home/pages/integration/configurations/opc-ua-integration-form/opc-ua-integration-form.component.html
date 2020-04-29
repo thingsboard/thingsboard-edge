@@ -96,14 +96,16 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.username</mat-label>
                 <input matInput required formControlName="username">
-                <mat-error translate *ngIf="form.get('username')?.hasError('required')">integration.username-required
+                <mat-error translate *ngIf="form.get('identity').get('username')?.hasError('required')">
+                    integration.username-required
                 </mat-error>
             </mat-form-field>
 
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.password</mat-label>
                 <input matInput required formControlName="password" type="password">
-                <mat-error translate *ngIf="form.get('password')?.hasError('required')">integration.password-required
+                <mat-error translate *ngIf="form.get('identity').get('password')?.hasError('required')">
+                    integration.password-required
                 </mat-error>
             </mat-form-field>
         </div>
@@ -169,7 +171,8 @@
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-mapping</mat-panel-title>
                     <mat-panel-description>
-                        <mat-error *ngIf="!form.get('mapping')['length']" translate>integration.add-opc-ua-mapping-prompt
+                        <mat-error *ngIf="!form.get('mapping')['length']" translate>
+                            integration.add-opc-ua-mapping-prompt
                         </mat-error>
                     </mat-panel-description>
                 </mat-expansion-panel-header>
@@ -177,9 +180,9 @@
                     <ol class="list-group">
                         <li class="list-group-item"
                             *ngFor="let map of form.get('mapping')['controls'];let mapIndex = index">
-                            <button mat-icon-button  class="mat-icon-button"
-                                (click)="$any(form.get('mapping')).removeAt(mapIndex)" [matTooltip]="'action.remove' | translate"
-                                matTooltipPosition="above">
+                            <button mat-icon-button class="mat-icon-button"
+                                (click)="$any(form.get('mapping')).removeAt(mapIndex)"
+                                [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
                                 <mat-icon>close</mat-icon>
                             </button>
                             <mat-card>
@@ -228,8 +231,7 @@
                     translate>integration.add-opc-ua-mapping-prompt</span>
                 <div>
                     <button mat-button class="mat-primary mat-raised" (click)="addMap()"
-                         [matTooltip]="'integration.opc-ua-add-map' | translate"
-                        matTooltipPosition="above">
+                        [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.opc-ua-add-map</span>
                     </button>

@@ -30,7 +30,7 @@
 ///
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'tb-cert-upload',
@@ -45,6 +45,12 @@ export class CertUploadComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.form.get('caCertFileName').setValidators(Validators.required);
+    this.form.get('certFileName').setValidators(Validators.required);
+    this.form.get('privateKeyFileName').setValidators(Validators.required);
+    this.form.get('caCert').setValidators(Validators.required);
+    this.form.get('cert').setValidators(Validators.required);
+    this.form.get('privateKey').setValidators(Validators.required);
   }
 
 }

@@ -31,9 +31,7 @@
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
-
-import { mqttCredentialTypes } from '../../integartion-forms-templates';
+import { mqttCredentialTypes } from '../../integration-forms-templates';
 
 
 @Component({

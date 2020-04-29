@@ -68,16 +68,17 @@
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
             <div fxLayout="row" fxLayoutGap="20px">
-                <mat-checkbox fxFlex="50" [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity"
-                    (change)="thingparkEnableSecurityChanged()">{{ 'integration.enable-security' |
-                        translate }}
+                <mat-checkbox fxFlex [aria-label]="'integration.enable-security' | translate"
+                    formControlName="enableSecurity" (change)="thingparkEnableSecurityChanged()">
+                    {{ 'integration.enable-security' | translate }}
                 </mat-checkbox>
-                <mat-checkbox fxFlex="50" fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
+                <mat-checkbox fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
                     [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
                         translate}}
                 </mat-checkbox>
             </div>
-            <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout="row" fxLayoutGap="20px">
+            <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout.gt-sm="row"
+                fxLayoutGap="20px">
                 <mat-form-field fxFlex *ngIf="!form.get('enableSecurityNew')?.value" class="mat-block">
                     <mat-label translate>integration.as-id</mat-label>
                     <input matInput required formControlName="asId">

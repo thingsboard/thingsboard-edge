@@ -32,7 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
-import { handlerConfigurationTypes } from '../../integartion-forms-templates';
+import { handlerConfigurationTypes } from '../../integration-forms-templates';
 
 
 @Component({

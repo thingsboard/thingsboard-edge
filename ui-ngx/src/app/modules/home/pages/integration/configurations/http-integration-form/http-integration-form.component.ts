@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, AfterViewInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { Component, Input, ChangeDetectionStrategy, OnChanges } from '@angular/core';
+import { FormGroup, Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -43,7 +43,7 @@ import { TranslateService } from '@ngx-translate/core';
   styleUrls: ['./http-integration-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.Default
 })
-export class HttpIntegrationFormComponent implements AfterViewInit {
+export class HttpIntegrationFormComponent implements OnChanges {
 
   @Input() form: FormGroup;
   @Input() integrationType: IntegrationType;
@@ -53,7 +53,7 @@ export class HttpIntegrationFormComponent implements AfterViewInit {
 
   constructor(protected store: Store<AppState>, private translate: TranslateService) { }
 
-  ngAfterViewInit(): void {
+  ngOnChanges(): void {
     this.integrationBaseUrlChanged();
   }
 
