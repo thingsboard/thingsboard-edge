@@ -55,6 +55,8 @@ import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
 
+import javax.annotation.PreDestroy;
+
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && ('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-transport')")
 @Slf4j
@@ -149,5 +151,21 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
         responseBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToTransportMsg.parseFrom(msg.getData()), msg.getHeaders()));
         responseBuilder.admin(notificationAdmin);
         return responseBuilder.build();
+    }
+
+    @PreDestroy
+    private void destroy() {
+        if (coreAdmin != null) {
+            coreAdmin.destroy();
+        }
+        if (ruleEngineAdmin != null) {
+            ruleEngineAdmin.destroy();
+        }
+        if (transportApiAdmin != null) {
+            transportApiAdmin.destroy();
+        }
+        if (notificationAdmin != null) {
+            notificationAdmin.destroy();
+        }
     }
 }

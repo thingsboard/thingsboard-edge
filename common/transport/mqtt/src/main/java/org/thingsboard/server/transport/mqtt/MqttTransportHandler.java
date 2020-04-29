@@ -127,7 +127,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     private volatile DeviceSessionCtx deviceSessionCtx;
     private volatile GatewaySessionHandler gatewaySessionHandler;
 
-    MqttTransportHandler(MqttTransportContext context,SslHandler sslHandler) {
+    MqttTransportHandler(MqttTransportContext context, SslHandler sslHandler) {
         this.sessionId = UUID.randomUUID();
         this.context = context;
         this.transportService = context.getTransportService();
@@ -176,9 +176,6 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 if (checkConnected(ctx, msg)) {
                     ctx.writeAndFlush(new MqttMessage(new MqttFixedHeader(PINGRESP, false, AT_MOST_ONCE, false, 0)));
                     transportService.reportActivity(sessionInfo);
-                    if (gatewaySessionHandler != null) {
-                        gatewaySessionHandler.reportActivity();
-                    }
                 }
                 break;
             case DISCONNECT:
@@ -189,7 +186,6 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             default:
                 break;
         }
-
     }
 
     private void processPublish(ChannelHandlerContext ctx, MqttPublishMessage mqttMsg) {
@@ -203,6 +199,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         if (topicName.startsWith(MqttTopics.BASE_GATEWAY_API_TOPIC)) {
             if (gatewaySessionHandler != null) {
                 handleGatewayPublishMsg(topicName, msgId, mqttMsg);
+                transportService.reportActivity(sessionInfo);
             }
         } else {
             processDevicePublish(ctx, mqttMsg, topicName, msgId);
@@ -259,6 +256,8 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
             } else if (topicName.equals(MqttTopics.DEVICE_CLAIM_TOPIC)) {
                 ClaimDeviceMsg claimDeviceMsg = adaptor.convertToClaimDevice(deviceSessionCtx, mqttMsg);
                 transportService.process(sessionInfo, claimDeviceMsg, getPubAckCallback(ctx, msgId, claimDeviceMsg));
+            } else {
+                transportService.reportActivity(sessionInfo);
             }
         } catch (AdaptorException e) {
             log.warn("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
@@ -291,6 +290,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         }
         log.trace("[{}] Processing subscription [{}]!", sessionId, mqttMsg.variableHeader().messageId());
         List<Integer> grantedQoSList = new ArrayList<>();
+        boolean activityReported = false;
         for (MqttTopicSubscription subscription : mqttMsg.payload().topicSubscriptions()) {
             String topic = subscription.topicName();
             MqttQoS reqQoS = subscription.qualityOfService();
@@ -299,11 +299,13 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     case MqttTopics.DEVICE_ATTRIBUTES_TOPIC: {
                         transportService.process(sessionInfo, SubscribeToAttributeUpdatesMsg.newBuilder().build(), null);
                         registerSubQoS(topic, grantedQoSList, reqQoS);
+                        activityReported = true;
                         break;
                     }
                     case MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC: {
                         transportService.process(sessionInfo, SubscribeToRPCMsg.newBuilder().build(), null);
                         registerSubQoS(topic, grantedQoSList, reqQoS);
+                        activityReported = true;
                         break;
                     }
                     case MqttTopics.DEVICE_RPC_RESPONSE_SUB_TOPIC:
@@ -323,6 +325,9 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 grantedQoSList.add(FAILURE.value());
             }
         }
+        if (!activityReported) {
+            transportService.reportActivity(sessionInfo);
+        }
         ctx.writeAndFlush(createSubAckMessage(mqttMsg.variableHeader().messageId(), grantedQoSList));
     }
 
@@ -335,6 +340,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         if (!checkConnected(ctx, mqttMsg)) {
             return;
         }
+        boolean activityReported = false;
         log.trace("[{}] Processing subscription [{}]!", sessionId, mqttMsg.variableHeader().messageId());
         for (String topicName : mqttMsg.payload().topics()) {
             mqttQoSMap.remove(new MqttTopicMatcher(topicName));
@@ -342,16 +348,21 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 switch (topicName) {
                     case MqttTopics.DEVICE_ATTRIBUTES_TOPIC: {
                         transportService.process(sessionInfo, SubscribeToAttributeUpdatesMsg.newBuilder().setUnsubscribe(true).build(), null);
+                        activityReported = true;
                         break;
                     }
                     case MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC: {
                         transportService.process(sessionInfo, SubscribeToRPCMsg.newBuilder().setUnsubscribe(true).build(), null);
+                        activityReported = true;
                         break;
                     }
                 }
             } catch (Exception e) {
                 log.warn("[{}] Failed to process unsubscription [{}] to [{}]", sessionId, mqttMsg.variableHeader().messageId(), topicName);
             }
+        }
+        if (!activityReported) {
+            transportService.reportActivity(sessionInfo);
         }
         ctx.writeAndFlush(createUnSubAckMessage(mqttMsg.variableHeader().messageId()));
     }

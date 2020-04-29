@@ -77,7 +77,9 @@ public interface UserService {
 	void deleteUser(TenantId tenantId, UserId userId);
 	
 	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
-	
+
+	PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
+
 	void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);

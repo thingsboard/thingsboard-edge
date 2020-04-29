@@ -108,6 +108,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -1054,14 +1055,34 @@ public abstract class BaseController {
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
-    getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation,
+    getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
-
-        List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(securityUser, entityType, operation);
-        if (!groupIds.isEmpty()) {
-            return getEntitiesFunction.apply(groupIds);
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
+                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+            switch (entityType) {
+                case DEVICE:
+                    return (PageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
+                case ASSET:
+                    return (PageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
+                case CUSTOMER:
+                    return (PageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
+                case USER:
+                    return (PageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
+                case DASHBOARD:
+                    return (PageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
+                case ENTITY_VIEW:
+                    return (PageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
+                default:
+                    throw new RuntimeException("EntityType does not supported: " + entityType);
+            }
         } else {
-            return PageData.emptyPageData();
+            List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(securityUser, entityType, operation);
+            if (!groupIds.isEmpty()) {
+                return getEntitiesFunction.apply(groupIds);
+            } else {
+                return PageData.emptyPageData();
+            }
         }
     }
 

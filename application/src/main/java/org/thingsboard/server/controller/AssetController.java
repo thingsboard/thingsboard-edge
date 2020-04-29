@@ -236,7 +236,7 @@ public class AssetController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.ASSET, Operation.READ,
+            return getGroupEntities(getCurrentUser(), EntityType.ASSET, Operation.READ, pageLink,
                     (groupIds) -> {
                         if (type != null && type.trim().length() > 0) {
                             return assetService.findAssetsByEntityGroupIdsAndType(groupIds, type, pageLink);
