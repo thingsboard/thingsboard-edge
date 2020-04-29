@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -55,15 +56,18 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -100,6 +104,12 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private RelationService relationService;
+
+    @Autowired
+    private AssetService assetService;
 
     @Autowired
     private DeviceService deviceService;
@@ -198,8 +208,17 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         createDevice(demoTenant.getId(), null, DEFAULT_DEVICE_TYPE, "Raspberry Pi Demo Device", "RASPBERRY_PI_DEMO_TOKEN", "Demo device that is used in " +
                 "Raspberry Pi GPIO control sample application");
 
+        Asset thermostatAlarms = new Asset();
+        thermostatAlarms.setTenantId(demoTenant.getId());
+        thermostatAlarms.setName("Thermostat Alarms");
+        thermostatAlarms.setType("AlarmPropagationAsset");
+        thermostatAlarms = assetService.saveAsset(thermostatAlarms);
+
         DeviceId t1Id = createDevice(demoTenant.getId(), null, "thermostat", "Thermostat T1", "T1_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
         DeviceId t2Id = createDevice(demoTenant.getId(), null, "thermostat", "Thermostat T2", "T2_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
+
+        relationService.saveRelation(thermostatAlarms.getTenantId(), new EntityRelation(thermostatAlarms.getId(), t1Id, "ToAlarmPropagationAsset"));
+        relationService.saveRelation(thermostatAlarms.getTenantId(), new EntityRelation(thermostatAlarms.getId(), t2Id, "ToAlarmPropagationAsset"));
 
         attributesService.save(demoTenant.getId(), t1Id, DataConstants.SERVER_SCOPE,
                 Arrays.asList(new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("latitude", 37.3948)),
