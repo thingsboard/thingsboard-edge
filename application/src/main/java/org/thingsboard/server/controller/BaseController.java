@@ -106,6 +106,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -1007,11 +1008,31 @@ public abstract class BaseController {
         getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
                                    Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                    List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
+                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+            switch (entityType) {
+                case DEVICE:
+                    return (TextPageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
+                case ASSET:
+                    return (TextPageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
+                case CUSTOMER:
+                    return (TextPageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
+                case USER:
+                    return (TextPageData<E>) userService.findTenantAdmins(getTenantId(), pageLink);
+                case DASHBOARD:
+                    return (TextPageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
+                case ENTITY_VIEW:
+                    return (TextPageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
+                default:
+                    throw new RuntimeException("EntityType does not supported: " + entityType);
+            }
+        } else {
+            List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
+            entityIds.addAll(additionalEntityIds);
 
-        List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
-        entityIds.addAll(additionalEntityIds);
-
-        return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
+            return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
+        }
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
