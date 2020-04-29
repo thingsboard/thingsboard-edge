@@ -52,7 +52,6 @@ import java.util.UUID;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.select;
-import static org.thingsboard.server.dao.model.ModelConstants.DEVICE_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 
 @Component
@@ -90,6 +89,17 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
                               eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.TENANT_ADMIN.name())),
                 pageLink); 
         log.trace("Found tenant admin users [{}] by tenantId [{}] and pageLink [{}]", userEntities, tenantId, pageLink);
+        return DaoUtil.convertDataList(userEntities);
+    }
+
+    @Override
+    public List<User> findUsersByTenantId(UUID tenantId, TextPageLink pageLink) {
+        log.debug("Try to find users by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
+        List<UserEntity> userEntities = findPageWithTextSearch(new TenantId(tenantId),
+                ModelConstants.ALL_USERS_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
+                Arrays.asList(eq(ModelConstants.USER_TENANT_ID_PROPERTY, tenantId)),
+                pageLink);
+        log.trace("Found users [{}] by tenantId [{}] and pageLink [{}]", userEntities, tenantId, pageLink);
         return DaoUtil.convertDataList(userEntities);
     }
 

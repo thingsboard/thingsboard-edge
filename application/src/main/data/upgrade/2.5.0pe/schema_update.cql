@@ -276,3 +276,11 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_role_id A
     WHERE tenant_id IS NOT NULL AND user_group_id IS NOT NULL AND id IS NOT NULL AND entity_group_id IS NOT NULL AND role_id IS NOT NULL
     PRIMARY KEY ((tenant_id, role_id), id, user_group_id, entity_group_id)
     WITH CLUSTERING ORDER BY (id DESC, user_group_id DESC, entity_group_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.all_users_by_tenant_and_search_text AS
+	SELECT *
+	from thingsboard.user
+	WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND authority IS NOT NULL AND search_text IS NOT NULL AND id
+	IS NOT NULL
+	PRIMARY KEY ( tenant_id, search_text, id, customer_id, authority )
+	WITH CLUSTERING ORDER BY (search_text ASC, id DESC );

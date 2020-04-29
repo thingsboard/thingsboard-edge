@@ -1019,7 +1019,7 @@ public abstract class BaseController {
                 case CUSTOMER:
                     return (TextPageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
                 case USER:
-                    return (TextPageData<E>) userService.findTenantAdmins(getTenantId(), pageLink);
+                    return (TextPageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
                 case DASHBOARD:
                     return (TextPageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
                 case ENTITY_VIEW:

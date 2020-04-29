@@ -93,6 +93,15 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
+    public List<User> findUsersByTenantId(UUID tenantId, TextPageLink pageLink) {
+        return DaoUtil.convertDataList(
+                userRepository
+                        .findUsersByTenantId(
+                                fromTimeUUID(tenantId),
+                                PageRequest.of(0, pageLink.getLimit())));
+    }
+
+    @Override
     public List<User> findCustomerUsers(UUID tenantId, UUID customerId, TextPageLink pageLink) {
         return DaoUtil.convertDataList(
                 userRepository
