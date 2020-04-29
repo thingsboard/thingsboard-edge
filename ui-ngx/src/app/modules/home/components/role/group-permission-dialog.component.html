@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #groupPermissionForm="ngForm" [formGroup]="groupPermissionFormGroup" (ngSubmit)="save()" style="min-width: 600px;">
+<form [formGroup]="groupPermissionFormGroup" (ngSubmit)="save()" style="min-width: 600px;">
   <mat-toolbar fxLayout="row" color="primary">
     <h2 translate>{{ (isAdd ? 'group-permission.add-group-permission' : 'group-permission.edit-group-permission' ) }}</h2>
     <span fxFlex></span>

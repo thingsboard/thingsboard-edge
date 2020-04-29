@@ -51,7 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
         nodeDetails = "Performs aggregation of attributes or latest timeseries fetched from child entities with configurable period. " +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with aggregated values for each parent entity.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateLatestConfig",
         icon = "functions"
 )

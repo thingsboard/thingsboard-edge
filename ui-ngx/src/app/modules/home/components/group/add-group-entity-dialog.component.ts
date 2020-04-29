@@ -43,7 +43,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormControl, FormGroupDirective, NgForm } from '@angular/forms';
+import { FormControl, FormGroupDirective, NgForm, FormGroup } from '@angular/forms';
 import { EntityType, EntityTypeResource, EntityTypeTranslation } from '@shared/models/entity-type.models';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -68,7 +68,7 @@ export class AddGroupEntityDialogComponent extends
   DialogComponent<AddGroupEntityDialogComponent, BaseData<HasId>> implements OnInit, ErrorStateMatcher {
 
   entityComponent: GroupEntityComponent<BaseData<HasId>>;
-  detailsForm: NgForm;
+  detailsForm: FormGroup;
 
   entitiesTableConfig: GroupEntityTableConfig<BaseData<HasId>>;
   entityGroup: EntityGroupInfo;
@@ -126,7 +126,7 @@ export class AddGroupEntityDialogComponent extends
     const componentRef = viewContainerRef.createComponent(componentFactory, 0, injector);
     this.entityComponent = componentRef.instance;
     this.entityComponent.isEdit = true;
-    this.detailsForm = this.entityComponent.entityNgForm;
+    this.detailsForm = this.entityComponent.entityForm;
   }
 
   helpLinkId(): string {

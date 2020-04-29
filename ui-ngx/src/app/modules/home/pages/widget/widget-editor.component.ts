@@ -36,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
 import { toWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
-import { WidgetConfig, widgetType, WidgetType, widgetTypesData, Widget } from '@shared/models/widget.models';
+import { Widget, WidgetConfig, WidgetType, widgetType, widgetTypesData } from '@shared/models/widget.models';
 import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone } from '@core/utils';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
@@ -44,7 +44,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { Hotkey, HotkeysService } from 'angular2-hotkeys';
+import { Hotkey } from 'angular2-hotkeys';
 import { TranslateService } from '@ngx-translate/core';
 import { getCurrentIsLoading } from '@app/core/interceptors/load.selectors';
 import * as ace from 'ace-builds';
@@ -53,15 +53,15 @@ import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { WINDOW } from '@core/services/window.service';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { ExceptionData } from '@shared/models/error.models';
-import Timeout = NodeJS.Timeout;
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { MatDialog } from '@angular/material/dialog';
-import { SelectWidgetTypeDialogComponent } from '@home/pages/widget/select-widget-type-dialog.component';
 import {
   SaveWidgetTypeAsDialogComponent,
   SaveWidgetTypeAsDialogResult
 } from '@home/pages/widget/save-widget-type-as-dialog.component';
 import { Subscription } from 'rxjs';
+import { ResizeObserver } from '@juggle/resize-observer';
+import Timeout = NodeJS.Timeout;
 
 // @dynamic
 @Component({
@@ -140,7 +140,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   jsonSettingsEditor: ace.Ace.Editor;
   dataKeyJsonSettingsEditor: ace.Ace.Editor;
   jsEditor: ace.Ace.Editor;
-  aceResizeListeners: { element: any, resizeListener: any }[] = [];
+  aceResize$: ResizeObserver;
 
   onWindowMessageListener = this.onWindowMessage.bind(this);
 
@@ -209,10 +209,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
 
   ngOnDestroy(): void {
     this.window.removeEventListener('message', this.onWindowMessageListener);
-    this.aceResizeListeners.forEach((resizeListener) => {
-      // @ts-ignore
-      removeResizeListener(resizeListener.element, resizeListener.resizeListener);
-    });
+    this.aceResize$.disconnect();
     this.rxSubscriptions.forEach((subscription) => {
       subscription.unsubscribe();
     });
@@ -288,6 +285,12 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   private initAceEditors() {
+    this.aceResize$ = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        const editor = this.aceEditors.find(aceEditor => aceEditor.container === entry.target);
+        this.onAceEditorResize(editor);
+      })
+    });
     this.htmlEditor = this.createAceEditor(this.htmlInputElmRef, 'html');
     this.htmlEditor.on('input', () => {
       const editorValue = this.htmlEditor.getValue();
@@ -358,12 +361,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     const aceEditor = ace.edit(editorElement, editorOptions);
     aceEditor.session.setUseWrapMode(true);
     this.aceEditors.push(aceEditor);
-
-    const resizeListener = this.onAceEditorResize.bind(this, aceEditor);
-
-    // @ts-ignore
-    addResizeListener(editorElement, resizeListener);
-    this.aceResizeListeners.push({element: editorElement, resizeListener});
+    this.aceResize$.observe(editorElement);
     return aceEditor;
   }
 

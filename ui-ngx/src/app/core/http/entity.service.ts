@@ -990,7 +990,6 @@ export class EntityService {
               }
             }
           ));
-        break;
       case AliasFilterType.entityName:
         return this.getEntitiesByNameFilter(filter.entityType, filter.entityNameFilter, maxItems,
           '', {ignoreLoading: true, ignoreErrors: true}).pipe(
@@ -1091,7 +1090,6 @@ export class EntityService {
         } else {
           return of(result);
         }
-        break;
       case AliasFilterType.assetType:
         return this.getEntitiesByNameFilter(EntityType.ASSET, filter.assetNameFilter, maxItems,
           filter.assetType, {ignoreLoading: true, ignoreErrors: true}).pipe(
@@ -1105,7 +1103,6 @@ export class EntityService {
             }
           )
         );
-        break;
       case AliasFilterType.deviceType:
         return this.getEntitiesByNameFilter(EntityType.DEVICE, filter.deviceNameFilter, maxItems,
           filter.deviceType, {ignoreLoading: true, ignoreErrors: true}).pipe(
@@ -1119,7 +1116,6 @@ export class EntityService {
             }
           )
         );
-        break;
       case AliasFilterType.entityViewType:
         return this.getEntitiesByNameFilter(EntityType.ENTITY_VIEW, filter.entityViewNameFilter, maxItems,
           filter.entityViewType, {ignoreLoading: true, ignoreErrors: true}).pipe(
@@ -1133,7 +1129,6 @@ export class EntityService {
             }
           )
         );
-        break;
       case AliasFilterType.relationsQuery:
         result.stateEntity = filter.rootStateEntity;
         let rootEntityType;
@@ -1178,7 +1173,6 @@ export class EntityService {
         } else {
           return of(result);
         }
-        break;
       case AliasFilterType.assetSearchQuery:
       case AliasFilterType.deviceSearchQuery:
       case AliasFilterType.entityViewSearchQuery:
@@ -1233,7 +1227,6 @@ export class EntityService {
         } else {
           return of(result);
         }
-        break;
     }
   }
 

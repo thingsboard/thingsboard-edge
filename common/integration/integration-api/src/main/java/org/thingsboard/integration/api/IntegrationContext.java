@@ -36,7 +36,6 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
@@ -49,11 +48,11 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface IntegrationContext {
 
     /**
-     * Returns current server address that is used mostly for logging.
+     * Returns current service id that is used mostly for logging.
      *
-     * @return server address
+     * @return service id
      */
-    ServerAddress getServerAddress();
+    String getServiceId();
 
     /**
      * Returns context of execution for uplink data converter

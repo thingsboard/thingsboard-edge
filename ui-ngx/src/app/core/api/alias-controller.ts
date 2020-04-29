@@ -138,7 +138,7 @@ export class AliasController implements IAliasController {
   }
 
   getAliasInfo(aliasId: string): Observable<AliasInfo> {
-    const aliasInfo = this.resolvedAliases[aliasId];
+    let aliasInfo = this.resolvedAliases[aliasId];
     if (aliasInfo) {
       return of(aliasInfo);
     } else if (this.resolvedAliasesObservable[aliasId]) {
@@ -174,7 +174,12 @@ export class AliasController implements IAliasController {
         delete this.resolvedAliasesObservable[aliasId];
         return res;
       }
-      return this.resolvedAliasesObservable[aliasId];
+      aliasInfo = this.resolvedAliases[aliasId];
+      if (aliasInfo) {
+        return of(aliasInfo);
+      } else {
+        return this.resolvedAliasesObservable[aliasId];
+      }
     }
   }
 

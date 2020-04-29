@@ -29,16 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  animate,
-  keyframes,
-  query,
-  stagger,
-  state,
-  style,
-  transition,
-  trigger
-} from '@angular/animations';
+import { animate, keyframes, query, stagger, state, style, transition, trigger } from '@angular/animations';
 
 export const speedDialFabAnimations = [
   trigger('fabToggler', [

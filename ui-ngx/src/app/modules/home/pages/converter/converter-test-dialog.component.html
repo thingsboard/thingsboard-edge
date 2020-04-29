@@ -31,7 +31,7 @@
 
 -->
 <form class="tb-converter-test-dialog"
-      #converterTestForm="ngForm" [formGroup]="converterTestFormGroup" (ngSubmit)="save()">
+      [formGroup]="converterTestFormGroup" (ngSubmit)="save()">
   <mat-toolbar fxLayout="row" color="primary">
     <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}</h2>
     <span fxFlex></span>

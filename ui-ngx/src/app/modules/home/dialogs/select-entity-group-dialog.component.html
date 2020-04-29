@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #selectEntityGroupForm="ngForm" [formGroup]="selectEntityGroupFormGroup" (ngSubmit)="selectEntityGroup()" style="width: 800px;">
+<form [formGroup]="selectEntityGroupFormGroup" (ngSubmit)="selectEntityGroup()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ selectEntityGroupTitle | translate }}</h2>
     <span fxFlex></span>
@@ -80,8 +80,8 @@
   <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || selectEntityGroupForm.invalid
-            || !selectEntityGroupForm.dirty">
+            [disabled]="(isLoading$ | async) || selectEntityGroupFormGroup.invalid
+            || !selectEntityGroupFormGroup.dirty">
       {{ confirmSelectTitle | translate }}
     </button>
     <button mat-button color="primary"

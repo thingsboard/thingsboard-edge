@@ -32,8 +32,14 @@
               { "glob": "**/*", "input": "node_modules/tinymce", "output": "/tinymce/" }
             ],
             "styles": [
-              "src/theme/app-theme.scss",
-              "src/theme/login-theme.scss",
+              {
+                "input": "src/theme/app-theme.scss",
+                "bundleName": "app-theme"
+              },
+              {
+                "input": "src/theme/login-theme.scss",
+                "bundleName": "login-theme"
+              },
               "src/styles.scss",
               "node_modules/jquery.terminal/css/jquery.terminal.min.css",
               "node_modules/tooltipster/dist/css/tooltipster.bundle.min.css",
@@ -46,7 +52,9 @@
               "node_modules/@fullcalendar/daygrid/main.css",
               "node_modules/@fullcalendar/list/main.css",
               "node_modules/@fullcalendar/timegrid/main.css",
-              "src/app/modules/home/components/widget/lib/maps/markers.scss"
+              "src/app/modules/home/components/widget/lib/maps/markers.scss",
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.css",
+              "node_modules/leaflet.markercluster/dist/MarkerCluster.Default.css"
             ],
             "stylePreprocessorOptions": {
               "includePaths": [
@@ -54,7 +62,6 @@
               ]
             },
             "scripts": [
-              "node_modules/javascript-detect-element-resize/detect-element-resize.js",
               "node_modules/jquery/dist/jquery.min.js",
               "node_modules/jquery.terminal/js/jquery.terminal.min.js",
               "node_modules/flot/lib/jquery.colorhelpers.js",

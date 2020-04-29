@@ -141,7 +141,7 @@ export abstract class RuleNodeConfigurationComponent extends PageComponent imple
         control = control.get(part);
       }
       control.valueChanges.subscribe(() => {
-        this.updateValidators(true);
+        this.updateValidators(true, trigger);
       });
     }
     this.configForm().valueChanges.subscribe((updated: RuleNodeConfiguration) => {
@@ -154,7 +154,7 @@ export abstract class RuleNodeConfigurationComponent extends PageComponent imple
     this.updateValidators(false);
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators(emitEvent: boolean, trigger?: string) {
   }
 
   protected validatorTriggers(): string[] {

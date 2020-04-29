@@ -202,7 +202,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("messageType", messageType)
                 .put("message", message)

@@ -28,13 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
+:host {
   button.tb-layout-button {
     width: 100%;
-    max-width: 240px;
     height: 100%;
+    padding: 40px 20px;
+  }
+
+  &::ng-deep {
     .mat-button-wrapper {
-      padding: 40px;
       line-height: 18px;
       span {
         font-size: 18px;

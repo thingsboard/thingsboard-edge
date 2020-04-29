@@ -51,7 +51,6 @@ import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { EntityGroupsTableConfigResolver } from '@home/pages/group/entity-groups-table-config.resolver';
 import {
   EntityGroupInfo,
   EntityGroupParams,
@@ -61,11 +60,12 @@ import {
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { DialogService } from '@core/services/dialog.service';
 import { WINDOW } from '@core/services/window.service';
-import { EntityGroupConfigResolver } from '@home/pages/group/entity-group-config.resolver';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { EntityGroupsTableConfig } from '../../pages/group/entity-groups-table-config';
+import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
+import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
+import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 
 // @dynamic
 @Component({

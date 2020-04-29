@@ -83,6 +83,9 @@ import { Converter, ConverterType } from '@shared/models/converter.models';
 import * as JSZip from 'jszip';
 import * as Excel from 'exceljs/dist/exceljs.min.js';
 import * as ExcelProper from 'exceljs';
+import * as moment_ from 'moment';
+
+const moment = moment_;
 
 // @dynamic
 @Injectable()
@@ -478,15 +481,22 @@ export class ImportExportService {
     );
   }
 
+  private processCSVCell(cellData: string): string {
+    let result = cellData.replace(/"/g, '""');
+    if (result.search(/([",\n])/g) >= 0)
+      result = `"${result}"`;
+    return result;
+  }
+
   public exportCsv(data: {[key: string]: any}[], filename: string) {
     let colsHead: string;
     let colsData: string;
     if (data && data.length) {
       this.formatDataAccordingToLocale(data);
-      colsHead = Object.keys(data[0]).map(key => [key]).join(';');
+      colsHead = Object.keys(data[0]).map(key => [this.processCSVCell(key)]).join(';');
       colsData = data.map(obj => [ // obj === row
         Object.keys(obj).map(col => [
-          obj[col]
+          this.processCSVCell(obj[col])
         ]).join(';')
       ]).join('\n');
     } else {
@@ -555,7 +565,7 @@ export class ImportExportService {
 
       data.forEach((item) => {
         if (item.Timestamp) {
-          item.Timestamp = new Date(item.Timestamp);
+          item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
         }
         sheet.addRow(item).eachCell((cell) => {
           cell.border = cellBorderStyle;

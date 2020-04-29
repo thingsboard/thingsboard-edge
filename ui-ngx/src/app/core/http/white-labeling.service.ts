@@ -52,6 +52,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UtilsService } from '@core/services/utils.service';
 import cssjs from '@core/css/css';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 const cssParser = new cssjs();
 cssParser.testMode = false;
@@ -64,6 +65,7 @@ export class WhiteLabelingService {
   private changeWhiteLabelingSubject = new ReplaySubject(1);
 
   private loginLogo: string;
+  private loginLogoSafeUrl: SafeUrl;
   private loginLogoHeight: number;
   private loginPageBackgroundColor: string;
   private loginShowNameVersion: boolean;
@@ -72,6 +74,7 @@ export class WhiteLabelingService {
   private platformVersion: string;
 
   public loginLogo$ = this.asWhiteLabelingObservable(() => this.loginLogo);
+  public loginLogoSafeUrl$ = this.asWhiteLabelingObservable(() => this.loginLogoSafeUrl);
   public loginLogoHeight$ = this.asWhiteLabelingObservable(() => this.loginLogoHeight);
   public loginPageBackgroundColor$ = this.asWhiteLabelingObservable(() => this.loginPageBackgroundColor);
   public loginShowNameVersion$ = this.asWhiteLabelingObservable(() => this.loginShowNameVersion);
@@ -96,6 +99,7 @@ export class WhiteLabelingService {
     private http: HttpClient,
     private store: Store<AppState>,
     private utils: UtilsService,
+    private sanitizer: DomSanitizer
   ) {
     this.definePalette('tb-primary', tbPrimaryPalette);
     this.definePalette('tb-accent', tbAccentPalette);
@@ -105,8 +109,16 @@ export class WhiteLabelingService {
     return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageUrl : '';
   }
 
+  public logoImageSafeUrl(): SafeUrl {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().logoImageSafeUrl : '';
+  }
+
   public logoImageUrl$(): Observable<string> {
     return this.asWhiteLabelingObservable(() => this.logoImageUrl());
+  }
+
+  public logoImageSafeUrl$(): Observable<SafeUrl> {
+    return this.asWhiteLabelingObservable(() => this.logoImageSafeUrl());
   }
 
   public logoImageHeight(): number {
@@ -211,7 +223,7 @@ export class WhiteLabelingService {
     return this.http.get<LoginWhiteLabelingParams>(url).pipe(
       mergeMap((loginWlParams) => {
         this.loginWlParams = mergeDefaults(loginWlParams, defaultLoginWlParams);
-        updateImages(this.loginWlParams, 'login');
+        this.updateImages(this.loginWlParams, 'login');
         return this.onLoginWlParamsLoaded().pipe(map(() => this.loginWlParams));
       }),
       catchError((err) => {
@@ -259,7 +271,7 @@ export class WhiteLabelingService {
     return this.http.get<WhiteLabelingParams>(url).pipe(
       mergeMap((userWlParams) => {
         this.userWlParams = mergeDefaults(userWlParams);
-        updateImages(this.userWlParams, 'user');
+        this.updateImages(this.userWlParams, 'user');
         return this.onUserWlParamsLoaded().pipe(map(() => this.userWlParams));
       }),
       catchError((err) => {
@@ -285,6 +297,7 @@ export class WhiteLabelingService {
     return this.http.post<WhiteLabelingParams>('/api/whiteLabel/previewWhiteLabelParams', wLParams).pipe(
       mergeMap((previewWlParams) => {
         this.currentWLParams = mergeDefaults(previewWlParams);
+        this.currentWLParams.logoImageSafeUrl = this.sanitizer.bypassSecurityTrustUrl(this.currentWLParams.logoImageUrl);
         this.isPreviewWlMode = true;
         return this.wlChanged().pipe(map(() => previewWlParams));
       })
@@ -427,6 +440,7 @@ export class WhiteLabelingService {
 
   private applyLoginWlParams(wlParams: LoginWhiteLabelingParams) {
     this.loginLogo = wlParams.logoImageUrl;
+    this.loginLogoSafeUrl = wlParams.logoImageSafeUrl;
     this.loginLogoHeight = wlParams.logoImageHeight;
     this.loginPageBackgroundColor = wlParams.pageBackgroundColor;
     this.loginShowNameVersion = wlParams.showNameVersion;
@@ -488,6 +502,33 @@ export class WhiteLabelingService {
     );
   }
 
+  private updateImages(wlParams: WhiteLabelingParams, prefix: string) {
+    const storedLogoImageChecksum = localStorage.getItem(prefix+'_logo_image_checksum');
+    const storedFaviconChecksum = localStorage.getItem(prefix+'_favicon_checksum');
+    const logoImageChecksum = wlParams.logoImageChecksum;
+    if (logoImageChecksum && !isEqual(storedLogoImageChecksum, logoImageChecksum)) {
+      const logoImageUrl = wlParams.logoImageUrl;
+      localStorage.setItem(prefix+'_logo_image_checksum', logoImageChecksum);
+      localStorage.setItem(prefix+'_logo_image_url', logoImageUrl);
+    } else {
+      wlParams.logoImageUrl = localStorage.getItem(prefix+'_logo_image_url');
+    }
+    wlParams.logoImageSafeUrl = this.sanitizer.bypassSecurityTrustUrl(wlParams.logoImageUrl);
+    const faviconChecksum = wlParams.faviconChecksum;
+    if (faviconChecksum && !isEqual(storedFaviconChecksum, faviconChecksum)) {
+      const favicon = wlParams.favicon;
+      localStorage.setItem(prefix+'_favicon_checksum', faviconChecksum);
+      localStorage.setItem(prefix+'_favicon_url', favicon.url);
+      localStorage.setItem(prefix+'_favicon_type', favicon.type);
+    } else {
+      wlParams.favicon = {
+        url: localStorage.getItem(prefix+'_favicon_url'),
+        type: localStorage.getItem(prefix+'_favicon_type'),
+      };
+    }
+  }
+
+
   private asWhiteLabelingObservable<T> (valueSource: () => T): Observable<T> {
     return this.changeWhiteLabelingSubject.pipe(
       map(() => valueSource())
@@ -510,11 +551,11 @@ function applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
   let targetStyle = $(`#${target}`);
   if (!targetStyle.length) {
     targetStyle = $(`<style id="${target}"></style>`);
-    let afterStyle = favicon.next('style');
+    let afterStyle = favicon.next('style, link');
     if (isLoginTheme) {
-      afterStyle = afterStyle.next('style');
+      afterStyle = afterStyle.next('style, link');
       if (afterStyle.attr('id') === 'tb-app-theme') {
-        afterStyle = afterStyle.next('style');
+        afterStyle = afterStyle.next('style, link');
       }
     }
     targetStyle.insertAfter(afterStyle);
@@ -540,29 +581,4 @@ function applyCustomCss(customCss: string, isLoginTheme: boolean) {
     css = '';
   }
   targetStyle.text(css);
-}
-
-function updateImages(wlParams: WhiteLabelingParams, prefix: string) {
-  const storedLogoImageChecksum = localStorage.getItem(prefix+'_logo_image_checksum');
-  const storedFaviconChecksum = localStorage.getItem(prefix+'_favicon_checksum');
-  const logoImageChecksum = wlParams.logoImageChecksum;
-  if (logoImageChecksum && !isEqual(storedLogoImageChecksum, logoImageChecksum)) {
-    const logoImageUrl = wlParams.logoImageUrl;
-    localStorage.setItem(prefix+'_logo_image_checksum', logoImageChecksum);
-    localStorage.setItem(prefix+'_logo_image_url', logoImageUrl);
-  } else {
-    wlParams.logoImageUrl = localStorage.getItem(prefix+'_logo_image_url');
-  }
-  const faviconChecksum = wlParams.faviconChecksum;
-  if (faviconChecksum && !isEqual(storedFaviconChecksum, faviconChecksum)) {
-    const favicon = wlParams.favicon;
-    localStorage.setItem(prefix+'_favicon_checksum', faviconChecksum);
-    localStorage.setItem(prefix+'_favicon_url', favicon.url);
-    localStorage.setItem(prefix+'_favicon_type', favicon.type);
-  } else {
-    wlParams.favicon = {
-      url: localStorage.getItem(prefix+'_favicon_url'),
-      type: localStorage.getItem(prefix+'_favicon_type'),
-    };
-  }
 }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.api;
 
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
@@ -41,10 +40,10 @@ import java.util.function.Consumer;
  */
 public interface RuleEngineRpcService {
 
-    void sendRpcReply(DeviceId deviceId, int requestId, String body);
+    void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body);
 
-    void sendRpcRequest(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
+    void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
 
-    void sendRestApiCallReply(UUID requestId, TbMsg msg);
+    void sendRestApiCallReply(String serviceIdStr, UUID requestId, TbMsg msg);
 
 }

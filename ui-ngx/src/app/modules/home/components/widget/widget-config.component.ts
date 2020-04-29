@@ -38,7 +38,10 @@ import {
   Datasource,
   DatasourceType,
   datasourceTypeTranslationMap,
-  defaultLegendConfig, GroupInfo, JsonSchema, widgetActionTypes,
+  defaultLegendConfig,
+  GroupInfo,
+  JsonSchema,
+  widgetActionTypes,
   widgetType
 } from '@shared/models/widget.models';
 import {

@@ -30,11 +30,11 @@
 ///
 
 import { Pipe, PipeTransform } from '@angular/core';
-import { parseTemplate } from '@app/core/utils';
+import { parseWithTranslation } from '@app/core/utils';
 
 @Pipe({ name: 'tbParseTemplate' })
 export class TbTemplatePipe implements PipeTransform {
   transform(template, data): string {
-    return parseTemplate(template, data);
+    return parseWithTranslation.parseTemplate(template, data);
   }
 }

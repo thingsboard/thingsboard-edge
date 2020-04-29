@@ -90,7 +90,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
 
     public AbstractSchedulerEventInfoEntity(SchedulerEventInfo schedulerEventInfo) {
         if (schedulerEventInfo.getId() != null) {
-            this.setId(schedulerEventInfo.getId().getId());
+            this.setUuid(schedulerEventInfo.getId().getId());
         }
         if (schedulerEventInfo.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getTenantId().getId());

@@ -32,29 +32,32 @@
 import { MapProviders, UnitedMapSettings } from './map-models';
 import LeafletMap from './leaflet-map';
 import {
-    openstreetMapSettingsSchema,
-    googleMapSettingsSchema,
-    imageMapSettingsSchema,
-    tencentMapSettingsSchema,
-    commonMapSettingsSchema,
-    routeMapSettingsSchema,
-    markerClusteringSettingsSchema,
-    markerClusteringSettingsSchemaLeaflet,
-    hereMapSettingsSchema,
-    mapProviderSchema
+  commonMapSettingsSchema,
+  googleMapSettingsSchema,
+  hereMapSettingsSchema,
+  imageMapSettingsSchema,
+  mapPolygonSchema,
+  mapProviderSchema,
+  markerClusteringSettingsSchema,
+  markerClusteringSettingsSchemaLeaflet,
+  openstreetMapSettingsSchema,
+  routeMapSettingsSchema,
+  tencentMapSettingsSchema
 } from './schemes';
-import { MapWidgetStaticInterface, MapWidgetInterface } from './map-widget.interface';
-import { OpenStreetMap, TencentMap, GoogleMap, HEREMap, ImageMap } from './providers';
-import { parseFunction, parseArray, parseData } from '@core/utils';
-import { initSchema, addToSchema, mergeSchemes, addCondition, addGroupInfo } from '@core/schema-utils';
+import { MapWidgetInterface, MapWidgetStaticInterface } from './map-widget.interface';
+import { GoogleMap, HEREMap, ImageMap, OpenStreetMap, TencentMap } from './providers';
+import { parseArray, parseData, parseFunction, parseWithTranslation } from '@core/utils';
+import { addCondition, addGroupInfo, addToSchema, initSchema, mergeSchemes } from '@core/schema-utils';
 import { forkJoin } from 'rxjs';
 import { WidgetContext } from '@app/modules/home/models/widget-component.models';
 import { getDefCenterPosition } from './maps-utils';
-import { JsonSettingsSchema } from '@shared/models/widget.models';
+import { JsonSettingsSchema, WidgetActionDescriptor } from '@shared/models/widget.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { AttributeService } from '@core/http/attribute.service';
 import { Type } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 
 // @dynamic
 export class MapWidgetController implements MapWidgetInterface {
@@ -70,11 +73,16 @@ export class MapWidgetController implements MapWidgetInterface {
             $element = ctx.$container[0];
         }
         this.settings = this.initSettings(ctx.settings);
+        this.settings.tooltipAction = this.getDescriptors('tooltipAction');
+        this.settings.markerClick = this.getDescriptors('markerClick');
+        this.settings.polygonClick = this.getDescriptors('polygonClick');
 
+        // this.settings.
         const MapClass = providerSets[this.provider]?.MapClass;
         if (!MapClass) {
             return;
         }
+        parseWithTranslation.setTranslate(this.translate);
         this.map = new MapClass($element, this.settings);
         this.map.saveMarkerLocation = this.setMarkerLocation;
     }
@@ -89,7 +97,8 @@ export class MapWidgetController implements MapWidgetInterface {
         return {};
     }
 
-    public static getProvidersSchema() {
+    public static getProvidersSchema(mapProvider: MapProviders) {
+        mapProviderSchema.schema.properties.provider.default = mapProvider;
         return mergeSchemes([mapProviderSchema,
             ...Object.values(providerSets)?.map(
                 (setting: IProvider) => addCondition(setting?.schema, `model.provider === '${setting.name}'`))]);
@@ -97,19 +106,20 @@ export class MapWidgetController implements MapWidgetInterface {
 
     public static settingsSchema(mapProvider: MapProviders, drawRoutes: boolean): JsonSettingsSchema {
         const schema = initSchema();
-        addToSchema(schema, this.getProvidersSchema());
-        addGroupInfo(schema, 'Map Provider Settings');
-        addToSchema(schema, commonMapSettingsSchema);
+        addToSchema(schema, this.getProvidersSchema(mapProvider));
+       if(mapProvider!=='image-map'){
+            addGroupInfo(schema, 'Map Provider Settings');
+        addToSchema(schema, mergeSchemes([commonMapSettingsSchema, addCondition(mapPolygonSchema, 'model.showPolygon === true')]));
         addGroupInfo(schema, 'Common Map Settings');
-
         if (drawRoutes) {
             addToSchema(schema, routeMapSettingsSchema);
             addGroupInfo(schema, 'Route Map Settings');
         } else if (mapProvider !== 'image-map') {
-            const clusteringSchema = mergeSchemes([markerClusteringSettingsSchemaLeaflet, markerClusteringSettingsSchema])
+            const clusteringSchema = mergeSchemes([markerClusteringSettingsSchema,
+                addCondition(markerClusteringSettingsSchemaLeaflet, `model.useClusterMarkers === true`)])
             addToSchema(schema, clusteringSchema);
             addGroupInfo(schema, 'Markers Clustering Settings');
-        }
+        }}
         return schema;
     }
 
@@ -130,7 +140,33 @@ export class MapWidgetController implements MapWidgetInterface {
         };
     }
 
+    translate = (key: string, defaultTranslation?: string):string => {
+        return (this.ctx.$injector.get(UtilsService).customTranslation(key, defaultTranslation || key)
+            || this.ctx.$injector.get(TranslateService).instant(key));
+    }
+
+    getDescriptors(name: string): { [name: string]: ($event: Event) => void } {
+        const descriptors = this.ctx.actionsApi.getActionDescriptors(name);
+        const actions = {};
+        descriptors.forEach(descriptor => {
+            actions[descriptor.name] = ($event: Event) => this.onCustomAction(descriptor, $event);
+        }, actions);
+        return actions;
+    }
+
     onInit() {
+    }
+
+    private onCustomAction(descriptor: WidgetActionDescriptor, $event: any) {
+        if ($event & $event.stopPropagation) {
+            $event?.stopPropagation();
+        }
+        //  safeExecute(parseFunction(descriptor.customFunction, ['$event', 'widgetContext']), [$event, this.ctx])
+        const entityInfo = this.ctx.actionsApi.getActiveEntityInfo();
+        const entityId = entityInfo ? entityInfo.entityId : null;
+        const entityName = entityInfo ? entityInfo.entityName : null;
+        const entityLabel = entityInfo ? entityInfo.entityLabel : null;
+        this.ctx.actionsApi.handleWidgetAction($event, descriptor, entityId, entityName, null, entityLabel);
     }
 
     setMarkerLocation = (e) => {
@@ -151,13 +187,17 @@ export class MapWidgetController implements MapWidgetInterface {
                         }]
                     );
                 })).subscribe(res => {
-                    console.log('MapWidgetController -> setMarkerLocation -> res', res)
                 });
     }
 
     initSettings(settings: UnitedMapSettings): UnitedMapSettings {
         const functionParams = ['data', 'dsData', 'dsIndex'];
         this.provider = settings.provider || this.mapProvider;
+        if (!settings.mapProviderHere) {
+            if (settings.mapProvider && hereProviders.includes(settings.mapProvider))
+                settings.mapProviderHere = settings.mapProvider
+            else settings.mapProviderHere = hereProviders[0];
+        }
         const customOptions = {
             provider: this.provider,
             mapUrl: settings?.mapImageUrl,
@@ -171,7 +211,7 @@ export class MapWidgetController implements MapWidgetInterface {
                 '<b>${entityName}</b><br/><br/><b>Latitude:</b> ${' +
                 settings.latKeyName + ':7}<br/><b>Longitude:</b> ${' + settings.lngKeyName + ':7}',
             defaultCenterPosition: getDefCenterPosition(settings?.defaultCenterPosition),
-            currentImage: (settings.useMarkerImage && settings.markerImage?.length) ? {
+            currentImage: (settings.markerImage?.length) ? {
                 url: settings.markerImage,
                 size: settings.markerImageSize || 34
             } : null
@@ -209,7 +249,7 @@ interface IProvider {
     name: string
 }
 
-export const providerSets: {[key: string]: IProvider} = {
+export const providerSets: { [key: string]: IProvider } = {
     'openstreet-map': {
         MapClass: OpenStreetMap,
         schema: openstreetMapSettingsSchema,
@@ -251,7 +291,7 @@ export const defaultSettings: any = {
     useDefaultCenterPosition: false,
     showTooltipAction: 'click',
     autocloseTooltip: false,
-    showPolygon: true,
+    showPolygon: false,
     labelColor: '#000000',
     color: '#FE7569',
     polygonColor: '#0000ff',
@@ -265,10 +305,16 @@ export const defaultSettings: any = {
     strokeOpacity: 1.0,
     initCallback: () => { },
     defaultZoomLevel: 8,
-    dontFitMapBounds: false,
     disableScrollZooming: false,
     minZoomLevel: 16,
     credentials: '',
     markerClusteringSetting: null,
-    draggableMarker: false
+    draggableMarker: false,
+    fitMapBounds: true
 };
+
+export const hereProviders = [
+    'HERE.normalDay',
+    'HERE.normalNight',
+    'HERE.hybridDay',
+    'HERE.terrainDay']

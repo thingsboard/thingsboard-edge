@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { SubscriptionData, SubscriptionUpdateMsg, SubscriptionDataHolder } from '@app/shared/models/telemetry/telemetry.models';
+import { SubscriptionData, SubscriptionDataHolder } from '@app/shared/models/telemetry/telemetry.models';
 import { AggregationType } from '@shared/models/time/time.models';
 import { UtilsService } from '@core/services/utils.service';
-import Timeout = NodeJS.Timeout;
 import { deepClone } from '@core/utils';
+import Timeout = NodeJS.Timeout;
 
 export declare type onAggregatedData = (data: SubscriptionData, detectChanges: boolean) => void;
 

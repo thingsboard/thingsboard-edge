@@ -37,7 +37,6 @@ import org.thingsboard.rule.engine.api.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 
 /**
@@ -48,7 +47,7 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
 
     @Getter
-    private final ServerAddress serverAddress;
+    private final String serviceId;
     @Getter
     private final ToDeviceRpcRequest msg;
 

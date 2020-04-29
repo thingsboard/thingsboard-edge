@@ -29,19 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { WidgetActionDescriptor, WidgetActionSource,
-  widgetActionTypeTranslationMap, CustomActionDescriptor } from '@app/shared/models/widget.models';
+import {
+  CustomActionDescriptor,
+  WidgetActionDescriptor,
+  WidgetActionSource,
+  widgetActionTypeTranslationMap
+} from '@app/shared/models/widget.models';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
-import { EntityRelationInfo, EntitySearchDirection } from '@shared/models/relation.models';
 import { BehaviorSubject, Observable, of, ReplaySubject } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
-import { SelectionModel } from '@angular/cdk/collections';
-import { EntityRelationService } from '@core/http/entity-relation.service';
 import { TranslateService } from '@ngx-translate/core';
-import { EntityId } from '@shared/models/id/entity-id';
 import { PageLink } from '@shared/models/page/page-link';
-import { catchError, map, publishReplay, refCount, share, take, tap } from 'rxjs/operators';
-import { entityTypeTranslations } from '@shared/models/entity-type.models';
+import { catchError, map, publishReplay, refCount } from 'rxjs/operators';
 import { UtilsService } from '@core/services/utils.service';
 import { deepClone, isDefined, isUndefined } from '@core/utils';
 

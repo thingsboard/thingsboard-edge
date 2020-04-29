@@ -31,15 +31,16 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
 import io.bit3.jsass.Compiler;
 import io.bit3.jsass.Options;
 import io.bit3.jsass.Output;
 import io.bit3.jsass.OutputStyle;
 import io.bit3.jsass.importer.Import;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -58,11 +59,11 @@ import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -70,11 +71,12 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
-    private static final String SCSS_RESOURCES_PATH = "scss";
     private static final String SCSS_EXTENSION = ".scss";
+    private static final String SCSS_CLASSPATH_PATTERN = "classpath:scss/*.scss";
     private static final String APP_THEME_SCSS = "app-theme.scss";
     private static final String LOGIN_THEME_SCSS = "login-theme.scss";
 
@@ -94,23 +96,20 @@ public class WhiteLabelingController extends BaseController {
 
     private void initSaasCompiler() throws Exception {
         this.scssImportMap = new HashMap<>();
-        URL scssUrl = Resources.getResource(SCSS_RESOURCES_PATH);
-        List<String> scssFiles = Resources.readLines(scssUrl, Charsets.UTF_8);
-        for (String file : scssFiles) {
-            if (file.endsWith(SCSS_EXTENSION)) {
-                String scssFile = SCSS_RESOURCES_PATH + "/" + file;
-                URL scssFileUrl = Resources.getResource(scssFile);
-                String scssContent = Resources.toString(scssFileUrl, Charsets.UTF_8);
-                if (file.equals(APP_THEME_SCSS)) {
-                    this.scssAppTheme = scssContent;
-                } else if (file.equals(LOGIN_THEME_SCSS)) {
-                    this.scssLoginTheme = scssContent;
-                } else {
-                    URI scssFileUri = scssFileUrl.toURI();
-                    final Import scssImport = new Import(scssFileUri, scssFileUri, scssContent);
-                    String path = file.substring(0, file.length() - SCSS_EXTENSION.length());
-                    scssImportMap.put(path, scssImport);
-                }
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        org.springframework.core.io.Resource[] scssResources = resolver.getResources(SCSS_CLASSPATH_PATTERN);
+        for (org.springframework.core.io.Resource scssResource : scssResources) {
+            String scssContent = StreamUtils.copyToString(scssResource.getInputStream(), Charsets.UTF_8);
+            String fileName = scssResource.getFilename();
+            if (APP_THEME_SCSS.equals(fileName)) {
+                this.scssAppTheme = scssContent;
+            } else if (LOGIN_THEME_SCSS.equals(fileName)) {
+                this.scssLoginTheme = scssContent;
+            } else if (fileName != null) {
+                URI scssFileUri = scssResource.getURI();
+                final Import scssImport = new Import(scssFileUri, scssFileUri, scssContent);
+                String path = fileName.substring(0, fileName.length() - SCSS_EXTENSION.length());
+                scssImportMap.put(path, scssImport);
             }
         }
         this.saasCompiler = new Compiler();
@@ -350,9 +349,7 @@ public class WhiteLabelingController extends BaseController {
         if (palette != null && palette.getColors() != null && !palette.getColors().isEmpty()) {
             List<String> colorsList = new ArrayList<>();
             palette.getColors().forEach(
-                    (hue, hex) -> {
-                        colorsList.add(String.format("%s: %s", hue, hex));
-                    }
+                    (hue, hex) -> colorsList.add(String.format("%s: %s", hue, hex))
             );
             return "\n"+String.join(",\n", colorsList)+"\n";
         } else {

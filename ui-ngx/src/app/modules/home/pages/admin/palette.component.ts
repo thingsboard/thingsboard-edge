@@ -29,51 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  Component,
-  ElementRef,
-  forwardRef,
-  Input,
-  OnInit,
-  ViewChild,
-  AfterViewInit,
-  OnDestroy,
-  Output, EventEmitter
-} from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { DataKey, DatasourceType } from '@shared/models/widget.models';
-import {
-  ControlValueAccessor,
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  Validator,
-  Validators
-} from '@angular/forms';
-import { UtilsService } from '@core/services/utils.service';
-import { TranslateService } from '@ngx-translate/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { EntityService } from '@core/http/entity.service';
-import { DataKeysCallbacks } from '@home/components/widget/data-keys.component.models';
-import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { Observable, of, Subscription } from 'rxjs';
-import { map, mergeMap, tap } from 'rxjs/operators';
-import { alarmFields } from '@shared/models/alarm.models';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { DialogService } from '@core/services/dialog.service';
-import { FlowDirective } from '@flowjs/ngx-flow';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { Palette } from '@shared/models/white-labeling.models';
 import { deepClone, isEqual } from '@core/utils';
 import { ColorPalette, getContrastColor, materialColorPalette } from '@shared/models/material.models';
-import {
-  ColorPickerDialogComponent,
-  ColorPickerDialogData
-} from '@shared/components/dialog/color-picker-dialog.component';
 import { PaletteDialogComponent, PaletteDialogData } from '@home/pages/admin/palette-dialog.component';
 
 @Component({

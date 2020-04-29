@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import {
   DataSet,

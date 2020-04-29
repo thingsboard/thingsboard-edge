@@ -42,6 +42,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
@@ -52,6 +54,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by ashvayka on 02.12.17.
  */
+@TbCoreComponent
 @Service
 public class DefaultDataConverterService implements DataConverterService {
 

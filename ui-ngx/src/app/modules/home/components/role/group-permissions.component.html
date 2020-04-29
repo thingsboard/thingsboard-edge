@@ -96,7 +96,7 @@
       </div>
     </mat-toolbar>
     <div [fxFlex]="groupPermissionsMode === 'group'" class="table-container">
-      <mat-table [dataSource]="dataSource"
+      <table mat-table [dataSource]="dataSource"
                  matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
         <ng-container matColumnDef="select" sticky>
           <mat-header-cell *matHeaderCellDef style="width: 30px;">
@@ -193,7 +193,7 @@
                              'mat-selected': dataSource.selection.isSelected(groupPermission)}"
                  *matRowDef="let groupPermission; columns: displayedColumns;"
                  (click)="dataSource.selection.toggle(groupPermission)"></mat-row>
-      </mat-table>
+      </table>
       <span [fxShow]="dataSource.isEmpty() | async"
             fxLayoutAlign="center center"
             class="no-data-found" translate>{{ 'group-permission.no-group-permissions-text' }}</span>

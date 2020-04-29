@@ -33,8 +33,8 @@ import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
-import {Device} from '@app/shared/models/device.models';
-import {EntityType} from '@shared/models/entity-type.models';
+import { Device } from '@app/shared/models/device.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-device-table-header',
@@ -51,7 +51,7 @@ export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Devic
 
   deviceTypeChanged(deviceType: string) {
     this.entitiesTableConfig.componentsData.deviceType = deviceType;
-    this.entitiesTableConfig.table.updateData();
+    this.entitiesTableConfig.table.resetSortAndFilter(true);
   }
 
 }

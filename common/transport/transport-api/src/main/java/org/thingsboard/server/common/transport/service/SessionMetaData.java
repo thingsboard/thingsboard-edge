@@ -32,8 +32,8 @@ package org.thingsboard.server.common.transport.service;
 
 import lombok.Data;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SessionType;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 
 import java.util.concurrent.ScheduledFuture;
 

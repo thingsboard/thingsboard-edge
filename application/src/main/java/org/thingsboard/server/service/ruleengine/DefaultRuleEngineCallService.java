@@ -31,14 +31,13 @@
 package org.thingsboard.server.service.ruleengine;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -57,13 +56,15 @@ import java.util.function.Consumer;
 @Slf4j
 public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
-    @Autowired
-    @Lazy
-    private ActorService actorService;
+    private final TbClusterService clusterService;
 
     private ScheduledExecutorService rpcCallBackExecutor;
 
     private final ConcurrentMap<UUID, Consumer<TbMsg>> requests = new ConcurrentHashMap<>();
+
+    public DefaultRuleEngineCallService(TbClusterService clusterService) {
+        this.clusterService = clusterService;
+    }
 
     @PostConstruct
     public void initExecutor() {
@@ -78,30 +79,31 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, TbMsg request, Consumer<TbMsg> consumer) {
+    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> consumer) {
         log.trace("[{}] Processing REST API call to rule engine [{}]", tenantId, request.getOriginator());
-        UUID requestId = request.getId();
         requests.put(requestId, consumer);
         sendRequestToRuleEngine(tenantId, request);
         scheduleTimeout(request, requestId, requests);
     }
 
     @Override
-    public void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response) {
+    public void onQueueMsg(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+        UUID requestId = new UUID(restApiCallResponseMsg.getRequestIdMSB(), restApiCallResponseMsg.getRequestIdLSB());
         Consumer<TbMsg> consumer = requests.remove(requestId);
         if (consumer != null) {
-            consumer.accept(response);
+            consumer.accept(TbMsg.fromBytes(restApiCallResponseMsg.getResponse().toByteArray(), TbMsgCallback.EMPTY));
         } else {
-            log.trace("[{}] Unknown or stale rest api call response received [{}]", requestId, response);
+            log.trace("[{}] Unknown or stale rest api call response received", requestId);
         }
+        callback.onSuccess();
     }
 
     private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
-        actorService.onMsg(new SendToClusterMsg(msg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, msg)));
+        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, null);
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {
-        Long expirationTime = Long.valueOf(request.getMetaData().getValue("expirationTime"));
+        long expirationTime = Long.parseLong(request.getMetaData().getValue("expirationTime"));
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
         rpcCallBackExecutor.schedule(() -> {

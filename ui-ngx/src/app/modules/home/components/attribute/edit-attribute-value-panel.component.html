@@ -30,8 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form #attributeForm="ngForm"
-      class="mat-elevation-z1"
+<form class="mat-elevation-z1"
       [formGroup]="attributeFormGroup" (ngSubmit)="update()" style="width: 400px; padding: 5px;">
   <fieldset [disabled]="isLoading$ | async">
     <tb-value-input

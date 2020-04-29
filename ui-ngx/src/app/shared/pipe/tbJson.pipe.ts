@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Pipe, PipeTransform} from '@angular/core';
-import {isObject, isNumber} from '@core/utils';
+import { Pipe, PipeTransform } from '@angular/core';
+import { isNumber, isObject } from '@core/utils';
 
 @Pipe({name: 'tbJson'})
 export class TbJsonPipe implements PipeTransform {

@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractJsInvokeService implements JsInvokeService {
 
     protected Map<UUID, String> scriptIdToNameMap = new ConcurrentHashMap<>();
-    protected Map<UUID, AtomicInteger> blackListedFunctions = new ConcurrentHashMap<>();
+    protected Map<UUID, BlackListInfo> blackListedFunctions = new ConcurrentHashMap<>();
 
     @Override
     public ListenableFuture<UUID> eval(JsScriptType scriptType, String scriptBody, String... argNames) {
@@ -95,8 +95,10 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
 
     protected abstract boolean isLocal();
 
+    protected abstract long getMaxBlacklistDuration();
+
     protected void onScriptExecutionError(UUID scriptId) {
-        blackListedFunctions.computeIfAbsent(scriptId, key -> new AtomicInteger(0)).incrementAndGet();
+        blackListedFunctions.computeIfAbsent(scriptId, key -> new BlackListInfo()).incrementAndGet();
     }
 
     private String generateJsScript(JsScriptType scriptType, String functionName, String scriptBody, String... argNames) {
@@ -115,11 +117,39 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
     }
 
     private boolean isBlackListed(UUID scriptId) {
-        if (blackListedFunctions.containsKey(scriptId)) {
-            AtomicInteger errorCount = blackListedFunctions.get(scriptId);
-            return errorCount.get() >= getMaxErrors();
+        BlackListInfo errorCount = blackListedFunctions.get(scriptId);
+        if (errorCount != null) {
+            if (errorCount.getExpirationTime() <= System.currentTimeMillis()) {
+                blackListedFunctions.remove(scriptId);
+                return false;
+            } else {
+                return errorCount.get() >= getMaxErrors();
+            }
         } else {
             return false;
+        }
+    }
+
+    private class BlackListInfo {
+        private final AtomicInteger counter;
+        private long expirationTime;
+
+        private BlackListInfo() {
+            this.counter = new AtomicInteger(0);
+        }
+
+        public int get() {
+            return counter.get();
+        }
+
+        public int incrementAndGet() {
+            int result = counter.incrementAndGet();
+            expirationTime = System.currentTimeMillis() + getMaxBlacklistDuration();
+            return result;
+        }
+
+        public long getExpirationTime() {
+            return expirationTime;
         }
     }
 }

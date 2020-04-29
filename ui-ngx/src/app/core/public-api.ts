@@ -36,3 +36,4 @@ export * from './services/public-api';
 export * from './ws/telemetry-websocket.service';
 export * from './core.state';
 export * from './core.module';
+export * from './utils';

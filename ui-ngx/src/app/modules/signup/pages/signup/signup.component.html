@@ -34,11 +34,11 @@
      [ngStyle]="{backgroundColor: wl.loginPageBackgroundColor$ | async}">
   <mat-card style="max-height: 100%; overflow-y: auto;">
     <mat-card-content>
-      <form #signupForm="ngForm" class="tb-signup-form" [formGroup]="signup" (ngSubmit)="signUp()">
+      <form class="tb-signup-form" [formGroup]="signup" (ngSubmit)="signUp()">
         <fieldset [disabled]="isLoading$ | async">
           <div fxFlex fxLayout="column">
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
-              <img [src]="wl.loginLogo$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
+              <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
               <span class="tb-signup-message" [innerHTML]="signupParams.signUpTextMessage"></span>
             </div>
             <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">

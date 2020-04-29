@@ -38,7 +38,7 @@
     <header class="tb-nav-header">
       <mat-toolbar color="primary" class="tb-nav-header-toolbar">
         <div fxFlex="auto" fxLayout="row">
-          <img [src]="wl.logoImageUrl$() | async"
+          <img [src]="wl.logoImageSafeUrl$() | async"
                [ngStyle]="{height: (wl.logoImageHeight$() | async)+'px'}"
                aria-label="logo" class="tb-logo-title"/>
         </div>

@@ -283,18 +283,32 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
     if (value !== null) {
       if (typeof value === 'string') {
         const targetEntityType = this.checkEntityType(this.entityTypeValue);
-        this.entityService.getEntity(targetEntityType, value, {ignoreLoading: true}).subscribe(
+        this.entityService.getEntity(targetEntityType, value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
+          },
+          () => {
+            this.modelValue = null;
+            this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
+            if (value !== null) {
+              this.propagateChange(this.modelValue);
+            }
           }
         );
       } else if (value.entityType && value.id) {
         const targetEntityType = this.checkEntityType(value.entityType);
-        this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true}).subscribe(
+        this.entityService.getEntity(targetEntityType, value.id, {ignoreLoading: true, ignoreErrors: true}).subscribe(
           (entity) => {
             this.modelValue = this.useFullEntityId ? entity.id : entity.id.id;
             this.selectEntityFormGroup.get('entity').patchValue(entity, {emitEvent: false});
+          },
+          () => {
+            this.modelValue = null;
+            this.selectEntityFormGroup.get('entity').patchValue('', {emitEvent: false});
+            if (value !== null) {
+              this.propagateChange(this.modelValue);
+            }
           }
         );
       } else {

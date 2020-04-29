@@ -73,6 +73,7 @@ import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetr
 import { forkJoin, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 // @dynamic
 @Component({
@@ -108,7 +109,7 @@ export class GatewayFormComponent extends PageComponent implements OnInit, OnDes
   private successfulSaved: string;
   private gatewayNameExists: string;
   private archiveFileName: string;
-  private formResizeListener: any;
+  private formResize$: ResizeObserver;
   private subscribeStorageType$: any;
   private subscribeGateway$: any;
 
@@ -131,15 +132,15 @@ export class GatewayFormComponent extends PageComponent implements OnInit, OnDes
 
     this.buildForm();
     this.ctx.updateWidgetParams();
-    this.formResizeListener = this.resize.bind(this);
-    // @ts-ignore
-    addResizeListener(this.formContainerRef.nativeElement, this.formResizeListener);
+    this.formResize$ = new ResizeObserver(() => {
+      this.resize();
+    });
+    this.formResize$.observe(this.formContainerRef.nativeElement);
   }
 
   ngOnDestroy(): void {
-    if (this.formResizeListener) {
-      // @ts-ignore
-      removeResizeListener(this.formContainerRef.nativeElement, this.formResizeListener);
+    if (this.formResize$) {
+      this.formResize$.disconnect();
     }
     this.subscribeGateway$.unsubscribe();
     this.subscribeStorageType$.unsubscribe();

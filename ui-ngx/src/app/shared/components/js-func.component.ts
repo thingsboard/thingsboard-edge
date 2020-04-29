@@ -30,11 +30,11 @@
 ///
 
 import {
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   forwardRef,
-  Input, OnDestroy,
+  Input,
+  OnDestroy,
   OnInit,
   ViewChild,
   ViewEncapsulation
@@ -49,6 +49,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { guid, isUndefined } from '@app/core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 @Component({
   selector: 'tb-js-func',
@@ -75,7 +76,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
 
   private jsEditor: ace.Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
-  private editorResizeListener: any;
+  private editorResize$: ResizeObserver;
 
   toastTargetId = `jsFuncEditor-${guid()}`;
 
@@ -167,16 +168,15 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
       this.cleanupJsErrors();
       this.updateView();
     });
-    this.editorResizeListener = this.onAceEditorResize.bind(this);
-    // @ts-ignore
-    addResizeListener(editorElement, this.editorResizeListener);
+    this.editorResize$ = new ResizeObserver(() => {
+      this.onAceEditorResize();
+    });
+    this.editorResize$.observe(editorElement);
   }
 
   ngOnDestroy(): void {
-    if (this.editorResizeListener) {
-      const editorElement = this.javascriptEditorElmRef.nativeElement;
-      // @ts-ignore
-      removeResizeListener(editorElement, this.editorResizeListener);
+    if (this.editorResize$) {
+      this.editorResize$.disconnect();
     }
   }
 

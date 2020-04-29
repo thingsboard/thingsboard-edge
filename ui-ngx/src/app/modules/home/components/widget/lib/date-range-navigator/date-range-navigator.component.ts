@@ -53,7 +53,7 @@ import {
   DateRangeNavigatorSettings,
   getFormattedDate
 } from '@home/components/widget/lib/date-range-navigator/date-range-navigator.models';
-import { DatePipe, KeyValue } from '@angular/common';
+import { KeyValue } from '@angular/common';
 import * as _moment from 'moment';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal, PortalInjector } from '@angular/cdk/portal';
@@ -99,9 +99,6 @@ export class DateRangeNavigatorWidgetComponent extends PageComponent implements 
   }
 
   ngOnInit(): void {
-    this.dashboardTimewindowChangedSubscription = this.ctx.dashboard.dashboardTimewindowChanged.subscribe(() => {
-      this.widgetContextTimewindowSync();
-    });
     this.settings = this.ctx.settings;
     this.settings.useSessionStorage = isDefined(this.settings.useSessionStorage) ? this.settings.useSessionStorage : true;
     let selection;
@@ -125,6 +122,9 @@ export class DateRangeNavigatorWidgetComponent extends PageComponent implements 
     }
     this.selectedStepSize = this.datesMap[this.settings.stepSize || 'day'].ts;
     this.widgetContextTimewindowSync();
+    this.dashboardTimewindowChangedSubscription = this.ctx.dashboard.dashboardTimewindowChanged.subscribe(() => {
+      this.widgetContextTimewindowSync();
+    });
   }
 
   ngOnDestroy(): void {

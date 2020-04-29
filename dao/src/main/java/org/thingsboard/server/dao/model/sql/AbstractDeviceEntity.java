@@ -46,7 +46,6 @@ import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.MappedSuperclass;
 
 @Data
@@ -83,7 +82,7 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
 
     public AbstractDeviceEntity(Device device) {
         if (device.getId() != null) {
-            this.setId(device.getId().getId());
+            this.setUuid(device.getId().getId());
         }
         if (device.getTenantId() != null) {
             this.tenantId = toString(device.getTenantId().getId());
@@ -119,8 +118,8 @@ public abstract class AbstractDeviceEntity<T extends Device> extends BaseSqlEnti
     }
 
     protected Device toDevice() {
-        Device device = new Device(new DeviceId(getId()));
-        device.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        Device device = new Device(new DeviceId(getUuid()));
+        device.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
         if (tenantId != null) {
             device.setTenantId(new TenantId(toUUID(tenantId)));
         }

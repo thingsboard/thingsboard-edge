@@ -36,7 +36,7 @@ import { IDashboardWidget, WidgetAction, WidgetContext, WidgetHeaderAction } fro
 import { Timewindow } from '@shared/models/time/time.models';
 import { Observable, of, Subject } from 'rxjs';
 import { guid, isDefined, isEqual, isUndefined } from '@app/core/utils';
-import { IterableDiffer, KeyValueDiffer, NgZone } from '@angular/core';
+import { IterableDiffer, KeyValueDiffer } from '@angular/core';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 
@@ -415,7 +415,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
       padding: this.padding,
       margin: this.margin};
     if (this.widget.config.widgetStyle) {
-      this.style = {...this.widget.config.widgetStyle, ...this.style};
+      this.style = {...this.style, ...this.widget.config.widgetStyle};
     }
 
     this.showWidgetTitlePanel = this.widgetContext.hideTitlePanel ? false :
@@ -504,7 +504,8 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
       if (mobileHeight) {
         res = mobileHeight;
       } else {
-        res = this.widget.sizeY * 24 / this.dashboard.gridsterOpts.minCols;
+        const sizeY = this.widgetLayout ? this.widgetLayout.sizeY : this.widget.sizeY;
+        res = sizeY * 24 / this.dashboard.gridsterOpts.minCols;
       }
     } else {
       if (this.widgetLayout) {

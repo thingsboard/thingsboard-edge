@@ -39,6 +39,7 @@ import { mergeDeep } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 
+// @dynamic
 @Injectable({
   providedIn: 'root'
 })

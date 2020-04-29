@@ -31,7 +31,7 @@
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import Raphael from 'raphael';
+import Raphael, { RaphaelElement, RaphaelPaper, RaphaelSet } from 'raphael';
 import * as tinycolor_ from 'tinycolor2';
 
 const tinycolor = tinycolor_;
@@ -53,7 +53,7 @@ export class LedLightComponent implements OnInit, AfterViewInit, OnChanges {
 
   @Input() colorOff: string;
 
-  @Input() offOpacity: string;
+  @Input() offOpacity: number;
 
   private enabledValue: boolean;
   get enabled(): boolean {
@@ -76,7 +76,7 @@ export class LedLightComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   ngOnInit(): void {
-    this.offOpacity = this.offOpacity || '0.4';
+    this.offOpacity = this.offOpacity || 0.4;
     this.glowColor = tinycolor(this.colorOn).lighten().toHexString();
   }
 
@@ -115,7 +115,7 @@ export class LedLightComponent implements OnInit, AfterViewInit, OnChanges {
     if (this.enabled) {
       this.circleElement.attr('fill', this.colorOn);
       this.circleElement.attr('stroke', this.colorOn);
-      this.circleElement.attr('opacity', '1');
+      this.circleElement.attr('opacity', 1);
       if (this.circleElement.theGlow) {
         this.circleElement.theGlow.remove();
       }

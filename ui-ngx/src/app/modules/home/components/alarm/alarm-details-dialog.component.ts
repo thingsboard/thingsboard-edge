@@ -34,7 +34,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
+import { Observable, ReplaySubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import {
@@ -45,7 +45,7 @@ import {
   alarmStatusTranslations
 } from '@app/shared/models/alarm.models';
 import { AlarmService } from '@core/http/alarm.service';
-import { share, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
@@ -72,10 +72,9 @@ export class AlarmDetailsDialogComponent extends DialogComponent<AlarmDetailsDia
   allowClear: boolean;
   displayDetails: boolean;
 
-  loadAlarmSubject = new Subject<AlarmInfo>();
+  loadAlarmSubject = new ReplaySubject<AlarmInfo>();
   alarm$: Observable<AlarmInfo> = this.loadAlarmSubject.asObservable().pipe(
-    tap(alarm => this.loadAlarmFields(alarm)),
-    share()
+    tap(alarm => this.loadAlarmFields(alarm))
   );
 
   alarmSeverityColorsMap = alarmSeverityColors;

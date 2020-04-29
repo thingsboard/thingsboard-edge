@@ -70,6 +70,7 @@ import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.data.RecaptchaValidationResult;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -85,6 +86,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class SignUpController extends BaseController {

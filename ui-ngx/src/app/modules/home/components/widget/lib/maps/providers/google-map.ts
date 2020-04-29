@@ -32,7 +32,7 @@
 
 import L from 'leaflet';
 import LeafletMap from '../leaflet-map';
-import { MapSettings, UnitedMapSettings } from '../map-models';
+import { UnitedMapSettings } from '../map-models';
 import 'leaflet.gridlayer.googlemutant';
 
 let googleLoaded = false;

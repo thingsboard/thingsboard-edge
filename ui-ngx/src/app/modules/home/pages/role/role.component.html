@@ -49,7 +49,7 @@
   </div>
 </div>
 <div class="mat-padding" fxLayout="column">
-  <form #entityNgForm="ngForm" [formGroup]="entityForm">
+  <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
         <mat-label translate>role.name</mat-label>

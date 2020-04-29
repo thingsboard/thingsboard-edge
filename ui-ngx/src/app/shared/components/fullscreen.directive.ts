@@ -33,8 +33,13 @@ import {
   Directive,
   ElementRef,
   EventEmitter,
-  Input, OnChanges, OnDestroy,
-  Output, Renderer2, SecurityContext, SimpleChanges,
+  Input,
+  OnChanges,
+  OnDestroy,
+  Output,
+  Renderer2,
+  SecurityContext,
+  SimpleChanges,
   ViewContainerRef
 } from '@angular/core';
 import { Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';

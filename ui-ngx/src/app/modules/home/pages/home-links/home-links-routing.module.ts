@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {NgModule} from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
-import {HomeLinksComponent} from './home-links.component';
-import {Authority} from '@shared/models/authority.enum';
+import { HomeLinksComponent } from './home-links.component';
+import { Authority } from '@shared/models/authority.enum';
 
 const routes: Routes = [
   {

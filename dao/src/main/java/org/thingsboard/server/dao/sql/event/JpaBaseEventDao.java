@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Event;
@@ -52,8 +51,10 @@ import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.persistence.criteria.Predicate;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.dao.DaoUtil.endTimeToId;
@@ -156,7 +157,7 @@ public class JpaBaseEventDao extends JpaAbstractSearchTimeDao<EventEntity, Event
                 entityId.getEntityType(),
                 UUIDConverter.fromTimeUUID(entityId.getId()),
                 eventType,
-                new PageRequest(0, limit));
+                PageRequest.of(0, limit));
         return DaoUtil.convertDataList(latest);
     }
 
@@ -166,11 +167,11 @@ public class JpaBaseEventDao extends JpaAbstractSearchTimeDao<EventEntity, Event
             log.trace("Save system event with predefined id {}", systemTenantId);
             entity.setTenantId(UUIDConverter.fromTimeUUID(systemTenantId));
         }
-        if (entity.getId() == null) {
-            entity.setId(UUIDs.timeBased());
+        if (entity.getUuid() == null) {
+            entity.setUuid(UUIDs.timeBased());
         }
         if (StringUtils.isEmpty(entity.getEventUid())) {
-            entity.setEventUid(entity.getId().toString());
+            entity.setEventUid(entity.getUuid().toString());
         }
         if (ifNotExists &&
                 eventRepository.findByTenantIdAndEntityTypeAndEntityId(entity.getTenantId(), entity.getEntityType(), entity.getEntityId()) != null) {

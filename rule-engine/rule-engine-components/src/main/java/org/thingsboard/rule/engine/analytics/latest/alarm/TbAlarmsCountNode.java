@@ -66,7 +66,7 @@ import java.util.function.Predicate;
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
         icon = "functions"
 )
@@ -95,10 +95,9 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                        parentEntityId, new TbMsgMetaData(), TbMsgDataType.JSON,
-                        "", null, null, 0L);
-                ctx.tellFailure(msg, new RuntimeException("Failed to fetch child entities for parent entity [" + parentEntityId + "]", e));
+                TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                        parentEntityId, new TbMsgMetaData(), "");
+                ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
         }
         Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> result = new HashMap<>();
@@ -136,7 +135,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
         AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false, null);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         JsonObject obj = new JsonObject();
-        for (int i=0;i<mappings.size();i++) {
+        for (int i = 0; i < mappings.size(); i++) {
             obj.addProperty(mappings.get(i).getTarget(), alarmCounts.get(i));
         }
         return obj;

@@ -33,7 +33,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { NgForm } from '@angular/forms';
+import { FormGroup, NgForm } from '@angular/forms';
 import { UserComponent } from '@modules/home/pages/user/user.component';
 import { Authority } from '@shared/models/authority.enum';
 import { ActivationMethod, activationMethodTranslations, User } from '@shared/models/user.model';
@@ -61,7 +61,7 @@ export interface AddUserDialogData {
 })
 export class AddUserDialogComponent extends DialogComponent<AddUserDialogComponent, User> implements OnInit {
 
-  detailsForm: NgForm;
+  detailsForm: FormGroup;
   user: User;
 
   activationMethods = Object.keys(ActivationMethod);
@@ -86,7 +86,7 @@ export class AddUserDialogComponent extends DialogComponent<AddUserDialogCompone
     this.user = {} as User;
     this.userComponent.isEdit = true;
     this.userComponent.entity = this.user;
-    this.detailsForm = this.userComponent.entityNgForm;
+    this.detailsForm = this.userComponent.entityForm;
   }
 
   cancel(): void {

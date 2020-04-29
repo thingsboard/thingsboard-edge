@@ -31,12 +31,16 @@
 
 import {
   AfterViewInit,
-  ChangeDetectionStrategy, ChangeDetectorRef,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ComponentFactoryResolver,
-  ElementRef, EventEmitter,
-  Input, OnChanges,
-  OnInit, SimpleChanges,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
@@ -449,9 +453,9 @@ export class EntitiesTableComponent extends PageComponent implements AfterViewIn
     this.updateData();
   }
 
-  resetSortAndFilter(update: boolean = true) {
+  resetSortAndFilter(update: boolean = true, preserveTimewindow: boolean = false) {
     this.pageLink.textSearch = null;
-    if (this.entitiesTableConfig.useTimePageLink) {
+    if (this.entitiesTableConfig.useTimePageLink && !preserveTimewindow) {
       this.timewindow = historyInterval(DAY);
     }
     if (this.displayPagination) {

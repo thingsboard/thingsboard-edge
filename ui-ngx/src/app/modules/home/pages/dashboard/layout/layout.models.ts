@@ -29,9 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Widget } from '@shared/models/widget.models';
-import { WidgetLayout } from '@shared/models/dashboard.models';
-
 export interface ILayoutController {
   reload();
   resetHighlight();
