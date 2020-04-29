@@ -30,8 +30,8 @@
 ///
 
 import _ from 'lodash';
-import { fromEvent, Observable, of, Subject } from 'rxjs';
-import { finalize, map, share } from 'rxjs/operators';
+import { Observable, Subject, fromEvent, of } from 'rxjs';
+import { finalize, share, map } from 'rxjs/operators';
 import base64js from 'base64-js';
 import { Type } from '@angular/core';
 import { CustomSchedulerEventConfigComponent } from '@home/components/scheduler/config/custom-scheduler-event-config.component';
@@ -261,7 +261,7 @@ function scrollParents(node: Node): Node[] {
 function hashCode(str) {
   let hash = 0;
   let i, char;
-  if (str.length == 0) return hash;
+  if (str.length === 0) return hash;
   for (i = 0; i < str.length; i++) {
     char = str.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
@@ -514,7 +514,7 @@ export function parseArray(input: any[]): any[] {
           time: el[0],
           deviceType: null
         };
-        entityArray.forEach(entity => {
+        entityArray.filter(el => el.data.length).forEach(entity => {
           obj[entity?.dataKey?.label] = entity?.data[i][1];
           obj[entity?.dataKey?.label + '|ts'] = entity?.data[0][0];
           if (entity?.dataKey?.label === 'type') {
@@ -535,7 +535,7 @@ export function parseData(input: any[]): any[] {
         dsIndex: i,
         deviceType: null
       };
-      entityArray.forEach(el => {
+      entityArray.filter(el => el.data.length).forEach(el => {
         obj[el?.dataKey?.label] = el?.data[0][1];
         obj[el?.dataKey?.label + '|ts'] = el?.data[0][0];
         if (el?.dataKey?.label === 'type') {
@@ -560,14 +560,13 @@ export function safeExecute(func: Function, params = []) {
   return res;
 }
 
-export function parseFunction(source: any, params: string[] = []): Function {
+export function parseFunction(source: any, params: string[] = ['def']): Function {
   let res = null;
   if (source?.length) {
     try {
       res = new Function(...params, source);
     }
     catch (err) {
-      console.error(err);
       res = null;
     }
   }
@@ -576,33 +575,34 @@ export function parseFunction(source: any, params: string[] = []): Function {
 
 export function parseTemplate(template: string, data: object, translateFn?: (key: string) => string) {
   let res = '';
-  let variables = '';
   try {
     if (template.match(/<link-act/g)) {
       template = template.replace(/<link-act/g, '<a').replace(/link-act>/g, 'a>').replace(/name=(\'|")(.*?)(\'|")/g, `class='tb-custom-action' id='$2'`);
     }
-    if (template.includes('i18n')) {
-      const translateRegexp = /\{i18n:(.*?)\}/;
-      template.match(new RegExp(translateRegexp.source, translateRegexp.flags + 'g')).forEach(match => {
-        template = template.replace(match, translateFn(match.match(translateRegexp)[1]));
+    if (translateFn) {
+      template = translateFn(template);
+    }
+    const formatted = template.match(/\$\{([^}]*)\:\d*\}/g);
+    if (formatted)
+      formatted.forEach(value => {
+        const [variable, digits] = value.replace('${', '').replace('}', '').split(':');
+        data[variable] = padValue(data[variable], +digits);
+        if (isNaN(data[variable])) data[value] = '';
+        template = template.replace(value, '${' + variable + '}');
       });
+    const variables = template.match(/\$\{.*?\}/g);
+    if (variables) {
+      variables.forEach(variable => {
+        variable = variable.replace('${', '').replace('}', '');
+        if (!data[variable])
+          data[variable] = '';
+      })
     }
-    const expressions = template.match(/\{(.*?)\}/g);
-    if (expressions) {
-      // TODO: not supported in IE
-      // const clearMatches = template.match(/(?<=\{)(.+?)(?=(\}|\:))/g);
-      const clearMatches = template.match(/\{(.+?)(\}|\:)/g);
-      for (const key in data) {
-        if (!key.includes('|'))
-          variables += `let ${key} = '${clearMatches[key] ? padValue(data[key], +clearMatches[key]) : data[key]}';`;
-      }
-      template = template.replace(/\:\d+\}/g, '}');
-      res = safeExecute(parseFunction(variables + ' return' + '`' + template + '`'));
-    }
-    else res = template;
+    const compiled = _.template(template);
+    res = compiled(data);
   }
   catch (ex) {
-    console.log(ex, variables, template)
+    console.log(ex, template)
   }
   return res;
 }

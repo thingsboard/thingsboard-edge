@@ -733,23 +733,23 @@ public class DefaultDataUpdateService implements DataUpdateService {
         private static final int DEFAULT_LIMIT = 100;
 
         public List<ListenableFuture<WhiteLabelingParams>> updateEntities(I id) throws Exception {
-            TextPageLink pageLink = new TextPageLink(DEFAULT_LIMIT);
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
             boolean hasNext = true;
             List<ListenableFuture<WhiteLabelingParams>> result = new ArrayList<>();
             while (hasNext) {
-                TextPageData<D> entities = findEntities(id, pageLink);
+                PageData<D> entities = findEntities(id, pageLink);
                 for (D entity : entities.getData()) {
                     result.add(updateEntity(entity));
                 }
                 hasNext = entities.hasNext();
                 if (hasNext) {
-                    pageLink = entities.getNextPageLink();
+                    pageLink = pageLink.nextPageLink();
                 }
             }
             return result;
         }
 
-        protected abstract TextPageData<D> findEntities(I id, TextPageLink pageLink);
+        protected abstract PageData<D> findEntities(I id, PageLink pageLink);
 
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
 

@@ -149,7 +149,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   dashboardClass: string;
 
   @Input()
-  ignoreLoading: boolean;
+  ignoreLoading = true;
 
   @Input()
   dashboardTimewindow: Timewindow;
@@ -188,8 +188,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   widgetMenuPosition = { x: '0px', y: '0px' };
 
   widgetContextMenuEvent: MouseEvent;
-
-  dashboardLoading = true;
 
   dashboardWidgets = new DashboardWidgets(this,
     this.differs.find([]).create<Widget>((index, item) => {
@@ -319,7 +317,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   private updateWidgets() {
     this.dashboardWidgets.setWidgets(this.widgets, this.widgetLayouts);
     this.dashboardWidgets.doCheck();
-    this.dashboardLoading = false;
   }
 
   private updateWidgetLayouts() {

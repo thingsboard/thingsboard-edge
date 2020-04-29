@@ -29,19 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { LatLngBounds, LatLngTuple } from 'leaflet';
+import L, { LatLngTuple, LatLngBounds, Point, MarkerClusterGroupOptions, markerClusterGroup } from 'leaflet';
 
 import 'leaflet-providers';
-import LM from 'leaflet.markercluster/dist/leaflet.markercluster';
+import 'leaflet.markercluster/dist/leaflet.markercluster';
 
-import {
-  FormattedData,
-  MapSettings,
-  MarkerSettings,
-  PolygonSettings,
-  PolylineSettings,
-  UnitedMapSettings
-} from './map-models';
+import { MapSettings, MarkerSettings, FormattedData, UnitedMapSettings, PolygonSettings, PolylineSettings } from './map-models';
 import { Marker } from './markers';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -63,7 +56,7 @@ export default abstract class LeafletMap {
     bounds: L.LatLngBounds;
     newMarker: L.Marker;
     datasources: FormattedData[];
-    markersCluster: LM.markerClusterGroup;
+    markersCluster;
 
     constructor(public $container: HTMLElement, options: UnitedMapSettings) {
         this.options = options;
@@ -87,7 +80,7 @@ export default abstract class LeafletMap {
             setTimeout(options.initCallback, 0);
         }
         if (useClusterMarkers) {
-            const clusteringSettings: LM.MarkerClusterGroupOptions = {
+            const clusteringSettings: MarkerClusterGroupOptions = {
                 zoomToBoundsOnClick: zoomOnClick,
                 showCoverageOnHover,
                 removeOutsideVisibleBounds,
@@ -100,7 +93,7 @@ export default abstract class LeafletMap {
             if (maxZoom && maxZoom >= 0 && maxZoom < 19) {
                 clusteringSettings.disableClusteringAtZoom = Math.floor(maxZoom);
             }
-            this.markersCluster = LM.markerClusterGroup(clusteringSettings);
+            this.markersCluster = markerClusterGroup(clusteringSettings);
             this.ready$.subscribe(map => map.addLayer(this.markersCluster));
         }
     }
@@ -228,7 +221,7 @@ export default abstract class LeafletMap {
                 });
                 this.map.fitBounds(bounds, { padding: padding || [50, 50], animate: false });
             }
-            this.bounds = this.bounds.extend(bounds);
+            this.bounds = bounds;
         }
     }
 
@@ -251,22 +244,20 @@ export default abstract class LeafletMap {
 
     // Markers
     updateMarkers(markersData) {
-        markersData.forEach(data => {
-            if (this.convertPosition(data)) {
-                if (data.rotationAngle || data.rotationAngle === 0) {
-                    this.options.icon = L.divIcon({
-                        html: `<div class="arrow" style="transform: translate(-10px, -10px) rotate(${data.rotationAngle}deg);"><div>`
-                    })
-                }
-                else {
-                    this.options.icon = null;
-                }
-                if (this.markers.get(data.entityName)) {
-                    this.updateMarker(data.entityName, data, markersData, this.options)
-                }
-                else {
-                    this.createMarker(data.entityName, data, markersData, this.options as MarkerSettings);
-                }
+        markersData.filter(mdata => !!this.convertPosition(mdata)).forEach(data => {
+            if (data.rotationAngle || data.rotationAngle === 0) {
+                this.options.icon = L.divIcon({
+                    html: `<div class="arrow" style="transform: translate(-10px, -10px) rotate(${data.rotationAngle}deg);"><div>`
+                })
+            }
+            else {
+                this.options.icon = null;
+            }
+            if (this.markers.get(data.entityName)) {
+                this.updateMarker(data.entityName, data, markersData, this.options)
+            }
+            else {
+                this.createMarker(data.entityName, data, markersData, this.options as MarkerSettings);
             }
         });
     }
@@ -279,7 +270,7 @@ export default abstract class LeafletMap {
     private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings) {
         this.ready$.subscribe(() => {
             const newMarker = new Marker(this.convertPosition(data), settings, data, dataSources, this.dragMarker);
-            this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()), settings.draggableMarker && this.markers.size > 2);
+            this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()), settings.draggableMarker && this.markers.size < 2);
             this.markers.set(key, newMarker);
             if (this.options.useClusterMarkers) {
                 this.markersCluster.addLayer(newMarker.leafletMarker);
@@ -314,6 +305,9 @@ export default abstract class LeafletMap {
         }
     }
 
+    setImageAlias(alias: Observable<any>) {
+    }
+
     // Polyline
 
     updatePolylines(polyData: FormattedData[][]) {
@@ -343,7 +337,7 @@ export default abstract class LeafletMap {
 
     updatePolyline(key: string, data: FormattedData[], dataSources: FormattedData[], settings: PolylineSettings) {
         this.ready$.subscribe(() => {
-            this.polylines.get(key).updatePolyline(settings, data, dataSources);
+            this.polylines.get(key).updatePolyline(settings, data.map(el => this.convertPosition(el)), dataSources);
         });
     }
 
