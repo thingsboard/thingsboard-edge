@@ -109,9 +109,9 @@ public class WhiteLabelingController extends BaseController {
             if (authority == Authority.SYS_ADMIN) {
                 whiteLabelingParams = whiteLabelingService.getSystemWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             } else if (authority == Authority.TENANT_ADMIN) {
-                whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId());
+                whiteLabelingParams = whiteLabelingService.getTenantWhiteLabelingParams(getCurrentUser().getTenantId()).get();
             } else if (authority == Authority.CUSTOMER_USER) {
-                whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId());
+                whiteLabelingParams = whiteLabelingService.getCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId()).get();
             }
             return whiteLabelingParams;
         } catch (Exception e) {
@@ -151,9 +151,9 @@ public class WhiteLabelingController extends BaseController {
             if (authority == Authority.SYS_ADMIN) {
                 savedWhiteLabelingParams = whiteLabelingService.saveSystemWhiteLabelingParams(whiteLabelingParams);
             } else if (authority == Authority.TENANT_ADMIN) {
-                savedWhiteLabelingParams = whiteLabelingService.saveTenantWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams);
+                savedWhiteLabelingParams = whiteLabelingService.saveTenantWhiteLabelingParams(getCurrentUser().getTenantId(), whiteLabelingParams).get();
             } else if (authority == Authority.CUSTOMER_USER) {
-                savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams);
+                savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams).get();
             }
             return savedWhiteLabelingParams;
         } catch (Exception e) {
