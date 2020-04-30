@@ -36,9 +36,11 @@ COPY start-tb-mqtt-integration.sh ${pkg.name}.deb /tmp/
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-mqtt-integration.sh /usr/bin
 
-RUN dpkg -i /tmp/${pkg.name}.deb
+RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
 RUN update-rc.d ${pkg.name} disable
+
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
 USER ${pkg.user}
 
