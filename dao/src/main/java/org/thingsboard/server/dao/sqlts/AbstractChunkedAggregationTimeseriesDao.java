@@ -70,7 +70,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     @Autowired
     protected InsertTsRepository<TsKvEntity> insertRepository;
 
-    protected TbSqlBlockingQueue<EntityContainer<TsKvEntity>> tsQueue;
+    protected TbSqlBlockingQueue<TsKvEntity> tsQueue;
 
     @PostConstruct
     protected void init() {
