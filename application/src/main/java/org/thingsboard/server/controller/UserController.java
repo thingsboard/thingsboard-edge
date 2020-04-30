@@ -383,7 +383,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.USER, Operation.READ,
+            return getGroupEntities(getCurrentUser(), EntityType.USER, Operation.READ, pageLink,
                     (groupIds) -> userService.findUsersByEntityGroupIds(groupIds, pageLink)
             );
         } catch (Exception e) {

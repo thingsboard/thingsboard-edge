@@ -335,6 +335,14 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     }
 
     function eventRender(event, element/*, view*/) {
+        if (event.htmlTitle) {
+            if(element.find('.fc-title').length > 0) {
+                element.find('.fc-title')[0].innerHTML = event.htmlTitle;
+            }
+            if(element.find('.fc-list-item-title').length > 0) {
+                element.find('.fc-list-item-title')[0].innerHTML = event.htmlTitle;
+            }
+        }
         element.tooltipster(
             {
                 theme: 'tooltipster-shadow',
@@ -362,6 +370,12 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     }
 
+    var schedulerTimeUnitRepeatTranslation = {
+        'HOURS': 'scheduler.every-hour',
+        'MINUTES': 'scheduler.every-minute',
+        'SECONDS': 'scheduler.every-second'
+    };
+
     function eventSourceFunction(start, end, timezone, callback) {
         var events = [];
         if (vm.schedulerEvents && vm.schedulerEvents.length) {
@@ -376,49 +390,52 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                     if (event.schedule.repeat) {
                         var endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
                         var repeatEndsOn = moment(event.schedule.repeat.endsOn - endOffset); //eslint-disable-line
-                        var currentTime;
-                        var eventStartOffsetUnits = 0;
-                        if (rangeStart.isSameOrBefore(eventStart)) {
-                            currentTime = eventStart.clone();
+                        if (event.schedule.repeat.type === types.schedulerRepeat.timer.value) {
+                            calendarEvent = toCalendarEvent(event, eventStart, repeatEndsOn);
+                            events.push(calendarEvent);
                         } else {
-                            switch (event.schedule.repeat.type) {
-                                case types.schedulerRepeat.yearly.value:
-                                case types.schedulerRepeat.monthly.value:
-                                    eventStartOffsetUnits = moment.duration(rangeStart.diff(eventStart));//eslint-disable-line
-                                    eventStartOffsetUnits = Math.ceil(eventStartOffsetUnits.as(types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type));
-                                    currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
-                                    break;
-                                default:
-                                    currentTime = rangeStart.clone();
-                                    currentTime.hours(eventStart.hours());
-                                    currentTime.minutes(eventStart.minutes());
+                            var currentTime;
+                            var eventStartOffsetUnits = 0;
+                            if (rangeStart.isSameOrBefore(eventStart)) {
+                                currentTime = eventStart.clone();
+                            } else {
+                                switch (event.schedule.repeat.type) {
+                                    case types.schedulerRepeat.yearly.value:
+                                    case types.schedulerRepeat.monthly.value:
+                                        eventStartOffsetUnits = moment.duration(rangeStart.diff(eventStart));//eslint-disable-line
+                                        eventStartOffsetUnits = Math.ceil(eventStartOffsetUnits.as(types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type));
+                                        currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
+                                        break;
+                                    default:
+                                        currentTime = rangeStart.clone();
+                                        currentTime.hours(eventStart.hours());
+                                        currentTime.minutes(eventStart.minutes());
+                                        currentTime.seconds(eventStart.seconds());
+                                }
                             }
-                        }
-                        var endDate;
-                        if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
-                            endDate = repeatEndsOn.clone();
-                        } else {
-                            endDate = rangeEnd.clone();
-                        }
-                        while (currentTime.isBefore(endDate)) {
-                            var day = currentTime.day();
-                            if (event.schedule.repeat.type !== types.schedulerRepeat.weekly.value ||
-                                event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
-                                var currentEventStart = currentTime.clone();
-                                calendarEvent = toCalendarEvent(event, currentEventStart, currentEventStart);
-                                events.push(calendarEvent);
+                            var endDate;
+                            if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
+                                endDate = repeatEndsOn.clone();
+                            } else {
+                                endDate = rangeEnd.clone();
                             }
-                            switch (event.schedule.repeat.type) {
-                                case types.schedulerRepeat.timer.value:
-                                    currentTime.add(event.schedule.repeat.repeatInterval, event.schedule.repeat.timeUnit.toLowerCase());
-                                    break;
-                                case types.schedulerRepeat.yearly.value:
-                                case types.schedulerRepeat.monthly.value:
-                                    eventStartOffsetUnits++;
-                                    currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
-                                    break;
-                                default:
-                                    currentTime.add(1, 'days');
+                            while (currentTime.isBefore(endDate)) {
+                                var day = currentTime.day();
+                                if (event.schedule.repeat.type !== types.schedulerRepeat.weekly.value ||
+                                    event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
+                                    var currentEventStart = currentTime.clone();
+                                    calendarEvent = toCalendarEvent(event, currentEventStart, currentEventStart);
+                                    events.push(calendarEvent);
+                                }
+                                switch (event.schedule.repeat.type) {
+                                    case types.schedulerRepeat.yearly.value:
+                                    case types.schedulerRepeat.monthly.value:
+                                        eventStartOffsetUnits++;
+                                        currentTime = eventStart.clone().add(eventStartOffsetUnits, types.schedulerRepeat[event.schedule.repeat.type.toLowerCase()].type);
+                                        break;
+                                    default:
+                                        currentTime.add(1, 'days');
+                                }
                             }
                         }
                     } else if (rangeStart.isSameOrBefore(eventStart)) {
@@ -432,14 +449,23 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         callback(events);
     }
 
-    function toCalendarEvent(event, start/*, end*/) {
+    function toCalendarEvent(event, start, end) {
+        var title = event.name + ' - ' + event.typeName;
+        var htmlTitle = null;
+        if (event.schedule.repeat && event.schedule.repeat.type === types.schedulerRepeat.timer.value) {
+            var repeatInterval = $translate.instant(schedulerTimeUnitRepeatTranslation[event.schedule.repeat.timeUnit],
+                {count: event.schedule.repeat.repeatInterval}, 'messageformat');
+            htmlTitle = ` <b>${repeatInterval}</b> ${title}`;
+        }
         var calendarEvent = {
             id: event.id.id,
-            title: event.name + ' - ' + event.typeName,
+            title: title,
             name: event.name,
             type: event.typeName,
             info: eventInfo(event),
-            start: start
+            start: start,
+            end: end ? end.toDate() : null,
+            htmlTitle: htmlTitle
         };
         return calendarEvent;
     }
@@ -463,7 +489,9 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             } else if (event.schedule.repeat.type == types.schedulerRepeat.yearly.value) {
                 info += $translate.instant('scheduler.yearly') + ', ';
             } else if (event.schedule.repeat.type == types.schedulerRepeat.timer.value) {
-                info += $translate.instant('scheduler.timer') + ', ';
+                var repeatInterval = $translate.instant(schedulerTimeUnitRepeatTranslation[event.schedule.repeat.timeUnit],
+                    {count: event.schedule.repeat.repeatInterval}, 'messageformat');
+                info += repeatInterval + ', ';
             } else {
                 info += $translate.instant('scheduler.weekly') + ' ' + $translate.instant('scheduler.on') + ' ';
                 for (var i = 0; i < event.schedule.repeat.repeatOn.length; i++) {

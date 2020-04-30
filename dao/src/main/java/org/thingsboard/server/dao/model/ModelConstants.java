@@ -87,6 +87,7 @@ public class ModelConstants {
 
     public static final String USER_BY_EMAIL_COLUMN_FAMILY_NAME = "user_by_email";
     public static final String USER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_and_search_text";
+    public static final String ALL_USERS_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "all_users_by_tenant_and_search_text";
     public static final String USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_customer_and_search_text";
     public static final String USER_BY_TENANT_AUTHORITY_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "user_by_tenant_authority_and_search_text";
 

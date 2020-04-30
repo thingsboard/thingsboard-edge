@@ -351,11 +351,6 @@ export const commonMapSettingsSchema =
                 title: 'Color function: f(data, dsData, dsIndex)',
                 type: 'string'
             },
-            showPolygon: {
-                title: 'Show polygon',
-                type: 'boolean',
-                default: false
-            },
             markerImage: {
                 title: 'Custom marker image',
                 type: 'string'
@@ -454,8 +449,7 @@ export const commonMapSettingsSchema =
                     type: 'image'
                 }
             ]
-        },
-        'showPolygon',
+        }
     ]
 };
 
@@ -465,6 +459,11 @@ export const mapPolygonSchema =
         title: 'Map Polygon Configuration',
         type: 'object',
         properties: {
+            showPolygon: {
+                title: 'Show polygon',
+                type: 'boolean',
+                default: false
+            },
             polygonKeyName: {
                 title: 'Polygon key name',
                 type: 'string',
@@ -506,6 +505,7 @@ export const mapPolygonSchema =
         required: []
     },
     form: [
+        'showPolygon',
         'polygonKeyName',
         {
             key: 'polygonColor',

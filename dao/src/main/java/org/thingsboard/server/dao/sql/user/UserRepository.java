@@ -90,4 +90,6 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, S
 
     List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
 
+    Page<UserEntity> findUsersByTenantId(String tenantId, Pageable pageable);
+
 }

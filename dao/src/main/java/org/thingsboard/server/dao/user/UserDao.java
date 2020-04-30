@@ -66,7 +66,16 @@ public interface UserDao extends Dao<User> {
      * @return the list of user entities
      */
     PageData<User> findTenantAdmins(UUID tenantId, PageLink pageLink);
-    
+
+    /**
+     * Find users by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of user entities
+     */
+    PageData<User> findUsersByTenantId(UUID tenantId, PageLink pageLink);
+
     /**
      * Find customer users by tenantId, customerId and page link.
      *
