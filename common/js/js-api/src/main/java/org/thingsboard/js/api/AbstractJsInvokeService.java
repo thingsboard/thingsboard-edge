@@ -33,10 +33,13 @@ package org.thingsboard.js.api;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,8 +48,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public abstract class AbstractJsInvokeService implements JsInvokeService {
 
+    protected ScheduledExecutorService timeoutExecutorService;
     protected Map<UUID, String> scriptIdToNameMap = new ConcurrentHashMap<>();
     protected Map<UUID, BlackListInfo> blackListedFunctions = new ConcurrentHashMap<>();
+
+    public void init(long maxRequestsTimeout) {
+        if (maxRequestsTimeout > 0) {
+            timeoutExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("nashorn-js-timeout"));
+        }
+    }
+
+    public void stop() {
+        if (timeoutExecutorService != null) {
+            timeoutExecutorService.shutdownNow();
+        }
+    }
 
     @Override
     public ListenableFuture<UUID> eval(JsScriptType scriptType, String scriptBody, String... argNames) {

@@ -63,7 +63,6 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     private ScriptEngine engine;
     private ExecutorService monitorExecutorService;
     private ListeningExecutorService jsExecutor;
-    private ScheduledExecutorService timeoutExecutorService;
 
     private final AtomicInteger jsPushedMsgs = new AtomicInteger(0);
     private final AtomicInteger jsInvokeMsgs = new AtomicInteger(0);
@@ -99,10 +98,8 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
 
     @PostConstruct
     public void init() {
+        super.init(maxRequestsTimeout);
         jsExecutor = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(jsExecutorThreadPoolSize));
-        if (maxRequestsTimeout > 0) {
-            timeoutExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("nashorn-js-timeout"));
-        }
         if (useJsSandbox()) {
             sandbox = NashornSandboxes.create();
             monitorExecutorService = Executors.newWorkStealingPool(getMonitorThreadPoolSize());
@@ -119,11 +116,9 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
 
     @PreDestroy
     public void stop() {
+        super.stop();
         if (monitorExecutorService != null) {
             monitorExecutorService.shutdownNow();
-        }
-        if (timeoutExecutorService != null) {
-            timeoutExecutorService.shutdownNow();
         }
     }
 
