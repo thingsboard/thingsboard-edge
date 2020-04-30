@@ -287,6 +287,8 @@ export class AuthService {
       const publicId = this.utils.getQueryParam('publicId');
       const accessToken = this.utils.getQueryParam('accessToken');
       const refreshToken = this.utils.getQueryParam('refreshToken');
+      const username = this.utils.getQueryParam('username');
+      const password = this.utils.getQueryParam('password');
       this.reportService.loadReportParams();
       if (publicId) {
         return this.publicLogin(publicId).pipe(
@@ -317,6 +319,21 @@ export class AuthService {
           return throwError(e);
         }
         return this.procceedJwtTokenValidate();
+      } else if (username && password) {
+        this.utils.updateQueryParam('username', null);
+        this.utils.updateQueryParam('password', null);
+        const loginRequest: LoginRequest = {
+          username,
+          password
+        };
+        return this.http.post<LoginResponse>('/api/auth/login', loginRequest, defaultHttpOptions()).pipe(
+          mergeMap((loginResponse: LoginResponse) => {
+              this.updateAndValidateToken(loginResponse.token, 'jwt_token', false);
+              this.updateAndValidateToken(loginResponse.refreshToken, 'refresh_token', false);
+              return this.procceedJwtTokenValidate();
+            }
+          )
+        );
       }
       return this.procceedJwtTokenValidate(doTokenRefresh);
     } else {

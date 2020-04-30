@@ -37,7 +37,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { FormBuilder } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Constants } from '@shared/models/constants';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
@@ -62,17 +62,11 @@ export class LoginComponent extends PageComponent implements OnInit {
               public selfRegistrationService: SelfRegistrationService,
               private translateService: TranslateService,
               public fb: FormBuilder,
-              private router: Router,
-              private route: ActivatedRoute) {
+              private router: Router) {
     super(store);
   }
 
   ngOnInit() {
-    if (this.route.snapshot.queryParams.username && this.route.snapshot.queryParams.password) {
-      this.loginFormGroup.setValue({username: this.route.snapshot.queryParams.username,
-        password: this.route.snapshot.queryParams.password});
-      this.login();
-    }
   }
 
   login(): void {
