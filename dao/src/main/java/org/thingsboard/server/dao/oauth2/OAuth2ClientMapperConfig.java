@@ -28,69 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+package org.thingsboard.server.dao.oauth2;
 
-md-card.tb-login-card {
-  width: 330px !important;
+import lombok.Data;
 
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 450px !important;
-  }
+@Data
+public class OAuth2ClientMapperConfig {
 
-  .tb-padding {
-    padding: 8px;
-  }
+    private String type;
+    private BasicOAuth2ClientMapperConfig basic;
+    private CustomOAuth2ClientMapperConfig custom;
 
-  md-card-title {
-    img.tb-login-logo {
-      height: 40px;
-    }
-  }
-
-  md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
-  }
-
-  md-input-container .md-errors-spacer {
-    display: none;
-  }
-
-  .oauth-container{
-    .container-divider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 10px 0;
-
-      .line {
-        flex: 1;
-      }
-
-      .text {
-        padding-right: 10px;
-        padding-left: 10px;
-      }
+    @Data
+    public static class BasicOAuth2ClientMapperConfig {
+        private boolean allowUserCreation;
+        private String emailAttributeKey;
+        private String firstNameAttributeKey;
+        private String lastNameAttributeKey;
+        private String tenantNameStrategy;
+        private String tenantNamePattern;
+        private String customerNamePattern;
+        private String parentCustomerNamePattern;
+        private String userGroupsNamePattern;
     }
 
-    .material-icons{
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      min-height: 20px;
-      margin: 0 4px;
+    @Data
+    public static class CustomOAuth2ClientMapperConfig {
+        private String url;
+        private String username;
+        private String password;
     }
-  }
 }

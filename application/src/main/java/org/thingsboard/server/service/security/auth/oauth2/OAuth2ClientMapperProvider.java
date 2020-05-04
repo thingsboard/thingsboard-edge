@@ -28,69 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+package org.thingsboard.server.service.security.auth.oauth2;
 
-md-card.tb-login-card {
-  width: 330px !important;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 450px !important;
-  }
+@Component
+@Slf4j
+public class OAuth2ClientMapperProvider {
 
-  .tb-padding {
-    padding: 8px;
-  }
+    @Autowired
+    @Qualifier("basicOAuth2ClientMapper")
+    private OAuth2ClientMapper basicOAuth2ClientMapper;
 
-  md-card-title {
-    img.tb-login-logo {
-      height: 40px;
+    @Autowired
+    @Qualifier("customOAuth2ClientMapper")
+    private OAuth2ClientMapper customOAuth2ClientMapper;
+
+    public OAuth2ClientMapper getOAuth2ClientMapperByType(String oauth2ClientType) {
+        switch (oauth2ClientType) {
+            case "custom":
+                return customOAuth2ClientMapper;
+            case "basic":
+                return basicOAuth2ClientMapper;
+            default:
+                throw new RuntimeException("OAuth2ClientMapper with type " + oauth2ClientType + " is not supported!");
+        }
     }
-  }
-
-  md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
-  }
-
-  md-input-container .md-errors-spacer {
-    display: none;
-  }
-
-  .oauth-container{
-    .container-divider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 10px 0;
-
-      .line {
-        flex: 1;
-      }
-
-      .text {
-        padding-right: 10px;
-        padding-left: 10px;
-      }
-    }
-
-    .material-icons{
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      min-height: 20px;
-      margin: 0 4px;
-    }
-  }
 }

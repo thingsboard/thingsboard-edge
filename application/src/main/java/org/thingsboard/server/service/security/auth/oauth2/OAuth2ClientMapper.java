@@ -28,69 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+package org.thingsboard.server.service.security.auth.oauth2;
 
-md-card.tb-login-card {
-  width: 330px !important;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientMapperConfig;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 450px !important;
-  }
-
-  .tb-padding {
-    padding: 8px;
-  }
-
-  md-card-title {
-    img.tb-login-logo {
-      height: 40px;
-    }
-  }
-
-  md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
-  }
-
-  md-input-container .md-errors-spacer {
-    display: none;
-  }
-
-  .oauth-container{
-    .container-divider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 10px 0;
-
-      .line {
-        flex: 1;
-      }
-
-      .text {
-        padding-right: 10px;
-        padding-left: 10px;
-      }
-    }
-
-    .material-icons{
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      min-height: 20px;
-      margin: 0 4px;
-    }
-  }
+public interface OAuth2ClientMapper {
+    SecurityUser getOrCreateUserByClientPrincipal(OAuth2AuthenticationToken token, OAuth2ClientMapperConfig config);
 }

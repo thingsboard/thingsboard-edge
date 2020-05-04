@@ -28,69 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+package org.thingsboard.server.common.data.oauth2;
 
-md-card.tb-login-card {
-  width: 330px !important;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.id.OAuth2IntegrationId;
 
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 450px !important;
-  }
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class OAuth2ClientInfo extends BaseData<OAuth2IntegrationId> {
 
-  .tb-padding {
-    padding: 8px;
-  }
+    private String name;
+    private String icon;
+    private String url;
 
-  md-card-title {
-    img.tb-login-logo {
-      height: 40px;
-    }
-  }
-
-  md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
-  }
-
-  md-input-container .md-errors-spacer {
-    display: none;
-  }
-
-  .oauth-container{
-    .container-divider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 10px 0;
-
-      .line {
-        flex: 1;
-      }
-
-      .text {
-        padding-right: 10px;
-        padding-left: 10px;
-      }
+    public OAuth2ClientInfo() {
+        super();
     }
 
-    .material-icons{
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      min-height: 20px;
-      margin: 0 4px;
+    public OAuth2ClientInfo(OAuth2IntegrationId id) {
+        super(id);
     }
-  }
+
+    public OAuth2ClientInfo(OAuth2ClientInfo oauth2ClientInfo) {
+        super(oauth2ClientInfo);
+        this.name = oauth2ClientInfo.getName();
+        this.icon = oauth2ClientInfo.getIcon();
+        this.url = oauth2ClientInfo.getUrl();
+    }
 }
