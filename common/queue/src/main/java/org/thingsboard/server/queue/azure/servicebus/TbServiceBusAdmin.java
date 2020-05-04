@@ -82,6 +82,7 @@ public class TbServiceBusAdmin implements TbQueueAdmin {
 
         try {
             QueueDescription queueDescription = new QueueDescription(topic);
+            queueDescription.setRequiresDuplicateDetection(false);
             setQueueConfigs(queueDescription);
 
             client.createQueue(queueDescription);

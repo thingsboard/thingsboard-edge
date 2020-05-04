@@ -28,32 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.queue.processing;
+package org.thingsboard.server.queue.common;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.TbQueueMsg;
 
-import java.util.UUID;
-import java.util.function.BiConsumer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class BurstTbRuleEngineSubmitStrategy extends AbstractTbRuleEngineSubmitStrategy {
+public abstract class AbstractParallelTbQueueConsumerTemplate<R, T extends TbQueueMsg> extends AbstractTbQueueConsumerTemplate<R, T> {
 
-    public BurstTbRuleEngineSubmitStrategy(String queueName) {
-        super(queueName);
+    protected ListeningExecutorService consumerExecutor;
+
+    public AbstractParallelTbQueueConsumerTemplate(String topic) {
+        super(topic);
     }
 
-    @Override
-    public void submitAttempt(BiConsumer<UUID, TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> msgConsumer) {
-        if (log.isDebugEnabled()) {
-            log.debug("[{}] submitting [{}] messages to rule engine", queueName, orderedMsgList.size());
+    protected void initNewExecutor(int threadPoolSize) {
+        if (consumerExecutor != null) {
+            consumerExecutor.shutdown();
+            try {
+                consumerExecutor.awaitTermination(1, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                log.trace("Interrupted while waiting for consumer executor to stop");
+            }
         }
-        orderedMsgList.forEach(pair -> msgConsumer.accept(pair.uuid, pair.msg));
+        consumerExecutor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(threadPoolSize));
     }
 
-    @Override
-    protected void doOnSuccess(UUID id) {
-
+    protected void shutdownExecutor() {
+        if (consumerExecutor != null) {
+            consumerExecutor.shutdownNow();
+        }
     }
+
 }
