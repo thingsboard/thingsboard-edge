@@ -28,69 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../scss/constants";
+package org.thingsboard.server.dao.oauth2;
 
-md-card.tb-login-card {
-  width: 330px !important;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 
-  @media (min-width: $layout-breakpoint-sm) {
-    width: 450px !important;
-  }
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-  .tb-padding {
-    padding: 8px;
-  }
+@Slf4j
+@Service
+public class OAuth2ServiceImpl implements OAuth2Service {
 
-  md-card-title {
-    img.tb-login-logo {
-      height: 40px;
+    @Autowired(required = false)
+    OAuth2Configuration oauth2Configuration;
+
+    @Override
+    public List<OAuth2ClientInfo> getOAuth2Clients() {
+        if (oauth2Configuration == null || !oauth2Configuration.isEnabled()) {
+            return Collections.emptyList();
+        }
+        List<OAuth2ClientInfo> result = new ArrayList<>();
+        for (Map.Entry<String, OAuth2Client> entry : oauth2Configuration.getClients().entrySet()) {
+            OAuth2ClientInfo client = new OAuth2ClientInfo();
+            client.setName(entry.getValue().getLoginButtonLabel());
+            client.setUrl(String.format("/oauth2/authorization/%s", entry.getKey()));
+            client.setIcon(entry.getValue().getLoginButtonIcon());
+            result.add(client);
+        }
+        return result;
     }
-  }
-
-  md-card-content {
-    margin-top: -40px;
-  }
-
-  .version {
-    margin: 5px 15px 0 0;
-    font-size: .75em;
-    text-align: right;
-
-    &.center{
-      margin: 10px 0 0;
-      text-align: center;
-    }
-  }
-
-  md-input-container .md-errors-spacer {
-    display: none;
-  }
-
-  .oauth-container{
-    .container-divider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 10px 0;
-
-      .line {
-        flex: 1;
-      }
-
-      .text {
-        padding-right: 10px;
-        padding-left: 10px;
-      }
-    }
-
-    .material-icons{
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      min-height: 20px;
-      margin: 0 4px;
-    }
-  }
 }

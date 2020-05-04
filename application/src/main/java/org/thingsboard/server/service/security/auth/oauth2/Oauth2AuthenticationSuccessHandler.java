@@ -28,73 +28,58 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.rest;
+package org.thingsboard.server.service.security.auth.oauth2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.WebAttributes;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.dao.oauth2.OAuth2Client;
+import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
-@Component(value = "defaultAuthenticationSuccessHandler")
-public class RestAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
-    private final ObjectMapper mapper;
+@Component(value = "oauth2AuthenticationSuccessHandler")
+@ConditionalOnProperty(prefix = "security.oauth2", value = "enabled", havingValue = "true")
+public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
     private final JwtTokenFactory tokenFactory;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final OAuth2ClientMapperProvider oauth2ClientMapperProvider;
+    private final OAuth2Configuration oauth2Configuration;
 
     @Autowired
-    public RestAwareAuthenticationSuccessHandler(final ObjectMapper mapper, final JwtTokenFactory tokenFactory, final RefreshTokenRepository refreshTokenRepository) {
-        this.mapper = mapper;
+    public Oauth2AuthenticationSuccessHandler(final JwtTokenFactory tokenFactory,
+                                              final RefreshTokenRepository refreshTokenRepository,
+                                              final OAuth2ClientMapperProvider oauth2ClientMapperProvider,
+                                              final OAuth2Configuration oauth2Configuration) {
         this.tokenFactory = tokenFactory;
         this.refreshTokenRepository = refreshTokenRepository;
+        this.oauth2ClientMapperProvider = oauth2ClientMapperProvider;
+        this.oauth2Configuration = oauth2Configuration;
     }
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
-        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException {
+        OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
+
+        OAuth2Client oauth2Client = oauth2Configuration.getClientByRegistrationId(token.getAuthorizedClientRegistrationId());
+        OAuth2ClientMapper mapper = oauth2ClientMapperProvider.getOAuth2ClientMapperByType(oauth2Client.getMapperConfig().getType());
+        SecurityUser securityUser = mapper.getOrCreateUserByClientPrincipal(token, oauth2Client.getMapperConfig());
 
         JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
         JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
 
-        Map<String, String> tokenMap = new HashMap<String, String>();
-        tokenMap.put("token", accessToken.getToken());
-        tokenMap.put("refreshToken", refreshToken.getToken());
-
-        response.setStatus(HttpStatus.OK.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        mapper.writeValue(response.getWriter(), tokenMap);
-
-        clearAuthenticationAttributes(request);
-    }
-
-    /**
-     * Removes temporary authentication-related data which may have been stored
-     * in the session during the authentication process..
-     *
-     */
-    protected final void clearAuthenticationAttributes(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session == null) {
-            return;
-        }
-
-        session.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+        getRedirectStrategy().sendRedirect(request, response, "/?accessToken=" + accessToken.getToken() + "&refreshToken=" + refreshToken.getToken());
     }
 }
