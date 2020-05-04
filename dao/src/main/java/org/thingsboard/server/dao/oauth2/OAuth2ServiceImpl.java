@@ -56,7 +56,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         for (Map.Entry<String, OAuth2Client> entry : oauth2Configuration.getClients().entrySet()) {
             OAuth2ClientInfo client = new OAuth2ClientInfo();
             client.setName(entry.getValue().getLoginButtonLabel());
-            client.setUrl(String.format("http://localhost:8080/oauth2/authorization/%s", entry.getKey()));
+            client.setUrl(String.format("/oauth2/authorization/%s", entry.getKey()));
             client.setIcon(entry.getValue().getLoginButtonIcon());
             result.add(client);
         }

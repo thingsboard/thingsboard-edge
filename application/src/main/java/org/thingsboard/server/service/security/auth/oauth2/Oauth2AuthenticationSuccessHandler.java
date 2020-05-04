@@ -80,6 +80,6 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
         JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
 
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:3000/?accessToken=" + accessToken.getToken() + "&refreshToken=" + refreshToken.getToken());
+        getRedirectStrategy().sendRedirect(request, response, "/?accessToken=" + accessToken.getToken() + "&refreshToken=" + refreshToken.getToken());
     }
 }
