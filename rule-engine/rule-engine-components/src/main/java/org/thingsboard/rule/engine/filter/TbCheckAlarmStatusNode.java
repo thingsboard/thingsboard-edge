@@ -53,7 +53,7 @@ import java.io.IOException;
 @Slf4j
 @RuleNode(
         type = ComponentType.FILTER,
-        name = "checks alarm status",
+        name = "check alarm status",
         configClazz = TbCheckAlarmStatusNodeConfig.class,
         relationTypes = {"True", "False"},
         nodeDescription = "Checks alarm status.",

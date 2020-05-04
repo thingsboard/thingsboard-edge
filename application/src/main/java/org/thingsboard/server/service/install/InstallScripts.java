@@ -146,32 +146,9 @@ public class InstallScripts {
     }
 
     public void createDefaultRuleChains(TenantId tenantId) throws IOException {
-        Path tenantChainsDir = getTenantRuleChainsDir();
-        Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tenantChainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(
-                    path -> {
-                        try {
-                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
-
-                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
-                            ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
-
-                        } catch (Exception e) {
-                            log.error("Unable to load rule chain from json: [{}]", path.toString());
-                            throw new RuntimeException("Unable to load rule chain from json", e);
-                        }
-                    }
-            );
-        }
+        Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
-        String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
-        for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
-            String key = "${" + entry.getKey() + "}";
-            rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
-        }
-        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
-        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+        loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
     }
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId) {
@@ -280,29 +257,40 @@ public class InstallScripts {
     }
 
     public void loadDemoRuleChains(TenantId tenantId) throws Exception {
-        Path ruleChainsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, RULE_CHAINS_DIR);
-        try {
-            JsonNode ruleChainJson = objectMapper.readTree(ruleChainsDir.resolve("thermostat_alarms.json").toFile());
-            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
-            ruleChain.setTenantId(tenantId);
-            ruleChain = ruleChainService.saveRuleChain(ruleChain);
-            ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(new TenantId(EntityId.NULL_UUID), ruleChainMetaData);
+        Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
+        ruleChainIdMap.putAll(loadAdditionalTenantRuleChains(tenantId, Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, RULE_CHAINS_DIR)));
+        Path rootRuleChainFile = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, ROOT_RULE_CHAIN_DIR).resolve("root_rule_chain.json");
+        loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
+    }
 
-            JsonNode rootChainJson = objectMapper.readTree(ruleChainsDir.resolve("root_rule_chain.json").toFile());
-            RuleChain rootChain = objectMapper.treeToValue(rootChainJson.get("ruleChain"), RuleChain.class);
-            RuleChainMetaData rootChainMetaData = objectMapper.treeToValue(rootChainJson.get("metadata"), RuleChainMetaData.class);
-
-            RuleChainId thermostatsRuleChainId = ruleChain.getId();
-            rootChainMetaData.getRuleChainConnections().forEach(connection -> connection.setTargetRuleChainId(thermostatsRuleChainId));
-            rootChain.setTenantId(tenantId);
-            rootChain = ruleChainService.saveRuleChain(rootChain);
-            rootChainMetaData.setRuleChainId(rootChain.getId());
-            ruleChainService.saveRuleChainMetaData(new TenantId(EntityId.NULL_UUID), rootChainMetaData);
-        } catch (Exception e) {
-            log.error("Unable to load dashboard from json", e);
-            throw new RuntimeException("Unable to load dashboard from json", e);
+    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
+        String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
+        for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
+            String key = "${" + entry.getKey() + "}";
+            rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
         }
+        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
+        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+    }
+
+    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {
+        Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(chainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(
+                    path -> {
+                        try {
+                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
+
+                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
+                            ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
+
+                        } catch (Exception e) {
+                            log.error("Unable to load rule chain from json: [{}]", path.toString());
+                            throw new RuntimeException("Unable to load rule chain from json", e);
+                        }
+                    }
+            );
+        }
+        return ruleChainIdMap;
     }
 }

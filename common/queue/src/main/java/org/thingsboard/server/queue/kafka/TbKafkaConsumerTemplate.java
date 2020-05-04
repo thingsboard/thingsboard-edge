@@ -96,14 +96,24 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> implements TbQueueCon
 
     @Override
     public void subscribe() {
-        partitions = Collections.singleton(new TopicPartitionInfo(topic, null, null, true));
-        subscribed = false;
+        consumerLock.lock();
+        try {
+            partitions = Collections.singleton(new TopicPartitionInfo(topic, null, null, true));
+            subscribed = false;
+        } finally {
+            consumerLock.unlock();
+        }
     }
 
     @Override
     public void subscribe(Set<TopicPartitionInfo> partitions) {
-        this.partitions = partitions;
-        subscribed = false;
+        consumerLock.lock();
+        try {
+            this.partitions = partitions;
+            subscribed = false;
+        } finally {
+            consumerLock.unlock();
+        }
     }
 
     @Override
@@ -115,9 +125,8 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> implements TbQueueCon
                 log.debug("Failed to await subscription", e);
             }
         } else {
+            consumerLock.lock();
             try {
-                consumerLock.lock();
-
                 if (!subscribed) {
                     List<String> topicNames = partitions.stream().map(TopicPartitionInfo::getFullTopicName).collect(Collectors.toList());
                     topicNames.forEach(admin::createTopicIfNotExists);
@@ -146,8 +155,8 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> implements TbQueueCon
 
     @Override
     public void commit() {
+        consumerLock.lock();
         try {
-            consumerLock.lock();
             consumer.commitAsync();
         } finally {
             consumerLock.unlock();
@@ -156,8 +165,8 @@ public class TbKafkaConsumerTemplate<T extends TbQueueMsg> implements TbQueueCon
 
     @Override
     public void unsubscribe() {
+        consumerLock.lock();
         try {
-            consumerLock.lock();
             if (consumer != null) {
                 consumer.unsubscribe();
                 consumer.close();
