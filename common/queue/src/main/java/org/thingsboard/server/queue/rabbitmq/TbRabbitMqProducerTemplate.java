@@ -45,6 +45,8 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.DefaultTbQueueMsg;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
@@ -54,9 +56,11 @@ public class TbRabbitMqProducerTemplate<T extends TbQueueMsg> implements TbQueue
     private final Gson gson = new Gson();
     private final TbQueueAdmin admin;
     private final TbRabbitMqSettings rabbitMqSettings;
-    private ListeningExecutorService producerExecutor;
+    private final ListeningExecutorService producerExecutor;
     private final Channel channel;
     private final Connection connection;
+
+    private final Set<TopicPartitionInfo> topics = ConcurrentHashMap.newKeySet();
 
     public TbRabbitMqProducerTemplate(TbQueueAdmin admin, TbRabbitMqSettings rabbitMqSettings, String defaultTopic) {
         this.admin = admin;
@@ -90,6 +94,7 @@ public class TbRabbitMqProducerTemplate<T extends TbQueueMsg> implements TbQueue
 
     @Override
     public void send(TopicPartitionInfo tpi, T msg, TbQueueCallback callback) {
+        createTopicIfNotExist(tpi);
         AMQP.BasicProperties properties = new AMQP.BasicProperties();
         try {
             channel.basicPublish(rabbitMqSettings.getExchangeName(), tpi.getFullTopicName(), properties, gson.toJson(new DefaultTbQueueMsg(msg)).getBytes());
@@ -125,4 +130,11 @@ public class TbRabbitMqProducerTemplate<T extends TbQueueMsg> implements TbQueue
         }
     }
 
+    private void createTopicIfNotExist(TopicPartitionInfo tpi) {
+        if (topics.contains(tpi)) {
+            return;
+        }
+        admin.createTopicIfNotExists(tpi.getFullTopicName());
+        topics.add(tpi);
+    }
 }
