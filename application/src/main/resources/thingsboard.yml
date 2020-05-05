@@ -155,10 +155,6 @@ security:
             # 'domain' - name of the Tenant will be extracted as domain from the email of the user
             # 'email' - name of the Tenant will email of the user
             # 'custom' - please configure 'tenantNamePattern' for custom mapping
-            # Strategy for generating Tenant from external user object - 'domain', 'email' or 'custom'
-            # 'domain' - name of the Tenant will be extracted as domain from the email of the user
-            # 'email' - name of the Tenant will email of the user
-            # 'custom' - please configure 'tenantNamePattern' for custom mapping
             tenantNameStrategy: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_TENANT_NAME_STRATEGY:domain}"
             # %{attribute_key} as placeholder for attribute value of attributes of external user object
             tenantNamePattern: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_TENANT_NAME_PATTERN:}"

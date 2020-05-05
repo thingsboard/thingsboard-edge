@@ -120,7 +120,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
             type = null;
         }
         EntityType entityType = EntityType.valueOf(this.config.getEntityType());
-        EntityKey key = new EntityKey(entityName, type, entityType);
+        EntityId ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator());
+        EntityKey key = new EntityKey(entityName, type, entityType, ownerId);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             EntityContainer entityContainer = entityIdCache.get(key);
             if (entityContainer.getEntityId() == null) {
@@ -162,6 +163,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
         private String entityName;
         private String type;
         private EntityType entityType;
+        private EntityId ownerId;
     }
 
     @Data
@@ -201,9 +203,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newDevice.setName(entitykey.getEntityName());
                         newDevice.setType(entitykey.getType());
                         newDevice.setTenantId(ctx.getTenantId());
+                        newDevice.setOwnerId(entitykey.getOwnerId());
                         Device savedDevice = deviceService.saveDevice(newDevice);
-                        //TODO: @dshvaika WTF?
-                        savedDevice.setOwnerId(getOwnerId(savedDevice.getId()));
                         ctx.enqueue(ctx.deviceCreatedMsg(savedDevice, ctx.getSelfId()),
                                 () -> log.trace("Pushed Device Created message: {}", savedDevice),
                                 throwable -> log.warn("Failed to push Device Created message: {}", savedDevice, throwable));
@@ -220,8 +221,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newAsset.setName(entitykey.getEntityName());
                         newAsset.setType(entitykey.getType());
                         newAsset.setTenantId(ctx.getTenantId());
+                        newAsset.setOwnerId(entitykey.getOwnerId());
                         Asset savedAsset = assetService.saveAsset(newAsset);
-                        savedAsset.setOwnerId(getOwnerId(savedAsset.getId()));
                         ctx.enqueue(ctx.assetCreatedMsg(savedAsset, ctx.getSelfId()),
                                 () -> log.trace("Pushed Asset Created message: {}", savedAsset),
                                 throwable -> log.warn("Failed to push Asset Created message: {}", savedAsset, throwable));
@@ -237,9 +238,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         Customer newCustomer = new Customer();
                         newCustomer.setTitle(entitykey.getEntityName());
                         newCustomer.setTenantId(ctx.getTenantId());
+                        newCustomer.setOwnerId(entitykey.getOwnerId());
                         Customer savedCustomer = customerService.saveCustomer(newCustomer);
-                        //TODO: @dshvaika WTF?
-                        savedCustomer.setOwnerId(getOwnerId(savedCustomer.getId()));
                         ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
                                 () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
                                 throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
@@ -269,10 +269,6 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     return targetEntity;
             }
             return targetEntity;
-        }
-
-        private EntityId getOwnerId(EntityId entityId) {
-            return ctx.getPeContext().getOwner(ctx.getTenantId(), entityId);
         }
     }
 
