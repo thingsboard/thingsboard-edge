@@ -59,7 +59,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   entityTypes = EntityType;
 
   tinyMceOptions: Record<string, any> = {
-    base_url: '/tinymce',
+    base_url: '/assets/tinymce',
     suffix: '.min',
     plugins: ['link table image imagetools code fullscreen'],
     menubar: 'edit insert tools view format table',

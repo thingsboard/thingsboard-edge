@@ -182,7 +182,7 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
     },
     {
       provide: TINYMCE_SCRIPT_SRC,
-      useValue: 'tinymce/tinymce.min.js'
+      useValue: 'assets/tinymce/tinymce.min.js'
     }
   ],
   declarations: [
