@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { LatLngExpression, LatLngTuple } from 'leaflet';
-import { createTooltip } from './maps-utils';
+import L, { LatLngExpression, LatLngTuple, LeafletMouseEvent } from 'leaflet';
+import { createTooltip, parseWithTranslation, safeExecute } from './maps-utils';
 import { PolygonSettings } from './map-models';
 import { DatasourceData } from '@app/shared/models/widget.models';
 
@@ -41,8 +41,8 @@ export class Polygon {
     data;
     dataSources;
 
-    constructor(public map, coordinates, dataSources, settings: PolygonSettings, onClickListener?) {
-        this.leafletPoly = L.polygon(coordinates, {
+    constructor(public map, polyData: DatasourceData, dataSources, private settings: PolygonSettings) {
+        this.leafletPoly = L.polygon(polyData.data, {
             fill: true,
             fillColor: settings.polygonColor,
             color: settings.polygonStrokeColor,
@@ -50,19 +50,35 @@ export class Polygon {
             fillOpacity: settings.polygonOpacity,
             opacity: settings.polygonStrokeOpacity
         }).addTo(this.map);
+        this.dataSources = dataSources;
+        this.data = polyData;
+        if (settings.showPolygonTooltip) {
+            this.tooltip = createTooltip(this.leafletPoly, settings, polyData.datasource);
+            this.updateTooltip(polyData);
+        }
+        if (settings.polygonClick) {
+            this.leafletPoly.on('click', (event: LeafletMouseEvent) => {
+                for (const action in this.settings.polygonClick) {
+                    if (typeof (this.settings.polygonClick[action]) === 'function') {
+                        this.settings.polygonClick[action](event.originalEvent, polyData.datasource);
+                    }
+                }
+            });
+        }
+    }
 
-        if (settings.showTooltip) {
-            this.tooltip = createTooltip(this.leafletPoly, settings);
-        }
-        if (onClickListener) {
-            this.leafletPoly.on('click', onClickListener);
-        }
+    updateTooltip(data: DatasourceData) {
+        const pattern = this.settings.useTooltipFunction ?
+            safeExecute(this.settings.tooltipFunction, [this.data, this.dataSources, this.data.dsIndex]) : this.settings.tooltipPattern;
+        this.tooltip.setContent(parseWithTranslation.parseTemplate(pattern, data, true));
     }
 
     updatePolygon(data: LatLngTuple[], dataSources: DatasourceData[], settings: PolygonSettings) {
         this.data = data;
         this.dataSources = dataSources;
         this.leafletPoly.setLatLngs(data);
+        if (settings.showPolygonTooltip)
+            this.updateTooltip(this.data);
         this.updatePolygonColor(settings);
     }
 
@@ -73,8 +89,8 @@ export class Polygon {
     updatePolygonColor(settings) {
         const style: L.PathOptions = {
             fill: true,
-            fillColor: settings.color,
-            color: settings.color,
+            fillColor: settings.polygonColor,
+            color: settings.polygonStrokeColor,
             weight: settings.polygonStrokeWeight,
             fillOpacity: settings.polygonOpacity,
             opacity: settings.polygonStrokeOpacity

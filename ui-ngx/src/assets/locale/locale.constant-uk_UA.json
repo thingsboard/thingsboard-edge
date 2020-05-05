@@ -1767,7 +1767,7 @@
         }
     },
     "login": {
-        "login": "Вхід",
+        "login": "Увійти",
         "request-password-reset": "Запит скидання пароля",
         "reset-password": "Скинути пароль",
         "create-password": "Створити пароль",
@@ -1784,7 +1784,9 @@
         "password-link-sent-message": "Посилання для скидання пароля було успішно надіслано!",
         "email": "Електронна пошта",
         "no-account": "У Вас ще немає облікового запису?",
-        "create-account": "Створити обліковий запис"
+        "create-account": "Створити обліковий запис",
+        "login-with": "Увійти через {{name}}",
+        "or": "або"
     },
     "signup": {
         "firstname": "Ім'я",

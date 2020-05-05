@@ -40,7 +40,7 @@ import {
   DatasourceSubscriptionOptions,
   SubscriptionDataKey
 } from '@core/api/datasource-subcription';
-import { deepClone } from '@core/utils';
+import { deepClone, objectHashCode } from '@core/utils';
 
 export interface DatasourceListener {
   subscriptionType: widgetType;
@@ -94,7 +94,7 @@ export class DatasourceService {
       datasourceSubscriptionOptions.entityType = listener.entityType;
       datasourceSubscriptionOptions.entityId = listener.entityId;
     }
-    listener.datasourceSubscriptionKey = this.utils.objectHashCode(datasourceSubscriptionOptions);
+    listener.datasourceSubscriptionKey = objectHashCode(datasourceSubscriptionOptions);
     let subscription: DatasourceSubscription;
     if (this.subscriptions[listener.datasourceSubscriptionKey]) {
       subscription = this.subscriptions[listener.datasourceSubscriptionKey];

@@ -43,7 +43,7 @@ import {
 } from '@shared/models/white-labeling.models';
 import { Observable, of, ReplaySubject } from 'rxjs';
 import { ColorPalette, extendPalette, materialColorPalette } from '@shared/models/material.models';
-import { deepClone, isEqual } from '@core/utils';
+import { deepClone, isEqual, objectHashCode } from '@core/utils';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { environment as env } from '@env/environment';
@@ -473,9 +473,9 @@ export class WhiteLabelingService {
                              darkForeground: boolean): Observable<any> {
     let themeChecksum;
     if (isLoginTheme) {
-      themeChecksum = this.utils.objectHashCode({...paletteSettings, ...{darkForeground}});
+      themeChecksum = objectHashCode({...paletteSettings, ...{darkForeground}});
     } else {
-      themeChecksum = this.utils.objectHashCode(paletteSettings);
+      themeChecksum = objectHashCode(paletteSettings);
     }
     const prefix = isLoginTheme ? 'tb-login' : 'tb-app';
     const storedThemeChecksum = localStorage.getItem(prefix+'_theme_checksum');

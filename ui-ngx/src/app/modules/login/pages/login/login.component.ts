@@ -43,6 +43,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { combineLatest, Observable } from 'rxjs';
 import { mergeMap, share } from 'rxjs/operators';
 import { SelfRegistrationService } from '@core/http/self-register.service';
+import { OAuth2Client } from '@shared/models/login.models';
 
 @Component({
   selector: 'tb-login',
@@ -55,6 +56,7 @@ export class LoginComponent extends PageComponent implements OnInit {
     username: '',
     password: ''
   });
+  oauth2Clients: Array<OAuth2Client> = null;
 
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
@@ -67,6 +69,7 @@ export class LoginComponent extends PageComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.oauth2Clients = this.authService.oauth2Clients;
   }
 
   login(): void {
