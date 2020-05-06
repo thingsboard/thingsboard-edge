@@ -111,22 +111,25 @@ public class LocalIntegrationContext implements IntegrationContext {
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
 
-        TbMsgMetaData tbMsgMetaData = new TbMsgMetaData();
-        tbMsgMetaData.putValue("assetName", data.getAssetName());
-        tbMsgMetaData.putValue("assetType", data.getAssetType());
-
         if (data.hasPostTelemetryMsg()) {
             data.getPostTelemetryMsg().getTsKvListList()
-                    .forEach(tsKvListProto -> {
-                        JsonObject json = JsonUtils.getJsonObject(tsKvListProto.getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+                    .forEach(tsKv -> {
+                        TbMsgMetaData metaData = new TbMsgMetaData();
+                        metaData.putValue("assetName", data.getAssetName());
+                        metaData.putValue("assetType", data.getAssetType());
+                        metaData.putValue("ts", tsKv.getTs() + "");
+                        JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
                         ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
                     });
         }
 
         if (data.hasPostAttributesMsg()) {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("assetName", data.getAssetName());
+            metaData.putValue("assetType", data.getAssetType());
             JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), tbMsgMetaData, gson.toJson(json));
+            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
             ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
         }
     }
