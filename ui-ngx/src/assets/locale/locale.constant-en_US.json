@@ -1965,7 +1965,8 @@
         "no-account": "Do not have an account?",
         "create-account": "Create an account",
         "login-with": "Login with {{name}}",
-        "or": "or"
+        "or": "or",
+        "error": "Login error"
     },
     "signup": {
         "firstname": "First name",
