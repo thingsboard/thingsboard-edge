@@ -94,11 +94,18 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
     @Qualifier("oauth2AuthenticationSuccessHandler")
     private AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
 
+    @Autowired(required = false)
+    @Qualifier("oauth2AuthenticationFailureHandler")
+    private AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
+
     @Autowired
     @Qualifier("defaultAuthenticationSuccessHandler")
     private AuthenticationSuccessHandler successHandler;
 
-    @Autowired private AuthenticationFailureHandler failureHandler;
+    @Autowired
+    @Qualifier("defaultAuthenticationFailureHandler")
+    private AuthenticationFailureHandler failureHandler;
+
     @Autowired private RestAuthenticationProvider restAuthenticationProvider;
     @Autowired private JwtAuthenticationProvider jwtAuthenticationProvider;
     @Autowired private RefreshTokenAuthenticationProvider refreshTokenAuthenticationProvider;
@@ -219,10 +226,10 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
             http.oauth2Login()
                     .loginPage("/oauth2Login")
                     .loginProcessingUrl(oauth2Configuration.getLoginProcessingUrl())
-                    .successHandler(oauth2AuthenticationSuccessHandler);
+                    .successHandler(oauth2AuthenticationSuccessHandler)
+                    .failureHandler(oauth2AuthenticationFailureHandler);
         }
     }
-
 
     @Bean
     @ConditionalOnMissingBean(CorsFilter.class)

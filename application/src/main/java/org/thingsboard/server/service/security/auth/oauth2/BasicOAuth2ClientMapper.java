@@ -88,7 +88,7 @@ public class BasicOAuth2ClientMapper extends AbstractOAuth2ClientMapper implemen
             }
             oauth2User.setUserGroups(userGroups);
         }
-        return getOrCreateSecurityUserFromOAuth2User(oauth2User, config.getBasic().isAllowUserCreation());
+        return getOrCreateSecurityUserFromOAuth2User(oauth2User, config.isAllowUserCreation(), config.isActivateUser());
     }
 
     private String getTenantName(Map<String, Object> attributes, OAuth2ClientMapperConfig config) {

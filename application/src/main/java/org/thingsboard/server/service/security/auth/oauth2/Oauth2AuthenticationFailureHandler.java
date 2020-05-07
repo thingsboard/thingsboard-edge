@@ -28,35 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.oauth2;
+package org.thingsboard.server.service.security.auth.oauth2;
 
-import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.utils.MiscUtils;
 
-@Data
-public class OAuth2ClientMapperConfig {
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
-    private boolean allowUserCreation;
-    private boolean activateUser;
-    private String type;
-    private BasicOAuth2ClientMapperConfig basic;
-    private CustomOAuth2ClientMapperConfig custom;
+@Component(value = "oauth2AuthenticationFailureHandler")
+@ConditionalOnProperty(prefix = "security.oauth2", value = "enabled", havingValue = "true")
+public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler  {
 
-    @Data
-    public static class BasicOAuth2ClientMapperConfig {
-        private String emailAttributeKey;
-        private String firstNameAttributeKey;
-        private String lastNameAttributeKey;
-        private String tenantNameStrategy;
-        private String tenantNamePattern;
-        private String customerNamePattern;
-        private String parentCustomerNamePattern;
-        private String userGroupsNamePattern;
-    }
-
-    @Data
-    public static class CustomOAuth2ClientMapperConfig {
-        private String url;
-        private String username;
-        private String password;
+    @Override
+    public void onAuthenticationFailure(HttpServletRequest request,
+                                        HttpServletResponse response, AuthenticationException exception)
+            throws IOException, ServletException {
+        String baseUrl = MiscUtils.constructBaseUrl(request);
+        getRedirectStrategy().sendRedirect(request, response, baseUrl + "/login?loginError=" +
+                URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8.toString()));
     }
 }
