@@ -46,9 +46,15 @@ import org.bouncycastle.openssl.jcajce.JcePEMDecryptorProviderBuilder;
 import org.springframework.util.StringUtils;
 import org.thingsboard.mqtt.MqttClientConfig;
 
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.ByteArrayInputStream;
+import java.security.AlgorithmParameters;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -57,7 +63,7 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Optional;
 
@@ -157,16 +163,36 @@ public class CertPemClientCredentials implements MqttClientCredentials {
     }
 
     private PrivateKey readPrivateKeyFile(String fileContent) throws Exception {
-        RSAPrivateKey privateKey = null;
+        PrivateKey privateKey = null;
         if (fileContent != null && !fileContent.isEmpty()) {
             fileContent = fileContent.replaceAll(".*BEGIN.*PRIVATE KEY.*", "")
                     .replaceAll(".*END.*PRIVATE KEY.*", "")
                     .replaceAll("\\s", "");
             byte[] decoded = Base64.decodeBase64(fileContent);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            privateKey = (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decoded));
+            KeySpec keySpec = getKeySpec(decoded);
+            privateKey = keyFactory.generatePrivate(keySpec);
         }
         return privateKey;
     }
 
+    private KeySpec getKeySpec(byte[] encodedKey) throws Exception {
+        KeySpec keySpec;
+        if (password == null) {
+            keySpec = new PKCS8EncodedKeySpec(encodedKey);
+        } else {
+            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
+
+            EncryptedPrivateKeyInfo privateKeyInfo = new EncryptedPrivateKeyInfo(encodedKey);
+            String algorithmName = privateKeyInfo.getAlgName();
+            Cipher cipher = Cipher.getInstance(algorithmName);
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(algorithmName);
+
+            Key pbeKey = secretKeyFactory.generateSecret(pbeKeySpec);
+            AlgorithmParameters algParams = privateKeyInfo.getAlgParameters();
+            cipher.init(Cipher.DECRYPT_MODE, pbeKey, algParams);
+            keySpec = privateKeyInfo.getKeySpec(cipher);
+        }
+        return keySpec;
+    }
 }
