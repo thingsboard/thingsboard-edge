@@ -73,8 +73,9 @@
                     {{ 'integration.enable-security' | translate }}
                 </mat-checkbox>
                 <mat-checkbox fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
-                    [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">{{ 'integration.enable-security-new' |
-                        translate}}
+                    (change)="thingparkEnableSecurityNewChanged($event)"
+                    [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">
+                    {{ 'integration.enable-security-new' | translate}}
                 </mat-checkbox>
             </div>
             <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout.gt-sm="row"

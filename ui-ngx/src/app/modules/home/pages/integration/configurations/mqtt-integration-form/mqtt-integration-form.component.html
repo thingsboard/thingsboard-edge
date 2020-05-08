@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="form" fxLayout="column">
+<section [formGroup]="form" fxLayout="column" autocomplte="off">
     <fieldset>
         <div fxLayout="column" fxLayout="row" fxLayoutGap="20px">
             <mat-form-field fxFlex="60" class="mat-block">
@@ -58,7 +58,7 @@
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
-            <input matInput formControlName="clientId" ng-pattern="/^[a-zA-Z0-9]*$/" ng-maxlength="23">
+            <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="/^[a-zA-Z0-9]*$/" maxlength="23">
             <mat-error translate *ngIf="form.get('clientId')?.hasError('pattern')">integration.client-id-pattern
             </mat-error>
             <mat-error translate *ngIf="form.get('clientId')?.hasError('maxlength')">integration.client-id-range
@@ -83,7 +83,7 @@
                 <div formGroupName="credentials" >
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="type">
+                        <mat-select required formControlName="type" (selectionChange)="updateCredentials($event)">
                             <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
                                 [value]="credentialsType?.value.value">
                                 {{credentialsType?.value.name | translate}}
@@ -96,13 +96,13 @@
                         *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
-                            <input matInput required formControlName="username">
+                            <input matInput required formControlName="username" autocomplete="new-username">
                             <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
                                 integration.username-required</mat-error>
                         </mat-form-field>
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.password</mat-label>
-                            <input matInput type="password" required formControlName="password">
+                            <input matInput type="password" required formControlName="password" autocomplete="new-password" >
                             <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
                                 integration.password-required</mat-error>
                         </mat-form-field>

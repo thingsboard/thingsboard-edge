@@ -30,8 +30,7 @@
 ///
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormArray, FormControl, FormBuilder, Validators } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 
 
 @Component({
@@ -54,6 +53,7 @@ export class TtnIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.form.get('host').setValidators(Validators.required);
+    this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value + '/devices/${devId}/down');
     this.form.get('credentials').get('username').valueChanges.subscribe(name => {
       this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
     });

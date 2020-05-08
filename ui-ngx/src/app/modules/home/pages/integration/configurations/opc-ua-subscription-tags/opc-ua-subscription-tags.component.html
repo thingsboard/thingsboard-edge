@@ -60,19 +60,19 @@
                     <mat-checkbox [aria-label]="'integration.required' | translate" formControlName="required">
                         {{ 'integration.required' | translate }}
                     </mat-checkbox>
-                    <button mat-button class="md-icon-button md-primary" (click)="subscriptionTagsForm.removeAt(i)"
+                    <button mat-button *ngIf="!subscriptionTagsForm.disabled" class="md-icon-button md-primary"
+                        (click)="subscriptionTagsForm.removeAt(i)"
                         [matTooltip]="'integration.remove-subscription-tag' | translate" matTooltipPosition="above">
-                        <mat-icon class="material-icons">
-                            close
-                        </mat-icon>
+                        <mat-icon class="material-icons"> close </mat-icon>
                     </button>
                 </div>
                 <span *ngIf="!subscriptionTagsForm.length" fxLayoutAlign="center center"
                     ng-class="{'disabled': $root.loading || !isEdit}" class="no-data-found"
                     translate>integration.add-subscription-tag-prompt</span>
                 <div>
-                    <button mat-button class="mat-primary mat-raised" (click)="addSubscriptionTag()"
-                        [matTooltip]="'integration.add-subscription-tag' | translate" matTooltipPosition="above">
+                    <button mat-button *ngIf="!subscriptionTagsForm.disabled" class="mat-primary mat-raised"
+                        (click)="addSubscriptionTag()" [matTooltip]="'integration.add-subscription-tag' | translate"
+                        matTooltipPosition="above">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.add-subscription-tag</span>
                     </button>

@@ -75,6 +75,7 @@ export class TcpIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
     delete this.handlerTypes.hex;
+    this.handlerConfigurationTypeChanged({ value: this.form.get('handlerConfiguration').get('handlerType').value })
   }
 
   handlerConfigurationTypeChanged(type) {
@@ -84,8 +85,9 @@ export class TcpIntegrationFormComponent implements OnInit {
     for (const property in controls) {
       const control = controls[property];
       if (control) {
-        if (handlerConf[property] !== undefined)
+        if (handlerConf[property] !== undefined) {
           control.setValidators(Validators.required)
+        }
         else
           control.setValidators([]);
       }

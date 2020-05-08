@@ -36,6 +36,7 @@ import { ActionNotificationShow } from '@app/core/notification/notification.acti
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
+import { disableFields, enableFields } from '../../intagration-utils';
 
 @Component({
   selector: 'tb-http-integration-form',
@@ -71,13 +72,25 @@ export class HttpIntegrationFormComponent implements OnChanges {
   };
 
   thingparkEnableSecurityChanged = () => {
+    const fields = ['clientIdNew', 'clientSecret', 'asId', 'asIdNew', 'asKey']
     if (!this.form.get('enableSecurity').value) {
       this.form.get('enableSecurityNew').patchValue(false);
-      this.form.get('clientIdNew').patchValue(null);
-      this.form.get('clientSecret').patchValue(null);
-      this.form.get('asIdNew').patchValue(null);
-      this.form.get('asKey').patchValue(null);
+      fields.forEach(field => {
+        this.form.get(field).patchValue(null)
+      });
+      disableFields(this.form, fields);
     }
+    else
+      enableFields(this.form, fields);
+  };
+
+  thingparkEnableSecurityNewChanged = ($event) => {
+    const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret']
+    if (!$event.checked) {
+      disableFields(this.form, fields);
+    }
+    else
+      enableFields(this.form, fields);
   };
 
   onHttpEndpointCopied() {

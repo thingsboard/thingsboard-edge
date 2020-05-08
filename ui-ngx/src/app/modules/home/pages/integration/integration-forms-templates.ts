@@ -29,9 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
-import { baseUrl, generateId } from '@app/core/utils';
+import { baseUrl } from '@app/core/utils';
 
 export const handlerConfigurationTypes = {
   text: {
@@ -112,21 +111,21 @@ export const templates = {
     clientConfiguration: {
       host: 'localhost',
       port: 11883,
-      cleanSession: '',
-      ssl: '',
+      cleanSession: false,
+      ssl: false,
       connectTimeoutSec: 10,
       clientId: '',
       credentials: {
         type: mqttCredentialTypes.anonymous.value,
-        username: ' ',
-        password: ' ',
-        caCertFileName: ' ',
-        caCert: ' ',
-        certFileName: ' ',
-        cert: ' ',
-        privateKeyFileName: ' ',
-        privateKey: ' ',
-        privateKeyPassword: ' '
+        username: '',
+        password: '',
+        caCertFileName: '',
+        caCert: '',
+        certFileName: '',
+        cert: '',
+        privateKeyFileName: '',
+        privateKey: '',
+        privateKeyPassword: ''
       },
     },
     downlinkTopicPattern: '${topic}',
@@ -147,7 +146,7 @@ export const templates = {
         cert: '',
         privateKeyFileName: '',
         privateKey: '',
-        password: ' '
+        password: ''
       }
     },
     downlinkTopicPattern: '${topic}',
@@ -181,8 +180,8 @@ export const templates = {
       cleanSession: true,
       credentials: {
         type: 'basic',
-        username: ' ',
-        password: ' ',
+        username: '',
+        password: '',
       }
     },
     topicFilters: [{
@@ -201,8 +200,8 @@ export const templates = {
       connectTimeoutSec: 10,
       credentials: {
         type: 'basic',
-        username: ' ',
-        password: ' '
+        username: '',
+        password: ''
       },
     },
     topicFilters: [{
@@ -229,8 +228,8 @@ export const templates = {
       timeoutInMillis: 5000,
       security: opcSecurityTypes.Basic128Rsa15,
       identity: {
-        password: ' ',
-        username: ' ',
+        password: '',
+        username: '',
         type: 'anonymous'
       },
       mapping: [],

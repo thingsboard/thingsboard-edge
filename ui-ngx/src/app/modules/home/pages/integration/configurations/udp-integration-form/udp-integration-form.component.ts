@@ -31,8 +31,8 @@
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
 import { handlerConfigurationTypes } from '../../integration-forms-templates';
+import { disableFields, enableFields } from '../../intagration-utils';
 
 
 @Component({
@@ -72,6 +72,13 @@ export class UdpIntegrationFormComponent implements OnInit {
   }
 
   handlerConfigurationTypeChanged(type) {
+    disableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName', 'maxFrameLength']);
+    if (type.value === handlerConfigurationTypes.hex.value) {
+      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['maxFrameLength']);
+    }
+    if (type.value === handlerConfigurationTypes.text.value) {
+      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName']);
+    }
     this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value])
   };
 

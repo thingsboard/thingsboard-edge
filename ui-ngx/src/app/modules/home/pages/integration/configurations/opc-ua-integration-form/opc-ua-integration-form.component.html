@@ -95,7 +95,7 @@
         <div formGroupName="identity" fxLayout="row" fxLayoutGap="20px" *ngIf="showIdentityForm">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.username</mat-label>
-                <input matInput required formControlName="username">
+                <input matInput required formControlName="username" autocomplete="new-username">
                 <mat-error translate *ngIf="form.get('identity').get('username')?.hasError('required')">
                     integration.username-required
                 </mat-error>
@@ -103,7 +103,7 @@
 
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.password</mat-label>
-                <input matInput required formControlName="password" type="password">
+                <input matInput required formControlName="password" autocomplete="new-password" type="password">
                 <mat-error translate *ngIf="form.get('identity').get('password')?.hasError('required')">
                     integration.password-required
                 </mat-error>
@@ -114,7 +114,7 @@
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-keystore</mat-panel-title>
                     <mat-panel-description>
-                        <mat-error *ngIf="!form.get('keystore').valid" translate>integration.add-opc-ua-keystore-prompt
+                        <mat-error *ngIf="!form.get('keystore').valid && form.enabled" translate>integration.add-opc-ua-keystore-prompt
                         </mat-error>
                     </mat-panel-description>
                 </mat-expansion-panel-header>
@@ -125,7 +125,7 @@
                             <mat-option [value]="keystore.key" *ngFor="let keystore of extensionKeystoreType|keyvalue">
                                 <span>{{keystore.value}}</span></mat-option>
                         </mat-select>
-                        <mat-error translate *ngIf="form.get('keystore').get('type')?.hasError('required')">
+                        <mat-error translate *ngIf="form.get('keystore').get('type')?.hasError('required') && form.enabled">
                             integration.opc-ua-keystore-type-required
                         </mat-error>
                     </mat-form-field>
@@ -143,7 +143,7 @@
                     <div fxFlex fxLayout="row" fxLayoutGap="20px">
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-password</mat-label>
-                            <input matInput required formControlName="password">
+                            <input matInput required formControlName="password" autocomplete="new-password">
                             <mat-error translate *ngIf="form.get('keystore').get('password')?.hasError('required')">
                                 integration.opc-ua-keystore-password-required
                             </mat-error>
@@ -181,6 +181,7 @@
                         <li class="list-group-item"
                             *ngFor="let map of form.get('mapping')['controls'];let mapIndex = index">
                             <button mat-icon-button class="mat-icon-button"
+                            *ngIf="form.enabled"
                                 (click)="$any(form.get('mapping')).removeAt(mapIndex)"
                                 [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
                                 <mat-icon>close</mat-icon>
@@ -230,7 +231,7 @@
                 <span *ngIf="!form.get('mapping')['length']" fxLayoutAlign="center center" class="no-data-found"
                     translate>integration.add-opc-ua-mapping-prompt</span>
                 <div>
-                    <button mat-button class="mat-primary mat-raised" (click)="addMap()"
+                    <button mat-button class="mat-primary mat-raised" *ngIf="form.enabled" (click)="addMap()"
                         [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.opc-ua-add-map</span>

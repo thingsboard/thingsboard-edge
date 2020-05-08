@@ -46,14 +46,14 @@
     <div [formGroup]="form.get('credentials')">
         <mat-form-field class="mat-block">
             <mat-label translate>integration.api-key</mat-label>
-            <input matInput required formControlName="username">
+            <input matInput required formControlName="username" autocomplete="new-username">
             <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
                 integration.api-key-required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.auth-token</mat-label>
-            <input matInput type="password" required formControlName="password">
+            <input matInput type="password" required formControlName="password" autocomplete="new-password">
             <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
                 integration.auth-token-required
             </mat-error>

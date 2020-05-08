@@ -32,6 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integration-forms-templates';
+import { disableFields, enableFields } from '../../intagration-utils';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -53,13 +54,21 @@ export class OpcUaIntegrationFormComponent implements OnInit {
   constructor(private fb: FormBuilder, private cd: ChangeDetectorRef) { }
 
   ngOnInit(): void {
-    this.form.get('mapping').setValidators(Validators.required)
-    this.form.get('keystore').get('location').setValidators(Validators.required);
-    this.form.get('keystore').get('fileContent').setValidators(Validators.required);
+    if (this.form) {
+      this.form.get('mapping').setValidators(Validators.required)
+      this.form.get('keystore').get('location').setValidators(Validators.required);
+      this.form.get('keystore').get('fileContent').setValidators(Validators.required);
+      this.identityTypeChanged({ value: this.form.get('identity').get('type').value });
+    }
   }
 
   identityTypeChanged($event?) {
-    this.showIdentityForm = $event?.value === 'username';
+    disableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
+    if ($event?.value === 'username') {
+      this.showIdentityForm = true;
+      enableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
+    }
+    else this.showIdentityForm = false;
   }
 
   addMap() {

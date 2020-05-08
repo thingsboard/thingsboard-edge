@@ -57,7 +57,7 @@
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
-                    <button mat-button *ngIf="!disableMqttTopics" class="mat-icon-button mat-primary"
+                    <button mat-button *ngIf="!disableMqttTopics && !topicFilters.disabled" class="mat-icon-button mat-primary"
                         (click)="topicFilters.removeAt(i)" 
                         [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
                         <mat-icon  class="material-icons"> close </mat-icon>
@@ -67,7 +67,7 @@
                     [ngClass]="{'disabled': disableMqttTopics}" class="no-data-found"
                     translate>integration.add-topic-filter-prompt</span>
                 <div>
-                    <button mat-button *ngIf="!disableMqttTopics" class="mat-primary mat-raised"
+                    <button mat-button *ngIf="!disableMqttTopics && !topicFilters.disabled" class="mat-primary mat-raised"
                         (click)="addTopicFilter()" 
                         [matTooltip]="'integration.add-topic-filter' | translate" matTooltipPosition="above">
                         <span translate>integration.add-topic-filter</span>

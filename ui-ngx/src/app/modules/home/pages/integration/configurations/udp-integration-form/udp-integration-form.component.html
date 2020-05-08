@@ -77,7 +77,8 @@
                                 {{handlerConfigurationType.value.name | translate}}
                             </mat-option>
                         </mat-select>
-                        <mat-error translate *ngIf="form.get('handlerConfiguration').get('handlerType')?.hasError('required')">
+                        <mat-error translate
+                            *ngIf="form.get('handlerConfiguration').get('handlerType')?.hasError('required')">
                             integration.handler-configuration-type-required</mat-error>
                     </mat-form-field>
                     <section
@@ -86,23 +87,27 @@
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.charset-name</mat-label>
                                 <input matInput type="text" required formControlName="charsetName">
-                                <mat-error translate *ngIf="form.get('handlerConfiguration').get('charsetName')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('charsetName')?.hasError('required')">
                                     integration.charset-name-required</mat-error>
                             </mat-form-field>
                         </div>
                     </section>
                     <section
-                        *ngIf="form.get('handlerConfiguration').get('handlerType').value ==handlerConfigurationTypes.hex.value">
+                        *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.hex.value">
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.max-frame-length</mat-label>
                                 <input matInput type="number" step="1" min="1" max="65535" required
                                     formControlName="maxFrameLength">
-                                <mat-error translate *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
                                     integration.max-frame-length-required</mat-error>
-                                <mat-error translate *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('min')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('min')">
                                     integration.max-frame-length-range</mat-error>
-                                <mat-error translate *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('max')">
+                                <mat-error translate
+                                    *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('max')">
                                     integration.max-frame-length-range</mat-error>
                             </mat-form-field>
                         </div>

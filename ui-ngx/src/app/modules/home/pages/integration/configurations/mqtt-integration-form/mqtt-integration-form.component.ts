@@ -32,6 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { mqttCredentialTypes } from '../../integration-forms-templates';
+import { changeRequirement } from '../../intagration-utils';
 
 
 @Component({
@@ -52,5 +53,11 @@ export class MqttIntegrationFormComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.updateCredentials({ value: this.form.get('credentials').get('type')?.value })
+  }
+
+  updateCredentials($event) {
+    const form = this.form.get('credentials') as FormGroup;
+    changeRequirement(form, $event.value)
   }
 }
