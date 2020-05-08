@@ -351,10 +351,12 @@ public class CloudManagerService {
                     device.setTenantId(tenantId);
                     device.setName(deviceUpdateMsg.getName());
                     device.setType(deviceUpdateMsg.getType());
+                    device.setLabel(deviceUpdateMsg.getLabel());
                     device = deviceService.saveDevice(device);
                     deviceStateService.onDeviceAdded(device);
                 } else {
                     device.setType(deviceUpdateMsg.getType());
+                    device.setLabel(deviceUpdateMsg.getLabel());
                     device = deviceService.saveDevice(device);
                 }
                 updateDeviceCredentials(deviceUpdateMsg, device);
@@ -394,9 +396,11 @@ public class CloudManagerService {
                     asset.setTenantId(tenantId);
                     asset.setName(assetUpdateMsg.getName());
                     asset.setType(assetUpdateMsg.getType());
+                    asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset);
                 } else {
                     asset.setType(assetUpdateMsg.getType());
+                    asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset);
                 }
                 break;

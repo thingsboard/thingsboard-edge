@@ -377,10 +377,21 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             case DataConstants.ENTITY_CREATED:
                 try {
                     Device device = mapper.readValue(tbMsg.getData(), Device.class);
-                    systemContext.getEdgeEventStorage().write(constructDeviceUpdateMsg(device), edgeEventSaveCallback);
+                    UplinkMsg createMsg = constructDeviceUpdateMsg(device, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+                    systemContext.getEdgeEventStorage().write(createMsg, edgeEventSaveCallback);
                 } catch (IOException e) {
                     log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
                 }
+                break;
+            case DataConstants.ENTITY_DELETED:
+                try {
+                    Device device = mapper.readValue(tbMsg.getData(), Device.class);
+                    UplinkMsg deleteMsg = constructDeviceUpdateMsg(device, UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE);
+                    systemContext.getEdgeEventStorage().write(deleteMsg, edgeEventSaveCallback);
+                } catch (IOException e) {
+                    log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
+                }
+                break;
         }
     }
 
@@ -419,15 +430,18 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         }
     }
 
-    private UplinkMsg constructDeviceUpdateMsg(Device device) {
-        DeviceUpdateMsg deviceUpdateMsg = DeviceUpdateMsg.newBuilder()
+    private UplinkMsg constructDeviceUpdateMsg(Device device, UpdateMsgType updateMsgType) {
+        DeviceUpdateMsg.Builder deviceBuilder = DeviceUpdateMsg.newBuilder()
                 .setName(device.getName())
                 .setType(device.getType())
-                .setMsgType(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE)
-                .build();
+                .setMsgType(updateMsgType);
+
+        if (device.getLabel() != null) {
+            deviceBuilder.setLabel(device.getLabel());
+        }
 
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg));
+                .addAllDeviceUpdateMsg(Collections.singletonList(deviceBuilder.build()));
         return builder.build();
     }
 
