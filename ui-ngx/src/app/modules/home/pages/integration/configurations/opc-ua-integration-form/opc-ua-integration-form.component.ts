@@ -38,7 +38,7 @@ import { disableFields, enableFields } from '../../intagration-utils';
   selector: 'tb-opc-ua-integration-form',
   templateUrl: './opc-ua-integration-form.component.html',
   styleUrls: ['./opc-ua-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OpcUaIntegrationFormComponent implements OnInit {
 

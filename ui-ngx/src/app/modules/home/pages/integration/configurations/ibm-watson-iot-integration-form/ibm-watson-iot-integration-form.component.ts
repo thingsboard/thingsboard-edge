@@ -38,7 +38,7 @@ import { Observable } from 'rxjs';
   selector: 'tb-ibm-watson-iot-integration-form',
   templateUrl: './ibm-watson-iot-integration-form.component.html',
   styleUrls: ['./ibm-watson-iot-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IbmWatsonIotIntegrationFormComponent implements OnInit {
 

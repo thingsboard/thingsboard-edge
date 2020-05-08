@@ -42,7 +42,7 @@ import { disableFields, enableFields } from '../../intagration-utils';
   selector: 'tb-http-integration-form',
   templateUrl: './http-integration-form.component.html',
   styleUrls: ['./http-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HttpIntegrationFormComponent implements OnChanges {
 

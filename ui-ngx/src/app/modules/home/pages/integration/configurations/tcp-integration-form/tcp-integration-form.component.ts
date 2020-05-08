@@ -32,6 +32,8 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, Validators } from '@angular/forms';
 import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integration-forms-templates';
+import _ from 'lodash';
+import { disableFields, enableFields } from '../../intagration-utils';
 
 
 @Component({
@@ -46,7 +48,7 @@ export class TcpIntegrationFormComponent implements OnInit {
   @Input() form: FormGroup;
 
   handlerConfigurationTypes = handlerConfigurationTypes;
-  handlerTypes = handlerConfigurationTypes;
+  handlerTypes = _.cloneDeep(handlerConfigurationTypes);
   tcpBinaryByteOrder = tcpBinaryByteOrder;
   tcpTextMessageSeparator = tcpTextMessageSeparator;
 
@@ -80,9 +82,25 @@ export class TcpIntegrationFormComponent implements OnInit {
 
   handlerConfigurationTypeChanged(type) {
     const handlerConf = this.defaultHandlerConfigurations[type.value];
-    const controls = (this.form.get('handlerConfiguration') as FormGroup).controls;
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
+    const fieldsSet = {
+      BINARY: [
+        'byteOrder',
+        'maxFrameLength',
+        'lengthFieldOffset',
+        'lengthFieldLength',
+        'lengthAdjustment',
+        'initialBytesToStrip'
+      ],
+      TEXT: [
+        'maxFrameLength',
+        'stripDelimiter',
+        'messageSeparator'
+      ],
+      JSON: []
+    };
     // tslint:disable-next-line: forin
-    for (const property in controls) {
+    /*for (const property in controls) {
       const control = controls[property];
       if (control) {
         if (handlerConf[property] !== undefined) {
@@ -91,7 +109,9 @@ export class TcpIntegrationFormComponent implements OnInit {
         else
           control.setValidators([]);
       }
-    }
+    }*/
+    disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
+    enableFields(controls, fieldsSet[type.value])
     this.form.get('handlerConfiguration').patchValue(handlerConf);
   };
 

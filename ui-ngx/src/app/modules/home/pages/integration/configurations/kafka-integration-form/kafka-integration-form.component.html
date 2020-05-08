@@ -73,7 +73,7 @@
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.other-properties</mat-panel-title>
                 </mat-expansion-panel-header>
-                <tb-key-val-map titleText="integration.other-properties"
+                <tb-key-val-map titleText="integration.other-properties" [disabled]="form.disabled"
                     formControlName="otherProperties"></tb-key-val-map>
             </mat-expansion-panel>
         </mat-accordion>

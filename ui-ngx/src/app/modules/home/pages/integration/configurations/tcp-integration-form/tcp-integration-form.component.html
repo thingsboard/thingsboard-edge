@@ -115,7 +115,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.max-frame-length</mat-label>
-                                <input matInput type="number" step="1" min="1" max="65535"
+                                <input matInput required type="number" step="1" min="1" max="65535"
                                     formControlName="maxFrameLength">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
@@ -154,7 +154,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.max-frame-length</mat-label>
-                                <input matInput type="number" step="1" min="1" max="65535"
+                                <input matInput required type="number" step="1" min="1" max="65535"
                                     formControlName="maxFrameLength">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('maxFrameLength')?.hasError('required')">
@@ -170,7 +170,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-field-offset</mat-label>
-                                <input matInput type="number" step="1" min="0" max="8"
+                                <input matInput required type="number" step="1" min="0" max="8"
                                     formControlName="lengthFieldOffset">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('lengthFieldOffset')?.hasError('required')">
@@ -186,7 +186,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-field-length</mat-label>
-                                <input matInput type="number" step="1" min="0" max="8"
+                                <input matInput required type="number" step="1" min="0" max="8"
                                     formControlName="lengthFieldLength">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('lengthFieldLength')?.hasError('required')">
@@ -202,7 +202,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.length-adjustment</mat-label>
-                                <input matInput type="number" step="1" min="0" max="8"
+                                <input matInput required type="number" step="1" min="0" max="8"
                                     formControlName="lengthAdjustment">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('lengthAdjustment')?.hasError('required')">
@@ -218,7 +218,7 @@
                         <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
                             <mat-form-field fxFlex="100" class="mat-block">
                                 <mat-label translate>integration.initial-bytes-to-strip</mat-label>
-                                <input matInput type="number" step="1" min="0" max="8"
+                                <input matInput required type="number" step="1" min="0" max="8"
                                     formControlName="initialBytesToStrip">
                                 <mat-error translate
                                     *ngIf="form.get('handlerConfiguration').get('initialBytesToStrip')?.hasError('required')">

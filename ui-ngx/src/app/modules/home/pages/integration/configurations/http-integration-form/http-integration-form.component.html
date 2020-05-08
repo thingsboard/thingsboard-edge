@@ -54,7 +54,7 @@
                     <mat-expansion-panel-header>
                         <mat-panel-title translate>integration.headers-filter</mat-panel-title>
                     </mat-expansion-panel-header>
-                    <tb-key-val-map noDataText="integration.no-headers-filter" keyPlaceholderText="integration.header"
+                    <tb-key-val-map noDataText="integration.no-headers-filter" [disabled]="form.disabled" keyPlaceholderText="integration.header"
                         formControlName="headersFilter"></tb-key-val-map>
                     <mat-error translate *ngIf="form.get('headersFilter')?.hasError('required')">
                         integration.header-required
@@ -124,7 +124,7 @@
             <mat-label translate>integration.http-endpoint</mat-label>
             <input matInput formControlName="httpEndpoint" readonly="true">
         </mat-form-field>
-        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
+        <button mat-button *ngIf="form.enabled" mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
             [cbContent]="form.get('httpEndpoint')?.value"
             [matTooltip]="'integration.copy-http-endpoint-url' | translate">
             <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
