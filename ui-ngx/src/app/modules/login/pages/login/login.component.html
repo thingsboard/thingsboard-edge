@@ -76,6 +76,19 @@
                   {{ 'login.create-account' | translate }}
                 </button>
               </div>
+              <div class="oauth-container" fxLayout="column" fxLayoutGap="16px" *ngIf="oauth2Clients?.length">
+                <div class="container-divider">
+                  <div class="line"><mat-divider></mat-divider></div>
+                  <div class="text mat-typography">{{ "login.or" | translate | uppercase }}</div>
+                  <div class="line"><mat-divider></mat-divider></div>
+                </div>
+                <ng-container *ngFor="let oauth2Client of oauth2Clients">
+                  <a mat-raised-button color="warn" class="centered" href="{{ oauth2Client.url }}">
+                    <mat-icon svgIcon="{{ oauth2Client.icon }}"></mat-icon>
+                    {{ 'login.login-with' | translate: {name: oauth2Client.name} }}
+                  </a>
+                </ng-container>
+              </div>
             </div>
             <section class="version"
                      *ngIf="(wl.loginShowNameVersion$ | async) && (wl.showNameBottom$ | async)">{{ platformNameAndVersion$() | async}}</section>

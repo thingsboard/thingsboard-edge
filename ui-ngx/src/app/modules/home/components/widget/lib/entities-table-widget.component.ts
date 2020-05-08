@@ -54,7 +54,7 @@ import {
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isNumber } from '@core/utils';
+import { deepClone, isDefined, isNumber, createLabelFromDatasource, hashCode } from '@core/utils';
 import cssjs from '@core/css/css';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction, SortOrder, sortOrderFromString } from '@shared/models/page/sort-order';
@@ -227,7 +227,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     }
 
     const datasource = this.subscription.datasources[0];
-    this.ctx.widgetTitle = this.utils.createLabelFromDatasource(datasource, entitiesTitle);
+    this.ctx.widgetTitle = createLabelFromDatasource(datasource, entitiesTitle);
 
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
@@ -243,7 +243,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     const cssString = constructTableCssString(this.widgetConfig);
     const cssParser = new cssjs();
     cssParser.testMode = false;
-    const namespace = 'entities-table-' + this.utils.hashCode(cssString);
+    const namespace = 'entities-table-' + hashCode(cssString);
     cssParser.cssPreviewNamespace = namespace;
     cssParser.createStyleElement(namespace, cssString);
     $(this.elementRef.nativeElement).addClass(namespace);

@@ -35,7 +35,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -93,7 +92,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        withCallback(processEntityRelationAction(ctx, msg),
+        String relationType = processPattern(msg, config.getRelationType());
+        withCallback(processEntityRelationAction(ctx, msg, relationType),
                 filterResult -> ctx.tellNext(filterResult.getMsg(), filterResult.isResult() ? SUCCESS : FAILURE), t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
     }
 
@@ -101,13 +101,13 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
     public void destroy() {
     }
 
-    protected ListenableFuture<RelationContainer> processEntityRelationAction(TbContext ctx, TbMsg msg) {
-        return Futures.transformAsync(getEntity(ctx, msg), entityContainer -> doProcessEntityRelationAction(ctx, msg, entityContainer), MoreExecutors.directExecutor());
+    protected ListenableFuture<RelationContainer> processEntityRelationAction(TbContext ctx, TbMsg msg, String relationType) {
+        return Futures.transformAsync(getEntity(ctx, msg), entityContainer -> doProcessEntityRelationAction(ctx, msg, entityContainer, relationType), ctx.getDbCallbackExecutor());
     }
 
     protected abstract boolean createEntityIfNotExists();
 
-    protected abstract ListenableFuture<RelationContainer> doProcessEntityRelationAction(TbContext ctx, TbMsg msg, EntityContainer entityContainer);
+    protected abstract ListenableFuture<RelationContainer> doProcessEntityRelationAction(TbContext ctx, TbMsg msg, EntityContainer entityContainer, String relationType);
 
     protected abstract C loadEntityNodeActionConfig(TbNodeConfiguration configuration) throws TbNodeException;
 
@@ -120,7 +120,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
             type = null;
         }
         EntityType entityType = EntityType.valueOf(this.config.getEntityType());
-        EntityKey key = new EntityKey(entityName, type, entityType);
+        EntityId ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator());
+        EntityKey key = new EntityKey(entityName, type, entityType, ownerId);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             EntityContainer entityContainer = entityIdCache.get(key);
             if (entityContainer.getEntityId() == null) {
@@ -135,11 +136,11 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
         if (EntitySearchDirection.FROM.name().equals(this.config.getDirection())) {
             searchDirectionIds.setFromId(EntityIdFactory.getByTypeAndId(entityContainer.getEntityType().name(), entityContainer.getEntityId().toString()));
             searchDirectionIds.setToId(msg.getOriginator());
-            searchDirectionIds.setOrignatorDirectionFrom(false);
+            searchDirectionIds.setOriginatorDirectionFrom(false);
         } else {
             searchDirectionIds.setToId(EntityIdFactory.getByTypeAndId(entityContainer.getEntityType().name(), entityContainer.getEntityId().toString()));
             searchDirectionIds.setFromId(msg.getOriginator());
-            searchDirectionIds.setOrignatorDirectionFrom(true);
+            searchDirectionIds.setOriginatorDirectionFrom(true);
         }
         return searchDirectionIds;
     }
@@ -162,13 +163,14 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
         private String entityName;
         private String type;
         private EntityType entityType;
+        private EntityId ownerId;
     }
 
     @Data
     protected static class SearchDirectionIds {
         private EntityId fromId;
         private EntityId toId;
-        private boolean orignatorDirectionFrom;
+        private boolean originatorDirectionFrom;
     }
 
     private static class EntityCacheLoader extends CacheLoader<EntityKey, EntityContainer> {
@@ -201,9 +203,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newDevice.setName(entitykey.getEntityName());
                         newDevice.setType(entitykey.getType());
                         newDevice.setTenantId(ctx.getTenantId());
+                        newDevice.setOwnerId(entitykey.getOwnerId());
                         Device savedDevice = deviceService.saveDevice(newDevice);
-                        //TODO: @dshvaika WTF?
-                        savedDevice.setOwnerId(getOwnerId(savedDevice.getId()));
                         ctx.enqueue(ctx.deviceCreatedMsg(savedDevice, ctx.getSelfId()),
                                 () -> log.trace("Pushed Device Created message: {}", savedDevice),
                                 throwable -> log.warn("Failed to push Device Created message: {}", savedDevice, throwable));
@@ -220,8 +221,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         newAsset.setName(entitykey.getEntityName());
                         newAsset.setType(entitykey.getType());
                         newAsset.setTenantId(ctx.getTenantId());
+                        newAsset.setOwnerId(entitykey.getOwnerId());
                         Asset savedAsset = assetService.saveAsset(newAsset);
-                        savedAsset.setOwnerId(getOwnerId(savedAsset.getId()));
                         ctx.enqueue(ctx.assetCreatedMsg(savedAsset, ctx.getSelfId()),
                                 () -> log.trace("Pushed Asset Created message: {}", savedAsset),
                                 throwable -> log.warn("Failed to push Asset Created message: {}", savedAsset, throwable));
@@ -237,9 +238,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         Customer newCustomer = new Customer();
                         newCustomer.setTitle(entitykey.getEntityName());
                         newCustomer.setTenantId(ctx.getTenantId());
+                        newCustomer.setOwnerId(entitykey.getOwnerId());
                         Customer savedCustomer = customerService.saveCustomer(newCustomer);
-                        //TODO: @dshvaika WTF?
-                        savedCustomer.setOwnerId(getOwnerId(savedCustomer.getId()));
                         ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
                                 () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
                                 throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
@@ -269,10 +269,6 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     return targetEntity;
             }
             return targetEntity;
-        }
-
-        private EntityId getOwnerId(EntityId entityId) {
-            return ctx.getPeContext().getOwner(ctx.getTenantId(), entityId);
         }
     }
 

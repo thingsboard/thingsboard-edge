@@ -1967,7 +1967,10 @@
         "password-link-sent-message": "Password reset link was successfully sent!",
         "email": "Email",
         "no-account": "Do not have an account?",
-        "create-account": "Create an account"
+        "create-account": "Create an account",
+        "login-with": "Login with {{name}}",
+        "or": "or",
+        "error": "Login error"
     },
     "signup": {
         "firstname": "First name",

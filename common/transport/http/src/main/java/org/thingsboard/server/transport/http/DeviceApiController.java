@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestM
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
@@ -117,6 +118,7 @@ public class DeviceApiController {
                     TransportService transportService = transportContext.getTransportService();
                     transportService.process(sessionInfo, JsonConverter.convertToAttributesProto(new JsonParser().parse(json)),
                             new HttpOkCallback(responseWriter));
+                    reportActivity(sessionInfo);
                 }));
         return responseWriter;
     }
@@ -130,6 +132,7 @@ public class DeviceApiController {
                     TransportService transportService = transportContext.getTransportService();
                     transportService.process(sessionInfo, JsonConverter.convertToTelemetryProto(new JsonParser().parse(json)),
                             new HttpOkCallback(responseWriter));
+                    reportActivity(sessionInfo);
                 }));
         return responseWriter;
     }
@@ -289,7 +292,6 @@ public class DeviceApiController {
         }
     }
 
-
     private static class HttpSessionListener implements SessionMsgListener {
 
         private final DeferredResult<ResponseEntity> responseWriter;
@@ -323,4 +325,13 @@ public class DeviceApiController {
             responseWriter.setResult(new ResponseEntity<>(JsonConverter.toJson(msg).toString(), HttpStatus.OK));
         }
     }
+
+    private void reportActivity(SessionInfoProto sessionInfo) {
+        transportContext.getTransportService().process(sessionInfo, SubscriptionInfoProto.newBuilder()
+                .setAttributeSubscription(false)
+                .setRpcSubscription(false)
+                .setLastActivityTime(System.currentTimeMillis())
+                .build(), TransportServiceCallback.EMPTY);
+    }
+
 }

@@ -77,6 +77,7 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
+import org.thingsboard.server.utils.MiscUtils;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -229,7 +230,7 @@ public class SignUpController extends BaseController {
     }
 
     private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail) throws ThingsboardException, IOException {
-        String baseUrl = constructBaseUrl(request);
+        String baseUrl = MiscUtils.constructBaseUrl(request);
         String activationLink = String.format("%s/api/noauth/activateEmail?emailCode=%s", baseUrl, userCredentials.getActivateToken());
         mailService.sendActivationEmail(tenantId, activationLink, targetEmail);
     }
@@ -322,7 +323,7 @@ public class SignUpController extends BaseController {
             user = userService.saveUser(user);
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
-            String baseUrl = constructBaseUrl(request);
+            String baseUrl = MiscUtils.constructBaseUrl(request);
             String loginUrl = String.format("%s/login", baseUrl);
             String email = user.getEmail();
 

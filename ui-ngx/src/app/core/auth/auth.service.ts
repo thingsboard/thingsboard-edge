@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, Observable, of, throwError } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
-import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
+import { LoginRequest, LoginResponse, OAuth2Client, PublicLoginRequest } from '@shared/models/login.models';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
 import { defaultHttpOptions } from '../http/http-utils';
 import { ReplaySubject } from 'rxjs/internal/ReplaySubject';
@@ -63,7 +63,8 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { ReportService } from '@core/http/report.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { isObject } from '@core/utils';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
 
 @Injectable({
     providedIn: 'root'
@@ -86,11 +87,13 @@ export class AuthService {
     private utils: UtilsService,
     private dashboardService: DashboardService,
     private adminService: AdminService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private dialog: MatDialog
   ) {
   }
 
   redirectUrl: string;
+  oauth2Clients: Array<OAuth2Client> = null;
 
   private refreshTokenSubject: ReplaySubject<LoginResponse> = null;
   private jwtHelper = new JwtHelperService();
@@ -219,6 +222,15 @@ export class AuthService {
     });
   }
 
+  public loadOAuth2Clients(): Observable<Array<OAuth2Client>> {
+    return this.http.post<Array<OAuth2Client>>(`/api/noauth/oauth2Clients`,
+      null, defaultHttpOptions()).pipe(
+        tap((OAuth2Clients) => {
+          this.oauth2Clients = OAuth2Clients;
+        })
+      );
+  }
+
   public forceDefaultPlace(authState?: AuthState, path?: string, params?: any): boolean {
     if (authState && authState.authUser) {
       if (authState.authUser.authority === Authority.TENANT_ADMIN || authState.authUser.authority === Authority.CUSTOMER_USER) {
@@ -287,6 +299,9 @@ export class AuthService {
       const publicId = this.utils.getQueryParam('publicId');
       const accessToken = this.utils.getQueryParam('accessToken');
       const refreshToken = this.utils.getQueryParam('refreshToken');
+      const username = this.utils.getQueryParam('username');
+      const password = this.utils.getQueryParam('password');
+      const loginError = this.utils.getQueryParam('loginError');
       this.reportService.loadReportParams();
       if (publicId) {
         return this.publicLogin(publicId).pipe(
@@ -317,11 +332,46 @@ export class AuthService {
           return throwError(e);
         }
         return this.procceedJwtTokenValidate();
+      } else if (username && password) {
+        this.utils.updateQueryParam('username', null);
+        this.utils.updateQueryParam('password', null);
+        const loginRequest: LoginRequest = {
+          username,
+          password
+        };
+        return this.http.post<LoginResponse>('/api/auth/login', loginRequest, defaultHttpOptions()).pipe(
+          mergeMap((loginResponse: LoginResponse) => {
+              this.updateAndValidateToken(loginResponse.token, 'jwt_token', false);
+              this.updateAndValidateToken(loginResponse.refreshToken, 'refresh_token', false);
+              return this.procceedJwtTokenValidate();
+            }
+          )
+        );
+      } else if (loginError) {
+        this.showLoginErrorDialog(loginError);
+        this.utils.updateQueryParam('loginError', null);
+        return throwError(Error());
       }
       return this.procceedJwtTokenValidate(doTokenRefresh);
     } else {
       return of({} as AuthPayload);
     }
+  }
+
+  private showLoginErrorDialog(loginError: string) {
+    this.translate.get(['login.error', 'action.close']).subscribe(
+      (translations) => {
+        const dialogConfig: MatDialogConfig = {
+          disableClose: true,
+          data: {
+            title: translations['login.error'],
+            message: loginError,
+            ok: translations['action.close']
+          }
+        };
+        this.dialog.open(AlertDialogComponent, dialogConfig);
+      }
+    );
   }
 
   private procceedJwtTokenValidate(doTokenRefresh?: boolean): Observable<AuthPayload> {

@@ -153,7 +153,6 @@ import { LedLightComponent } from '@shared/components/led-light.component';
 import { TbJsonToStringDirective } from '@shared/components/directives/tb-json-to-string.directive';
 import { JsonObjectEditDialogComponent } from '@shared/components/dialog/json-object-edit-dialog.component';
 import { HistorySelectorComponent } from './components/time/history-selector/history-selector.component';
-import { TbTemplatePipe } from '@shared/pipe/template.pipe';
 import { EntityGatewaySelectComponent } from '@shared/components/entity/entity-gateway-select.component';
 import {
   HasGenericPermissionPipe,
@@ -183,7 +182,7 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
     },
     {
       provide: TINYMCE_SCRIPT_SRC,
-      useValue: 'tinymce/tinymce.min.js'
+      useValue: 'assets/tinymce/tinymce.min.js'
     }
   ],
   declarations: [
@@ -260,7 +259,6 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
-    TbTemplatePipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
@@ -439,7 +437,6 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
-    TbTemplatePipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,

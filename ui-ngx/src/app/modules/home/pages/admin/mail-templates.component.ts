@@ -84,7 +84,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
 
   ngOnInit() {
     this.tinyMceOptions = {
-      base_url: '/tinymce',
+      base_url: '/assets/tinymce',
       suffix: '.min'
     };
 

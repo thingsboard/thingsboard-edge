@@ -29,7 +29,7 @@
               { "glob": "worker-css.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
               { "glob": "worker-json.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
               { "glob": "worker-javascript.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
-              { "glob": "**/*", "input": "node_modules/tinymce", "output": "/tinymce/" }
+              { "glob": "**/*", "input": "node_modules/tinymce", "output": "/assets/tinymce/" }
             ],
             "styles": [
               {

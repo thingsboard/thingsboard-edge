@@ -246,6 +246,7 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         tasks.push(whiteLabelingService.loadLoginWhiteLabelingParams());
         if (name === "login") {
             tasks.push(selfRegistrationService.loadSelfRegistrationParams());
+            tasks.push(loginService.loadOAuth2Clients());
         }
         $q.all(tasks).then(
             () => {

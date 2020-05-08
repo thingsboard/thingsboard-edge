@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.utils.MiscUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
@@ -83,7 +84,7 @@ public class ReportController extends BaseController {
         try {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             DashboardInfo dashboardInfo = checkDashboardInfoId(dashboardId, Operation.READ);
-            String baseUrl = constructBaseUrl(request);
+            String baseUrl = MiscUtils.constructBaseUrl(request);
 
             String name = dashboardInfo.getTitle();
             name += "-" + defaultDateFormat.format(new Date());
