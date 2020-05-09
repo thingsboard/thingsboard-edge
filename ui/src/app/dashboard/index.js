@@ -58,11 +58,13 @@ import DashboardController from './dashboard.controller';
 import DashboardSettingsController from './dashboard-settings.controller';
 //import AddDashboardsToCustomerController from './add-dashboards-to-customer.controller';
 //import ManageAssignedCustomersController from './manage-assigned-customers.controller';
+import ManageAssignedEdgesToDashboardController from './manage-assigned-edges.controller';
 import AddWidgetController from './add-widget.controller';
 import DashboardDirective from './dashboard.directive';
 import EditWidgetDirective from './edit-widget.directive';
 import DashboardToolbar from './dashboard-toolbar.directive';
 import DashboardGroupConfig from './dashboard-group.config';
+import AddDashboardsToEdgeController from './add-dashboards-to-edge.controller';
 
 export default angular.module('thingsboard.dashboard', [
     uiRouter,
@@ -94,7 +96,9 @@ export default angular.module('thingsboard.dashboard', [
     .controller('DashboardSettingsController', DashboardSettingsController)
     //.controller('AddDashboardsToCustomerController', AddDashboardsToCustomerController)
     //.controller('ManageAssignedCustomersController', ManageAssignedCustomersController)
+    .controller('ManageAssignedEdgesToDashboardController', ManageAssignedEdgesToDashboardController)
     .controller('AddWidgetController', AddWidgetController)
+    .controller('AddDashboardsToEdgeController', AddDashboardsToEdgeController)
     .directive('tbDashboardDetails', DashboardDirective)
     .directive('tbEditWidget', EditWidgetDirective)
     .directive('tbDashboardToolbar', DashboardToolbar)

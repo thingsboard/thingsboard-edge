@@ -61,7 +61,9 @@ public enum ActionType {
     MADE_PRIVATE(false), // log entity group name
     LOGIN(false),
     LOGOUT(false),
-    LOCKOUT(false);
+    LOCKOUT(false),
+    ASSIGNED_TO_EDGE(false), // log edge name
+    UNASSIGNED_FROM_EDGE(false); // log edge name
 
     private final boolean isRead;
 

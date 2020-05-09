@@ -709,21 +709,29 @@ CREATE TABLE IF NOT EXISTS  thingsboard.rule_chain (
     id uuid,
     tenant_id uuid,
     name text,
+    type text,
     search_text text,
     first_rule_node_id uuid,
     root boolean,
     debug_mode boolean,
     configuration text,
     additional_info text,
-    PRIMARY KEY (id, tenant_id)
+    PRIMARY KEY (id, tenant_id, type)
 );
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.rule_chain_by_tenant_and_search_text AS
     SELECT *
     from thingsboard.rule_chain
-    WHERE tenant_id IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
-    PRIMARY KEY ( tenant_id, search_text, id )
+    WHERE tenant_id IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL AND type IS NOT NULL
+    PRIMARY KEY ( tenant_id, search_text, id, type )
     WITH CLUSTERING ORDER BY ( search_text ASC, id DESC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.rule_chain_by_tenant_by_type_and_search_text AS
+    SELECT *
+    from thingsboard.rule_chain
+    WHERE tenant_id IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL AND type IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, search_text, id )
+    WITH CLUSTERING ORDER BY ( type ASC, search_text ASC, id DESC );
 
 CREATE TABLE IF NOT EXISTS  thingsboard.rule_node (
     id uuid,
@@ -992,3 +1000,49 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.group_permission_by_role_id A
     WHERE tenant_id IS NOT NULL AND user_group_id IS NOT NULL AND id IS NOT NULL AND entity_group_id IS NOT NULL AND role_id IS NOT NULL
     PRIMARY KEY ((tenant_id, role_id), id, user_group_id, entity_group_id)
     WITH CLUSTERING ORDER BY (id DESC, user_group_id DESC, entity_group_id DESC);
+
+CREATE TABLE IF NOT EXISTS thingsboard.edge (
+    id timeuuid,
+    tenant_id timeuuid,
+    customer_id timeuuid,
+    name text,
+    search_text text,
+    configuration text,
+    additional_info text,
+    PRIMARY KEY (id, tenant_id)
+);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.edge_by_tenant_and_name AS
+    SELECT *
+    from thingsboard.edge
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND name IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, name, id, customer_id, type)
+    WITH CLUSTERING ORDER BY ( name ASC, id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.edge_by_tenant_and_search_text AS
+    SELECT *
+    from thingsboard.edge
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, search_text, id, customer_id, type)
+    WITH CLUSTERING ORDER BY ( search_text ASC, id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.edge_by_tenant_by_type_and_search_text AS
+    SELECT *
+    from thingsboard.edge
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( tenant_id, type, search_text, id, customer_id)
+    WITH CLUSTERING ORDER BY ( type ASC, search_text ASC, id DESC, customer_id DESC);
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.edge_by_customer_and_search_text AS
+    SELECT *
+    from thingsboard.edge
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, search_text, id, type )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, search_text ASC, id DESC );
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS thingsboard.edge_by_customer_by_type_and_search_text AS
+    SELECT *
+    from thingsboard.edge
+    WHERE tenant_id IS NOT NULL AND customer_id IS NOT NULL AND type IS NOT NULL AND search_text IS NOT NULL AND id IS NOT NULL
+    PRIMARY KEY ( customer_id, tenant_id, type, search_text, id )
+    WITH CLUSTERING ORDER BY ( tenant_id DESC, type ASC, search_text ASC, id DESC );

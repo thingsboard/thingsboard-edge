@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -85,4 +86,11 @@ public interface AssetService {
 
     ListenableFuture<TimePageData<Asset>> findAssetEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+    Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId);
+
+    Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId);
+
+    TextPageData<Asset> findAssetsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TextPageLink pageLink);
+
+    TextPageData<Asset> findAssetsByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink);
 }

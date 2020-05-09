@@ -32,8 +32,11 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -46,6 +49,9 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
     private CustomerId customerId;
     private String title;
     private Set<ShortCustomerInfo> assignedCustomers;
+
+    @Getter @Setter
+    private Set<ShortEdgeInfo> assignedEdges;
 
     public DashboardInfo() {
         super();
@@ -152,6 +158,55 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements HasNa
         ShortCustomerInfo customerInfo = customer.toShortCustomerInfo();
         if (this.assignedCustomers != null && this.assignedCustomers.contains(customerInfo)) {
             this.assignedCustomers.remove(customerInfo);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isAssignedToEdge(EdgeId edgeId) {
+        return this.assignedEdges != null && this.assignedEdges.contains(new ShortEdgeInfo(edgeId, null, null));
+    }
+
+    public ShortEdgeInfo getAssignedEdgeInfo(EdgeId edgeId) {
+        if (this.assignedEdges != null) {
+            for (ShortEdgeInfo edgeInfo : this.assignedEdges) {
+                if (edgeInfo.getEdgeId().equals(edgeId)) {
+                    return edgeInfo;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean addAssignedEdge(Edge edge) {
+        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
+        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
+            return false;
+        } else {
+            if (this.assignedEdges == null) {
+                this.assignedEdges = new HashSet<>();
+            }
+            this.assignedEdges.add(edgeInfo);
+            return true;
+        }
+    }
+
+    public boolean updateAssignedEdge(Edge edge) {
+        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
+        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
+            this.assignedEdges.remove(edgeInfo);
+            this.assignedEdges.add(edgeInfo);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean removeAssignedEdge(Edge edge) {
+        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
+        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
+            this.assignedEdges.remove(edgeInfo);
             return true;
         } else {
             return false;

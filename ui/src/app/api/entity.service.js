@@ -40,7 +40,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        ruleChainService, dashboardService, entityGroupService,
                        converterService, integrationService, schedulerEventService, blobEntityService,
                        entityRelationService, attributeService, entityViewService, roleService, userPermissionsService,
-                       securityTypes, types, utils) {
+                       edgeService, securityTypes, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -79,6 +79,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.entityView:
                 promise = entityViewService.getEntityView(entityId, true, config);
+                break;
+            case types.entityType.edge:
+                promise = edgeService.getEdge(entityId, config);
                 break;
             case types.entityType.tenant:
                 promise = tenantService.getTenant(entityId, config);
@@ -297,6 +300,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.entityView:
                 promise = entityViewService.getEntityViews(entityIds, config);
                 break;
+            case types.entityType.edge:
+                promise = edgeService.getEdges(entityIds, config);
+                break;
             case types.entityType.tenant:
                 promise = tenantService.getTenantsByIds(entityIds, config);
                 break;
@@ -402,6 +408,13 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     promise = entityViewService.getUserEntityViews(pageLink, config, subType);
                 }
                 break;
+            case types.entityType.edge:
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = edgeService.getTenantEdges(pageLink, false, config, subType);
+                } else {
+                    promise = edgeService.getUserEdges(pageLink, false, config, subType);
+                }
+                break;
             case types.entityType.tenant:
                 if (user.authority === 'TENANT_ADMIN') {
                     promise = getSingleTenantByPageLinkPromise(pageLink, config);
@@ -413,7 +426,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = customerService.getUserCustomers(pageLink, config);
                 break;
             case types.entityType.rulechain:
-                promise = ruleChainService.getRuleChains(pageLink, config);
+                promise = ruleChainService.getRuleChains(pageLink, config, subType);
                 break;
             case types.entityType.dashboard:
                 if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
@@ -1048,6 +1061,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     } else if (filter.type == types.aliasFilterType.entityViewSearchQuery.value) {
                         searchQuery.entityViewTypes = filter.entityViewTypes;
                         findByQueryPromise = entityViewService.findByQuery(searchQuery, false, {ignoreLoading: true, ignoreErrors: true});
+                    } else if (filter.type == types.aliasFilterType.edgeSearchQuery.value) {
+                        searchQuery.edgeTypes = filter.edgeTypes;
+                        findByQueryPromise = edgeService.findByQuery(searchQuery, false, {ignoreLoading: true, ignoreErrors: true});
                     }
                     findByQueryPromise.then(
                         function success(entities) {
@@ -1101,6 +1117,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.device)  > -1 ? true : false;
                 case types.aliasFilterType.entityViewType.value:
                     return entityTypes.indexOf(types.entityType.entityView)  > -1 ? true : false;
+                case types.aliasFilterType.edgeType.value:
+                    return entityTypes.indexOf(types.entityType.edge)  > -1 ? true : false;
                 case types.aliasFilterType.relationsQuery.value:
                     if (filter.filters && filter.filters.length) {
                         var match = false;
@@ -1128,6 +1146,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.device)  > -1 ? true : false;
                 case types.aliasFilterType.entityViewSearchQuery.value:
                     return entityTypes.indexOf(types.entityType.entityView)  > -1 ? true : false;
+                case types.aliasFilterType.edgeSearchQuery.value:
+                    return entityTypes.indexOf(types.entityType.edge)  > -1 ? true : false;
             }
         }
         return false;
@@ -1166,6 +1186,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.device;
             case types.aliasFilterType.entityViewSearchQuery.value:
                 return entityType === types.entityType.entityView;
+            case types.aliasFilterType.edgeSearchQuery.value:
+                return entityType === types.entityType.edge;
         }
         return false;
     }
@@ -1207,6 +1229,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.device = types.entityType.device;
                 entityTypes.asset = types.entityType.asset;
                 entityTypes.entityView = types.entityType.entityView;
+                entityTypes.edge = types.entityType.edge;
                 entityTypes.tenant = types.entityType.tenant;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
@@ -1225,6 +1248,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.device = types.entityType.device;
                 entityTypes.asset = types.entityType.asset;
                 entityTypes.entityView = types.entityType.entityView;
+                entityTypes.edge = types.entityType.edge;
                 entityTypes.customer = types.entityType.customer;
                 entityTypes.dashboard = types.entityType.dashboard;
                 entityTypes.user = types.entityType.user;
@@ -1515,6 +1539,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 findByQueryPromise = assetService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             } else if (entityType == types.entityType.device) {
                 findByQueryPromise = deviceService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
+            } else if (entityType == types.entityType.entityView) {
+                findByQueryPromise = entityViewService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             }
             findByQueryPromise.then(
                 function success(entities) {
@@ -1720,6 +1746,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             return deviceService.deleteDevice(entityId.id);
         } else if (entityId.entityType == types.entityType.entityView) {
             return entityViewService.deleteEntityView(entityId.id);
+        } else if (entityId.entityType == types.entityType.edge) {
+            return edgeService.deleteEdge(entityId.id);
         } else if (entityId.entityType == types.entityType.role) {
             return roleService.deleteRole(entityId.id);
         }
@@ -1946,6 +1974,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             searchQuery.deviceTypes = entitySubTypes;
         } else if (entityType == types.entityType.entityView) {
             searchQuery.entityViewTypes = entitySubTypes;
+        } else if (entityType == types.entityType.edge) {
+            searchQuery.edgeTypes = entitySubTypes;
         } else if (entityType == types.entityType.role) {
             searchQuery.roleTypes = entitySubTypes;
         } else {

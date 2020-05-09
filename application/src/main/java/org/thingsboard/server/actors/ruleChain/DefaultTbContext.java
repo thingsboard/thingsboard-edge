@@ -80,6 +80,7 @@ import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -289,8 +290,28 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public <E, I extends EntityId> TbMsg entityCreatedMsg(E entity, I id, RuleNodeId ruleNodeId) {
+        return entityCRUDMsg(entity, id, ruleNodeId, DataConstants.ENTITY_CREATED);
+    }
+
+    public <E, I extends EntityId> TbMsg entityCRUDMsg(E entity, I id, RuleNodeId ruleNodeId, String actionType) {
         try {
-            return TbMsg.newMsg(DataConstants.ENTITY_CREATED, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)));
+            return TbMsg.newMsg(actionType, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)));
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + actionType + "  msg: " + e);
+        }
+    }
+
+    public TbMsg alarmUpdatedMsg(Alarm alarm, RuleNodeId ruleNodeId) {
+        return entityCRUDMsg(alarm, alarm.getId(), ruleNodeId, DataConstants.ENTITY_UPDATED);
+    }
+
+    public TbMsg alarmClearedMsg(Alarm alarm, RuleNodeId ruleNodeId) {
+        return entityCRUDMsg(alarm, alarm.getId(), ruleNodeId, DataConstants.ALARM_CLEAR);
+    }
+
+    public <E, I extends EntityId> TbMsg alarmMsg(E entity, I id, RuleNodeId ruleNodeId, String actionType) {
+        try {
+            return TbMsg.newMsg(actionType, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)));
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " created msg: " + e);
         }
@@ -425,6 +446,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityViewService getEntityViewService() {
         return mainCtx.getEntityViewService();
+    }
+
+    @Override
+    public EdgeService getEdgeService() {
+        return mainCtx.getEdgeService();
     }
 
     @Override

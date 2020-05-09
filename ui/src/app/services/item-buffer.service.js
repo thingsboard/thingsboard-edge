@@ -219,7 +219,7 @@ function ItemBuffer($q, bufferStore, types, utils, dashboardUtils, ruleChainServ
         return bufferStore.get(RULE_NODES);
     }
 
-    function pasteRuleNodes(x, y) {
+    function pasteRuleNodes(ruleChainType, x, y) {
         var ruleNodesJson = bufferStore.get(RULE_NODES);
         if (ruleNodesJson) {
             var ruleNodes = angular.fromJson(ruleNodesJson);
@@ -227,7 +227,7 @@ function ItemBuffer($q, bufferStore, types, utils, dashboardUtils, ruleChainServ
             var deltaY = y - ruleNodes.originY;
             for (var i=0;i<ruleNodes.nodes.length;i++) {
                 var node = ruleNodes.nodes[i];
-                var component = ruleChainService.getRuleNodeComponentByClazz(node.componentClazz);
+                var component = ruleChainService.getRuleNodeComponentByClazz(node.componentClazz, ruleChainType);
                 if (component) {
                     var icon = types.ruleNodeType[component.type].icon;
                     var iconUrl = null;

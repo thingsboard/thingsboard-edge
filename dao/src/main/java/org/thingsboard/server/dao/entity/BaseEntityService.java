@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -61,6 +62,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -118,6 +120,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private EdgeService edgeService;
+
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         super.deleteEntityRelations(tenantId, entityId);
@@ -173,6 +178,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case ENTITY_GROUP:
                 hasName = entityGroupService.findEntityGroupByIdAsync(tenantId, new EntityGroupId(entityId.getId()));
+                break;
+            case EDGE:
+                hasName = edgeService.findEdgeByIdAsync(tenantId, new EdgeId(entityId.getId()));
                 break;
             default:
                 throw new IllegalStateException("Not Implemented!");

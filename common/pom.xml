@@ -58,6 +58,7 @@
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
+        <module>edge-api</module>
     </modules>
 
 </project>

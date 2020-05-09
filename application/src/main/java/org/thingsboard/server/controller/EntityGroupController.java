@@ -441,6 +441,8 @@ public class EntityGroupController extends BaseController {
                 result = userService.findGroupUser(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.ENTITY_VIEW) {
                 result = entityViewService.findGroupEntityView(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.EDGE) {
+                result = edgeService.findGroupEdge(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.DASHBOARD) {
                 result = dashboardService.findGroupDashboard(getTenantId(), entityGroupId, entityId);
             }
@@ -479,6 +481,8 @@ public class EntityGroupController extends BaseController {
                 asyncResult = userService.findUsersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.ENTITY_VIEW) {
                 asyncResult = entityViewService.findEntityViewsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.EDGE) {
+                asyncResult = edgeService.findEdgesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             } else if (entityType == EntityType.DASHBOARD) {
                 asyncResult = dashboardService.findDashboardsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
             }

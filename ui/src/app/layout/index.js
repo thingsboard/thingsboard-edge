@@ -79,6 +79,7 @@ import thingsboardBlobEntity from '../blob-entity';
 import thingsboardRole from '../role';
 import thingsboardIFrame from '../iframe';
 import thingsboardQueue from '../components/queue';
+import thingsboardEdge from '../edge';
 
 import thingsboardJsonForm from '../jsonform';
 
@@ -133,7 +134,8 @@ export default angular.module('thingsboard.home', [
     thingsboardGatewayForm,
     thingsboardJsonObjectEdit,
     thingsboardJsonContent,
-    thingsboardTimezoneSelect
+    thingsboardTimezoneSelect,
+    thingsboardEdge
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

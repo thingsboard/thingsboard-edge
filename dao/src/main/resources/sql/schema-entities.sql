@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS asset (
     id varchar(31) NOT NULL CONSTRAINT asset_pkey PRIMARY KEY,
     additional_info varchar,
     customer_id varchar(31),
+    edge_id varchar(31),
     name varchar(255),
     label varchar(255),
     search_text varchar(255),
@@ -154,6 +155,7 @@ CREATE TABLE IF NOT EXISTS dashboard (
     id varchar(31) NOT NULL CONSTRAINT dashboard_pkey PRIMARY KEY,
     configuration varchar(10000000),
     assigned_customers varchar(1000000),
+    assigned_edges varchar(10000000),
     search_text varchar(255),
     tenant_id varchar(31),
     customer_id varchar(31),
@@ -164,6 +166,7 @@ CREATE TABLE IF NOT EXISTS device (
     id varchar(31) NOT NULL CONSTRAINT device_pkey PRIMARY KEY,
     additional_info varchar,
     customer_id varchar(31),
+    edge_id varchar(31),
     type varchar(255),
     name varchar(255),
     label varchar(255),
@@ -275,11 +278,13 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     additional_info varchar,
     configuration varchar(10000000),
     name varchar(255),
+    type varchar(255),
     first_rule_node_id varchar(31),
     root boolean,
     debug_mode boolean,
     search_text varchar(255),
-    tenant_id varchar(31)
+    tenant_id varchar(31),
+    assigned_edges varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS rule_node (
@@ -323,6 +328,7 @@ CREATE TABLE IF NOT EXISTS entity_view (
     entity_type varchar(255),
     tenant_id varchar(31),
     customer_id varchar(31),
+    edge_id varchar(31),
     type varchar(255),
     name varchar(255),
     keys varchar(10000000),
@@ -332,6 +338,20 @@ CREATE TABLE IF NOT EXISTS entity_view (
     additional_info varchar
 );
 
+CREATE TABLE IF NOT EXISTS edge (
+    id varchar(31) NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id varchar(31),
+    root_rule_chain_id varchar(31),
+    configuration varchar(10000000),
+    type varchar(255),
+    name varchar(255),
+    label varchar(255),
+    routing_key varchar(255),
+    secret varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31)
+);
 
 CREATE TABLE IF NOT EXISTS role (
     id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,

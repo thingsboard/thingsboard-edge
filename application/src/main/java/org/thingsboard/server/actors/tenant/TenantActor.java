@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -256,7 +257,9 @@ public class TenantActor extends RuleChainManagerActor {
                     if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
                         RuleChain ruleChain = systemContext.getRuleChainService().
                                 findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
-                        visit(ruleChain, target);
+                        if (ruleChain.getType().equals(RuleChainType.SYSTEM)) {
+                            visit(ruleChain, target);
+                        }
                     }
                     target.tell(msg, ActorRef.noSender());
                 } else {

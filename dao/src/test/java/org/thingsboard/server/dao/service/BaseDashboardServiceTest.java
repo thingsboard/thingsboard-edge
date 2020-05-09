@@ -36,23 +36,20 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
     
@@ -255,6 +252,41 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
-    
+
+
+    @Test(expected = DataValidationException.class)
+    public void testAssignDashboardToNonExistentEdge() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle("My dashboard");
+        dashboard.setTenantId(tenantId);
+        dashboard = dashboardService.saveDashboard(dashboard);
+        try {
+            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), new EdgeId(UUIDs.timeBased()));
+        } finally {
+            dashboardService.deleteDashboard(tenantId, dashboard.getId());
+        }
+    }
+
+    @Test(expected = DataValidationException.class)
+    public void testAssignDashboardToEdgeFromDifferentTenant() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle("My dashboard");
+        dashboard.setTenantId(tenantId);
+        dashboard = dashboardService.saveDashboard(dashboard);
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Test different tenant [edge]");
+        tenant = tenantService.saveTenant(tenant);
+        Edge edge = new Edge();
+        edge.setTenantId(tenant.getId());
+        edge.setName("Test different edge");
+        edge.setType("default");
+        edge = edgeService.saveEdge(edge);
+        try {
+            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), edge.getId());
+        } finally {
+            dashboardService.deleteDashboard(tenantId, dashboard.getId());
+            tenantService.deleteTenant(tenant.getId());
+        }
+    }
 
 }

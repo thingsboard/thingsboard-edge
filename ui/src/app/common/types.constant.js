@@ -252,6 +252,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "LOCKOUT": {
                     name: "audit-log.type-lockout"
+                },
+                "ASSIGNED_TO_EDGE": {
+                    name: "audit-log.type-assigned-to-edge"
+                },
+                "UNASSIGNED_FROM_EDGE": {
+                    name: "audit-log.type-unassigned-from-edge"
                 }
             },
             auditLogActionStatus: {
@@ -319,6 +325,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'entityViewType',
                     name: 'alias.filter-type-entity-view-type'
                 },
+                edgeType: {
+                    value: 'edgeType',
+                    name: 'alias.filter-type-edge-type'
+                },
                 relationsQuery: {
                     value: 'relationsQuery',
                     name: 'alias.filter-type-relations-query'
@@ -334,6 +344,10 @@ export default angular.module('thingsboard.types', [])
                 entityViewSearchQuery: {
                     value: 'entityViewSearchQuery',
                     name: 'alias.filter-type-entity-view-search-query'
+                },
+                edgeSearchQuery: {
+                    value: 'edgeSearchQuery',
+                    name: 'alias.filter-type-edge-search-query'
                 }
             },
             direction: {
@@ -515,6 +529,7 @@ export default angular.module('thingsboard.types', [])
                 schedulerEvent: "SCHEDULER_EVENT",
                 blobEntity: "BLOB_ENTITY",
                 entityView: "ENTITY_VIEW",
+                edge: "EDGE",
                 role: "ROLE"
             },
             entityGroup: {
@@ -892,6 +907,12 @@ export default angular.module('thingsboard.types', [])
                     type: 'entity.type-current-tenant',
                     list: 'entity.type-current-tenant'
                 },
+                "EDGE": {
+                    type: 'entity.type-edge',
+                    typePlural: 'entity.type-edges',
+                    list: 'entity.list-of-edges',
+                    nameStartsWith: 'entity.edge-name-starts-with'
+                },
                 "SCHEDULER_EVENT": {
                     type: 'entity.type-scheduler-event',
                     typePlural: 'entity.type-scheduler-events',
@@ -1225,6 +1246,8 @@ export default angular.module('thingsboard.types', [])
                     clientSide: false
                 }
             },
+            systemRuleChainType: "SYSTEM",
+            edgeRuleChainType: "EDGE",
             ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
             ruleChainNodeComponent: {
                 type: 'RULE_CHAIN',

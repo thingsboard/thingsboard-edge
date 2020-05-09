@@ -39,6 +39,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.concurrent.ExecutionException;
@@ -53,7 +54,8 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         nodeDescription = "This Node is now deprecated. Use \"Checkpoint\" instead.",
         nodeDetails = "",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = ("tbNodeEmptyConfig")
+        configDirective = ("tbNodeEmptyConfig"),
+        ruleChainTypes = {RuleChainType.SYSTEM, RuleChainType.EDGE}
 )
 @Deprecated
 public class TbSynchronizationEndNode implements TbNode {

@@ -85,6 +85,7 @@ export default function RuleNodeDirective($compile, $templateCache, ruleChainSer
         link: linker,
         scope: {
             ruleChainId: '=',
+            ruleChainType: '=',
             ruleNode: '=',
             isEdit: '=',
             isReadOnly: '=',

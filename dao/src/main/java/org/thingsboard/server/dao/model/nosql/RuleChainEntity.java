@@ -35,36 +35,53 @@ import com.datastax.driver.mapping.annotations.ClusteringColumn;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.ShortEdgeInfo;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.model.type.JsonCodec;
+import org.thingsboard.server.dao.model.type.RuleChainTypeCodec;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.ADDITIONAL_INFO_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.DEBUG_MODE;
 import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_ASSIGNED_EDGES_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_CONFIGURATION_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_ROOT_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
+@Slf4j
 @Table(name = RULE_CHAIN_COLUMN_FAMILY_NAME)
 @EqualsAndHashCode
 @ToString
 public class RuleChainEntity implements SearchTextEntity<RuleChain> {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JavaType assignedEdgesType =
+            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortEdgeInfo.class);
 
     @PartitionKey
     @Column(name = ID_PROPERTY)
@@ -74,6 +91,8 @@ public class RuleChainEntity implements SearchTextEntity<RuleChain> {
     private UUID tenantId;
     @Column(name = RULE_CHAIN_NAME_PROPERTY)
     private String name;
+    @Column(name = RULE_CHAIN_TYPE_PROPERTY, codec = RuleChainTypeCodec.class)
+    private RuleChainType type;
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
     @Column(name = RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY)
@@ -89,6 +108,10 @@ public class RuleChainEntity implements SearchTextEntity<RuleChain> {
     @Column(name = ADDITIONAL_INFO_PROPERTY, codec = JsonCodec.class)
     private JsonNode additionalInfo;
 
+    @Getter @Setter
+    @Column(name = RULE_CHAIN_ASSIGNED_EDGES_PROPERTY)
+    private String assignedEdges;
+
     public RuleChainEntity() {
     }
 
@@ -98,12 +121,20 @@ public class RuleChainEntity implements SearchTextEntity<RuleChain> {
         }
         this.tenantId = DaoUtil.getId(ruleChain.getTenantId());
         this.name = ruleChain.getName();
+        this.type = ruleChain.getType();
         this.searchText = ruleChain.getName();
         this.firstRuleNodeId = DaoUtil.getId(ruleChain.getFirstRuleNodeId());
         this.root = ruleChain.isRoot();
         this.debugMode = ruleChain.isDebugMode();
         this.configuration = ruleChain.getConfiguration();
         this.additionalInfo = ruleChain.getAdditionalInfo();
+        if (ruleChain.getAssignedEdges() != null) {
+            try {
+                this.assignedEdges = objectMapper.writeValueAsString(ruleChain.getAssignedEdges());
+            } catch (JsonProcessingException e) {
+                log.error("Unable to serialize assigned edges to string!", e);
+            }
+        }
     }
 
     @Override
@@ -184,6 +215,7 @@ public class RuleChainEntity implements SearchTextEntity<RuleChain> {
         ruleChain.setCreatedTime(UUIDs.unixTimestamp(id));
         ruleChain.setTenantId(new TenantId(tenantId));
         ruleChain.setName(name);
+        ruleChain.setType(type);
         if (this.firstRuleNodeId != null) {
             ruleChain.setFirstRuleNodeId(new RuleNodeId(this.firstRuleNodeId));
         }
@@ -191,6 +223,13 @@ public class RuleChainEntity implements SearchTextEntity<RuleChain> {
         ruleChain.setDebugMode(this.debugMode);
         ruleChain.setConfiguration(this.configuration);
         ruleChain.setAdditionalInfo(this.additionalInfo);
+        if (!StringUtils.isEmpty(assignedEdges)) {
+            try {
+                ruleChain.setAssignedEdges(objectMapper.readValue(assignedEdges, assignedEdgesType));
+            } catch (IOException e) {
+                log.warn("Unable to parse assigned edges!", e);
+            }
+        }
         return ruleChain;
     }
 

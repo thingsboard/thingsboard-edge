@@ -48,6 +48,7 @@ import org.thingsboard.rule.engine.util.EntityContainer;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -63,6 +64,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 
 import java.util.List;
@@ -254,6 +256,13 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
                     if (entityView != null) {
                         targetEntity.setEntityId(entityView.getId());
+                    }
+                    break;
+                case EDGE:
+                    EdgeService edgeService = ctx.getEdgeService();
+                    Edge edge = edgeService.findEdgeByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
+                    if (edge != null) {
+                        targetEntity.setEntityId(edge.getId());
                     }
                     break;
                 case DASHBOARD:

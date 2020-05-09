@@ -50,6 +50,7 @@ public enum Resource {
     CUSTOMER(EntityType.CUSTOMER),
     DASHBOARD(EntityType.DASHBOARD),
     ENTITY_VIEW(EntityType.ENTITY_VIEW),
+    EDGE(EntityType.EDGE),
     TENANT(EntityType.TENANT),
     RULE_CHAIN(EntityType.RULE_CHAIN),
     USER(EntityType.USER),
@@ -64,6 +65,7 @@ public enum Resource {
     ASSET_GROUP(EntityType.ENTITY_GROUP),
     USER_GROUP(EntityType.ENTITY_GROUP),
     ENTITY_VIEW_GROUP(EntityType.ENTITY_GROUP),
+    EDGE_GROUP(EntityType.ENTITY_GROUP),
     DASHBOARD_GROUP(EntityType.ENTITY_GROUP),
     ROLE(EntityType.ROLE),
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
@@ -81,6 +83,7 @@ public enum Resource {
         groupResourceByGroupType.put(EntityType.ASSET, ASSET_GROUP);
         groupResourceByGroupType.put(EntityType.USER, USER_GROUP);
         groupResourceByGroupType.put(EntityType.ENTITY_VIEW, ENTITY_VIEW_GROUP);
+        groupResourceByGroupType.put(EntityType.EDGE, EDGE_GROUP);
         groupResourceByGroupType.put(EntityType.DASHBOARD, DASHBOARD_GROUP);
 
         for (EntityType entityType : EntityType.values()) {
@@ -105,6 +108,7 @@ public enum Resource {
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.EDGE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
@@ -147,6 +151,7 @@ public enum Resource {
                 Resource.DEVICE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
+                Resource.EDGE,
                 Resource.CUSTOMER,
                 Resource.DASHBOARD,
                 Resource.TENANT,
@@ -176,6 +181,7 @@ public enum Resource {
                 Resource.DEVICE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
+                Resource.EDGE,
                 Resource.CUSTOMER,
                 Resource.DASHBOARD,
                 Resource.USER,

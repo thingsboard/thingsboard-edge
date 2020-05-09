@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -87,4 +88,11 @@ public interface DeviceService {
 
     ListenableFuture<TimePageData<Device>> findDeviceEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+    Device assignDeviceToEdge(TenantId tenantId, DeviceId deviceId, EdgeId edgeId);
+
+    Device unassignDeviceFromEdge(TenantId tenantId, DeviceId deviceId);
+
+    TextPageData<Device> findDevicesByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TextPageLink pageLink);
+
+    TextPageData<Device> findDevicesByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink);
 }

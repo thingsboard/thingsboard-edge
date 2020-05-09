@@ -31,14 +31,18 @@
 package org.thingsboard.server.dao.rule;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 
 import java.util.List;
@@ -72,10 +76,23 @@ public interface RuleChainService {
 
     List<EntityRelation> getRuleNodeRelations(TenantId tenantId, RuleNodeId ruleNodeId);
 
-    TextPageData<RuleChain> findTenantRuleChains(TenantId tenantId, TextPageLink pageLink);
+    TextPageData<RuleChain> findTenantRuleChainsByType(TenantId tenantId, RuleChainType type, TextPageLink pageLink);
 
     void deleteRuleChainById(TenantId tenantId, RuleChainId ruleChainId);
 
     void deleteRuleChainsByTenantId(TenantId tenantId);
 
+    RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId);
+
+    RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId, boolean remove);
+
+    void unassignEdgeRuleChains(TenantId tenantId, EdgeId edgeId);
+
+    void updateEdgeRuleChains(TenantId tenantId, EdgeId edgeId);
+
+    ListenableFuture<TimePageData<RuleChain>> findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TimePageLink pageLink);
+
+    RuleChain getDefaultRootEdgeRuleChain(TenantId tenantId);
+
+    boolean setDefaultRootEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
 }

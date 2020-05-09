@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -72,6 +73,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -103,6 +105,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -123,6 +126,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -154,7 +158,6 @@ import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -286,6 +289,9 @@ public abstract class BaseController {
     @Autowired
     protected TbQueueProducerProvider producerProvider;
 
+    @Autowired
+    protected EdgeService edgeService;
+
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
     private boolean logControllerErrorStackTrace;
@@ -381,7 +387,8 @@ public abstract class BaseController {
         }
         if (groupType != EntityType.CUSTOMER && groupType != EntityType.ASSET
                 && groupType != EntityType.DEVICE && groupType != EntityType.USER
-                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE
+                && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Unsupported entityGroup type '" + groupType + "'! Only 'CUSTOMER', 'ASSET', 'DEVICE', 'USER', 'ENTITY_VIEW' or 'DASHBOARD' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -392,7 +399,7 @@ public abstract class BaseController {
             throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
-            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.DASHBOARD) {
+            && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
             throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         return groupType;
@@ -519,6 +526,9 @@ public abstract class BaseController {
                     return;
                 case ROLE:
                     checkRoleId(new RoleId(entityId.getId()), operation);
+                    return;
+                case EDGE:
+                    checkEdgeId(new EdgeId(entityId.getId()), operation);
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
@@ -672,6 +682,18 @@ public abstract class BaseController {
         }
     }
 
+    Edge checkEdgeId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(edgeId, "Incorrect edgeId " + edgeId);
+            Edge edge = edgeService.findEdgeById(getTenantId(), edgeId);
+            checkNotNull(edge);
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation, edgeId, edge);
+            return edge;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
     DashboardInfo checkDashboardInfoId(DashboardId dashboardId, Operation operation) throws ThingsboardException {
         try {
             validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
@@ -684,28 +706,10 @@ public abstract class BaseController {
         }
     }
 
-    ComponentDescriptor checkComponentDescriptorByClazz(String clazz) throws ThingsboardException {
-        try {
-            log.debug("[{}] Lookup component descriptor", clazz);
-            return checkNotNull(componentDescriptorService.getComponent(clazz));
-        } catch (Exception e) {
-            throw handleException(e, false);
-        }
-    }
-
-    List<ComponentDescriptor> checkComponentDescriptorsByType(ComponentType type) throws ThingsboardException {
-        try {
-            log.debug("[{}] Lookup component descriptors", type);
-            return componentDescriptorService.getComponents(type);
-        } catch (Exception e) {
-            throw handleException(e, false);
-        }
-    }
-
-    List<ComponentDescriptor> checkComponentDescriptorsByTypes(Set<ComponentType> types) throws ThingsboardException {
+    List<ComponentDescriptor> checkComponentDescriptorsByTypes(Set<ComponentType> types, RuleChainType ruleChainType) throws ThingsboardException {
         try {
             log.debug("[{}] Lookup component descriptors", types);
-            return componentDescriptorService.getComponents(types);
+            return componentDescriptorService.getComponents(types, ruleChainType);
         } catch (Exception e) {
             throw handleException(e, false);
         }
@@ -808,6 +812,7 @@ public abstract class BaseController {
         }
         if (e == null) {
             pushEntityActionToRuleEngine(entityId, entity, user, customerId, actionType, additionalInfo);
+            // TODO: voba - refactor to push events to edge queue directly, instead of the rule engine flow
         }
         auditLogService.logEntityAction(user.getTenantId(), customerId, user.getId(), user.getName(), entityId, entity, actionType, e, additionalInfo);
     }
@@ -854,6 +859,16 @@ public abstract class BaseController {
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
                 break;
+            case ASSIGNED_TO_EDGE:
+                msgType = DataConstants.ENTITY_ASSIGNED_TO_EDGE;
+                break;
+            case UNASSIGNED_FROM_EDGE:
+                msgType = DataConstants.ENTITY_UNASSIGNED_FROM_EDGE;
+                break;
+            case CREDENTIALS_UPDATED:
+                //TODO: voba - this is not efficient way to do this. Refactor on later stages
+                msgType = DataConstants.ENTITY_UPDATED;
+                break;
         }
         if (!StringUtils.isEmpty(msgType)) {
             try {
@@ -883,6 +898,12 @@ public abstract class BaseController {
                     String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("removedFromEntityGroupId", strEntityGroupId);
                     metaData.putValue("removedFromEntityGroupName", strEntityGroupName);
+                } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("assignedEdgeId", strEdgeId);
+                } else if (actionType == ActionType.UNASSIGNED_FROM_EDGE) {
+                    String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("unassignedEdgeId", strEdgeId);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -992,6 +1013,8 @@ public abstract class BaseController {
                     return (TextPageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
                 case ENTITY_VIEW:
                     return (TextPageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
+                case EDGE:
+                    return (TextPageData<E>) edgeService.findEdgesByTenantId(getTenantId(), pageLink);
                 default:
                     throw new RuntimeException("EntityType does not supported: " + entityType);
             }

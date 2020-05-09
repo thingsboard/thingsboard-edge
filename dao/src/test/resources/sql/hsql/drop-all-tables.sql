@@ -27,3 +27,4 @@ DROP TABLE IF EXISTS scheduler_event;
 DROP TABLE IF EXISTS blob_entity;
 DROP TABLE IF EXISTS role;
 DROP TABLE IF EXISTS group_permission;
+DROP TABLE IF EXISTS edge;

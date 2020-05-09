@@ -393,6 +393,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 groupName += " Entity Views";
                 description += "Entity View";
                 break;
+            case EDGE:
+                groupName += " Edges";
+                description += "Edge";
+                break;
             case DASHBOARD:
                 groupName += " Dashboards";
                 description += "Dashboard";

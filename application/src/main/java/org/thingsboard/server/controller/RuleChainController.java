@@ -55,18 +55,24 @@ import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.ShortEdgeInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -75,6 +81,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -241,6 +248,7 @@ public class RuleChainController extends BaseController {
     @ResponseBody
     public TextPageData<RuleChain> getRuleChains(
             @RequestParam int limit,
+            @RequestParam(value = "type", required = false) String typeStr,
             @RequestParam(required = false) String textSearch,
             @RequestParam(required = false) String idOffset,
             @RequestParam(required = false) String textOffset) throws ThingsboardException {
@@ -248,7 +256,12 @@ public class RuleChainController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            return checkNotNull(ruleChainService.findTenantRuleChains(tenantId, pageLink));
+            if (typeStr != null && typeStr.trim().length() > 0) {
+                RuleChainType type = RuleChainType.valueOf(typeStr);
+                return checkNotNull(ruleChainService.findTenantRuleChainsByType(tenantId, type, pageLink));
+            } else {
+                return checkNotNull(ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.SYSTEM, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -389,4 +402,258 @@ public class RuleChainController extends BaseController {
         return objectMapper.writeValueAsString(msgData);
     }
 
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/ruleChain/{ruleChainId}", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain assignRuleChainToEdge(@PathVariable("edgeId") String strEdgeId,
+                                           @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            checkRuleChain(ruleChainId, Operation.ASSIGN_TO_EDGE);
+
+            RuleChain savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId));
+
+            logEntityAction(ruleChainId, savedRuleChain,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, strEdgeId, edge.getName());
+
+
+            return savedRuleChain;
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strRuleChainId, strEdgeId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/ruleChain/{ruleChainId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public RuleChain unassignRuleChainFromEdge(@PathVariable("edgeId") String strEdgeId,
+                                               @PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.UNASSIGN_FROM_EDGE);
+
+            RuleChain savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId, false));
+
+            logEntityAction(ruleChainId, ruleChain,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, edge.getId().toString(), edge.getName());
+
+            return savedRuleChain;
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, e, strRuleChainId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/{ruleChainId}/edges", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain updateRuleChainEdges(@PathVariable(RULE_CHAIN_ID) String strRuleChainId,
+                                          @RequestBody String[] strEdgeIds) throws ThingsboardException {
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.ASSIGN_TO_EDGE);
+
+            Set<EdgeId> edgeIds = new HashSet<>();
+            if (strEdgeIds != null) {
+                for (String strEdgeId : strEdgeIds) {
+                    edgeIds.add(new EdgeId(toUUID(strEdgeId)));
+                }
+            }
+
+            Set<EdgeId> addedEdgeIds = new HashSet<>();
+            Set<EdgeId> removedEdgeIds = new HashSet<>();
+            for (EdgeId edgeId : edgeIds) {
+                if (!ruleChain.isAssignedToEdge(edgeId)) {
+                    addedEdgeIds.add(edgeId);
+                }
+            }
+
+            Set<ShortEdgeInfo> assignedEdges = ruleChain.getAssignedEdges();
+            if (assignedEdges != null) {
+                for (ShortEdgeInfo edgeInfo : assignedEdges) {
+                    if (!edgeIds.contains(edgeInfo.getEdgeId())) {
+                        removedEdgeIds.add(edgeInfo.getEdgeId());
+                    }
+                }
+            }
+
+            if (addedEdgeIds.isEmpty() && removedEdgeIds.isEmpty()) {
+                return ruleChain;
+            } else {
+                RuleChain savedRuleChain = null;
+                for (EdgeId edgeId : addedEdgeIds) {
+                    savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId));
+                    ShortEdgeInfo edgeInfo = savedRuleChain.getAssignedEdgeInfo(edgeId);
+                    logEntityAction(ruleChainId, savedRuleChain,
+                            null,
+                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, edgeId.toString(), edgeInfo.getTitle());
+                }
+                for (EdgeId edgeId : removedEdgeIds) {
+                    ShortEdgeInfo edgeInfo = ruleChain.getAssignedEdgeInfo(edgeId);
+                    savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId, false));
+                    logEntityAction(ruleChainId, ruleChain,
+                            null,
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, edgeId.toString(), edgeInfo.getTitle());
+
+                }
+                return savedRuleChain;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strRuleChainId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/{ruleChainId}/edges/add", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain addRuleChainEdges(@PathVariable(RULE_CHAIN_ID) String strRuleChainId,
+                                       @RequestBody String[] strEdgeIds) throws ThingsboardException {
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.ASSIGN_TO_EDGE);
+
+            Set<EdgeId> edgeIds = new HashSet<>();
+            if (strEdgeIds != null) {
+                for (String strEdgeId : strEdgeIds) {
+                    EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+                    if (!ruleChain.isAssignedToEdge(edgeId)) {
+                        edgeIds.add(edgeId);
+                    }
+                }
+            }
+
+            if (edgeIds.isEmpty()) {
+                return ruleChain;
+            } else {
+                RuleChain savedRuleChain = null;
+                for (EdgeId edgeId : edgeIds) {
+                    savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId));
+                    ShortEdgeInfo edgeInfo = savedRuleChain.getAssignedEdgeInfo(edgeId);
+                    logEntityAction(ruleChainId, savedRuleChain,
+                            null,
+                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, edgeId.toString(), edgeInfo.getTitle());
+                }
+                return savedRuleChain;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strRuleChainId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/{ruleChainId}/edges/remove", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain removeRuleChainEdges(@PathVariable(RULE_CHAIN_ID) String strRuleChainId,
+                                          @RequestBody String[] strEdgeIds) throws ThingsboardException {
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.UNASSIGN_FROM_EDGE);
+
+            Set<EdgeId> edgeIds = new HashSet<>();
+            if (strEdgeIds != null) {
+                for (String strEdgeId : strEdgeIds) {
+                    EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+                    if (ruleChain.isAssignedToEdge(edgeId)) {
+                        edgeIds.add(edgeId);
+                    }
+                }
+            }
+
+            if (edgeIds.isEmpty()) {
+                return ruleChain;
+            } else {
+                RuleChain savedRuleChain = null;
+                for (EdgeId edgeId : edgeIds) {
+                    ShortEdgeInfo edgeInfo = ruleChain.getAssignedEdgeInfo(edgeId);
+                    savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdge(getCurrentUser().getTenantId(), ruleChainId, edgeId, false));
+                    logEntityAction(ruleChainId, ruleChain,
+                            null,
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, edgeId.toString(), edgeInfo.getTitle());
+
+                }
+                return savedRuleChain;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, e, strRuleChainId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/ruleChains", params = { "limit" }, method = RequestMethod.GET)
+    @ResponseBody
+    public TimePageData<RuleChain> getEdgeRuleChains(
+            @PathVariable("edgeId") String strEdgeId,
+            @RequestParam int limit,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
+            @RequestParam(required = false) String offset) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            checkEdgeId(edgeId, Operation.READ);
+            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            return checkNotNull(ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink).get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/{ruleChainId}/defaultRootEdge", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain setDefaultRootEdgeRuleChain(@PathVariable(RULE_CHAIN_ID) String strRuleChainId) throws ThingsboardException {
+        checkParameter(RULE_CHAIN_ID, strRuleChainId);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+            RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.WRITE);
+            ruleChainService.setDefaultRootEdgeRuleChain(getTenantId(), ruleChainId);
+            return ruleChain;
+        } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.RULE_CHAIN),
+                    null,
+                    null,
+                    ActionType.UPDATED, e, strRuleChainId);
+            throw handleException(e);
+        }
+    }
 }

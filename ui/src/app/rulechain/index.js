@@ -39,6 +39,8 @@ import RuleNodeDirective from './rulenode.directive';
 import LinkDirective from './link.directive';
 import MessageTypeAutocompleteDirective from './message-type-autocomplete.directive';
 import NodeScriptTest from './script/node-script-test.service';
+import AddRuleChainsToEdgeController from './add-rulechains-to-edge.controller';
+import ManageAssignedEdgesToRuleChainController from "./manage-assigned-edges.controller";
 
 export default angular.module('thingsboard.ruleChain', [])
     .config(RuleChainRoutes)
@@ -47,6 +49,8 @@ export default angular.module('thingsboard.ruleChain', [])
     .controller('AddRuleNodeController', AddRuleNodeController)
     .controller('AddRuleNodeLinkController', AddRuleNodeLinkController)
     .controller('NodeScriptTestController', NodeScriptTestController)
+    .controller('ManageAssignedEdgesToRuleChainController', ManageAssignedEdgesToRuleChainController)
+    .controller('AddRuleChainsToEdgeController', AddRuleChainsToEdgeController)
     .directive('tbRuleChain', RuleChainDirective)
     .directive('tbRuleNodeDefinedConfig', RuleNodeDefinedConfigDirective)
     .directive('tbRuleNodeConfig', RuleNodeConfigDirective)

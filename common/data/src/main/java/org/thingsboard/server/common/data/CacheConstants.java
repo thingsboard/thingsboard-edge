@@ -38,6 +38,7 @@ public class CacheConstants {
     public static final String ASSET_CACHE = "assets";
     public static final String DOWNLINK_CACHE = "downlink";
     public static final String ENTITY_VIEW_CACHE = "entityViews";
+    public static final String EDGE_CACHE = "edges";
     public static final String ROLE_CACHE = "roles";
     public static final String USER_PERMISSIONS_CACHE = "permissions";
     public static final String ENTITY_OWNERS_CACHE = "owners";

@@ -150,6 +150,7 @@ import thingsboardApiCustomMenu from './api/custom-menu.service';
 import thingsboardApiRole from './api/role.service';
 import thingsboardApiUserPermissions from './api/user-permissions.service';
 import thingsboardApiSelfRegistration from './api/self-register.service';
+import thingsboardApiEdge from './api/edge.service';
 
 import AppConfig from './app.config';
 import GlobalInterceptor from './global-interceptor.service';
@@ -227,6 +228,7 @@ angular.module('thingsboard', [
     thingsboardApiRole,
     thingsboardApiUserPermissions,
     thingsboardApiSelfRegistration,
+    thingsboardApiEdge,
     uiRouter])
     .config(AppConfig)
     .factory('globalInterceptor', GlobalInterceptor)

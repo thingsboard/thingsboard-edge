@@ -32,7 +32,11 @@
 
 /*import addDeviceTemplate from './add-device.tpl.html';
 import deviceCard from './device-card.tpl.html';
-import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';*/
+import assignToCustomerTemplate from './assign-to-customer.tpl.html';
+import addDevicesToCustomerTemplate from './add-devices-to-customer.tpl.html';
+import deviceCredentialsTemplate from './device-credentials.tpl.html';
+import assignToEdgeTemplate from './assign-to-edge.tpl.html';
+import addDevicesToEdgeTemplate from './add-devices-to-edge.tpl.html';*/
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -61,10 +65,11 @@ export function DeviceCardController(types) {
 
 
 /*@ngInject*/
-export function DeviceController(/*$rootScope, tbDialogs, userService, deviceService, customerService, $state, $stateParams,
+export function DeviceController(/*$rootScope, tbDialogs, userService, deviceService, customerService, edgeService, $state, $stateParams,
                                  $document, $mdDialog, $q, $translate, types, utils, importExport*/) {
 
 /*    var customerId = $stateParams.customerId;
+    var edgeId = $stateParams.edgeId;
 
     var deviceActionsList = [];
 
@@ -233,6 +238,34 @@ export function DeviceController(/*$rootScope, tbDialogs, userService, deviceSer
             deviceActionsList.push(
                 {
                     onAction: function ($event, item) {
+                        assignToEdge($event, [ item.id.id ]);
+                    },
+                    name: function() { return $translate.instant('action.assign') },
+                    details: function() { return $translate.instant('device.assign-to-edge') },
+                    icon: "wifi_tethering",
+                    isEnabled: function(device) {
+                        return device && (!device.edgeId || device.edgeId.id === types.id.nullUid);
+                    }
+                }
+            );
+
+            deviceActionsList.push(
+                {
+                    onAction: function ($event, item) {
+                        unassignFromEdge($event, item, false);
+                    },
+                    name: function() { return $translate.instant('action.unassign') },
+                    details: function() { return $translate.instant('device.unassign-from-edge') },
+                    icon: "portable_wifi_off",
+                    isEnabled: function(device) {
+                        return device && device.edgeId && device.edgeId.id !== types.id.nullUid;
+                    }
+                }
+            );
+
+            deviceActionsList.push(
+                {
+                    onAction: function ($event, item) {
                         manageCredentials($event, item);
                     },
                     name: function() { return $translate.instant('device.credentials') },
@@ -267,6 +300,19 @@ export function DeviceController(/*$rootScope, tbDialogs, userService, deviceSer
 
             deviceGroupActionsList.push(
                 {
+                    onAction: function ($event, items) {
+                        assignDevicesToEdge($event, items);
+                    },
+                    name: function() { return $translate.instant('device.assign-devices') },
+                    details: function(selectedCount) {
+                        return $translate.instant('device.assign-devices-text', {count: selectedCount}, "messageformat");
+                    },
+                    icon: "wifi_tethering"
+                }
+            );
+
+            deviceGroupActionsList.push(
+                {
                     onAction: function ($event) {
                         vm.grid.deleteItems($event);
                     },
@@ -275,8 +321,6 @@ export function DeviceController(/*$rootScope, tbDialogs, userService, deviceSer
                     icon: "delete"
                 }
             );
-
-
 
         } else if (vm.devicesScope === 'customer' || vm.devicesScope === 'customer_user') {
             fetchDevicesFunction = function (pageLink, deviceType) {
@@ -366,6 +410,50 @@ export function DeviceController(/*$rootScope, tbDialogs, userService, deviceSer
             }
             vm.deviceGridConfig.addItemActions = [];
 
+        } else if (vm.devicesScope === 'edge') {
+            fetchDevicesFunction = function (pageLink, deviceType) {
+                return deviceService.getEdgeDevices(edgeId, pageLink, null, deviceType);
+            };
+            deleteDeviceFunction = function (deviceId) {
+                return deviceService.unassignDeviceFromEdge(deviceId);
+            };
+            refreshDevicesParamsFunction = function () {
+                return {"edgeId": edgeId, "topIndex": vm.topIndex};
+            };
+
+            deviceActionsList.push(
+                {
+                    onAction: function ($event, item) {
+                        unassignFromEdge($event, item, false);
+                    },
+                    name: function() { return $translate.instant('action.unassign') },
+                    details: function() { return $translate.instant('device.unassign-from-edge') },
+                    icon: "assignment_return"
+                }
+            );
+
+            deviceGroupActionsList.push(
+                {
+                    onAction: function ($event, items) {
+                        unassignDevicesFromEdge($event, items);
+                    },
+                    name: function() { return $translate.instant('device.unassign-devices') },
+                    details: function(selectedCount) {
+                        return $translate.instant('device.unassign-devices-action-title', {count: selectedCount}, "messageformat");
+                    },
+                    icon: "assignment_return"
+                }
+            );
+
+            vm.deviceGridConfig.addItemAction = {
+                onAction: function ($event) {
+                    addDevicesToEdge($event);
+                },
+                name: function() { return $translate.instant('device.assign-devices') },
+                details: function() { return $translate.instant('device.assign-new-device') },
+                icon: "add"
+            };
+            vm.deviceGridConfig.addItemActions = [];
         }
 
         vm.deviceGridConfig.refreshParamsFunc = refreshDevicesParamsFunction;
@@ -514,6 +602,125 @@ export function DeviceController(/*$rootScope, tbDialogs, userService, deviceSer
 
     function manageCredentials($event, device) {
         tbDialogs.manageDeviceCredentials($event, device, isCustomerUser());
+    }
+
+    function assignToEdge($event, deviceIds) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var pageSize = 10;
+        edgeService.getEdges({limit: pageSize, textSearch: ''}).then(
+            function success(_edges) {
+                var edges = {
+                    pageSize: pageSize,
+                    data: _edges.data,
+                    nextPageLink: _edges.nextPageLink,
+                    selection: null,
+                    hasNext: _edges.hasNext,
+                    pending: false
+                };
+                if (edges.hasNext) {
+                    edges.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'AssignDeviceToEdgeController',
+                    controllerAs: 'vm',
+                    templateUrl: assignToEdgeTemplate,
+                    locals: {deviceIds: deviceIds, edges: edges},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    vm.grid.refreshList();
+                }, function () {
+                });
+            },
+            function fail() {
+            });
+    }
+
+    function addDevicesToEdge($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var pageSize = 10;
+        deviceService.getTenantDevices({limit: pageSize, textSearch: ''}, false).then(
+            function success(_devices) {
+                var devices = {
+                    pageSize: pageSize,
+                    data: _devices.data,
+                    nextPageLink: _devices.nextPageLink,
+                    selections: {},
+                    selectedCount: 0,
+                    hasNext: _devices.hasNext,
+                    pending: false
+                };
+                if (devices.hasNext) {
+                    devices.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'AddDevicesToEdgeController',
+                    controllerAs: 'vm',
+                    templateUrl: addDevicesToEdgeTemplate,
+                    locals: {edgeId: edgeId, devices: devices},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    vm.grid.refreshList();
+                }, function () {
+                });
+            },
+            function fail() {
+            });
+    }
+
+    function assignDevicesToEdge($event, items) {
+        var deviceIds = [];
+        for (var id in items.selections) {
+            deviceIds.push(id);
+        }
+        assignToEdge($event, deviceIds);
+    }
+
+    function unassignFromEdge($event, device) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var title = $translate.instant('device.unassign-device-from-edge-title', {deviceName: device.name});
+        var content = $translate.instant('device.unassign-device-from-edge-text');
+        var label = $translate.instant('device.unassign-device');
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title(title)
+            .htmlContent(content)
+            .ariaLabel(label)
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+            deviceService.unassignDeviceFromEdge(device.id.id).then(function success() {
+                vm.grid.refreshList();
+            });
+        });
+    }
+
+    function unassignDevicesFromEdge($event, items) {
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title($translate.instant('device.unassign-devices-title', {count: items.selectedCount}, 'messageformat'))
+            .htmlContent($translate.instant('device.unassign-devices-text'))
+            .ariaLabel($translate.instant('device.unassign-device'))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+            var tasks = [];
+            for (var id in items.selections) {
+                tasks.push(deviceService.unassignDeviceFromEdge(id));
+            }
+            $q.all(tasks).then(function () {
+                vm.grid.refreshList();
+            });
+        });
     }
     */
 }
