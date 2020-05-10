@@ -99,6 +99,18 @@
           hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
           hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
 </tb-entity-view>
+<tb-edge  ng-if="vm.entityType == vm.types.entityType.edge"
+          entity-group="vm.entityGroup"
+          edge="vm.entity"
+          is-edit="vm.isEdit"
+          the-form="vm.theForm"
+          on-delete-edge="vm.entityGroupConfig.onDeleteEntity(event, vm.entity)"
+          on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
+          on-assign-to-customer="vm.entityGroupConfig.onAssignToCustomer(event, vm.entity)"
+          on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)"
+          hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
+          hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
+</tb-edge>
 <tb-dashboard-details  ng-if="vm.entityType == vm.types.entityType.dashboard"
                  entity-group="vm.entityGroup"
                  dashboard="vm.entity"

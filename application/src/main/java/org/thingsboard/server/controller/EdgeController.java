@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -82,10 +84,11 @@ public class EdgeController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge", method = RequestMethod.POST)
     @ResponseBody
-    public Edge saveEdge(@RequestBody Edge edge) throws ThingsboardException {
+    public Edge saveEdge(@RequestBody Edge edge,
+                         @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             edge.setTenantId(tenantId);
@@ -99,12 +102,21 @@ public class EdgeController extends BaseController {
                 }
             }
 
+            EntityGroupId entityGroupId = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            }
+
             Operation operation = created ? Operation.CREATE : Operation.WRITE;
 
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
-                    edge.getId(), edge);
+                    edge.getId(), edge, entityGroupId);
 
             Edge result = checkNotNull(edgeService.saveEdge(edge));
+
+            if (entityGroupId != null && operation == Operation.CREATE) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, result.getId());
+            }
 
             if (created) {
                 ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), result.getId());

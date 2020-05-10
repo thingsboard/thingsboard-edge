@@ -48,6 +48,7 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
                            types.entityType.device,
                            types.entityType.user,
                            types.entityType.entityView,
+                           types.entityType.edge,
                            types.entityType.dashboard
         ];
 

@@ -110,6 +110,10 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
             vm.entityField.type = types.entityGroup.entityField.type;
             vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
             break;
+        case types.entityType.edge:
+            vm.entityField.type = types.entityGroup.entityField.type;
+            vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
+            break;
         case types.entityType.device:
             vm.entityField.type = types.entityGroup.entityField.type;
             vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;

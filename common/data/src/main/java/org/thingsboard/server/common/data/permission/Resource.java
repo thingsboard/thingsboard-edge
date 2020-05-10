@@ -125,6 +125,7 @@ public enum Resource {
         operationsByResource.put(Resource.ASSET_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.USER_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ENTITY_VIEW_GROUP, Operation.defaultEntityGroupOperations);
+        operationsByResource.put(Resource.EDGE_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.DASHBOARD_GROUP, Operation.defaultEntityGroupOperations);
         operationsByResource.put(Resource.ROLE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
@@ -170,6 +171,7 @@ public enum Resource {
                 Resource.ASSET_GROUP,
                 Resource.DASHBOARD_GROUP,
                 Resource.ENTITY_VIEW_GROUP,
+                Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG)));
@@ -196,6 +198,7 @@ public enum Resource {
                 Resource.ASSET_GROUP,
                 Resource.DASHBOARD_GROUP,
                 Resource.ENTITY_VIEW_GROUP,
+                Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG)));

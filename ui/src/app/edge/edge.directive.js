@@ -35,23 +35,23 @@ import edgeFieldsetTemplate from './edge-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EdgeDirective($compile, $templateCache, $translate, $mdDialog, $document, utils, toast, types, customerService) {
+export default function EdgeDirective($compile, $templateCache, $translate, $mdDialog, $document, utils, toast, types) {
     var linker = function (scope, element) {
         var template = $templateCache.get(edgeFieldsetTemplate);
         element.html(template);
 
         scope.types = types;
-        scope.isAssignedToCustomer = false;
+        /*scope.isAssignedToCustomer = false;
         scope.isPublic = false;
-        scope.assignedCustomer = null;
+        scope.assignedCustomer = null;*/
 
         scope.$watch('edge', function(newVal) {
             if (newVal) {
-                if (!scope.edge.id) {
+                if (scope.edge.id && !scope.edge.id.id) {
                     scope.edge.routingKey = utils.guid('');
                     scope.edge.secret = generateSecret(20);
                 }
-                if (scope.edge.customerId && scope.edge.customerId.id !== types.id.nullUid) {
+                /*if (scope.edge.customerId && scope.edge.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
                     customerService.getShortCustomerInfo(scope.edge.customerId.id).then(
                         function success(customer) {
@@ -63,7 +63,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
                     scope.isAssignedToCustomer = false;
                     scope.isPublic = false;
                     scope.assignedCustomer = null;
-                }
+                }*/
             }
         });
 
@@ -104,6 +104,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
         restrict: "E",
         link: linker,
         scope: {
+            entityGroup: '=',
             edge: '=',
             isEdit: '=',
             edgeScope: '=',
@@ -111,7 +112,9 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
             onAssignToCustomer: '&',
             onMakePublic: '&',
             onUnassignFromCustomer: '&',
-            onDeleteEdge: '&'
+            onDeleteEdge: '&',
+            hideAssignmentActions: '=',
+            hideDelete: '='
         }
     };
 }

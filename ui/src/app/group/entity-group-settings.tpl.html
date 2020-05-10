@@ -69,7 +69,8 @@
         </md-input-container>
         <md-checkbox ng-if="vm.entityType == vm.types.entityType.device ||
                             vm.entityType == vm.types.entityType.asset ||
-                            vm.entityType == vm.types.entityType.entityView"
+                            vm.entityType == vm.types.entityType.entityView ||
+                            vm.entityType == vm.types.entityType.edge"
                      ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-assignment-actions' | translate }}"
                      ng-model="vm.settings.enableAssignment">{{ 'entity-group.enable-assignment-actions' | translate }}
         </md-checkbox>

@@ -210,6 +210,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         log.trace("Executing saveEdge [{}]", edge);
         edgeValidator.validate(edge, Edge::getTenantId);
         Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
+        if (edge.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
+        }
         dashboardService.updateEdgeDashboards(savedEdge.getTenantId(), savedEdge.getId());
         return savedEdge;
     }

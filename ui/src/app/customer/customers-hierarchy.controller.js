@@ -104,6 +104,7 @@ export default function CustomersHierarchyController($scope, types, securityType
         types.entityType.asset,
         types.entityType.device,
         types.entityType.entityView,
+        types.entityType.edge,
         types.entityType.dashboard
     ];
 
@@ -477,6 +478,8 @@ export default function CustomersHierarchyController($scope, types, securityType
                 return 'tb-device-group';
             case vm.types.entityType.entityView:
                 return 'tb-entity-view-group';
+            case vm.types.entityType.edge:
+                return 'tb-edge-group';
             case vm.types.entityType.dashboard:
                 return 'tb-dashboard-group';
         }
@@ -495,6 +498,8 @@ export default function CustomersHierarchyController($scope, types, securityType
                 return $translate.instant('entity-group.device-groups');
             case vm.types.entityType.entityView:
                 return $translate.instant('entity-group.entity-view-groups');
+            case vm.types.entityType.edge:
+                return $translate.instant('edge.edge-groups');
             case vm.types.entityType.dashboard:
                 return $translate.instant('entity-group.dashboard-groups');
         }

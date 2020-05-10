@@ -589,6 +589,47 @@ export default function EntityGroupRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
+        }).state('home.edgeGroups', {
+            url: '/edgeGroups',
+            params: {'groupType': types.entityType.edge, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controller: 'EntityGroupsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.edge-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "entity-group.edge-groups"}'
+            }
+        }).state('home.edgeGroups.edgeGroup', {
+            url: '/:entityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.edge-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
         }).state('home.dashboardGroups', {
             url: '/dashboardGroups',
             params: {'groupType': types.entityType.dashboard, 'topIndex': 0},

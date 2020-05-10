@@ -109,9 +109,12 @@ function EdgeService($http, $q, customerService) {
         return deferred.promise;
     }
 
-    function saveEdge(edge) {
+    function saveEdge(edge, entityGroupId) {
         var deferred = $q.defer();
         var url = '/api/edge';
+        if (entityGroupId) {
+            url += '?entityGroupId=' + entityGroupId;
+        }
         $http.post(url, edge).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {

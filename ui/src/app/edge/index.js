@@ -40,6 +40,7 @@ import AssignEdgeToCustomerController from './assign-to-customer.controller';
 import AddEdgesToCustomerController from './add-edges-to-customer.controller';
 import SetRootRuleChainToEdgesController from './set-root-rule-chain-to-edges.controller';
 import EdgeDirective from './edge.directive';
+import EdgeGroupConfig from "./edge-group.config";
 
 export default angular.module('thingsboard.edge', [
     uiRouter,
@@ -55,4 +56,5 @@ export default angular.module('thingsboard.edge', [
     .controller('AddEdgesToCustomerController', AddEdgesToCustomerController)
     .controller('SetRootRuleChainToEdgesController', SetRootRuleChainToEdgesController)
     .directive('tbEdge', EdgeDirective)
+    .factory('edgeGroupConfig', EdgeGroupConfig)
     .name;

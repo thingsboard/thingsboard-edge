@@ -59,6 +59,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 assetGroup: "ASSET_GROUP",
                 userGroup: "USER_GROUP",
                 entityViewGroup: "ENTITY_VIEW_GROUP",
+                edgeGroup: "EDGE_GROUP",
                 dashboardGroup: "DASHBOARD_GROUP",
                 role: "ROLE",
                 groupPermission: "GROUP_PERMISSION",
@@ -72,6 +73,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 "CUSTOMER": "CUSTOMER",
                 "DASHBOARD": "DASHBOARD",
                 "ENTITY_VIEW": "ENTITY_VIEW",
+                "EDGE": "EDGE",
                 "TENANT": "TENANT",
                 "RULE_CHAIN": "RULE_CHAIN",
                 "USER": "USER",
@@ -90,6 +92,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 "ASSET": "ASSET_GROUP",
                 "USER": "USER_GROUP",
                 "ENTITY_VIEW": "ENTITY_VIEW_GROUP",
+                "EDGE": "EDGE_GROUP",
                 "DASHBOARD": "DASHBOARD_GROUP"
             },
             operation: {
@@ -118,6 +121,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 "ASSET": "ASSET",
                 "DEVICE": "DEVICE",
                 "ENTITY_VIEW": "ENTITY_VIEW",
+                "EDGE": "EDGE",
                 "DASHBOARD": "DASHBOARD"
             }
         }

@@ -143,6 +143,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.entityView:
                 promise = entityViewService.saveEntityView(entity);
                 break;
+            case types.entityType.edge:
+                promise = edgeService.saveEdge(entity);
+                break;
             case types.entityType.tenant:
                 promise = tenantService.saveTenant(entity);
                 break;
@@ -228,6 +231,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.entityView:
                 promise = entityViewService.saveEntityView(entity, entityGroupId);
+                break;
+            case types.entityType.edge:
+                promise = edgeService.saveEdge(entity, entityGroupId);
                 break;
             case types.entityType.customer:
                 promise = customerService.saveCustomer(entity, entityGroupId);
@@ -977,6 +983,21 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
+            case types.aliasFilterType.edgeType.value:
+                getEntitiesByNameFilter(types.entityType.edge, filter.edgeNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, filter.edgeType).then(
+                    function success(entities) {
+                        if (entities && entities.length || !failOnEmpty) {
+                            result.entities = entitiesToEntitiesInfo(entities);
+                            deferred.resolve(result);
+                        } else {
+                            deferred.reject();
+                        }
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                break;
             case types.aliasFilterType.relationsQuery.value:
                 result.stateEntity = filter.rootStateEntity;
                 var rootEntityType;
@@ -1031,6 +1052,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.aliasFilterType.assetSearchQuery.value:
             case types.aliasFilterType.deviceSearchQuery.value:
             case types.aliasFilterType.entityViewSearchQuery.value:
+            case types.aliasFilterType.edgeSearchQuery.value:
                 result.stateEntity = filter.rootStateEntity;
                 if (result.stateEntity && stateEntityId) {
                     rootEntityType = stateEntityId.entityType;
@@ -1178,6 +1200,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.device;
             case types.aliasFilterType.entityViewType.value:
                 return entityType === types.entityType.entityView;
+            case types.aliasFilterType.edgeType.value:
+                return entityType === types.entityType.edge;
             case types.aliasFilterType.relationsQuery.value:
                 return true;
             case types.aliasFilterType.assetSearchQuery.value:
@@ -1326,6 +1350,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityFieldKeys.push(types.entityField.phone.keyName);
                 break;
             case types.entityType.entityView:
+            case types.entityType.edge:
                 entityFieldKeys.push(types.entityField.name.keyName);
                 entityFieldKeys.push(types.entityField.type.keyName);
                 break;
@@ -1541,6 +1566,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 findByQueryPromise = deviceService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             } else if (entityType == types.entityType.entityView) {
                 findByQueryPromise = entityViewService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
+            } else if (entityType == types.entityType.edge) {
+                findByQueryPromise = edgeService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             }
             findByQueryPromise.then(
                 function success(entities) {

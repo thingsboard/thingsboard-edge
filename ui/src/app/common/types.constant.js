@@ -694,6 +694,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ENTITY_VIEW": {
                     helpId: 'entityViews'
+                },
+                "EDGE": {
+                    helpId: 'edges'
                 }
             },
             importEntityColumnType: {
@@ -911,7 +914,18 @@ export default angular.module('thingsboard.types', [])
                     type: 'entity.type-edge',
                     typePlural: 'entity.type-edges',
                     list: 'entity.list-of-edges',
-                    nameStartsWith: 'entity.edge-name-starts-with'
+                    nameStartsWith: 'entity.edge-name-starts-with',
+                    details: 'edge.edge-details',
+                    add: 'edge.add',
+                    noEntities: 'edge.no-edges-text',
+                    selectedEntities: 'edge.selected-edges',
+                    search: 'edge.search',
+                    selectGroupToAdd: 'edge.select-group-to-add',
+                    selectGroupToMove: 'edge.select-group-to-move',
+                    removeFromGroup: 'edge.remove-edges-from-group',
+                    group: 'edge.group',
+                    groupList: 'edge.list-of-groups',
+                    groupNameStartsWith: 'edge.group-name-starts-with'
                 },
                 "SCHEDULER_EVENT": {
                     type: 'entity.type-scheduler-event',

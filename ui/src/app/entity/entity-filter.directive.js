@@ -53,6 +53,7 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
             types.entityType.device,
             types.entityType.user,
             types.entityType.entityView,
+            types.entityType.edge,
             types.entityType.dashboard
         ];
 
@@ -122,6 +123,10 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                 case types.aliasFilterType.entityViewType.value:
                     filter.entityViewType = null;
                     filter.entityViewNameFilter = '';
+                    break;
+                case types.aliasFilterType.edgeType.value:
+                    filter.edgeType = null;
+                    filter.edgeTypeNameFilter = '';
                     break;
                 case types.aliasFilterType.relationsQuery.value:
                 case types.aliasFilterType.assetSearchQuery.value:
