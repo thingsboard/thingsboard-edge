@@ -998,6 +998,21 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
+            case types.aliasFilterType.edgeType.value:
+                getEntitiesByNameFilter(types.entityType.edge, filter.edgeNameFilter, maxItems, {ignoreLoading: true}, filter.edgeType).then(
+                    function success(entities) {
+                        if (entities && entities.length || !failOnEmpty) {
+                            result.entities = entitiesToEntitiesInfo(entities);
+                            deferred.resolve(result);
+                        } else {
+                            deferred.reject();
+                        }
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                break;
             case types.aliasFilterType.relationsQuery.value:
                 result.stateEntity = filter.rootStateEntity;
                 var rootEntityType;

@@ -132,6 +132,7 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                 case types.aliasFilterType.assetSearchQuery.value:
                 case types.aliasFilterType.deviceSearchQuery.value:
                 case types.aliasFilterType.entityViewSearchQuery.value:
+                case types.aliasFilterType.edgeSearchQuery.value:
                     filter.rootStateEntity = false;
                     filter.stateEntityParamName = null;
                     filter.defaultStateEntity = null;
@@ -150,6 +151,9 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     } else if (filter.type === types.aliasFilterType.entityViewSearchQuery.value) {
                         filter.relationType = null;
                         filter.entityViewTypes = [];
+                    } else if (filter.type === types.aliasFilterType.edgeSearchQuery.value) {
+                        filter.relationType = null;
+                        filter.edgeTypes = [];
                     }
                     break;
             }
