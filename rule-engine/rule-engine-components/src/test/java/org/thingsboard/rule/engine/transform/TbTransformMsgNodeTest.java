@@ -76,8 +76,8 @@ public class TbTransformMsgNodeTest {
 
         RuleChainId ruleChainId = new RuleChainId(UUIDs.timeBased());
         RuleNodeId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
-        TbMsg transformedMsg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, "{new}", ruleChainId, ruleNodeId, 0L);
+        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId);
+        TbMsg transformedMsg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, "{new}", ruleChainId, ruleNodeId);
         mockJsExecutor();
         when(scriptEngine.executeUpdate(msg)).thenReturn(transformedMsg);
 
@@ -98,7 +98,7 @@ public class TbTransformMsgNodeTest {
 
         RuleChainId ruleChainId = new RuleChainId(UUIDs.timeBased());
         RuleNodeId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
+        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId);
         mockJsExecutor();
         when(scriptEngine.executeUpdate(msg)).thenThrow(new IllegalStateException("error"));
 

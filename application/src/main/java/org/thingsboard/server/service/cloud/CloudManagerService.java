@@ -763,7 +763,7 @@ public class CloudManagerService {
                         Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
                         if (device != null) {
                             tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), device.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                                    tmp.getDataType(), tmp.getData(), null, null);
                         }
                         break;
                     case ASSET:
@@ -771,7 +771,7 @@ public class CloudManagerService {
                         Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
                         if (asset != null) {
                             tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                                    tmp.getDataType(), tmp.getData(), null, null);
                         }
                         break;
                     case ENTITY_VIEW:
@@ -779,7 +779,7 @@ public class CloudManagerService {
                         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
                         if (entityView != null) {
                             tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null, 0L);
+                                    tmp.getDataType(), tmp.getData(), null, null);
                         }
                         break;
                 }

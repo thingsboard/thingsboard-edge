@@ -61,10 +61,10 @@ public class ConsistentClusterRoutingService implements ClusterRoutingService {
     @Autowired
     private DiscoveryService discoveryService;
 
-    @Value("${cluster.hash_function_name}")
-    private String hashFunctionName;
-    @Value("${cluster.vitrual_nodes_size}")
-    private Integer virtualNodesSize;
+//    @Value("${cluster.hash_function_name}")
+//    private String hashFunctionName;
+//    @Value("${cluster.vitrual_nodes_size}")
+//    private Integer virtualNodesSize;
 
     private ServerInstance currentServer;
 
@@ -76,7 +76,7 @@ public class ConsistentClusterRoutingService implements ClusterRoutingService {
     @PostConstruct
     public void init() {
         log.info("Initializing Cluster routing service!");
-        this.hashFunction = MiscUtils.forName(hashFunctionName);
+//        this.hashFunction = MiscUtils.forName(hashFunctionName);
         this.currentServer = discoveryService.getCurrentServer();
         this.circles = new ConsistentHashCircle[ServerType.values().length];
         for (ServerType serverType : ServerType.values()) {
@@ -157,15 +157,15 @@ public class ConsistentClusterRoutingService implements ClusterRoutingService {
     }
 
     private void addNode(ServerInstance instance) {
-        for (int i = 0; i < virtualNodesSize; i++) {
-            circles[instance.getServerAddress().getServerType().ordinal()].put(hash(instance, i).asLong(), instance);
-        }
+//        for (int i = 0; i < virtualNodesSize; i++) {
+//            circles[instance.getServerAddress().getServerType().ordinal()].put(hash(instance, i).asLong(), instance);
+//        }
     }
 
     private void removeNode(ServerInstance instance) {
-        for (int i = 0; i < virtualNodesSize; i++) {
-            circles[instance.getServerAddress().getServerType().ordinal()].remove(hash(instance, i).asLong());
-        }
+//        for (int i = 0; i < virtualNodesSize; i++) {
+//            circles[instance.getServerAddress().getServerType().ordinal()].remove(hash(instance, i).asLong());
+//        }
     }
 
     private HashCode hash(ServerInstance instance, int i) {

@@ -80,18 +80,18 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
             new ConcurrentHashMap<>();
 
     public void init(RpcMsgListener listener) {
-        this.listener = listener;
-        log.info("Initializing RPC service!");
-        instance = instanceService.getSelf();
-        server = ServerBuilder.forPort(instance.getPort()).addService(this).build();
-        log.info("Going to start RPC server using port: {}", instance.getPort());
-        try {
-            server.start();
-        } catch (IOException e) {
-            log.error("Failed to start RPC server!", e);
-            throw new RuntimeException("Failed to start RPC server!");
-        }
-        log.info("RPC service initialized!");
+//        this.listener = listener;
+//        log.info("Initializing RPC service!");
+//        instance = instanceService.getSelf();
+//        server = ServerBuilder.forPort(instance.getPort()).addService(this).build();
+//        log.info("Going to start RPC server using port: {}", instance.getPort());
+//        try {
+//            server.start();
+//        } catch (IOException e) {
+//            log.error("Failed to start RPC server!", e);
+//            throw new RuntimeException("Failed to start RPC server!");
+//        }
+//        log.info("RPC service initialized!");
     }
 
     @Override
@@ -134,7 +134,7 @@ public class ClusterGrpcService extends ClusterRpcServiceGrpc.ClusterRpcServiceI
 
     @Override
     public void broadcast(RpcBroadcastMsg msg) {
-        listener.onBroadcastMsg(msg);
+//        listener.onBroadcastMsg(msg);
     }
 
     private StreamObserver<ClusterAPIProtos.ClusterMessage> createSession(RpcSessionCreateRequestMsg msg) {

@@ -345,7 +345,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
     private void handlePostAttributesRequest(ActorContext context, SessionInfoProto sessionInfo, PostAttributeMsg postAttributes) {
         JsonObject json = getJsonObject(postAttributes.getKvList());
         TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, defaultMetaData.copy(),
-                TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
+                TbMsgDataType.JSON, gson.toJson(json), null, null);
         pushToRuleEngine(context, tbMsg);
     }
 
@@ -354,7 +354,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
             TbMsgMetaData metaData = defaultMetaData.copy();
             metaData.putValue("ts", tsKv.getTs() + "");
             JsonObject json = getJsonObject(tsKv.getKvList());
-            TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
+            TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), deviceId, metaData, TbMsgDataType.JSON, gson.toJson(json), null, null);
             pushToRuleEngine(context, tbMsg);
         }
     }
@@ -367,7 +367,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
 
         TbMsgMetaData requestMetaData = defaultMetaData.copy();
         requestMetaData.putValue("requestId", Integer.toString(request.getRequestId()));
-        TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.TO_SERVER_RPC_REQUEST.name(), deviceId, requestMetaData, TbMsgDataType.JSON, gson.toJson(json), null, null, 0L);
+        TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), SessionMsgType.TO_SERVER_RPC_REQUEST.name(), deviceId, requestMetaData, TbMsgDataType.JSON, gson.toJson(json), null, null);
         context.parent().tell(new DeviceActorToRuleEngineMsg(context.self(), tbMsg), context.self());
 
         scheduleMsgWithDelay(context, new DeviceActorClientSideRpcTimeoutMsg(request.getRequestId(), systemContext.getClientSideRpcTimeout()), systemContext.getClientSideRpcTimeout());

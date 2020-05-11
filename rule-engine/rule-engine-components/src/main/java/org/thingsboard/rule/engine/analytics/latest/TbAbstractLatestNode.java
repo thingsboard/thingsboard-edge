@@ -104,7 +104,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
                         TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                                 originatorId, new TbMsgMetaData(), TbMsgDataType.JSON,
-                                "", null, null, 0L);
+                                "", null, null);
                         ctx.tellFailure(msg, e);
                         return Optional.empty();
                     });
@@ -115,7 +115,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             JsonObject messageData = element.get();
                             TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                                     originatorId, metaData, TbMsgDataType.JSON,
-                                    gson.toJson(messageData), null, null, 0L);
+                                    gson.toJson(messageData), null, null);
                             ctx.tellNext(msg, SUCCESS);
                             return msg;
                         } else {

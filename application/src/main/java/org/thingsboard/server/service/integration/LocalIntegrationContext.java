@@ -258,7 +258,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushDeviceCreatedEventToRuleEngine(Device device) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null, 0L);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null);
             ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
@@ -268,7 +268,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null, 0L);
+            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null);
             ctx.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);

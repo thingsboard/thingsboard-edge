@@ -48,19 +48,19 @@ import static org.thingsboard.server.utils.MiscUtils.missingProperty;
 @Slf4j
 public class CurrentServerInstanceService implements ServerInstanceService {
 
-    @Value("${rpc.bind_host}")
-    private String rpcHost;
-    @Value("${rpc.bind_port}")
-    private Integer rpcPort;
+//    @Value("${rpc.bind_host}")
+//    private String rpcHost;
+//    @Value("${rpc.bind_port}")
+//    private Integer rpcPort;
 
     private ServerInstance self;
 
     @PostConstruct
     public void init() {
-        Assert.hasLength(rpcHost, missingProperty("rpc.bind_host"));
-        Assert.notNull(rpcPort, missingProperty("rpc.bind_port"));
-        self = new ServerInstance(new ServerAddress(rpcHost, rpcPort, ServerType.CORE));
-        log.info("Current server instance: [{};{}]", self.getHost(), self.getPort());
+//        Assert.hasLength(rpcHost, missingProperty("rpc.bind_host"));
+//        Assert.notNull(rpcPort, missingProperty("rpc.bind_port"));
+//        self = new ServerInstance(new ServerAddress(rpcHost, rpcPort, ServerType.CORE));
+//        log.info("Current server instance: [{};{}]", self.getHost(), self.getPort());
     }
 
     @Override

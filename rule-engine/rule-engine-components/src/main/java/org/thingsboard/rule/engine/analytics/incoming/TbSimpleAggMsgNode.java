@@ -190,7 +190,7 @@ public class TbSimpleAggMsgNode implements TbNode {
             metaData.putValue("ts", Long.toString(ts));
             ctx.tellNext(new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, TbMsgDataType.JSON,
                     interval.toValueJson(gson, config.getOutputValueKey()),
-                    null, null, 0L), TbRelationTypes.SUCCESS);
+                    null, null), TbRelationTypes.SUCCESS);
         }));
 
         intervals.cleanupStatesUsingTTL();

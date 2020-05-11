@@ -203,7 +203,7 @@ public class DefaultDeviceRpcService implements DeviceRpcService {
         try {
             TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), DataConstants.RPC_CALL_FROM_SERVER_TO_DEVICE, msg.getDeviceId(), metaData, TbMsgDataType.JSON
                     , json.writeValueAsString(entityNode)
-                    , null, null, 0L);
+                    , null, null);
             actorService.onMsg(new SendToClusterMsg(msg.getDeviceId(), new ServiceToRuleEngineMsg(msg.getTenantId(), tbMsg)));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

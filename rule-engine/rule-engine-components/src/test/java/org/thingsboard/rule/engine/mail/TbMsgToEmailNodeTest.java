@@ -78,7 +78,7 @@ public class TbMsgToEmailNodeTest {
         metaData.putValue("name", "temp");
         metaData.putValue("passed", "5");
         metaData.putValue("count", "100");
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", originator, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
+        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", originator, metaData, rawJson, ruleChainId, ruleNodeId);
 
         emailNode.onMsg(ctx, msg);
 

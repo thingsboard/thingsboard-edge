@@ -94,7 +94,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             } catch (Exception e) {
                 TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                         parentEntityId, new TbMsgMetaData(), TbMsgDataType.JSON,
-                        "", null, null, 0L);
+                        "", null, null);
                 ctx.tellFailure(msg, new RuntimeException("Failed to fetch child entities for parent entity [" + parentEntityId + "]", e));
             }
         }

@@ -59,18 +59,18 @@ public class RpcManagerActor extends ContextAwareActor {
 
     private final Map<ServerAddress, SessionActorInfo> sessionActors;
     private final Map<ServerAddress, Queue<ClusterAPIProtos.ClusterMessage>> pendingMsgs;
-    private final ServerAddress instance;
+//    private final ServerAddress instance;
 
     private RpcManagerActor(ActorSystemContext systemContext) {
         super(systemContext);
         this.sessionActors = new HashMap<>();
         this.pendingMsgs = new HashMap<>();
-        this.instance = systemContext.getDiscoveryService().getCurrentServer().getServerAddress();
+//        this.instance = systemContext.getDiscoveryService().getCurrentServer().getServerAddress();
 
-        systemContext.getDiscoveryService().getOtherServers().stream()
-                .filter(otherServer -> otherServer.getServerAddress().compareTo(instance) > 0)
-                .forEach(otherServer -> onCreateSessionRequest(
-                        new RpcSessionCreateRequestMsg(UUID.randomUUID(), otherServer.getServerAddress(), null)));
+//        systemContext.getDiscoveryService().getOtherServers().stream()
+//                .filter(otherServer -> otherServer.getServerAddress().compareTo(instance) > 0)
+//                .forEach(otherServer -> onCreateSessionRequest(
+//                        new RpcSessionCreateRequestMsg(UUID.randomUUID(), otherServer.getServerAddress(), null)));
     }
 
     @Override
@@ -93,9 +93,10 @@ public class RpcManagerActor extends ContextAwareActor {
             onSessionDisconnected((RpcSessionDisconnectedMsg) msg);
         } else if (msg instanceof RpcSessionClosedMsg) {
             onSessionClosed((RpcSessionClosedMsg) msg);
-        } else if (msg instanceof ClusterEventMsg) {
-            onClusterEvent((ClusterEventMsg) msg);
         }
+//        else if (msg instanceof ClusterEventMsg) {
+//            onClusterEvent((ClusterEventMsg) msg);
+//        }
     }
 
     private void onMsg(RpcBroadcastMsg msg) {
@@ -142,16 +143,16 @@ public class RpcManagerActor extends ContextAwareActor {
         pendingMsgs.clear();
     }
 
-    private void onClusterEvent(ClusterEventMsg msg) {
-        ServerAddress server = msg.getServerAddress();
-        if (server.compareTo(instance) > 0) {
-            if (msg.isAdded()) {
-                onCreateSessionRequest(new RpcSessionCreateRequestMsg(UUID.randomUUID(), server, null));
-            } else {
-                onSessionClose(false, server);
-            }
-        }
-    }
+//    private void onClusterEvent(ClusterEventMsg msg) {
+//        ServerAddress server = msg.getServerAddress();
+//        if (server.compareTo(instance) > 0) {
+//            if (msg.isAdded()) {
+//                onCreateSessionRequest(new RpcSessionCreateRequestMsg(UUID.randomUUID(), server, null));
+//            } else {
+//                onSessionClose(false, server);
+//            }
+//        }
+//    }
 
     private void onSessionConnected(RpcSessionConnectedMsg msg) {
         register(msg.getRemoteAddress(), msg.getId(), context().sender());

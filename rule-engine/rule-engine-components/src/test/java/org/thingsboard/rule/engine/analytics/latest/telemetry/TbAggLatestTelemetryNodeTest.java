@@ -127,7 +127,7 @@ public class TbAggLatestTelemetryNodeTest {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[2];
             String data = (String) (invocationOnMock.getArguments())[3];
             return new TbMsg(UUIDs.timeBased(), type, originator, metaData.copy(), data,
-                    ruleChainId, ruleNodeId, 0);
+                    ruleChainId, ruleNodeId);
         }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(EntityId.class),
                 Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
 

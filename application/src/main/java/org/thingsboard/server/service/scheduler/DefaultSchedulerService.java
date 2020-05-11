@@ -235,7 +235,7 @@ public class DefaultSchedulerService implements SchedulerService {
                     TbMsgMetaData tbMsgMD = getTbMsgMetaData(event, configuration);
                     TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), msgType, originatorId, tbMsgMD,
                             TbMsgDataType.JSON, getMsgBody(event.getConfiguration()),
-                            null, null, 0L);
+                            null, null);
                     actorService.onMsg(new SendToClusterMsg(event.getTenantId(), new ServiceToRuleEngineMsg(event.getTenantId(), tbMsg)));
                 } catch (Exception e) {
                     log.error("[{}][{}] Failed to trigger event", event.getTenantId(), eventId, e);

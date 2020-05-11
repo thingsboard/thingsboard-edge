@@ -170,7 +170,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
                 "CUSTOM",
                 device.getId(),
                 new TbMsgMetaData(),
-                "{}", null, null, 0L);
+                "{}", null, null);
         actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(savedTenant.getId(), tbMsg)));
 
         Thread.sleep(3000);
@@ -285,7 +285,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
                 "CUSTOM",
                 device.getId(),
                 new TbMsgMetaData(),
-                "{}", null, null, 0L);
+                "{}", null, null);
         actorService.onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(savedTenant.getId(), tbMsg)));
 
         Thread.sleep(3000);

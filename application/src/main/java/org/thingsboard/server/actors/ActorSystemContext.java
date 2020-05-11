@@ -311,9 +311,9 @@ public class ActorSystemContext {
     @Getter
     private RuleChainTransactionService ruleChainTransactionService;
 
-    @Value("${cluster.partition_id}")
-    @Getter
-    private long queuePartitionId;
+//    @Value("${cluster.partition_id}")
+//    @Getter
+//    private long queuePartitionId;
 
     @Autowired
     @Getter private PlatformIntegrationService platformIntegrationService;
@@ -413,7 +413,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.ERROR);
-        event.setBody(toBodyJson(discoveryService.getCurrentServer().getServerAddress(), method, toString(e)));
+        event.setBody(toBodyJson(method, toString(e)));
         persistEvent(event);
     }
 
@@ -422,7 +422,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.LC_EVENT);
-        event.setBody(toBodyJson(discoveryService.getCurrentServer().getServerAddress(), lcEvent, Optional.ofNullable(e)));
+        event.setBody(toBodyJson(lcEvent, Optional.ofNullable(e)));
         persistEvent(event);
     }
 
@@ -436,8 +436,8 @@ public class ActorSystemContext {
         return sw.toString();
     }
 
-    private JsonNode toBodyJson(ServerAddress server, ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", server.toString()).put("event", event.name());
+    private JsonNode toBodyJson(ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = mapper.createObjectNode().put("event", event.name());
         if (e.isPresent()) {
             node = node.put("success", false);
             node = node.put("error", toString(e.get()));
@@ -447,12 +447,8 @@ public class ActorSystemContext {
         return node;
     }
 
-    private JsonNode toBodyJson(ServerAddress server, String method, String body) {
-        return mapper.createObjectNode().put("server", server.toString()).put("method", method).put("error", body);
-    }
-
-    public String getServerAddress() {
-        return discoveryService.getCurrentServer().getServerAddress().toString();
+    private JsonNode toBodyJson(String method, String body) {
+        return mapper.createObjectNode().put("method", method).put("error", body);
     }
 
     public void persistDebugInput(TenantId tenantId, EntityId entityId, TbMsg tbMsg, String relationType) {
@@ -483,7 +479,6 @@ public class ActorSystemContext {
 
                 ObjectNode node = mapper.createObjectNode()
                         .put("type", type)
-                        .put("server", getServerAddress())
                         .put("entityId", tbMsg.getOriginator().getId().toString())
                         .put("entityName", tbMsg.getOriginator().getEntityType().name())
                         .put("msgId", tbMsg.getId().toString())
@@ -545,7 +540,6 @@ public class ActorSystemContext {
 
         ObjectNode node = mapper.createObjectNode()
                 //todo: what fields are needed here?
-                .put("server", getServerAddress())
                 .put("message", "Reached debug mode rate limit!");
 
         if (error != null) {

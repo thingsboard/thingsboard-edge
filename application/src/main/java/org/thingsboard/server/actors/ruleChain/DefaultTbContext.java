@@ -191,12 +191,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return new TbMsg(UUIDs.timeBased(), type, originator, metaData.copy(), data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId(), mainCtx.getQueuePartitionId());
+        return new TbMsg(UUIDs.timeBased(), type, originator, metaData.copy(), data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
     }
 
     @Override
     public TbMsg transformMsg(TbMsg origMsg, String type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return new TbMsg(origMsg.getId(), type, originator, metaData.copy(), origMsg.getDataType(), data, origMsg.getTransactionData(), origMsg.getRuleChainId(), origMsg.getRuleNodeId(), mainCtx.getQueuePartitionId());
+        return new TbMsg(origMsg.getId(), type, originator, metaData.copy(), origMsg.getDataType(), data, origMsg.getTransactionData(), origMsg.getRuleChainId(), origMsg.getRuleNodeId());
     }
 
     @Override
@@ -207,7 +207,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public TbMsg customerCreatedMsg(Customer customer, RuleNodeId ruleNodeId) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
-            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process customer created msg: " + e);
         }
@@ -216,7 +216,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
         try {
             ObjectNode entityNode = mapper.valueToTree(device);
-            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process device created msg: " + e);
         }
@@ -225,7 +225,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
-            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, asset.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+            return new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, asset.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process asset created msg: " + e);
         }
@@ -246,7 +246,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     private TbMsg alarmMsg(Alarm alarm, RuleNodeId ruleNodeId, String type) {
         try {
             ObjectNode entityNode = mapper.valueToTree(alarm);
-            return new TbMsg(UUIDs.timeBased(), type, alarm.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null, 0L);
+            return new TbMsg(UUIDs.timeBased(), type, alarm.getId(), getActionMetaData(ruleNodeId), mapper.writeValueAsString(entityNode), null, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process alarm created, updated or cleared msg: " + e);
         }

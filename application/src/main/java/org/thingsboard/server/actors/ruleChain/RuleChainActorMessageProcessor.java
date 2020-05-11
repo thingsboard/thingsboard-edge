@@ -332,14 +332,14 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     private void enqueueAndForwardMsgCopyToChain(TbMsg msg, EntityId target, String fromRelationType) {
         RuleChainId targetRCId = new RuleChainId(target.getId());
-        TbMsg copyMsg = msg.copy(UUIDs.timeBased(), targetRCId, null, DEFAULT_CLUSTER_PARTITION);
+        TbMsg copyMsg = msg.copy(UUIDs.timeBased(), targetRCId, null);
         parent.tell(new RuleChainToRuleChainMsg(new RuleChainId(target.getId()), entityId, copyMsg, fromRelationType, true), self);
     }
 
     private void enqueueAndForwardMsgCopyToNode(TbMsg msg, EntityId target, String fromRelationType) {
         RuleNodeId targetId = new RuleNodeId(target.getId());
         RuleNodeCtx targetNodeCtx = nodeActors.get(targetId);
-        TbMsg copy = msg.copy(UUIDs.timeBased(), entityId, targetId, DEFAULT_CLUSTER_PARTITION);
+        TbMsg copy = msg.copy(UUIDs.timeBased(), entityId, targetId);
         pushMsgToNode(targetNodeCtx, copy, fromRelationType);
     }
 
@@ -495,7 +495,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
 
     private TbMsg enrichWithRuleChainId(TbMsg tbMsg) {
         // We don't put firstNodeId because it may change over time;
-        return new TbMsg(tbMsg.getId(), tbMsg.getType(), tbMsg.getOriginator(), tbMsg.getMetaData().copy(), tbMsg.getData(), entityId, null, systemContext.getQueuePartitionId());
+        return new TbMsg(tbMsg.getId(), tbMsg.getType(), tbMsg.getOriginator(), tbMsg.getMetaData().copy(), tbMsg.getData(), entityId, null);
     }
 
 }
