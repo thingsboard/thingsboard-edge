@@ -48,7 +48,8 @@ export default function EntityGroupSelectDirective($compile, $templateCache, typ
                            types.entityType.device,
                            types.entityType.user,
                            types.entityType.entityView,
-                           types.entityType.dashboard
+                           types.entityType.dashboard,
+                            types.entityType.edge
         ];
 
         if (scope.allowedGroupTypes && scope.allowedGroupTypes.length) {

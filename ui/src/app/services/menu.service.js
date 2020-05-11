@@ -1263,7 +1263,8 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             types.entityType.device,
             types.entityType.user,
             types.entityType.entityView,
-            types.entityType.dashboard
+            types.entityType.dashboard,
+            types.entityType.edge
         ];
         for (var i=0;i<groupTypes.length;i++) {
             if (service[groupTypes[i] + 'changeHandle']) {

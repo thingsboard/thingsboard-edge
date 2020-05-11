@@ -308,6 +308,8 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                 targetState = 'entityViewGroups.entityViewGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
+            } else if (entityGroup.type == types.entityType.edge) {
+                targetState = 'edgeGroups.edgeGroup';
             }
             if (targetState) {
                 targetState = targetStatePrefix + targetState;

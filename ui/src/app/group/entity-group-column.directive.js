@@ -78,6 +78,7 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
         case types.entityType.entityView:
             vm.columnTypes = types.entityGroup.columnType;
             break;
+        case types.entityType.edge:
     }
 
     vm.entityField.created_time = types.entityGroup.entityField.created_time;
@@ -117,6 +118,11 @@ function EntityGroupColumnController($scope, $mdMedia, $mdDialog, $document, typ
             break;
         case types.entityType.dashboard:
             vm.entityField.title = types.entityGroup.entityField.title;
+            break;
+        case types.entityType.edge:
+            vm.entityField.type = types.entityGroup.entityField.type;
+            vm.entityField.label = types.entityGroup.entityField.label;
+            vm.entityField.assigned_customer = types.entityGroup.entityField.assigned_customer;
             break;
     }
 
