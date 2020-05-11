@@ -44,6 +44,7 @@ function EdgeService($http, $q, customerService) {
         getEdgeTypes: getEdgeTypes,
         getTenantEdges: getTenantEdges,
         getCustomerEdges: getCustomerEdges,
+        getUserEdges: getUserEdges,
         assignEdgeToCustomer: assignEdgeToCustomer,
         unassignEdgeFromCustomer: unassignEdgeFromCustomer,
         makeEdgePublic: makeEdgePublic,
@@ -213,6 +214,29 @@ function EdgeService($http, $q, customerService) {
             deferred.reject();
         });
 
+        return deferred.promise;
+    }
+
+    function getUserEdges(pageLink, config, type) {
+        var deferred = $q.defer();
+        var url = '/api/user/edges?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (angular.isDefined(type) && type.length) {
+            url += '&type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
         return deferred.promise;
     }
 
