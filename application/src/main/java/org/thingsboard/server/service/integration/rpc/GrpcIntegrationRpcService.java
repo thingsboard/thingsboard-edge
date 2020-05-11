@@ -95,27 +95,27 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
 
     @PostConstruct
     public void init() {
-        log.info("Initializing RPC service!");
-        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
-        if (sslEnabled) {
-            try {
-                File certFile = new File(Resources.getResource(certFileResource).toURI());
-                File privateKeyFile = new File(Resources.getResource(privateKeyResource).toURI());
-                builder.useTransportSecurity(certFile, privateKeyFile);
-            } catch (Exception e) {
-                log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
-                throw new RuntimeException("Unable to set up SSL context!", e);
-            }
-        }
-        server = builder.build();
-        log.info("Going to start RPC server using port: {}", rpcPort);
-        try {
-            server.start();
-        } catch (IOException e) {
-            log.error("Failed to start RPC server!", e);
-            throw new RuntimeException("Failed to start RPC server!");
-        }
-        log.info("RPC service initialized!");
+//        log.info("Initializing RPC service!");
+//        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
+//        if (sslEnabled) {
+//            try {
+//                File certFile = new File(Resources.getResource(certFileResource).toURI());
+//                File privateKeyFile = new File(Resources.getResource(privateKeyResource).toURI());
+//                builder.useTransportSecurity(certFile, privateKeyFile);
+//            } catch (Exception e) {
+//                log.error("Unable to set up SSL context. Reason: " + e.getMessage(), e);
+//                throw new RuntimeException("Unable to set up SSL context!", e);
+//            }
+//        }
+//        server = builder.build();
+//        log.info("Going to start RPC server using port: {}", rpcPort);
+//        try {
+//            server.start();
+//        } catch (IOException e) {
+//            log.error("Failed to start RPC server!", e);
+//            throw new RuntimeException("Failed to start RPC server!");
+//        }
+//        log.info("RPC service initialized!");
     }
 
     @PreDestroy
