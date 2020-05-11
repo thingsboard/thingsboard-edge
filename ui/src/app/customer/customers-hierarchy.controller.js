@@ -499,7 +499,7 @@ export default function CustomersHierarchyController($scope, types, securityType
             case vm.types.entityType.entityView:
                 return $translate.instant('entity-group.entity-view-groups');
             case vm.types.entityType.edge:
-                return $translate.instant('edge.edge-groups');
+                return $translate.instant('entity-group.edge-groups');
             case vm.types.entityType.dashboard:
                 return $translate.instant('entity-group.dashboard-groups');
         }

@@ -146,6 +146,12 @@
           content: "supervisor_account";
         }
       }
+
+      &.tb-edge-group {
+        &::before {
+          content: "router";
+        }
+      }
     }
   }
 }
