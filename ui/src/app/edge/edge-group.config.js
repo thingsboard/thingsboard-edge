@@ -29,7 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types, userService, edgeService) {
+export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types, userService, edgeService,
+                                        importExport, userPermissionsService, securityTypes) {
 
     var service = {
         createConfig: createConfig
@@ -59,6 +60,9 @@ export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types,
             },
             assignmentEnabled: () => {
                 return settings.enableAssignment;
+            },
+            manageCredentialsEnabled: () => {
+                return settings.enableCredentialsManagement;
             },
             deleteEnabled: () => {
                 return settings.enableDelete;
@@ -132,6 +136,36 @@ export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types,
                 },
             }
         ];*/
+
+        groupConfig.onImportEdges = (event)  => {
+            var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
+            var customerId = null;
+            if (entityGroup.ownerId.entityType === types.entityType.customer) {
+                customerId = entityGroup.ownerId;
+            }
+            importExport.importEntities(event, customerId, types.entityType.edge, entityGroupId).then(
+                function() {
+                    groupConfig.onEntityAdded();
+                });
+        };
+
+        groupConfig.headerActionDescriptors = [
+        ];
+
+        if (userPermissionsService.hasGroupEntityPermission(securityTypes.operation.create, entityGroup)) {
+            groupConfig.headerActionDescriptors.push(
+                {
+                    name: $translate.instant('edge.import'),
+                    icon: 'file_upload',
+                    isEnabled: () => {
+                        return groupConfig.addEnabled();
+                    },
+                    onAction: ($event) => {
+                        groupConfig.onImportEdges($event);
+                    }
+                }
+            );
+        }
 
         utils.groupConfigDefaults(groupConfig);
 

@@ -998,21 +998,6 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
-            case types.aliasFilterType.edgeType.value:
-                getEntitiesByNameFilter(types.entityType.edge, filter.edgeNameFilter, maxItems, {ignoreLoading: true}, filter.edgeType).then(
-                    function success(entities) {
-                        if (entities && entities.length || !failOnEmpty) {
-                            result.entities = entitiesToEntitiesInfo(entities);
-                            deferred.resolve(result);
-                        } else {
-                            deferred.reject();
-                        }
-                    },
-                    function fail() {
-                        deferred.reject();
-                    }
-                );
-                break;
             case types.aliasFilterType.relationsQuery.value:
                 result.stateEntity = filter.rootStateEntity;
                 var rootEntityType;
@@ -1365,12 +1350,12 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityFieldKeys.push(types.entityField.phone.keyName);
                 break;
             case types.entityType.entityView:
-            case types.entityType.edge:
                 entityFieldKeys.push(types.entityField.name.keyName);
                 entityFieldKeys.push(types.entityField.type.keyName);
                 break;
             case types.entityType.device:
             case types.entityType.asset:
+            case types.entityType.edge:
                 entityFieldKeys.push(types.entityField.name.keyName);
                 entityFieldKeys.push(types.entityField.type.keyName);
                 entityFieldKeys.push(types.entityField.label.keyName);

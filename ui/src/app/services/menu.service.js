@@ -1263,6 +1263,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             types.entityType.device,
             types.entityType.user,
             types.entityType.entityView,
+            types.entityType.edge,
             types.entityType.dashboard
         ];
         for (var i=0;i<groupTypes.length;i++) {
