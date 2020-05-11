@@ -1257,7 +1257,8 @@
         "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others.",
         "copyId": "Copy entity group Id",
         "idCopiedMessage": "Entity group Id has been copied to clipboard",
-        "entity-group-name": "Entity group name"
+        "entity-group-name": "Entity group name",
+        "edge-groups": "Edge groups"
     },
     "entity-field": {
         "created-time": "Created time",
