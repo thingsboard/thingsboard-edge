@@ -29,13 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'tb-opc-ua-subscription-tags',
   templateUrl: './opc-ua-subscription-tags.component.html',
-  styleUrls: ['./opc-ua-subscription-tags.component.scss']
+  styleUrls: ['./opc-ua-subscription-tags.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OpcUaSubscriptionTagsComponent implements OnInit {
 

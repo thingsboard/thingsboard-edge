@@ -74,7 +74,7 @@
         <div form fxFlex fxLayout="column" formGroupName="identity" fxLayout="row" fxLayoutGap="8px">
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-security</mat-label>
-                <mat-select required [formControl]="form.get('security')">
+                <mat-select required [formControl]="form.get('security')" (selectionChange)="securityChanged()">
                     <mat-option [value]="security.key" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{security.value}}</span></mat-option>
                 </mat-select>

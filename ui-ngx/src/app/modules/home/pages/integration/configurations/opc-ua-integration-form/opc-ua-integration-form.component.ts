@@ -71,6 +71,13 @@ export class OpcUaIntegrationFormComponent implements OnInit {
     else this.showIdentityForm = false;
   }
 
+  securityChanged() {
+    if (this.form.get('security').value === 'None')
+      this.form.get('keystore').disable();
+    else
+      this.form.get('keystore').enable();
+  }
+
   addMap() {
     (this.form.get('mapping') as FormArray).push(
       this.fb.group({

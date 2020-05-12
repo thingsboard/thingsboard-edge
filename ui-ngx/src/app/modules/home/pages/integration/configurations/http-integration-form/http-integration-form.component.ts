@@ -109,8 +109,6 @@ export class HttpIntegrationFormComponent implements OnChanges {
     const type = this.integrationType ? this.integrationType.toLowerCase() : '';
     const key = this.routingKey || '';
     url += `/api/v1/integrations/${type}/${key}`;
-    setTimeout(() => {
-      this.form.get('httpEndpoint').patchValue(url);
-    }, 0);
+    this.form.get('httpEndpoint').patchValue(url);
   };
 }

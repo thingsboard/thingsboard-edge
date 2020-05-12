@@ -169,7 +169,7 @@ export const templates = {
     useCredentialsFromInstanceMetadata: false,
     applicationName: '',
     initialPositionInStream: '',
-    useConsumersWithEnhancedFanOut: ''
+    useConsumersWithEnhancedFanOut: false
   },
   [IntegrationType.IBM_WATSON_IOT]: {
     clientConfiguration: {
@@ -310,10 +310,7 @@ export const initialPositionInStream = {
   at_timestamp: 'AT_TIMESTAMP'
 }
 
-export const topicFilters = {
-
-}
-
+export const topicFilters = {}
 
 export const identityType = {
   anonymous: 'extension.anonymous',
