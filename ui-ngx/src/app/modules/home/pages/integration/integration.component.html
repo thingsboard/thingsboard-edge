@@ -44,7 +44,7 @@
   </div>
 </div>
 <div class="mat-padding" fxLayout="column">
-  <form [formGroup]="entityForm">
+  <form id="integration-form" [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
         <mat-label translate>integration.name</mat-label>
@@ -65,10 +65,10 @@
         </mat-error>
       </mat-form-field>
       <div fxLayout="row">
-        <mat-checkbox fxFlex="50" formControlName="enabled" style="padding-bottom: 16px;">
+        <mat-checkbox fxFlex="50" formControlName="enabled">
           {{ 'integration.enabled' | translate }}
         </mat-checkbox>
-        <mat-checkbox fxFlex formControlName="debugMode" style="padding-bottom: 16px;">
+        <mat-checkbox fxFlex formControlName="debugMode">
           {{ 'integration.debug-mode' | translate }}
         </mat-checkbox>
       </div>

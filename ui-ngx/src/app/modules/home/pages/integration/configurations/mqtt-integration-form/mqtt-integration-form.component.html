@@ -32,7 +32,7 @@
 -->
 <section [formGroup]="form" fxLayout="column" autocomplte="off">
     <fieldset>
-        <div fxLayout="column" fxLayout="row" fxLayoutGap="20px">
+        <div fxLayout="column" fxLayout="row" fxLayoutGap="8px">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
@@ -58,14 +58,16 @@
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
-            <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="/^[a-zA-Z0-9]*$/" maxlength="23">
+            <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="/^[a-zA-Z0-9]*$/"
+                maxlength="23">
             <mat-error translate *ngIf="form.get('clientId')?.hasError('pattern')">integration.client-id-pattern
             </mat-error>
             <mat-error translate *ngIf="form.get('clientId')?.hasError('maxlength')">integration.client-id-range
             </mat-error>
         </mat-form-field>
         <div fxLayout="column">
-            <mat-checkbox class="checkbox" [aria-label]="'integration.clean-session' | translate" formControlName="cleanSession">
+            <mat-checkbox class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                formControlName="cleanSession">
                 {{ 'integration.clean-session' | translate }}
             </mat-checkbox>
             <mat-checkbox class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
@@ -73,14 +75,14 @@
             </mat-checkbox>
         </div>
         <mat-accordion class="tb-integration-panel-group">
-            <mat-expansion-panel  id="expansion-panel">
+            <mat-expansion-panel id="expansion-panel">
                 <mat-expansion-panel-header fxFlex>
                     <mat-panel-title translate>integration.credentials</mat-panel-title>
                     <mat-panel-description>
                         {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <div formGroupName="credentials" >
+                <div formGroupName="credentials">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
                         <mat-select required formControlName="type" (selectionChange)="updateCredentials($event)">
@@ -92,8 +94,7 @@
                         <mat-error translate *ngIf="form.get('credentials').get('type')?.hasError('required')">
                             integration.credentials-type-required</mat-error>
                     </mat-form-field>
-                    <section
-                        *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes.basic.value">
+                    <section *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
                             <input matInput required formControlName="username" autocomplete="new-username">
@@ -102,7 +103,8 @@
                         </mat-form-field>
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.password</mat-label>
-                            <input matInput type="password" required formControlName="password" autocomplete="new-password" >
+                            <input matInput type="password" required formControlName="password"
+                                autocomplete="new-password">
                             <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
                                 integration.password-required</mat-error>
                         </mat-form-field>
@@ -118,17 +120,15 @@
                     </section>
                 </div>
             </mat-expansion-panel>
+            <tb-mqtt-topic-filters [topicFilters]="topicFilters">
+            </tb-mqtt-topic-filters>
         </mat-accordion>
     </fieldset>
-    <tb-mqtt-topic-filters [topicFilters]="topicFilters">
-    </tb-mqtt-topic-filters>
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
         <input matInput required [formControl]="downlinkTopicPattern">
-        
-            <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
-                integration.downlink-topic-pattern-required</mat-error>
-        
+        <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
+            integration.downlink-topic-pattern-required</mat-error>
     </mat-form-field>
 </section>

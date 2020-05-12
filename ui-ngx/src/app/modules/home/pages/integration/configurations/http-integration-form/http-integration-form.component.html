@@ -45,7 +45,7 @@
             </mat-checkbox>
         </div>
         <section *ngIf="integrationType === integrationTypes.HTTP ||
-                                                integrationType === integrationTypes.SIGFOX">
+                                                integrationType === integrationTypes.SIGFOX" class="security">
             <mat-checkbox [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity"
                 (change)="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
             </mat-checkbox>
@@ -67,7 +67,7 @@
                 <mat-label translate>integration.downlink-url</mat-label>
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
-            <div fxLayout="row" fxLayoutGap="20px">
+            <div fxLayout="row" fxLayoutGap="8px">
                 <mat-checkbox fxFlex [aria-label]="'integration.enable-security' | translate"
                     formControlName="enableSecurity" (change)="thingparkEnableSecurityChanged()">
                     {{ 'integration.enable-security' | translate }}
@@ -79,7 +79,7 @@
                 </mat-checkbox>
             </div>
             <section *ngIf="form.get('enableSecurity')?.value" fxLayout="column" fxLayout.gt-sm="row"
-                fxLayoutGap="20px">
+                fxLayoutGap="8px">
                 <mat-form-field fxFlex *ngIf="!form.get('enableSecurityNew')?.value" class="mat-block">
                     <mat-label translate>integration.as-id</mat-label>
                     <input matInput required formControlName="asId">
@@ -97,7 +97,7 @@
                     </mat-error>
                 </mat-form-field>
             </section>
-            <section *ngIf="form.get('enableSecurityNew')?.value" fxLayout="column" fxLayout="row" fxLayoutGap="20px">
+            <section *ngIf="form.get('enableSecurityNew')?.value" fxLayout="column" fxLayout="row" fxLayoutGap="8px">
                 <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>integration.client-id-new</mat-label>
                     <input matInput required formControlName="clientIdNew">
@@ -119,7 +119,7 @@
             </mat-form-field>
         </section>
     </fieldset>
-    <div fxLayout="row" fxLayoutGap="20px">
+    <div fxLayout="row" fxLayoutGap="8px">
         <mat-form-field class="mat-block" fxFlex>
             <mat-label translate>integration.http-endpoint</mat-label>
             <input matInput formControlName="httpEndpoint" readonly="true">

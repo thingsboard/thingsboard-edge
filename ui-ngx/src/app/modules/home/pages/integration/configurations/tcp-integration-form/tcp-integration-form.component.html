@@ -134,7 +134,7 @@
                         </mat-checkbox>
                         <p class="mat-subhead" translate>integration.message-separator</p>
                         <mat-radio-group formControlName="messageSeparator" fxFlex fxLayout="column" class="radio-box"
-                            fxLayoutGap="20px">
+                            fxLayoutGap="8px">
                             <mat-radio-button [value]="tcpTextMessageSeparator.systemLineSeparator.value">
                                 {{ 'integration.tcp.system-line-separator' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpTextMessageSeparator.nulDelimiter.value">
@@ -145,7 +145,7 @@
                         *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.binary.value">
                         <p class="mat-subhead" translate>integration.byte-order</p>
                         <mat-radio-group formControlName="byteOrder" fxFlex fxLayout="column" class="radio-box"
-                            fxLayoutGap="20px">
+                            fxLayoutGap="8px">
                             <mat-radio-button [value]="tcpBinaryByteOrder.littleEndian.value">
                                 {{ 'integration.tcp.byte-order-little-endian' | translate }}</mat-radio-button>
                             <mat-radio-button [value]="tcpBinaryByteOrder.bigEndian.value">

@@ -50,7 +50,7 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
                 <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" formControlName="accessKeyId">
+                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" formControlName="accessKeyId" autocomplete="new-id">
                 <mat-error translate *ngIf="form.get('accessKeyId')?.hasError('required')">
                     integration.kinesis-access-key-id-required</mat-error>
             </mat-form-field>
@@ -58,7 +58,7 @@
                 <mat-label translate>integration.kinesis-secret-access-key</mat-label>
                 <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
                     [readonly]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
-                    formControlName="secretAccessKey">
+                    autocomplete="new-password" formControlName="secretAccessKey">
                 <mat-error translate *ngIf="form.get('secretAccessKey')?.hasError('required')">
                     integration.kinesis-secret-access-key-required</mat-error>
             </mat-form-field>

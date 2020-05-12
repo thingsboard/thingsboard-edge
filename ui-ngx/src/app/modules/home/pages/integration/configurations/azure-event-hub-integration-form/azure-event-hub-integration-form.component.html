@@ -60,13 +60,13 @@
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.sas-key-name</mat-label>
-            <input matInput required formControlName="sasKeyName">
+            <input matInput required formControlName="sasKeyName" autocomplete="new-key">
             <mat-error translate *ngIf="form.get('sasKeyName')?.hasError('required')">integration.sas-key-name-required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.sas-key</mat-label>
-            <input matInput type="password" required formControlName="sasKey">
+            <input matInput type="password" autocomplete="new-password" required formControlName="sasKey">
             <mat-error translate *ngIf="form.get('sasKey')?.hasError('required')">integration.sas-key-required
             </mat-error>
         </mat-form-field>

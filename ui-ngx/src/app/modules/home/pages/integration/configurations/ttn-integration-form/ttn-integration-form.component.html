@@ -43,7 +43,7 @@
                 <mat-error translate *ngIf="currentHostType.hasError('required')">
                     integration.host-type-required</mat-error>
             </mat-form-field>
-            <div fxFlex="50" fxLayout="row" fxLayoutGap="20px">
+            <div fxFlex="50" fxLayout="row" fxLayoutGap="8px">
                 <mat-form-field *ngIf="currentHostType.value === 'Region'" fxFlex="60" class="mat-block">
                     <mat-label translate>integration.region</mat-label>
                     <input matInput required [formControl]="hostRegion" (change)="buildHostName()">
