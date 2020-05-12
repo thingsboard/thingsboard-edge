@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +39,11 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,32 +58,32 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     @Test
     public void testFindIntegrationsByTenantId() {
-        UUID tenantId1 = Uuids.timeBased();
-        UUID converterId1 = Uuids.timeBased();
+        UUID tenantId1 = UUIDs.timeBased();
+        UUID converterId1 = UUIDs.timeBased();
         saveTernary(tenantId1, converterId1);
         assertEquals(60, integrationDao.find(TenantId.SYS_TENANT_ID).size());
 
-        PageLink pageLink = new PageLink(20, 0, "INTEGRATION_");
-        PageData<Integration> integrations1 = integrationDao.findByTenantId(tenantId1, pageLink);
-        assertEquals(20, integrations1.getData().size());
+        TextPageLink pageLink1 = new TextPageLink(20, "INTEGRATION_");
+        List<Integration> integrations1 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink1);
+        assertEquals(20, integrations1.size());
 
-        pageLink = pageLink.nextPageLink();
-        PageData<Integration> integrations2 = integrationDao.findByTenantId(tenantId1, pageLink);
-        assertEquals(10, integrations2.getData().size());
+        TextPageLink pageLink2 = new TextPageLink(20, "INTEGRATION_", integrations1.get(19).getId().getId(), null);
+        List<Integration> integrations2 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink2);
+        assertEquals(10, integrations2.size());
 
-        pageLink = pageLink.nextPageLink();
-        PageData<Integration> integrations3 = integrationDao.findByTenantId(tenantId1, pageLink);
-        assertEquals(0, integrations3.getData().size());
+        TextPageLink pageLink3 = new TextPageLink(20, "INTEGRATION_", integrations2.get(9).getId().getId(), null);
+        List<Integration> integrations3 = integrationDao.findByTenantIdAndPageLink(tenantId1, pageLink3);
+        assertEquals(0, integrations3.size());
     }
 
     @Test
     public void testFindIntegrationByRoutingKey() {
-        UUID integrationId1 = Uuids.timeBased();
-        UUID integrationId2 = Uuids.timeBased();
-        UUID tenantId1 = Uuids.timeBased();
-        UUID tenantId2 = Uuids.timeBased();
-        UUID converterId1 = Uuids.timeBased();
-        UUID converterId2 = Uuids.timeBased();
+        UUID integrationId1 = UUIDs.timeBased();
+        UUID integrationId2 = UUIDs.timeBased();
+        UUID tenantId1 = UUIDs.timeBased();
+        UUID tenantId2 = UUIDs.timeBased();
+        UUID converterId1 = UUIDs.timeBased();
+        UUID converterId2 = UUIDs.timeBased();
         String routingKey = RandomStringUtils.randomAlphanumeric(15);
         String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
         saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT);
@@ -102,10 +102,10 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
     }
 
     private void saveTernary(UUID tenantId1, UUID converterId1) {
-        UUID tenantId2 = Uuids.timeBased();
-        UUID converterId2 = Uuids.timeBased();
+        UUID tenantId2 = UUIDs.timeBased();
+        UUID converterId2 = UUIDs.timeBased();
         for (int i = 0; i < 60; i++) {
-            UUID integrationId = Uuids.timeBased();
+            UUID integrationId = UUIDs.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
             saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),

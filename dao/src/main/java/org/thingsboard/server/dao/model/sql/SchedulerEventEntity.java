@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -124,7 +124,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Override
     public SchedulerEvent toData() {
         SchedulerEvent schedulerEvent = new SchedulerEvent(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEvent.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
+        schedulerEvent.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             schedulerEvent.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

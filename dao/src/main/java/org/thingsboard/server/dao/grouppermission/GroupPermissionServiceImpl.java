@@ -41,16 +41,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.GroupPermissionId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -60,7 +56,7 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.service.TimePaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.ArrayList;
@@ -112,53 +108,42 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public ListenableFuture<GroupPermissionInfo> findGroupPermissionInfoByIdAsync(TenantId tenantId,
-                                                                                  GroupPermissionId groupPermissionId,
-                                                                                  boolean isUserGroup) {
-        log.trace("Executing findGroupPermissionInfoByIdAsync [{}]", groupPermissionId);
-        validateId(groupPermissionId, INCORRECT_GROUP_PERMISSION_ID + groupPermissionId);
-        GroupPermission groupPermission = groupPermissionDao.findById(tenantId, groupPermissionId.getId());
-        if (isUserGroup) {
-            return fetchUserGroupPermissionInfoAsync(tenantId, groupPermission);
-        } else {
-            return fetchEntityGroupPermissionInfoAsync(tenantId, groupPermission);
-        }
-    }
-
-    @Override
-    public PageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId, PageLink pageLink) {
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupId(TenantId tenantId, EntityGroupId userGroupId, TimePageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}], pageLink [{}]", tenantId, userGroupId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
-        validatePageLink(pageLink);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
-    public PageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId, PageLink pageLink) {
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId, TimePageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndUserGroupIdAndRoleId, tenantId [{}], userGroupId [{}], roleId [{}], pageLink [{}]", tenantId, userGroupId, roleId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        validatePageLink(pageLink);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupIdAndRoleId(tenantId.getId(),
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupIdAndRoleId(tenantId.getId(),
                 userGroupId.getId(), roleId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
-    public PageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(TenantId tenantId,
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(TenantId tenantId,
                                                                                                               EntityGroupId entityGroupId,
                                                                                                               EntityGroupId userGroupId,
-                                                                                                              RoleId roleId, PageLink pageLink) {
+                                                                                                              RoleId roleId, TimePageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId, tenantId [{}], entityGroupId [{}], " +
                 "userGroupId [{}], roleId [{}], pageLink [{}]", tenantId, userGroupId, roleId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        validatePageLink(pageLink);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId.getId(),
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId.getId(),
                 entityGroupId.getId(), userGroupId.getId(), roleId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
@@ -166,15 +151,8 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         log.trace("Executing findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
-        PageData<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new PageLink(Integer.MAX_VALUE));
-        return toGroupPermissionInfoListAsync(tenantId, groupPermissions.getData(), true);
-    }
-
-    @Override
-    public ListenableFuture<List<GroupPermissionInfo>> loadUserGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> permissions) {
-        log.trace("Executing loadUserGroupPermissionInfoListAsync, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return toGroupPermissionInfoListAsync(tenantId, permissions, true);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions, true);
     }
 
     @Override
@@ -182,22 +160,23 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         log.trace("Executing findGroupPermissionListByTenantIdAndUserGroupId, tenantId [{}], userGroupId [{}]", tenantId, userGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(userGroupId, INCORRECT_USER_GROUP_ID + userGroupId);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new PageLink(Integer.MAX_VALUE)).getData();
+        return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
     }
 
     @Override
-    public PageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}], pageLink [{}]", tenantId, entityGroupId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
     public Optional<GroupPermission> findPublicGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findPublicGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
-        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new PageLink(Integer.MAX_VALUE)).getData();
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
         List<GroupPermission> permissions = groupPermissions.stream().filter((GroupPermission::isPublic)).collect(Collectors.toList());
         if (permissions.isEmpty()) {
             return Optional.empty();
@@ -211,17 +190,18 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         log.trace("Executing findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        PageData<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new PageLink(Integer.MAX_VALUE));
-        return toGroupPermissionInfoListAsync(tenantId, groupPermissions.getData(), false);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return toGroupPermissionInfoListAsync(tenantId, groupPermissions, false);
     }
 
     @Override
-    public PageData<GroupPermission> findGroupPermissionByTenantIdAndRoleId(TenantId tenantId, RoleId roleId, PageLink pageLink) {
+    public TimePageData<GroupPermission> findGroupPermissionByTenantIdAndRoleId(TenantId tenantId, RoleId roleId, TimePageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndRuleId, tenantId [{}], ruleId [{}], pageLink [{}]", tenantId, roleId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        validatePageLink(pageLink);
-        return groupPermissionDao.findGroupPermissionsByTenantIdAndRoleId(tenantId.getId(), roleId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndRoleId(tenantId.getId(), roleId.getId(), pageLink);
+        return new TimePageData<>(groupPermissions, pageLink);
     }
 
     @Override
@@ -308,7 +288,6 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 ListenableFuture<EntityGroup> entityGroup = entityGroupService.findEntityGroupByIdAsync(tenantId, groupPermission.getEntityGroupId());
                 return Futures.transformAsync(entityGroup, entityGroup1 -> {
                     groupPermissionInfo.setEntityGroupName(entityGroup1.getName());
-                    groupPermissionInfo.setEntityGroupType(entityGroup1.getType());
                     EntityId ownerId = entityGroup1.getOwnerId();
                     groupPermissionInfo.setEntityGroupOwnerId(ownerId);
                     ListenableFuture <String> ownerName = entityService.fetchEntityNameAsync(tenantId, ownerId);
@@ -400,10 +379,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 }
             };
 
-    private PaginatedRemover<TenantId, GroupPermission> tenantGroupPermissionRemover = new PaginatedRemover<TenantId, GroupPermission>() {
-
+    private TimePaginatedRemover<TenantId, GroupPermission> tenantGroupPermissionRemover = new TimePaginatedRemover<TenantId, GroupPermission>() {
         @Override
-        protected PageData<GroupPermission> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+        protected List<GroupPermission> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantId(tenantId.getId(), pageLink);
         }
 
@@ -413,9 +391,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         }
     };
 
-    private PaginatedRemover<EntityGroupId, GroupPermission> userGroupPermissionRemover = new PaginatedRemover<EntityGroupId, GroupPermission>() {
+    private TimePaginatedRemover<EntityGroupId, GroupPermission> userGroupPermissionRemover = new TimePaginatedRemover<EntityGroupId, GroupPermission>() {
         @Override
-        protected PageData<GroupPermission> findEntities(TenantId tenantId, EntityGroupId userGroupId, PageLink pageLink) {
+        protected List<GroupPermission> findEntities(TenantId tenantId, EntityGroupId userGroupId, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantIdAndUserGroupId(tenantId.getId(), userGroupId.getId(), pageLink);
         }
 
@@ -425,9 +403,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         }
     };
 
-    private PaginatedRemover<EntityGroupId, GroupPermission> entityGroupPermissionRemover = new PaginatedRemover<EntityGroupId, GroupPermission>() {
+    private TimePaginatedRemover<EntityGroupId, GroupPermission> entityGroupPermissionRemover = new TimePaginatedRemover<EntityGroupId, GroupPermission>() {
         @Override
-        protected PageData<GroupPermission> findEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
+        protected List<GroupPermission> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), pageLink);
         }
 
@@ -437,9 +415,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         }
     };
 
-    private PaginatedRemover<RoleId, GroupPermission> rolePermissionRemover = new PaginatedRemover<RoleId, GroupPermission>() {
+    private TimePaginatedRemover<RoleId, GroupPermission> rolePermissionRemover = new TimePaginatedRemover<RoleId, GroupPermission>() {
         @Override
-        protected PageData<GroupPermission> findEntities(TenantId tenantId, RoleId roleId, PageLink pageLink) {
+        protected List<GroupPermission> findEntities(TenantId tenantId, RoleId roleId, TimePageLink pageLink) {
             return groupPermissionDao.findGroupPermissionsByTenantIdAndRoleId(tenantId.getId(), roleId.getId(), pageLink);
         }
 

@@ -34,8 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public interface ConverterService {
 
     ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 
-    PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
+    TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink);
 
     void deleteConverter(TenantId tenantId, ConverterId converterId);
 

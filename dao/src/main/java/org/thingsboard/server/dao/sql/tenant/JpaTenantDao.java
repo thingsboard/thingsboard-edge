@@ -32,12 +32,13 @@ package org.thingsboard.server.dao.sql.tenant;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.TenantEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
@@ -72,12 +73,13 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     }
 
     @Override
-    public PageData<Tenant> findTenantsByRegion(TenantId tenantId, String region, PageLink pageLink) {
-        return DaoUtil.toPageData(tenantRepository
+    public List<Tenant> findTenantsByRegion(TenantId tenantId, String region, TextPageLink pageLink) {
+        return DaoUtil.convertDataList(tenantRepository
                 .findByRegionNextPage(
                         region,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        DaoUtil.toPageable(pageLink)));
+                        pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
+                        PageRequest.of(0, pageLink.getLimit())));
     }
 
     @Override

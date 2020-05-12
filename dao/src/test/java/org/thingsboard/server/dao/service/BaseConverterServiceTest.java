@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
@@ -41,8 +41,8 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setTenantId(new TenantId(Uuids.timeBased()));
+        converter.setTenantId(new TenantId(UUIDs.timeBased()));
         converterService.saveConverter(converter);
     }
 
@@ -166,13 +166,13 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         }
 
         List<Converter> loadedConverters = new ArrayList<>();
-        PageLink pageLink = new PageLink(23);
-        PageData<Converter> pageData;
+        TextPageLink pageLink = new TextPageLink(23);
+        TextPageData<Converter> pageData;
         do {
             pageData = converterService.findTenantConverters(tenantId, pageLink);
             loadedConverters.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
+                pageLink = pageData.getNextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -184,7 +184,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
 
         converterService.deleteConvertersByTenantId(tenantId);
 
-        pageLink = new PageLink(33);
+        pageLink = new TextPageLink(33);
         pageData = converterService.findTenantConverters(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());

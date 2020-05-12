@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
@@ -85,7 +85,7 @@ public final class DeviceCredentialsEntity extends BaseSqlEntity<DeviceCredentia
     @Override
     public DeviceCredentials toData() {
         DeviceCredentials deviceCredentials = new DeviceCredentials(new DeviceCredentialsId(this.getUuid()));
-        deviceCredentials.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
+        deviceCredentials.setCreatedTime(UUIDs.unixTimestamp(this.getUuid()));
         if (deviceId != null) {
             deviceCredentials.setDeviceId(new DeviceId(toUUID(deviceId)));
         }

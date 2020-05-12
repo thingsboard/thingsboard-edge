@@ -30,11 +30,14 @@
  */
 package org.thingsboard.server.common.data.page;
 
+import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.id.UUIDBased;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class PageDataIterable<T> implements Iterable<T>, Iterator<T> {
+public class PageDataIterable<T extends SearchTextBased<? extends UUIDBased>> implements Iterable<T>, Iterator<T> {
 
     private final FetchFunction<T> function;
     private final int fetchSize;
@@ -42,7 +45,7 @@ public class PageDataIterable<T> implements Iterable<T>, Iterator<T> {
     private List<T> currentItems;
     private int currentIdx;
     private boolean hasNextPack;
-    private PageLink nextPackLink;
+    private TextPageLink nextPackLink;
     private boolean initialized;
 
     public PageDataIterable(FetchFunction<T> function, int fetchSize) {
@@ -59,7 +62,7 @@ public class PageDataIterable<T> implements Iterable<T>, Iterator<T> {
     @Override
     public boolean hasNext() {
         if(!initialized){
-            fetch(new PageLink(fetchSize));
+            fetch(new TextPageLink(fetchSize));
             initialized = true;
         }
         if(currentIdx == currentItems.size()){
@@ -70,12 +73,12 @@ public class PageDataIterable<T> implements Iterable<T>, Iterator<T> {
         return currentIdx < currentItems.size();
     }
 
-    private void fetch(PageLink link) {
-        PageData<T> pageData = function.fetch(link);
+    private void fetch(TextPageLink link) {
+        TextPageData<T> pageData = function.fetch(link);
         currentIdx = 0;
         currentItems = pageData.getData();
         hasNextPack = pageData.hasNext();
-        nextPackLink = link.nextPageLink();
+        nextPackLink = pageData.getNextPageLink();
     }
 
     @Override
@@ -86,9 +89,9 @@ public class PageDataIterable<T> implements Iterable<T>, Iterator<T> {
         return currentItems.get(currentIdx++);
     }
 
-    public static interface FetchFunction<T> {
+    public static interface FetchFunction<T extends SearchTextBased<? extends UUIDBased>> {
 
-        PageData<T> fetch(PageLink link);
+        TextPageData<T> fetch(TextPageLink link);
 
     }
 }

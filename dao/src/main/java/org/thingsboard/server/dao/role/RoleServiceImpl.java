@@ -46,8 +46,8 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
@@ -134,19 +134,21 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public PageData<Role> findRolesByTenantId(TenantId tenantId, PageLink pageLink) {
+    public TextPageData<Role> findRolesByTenantId(TenantId tenantId, TextPageLink pageLink) {
         log.trace("Executing findRolesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return roleDao.findRolesByTenantId(tenantId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantId(tenantId.getId(), pageLink);
+        return new TextPageData<>(roles, pageLink);
     }
 
     @Override
-    public PageData<Role> findRolesByTenantIdAndType(TenantId tenantId, PageLink pageLink, RoleType type) {
+    public TextPageData<Role> findRolesByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, RoleType type) {
         log.trace("Executing findRolesByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return roleDao.findRolesByTenantIdAndType(tenantId.getId(), type, pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantIdAndType(tenantId.getId(), type, pageLink);
+        return new TextPageData<>(roles, pageLink);
     }
 
     @Override
@@ -257,21 +259,23 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     }
 
     @Override
-    public PageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+    public TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink);
-        return roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
+        return new TextPageData<>(roles, pageLink);
     }
 
     @Override
-    public PageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, PageLink pageLink) {
+    public TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink);
-        return roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Role> roles = roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
+        return new TextPageData<>(roles, pageLink);
     }
 
     private DataValidator<Role> roleValidator =
@@ -345,7 +349,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             new PaginatedRemover<TenantId, Role>() {
 
                 @Override
-                protected PageData<Role> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                protected List<Role> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
                     return roleDao.findRolesByTenantId(id.getId(), pageLink);
                 }
 
@@ -359,7 +363,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             new PaginatedRemover<CustomerId, Role>() {
 
                 @Override
-                protected PageData<Role> findEntities(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+                protected List<Role> findEntities(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
                     return roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
                 }
 

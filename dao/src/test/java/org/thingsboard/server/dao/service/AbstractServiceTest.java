@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
@@ -63,7 +63,6 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -152,9 +151,6 @@ public abstract class AbstractServiceTest {
     @Autowired
     private ComponentDescriptorService componentDescriptorService;
 
-    @Autowired
-    protected EntityGroupService entityGroupService;
-
     class IdComparator<D extends BaseData<? extends UUIDBased>> implements Comparator<D> {
         @Override
         public int compare(D o1, D o2) {
@@ -165,7 +161,7 @@ public abstract class AbstractServiceTest {
 
     protected Event generateEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) throws IOException {
         if (tenantId == null) {
-            tenantId = new TenantId(Uuids.timeBased());
+            tenantId = new TenantId(UUIDs.timeBased());
         }
         Event event = new Event();
         event.setTenantId(tenantId);

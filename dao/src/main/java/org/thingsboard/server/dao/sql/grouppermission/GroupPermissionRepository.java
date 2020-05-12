@@ -30,73 +30,13 @@
  */
 package org.thingsboard.server.dao.sql.grouppermission;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.AuditLogEntity;
 import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 @SqlDao
 public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, String>, JpaSpecificationExecutor<GroupPermissionEntity> {
 
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId"
-    )
-    Page<GroupPermissionEntity> findByTenantId(
-            @Param("tenantId") String tenantId,
-            Pageable pageable);
-
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND g.userGroupId = :userGroupId"
-    )
-    Page<GroupPermissionEntity> findByTenantIdAndUserGroupId(
-            @Param("tenantId") String tenantId,
-            @Param("userGroupId") String userGroupId,
-            Pageable pageable);
-
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND g.userGroupId = :userGroupId " +
-            "AND g.roleId = :roleId"
-    )
-    Page<GroupPermissionEntity> findByTenantIdAndUserGroupIdAndRoleId(
-            @Param("tenantId") String tenantId,
-            @Param("userGroupId") String userGroupId,
-            @Param("roleId") String roleId,
-            Pageable pageable);
-
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND g.entityGroupId = :entityGroupId " +
-            "AND g.userGroupId = :userGroupId " +
-            "AND g.roleId = :roleId"
-    )
-    Page<GroupPermissionEntity> findByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(
-            @Param("tenantId") String tenantId,
-            @Param("entityGroupId") String entityGroupId,
-            @Param("userGroupId") String userGroupId,
-            @Param("roleId") String roleId,
-            Pageable pageable);
-
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND g.entityGroupId = :entityGroupId"
-    )
-    Page<GroupPermissionEntity> findByTenantIdAndEntityGroupId(
-            @Param("tenantId") String tenantId,
-            @Param("entityGroupId") String entityGroupId,
-            Pageable pageable);
-
-    @Query("SELECT g FROM GroupPermissionEntity g WHERE " +
-            "g.tenantId = :tenantId " +
-            "AND g.roleId = :roleId"
-    )
-    Page<GroupPermissionEntity> findByTenantIdAndRoleId(
-            @Param("tenantId") String tenantId,
-            @Param("roleId") String roleId,
-            Pageable pageable);
 }

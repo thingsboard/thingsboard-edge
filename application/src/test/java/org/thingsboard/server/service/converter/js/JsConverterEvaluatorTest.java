@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.converter.js;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
@@ -66,7 +66,7 @@ public class JsConverterEvaluatorTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     private TestNashornJsInvokeService jsSandboxService;
-    private ConverterId converterId = new ConverterId(Uuids.timeBased());
+    private ConverterId converterId = new ConverterId(UUIDs.timeBased());
 
     @Before
     public void beforeTest() throws Exception {

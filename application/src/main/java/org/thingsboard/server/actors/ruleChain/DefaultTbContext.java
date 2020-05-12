@@ -31,6 +31,7 @@
 package org.thingsboard.server.actors.ruleChain;
 
 import akka.actor.ActorRef;
+import com.datastax.driver.core.ResultSetFuture;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
@@ -85,7 +86,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
-import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -571,7 +571,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public TbResultSetFuture submitCassandraTask(CassandraStatementTask task) {
+    public ResultSetFuture submitCassandraTask(CassandraStatementTask task) {
         return mainCtx.getCassandraBufferedRateExecutor().submit(task);
     }
 

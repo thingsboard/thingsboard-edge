@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -62,8 +63,10 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
@@ -75,6 +78,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
@@ -241,23 +245,22 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<EntityView> getCustomerEntityViews(
+    public TextPageData<EntityView> getCustomerEntityViews(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int pageSize,
-            @RequestParam int page,
+            @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
             } else {
@@ -269,19 +272,18 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/entityViews", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<EntityView> getTenantEntityViews(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<EntityView> getTenantEntityViews(
+            @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type));
@@ -294,26 +296,30 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/entityViews", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<EntityView> getUserEntityViews(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<EntityView> getUserEntityViews(
+            @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, pageLink,
-                    (groupIds) -> {
-                        if (type != null && type.trim().length() > 0) {
-                            return entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
-                        } else {
-                            return entityViewService.findEntityViewsByEntityGroupIds(groupIds, pageLink);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            List<Predicate<EntityView>> filters = new ArrayList<>();
+            if (type != null && type.trim().length() > 0) {
+                filters.add((entityView -> entityView.getType().equals(type)));
+            }
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, entityId -> new EntityViewId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return entityViewService.findEntityViewsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
                         }
-                    }
-            );
+                    },
+                    filters,
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -356,15 +362,15 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<EntityView> getEntityViewsByEntityGroupId(
+    public TimePageData<EntityView> getEntityViewsByEntityGroupId(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder
+            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
+            @RequestParam(required = false) String offset
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -372,8 +378,14 @@ public class EntityViewController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(entityViewService.findEntityViewsByEntityGroupId(entityGroupId, pageLink));
+            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            ListenableFuture<TimePageData<EntityView>> asyncResult = entityViewService.findEntityViewEntitiesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            checkNotNull(asyncResult);
+            if (asyncResult != null) {
+                return checkNotNull(asyncResult.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

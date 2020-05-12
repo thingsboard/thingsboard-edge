@@ -31,6 +31,7 @@
 package org.thingsboard.server.rules.lifecycle;
 
 import akka.actor.ActorRef;
+import com.datastax.driver.core.utils.UUIDs;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -160,7 +161,7 @@ public abstract class AbstractRuleEngineLifecycleIntegrationTest extends Abstrac
         Mockito.verify(tbMsgCallback, Mockito.timeout(3000)).onSuccess();
 
 
-        PageData<Event> eventsPage = getDebugEvents(savedTenant.getId(), ruleChain.getFirstRuleNodeId(), 1000);
+        TimePageData<Event> eventsPage = getDebugEvents(savedTenant.getId(), ruleChain.getFirstRuleNodeId(), 1000);
         List<Event> events = eventsPage.getData().stream().filter(filterByCustomEvent()).collect(Collectors.toList());
 
         Assert.assertEquals(2, events.size());

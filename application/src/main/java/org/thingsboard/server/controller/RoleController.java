@@ -47,8 +47,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -125,8 +126,8 @@ public class RoleController extends BaseController {
             RoleId roleId = new RoleId(toUUID(strRoleId));
             Role role = checkRoleId(roleId, Operation.DELETE);
 
-            PageData<GroupPermission> groupPermissions =
-                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new PageLink(1));
+            TimePageData<GroupPermission> groupPermissions =
+                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new TimePageLink(1));
             if (!groupPermissions.getData().isEmpty()) {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
@@ -142,19 +143,18 @@ public class RoleController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/roles", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/roles", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<Role> getRoles(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<Role> getRoles(
+            @RequestParam int limit,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
 
             if (type != null && type.trim().length() > 0) {
                 if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {

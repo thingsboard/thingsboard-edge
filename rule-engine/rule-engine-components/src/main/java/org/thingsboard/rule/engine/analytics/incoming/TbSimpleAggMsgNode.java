@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
+import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -76,7 +77,7 @@ import java.util.function.Consumer;
                 "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
                 "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with the results of the aggregation for particular interval.",
-        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
 )

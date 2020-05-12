@@ -34,8 +34,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -103,8 +103,8 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
     public void testFindTenants() {
         
         List<Tenant> tenants = new ArrayList<>();
-        PageLink pageLink = new PageLink(17);
-        PageData<Tenant> pageData = tenantService.findTenants(pageLink);
+        TextPageLink pageLink = new TextPageLink(17);
+        TextPageData<Tenant> pageData = tenantService.findTenants(pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
         tenants.addAll(pageData.getData());
@@ -116,12 +116,12 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         }
         
         List<Tenant> loadedTenants = new ArrayList<>();
-        pageLink = new PageLink(17);
+        pageLink = new TextPageLink(17);
         do {
             pageData = tenantService.findTenants(pageLink);
             loadedTenants.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
+                pageLink = pageData.getNextPageLink();
             }
         } while (pageData.hasNext());
         
@@ -136,7 +136,7 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
             }
         }
         
-        pageLink = new PageLink(17);
+        pageLink = new TextPageLink(17);
         pageData = tenantService.findTenants(pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
@@ -167,13 +167,13 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         }
         
         List<Tenant> loadedTenantsTitle1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<Tenant> pageData = null;
+        TextPageLink pageLink = new TextPageLink(15, title1);
+        TextPageData<Tenant> pageData = null;
         do {
             pageData = tenantService.findTenants(pageLink);
             loadedTenantsTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
+                pageLink = pageData.getNextPageLink();
             }
         } while (pageData.hasNext());
         
@@ -183,12 +183,12 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         Assert.assertEquals(tenantsTitle1, loadedTenantsTitle1);
         
         List<Tenant> loadedTenantsTitle2 = new ArrayList<>();
-        pageLink = new PageLink(4, 0, title2);
+        pageLink = new TextPageLink(4, title2);
         do {
             pageData = tenantService.findTenants(pageLink);
             loadedTenantsTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
+                pageLink = pageData.getNextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -201,7 +201,7 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
             tenantService.deleteTenant(tenant.getId());
         }
         
-        pageLink = new PageLink(4, 0, title1);
+        pageLink = new TextPageLink(4, title1);
         pageData = tenantService.findTenants(pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -210,7 +210,7 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
             tenantService.deleteTenant(tenant.getId());
         }
         
-        pageLink = new PageLink(4, 0, title2);
+        pageLink = new TextPageLink(4, title2);
         pageData = tenantService.findTenants(pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

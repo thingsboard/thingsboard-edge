@@ -61,12 +61,13 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -312,19 +313,18 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/tenant/{tenantId}/users", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/{tenantId}/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<User> getTenantAdmins(
+    public TextPageData<User> getTenantAdmins(
             @PathVariable("tenantId") String strTenantId,
-            @RequestParam int pageSize,
-            @RequestParam int page,
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         checkParameter("tenantId", strTenantId);
         try {
             TenantId tenantId = new TenantId(toUUID(strTenantId));
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(userService.findTenantAdmins(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -332,21 +332,20 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/users", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<User> getCustomerUsers(
+    public TextPageData<User> getCustomerUsers(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int pageSize,
-            @RequestParam int page,
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findCustomerUsers(tenantId, customerId, pageLink));
         } catch (Exception e) {
@@ -355,17 +354,16 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/customer/users", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<User> getAllCustomerUsers(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<User> getAllCustomerUsers(
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(userService.findAllCustomerUsers(tenantId, pageLink));
         } catch (Exception e) {
@@ -374,19 +372,24 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/users", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/users", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<User> getUserUsers(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<User> getUserUsers(
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.USER, Operation.READ, pageLink,
-                    (groupIds) -> userService.findUsersByEntityGroupIds(groupIds, pageLink)
-            );
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.USER, Operation.READ, entityId -> new UserId(entityId.getId()),
+                    (entityIds) -> {
+                        try {
+                            return userService.findUsersByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -429,15 +432,15 @@ public class UserController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/users", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/users", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<User> getUsersByEntityGroupId(
+    public TimePageData<User> getUsersByEntityGroupId(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder
+            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
+            @RequestParam(required = false) String offset
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -445,8 +448,14 @@ public class UserController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(userService.findUsersByEntityGroupId(entityGroupId, pageLink));
+            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            ListenableFuture<TimePageData<User>> asyncResult = userService.findUserEntitiesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            checkNotNull(asyncResult);
+            if (asyncResult != null) {
+                return checkNotNull(asyncResult.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

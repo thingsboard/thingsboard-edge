@@ -36,7 +36,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.SchedulerEventInfoEntity;
 import org.thingsboard.server.dao.scheduler.SchedulerEventInfoDao;
@@ -46,7 +45,6 @@ import org.thingsboard.server.dao.util.SqlDao;
 import java.util.List;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
@@ -67,28 +65,14 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
     }
 
     @Override
-    public SchedulerEventWithCustomerInfo findSchedulerEventWithCustomerInfoById(UUID tenantId, UUID schedulerEventId) {
-        return DaoUtil.getData(schedulerEventInfoRepository.findSchedulerEventWithCustomerInfoById(
-                fromTimeUUID(schedulerEventId)
-        ));
-    }
-
-    @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantId(UUID tenantId) {
         return DaoUtil.convertDataList(schedulerEventInfoRepository
-                .findSchedulerEventInfoEntitiesByTenantId(
+                .findByTenantId(
                         UUIDConverter.fromTimeUUID(tenantId)));
     }
 
     @Override
-    public List<SchedulerEventWithCustomerInfo> findSchedulerEventsWithCustomerInfoByTenantId(UUID tenantId) {
-        return DaoUtil.convertDataList(schedulerEventInfoRepository
-                .findSchedulerEventsWithCustomerInfoByTenantId(
-                        UUIDConverter.fromTimeUUID(tenantId)));
-    }
-
-    @Override
-    public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type) {
+    public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type) {
         return DaoUtil.convertDataList(schedulerEventInfoRepository
                 .findByTenantIdAndType(
                         UUIDConverter.fromTimeUUID(tenantId),
@@ -96,7 +80,7 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
     }
 
     @Override
-    public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerId(UUID tenantId, UUID customerId) {
+    public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerId(UUID tenantId, UUID customerId) {
         return DaoUtil.convertDataList(schedulerEventInfoRepository
                 .findByTenantIdAndCustomerId(
                         UUIDConverter.fromTimeUUID(tenantId),
@@ -104,7 +88,7 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
     }
 
     @Override
-    public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type) {
+    public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type) {
         return DaoUtil.convertDataList(schedulerEventInfoRepository
                 .findByTenantIdAndCustomerIdAndType(
                         UUIDConverter.fromTimeUUID(tenantId),

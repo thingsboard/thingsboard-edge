@@ -32,8 +32,7 @@ package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -53,7 +52,7 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param pageLink the page link
      * @return the list of integration objects
      */
-    PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
+    List<Integration> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink);
 
     /**
      * Find integrations by routing Key.

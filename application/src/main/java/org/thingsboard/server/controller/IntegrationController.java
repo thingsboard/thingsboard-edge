@@ -47,8 +47,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -128,18 +128,17 @@ public class IntegrationController extends BaseController {
 
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/integrations", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<Integration> getIntegrations(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<Integration> getIntegrations(
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);

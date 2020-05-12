@@ -32,8 +32,7 @@ package org.thingsboard.server.dao.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.Dao;
@@ -46,17 +45,17 @@ public interface RoleDao extends Dao<Role> {
 
     Role save(TenantId tenantId, Role role);
 
-    PageData<Role> findRolesByTenantId(UUID tenantId, PageLink pageLink);
+    List<Role> findRolesByTenantId(UUID tenantId, TextPageLink pageLink);
 
-    PageData<Role> findRolesByTenantIdAndType(UUID tenantId, RoleType type, PageLink pageLink);
+    List<Role> findRolesByTenantIdAndType(UUID tenantId, RoleType type, TextPageLink pageLink);
 
     Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name);
 
     Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(UUID tenantId, UUID customerId, String name);
 
-    PageData<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
+    List<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink);
 
-    PageData<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, PageLink pageLink);
+    List<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, TextPageLink pageLink);
 
     /**
      * Find roles by tenantId and role Ids.

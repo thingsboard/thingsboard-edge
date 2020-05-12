@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -110,7 +110,7 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(getUuid()));
-        groupPermission.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        groupPermission.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
         if (tenantId != null) {
             groupPermission.setTenantId(new TenantId(toUUID(tenantId)));
         }

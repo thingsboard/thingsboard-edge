@@ -36,10 +36,12 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,8 +66,10 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
@@ -82,7 +86,6 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -246,7 +249,6 @@ public class EntityGroupController extends BaseController {
                         groups.addAll(entityGroupService.findEntityGroupByIdsAsync(getTenantId(), groupIds).get());
                     }
                 }
-                groups.sort(Comparator.comparingLong(EntityGroup::getCreatedTime));
                 return toEntityGroupsInfo(groups);
             } else {
                 return Collections.emptyList();
@@ -428,7 +430,20 @@ public class EntityGroupController extends BaseController {
             checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId, Operation.READ);
-            ShortEntityView result = entityGroupService.findGroupEntity(getTenantId(), entityGroupId, entityId);
+            ShortEntityView result = null;
+            if (entityType == EntityType.CUSTOMER) {
+                result = customerService.findGroupCustomer(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.ASSET) {
+                result = assetService.findGroupAsset(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.DEVICE) {
+                result = deviceService.findGroupDevice(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.USER) {
+                result = userService.findGroupUser(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.ENTITY_VIEW) {
+                result = entityViewService.findGroupEntityView(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.DASHBOARD) {
+                result = dashboardService.findGroupDashboard(getTenantId(), entityGroupId, entityId);
+            }
             return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
@@ -436,15 +451,15 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entities", method = RequestMethod.GET)
     @ResponseBody
-    public PageData<ShortEntityView> getEntities(
+    public TimePageData<ShortEntityView> getEntities(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
-            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder
+            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
+            @RequestParam(required = false) String offset
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -452,8 +467,27 @@ public class EntityGroupController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(entityGroupService.findGroupEntities(getTenantId(), entityGroupId, pageLink));
+            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            ListenableFuture<TimePageData<ShortEntityView>> asyncResult = null;
+            if (entityType == EntityType.CUSTOMER) {
+                asyncResult = customerService.findCustomersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.ASSET) {
+                asyncResult = assetService.findAssetsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.DEVICE) {
+                asyncResult = deviceService.findDevicesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.USER) {
+                asyncResult = userService.findUsersByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.ENTITY_VIEW) {
+                asyncResult = entityViewService.findEntityViewsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            } else if (entityType == EntityType.DASHBOARD) {
+                asyncResult = dashboardService.findDashboardsByEntityGroupId(getTenantId(), entityGroupId, pageLink);
+            }
+            checkNotNull(asyncResult);
+            if (asyncResult != null) {
+                return checkNotNull(asyncResult.get());
+            } else {
+                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -498,16 +532,15 @@ public class EntityGroupController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/owners", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/owners", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<ContactBased<?>> getOwners(
-            @RequestParam int pageSize,
-            @RequestParam int page,
+    public TextPageData<ContactBased<?>> getOwners(
+            @RequestParam int limit,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+            @RequestParam(required = false) String idOffset,
+            @RequestParam(required = false) String textOffset) throws ThingsboardException {
         try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
             List<ContactBased<?>> owners = new ArrayList<>();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
                 if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
@@ -524,9 +557,13 @@ public class EntityGroupController extends BaseController {
                     owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
                             .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                 }
+                owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+                if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
+                    int toRemove = owners.size() - pageLink.getLimit();
+                    owners.subList(owners.size() - toRemove, owners.size()).clear();
+                }
             }
-            owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-            return toPageData(owners, pageLink);
+            return new TextPageData<>(owners, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

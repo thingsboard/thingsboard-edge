@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -104,11 +104,12 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink) {
+    public TextPageData<Converter> findTenantConverters(TenantId tenantId, TextPageLink pageLink) {
         log.trace("Executing findTenantConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink);
-        return converterDao.findByTenantId(tenantId.getId(), pageLink);
+        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        List<Converter> converters = converterDao.findByTenantIdAndPageLink(tenantId.getId(), pageLink);
+        return new TextPageData<>(converters, pageLink);
     }
 
     @Override
@@ -181,8 +182,8 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             new PaginatedRemover<TenantId, Converter>() {
 
                 @Override
-                protected PageData<Converter> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-                    return converterDao.findByTenantId(id.getId(), pageLink);
+                protected List<Converter> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                    return converterDao.findByTenantIdAndPageLink(id.getId(), pageLink);
                 }
 
                 @Override
