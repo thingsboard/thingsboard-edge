@@ -129,9 +129,9 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     @Override
     public String getName() {
         if (entityGroupId != null && entityGroupType != null) {
-            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString(), entityGroupId.toString(), entityGroupType.name());
         } else {
-            return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
+            return String.format("GENERIC_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString());
         }
     }
 

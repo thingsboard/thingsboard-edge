@@ -43,7 +43,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -56,12 +55,11 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -161,18 +159,19 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getTenantAssets(
-            @RequestParam int limit,
+    public PageData<Asset> getTenantAssets(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink));
             } else {
@@ -198,22 +197,23 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getCustomerAssets(
+    public PageData<Asset> getCustomerAssets(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
             } else {
@@ -225,30 +225,26 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getUserAssets(
-            @RequestParam int limit,
+    public PageData<Asset> getUserAssets(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<Asset>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((asset -> asset.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ASSET, Operation.READ, entityId -> new AssetId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return assetService.findAssetsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return getGroupEntities(getCurrentUser(), EntityType.ASSET, Operation.READ, pageLink,
+                    (groupIds) -> {
+                        if (type != null && type.trim().length() > 0) {
+                            return assetService.findAssetsByEntityGroupIdsAndType(groupIds, type, pageLink);
+                        } else {
+                            return assetService.findAssetsByEntityGroupIds(groupIds, pageLink);
                         }
-                    },
-                    filters,
-                    pageLink);
+                    }
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -291,15 +287,15 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<Asset> getAssetsByEntityGroupId(
+    public PageData<Asset> getAssetsByEntityGroupId(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -307,14 +303,8 @@ public class AssetController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            ListenableFuture<TimePageData<Asset>> asyncResult = assetService.findAssetEntitiesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            checkNotNull(asyncResult);
-            if (asyncResult != null) {
-                return checkNotNull(asyncResult.get());
-            } else {
-                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
-            }
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(assetService.findAssetsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

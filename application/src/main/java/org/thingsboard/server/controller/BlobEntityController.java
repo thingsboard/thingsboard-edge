@@ -48,11 +48,12 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.security.Authority;
@@ -74,7 +75,7 @@ public class BlobEntityController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/info/{blobEntityId}", method = RequestMethod.GET)
     @ResponseBody
-    public BlobEntityInfo getBlobEntityInfoById(@PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
+    public BlobEntityWithCustomerInfo getBlobEntityInfoById(@PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
         try {
             BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
@@ -142,15 +143,18 @@ public class BlobEntityController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<BlobEntityInfo> getBlobEntities(
-            @RequestParam int limit,
+    public PageData<BlobEntityWithCustomerInfo> getBlobEntities(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
+            @RequestParam(required = false) Long endTime
+            ) throws ThingsboardException {
         try {
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             TenantId tenantId = getCurrentUser().getTenantId();
             if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
                 if (type != null && type.trim().length()>0) {

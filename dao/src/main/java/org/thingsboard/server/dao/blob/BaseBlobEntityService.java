@@ -38,10 +38,11 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -93,6 +94,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     }
 
     @Override
+    public BlobEntityWithCustomerInfo findBlobEntityWithCustomerInfoById(TenantId tenantId, BlobEntityId blobEntityId) {
+        log.trace("Executing findBlobEntityWithCustomerInfoById [{}]", blobEntityId);
+        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        return blobEntityInfoDao.findBlobEntityWithCustomerInfoById(tenantId.getId(), blobEntityId.getId());
+    }
+
+    @Override
     public ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityInfoByIdAsync [{}]", blobEntityId);
         validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
@@ -108,27 +116,23 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     }
 
     @Override
-    public TimePageData<BlobEntityInfo> findBlobEntitiesByTenantId(TenantId tenantId, TimePageLink pageLink) {
-        List<BlobEntityInfo> entities = blobEntityInfoDao.findBlobEntitiesByTenantId(tenantId.getId(), pageLink);
-        return new TimePageData<>(entities, pageLink);
+    public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantId(TenantId tenantId, TimePageLink pageLink) {
+        return blobEntityInfoDao.findBlobEntitiesByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
-    public TimePageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndType(TenantId tenantId, String type, TimePageLink pageLink) {
-        List<BlobEntityInfo> entities = blobEntityInfoDao.findBlobEntitiesByTenantIdAndType(tenantId.getId(), type, pageLink);
-        return new TimePageData<>(entities, pageLink);
+    public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndType(TenantId tenantId, String type, TimePageLink pageLink) {
+        return blobEntityInfoDao.findBlobEntitiesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
 
     @Override
-    public TimePageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
-        List<BlobEntityInfo> entities = blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
-        return new TimePageData<>(entities, pageLink);
+    public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
+        return blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
 
     @Override
-    public TimePageData<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TimePageLink pageLink) {
-        List<BlobEntityInfo> entities = blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
-        return new TimePageData<>(entities, pageLink);
+    public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TimePageLink pageLink) {
+        return blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }
 
     @Override
@@ -205,30 +209,30 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
                 }
             };
 
-    private TimePaginatedRemover<TenantId, BlobEntityInfo> tenantBlobEntitiesRemover =
-            new TimePaginatedRemover<TenantId, BlobEntityInfo>() {
+    private TimePaginatedRemover<TenantId, BlobEntityWithCustomerInfo> tenantBlobEntitiesRemover =
+            new TimePaginatedRemover<TenantId, BlobEntityWithCustomerInfo>() {
 
                 @Override
-                protected List<BlobEntityInfo> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
+                protected PageData<BlobEntityWithCustomerInfo> findEntities(TenantId tenantId, TenantId id, TimePageLink pageLink) {
                     return blobEntityInfoDao.findBlobEntitiesByTenantId(id.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(TenantId tenantId, BlobEntityInfo entity) {
+                protected void removeEntity(TenantId tenantId, BlobEntityWithCustomerInfo entity) {
                     deleteBlobEntity(tenantId, new BlobEntityId(entity.getId().getId()));
                 }
             };
 
-    private TimePaginatedRemover<CustomerId, BlobEntityInfo> customerBlobEntitiesRemover =
-            new TimePaginatedRemover<CustomerId, BlobEntityInfo>() {
+    private TimePaginatedRemover<CustomerId, BlobEntityWithCustomerInfo> customerBlobEntitiesRemover =
+            new TimePaginatedRemover<CustomerId, BlobEntityWithCustomerInfo>() {
 
                 @Override
-                protected List<BlobEntityInfo> findEntities(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
+                protected PageData<BlobEntityWithCustomerInfo> findEntities(TenantId tenantId, CustomerId customerId, TimePageLink pageLink) {
                     return blobEntityInfoDao.findBlobEntitiesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
                 }
 
                 @Override
-                protected void removeEntity(TenantId tenantId, BlobEntityInfo entity) {
+                protected void removeEntity(TenantId tenantId, BlobEntityWithCustomerInfo entity) {
                     deleteBlobEntity(tenantId, new BlobEntityId(entity.getId().getId()));
                 }
             };

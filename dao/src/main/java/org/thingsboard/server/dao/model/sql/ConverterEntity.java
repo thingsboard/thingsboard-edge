@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -125,7 +125,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     @Override
     public Converter toData() {
         Converter converter = new Converter(new ConverterId(UUIDConverter.fromString(id)));
-        converter.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        converter.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             converter.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

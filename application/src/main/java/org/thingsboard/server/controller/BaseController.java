@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,7 +60,7 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
-import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -90,10 +89,12 @@ import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -105,7 +106,7 @@ import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -166,8 +167,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -402,21 +401,27 @@ public abstract class BaseController {
         return UUID.fromString(id);
     }
 
-    TimePageLink createPageLink(int limit, Long startTime, Long endTime, boolean ascOrder, String idOffset) {
-        UUID idOffsetUuid = null;
-        if (StringUtils.isNotEmpty(idOffset)) {
-            idOffsetUuid = toUUID(idOffset);
+    PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
+        if (!StringUtils.isEmpty(sortProperty)) {
+            SortOrder.Direction direction = SortOrder.Direction.ASC;
+            if (!StringUtils.isEmpty(sortOrder)) {
+                try {
+                    direction = SortOrder.Direction.valueOf(sortOrder.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new ThingsboardException("Unsupported sort order '" + sortOrder + "'! Only 'ASC' or 'DESC' types are allowed.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                }
+            }
+            SortOrder sort = new SortOrder(sortProperty, direction);
+            return new PageLink(pageSize, page, textSearch, sort);
+        } else {
+            return new PageLink(pageSize, page, textSearch);
         }
-        return new TimePageLink(limit, startTime, endTime, ascOrder, idOffsetUuid);
     }
 
-
-    TextPageLink createPageLink(int limit, String textSearch, String idOffset, String textOffset) {
-        UUID idOffsetUuid = null;
-        if (StringUtils.isNotEmpty(idOffset)) {
-            idOffsetUuid = toUUID(idOffset);
-        }
-        return new TextPageLink(limit, textSearch, idOffsetUuid, textOffset);
+    TimePageLink createTimePageLink(int pageSize, int page, String textSearch,
+                                    String sortProperty, String sortOrder, Long startTime, Long endTime) throws ThingsboardException {
+        PageLink pageLink = this.createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return new TimePageLink(pageLink, startTime, endTime);
     }
 
     protected SecurityUser getCurrentUser() throws ThingsboardException {
@@ -568,6 +573,18 @@ public abstract class BaseController {
         try {
             validateId(groupPermissionId, "Incorrect groupPermissionId " + groupPermissionId);
             GroupPermission groupPermission = groupPermissionService.findGroupPermissionById(getTenantId(), groupPermissionId);
+            checkNotNull(groupPermission);
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation, groupPermissionId, groupPermission);
+            return groupPermission;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    GroupPermissionInfo checkGroupPermissionInfoId(GroupPermissionId groupPermissionId, Operation operation, boolean isUserGroup) throws ThingsboardException {
+        try {
+            validateId(groupPermissionId, "Incorrect groupPermissionId " + groupPermissionId);
+            GroupPermissionInfo groupPermission = groupPermissionService.findGroupPermissionInfoByIdAsync(getTenantId(), groupPermissionId, isUserGroup).get();
             checkNotNull(groupPermission);
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation, groupPermissionId, groupPermission);
             return groupPermission;
@@ -743,10 +760,10 @@ public abstract class BaseController {
         }
     }
 
-    SchedulerEventInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
+    SchedulerEventWithCustomerInfo checkSchedulerEventInfoId(SchedulerEventId schedulerEventId, Operation operation) throws ThingsboardException {
         try {
             validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
-            SchedulerEventInfo schedulerEventInfo = schedulerEventService.findSchedulerEventInfoById(getTenantId(), schedulerEventId);
+            SchedulerEventWithCustomerInfo schedulerEventInfo = schedulerEventService.findSchedulerEventWithCustomerInfoById(getTenantId(), schedulerEventId);
             checkNotNull(schedulerEventInfo);
             accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation, schedulerEventId, schedulerEventInfo);
             return schedulerEventInfo;
@@ -767,10 +784,10 @@ public abstract class BaseController {
         }
     }
 
-    BlobEntityInfo checkBlobEntityInfoId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
+    BlobEntityWithCustomerInfo checkBlobEntityInfoId(BlobEntityId blobEntityId, Operation operation) throws ThingsboardException {
         try {
             validateId(blobEntityId, "Incorrect blobEntityId " + blobEntityId);
-            BlobEntityInfo blobEntityInfo = blobEntityService.findBlobEntityInfoById(getTenantId(), blobEntityId);
+            BlobEntityWithCustomerInfo blobEntityInfo = blobEntityService.findBlobEntityWithCustomerInfoById(getTenantId(), blobEntityId);
             checkNotNull(blobEntityInfo);
             accessControlService.checkPermission(getCurrentUser(), Resource.BLOB_ENTITY, operation, blobEntityId, blobEntityInfo);
             return blobEntityInfo;
@@ -954,78 +971,24 @@ public abstract class BaseController {
         }
     }
 
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               TextPageLink pageLink) throws Exception {
-
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
-                Collections.emptyList(), Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-    getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                               Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                               List<Predicate<E>> entityFilters, TextPageLink pageLink) throws Exception {
-
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
-                entityFilters, Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                                   Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
-                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-            switch (entityType) {
-                case DEVICE:
-                    return (TextPageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
-                case ASSET:
-                    return (TextPageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
-                case CUSTOMER:
-                    return (TextPageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
-                case USER:
-                    return (TextPageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
-                case DASHBOARD:
-                    return (TextPageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
-                case ENTITY_VIEW:
-                    return (TextPageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
-                default:
-                    throw new RuntimeException("EntityType does not supported: " + entityType);
+    protected <E> PageData<E> toPageData(List<E> entities, PageLink pageLink) {
+        int totalElements = entities.size();
+        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil((float)totalElements / pageLink.getPageSize()) : 1;
+        boolean hasNext = false;
+        if (pageLink.getPageSize() > 0) {
+            int startIndex = pageLink.getPageSize() * pageLink.getPage();
+            int endIndex = startIndex + pageLink.getPageSize();
+            if (entities.size() <= startIndex) {
+                entities = Collections.emptyList();
+            } else {
+                if (endIndex > entities.size()) {
+                    endIndex = entities.size();
+                }
+                entities = new ArrayList<>(entities.subList(startIndex, endIndex));
             }
-        } else {
-            List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
-            entityIds.addAll(additionalEntityIds);
-
-            return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
+            hasNext = totalElements > startIndex + entities.size();
         }
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
-            return loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, TextPageLink pageLink) {
-        List<E> entities;
-        if (entityIds.isEmpty()) {
-            entities = Collections.emptyList();
-        } else {
-            entities = toEntitiesFunction.apply(entityIds);
-        }
-        Stream<E> entitiesStream = entities.stream().sorted(entityComparator);
-        for (Predicate<E> entityFilter : entityFilters) {
-            entitiesStream = entitiesStream.filter(entityFilter);
-        }
-        entities = entitiesStream.filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-        if (pageLink.getLimit() > 0 && entities.size() > pageLink.getLimit()) {
-            int toRemove = entities.size() - pageLink.getLimit();
-            entities.subList(entities.size() - toRemove, entities.size()).clear();
-        }
-        return new TextPageData<>(entities, pageLink);
+        return new PageData<>(entities, totalPages, totalElements, hasNext);
     }
 
     protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
@@ -1039,49 +1002,60 @@ public abstract class BaseController {
     protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
 
         private final String textSearch;
-        private final String textOffset;
-        private final long createdTimeOffset;
 
-        EntityPageLinkFilter(TextPageLink pageLink) {
+        EntityPageLinkFilter(PageLink pageLink) {
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 this.textSearch = pageLink.getTextSearch().toLowerCase();
             } else {
                 this.textSearch = "";
             }
-            if (!StringUtils.isEmpty(pageLink.getTextOffset())) {
-                this.textOffset = pageLink.getTextOffset();
-            } else {
-                this.textOffset = "";
-            }
-            if (pageLink.getIdOffset() != null) {
-                createdTimeOffset = UUIDs.unixTimestamp(pageLink.getIdOffset());
-            } else {
-                createdTimeOffset = Long.MAX_VALUE;
-            }
         }
 
         @Override
         public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
-            if (textOffset.length() > 0) {
-                int result = searchTextBased.getSearchText().compareToIgnoreCase(textOffset);
-                if (result == 0 && searchTextBased.getCreatedTime() < createdTimeOffset) {
-                    return true;
-                } else if (result > 0 && searchTextBased.getSearchText().toLowerCase().startsWith(textSearch)) {
-                    return true;
-                }
-            } else if (textSearch.length() > 0) {
+            if (textSearch.length() > 0) {
                 return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
             } else {
                 return true;
             }
-            return false;
         }
     }
 
-    protected <I extends EntityId> List<I> getEntityIdsFromAllowedGroups(SecurityUser securityUser,
-                                                                         EntityType entityType,
-                                                                         Operation operation,
-                                                                         Function<EntityId, I> toIdFunction) throws Exception {
+    protected <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
+    getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
+                     Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
+                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+            switch (entityType) {
+                case DEVICE:
+                    return (PageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
+                case ASSET:
+                    return (PageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
+                case CUSTOMER:
+                    return (PageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
+                case USER:
+                    return (PageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
+                case DASHBOARD:
+                    return (PageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
+                case ENTITY_VIEW:
+                    return (PageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
+                default:
+                    throw new RuntimeException("EntityType does not supported: " + entityType);
+            }
+        } else {
+            List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(securityUser, entityType, operation);
+            if (!groupIds.isEmpty()) {
+                return getEntitiesFunction.apply(groupIds);
+            } else {
+                return PageData.emptyPageData();
+            }
+        }
+    }
+
+    protected List<EntityGroupId> getAllowedEntityGroupIds(SecurityUser securityUser,
+                                                           EntityType entityType,
+                                                           Operation operation) throws Exception {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
         if (operation == Operation.READ) {
             groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
@@ -1090,7 +1064,6 @@ public abstract class BaseController {
         if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
                 (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
 
-            Set<EntityId> entityIds = new HashSet<>();
             Set<EntityGroupId> groupIds = new HashSet<>();
             if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
                 Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), securityUser.getOwnerId());
@@ -1105,16 +1078,7 @@ public abstract class BaseController {
             if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
             }
-            for (EntityGroupId groupId : groupIds) {
-                entityIds.addAll(entityGroupService.findAllEntityIds(getTenantId(), groupId, new TimePageLink(Integer.MAX_VALUE)).get());
-            }
-            if (!entityIds.isEmpty()) {
-                List<I> entityIdsList = new ArrayList<>();
-                entityIds.forEach((entityId) -> entityIdsList.add(toIdFunction.apply(entityId)));
-                return entityIdsList;
-            } else {
-                return Collections.emptyList();
-            }
+            return new ArrayList<>(groupIds);
         } else {
             return Collections.emptyList();
         }

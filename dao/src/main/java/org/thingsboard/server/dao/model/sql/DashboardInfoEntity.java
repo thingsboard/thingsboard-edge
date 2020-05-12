@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +51,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 @Data
 @Slf4j
@@ -59,6 +61,11 @@ import java.util.HashSet;
 @Entity
 @Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
 public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
+
+    public static final Map<String,String> dashboardColumnMap = new HashMap<>();
+    static {
+        dashboardColumnMap.put("name", "title");
+    }
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JavaType assignedCustomersType =
@@ -117,7 +124,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
     @Override
     public DashboardInfo toData() {
         DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
-        dashboardInfo.setCreatedTime(UUIDs.unixTimestamp(this.getUuid()));
+        dashboardInfo.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         if (tenantId != null) {
             dashboardInfo.setTenantId(new TenantId(toUUID(tenantId)));
         }
