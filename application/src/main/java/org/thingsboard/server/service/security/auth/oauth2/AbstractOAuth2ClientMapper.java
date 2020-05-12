@@ -47,8 +47,8 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -198,7 +198,7 @@ public abstract class AbstractOAuth2ClientMapper {
     }
 
     private TenantId getTenantId(String tenantName) throws IOException {
-        List<Tenant> tenants = tenantService.findTenants(new TextPageLink(1, tenantName)).getData();
+        List<Tenant> tenants = tenantService.findTenants(new PageLink(1, 0, tenantName)).getData();
         Tenant tenant;
         if (tenants == null || tenants.isEmpty()) {
             tenant = new Tenant();

@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -89,7 +90,7 @@ public interface EventDao extends Dao<Event> {
      * @param pageLink the pageLink
      * @return the event list
      */
-    List<Event> findEvents(UUID tenantId, EntityId entityId, TimePageLink pageLink);
+    PageData<Event> findEvents(UUID tenantId, EntityId entityId, TimePageLink pageLink);
 
     /**
      * Find events by tenantId, entityId, eventType and pageLink.
@@ -100,7 +101,7 @@ public interface EventDao extends Dao<Event> {
      * @param pageLink the pageLink
      * @return the event list
      */
-    List<Event> findEvents(UUID tenantId, EntityId entityId, String eventType, TimePageLink pageLink);
+    PageData<Event> findEvents(UUID tenantId, EntityId entityId, String eventType, TimePageLink pageLink);
 
     /**
      * Find telemetry events by tenantId, entityId and eventType.

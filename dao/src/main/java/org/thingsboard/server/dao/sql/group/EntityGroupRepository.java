@@ -30,7 +30,12 @@
  */
 package org.thingsboard.server.dao.sql.group;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
@@ -40,5 +45,48 @@ import java.util.List;
 public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, String> {
 
     List<EntityGroupEntity> findEntityGroupsByIdIn(List<String> entityGroupIds);
+
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.relationType = :relationType " +
+            "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
+    List<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") String parentEntityId,
+                                                   @Param("parentEntityType") String parentEntityType,
+                                                   @Param("relationType") String relationType);
+
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.relationType = :relationType " +
+            "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
+            "AND LOWER(e.name) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(@Param("parentEntityId") String parentEntityId,
+                                                              @Param("parentEntityType") String parentEntityType,
+                                                              @Param("relationType") String relationType,
+                                                              @Param("textSearch") String textSearch,
+                                                              Pageable pageable);
+
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.name = :name " +
+            "AND e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.relationType = :relationType " +
+            "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
+    EntityGroupEntity findEntityGroupByTypeAndName(@Param("parentEntityId") String parentEntityId,
+                                                   @Param("parentEntityType") String parentEntityType,
+                                                   @Param("relationType") String relationType,
+                                                   @Param("name") String name);
+
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
+    List<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") String parentEntityId,
+                                                @Param("parentEntityType") String parentEntityType);
 
 }

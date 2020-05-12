@@ -30,7 +30,7 @@
  */
 package org.thingsboard.integration.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -406,7 +406,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.STATS)
-                            .setUid(UUIDs.timeBased().toString())
+                            .setUid(Uuids.timeBased().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())
@@ -444,7 +444,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.LC_EVENT)
-                            .setUid(UUIDs.timeBased().toString())
+                            .setUid(Uuids.timeBased().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())

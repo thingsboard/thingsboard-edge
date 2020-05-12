@@ -38,14 +38,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
@@ -271,7 +271,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Device savedDevice = doPost("/api/device", device, Device.class);
         DeviceCredentials deviceCredentials = 
                 doGet("/api/device/" + savedDevice.getId().getId().toString() + "/credentials", DeviceCredentials.class);
-        DeviceCredentials newDeviceCredentials = new DeviceCredentials(new DeviceCredentialsId(UUIDs.timeBased()));
+        DeviceCredentials newDeviceCredentials = new DeviceCredentials(new DeviceCredentialsId(Uuids.timeBased()));
         newDeviceCredentials.setCreatedTime(deviceCredentials.getCreatedTime());
         newDeviceCredentials.setDeviceId(deviceCredentials.getDeviceId());
         newDeviceCredentials.setCredentialsType(deviceCredentials.getCredentialsType());
@@ -289,7 +289,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Device savedDevice = doPost("/api/device", device, Device.class);
         DeviceCredentials deviceCredentials = 
                 doGet("/api/device/" + savedDevice.getId().getId().toString() + "/credentials", DeviceCredentials.class);
-        deviceCredentials.setDeviceId(new DeviceId(UUIDs.timeBased()));
+        deviceCredentials.setDeviceId(new DeviceId(Uuids.timeBased()));
         doPost("/api/device/credentials", deviceCredentials)
         .andExpect(status().isNotFound());
     }
@@ -304,14 +304,14 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             devices.add(doPost("/api/device", device, Device.class));
         }
         List<Device> loadedDevices = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Device> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Device> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
-                    new TypeReference<TextPageData<Device>>(){}, pageLink);
+                    new TypeReference<PageData<Device>>(){}, pageLink);
             loadedDevices.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
         
@@ -347,14 +347,14 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         }
         
         List<Device> loadedDevicesTitle1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Device> pageData = null;
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Device> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
-                    new TypeReference<TextPageData<Device>>(){}, pageLink);
+                    new TypeReference<PageData<Device>>(){}, pageLink);
             loadedDevicesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
         
@@ -364,13 +364,13 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Assert.assertEquals(devicesTitle1, loadedDevicesTitle1);
         
         List<Device> loadedDevicesTitle2 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
-                    new TypeReference<TextPageData<Device>>(){}, pageLink);
+                    new TypeReference<PageData<Device>>(){}, pageLink);
             loadedDevicesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -384,9 +384,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             .andExpect(status().isOk());
         }
         
-        pageLink = new TextPageLink(4, title1);
+        pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
-                new TypeReference<TextPageData<Device>>(){}, pageLink);
+                new TypeReference<PageData<Device>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
         
@@ -395,9 +395,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             .andExpect(status().isOk());
         }
         
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenant/devices?", 
-                new TypeReference<TextPageData<Device>>(){}, pageLink);
+                new TypeReference<PageData<Device>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
@@ -430,14 +430,14 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         }
 
         List<Device> loadedDevicesType1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Device> pageData = null;
+        PageLink pageLink = new PageLink(15);
+        PageData<Device> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/devices?type={type}&",
-                    new TypeReference<TextPageData<Device>>(){}, pageLink, type1);
+                    new TypeReference<PageData<Device>>(){}, pageLink, type1);
             loadedDevicesType1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -447,13 +447,13 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Assert.assertEquals(devicesType1, loadedDevicesType1);
 
         List<Device> loadedDevicesType2 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/devices?type={type}&",
-                    new TypeReference<TextPageData<Device>>(){}, pageLink, type2);
+                    new TypeReference<PageData<Device>>(){}, pageLink, type2);
             loadedDevicesType2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -467,9 +467,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/devices?type={type}&",
-                new TypeReference<TextPageData<Device>>(){}, pageLink, type1);
+                new TypeReference<PageData<Device>>(){}, pageLink, type1);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -478,11 +478,10 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/devices?type={type}&",
-                new TypeReference<TextPageData<Device>>(){}, pageLink, type2);
+                new TypeReference<PageData<Device>>(){}, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
-
 }

@@ -32,10 +32,12 @@ package org.thingsboard.server.dao.alarm;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -54,5 +56,8 @@ public interface AlarmDao extends Dao<Alarm> {
 
     Alarm save(TenantId tenantId, Alarm alarm);
 
-    ListenableFuture<List<AlarmInfo>> findAlarms(TenantId tenantId, AlarmQuery query);
+    PageData<AlarmInfo> findAlarms(TenantId tenantId, AlarmQuery query);
+
+    long findAlarmCount(TenantId tenantId, AlarmQuery query, AlarmFilter filter);
+
 }

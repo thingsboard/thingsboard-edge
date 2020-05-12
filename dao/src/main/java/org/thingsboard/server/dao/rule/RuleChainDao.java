@@ -30,7 +30,8 @@
  */
 package org.thingsboard.server.dao.rule;
 
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.Dao;
 
@@ -49,6 +50,6 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    List<RuleChain> findRuleChainsByTenantId(UUID tenantId, TextPageLink pageLink);
+    PageData<RuleChain> findRuleChainsByTenantId(UUID tenantId, PageLink pageLink);
 
 }

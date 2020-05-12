@@ -1,0 +1,241 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="form" fxLayout="column">
+    <fieldset >
+        <div fxLayout="column" fxLayout.gt-sm="row">
+            <mat-form-field fxFlex="100" class="mat-block">
+                <mat-label translate>integration.port</mat-label>
+                <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
+                <div *ngIf="form.get('port')?.dirty">
+                    <mat-error translate *ngIf="form.get('port')?.errors?.required">integration.port-required</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.min">integration.port-range</mat-error>
+                    <mat-error translate *ngIf="form.get('port')?.errors?.max">integration.port-range</mat-error>
+                </div>
+            </mat-form-field>
+        </div>
+        <div fxLayout="column">
+            <div fxLayout="column" fxLayout.gt-sm="row">
+                <mat-form-field fxFlex="100" class="mat-block">
+                    <mat-label translate>integration.so-backlog-option</mat-label>
+                    <input matInput type="number" step="1" min="1" max="65535" required
+                        formControlName="soBacklogOption">
+                    <div *ngIf="form.get('soBacklogOption')?.dirty">
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.required">
+                            integration.so-backlog-option-required</mat-error>
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.min">integration.so-backlog-option-range
+                        </mat-error>
+                        <mat-error translate *ngIf="form.get('soBacklogOption')?.errors?.max">integration.so-backlog-option-range
+                        </mat-error>
+                    </div>
+                </mat-form-field>
+            </div>
+            <div fxLayout="column" fxLayout.gt-sm="row">
+                <mat-form-field fxFlex="100" class="mat-block">
+                    <mat-label translate>integration.so-rcv-buf</mat-label>
+                    <input matInput type="number" step="1" min="1" max="65535" required formControlName="soRcvBuf">
+                    <div *ngIf="form.get('soRcvBuf')?.dirty">
+                        <mat-error translate *ngIf="form.get('soRcvBuf')?.errors?.required">
+                            integration.so-rcv-buf-required</mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf').errors?.min">integration.so-rcv-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soRcvBuf').errors?.max">integration.so-rcv-buf-range</mat-error>
+                    </div>
+                </mat-form-field>
+            </div>
+            <div fxLayout="column" fxLayout.gt-sm="row">
+                <mat-form-field fxFlex="100" class="mat-block">
+                    <mat-label translate>integration.so-snd-buf</mat-label>
+                    <input matInput type="number" step="1" min="1" max="65535" required formControlName="soSndBuf">
+                    <div *ngIf="form.get('soSndBuf')?.dirty">
+                        <mat-error translate *ngIf="form.get('soSndBuf')?.errors?.required">
+                            integration.so-snd-buf-required</mat-error>
+                        <mat-error translate *ngIf="form.get('soSndBuf').errors?.min">integration.so-snd-buf-range</mat-error>
+                        <mat-error translate *ngIf="form.get('soSndBuf').errors?.max">integration.so-snd-buf-range</mat-error>
+                    </div>
+                </mat-form-field>
+            </div>
+            <mat-checkbox 
+                aria-label="'integration.so-keepalive-option | translate" formControlName="soKeepaliveOption">
+                {{ 'integration.so-keepalive-option' | translate }}
+            </mat-checkbox>
+            <mat-checkbox 
+                aria-label="'integration.tcp-no-delay | translate" formControlName="tcpNoDelay">
+                {{ 'integration.tcp-no-delay' | translate }}
+            </mat-checkbox>
+        </div>
+        <mat-accordion class="tb-integration-panel-group" >
+            <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                    <div class="tb-panel-title" translate>integration.handler-configuration</div>                    
+                </mat-expansion-panel-header>
+                <div formGroupName="handlerConfiguration">
+                    <mat-form-field class="mat-block">
+                        <mat-label translate>integration.handler-configuration-type</mat-label>
+                        <mat-select required formControlName="handlerType"
+                             (selectionChange)="handlerConfigurationTypeChanged($event)">
+                            <mat-option *ngFor="let handlerConfigurationType of handlerTypes | keyvalue"
+                                [value]="handlerConfigurationType.value.value">
+                                {{handlerConfigurationType.value.name | translate}}
+                            </mat-option>
+                        </mat-select>
+                        <div *ngIf="form.get('handlerConfigurationType')?.dirty">
+                            <mat-error translate *ngIf="form.get('handlerConfigurationType')?.errors?.required">
+                                integration.handler-configuration-type-required</mat-error>
+                        </div>
+                    </mat-form-field>
+                    <section *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.text.value">
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.max-frame-length</mat-label>
+                                <input matInput type="number" step="1" min="1" max="65535" required
+                                    formControlName="maxFrameLength">
+                                <div *ngIf="form.get('maxFrameLength')?.dirty">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
+                                        integration.max-frame-length-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.min">
+                                        integration.min-frame-length-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.max">
+                                        integration.max-frame-length-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <mat-checkbox 
+                            aria-label="'integration.strip-delimiter | translate"
+                            formControlName="stripDelimiter">
+                            {{ 'integration.strip-delimiter' | translate }}
+                        </mat-checkbox>
+                        <p class="mat-subhead" translate>integration.message-separator</p>
+                        <mat-radio-group formControlName="messageSeparator"
+                            >
+                            <mat-radio-button [value]="tcpTextMessageSeparator.systemLineSeparator.value">
+                                {{ 'integration.tcp.system-line-separator' | translate }}</mat-radio-button>
+                            <mat-radio-button [value]="tcpTextMessageSeparator.nulDelimiter.value">
+                                {{ 'integration.tcp.nul-delimiter' | translate }}</mat-radio-button>
+                        </mat-radio-group>
+                    </section>
+                    <section *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.binary.value">
+                        <p class="mat-subhead" translate>integration.byte-order</p>
+                        <mat-radio-group formControlName="byteOrder"
+                        fxFlex fxLayout="column"
+                            >
+                            <mat-radio-button [value]="tcpBinaryByteOrder.littleEndian.value">
+                                {{ 'integration.tcp.byte-order-little-endian' | translate }}</mat-radio-button>
+                            <mat-radio-button [value]="tcpBinaryByteOrder.bigEndian.value">
+                                {{ 'integration.tcp.byte-order-big-endian' | translate }}</mat-radio-button>
+                        </mat-radio-group>
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.max-frame-length</mat-label>
+                                <input matInput type="number" step="1" min="1" max="65535" required
+                                    formControlName="maxFrameLength">
+                                <div *ngIf="form.get('maxFrameLength')?.dirty">
+                                    <mat-error translate *ngIf="form.get('maxFrameLength')?.errors?.required">
+                                        integration.max-frame-length-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors?.min">
+                                        integration.max-frame-length-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('maxFrameLength').errors?.max">
+                                        integration.max-frame-length-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.length-field-offset</mat-label>
+                                <input matInput type="number" step="1" min="0" max="8" required
+                                    formControlName="lengthFieldOffset">
+                                <div *ngIf="form.get('lengthFieldOffset')?.dirty">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.required">
+                                        integration.length-field-offset-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.min">
+                                        integration.length-field-offset-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.max">
+                                        integration.length-field-offset-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.length-field-length</mat-label>
+                                <input matInput type="number" step="1" min="0" max="8" required
+                                    formControlName="lengthFieldLength">
+                                <div *ngIf="form.get('lengthFieldOffset')?.dirty">
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.required">
+                                        integration.length-field-length-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.min">
+                                        integration.length-field-length-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthFieldOffset')?.errors?.max">
+                                        integration.length-field-length-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.length-adjustment</mat-label>
+                                <input matInput type="number" step="1" min="0" max="8" required
+                                    formControlName="lengthAdjustment">
+                                <div *ngIf="form.get('lengthAdjustment')?.dirty">
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.required">
+                                        integration.length-adjustment-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.min">
+                                        integration.length-adjustment-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('lengthAdjustment')?.errors?.max">
+                                        integration.length-adjustment-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <div fxLayout="column" fxLayout.gt-sm="row">
+                            <mat-form-field fxFlex="100" class="mat-block">
+                                <mat-label translate>integration.initial-bytes-to-strip</mat-label>
+                                <input matInput type="number" step="1" min="0" max="8" required
+                                    formControlName="initialBytesToStrip">
+                                <div *ngIf="form.get('initialBytesToStrip')?.dirty">
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.required">
+                                        integration.initial-bytes-to-strip-required</mat-error>
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.min">
+                                        integration.initial-bytes-to-strip-range</mat-error>
+                                    <mat-error translate *ngIf="form.get('initialBytesToStrip')?.errors?.max">
+                                        integration.initial-bytes-to-strip-range</mat-error>
+                                </div>
+                            </mat-form-field>
+                        </div>
+                        <mat-checkbox 
+                            aria-label="'integration.fail-fast | translate"
+                            formControlName="failFast">
+                            {{ 'integration.fail-fast' | translate }}
+                        </mat-checkbox>
+                    </section>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </fieldset>
+    <div style="height: 30px;"></div>
+</section>

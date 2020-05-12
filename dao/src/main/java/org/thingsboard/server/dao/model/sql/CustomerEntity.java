@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -55,6 +57,11 @@ import javax.persistence.Table;
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
 public final class CustomerEntity extends BaseSqlEntity<Customer> implements SearchTextEntity<Customer> {
+
+    public static final Map<String,String> customerColumnMap = new HashMap<>();
+    static {
+        customerColumnMap.put("name", "title");
+    }
 
     @Column(name = ModelConstants.CUSTOMER_TENANT_ID_PROPERTY)
     private String tenantId;
@@ -133,7 +140,7 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
     @Override
     public Customer toData() {
         Customer customer = new Customer(new CustomerId(this.getUuid()));
-        customer.setCreatedTime(UUIDs.unixTimestamp(this.getUuid()));
+        customer.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         customer.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         if (parentCustomerId != null) {
             customer.setParentCustomerId(new CustomerId(UUIDConverter.fromString(parentCustomerId)));

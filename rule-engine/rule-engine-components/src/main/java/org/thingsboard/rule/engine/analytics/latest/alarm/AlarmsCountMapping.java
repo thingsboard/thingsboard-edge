@@ -31,12 +31,11 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 @Data
 public class AlarmsCountMapping {
@@ -47,32 +46,18 @@ public class AlarmsCountMapping {
     private List<AlarmStatus> statusList;
     private long latestInterval;
 
-    public Predicate<AlarmInfo> createAlarmFilter() {
-        long maxTime = System.currentTimeMillis() - latestInterval;
-        return alarmInfo -> {
-            if (!matches(typesList, alarmInfo.getType())) {
-                return false;
-            }
-            if (!matches(severityList, alarmInfo.getSeverity())) {
-                return false;
-            }
-            if (!matches(statusList, alarmInfo.getStatus())) {
-                return false;
-            }
-            if (latestInterval > 0) {
-                if (alarmInfo.getCreatedTime() < maxTime) {
-                    return false;
-                }
-            }
-            return true;
-        };
+    public AlarmFilter createAlarmFilter() {
+        Long startTime = null;
+        if (latestInterval > 0) {
+            startTime = System.currentTimeMillis() - latestInterval;
+        }
+        return new AlarmFilter(nullIfEmpty(this.typesList), nullIfEmpty(this.severityList), nullIfEmpty(this.statusList), startTime);
     }
 
-    private <T> boolean matches(List<T> filterList, T value) {
-        if (filterList != null && !filterList.isEmpty()) {
-            return filterList.contains(value);
-        } else {
-            return true;
+    private <T> List<T> nullIfEmpty(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
         }
+        return list;
     }
 }

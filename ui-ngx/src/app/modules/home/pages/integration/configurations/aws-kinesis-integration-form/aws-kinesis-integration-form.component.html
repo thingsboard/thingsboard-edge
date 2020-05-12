@@ -1,0 +1,114 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="form" fxLayout="column">
+    <fieldset  class="flex column">
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <mat-form-field fxFlex="50" class="mat-block">
+                <mat-label translate>integration.kinesis-stream-name</mat-label>
+                <input matInput required formControlName="streamName">
+                <div *ngIf="form.get('streamName')?.dirty">
+                    <mat-error translate *ngIf="form.get('streamName')?.errors?.required">
+                        integration.kinesis-stream-name-required</mat-error>
+                </div>
+            </mat-form-field>
+            <mat-form-field fxFlex="50" class="mat-block">
+                <mat-label translate>integration.kinesis-region</mat-label>
+                <input matInput required formControlName="region">
+                <div *ngIf="form.get('region')?.dirty">
+                    <mat-error translate *ngIf="form.get('region')?.errors?.required">
+                        integration.kinesis-region-required</mat-error>
+                </div>
+            </mat-form-field>
+        </div>
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <mat-form-field fxFlex="50" class="mat-block">
+                <mat-label translate>integration.kinesis-access-key-id</mat-label>
+                <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
+                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value"
+                    formControlName="accessKeyId">
+                <div *ngIf="form.get('accessKeyId')?.dirty">
+                    <mat-error translate *ngIf="form.get('accessKeyId')?.errors?.required">
+                        integration.kinesis-access-key-id-required</mat-error>
+                </div>
+            </mat-form-field>
+
+            <mat-form-field fxFlex="50" class="mat-block">
+                <mat-label translate>integration.kinesis-secret-access-key</mat-label>
+                <input matInput ng-required="!form.get('useCredentialsFromInstanceMetadata').value"
+                    [disabled]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
+                    formControlName="secretAccessKey">
+                <div *ngIf="form.get('secretAccessKey')?.dirty">
+                    <mat-error translate *ngIf="form.get('secretAccessKey')?.errors?.required">
+                        integration.kinesis-secret-access-key-required</mat-error>
+                </div>
+            </mat-form-field>
+        </div>
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <div class="mat-block">
+                <mat-checkbox matInput 
+                    aria-label="'integration.kinesis-use-credentials-from-instance-metadata | translate"
+                    formControlName="useCredentialsFromInstanceMetadata">
+                    {{ 'integration.kinesis-use-credentials-from-instance-metadata' | translate }}
+                </mat-checkbox>
+            </div>
+        </div>
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <mat-form-field fxFlex="50" class="mat-block">
+                <mat-label translate>integration.kinesis-application-name</mat-label>
+                <input matInput formControlName="applicationName">
+            </mat-form-field>
+            <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
+                <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
+                <mat-select required 
+                    formControlName="initialPositionInStream">
+                    <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.key">
+                        {{stream?.value}}
+                    </mat-option>
+                </mat-select>
+                <div *ngIf="form.get('initialPositionInStream')?.dirty">
+                    <mat-error translate *ngIf="form.get('initialPositionInStream')?.errors?.required">
+                        integration.kinesis-initial-position-in-stream-required</mat-error>
+                </div>
+            </mat-form-field>
+        </div>
+        <div fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <div class="mat-block">
+                <mat-checkbox 
+                    aria-label="'integration.kinesis-use-consumers-with-enhanced-fan-out | translate"
+                    formControlName="useConsumersWithEnhancedFanOut">
+                    {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
+                </mat-checkbox>
+            </div>
+        </div>
+    </fieldset>
+</section>

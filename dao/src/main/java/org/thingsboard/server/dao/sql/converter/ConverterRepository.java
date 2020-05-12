@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.converter;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -43,12 +44,10 @@ import java.util.List;
 public interface ConverterRepository extends CrudRepository<ConverterEntity, String> {
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<ConverterEntity> findByTenantIdAndPageLink(@Param("tenantId") String tenantId,
-                                     @Param("textSearch") String textSearch,
-                                     @Param("idOffset") String idOffset,
-                                     Pageable pageable);
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<ConverterEntity> findByTenantId(@Param("tenantId") String tenantId,
+                                         @Param("searchText") String searchText,
+                                         Pageable pageable);
 
     ConverterEntity findByTenantIdAndName(String tenantId, String name);
 
