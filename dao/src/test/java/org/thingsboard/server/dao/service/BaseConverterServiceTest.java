@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
@@ -114,7 +114,7 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
-        converter.setTenantId(new TenantId(UUIDs.timeBased()));
+        converter.setTenantId(new TenantId(Uuids.timeBased()));
         converterService.saveConverter(converter);
     }
 

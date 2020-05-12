@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.group;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
@@ -298,7 +298,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
         ShortEntityView entity = new ShortEntityView(entityId);
         for (ColumnMapping column : columns) {
             if (column.column.getType() == ColumnType.ENTITY_FIELD && column.entityField == EntityField.CREATED_TIME) {
-                long timestamp = UUIDs.unixTimestamp(entity.getId().getId());
+                long timestamp = Uuids.unixTimestamp(entity.getId().getId());
                 entity.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             } else {
                 Object value = ((Object[]) obj)[column.propertyIndex];

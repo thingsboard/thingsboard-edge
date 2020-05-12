@@ -211,9 +211,9 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAlarmCounts() throws ExecutionException, InterruptedException {
-        AssetId parentId = new AssetId(UUIDs.timeBased());
-        AssetId id1 = new AssetId(UUIDs.timeBased());
-        AssetId id2 = new AssetId(UUIDs.timeBased());
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId id1 = new AssetId(Uuids.timeBased());
+        AssetId id2 = new AssetId(Uuids.timeBased());
 
         EntityRelation relation = new EntityRelation(parentId, id1, EntityRelation.CONTAINS_TYPE);
         Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());

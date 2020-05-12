@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -147,7 +147,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setDefaultConverterId(converterId);
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
-        integration.setTenantId(new TenantId(UUIDs.timeBased()));
+        integration.setTenantId(new TenantId(Uuids.timeBased()));
         integrationService.saveIntegration(integration);
     }
 

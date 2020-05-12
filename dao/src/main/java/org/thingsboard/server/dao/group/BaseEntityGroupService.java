@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -707,7 +707,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         ShortEntityView entityView = transformFunction.apply(entity, columnsInfo.entityFields);
         for (EntityField entityField : columnsInfo.commonEntityFields) {
             if (entityField == EntityField.CREATED_TIME) {
-                long timestamp = UUIDs.unixTimestamp(entity.getId().getId());
+                long timestamp = Uuids.unixTimestamp(entity.getId().getId());
                 entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             }
         }

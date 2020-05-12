@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.converter;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -56,10 +56,10 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
 
     @Test
     public void testFindConvertersByTenantId() {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
         for (int i = 0; i < 60; i++) {
-            UUID converterId = UUIDs.timeBased();
+            UUID converterId = Uuids.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             saveConverter(converterId, tenantId, "CONVERTER_" + i, ConverterType.UPLINK);
         }
@@ -80,10 +80,10 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
 
     @Test
     public void testFindAssetsByTenantIdAndName() {
-        UUID converterId1 = UUIDs.timeBased();
-        UUID converterId2 = UUIDs.timeBased();
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
+        UUID converterId1 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
         String name = "TEST_CONVERTER";
         saveConverter(converterId1, tenantId1, name, ConverterType.UPLINK);
         saveConverter(converterId2, tenantId2, name, ConverterType.UPLINK);

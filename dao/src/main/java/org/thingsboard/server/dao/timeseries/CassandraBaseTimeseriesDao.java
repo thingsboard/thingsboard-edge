@@ -159,12 +159,13 @@ public class CassandraBaseTimeseriesDao extends CassandraAbstractAsyncDao implem
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
         PreparedStatement proto = getFindOneStmt();
-        BoundStatement stmt = proto.bind();
-        stmt.setString(0, entityId.getEntityType().name());
-        stmt.setUUID(1, entityId.getId());
-        stmt.setString(2, key);
-        stmt.setLong(3, toPartitionTs(ts));
-        stmt.setLong(4, ts);
+        BoundStatementBuilder stmtBuilder = new BoundStatementBuilder(proto.bind());
+        stmtBuilder.setString(0, entityId.getEntityType().name());
+        stmtBuilder.setUuid(1, entityId.getId());
+        stmtBuilder.setString(2, key);
+        stmtBuilder.setLong(3, toPartitionTs(ts));
+        stmtBuilder.setLong(4, ts);
+        BoundStatement stmt = stmtBuilder.build();
         return getFuture(executeAsyncRead(tenantId, stmt), rs -> convertResultToTsKvEntry(key, rs.one()));
     }
 

@@ -93,11 +93,11 @@ public class CassandraDbHelper {
         }
     }
 
-    public static List<String[]> loadData(KeyspaceMetadata ks, Session session, String cfName, String statement, String[] columns) throws Exception {
+    public static List<String[]> loadData(KeyspaceMetadata ks, GuavaSession session, String cfName, String statement, String[] columns) throws Exception {
         List<String[]> result = new ArrayList<>();
         if (ks.getTable(cfName) != null) {
-            Statement stmt = new SimpleStatement(statement);
-            stmt.setFetchSize(1000);
+            Statement stmt = SimpleStatement.newInstance(statement);
+            stmt.setPageSize(1000);
             ResultSet rs = session.execute(stmt);
             Iterator<Row> iter = rs.iterator();
             while (iter.hasNext()) {
