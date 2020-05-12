@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.widget;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseTearDown;
@@ -93,8 +93,8 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
     @Test
     @DatabaseSetup(value = "classpath:dbunit/widgets_bundle.xml", type= DatabaseOperation.DELETE_ALL)
     public void testFindWidgetsBundlesByTenantId() {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
         // Create a bunch of widgetBundles
         for (int i= 0; i < 10; i++) {
             createWidgetBundles(3, tenantId1, "WB1_");
@@ -119,8 +119,8 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
     @Test
     @DatabaseSetup(value = "classpath:dbunit/widgets_bundle.xml", type= DatabaseOperation.DELETE_ALL)
     public void testFindAllWidgetsBundlesByTenantId() {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
         // Create a bunch of widgetBundles
         for (int i= 0; i < 10; i++) {
             createWidgetBundles( 5, tenantId1,"WB1_");
@@ -149,7 +149,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
     @DatabaseSetup("classpath:dbunit/empty_dataset.xml")
     @DatabaseTearDown(value = "classpath:dbunit/empty_dataset.xml", type= DatabaseOperation.DELETE_ALL)
     public void testSearchTextNotFound() {
-        UUID tenantId = UUIDs.timeBased();
+        UUID tenantId = Uuids.timeBased();
         createWidgetBundles(5, tenantId, "ABC_");
         createSystemWidgetBundles(5, "SYS_");
 
@@ -163,7 +163,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             WidgetsBundle widgetsBundle = new WidgetsBundle();
             widgetsBundle.setAlias(prefix + i);
             widgetsBundle.setTitle(prefix + i);
-            widgetsBundle.setId(new WidgetsBundleId(UUIDs.timeBased()));
+            widgetsBundle.setId(new WidgetsBundleId(Uuids.timeBased()));
             widgetsBundle.setTenantId(new TenantId(tenantId));
             widgetsBundleDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, widgetsBundle);
         }
@@ -174,7 +174,7 @@ public class JpaWidgetsBundleDaoTest extends AbstractJpaDaoTest {
             widgetsBundle.setAlias(prefix + i);
             widgetsBundle.setTitle(prefix + i);
             widgetsBundle.setTenantId(new TenantId(NULL_UUID));
-            widgetsBundle.setId(new WidgetsBundleId(UUIDs.timeBased()));
+            widgetsBundle.setId(new WidgetsBundleId(Uuids.timeBased()));
             widgetsBundleDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, widgetsBundle);
         }
     }

@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -64,7 +64,7 @@ public abstract class DaoUtil {
 
     public static String startTimeToId(Long startTime) {
         if (startTime != null) {
-            UUID startOf = UUIDs.startOf(startTime);
+            UUID startOf = Uuids.startOf(startTime);
             return UUIDConverter.fromTimeUUID(startOf);
         } else {
             return null;
@@ -73,7 +73,7 @@ public abstract class DaoUtil {
 
     public static String endTimeToId(Long endTime) {
         if (endTime != null) {
-            UUID endOf = UUIDs.endOf(endTime);
+            UUID endOf = Uuids.endOf(endTime);
             return UUIDConverter.fromTimeUUID(endOf);
         } else {
             return null;

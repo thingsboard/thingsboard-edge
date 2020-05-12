@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
@@ -165,7 +165,7 @@ public abstract class AbstractServiceTest {
 
     protected Event generateEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) throws IOException {
         if (tenantId == null) {
-            tenantId = new TenantId(UUIDs.timeBased());
+            tenantId = new TenantId(Uuids.timeBased());
         }
         Event event = new Event();
         event.setTenantId(tenantId);
