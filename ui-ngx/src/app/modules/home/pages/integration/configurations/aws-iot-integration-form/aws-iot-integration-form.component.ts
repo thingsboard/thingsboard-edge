@@ -31,14 +31,13 @@
 
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
 
 
 @Component({
   selector: 'tb-aws-iot-integration-form',
   templateUrl: './aws-iot-integration-form.component.html',
   styleUrls: ['./aws-iot-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AwsIotIntegrationFormComponent implements OnInit {
 

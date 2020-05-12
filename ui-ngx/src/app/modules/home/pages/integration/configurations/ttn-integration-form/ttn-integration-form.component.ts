@@ -37,7 +37,7 @@ import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms'
   selector: 'tb-ttn-integration-form',
   templateUrl: './ttn-integration-form.component.html',
   styleUrls: ['./ttn-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TtnIntegrationFormComponent implements OnInit {
   @Input() form: FormGroup;

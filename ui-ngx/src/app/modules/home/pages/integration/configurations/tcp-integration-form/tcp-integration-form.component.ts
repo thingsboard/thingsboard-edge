@@ -99,17 +99,6 @@ export class TcpIntegrationFormComponent implements OnInit {
       ],
       JSON: []
     };
-    // tslint:disable-next-line: forin
-    /*for (const property in controls) {
-      const control = controls[property];
-      if (control) {
-        if (handlerConf[property] !== undefined) {
-          control.setValidators(Validators.required)
-        }
-        else
-          control.setValidators([]);
-      }
-    }*/
     disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
     enableFields(controls, fieldsSet[type.value])
     this.form.get('handlerConfiguration').patchValue(handlerConf);

@@ -38,7 +38,7 @@ import { Observable } from 'rxjs';
   selector: 'tb-custom-integration-form',
   templateUrl: './custom-integration-form.component.html',
   styleUrls: ['./custom-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomIntegrationFormComponent implements OnInit {
 

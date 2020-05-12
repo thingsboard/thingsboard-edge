@@ -38,7 +38,7 @@ import { initialPositionInStream } from '../../integration-forms-templates';
   selector: 'tb-aws-kinesis-integration-form',
   templateUrl: './aws-kinesis-integration-form.component.html',
   styleUrls: ['./aws-kinesis-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AwsKinesisIntegrationFormComponent implements OnInit {
 
