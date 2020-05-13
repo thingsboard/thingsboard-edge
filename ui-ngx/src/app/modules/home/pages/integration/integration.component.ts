@@ -149,7 +149,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   private integrationTypeChanged(form: FormGroup) {
-    form.get('configuration').patchValue({}, { emitEvent: false });
+   // form.get('configuration').patchValue({}, { emitEvent: false });
     form.get('metadata').patchValue({}, { emitEvent: false });
     this.checkIsRemote(form);
   }

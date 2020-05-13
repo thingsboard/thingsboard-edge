@@ -29,42 +29,44 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input } from '@angular/core';
-import { FormGroup, FormArray, FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, FormControl, FormBuilder, Validators } from '@angular/forms';
 
 
 @Component({
   selector: 'tb-ttn-integration-form',
   templateUrl: './ttn-integration-form.component.html',
-  styleUrls: ['./ttn-integration-form.component.scss']
+  styleUrls: ['./ttn-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TtnIntegrationFormComponent implements OnInit {
-
-
   @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
 
-  hostTypes = {
-    region: 'Region',
-    custom: 'Custom'
-  }
+  hostTypes = ['Region', 'Custom'];
+  hostRegion: FormControl;
+  hostCustom: FormControl;
+  currentHostType: FormControl;
 
-  constructor() { }
+  constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
+    this.form.get('host').setValidators(Validators.required);
+    this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value + '/devices/${devId}/down');
     this.form.get('credentials').get('username').valueChanges.subscribe(name => {
       this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
-    })
+    });
+    this.hostRegion = this.fb.control('');
+    this.hostCustom = this.fb.control('');
+    this.currentHostType = this.fb.control('Region');
   }
 
   buildHostName() {
     const hostRegionSuffix = '.thethings.network';
-    const formValue = this.form.getRawValue();
-    this.form.get('host').patchValue((this.form.get('currentHostType').value === this.hostTypes.region)
-      ? (formValue.host + hostRegionSuffix) : formValue.host);
-    this.form.get('customHost').patchValue(formValue.currentHostType === this.hostTypes.custom);
+    this.form.get('host').patchValue((this.currentHostType.value === 'Region')
+      ? (this.hostRegion.value + hostRegionSuffix) : this.hostCustom.value);
+    this.form.get('customHost').patchValue(this.currentHostType.value === 'Custom');
   }
 
 }

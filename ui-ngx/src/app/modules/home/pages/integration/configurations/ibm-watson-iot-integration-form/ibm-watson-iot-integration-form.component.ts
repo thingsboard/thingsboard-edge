@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Observable } from 'rxjs';
 
@@ -37,7 +37,8 @@ import { Observable } from 'rxjs';
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
   templateUrl: './ibm-watson-iot-integration-form.component.html',
-  styleUrls: ['./ibm-watson-iot-integration-form.component.scss']
+  styleUrls: ['./ibm-watson-iot-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IbmWatsonIotIntegrationFormComponent implements OnInit {
 

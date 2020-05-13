@@ -29,9 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
-import { baseUrl, generateId } from '@app/core/utils';
+import { baseUrl } from '@app/core/utils';
 
 export const handlerConfigurationTypes = {
   text: {
@@ -70,6 +69,28 @@ export const tcpTextMessageSeparator = {
   }
 }
 
+export const opcSecurityTypes = {
+  Basic128Rsa15: 'Basic128Rsa15',
+  Basic256: 'Basic256',
+  Basic256Sha256: 'Basic256Sha256',
+  None: 'None'
+}
+
+export const mqttCredentialTypes = {
+  anonymous: {
+    value: 'anonymous',
+    name: 'extension.anonymous'
+  },
+  basic: {
+    value: 'basic',
+    name: 'extension.basic'
+  },
+  'cert.PEM': {
+    value: 'cert.PEM',
+    name: 'extension.pem'
+  }
+}
+
 export const templates = {
   http: {
     baseUrl: baseUrl(),
@@ -82,7 +103,7 @@ export const templates = {
     asKey: '',
     clientIdNew: '',
     clientSecret: '',
-    maxTimeDiffInSeconds: '',
+    maxTimeDiffInSeconds: 60,
     httpEndpoint: '',
     headersFilter: ''
   },
@@ -90,16 +111,22 @@ export const templates = {
     clientConfiguration: {
       host: 'localhost',
       port: 11883,
-      cleanSession: '',
-      ssl: '',
+      cleanSession: false,
+      ssl: false,
       connectTimeoutSec: 10,
       clientId: '',
       credentials: {
-        type: 'annonymus',
-        username: ' ',
-        password: ' '
+        type: mqttCredentialTypes.anonymous.value,
+        username: '',
+        password: '',
+        caCertFileName: '',
+        caCert: '',
+        certFileName: '',
+        cert: '',
+        privateKeyFileName: '',
+        privateKey: '',
+        privateKeyPassword: ''
       },
-      privateKeypassword: ' '
     },
     downlinkTopicPattern: '${topic}',
     topicFilters: []
@@ -119,7 +146,7 @@ export const templates = {
         cert: '',
         privateKeyFileName: '',
         privateKey: '',
-        password: ' '
+        password: ''
       }
     },
     downlinkTopicPattern: '${topic}',
@@ -139,10 +166,10 @@ export const templates = {
     region: '',
     accessKeyId: '',
     secretAccessKey: '',
-    useCredentialsFromInstanceMetadata: '',
+    useCredentialsFromInstanceMetadata: false,
     applicationName: '',
     initialPositionInStream: '',
-    useConsumersWithEnhancedFanOut: ''
+    useConsumersWithEnhancedFanOut: false
   },
   [IntegrationType.IBM_WATSON_IOT]: {
     clientConfiguration: {
@@ -153,8 +180,8 @@ export const templates = {
       cleanSession: true,
       credentials: {
         type: 'basic',
-        username: ' ',
-        password: ' ',
+        username: '',
+        password: '',
       }
     },
     topicFilters: [{
@@ -166,26 +193,22 @@ export const templates = {
   },
   [IntegrationType.TTN]: {
     clientConfiguration: {
-      currentHostType: '',
       host: '',
+      customHost: false,
       port: 8883,
       ssl: true,
-      $parent: {
-        hostRegion: '',
-        hostCustom: ''
-      },
       connectTimeoutSec: 10,
       credentials: {
         type: 'basic',
-        username: ' ',
-        password: ' '
+        username: '',
+        password: ''
       },
-      topicFilters: [{
-        filter: '+/devices/+/up',
-        qos: 0
-      }],
-      downlinkTopicPattern: ''
-    }
+    },
+    topicFilters: [{
+      filter: '+/devices/+/up',
+      qos: 0
+    }],
+    downlinkTopicPattern: ''
   },
   [IntegrationType.AZURE_EVENT_HUB]: {
     connectTimeoutSec: 10,
@@ -203,10 +226,10 @@ export const templates = {
       port: 49320,
       scanPeriodInSeconds: 10,
       timeoutInMillis: 5000,
-      security: '',
+      security: opcSecurityTypes.Basic128Rsa15,
       identity: {
-        password: ' ',
-        username: ' ',
+        password: '',
+        username: '',
         type: 'anonymous'
       },
       mapping: [],
@@ -226,7 +249,9 @@ export const templates = {
       soBroadcast: true,
       soRcvBuf: 64,
       handlerConfiguration: {
-        handlerType: handlerConfigurationTypes.binary.value
+        handlerType: handlerConfigurationTypes.binary.value,
+        charsetName: 'UTF-8',
+        maxFrameLength: 128
       }
     }
   },
@@ -254,32 +279,18 @@ export const templates = {
   },
   [IntegrationType.KAFKA]: {
     clientConfiguration: {
-      groupId: '' ,
-      clientId: '' ,
+      groupId: '',
+      clientId: '',
       topics: 'my-topic-output',
       bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
       autoCreateTopics: false,
+      otherProperties: ''
     }
   },
   [IntegrationType.CUSTOM]: {
     clazz: '',
     configuration: ''
-  }
-}
-
-export const mqttCredentialTypes = {
-  anonymous: {
-    value: 'anonymous',
-    name: 'extension.anonymous'
-  },
-  basic: {
-    value: 'basic',
-    name: 'extension.basic'
-  },
-  'cert.PEM': {
-    value: 'cert.PEM',
-    name: 'extension.pem'
   }
 }
 
@@ -299,15 +310,7 @@ export const initialPositionInStream = {
   at_timestamp: 'AT_TIMESTAMP'
 }
 
-export const topicFilters = {
-
-}
-export const opcSecurityTypes = {
-  Basic128Rsa15: 'Basic128Rsa15',
-  Basic256: 'Basic256',
-  Basic256Sha256: 'Basic256Sha256',
-  None: 'None'
-}
+export const topicFilters = {}
 
 export const identityType = {
   anonymous: 'extension.anonymous',

@@ -29,22 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, AfterViewInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { Integration, IntegrationType } from '@shared/models/integration.models';
+import { Component, Input, ChangeDetectionStrategy, OnChanges } from '@angular/core';
+import { FormGroup, Validators } from '@angular/forms';
+import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
+import { disableFields, enableFields } from '../../integration-utils';
 
 @Component({
   selector: 'tb-http-integration-form',
   templateUrl: './http-integration-form.component.html',
-  styleUrls: ['./http-integration-form.component.scss']
+  styleUrls: ['./http-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HttpIntegrationFormComponent implements AfterViewInit {
-
+export class HttpIntegrationFormComponent implements OnChanges {
 
   @Input() form: FormGroup;
   @Input() integrationType: IntegrationType;
@@ -54,32 +54,43 @@ export class HttpIntegrationFormComponent implements AfterViewInit {
 
   constructor(protected store: Store<AppState>, private translate: TranslateService) { }
 
-  ngAfterViewInit(): void {
+  ngOnChanges(): void {
     this.integrationBaseUrlChanged();
-    this.form.get('httpEndpoint').disable();
   }
 
   httpEnableSecurityChanged = () => {
+    const headersFilter = this.form.get('headersFilter');
     if (this.form.get('enableSecurity').value &&
-      !this.form.get('headersFilter').value) {
-      this.form.get('headersFilter').patchValue({});
+      !headersFilter.value) {
+      headersFilter.patchValue({});
+      headersFilter.setValidators(Validators.required);
+      headersFilter.updateValueAndValidity();
     } else if (!this.form.get('enableSecurity').value) {
-      this.form.get('headersFilter').patchValue(null)
+      headersFilter.patchValue(null);
+      headersFilter.setValidators([]);
     }
   };
 
   thingparkEnableSecurityChanged = () => {
-    if (this.form.get('enableSecurity').value &&
-      !this.form.get('maxTimeDiffInSeconds').value) {
-      this.form.get('maxTimeDiffInSeconds').patchValue(60);
-    }
-    else {
+    const fields = ['clientIdNew', 'clientSecret', 'asId', 'asIdNew', 'asKey']
+    if (!this.form.get('enableSecurity').value) {
       this.form.get('enableSecurityNew').patchValue(false);
-      this.form.get('clientIdNew').patchValue(null);
-      this.form.get('clientSecret').patchValue(null);
-      this.form.get('asIdNew').patchValue(null);
-      this.form.get('asKey').patchValue(null);
+      fields.forEach(field => {
+        this.form.get(field).patchValue(null)
+      });
+      disableFields(this.form, fields);
     }
+    else
+      enableFields(this.form, fields);
+  };
+
+  thingparkEnableSecurityNewChanged = ($event) => {
+    const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret']
+    if (!$event.checked) {
+      disableFields(this.form, fields);
+    }
+    else
+      enableFields(this.form, fields);
   };
 
   onHttpEndpointCopied() {

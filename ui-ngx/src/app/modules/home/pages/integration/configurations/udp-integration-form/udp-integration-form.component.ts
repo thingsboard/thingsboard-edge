@@ -29,15 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { handlerConfigurationTypes } from '../../integration-forms-templates';
+import { disableFields, enableFields } from '../../integration-utils';
 
 
 @Component({
   selector: 'tb-udp-integration-form',
   templateUrl: './udp-integration-form.component.html',
-  styleUrls: ['./udp-integration-form.component.scss']
+  styleUrls: ['./udp-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class UdpIntegrationFormComponent implements OnInit {
 
@@ -70,6 +72,13 @@ export class UdpIntegrationFormComponent implements OnInit {
   }
 
   handlerConfigurationTypeChanged(type) {
+    disableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName', 'maxFrameLength']);
+    if (type.value === handlerConfigurationTypes.hex.value) {
+      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['maxFrameLength']);
+    }
+    if (type.value === handlerConfigurationTypes.text.value) {
+      enableFields(this.form.get('handlerConfiguration') as FormGroup, ['charsetName']);
+    }
     this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value])
   };
 

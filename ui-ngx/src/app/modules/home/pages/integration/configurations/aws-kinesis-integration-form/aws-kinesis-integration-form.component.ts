@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { initialPositionInStream } from '../../integration-forms-templates';
@@ -37,7 +37,8 @@ import { initialPositionInStream } from '../../integration-forms-templates';
 @Component({
   selector: 'tb-aws-kinesis-integration-form',
   templateUrl: './aws-kinesis-integration-form.component.html',
-  styleUrls: ['./aws-kinesis-integration-form.component.scss']
+  styleUrls: ['./aws-kinesis-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AwsKinesisIntegrationFormComponent implements OnInit {
 
@@ -50,6 +51,5 @@ export class AwsKinesisIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
 
 }

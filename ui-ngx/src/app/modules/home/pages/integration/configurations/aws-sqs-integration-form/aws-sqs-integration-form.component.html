@@ -31,28 +31,43 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset >
+    <fieldset>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.aws-sqs-queue-url</mat-label>
             <input matInput required formControlName="queueUrl">
+            <mat-error translate *ngIf="form.get('queueUrl')?.hasError('required')">
+                integration.aws-sqs-queue-url-required
+            </mat-error>
         </mat-form-field>
-        <div fxLayout="column" fxLayout.gt-sm="row">
+        <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.aws-sqs-polling-period-in-seconds</mat-label>
                 <input matInput type="number" min="1" required formControlName="pollingPeriodSeconds">
+                <mat-error translate *ngIf="form.get('pollingPeriodSeconds')?.hasError('required')">
+                    integration.poll-interval-required
+                </mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.aws-region</mat-label>
                 <input matInput required formControlName="region">
+                <mat-error translate *ngIf="form.get('region')?.hasError('required')">
+                    integration.region-required
+                </mat-error>
             </mat-form-field>
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.aws-access-key-id</mat-label>
             <input matInput required formControlName="accessKeyId">
+            <mat-error translate *ngIf="form.get('accessKeyId')?.hasError('required')">
+                integration.aws-sqs-access-key-id-required
+            </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.aws-secret-access-key</mat-label>
             <input matInput required formControlName="secretAccessKey">
+            <mat-error translate *ngIf="form.get('secretAccessKey')?.hasError('required')">
+                integration.aws-sqs-secret-access-key-required
+            </mat-error>
         </mat-form-field>
     </fieldset>
 </section>

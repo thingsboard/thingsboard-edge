@@ -28,12 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
+:host ::ng-deep {
   .remote-config-panel {
     padding: 16px;
     margin: 8px 8px 16px;
   }
   mat-expansion-panel {
+    margin-bottom: 16px;
+  }
+  mat-checkbox  {
     margin-bottom: 16px;
   }
 }
@@ -45,4 +48,8 @@
       margin-right: 6px;
     }
   }
+}
+
+#integration-form {
+  overflow: visible;
 }

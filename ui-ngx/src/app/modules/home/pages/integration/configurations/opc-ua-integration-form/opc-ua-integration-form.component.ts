@@ -29,20 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-
-import {
-  extensionKeystoreType,
-  identityType,
-  opcSecurityTypes,
-  opcUaMappingType
-} from '../../integration-forms-templates';
+import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
+import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integration-forms-templates';
+import { disableFields, enableFields } from '../../integration-utils';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
   templateUrl: './opc-ua-integration-form.component.html',
-  styleUrls: ['./opc-ua-integration-form.component.scss']
+  styleUrls: ['./opc-ua-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OpcUaIntegrationFormComponent implements OnInit {
 
@@ -53,25 +49,43 @@ export class OpcUaIntegrationFormComponent implements OnInit {
   opcUaMappingType = opcUaMappingType;
   extensionKeystoreType = extensionKeystoreType;
   opcSecurityTypes = opcSecurityTypes;
+  showIdentityForm: boolean;
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder, private cd: ChangeDetectorRef) { }
 
   ngOnInit(): void {
+    if (this.form) {
+      this.form.get('mapping').setValidators(Validators.required)
+      this.form.get('keystore').get('location').setValidators(Validators.required);
+      this.form.get('keystore').get('fileContent').setValidators(Validators.required);
+      this.identityTypeChanged({ value: this.form.get('identity').get('type').value });
+    }
   }
 
-  opcUaSecurityTypeChanged() { }
+  identityTypeChanged($event?) {
+    disableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
+    if ($event?.value === 'username') {
+      this.showIdentityForm = true;
+      enableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
+    }
+    else this.showIdentityForm = false;
+  }
+
+  securityChanged() {
+    if (this.form.get('security').value === 'None')
+      this.form.get('keystore').disable();
+    else
+      this.form.get('keystore').enable();
+  }
 
   addMap() {
     (this.form.get('mapping') as FormArray).push(
       this.fb.group({
         deviceNodePattern: ['Channel1\\.Device\\d+$'],
         mappingType: ['FQN', Validators.required],
-        subscriptionTags: this.fb.array([]),
+        subscriptionTags: this.fb.array([], [Validators.required]),
         namespace: [Validators.min(0)]
       })
     );
   }
-
-
-
 }

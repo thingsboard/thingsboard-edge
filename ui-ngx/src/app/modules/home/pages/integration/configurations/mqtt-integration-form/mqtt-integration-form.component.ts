@@ -29,16 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
-
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, FormControl } from '@angular/forms';
 import { mqttCredentialTypes } from '../../integration-forms-templates';
+import { changeRequirement } from '../../integration-utils';
 
 
 @Component({
   selector: 'tb-mqtt-integration-form',
   templateUrl: './mqtt-integration-form.component.html',
-  styleUrls: ['./mqtt-integration-form.component.scss']
+  styleUrls: ['./mqtt-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class MqttIntegrationFormComponent implements OnInit {
 
@@ -52,5 +53,11 @@ export class MqttIntegrationFormComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
+    this.updateCredentials({ value: this.form.get('credentials').get('type')?.value })
+  }
+
+  updateCredentials($event) {
+    const form = this.form.get('credentials') as FormGroup;
+    changeRequirement(form, $event.value)
   }
 }

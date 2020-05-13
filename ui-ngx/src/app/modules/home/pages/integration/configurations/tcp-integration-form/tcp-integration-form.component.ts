@@ -29,19 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import {
-  handlerConfigurationTypes,
-  tcpBinaryByteOrder,
-  tcpTextMessageSeparator
-} from '../../integration-forms-templates';
+import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, Validators } from '@angular/forms';
+import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integration-forms-templates';
+import _ from 'lodash';
+import { disableFields, enableFields } from '../../integration-utils';
 
 
 @Component({
   selector: 'tb-tcp-integration-form',
   templateUrl: './tcp-integration-form.component.html',
-  styleUrls: ['./tcp-integration-form.component.scss']
+  styleUrls: ['./tcp-integration-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class TcpIntegrationFormComponent implements OnInit {
 
@@ -49,7 +48,7 @@ export class TcpIntegrationFormComponent implements OnInit {
   @Input() form: FormGroup;
 
   handlerConfigurationTypes = handlerConfigurationTypes;
-  handlerTypes = handlerConfigurationTypes;
+  handlerTypes = _.cloneDeep(handlerConfigurationTypes);
   tcpBinaryByteOrder = tcpBinaryByteOrder;
   tcpTextMessageSeparator = tcpTextMessageSeparator;
 
@@ -78,10 +77,31 @@ export class TcpIntegrationFormComponent implements OnInit {
 
   ngOnInit(): void {
     delete this.handlerTypes.hex;
+    this.handlerConfigurationTypeChanged({ value: this.form.get('handlerConfiguration').get('handlerType').value })
   }
 
-  handlerConfigurationTypeChanged(type){
-    this.form.get('handlerConfiguration').patchValue(this.defaultHandlerConfigurations[type.value]);
+  handlerConfigurationTypeChanged(type) {
+    const handlerConf = this.defaultHandlerConfigurations[type.value];
+    const controls = this.form.get('handlerConfiguration') as FormGroup;
+    const fieldsSet = {
+      BINARY: [
+        'byteOrder',
+        'maxFrameLength',
+        'lengthFieldOffset',
+        'lengthFieldLength',
+        'lengthAdjustment',
+        'initialBytesToStrip'
+      ],
+      TEXT: [
+        'maxFrameLength',
+        'stripDelimiter',
+        'messageSeparator'
+      ],
+      JSON: []
+    };
+    disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
+    enableFields(controls, fieldsSet[type.value])
+    this.form.get('handlerConfiguration').patchValue(handlerConf);
   };
 
 }
