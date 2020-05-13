@@ -33,12 +33,16 @@ package org.thingsboard.server.service.cloud;
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -55,8 +59,10 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -119,6 +125,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -127,12 +134,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
 public class CloudManagerService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private final Lock deviceCreationLock = new ReentrantLock();
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -354,18 +365,30 @@ public class CloudManagerService {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                if (device == null) {
-                    device = new Device();
-                    device.setTenantId(tenantId);
-                    device.setName(deviceUpdateMsg.getName());
-                    device.setType(deviceUpdateMsg.getType());
-                    device.setLabel(deviceUpdateMsg.getLabel());
-                    device = deviceService.saveDevice(device);
-                    deviceStateService.onDeviceAdded(device);
-                } else {
-                    device.setType(deviceUpdateMsg.getType());
-                    device.setLabel(deviceUpdateMsg.getLabel());
-                    device = deviceService.saveDevice(device);
+                // TODO: add syncronized lock
+                deviceCreationLock.lock();
+                try {
+                    if (device == null) {
+                        device = new Device();
+                        device.setTenantId(tenantId);
+                        device.setName(deviceUpdateMsg.getName());
+                        device.setType(deviceUpdateMsg.getType());
+                        device.setLabel(deviceUpdateMsg.getLabel());
+                        device = deviceService.saveDevice(device);
+                        deviceStateService.onDeviceAdded(device);
+                    } else {
+                        device.setType(deviceUpdateMsg.getType());
+                        device.setLabel(deviceUpdateMsg.getLabel());
+                        device = deviceService.saveDevice(device);
+                    }
+                } finally {
+                    deviceCreationLock.unlock();
+                }
+                if (!StringUtils.isEmpty(deviceUpdateMsg.getGroupName())) {
+                    EntityGroup orCreateEntityGroup = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, org.thingsboard.server.common.data.EntityType.DEVICE, deviceUpdateMsg.getGroupName(), null, null);
+                    if (orCreateEntityGroup != null) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, orCreateEntityGroup.getId(), device.getId());
+                    }
                 }
                 updateDeviceCredentials(deviceUpdateMsg, device);
                 break;
