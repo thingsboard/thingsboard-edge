@@ -155,7 +155,7 @@ export default function AppConfig($provide,
 
     function peTheme() {
         var tbPrimaryPalette = $mdThemingProvider.extendPalette('teal', {
-            '500': '#00695c'
+            '500': '#277865'
         });
 
         var tbAccentPalette = $mdThemingProvider.extendPalette('deep-orange');
@@ -168,7 +168,7 @@ export default function AppConfig($provide,
         });
 
         var tbDarkPrimaryBackgroundPalette = $mdThemingProvider.extendPalette('teal', {
-            '800': '#00695c'
+            '800': '#277865'
         });
 
         $mdThemingProvider.definePalette('tb-dark-primary', tbDarkPrimaryPalette);

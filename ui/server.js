@@ -43,15 +43,15 @@ const express = require('express');
 const http = require('http');
 const httpProxy = require('http-proxy');
 const forwardHost = 'localhost';
-const forwardPort = 8080;
+const forwardPort = 8180;
 
 const ruleNodeUiforwardHost = 'localhost';
-const ruleNodeUiforwardPort = 8080;
+const ruleNodeUiforwardPort = 8180;
 
 const app = express();
 const server = http.createServer(app);
 
-const PORT = 3000;
+const PORT = 5000;
 
 const compiler = webpack(config);
 

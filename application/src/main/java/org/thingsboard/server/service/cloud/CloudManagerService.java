@@ -289,20 +289,28 @@ public class CloudManagerService {
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
-        if (msg.getSuccess()) {
-            log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
-        } else {
-            log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
+        try {
+            if (msg.getSuccess()) {
+                log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
+            } else {
+                log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
+            }
+            latch.countDown();
+        } catch (Exception e) {
+            log.error("Can't process uplink response message [{}]", msg, e);
         }
-        latch.countDown();
     }
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
-        if (scheduledFuture != null) {
-            scheduledFuture.cancel(true);
-            scheduledFuture = null;
+        try {
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(true);
+                scheduledFuture = null;
+            }
+            initialized = true;
+        } catch (Exception e) {
+            log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
-        initialized = true;
     }
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
@@ -336,7 +344,7 @@ public class CloudManagerService {
                 onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
             }
         } catch (Exception e) {
-            log.error("Can't process entity updated msg", e);
+            log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);
         }
     }
 
@@ -752,55 +760,59 @@ public class CloudManagerService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        log.debug("onDownlink {}", downlinkMsg);
-        if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
-            for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                TbMsg tbMsg = null;
-                TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray());
-                switch (tmp.getOriginator().getEntityType()) {
-                    case DEVICE:
-                        String deviceName = entityData.getEntityName();
-                        Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                        if (device != null) {
-                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), device.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null);
-                        }
-                        break;
-                    case ASSET:
-                        String assetName = entityData.getEntityName();
-                        Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
-                        if (asset != null) {
-                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null);
-                        }
-                        break;
-                    case ENTITY_VIEW:
-                        String entityViewName = entityData.getEntityName();
-                        EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
-                        if (entityView != null) {
-                            tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
-                                    tmp.getDataType(), tmp.getData(), null, null);
-                        }
-                        break;
-                }
-
-                if (tbMsg != null) {
-                    if (DataConstants.ATTRIBUTES_UPDATED.equals(tbMsg.getType())) {
-                        String scope = tbMsg.getMetaData().getValue("scope");
-                        Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(tbMsg.getData()));
-                        telemetryService.saveAndNotify(tenantId, tbMsg.getOriginator(), scope, new ArrayList<>(attributes), new FutureCallback<Void>() {
-                            @Override
-                            public void onSuccess(@Nullable Void result) {
+        try {
+            log.debug("onDownlink {}", downlinkMsg);
+            if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
+                for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
+                    TbMsg tbMsg = null;
+                    TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray());
+                    switch (tmp.getOriginator().getEntityType()) {
+                        case DEVICE:
+                            String deviceName = entityData.getEntityName();
+                            Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+                            if (device != null) {
+                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), device.getId(), tmp.getMetaData().copy(),
+                                        tmp.getDataType(), tmp.getData(), null, null);
                             }
-
-                            @Override
-                            public void onFailure(Throwable t) {
+                            break;
+                        case ASSET:
+                            String assetName = entityData.getEntityName();
+                            Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
+                            if (asset != null) {
+                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
+                                        tmp.getDataType(), tmp.getData(), null, null);
                             }
-                        });
+                            break;
+                        case ENTITY_VIEW:
+                            String entityViewName = entityData.getEntityName();
+                            EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
+                            if (entityView != null) {
+                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
+                                        tmp.getDataType(), tmp.getData(), null, null);
+                            }
+                            break;
                     }
-                    actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+
+                    if (tbMsg != null) {
+                        if (DataConstants.ATTRIBUTES_UPDATED.equals(tbMsg.getType())) {
+                            String scope = tbMsg.getMetaData().getValue("scope");
+                            Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(tbMsg.getData()));
+                            telemetryService.saveAndNotify(tenantId, tbMsg.getOriginator(), scope, new ArrayList<>(attributes), new FutureCallback<Void>() {
+                                @Override
+                                public void onSuccess(@Nullable Void result) {
+                                }
+
+                                @Override
+                                public void onFailure(Throwable t) {
+                                }
+                            });
+                        }
+                        actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+                    }
                 }
             }
+        } catch (Exception e) {
+            log.error("Can't process downlink message [{}]", downlinkMsg, e);
         }
     }
 

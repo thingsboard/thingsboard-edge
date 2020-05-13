@@ -30,7 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import defaultImageUrl from '../../svg/logo_title_white_pe.svg';
+import defaultImageUrl from '../../svg/logo_title_white_edge.svg';
 
 /* eslint-enable import/no-unresolved, import/default */
 
