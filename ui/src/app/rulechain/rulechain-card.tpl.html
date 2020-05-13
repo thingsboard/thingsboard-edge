@@ -30,5 +30,5 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-small tb-rule-chain-assigned-edges" ng-show="vm.parentCtl.ruleChainsScope === 'tenant' && vm.item.assignedEdgesText">{{'rulechain.assigned-to-edges' | translate}}: '{{vm.item.assignedEdgesText}}'</div>
+<div class="tb-small tb-rule-chain-assigned-edge-groups" ng-show="vm.parentCtl.ruleChainsScope === 'tenant' && vm.item.assignedEdgeGroupsText">{{'rulechain.assigned-to-edge-groups' | translate}}: '{{vm.item.assignedEdgeGroupsText}}'</div>
 <div ng-if="(vm.parentCtl.ruleChainsScope === 'tenant' && item && item.root) || (vm.parentCtl.ruleChainsScope === 'edge' &&  vm.parentCtl.isRootRuleChain(item))" translate>rulechain.root</div>

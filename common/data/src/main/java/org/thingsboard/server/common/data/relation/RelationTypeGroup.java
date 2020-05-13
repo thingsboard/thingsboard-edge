@@ -38,5 +38,5 @@ public enum RelationTypeGroup {
     FROM_ENTITY_GROUP,
     RULE_CHAIN,
     RULE_NODE,
-    EDGE
+    EDGE_GROUP
 }

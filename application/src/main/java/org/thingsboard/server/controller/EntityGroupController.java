@@ -41,7 +41,6 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +51,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -728,6 +728,158 @@ public class EntityGroupController extends BaseController {
                 throw permissionDenied();
             }
         } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/edgeGroups", method = RequestMethod.POST)
+    @ResponseBody
+    public EntityGroup updateEntityGroupEdgeGroups(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                               @RequestBody String[] strEdgeGroupIds) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.ASSIGN_TO_EDGE);
+
+            Set<EntityGroupId> edgeGroupIds = new HashSet<>();
+            if (strEdgeGroupIds != null) {
+                for (String strEdgeGroupId : strEdgeGroupIds) {
+                    edgeGroupIds.add(new EntityGroupId(toUUID(strEdgeGroupId)));
+                }
+            }
+
+            Set<EntityGroupId> addedEdgeGroupIds = new HashSet<>();
+            Set<EntityGroupId> removedEdgeGroupIds = new HashSet<>();
+            for (EntityGroupId edgeGroupId : edgeGroupIds) {
+                if (!entityGroup.isAssignedToEdgeGroup(edgeGroupId)) {
+                    addedEdgeGroupIds.add(edgeGroupId);
+                }
+            }
+
+            Set<ShortEntityGroupInfo> assignedEdgeGroups = entityGroup.getAssignedEdgeGroups();
+            if (assignedEdgeGroups != null) {
+                for (ShortEntityGroupInfo edgeGroupInfo : assignedEdgeGroups) {
+                    if (!edgeGroupIds.contains(edgeGroupInfo.getEntityGroupId())) {
+                        removedEdgeGroupIds.add(edgeGroupInfo.getEntityGroupId());
+                    }
+                }
+            }
+
+            if (addedEdgeGroupIds.isEmpty() && removedEdgeGroupIds.isEmpty()) {
+                return entityGroup;
+            } else {
+                EntityGroup savedEntityGroup = null;
+                for (EntityGroupId edgeGroupId : addedEdgeGroupIds) {
+                    savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId));
+                    ShortEntityGroupInfo edgeGroupInfo = savedEntityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
+                    logEntityAction(entityGroupId, savedEntityGroup,
+                            null,
+                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+                }
+                for (EntityGroupId edgeGroupId : removedEdgeGroupIds) {
+                    ShortEntityGroupInfo edgeGroupInfo = entityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
+                    savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId, false));
+                    logEntityAction(entityGroupId, entityGroup,
+                            null,
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+
+                }
+                return savedEntityGroup;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ENTITY_GROUP), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strEntityGroupId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/edgeGroups/add", method = RequestMethod.POST)
+    @ResponseBody
+    public EntityGroup addEntityGroupEdgeGroups(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                            @RequestBody String[] strEdgeGroupIds) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.ASSIGN_TO_EDGE);
+
+            Set<EntityGroupId> edgeGroupIds = new HashSet<>();
+            if (strEdgeGroupIds != null) {
+                for (String strEdgeGroupId : strEdgeGroupIds) {
+                    EntityGroupId edgeGroupId = new EntityGroupId(toUUID(strEdgeGroupId));
+                    if (!entityGroup.isAssignedToEdgeGroup(edgeGroupId)) {
+                        edgeGroupIds.add(edgeGroupId);
+                    }
+                }
+            }
+
+            if (edgeGroupIds.isEmpty()) {
+                return entityGroup;
+            } else {
+                EntityGroup savedEntityGroup = null;
+                for (EntityGroupId edgeGroupId : edgeGroupIds) {
+                    savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId));
+                    ShortEntityGroupInfo edgeGroupInfo = savedEntityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
+                    logEntityAction(entityGroupId, savedEntityGroup,
+                            null,
+                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, edgeGroupId.toString(), edgeGroupInfo.getName());
+                }
+                return savedEntityGroup;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ENTITY_GROUP), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strEntityGroupId);
+
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/edgeGroups/remove", method = RequestMethod.POST)
+    @ResponseBody
+    public EntityGroup removeEntityGroupEdgeGroups(@PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+                                               @RequestBody String[] strEdgeGroupIds) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        try {
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.UNASSIGN_FROM_EDGE);
+
+            Set<EntityGroupId> edgeGroupIds = new HashSet<>();
+            if (strEdgeGroupIds != null) {
+                for (String strEdgeGroupId : strEdgeGroupIds) {
+                    EntityGroupId edgeGroupId = new EntityGroupId(toUUID(strEdgeGroupId));
+                    if (entityGroup.isAssignedToEdgeGroup(edgeGroupId)) {
+                        edgeGroupIds.add(edgeGroupId);
+                    }
+                }
+            }
+
+            if (edgeGroupIds.isEmpty()) {
+                return entityGroup;
+            } else {
+                EntityGroup savedEntityGroup = null;
+                for (EntityGroupId edgeGroupId : edgeGroupIds) {
+                    ShortEntityGroupInfo edgeGroupInfo = entityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
+                    savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId, false));
+                    logEntityAction(entityGroupId, entityGroup,
+                            null,
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, edgeGroupId.toString(), edgeGroupInfo.getName());
+
+                }
+                return savedEntityGroup;
+            }
+        } catch (Exception e) {
+
+            logEntityAction(emptyId(EntityType.ENTITY_GROUP), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, e, strEntityGroupId);
+
             throw handleException(e);
         }
     }

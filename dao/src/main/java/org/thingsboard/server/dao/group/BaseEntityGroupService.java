@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -65,6 +67,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
@@ -181,6 +184,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
             relationService.saveRelation(tenantId, entityRelation);
         }
+//        dashboardService.updateEdgeDashboards(savedEdge.getTenantId(), savedEdge.getId());
         return savedEntityGroup;
     }
 
@@ -473,6 +477,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
+
+
+//        dashboardService.unassignEdgeDashboards(tenantId, edgeId);
+//        // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
+//        ruleChainService.unassignEdgeRuleChains(tenantId, edgeId);
+
         deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
     }
@@ -711,6 +721,56 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
             return entityGroupIds;
         }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public EntityGroup assignEntityGroupToEdgeGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityGroupId edgeGroupId) {
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        EntityGroup edgeGroup = findEntityGroupById(tenantId, edgeGroupId);
+        if (edgeGroup == null) {
+            throw new DataValidationException("Can't assign entity group to non-existent edge group!");
+        }
+        if (entityGroup.addAssignedEdgeGroup(edgeGroup.toShortEntityGroupInfo())) {
+            try {
+                createRelation(tenantId, new EntityRelation(edgeGroupId, entityGroupId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_GROUP));
+            } catch (ExecutionException | InterruptedException e) {
+                log.warn("[{}] Failed to create entity group relation. Edge group Id: [{}]", entityGroupId, edgeGroupId);
+                throw new RuntimeException(e);
+            }
+            entityGroup = saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+        }
+        return entityGroup;
+    }
+
+    @Override
+    public EntityGroup unassignEntityGroupFromEdgeGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityGroupId edgeGroupId, boolean remove) {
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        EntityGroup edgeGroup = findEntityGroupById(tenantId, edgeGroupId);
+        if (edgeGroup == null) {
+            throw new DataValidationException("Can't unassign entity group from non-existent edge group!");
+        }
+        ShortEntityGroupInfo shortEntityGroupInfo = edgeGroup.toShortEntityGroupInfo();
+        if (entityGroup.removeAssignedEdgeGroup(shortEntityGroupInfo)) {
+            try {
+                deleteRelation(tenantId, new EntityRelation(edgeGroupId, entityGroupId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_GROUP));
+            } catch (ExecutionException | InterruptedException e) {
+                log.warn("[{}] Failed to delete entity group relation. Edge group id: [{}]", entityGroupId, edgeGroupId);
+                throw new RuntimeException(e);
+            }
+            return saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+        } else {
+            return entityGroup;
+        }
+    }
+
+    private void createRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
+        log.debug("Creating relation: {}", relation);
+        relationService.saveRelation(tenantId, relation);
+    }
+
+    private void deleteRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
+        log.debug("Deleting relation: {}", relation);
+        relationService.deleteRelation(tenantId, relation);
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {

@@ -32,7 +32,7 @@
 
 import addRuleChainTemplate from './add-rulechain.tpl.html';
 import ruleChainCard from './rulechain-card.tpl.html';
-import manageAssignedEdgesTemplate from "./manage-assigned-edges.tpl.html";
+import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
 import addRuleChainsToEdgeTemplate from "./add-rulechains-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -256,10 +256,10 @@ export default function RuleChainsController(ruleChainService, userService, edge
 
             ruleChainActionsList.push({
                 onAction: function ($event, item) {
-                    manageAssignedEdges($event, item);
+                    manageAssignedEdgeGroups($event, item);
                 },
                 name: function() { return $translate.instant('action.assign') },
-                details: function() { return $translate.instant('rulechain.manage-assigned-edges') },
+                details: function() { return $translate.instant('rulechain.manage-assigned-edge-groups') },
                 icon: "wifi_tethering"
             });
 
@@ -525,8 +525,8 @@ export default function RuleChainsController(ruleChainService, userService, edge
         });
     }
 
-    function manageAssignedEdges($event, ruleChain) {
-        showManageAssignedEdgesDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgesIds);
+    function manageAssignedEdgeGroups($event, ruleChain) {
+        showManageAssignedEdgeGroupsDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgeGroupIds);
     }
 
     function assignRuleChainsToEdges($event, items) {
@@ -534,7 +534,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
         for (var id in items.selections) {
             ruleChainIds.push(id);
         }
-        showManageAssignedEdgesDialog($event, ruleChainIds, 'assign');
+        showManageAssignedEdgeGroupsDialog($event, ruleChainIds, 'assign');
     }
 
     function unassignRuleChainsFromEdges($event, items) {
@@ -542,7 +542,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
         for (var id in items.selections) {
             ruleChainIds.push(id);
         }
-        showManageAssignedEdgesDialog($event, ruleChainIds, 'unassign');
+        showManageAssignedEdgeGroupsDialog($event, ruleChainIds, 'unassign');
     }
 
     function unassignRuleChainsFromEdge($event, items, edgeId) {
@@ -564,15 +564,15 @@ export default function RuleChainsController(ruleChainService, userService, edge
         });
     }
 
-    function showManageAssignedEdgesDialog($event, ruleChainIds, actionType, assignedEdges) {
+    function showManageAssignedEdgeGroupsDialog($event, ruleChainIds, actionType, assignedEdgeGroupIds) {
         if ($event) {
             $event.stopPropagation();
         }
         $mdDialog.show({
-            controller: 'ManageAssignedEdgesToRuleChainController',
+            controller: 'ManageAssignedEdgeGroupsToRuleChainController',
             controllerAs: 'vm',
-            templateUrl: manageAssignedEdgesTemplate,
-            locals: {actionType: actionType, ruleChainIds: ruleChainIds, assignedEdges: assignedEdges},
+            templateUrl: manageAssignedEdgeGroupsTemplate,
+            locals: {actionType: actionType, ruleChainIds: ruleChainIds, assignedEdgeGroupIds: assignedEdgeGroupIds},
             parent: angular.element($document[0].body),
             fullscreen: true,
             targetEvent: $event

@@ -35,13 +35,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
-import org.thingsboard.server.common.data.ShortEdgeInfo;
 import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,7 +65,7 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
     private boolean root;
     private boolean debugMode;
     private transient JsonNode configuration;
-    private Set<ShortEdgeInfo> assignedEdges;
+    private Set<ShortEntityGroupInfo> assignedEdgeGroups;
 
     @JsonIgnore
     private byte[] configurationBytes;
@@ -83,7 +85,7 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
         this.type = ruleChain.getType();
         this.firstRuleNodeId = ruleChain.getFirstRuleNodeId();
         this.root = ruleChain.isRoot();
-        this.assignedEdges = ruleChain.getAssignedEdges();
+        this.assignedEdgeGroups = ruleChain.getAssignedEdgeGroups();
         this.setConfiguration(ruleChain.getConfiguration());
     }
 
@@ -111,53 +113,27 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
         return EntityType.RULE_CHAIN;
     }
 
-    public boolean isAssignedToEdge(EdgeId edgeId) {
-        return this.assignedEdges != null && this.assignedEdges.contains(new ShortEdgeInfo(edgeId, null, null));
+    public boolean isAssignedToEdgeGroup(EntityGroupId entityGroupId) {
+        return EdgeUtils.isAssignedToEdgeGroup(this.assignedEdgeGroups, entityGroupId);
     }
 
-    public ShortEdgeInfo getAssignedEdgeInfo(EdgeId edgeId) {
-        if (this.assignedEdges != null) {
-            for (ShortEdgeInfo edgeInfo : this.assignedEdges) {
-                if (edgeInfo.getEdgeId().equals(edgeId)) {
-                    return edgeInfo;
-                }
-            }
-        }
-        return null;
+    public ShortEntityGroupInfo getAssignedEdgeGroupInfo(EntityGroupId entityGroupId) {
+        return EdgeUtils.getAssignedEdgeGroupInfo(this.assignedEdgeGroups, entityGroupId);
     }
 
-    public boolean addAssignedEdge(Edge edge) {
-        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
-        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
-            return false;
-        } else {
-            if (this.assignedEdges == null) {
-                this.assignedEdges = new HashSet<>();
-            }
-            this.assignedEdges.add(edgeInfo);
-            return true;
+    public boolean addAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        if (this.assignedEdgeGroups == null) {
+            this.assignedEdgeGroups = new HashSet<>();
         }
+        return EdgeUtils.addAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
     }
 
-    public boolean updateAssignedEdge(Edge edge) {
-        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
-        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
-            this.assignedEdges.remove(edgeInfo);
-            this.assignedEdges.add(edgeInfo);
-            return true;
-        } else {
-            return false;
-        }
+    public boolean updateAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        return EdgeUtils.updateAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
     }
 
-    public boolean removeAssignedEdge(Edge edge) {
-        ShortEdgeInfo edgeInfo = edge.toShortEdgeInfo();
-        if (this.assignedEdges != null && this.assignedEdges.contains(edgeInfo)) {
-            this.assignedEdges.remove(edgeInfo);
-            return true;
-        } else {
-            return false;
-        }
+    public boolean removeAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        return EdgeUtils.removeAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
     }
 
 }
