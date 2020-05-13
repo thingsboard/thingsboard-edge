@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +58,8 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     @Test
     public void testFindIntegrationsByTenantId() {
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID converterId1 = UUIDs.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID converterId1 = Uuids.timeBased();
         saveTernary(tenantId1, converterId1);
         assertEquals(60, integrationDao.find(TenantId.SYS_TENANT_ID).size());
 
@@ -78,12 +78,12 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     @Test
     public void testFindIntegrationByRoutingKey() {
-        UUID integrationId1 = UUIDs.timeBased();
-        UUID integrationId2 = UUIDs.timeBased();
-        UUID tenantId1 = UUIDs.timeBased();
-        UUID tenantId2 = UUIDs.timeBased();
-        UUID converterId1 = UUIDs.timeBased();
-        UUID converterId2 = UUIDs.timeBased();
+        UUID integrationId1 = Uuids.timeBased();
+        UUID integrationId2 = Uuids.timeBased();
+        UUID tenantId1 = Uuids.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
+        UUID converterId1 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
         String routingKey = RandomStringUtils.randomAlphanumeric(15);
         String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
         saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT);
@@ -102,10 +102,10 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
     }
 
     private void saveTernary(UUID tenantId1, UUID converterId1) {
-        UUID tenantId2 = UUIDs.timeBased();
-        UUID converterId2 = UUIDs.timeBased();
+        UUID tenantId2 = Uuids.timeBased();
+        UUID converterId2 = Uuids.timeBased();
         for (int i = 0; i < 60; i++) {
-            UUID integrationId = UUIDs.timeBased();
+            UUID integrationId = Uuids.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
             UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
             saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),

@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -131,7 +131,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
 
     protected SchedulerEventInfo toSchedulerEventInfo() {
         SchedulerEventInfo schedulerEventInfo = new SchedulerEventInfo(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEventInfo.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        schedulerEventInfo.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             schedulerEventInfo.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

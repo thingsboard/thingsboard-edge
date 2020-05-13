@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -122,7 +122,7 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         Device device = new Device();
         device.setName("My device");
         device.setType("default");
-        device.setTenantId(new TenantId(UUIDs.timeBased()));
+        device.setTenantId(new TenantId(Uuids.timeBased()));
         deviceService.saveDevice(device);
     }
     

@@ -28,15 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.type;
+package org.thingsboard.server.dao.cassandra.guava;
 
-import com.datastax.driver.extras.codecs.enums.EnumNameCodec;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import com.datastax.oss.driver.api.core.cql.Statement;
+import com.datastax.oss.driver.api.core.cql.SyncCqlSession;
+import com.datastax.oss.driver.api.core.session.Session;
+import com.datastax.oss.driver.api.core.type.reflect.GenericType;
+import com.datastax.oss.driver.internal.core.cql.DefaultPrepareRequest;
+import com.google.common.util.concurrent.ListenableFuture;
 
-public class ComponentLifecycleStateCodec extends EnumNameCodec<ComponentLifecycleState> {
+public interface GuavaSession extends Session, SyncCqlSession {
 
-    public ComponentLifecycleStateCodec() {
-        super(ComponentLifecycleState.class);
+    GenericType<ListenableFuture<AsyncResultSet>> ASYNC =
+            new GenericType<ListenableFuture<AsyncResultSet>>() {};
+
+    GenericType<ListenableFuture<PreparedStatement>> ASYNC_PREPARED =
+            new GenericType<ListenableFuture<PreparedStatement>>() {};
+
+    default ListenableFuture<AsyncResultSet> executeAsync(Statement<?> statement) {
+        return this.execute(statement, ASYNC);
     }
 
+    default ListenableFuture<AsyncResultSet> executeAsync(String statement) {
+        return this.executeAsync(SimpleStatement.newInstance(statement));
+    }
+
+    default ListenableFuture<PreparedStatement> prepareAsync(SimpleStatement statement) {
+        return this.execute(new DefaultPrepareRequest(statement), ASYNC_PREPARED);
+    }
+
+    default ListenableFuture<PreparedStatement> prepareAsync(String statement) {
+        return this.prepareAsync(SimpleStatement.newInstance(statement));
+    }
 }

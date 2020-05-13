@@ -37,7 +37,8 @@ export const googleMapSettingsSchema =
         properties: {
             gmApiKey: {
                 title: 'Google Maps API Key',
-                type: 'string'
+                type: 'string',
+                default: 'AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q'
             },
             gmDefaultMapType: {
                 title: 'Default map type',
@@ -45,8 +46,7 @@ export const googleMapSettingsSchema =
                 default: 'roadmap'
             }
         },
-        required: [
-        ]
+        required: []
     },
     form: [
         'gmApiKey',
@@ -84,7 +84,8 @@ export const tencentMapSettingsSchema =
         properties: {
             tmApiKey: {
                 title: 'Tencent Maps API Key',
-                type: 'string'
+                type: 'string',
+                default: '84d6d83e0e51e481e50454ccbe8986b'
             },
             tmDefaultMapType: {
                 title: 'Default map type',
@@ -92,8 +93,7 @@ export const tencentMapSettingsSchema =
                 default: 'roadmap'
             }
         },
-        required: [
-        ]
+        required: []
     },
     form: [
         'tmApiKey',
@@ -132,6 +132,7 @@ export const hereMapSettingsSchema =
             },
             credentials: {
                 type: 'object',
+                title: 'Credentials',
                 properties: {
                     app_id: {
                         title: 'HERE app id',
@@ -561,6 +562,20 @@ export const mapPolygonSchema =
                 type: 'boolean',
                 default: false
             },
+            polygonTooltipPattern: {
+                title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
+                type: 'string',
+                default: '<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}'
+            },
+            usePolygonTooltipFunction: {
+                title: 'Use polygon tooltip function',
+                type: 'boolean',
+                default: false
+            },
+            polygonTooltipFunction: {
+                title: 'Polygon tooltip function: f(data, dsData, dsIndex)',
+                type: 'string'
+            },
             usePolygonColorFunction: {
                 title: 'Use polygon color function',
                 type: 'boolean',
@@ -585,7 +600,15 @@ export const mapPolygonSchema =
             key: 'polygonStrokeColor',
             type: 'color'
         },
-        'polygonStrokeOpacity', 'polygonStrokeWeight', 'usePolygonColorFunction', 'showPolygonTooltip',
+        'polygonStrokeOpacity', 'polygonStrokeWeight', 'showPolygonTooltip',
+        {
+            key: 'polygonTooltipPattern',
+            type: 'textarea'
+        }, 'usePolygonTooltipFunction', {
+            key: 'polygonTooltipFunction',
+            type: 'javascript'
+        },
+        'usePolygonColorFunction',
         {
             key: 'polygonColorFunction',
             type: 'javascript'
@@ -725,130 +748,12 @@ export const imageMapSettingsSchema =
     ]
 };
 
-export const mapProviderSchema =
+export const pathSchema =
 {
     schema: {
-        title: 'Map Provider Configuration',
+        title: 'Trip Animation Path Configuration',
         type: 'object',
         properties: {
-            provider: {
-                title: 'Map Provider',
-                type: 'string',
-                default: 'openstreet-map'
-            }
-        },
-        required: []
-    },
-    form: [
-        {
-            key: 'provider',
-            type: 'rc-select',
-            multiple: false,
-            items: [
-                {
-                    value: 'google-map',
-                    label: 'Google maps'
-                },
-                {
-                    value: 'openstreet-map',
-                    label: 'Openstreet maps'
-                },
-                {
-                    value: 'here',
-                    label: 'HERE maps'
-                },
-                {
-                    value: 'image-map',
-                    label: 'Image map'
-                },
-                {
-                    value: 'tencent-map',
-                    label: 'Tencent maps'
-                }
-            ]
-        }
-    ]
-};
-
-
-export const tripAnimationSchema = {
-    schema: {
-        title: 'Openstreet Map Configuration',
-        type: 'object',
-        properties: {
-            normalizationStep: {
-                title: 'Normalization data step (ms)',
-                type: 'number',
-                default: 1000
-            },
-            latKeyName: {
-                title: 'Latitude key name',
-                type: 'string',
-                default: 'latitude'
-            },
-            lngKeyName: {
-                title: 'Longitude key name',
-                type: 'string',
-                default: 'longitude'
-            },
-            polKeyName: {
-                title: 'Polygon key name',
-                type: 'string',
-                default: 'coordinates'
-            },
-            showLabel: {
-                title: 'Show label',
-                type: 'boolean',
-                default: true
-            },
-            label: {
-                title: 'Label (pattern examples: \'${entityName}\', \'${entityName}: (Text ${keyName} units.)\' )',
-                type: 'string',
-                default: '${entityName}'
-            },
-            useLabelFunction: {
-                title: 'Use label function',
-                type: 'boolean',
-                default: false
-            },
-            labelFunction: {
-                title: 'Label function: f(data, dsData, dsIndex)',
-                type: 'string'
-            },
-            showTooltip: {
-                title: 'Show tooltip',
-                type: 'boolean',
-                default: true
-            },
-            tooltipColor: {
-                title: 'Tooltip background color',
-                type: 'string',
-                default: '#fff'
-            },
-            tooltipFontColor: {
-                title: 'Tooltip font color',
-                type: 'string',
-                default: '#000'
-            },
-            tooltipOpacity: {
-                title: 'Tooltip opacity (0-1)',
-                type: 'number',
-                default: 1
-            },
-            tooltipPattern: {
-                title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
-                type: 'string',
-                default: '<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}'
-            },
-            useTooltipFunction: {
-                title: 'Use tooltip function',
-                type: 'boolean',
-                default: false
-            },
-            tooltipFunction: {
-                title: 'Tooltip function: f(data, dsData, dsIndex)',
-                type: 'string'
-            },
             color: {
                 title: 'Path color',
                 type: 'string'
@@ -911,58 +816,51 @@ export const tripAnimationSchema = {
                 title: 'Decorator repeat',
                 type: 'string',
                 default: '20px'
-            },
-            showPolygon: {
-                title: 'Show polygon',
-                type: 'boolean',
-                default: false
-            },
-            polygonTooltipPattern: {
-                title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
-                type: 'string',
-                default: '<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}'
-            },
-            usePolygonTooltipFunction: {
-                title: 'Use polygon tooltip function',
-                type: 'boolean',
-                default: false
-            },
-            polygonTooltipFunction: {
-                title: 'Polygon tooltip function: f(data, dsData, dsIndex)',
-                type: 'string'
-            },
-            polygonColor: {
-                title: 'Polygon color',
-                type: 'string'
-            },
-            polygonOpacity: {
-                title: 'Polygon opacity',
-                type: 'number',
-                default: 0.5
-            },
-            polygonStrokeColor: {
-                title: 'Polygon border color',
-                type: 'string'
-            },
-            polygonStrokeOpacity: {
-                title: 'Polygon border opacity',
-                type: 'number',
-                default: 1
-            },
-            polygonStrokeWeight: {
-                title: 'Polygon border weight',
-                type: 'number',
-                default: 1
-            },
-            usePolygonColorFunction: {
-                title: 'Use polygon color function',
-                type: 'boolean',
-                default: false
-            },
-            polygonColorFunction: {
-                title: 'Polygon Color function: f(data, dsData, dsIndex)',
-                type: 'string'
-            },
+            }
+        },
+        required: []
+    },
+    form: [
+        {
+            key: 'color',
+            type: 'color'
+        }, 'useColorFunction', {
+            key: 'colorFunction',
+            type: 'javascript'
+        }, 'strokeWeight', 'strokeOpacity',
+        'usePolylineDecorator', {
+            key: 'decoratorSymbol',
+            type: 'rc-select',
+            multiple: false,
+            items: [{
+                value: 'arrowHead',
+                label: 'Arrow'
+            }, {
+                value: 'dash',
+                label: 'Dash'
+            }]
+        }, 'decoratorSymbolSize', 'useDecoratorCustomColor', {
+            key: 'decoratorCustomColor',
+            type: 'color'
+        }, {
+            key: 'decoratorOffset',
+            type: 'textarea'
+        }, {
+            key: 'endDecoratorOffset',
+            type: 'textarea'
+        }, {
+            key: 'decoratorRepeat',
+            type: 'textarea'
+        }
+    ]
+};
+
+export const pointSchema =
+{
+    schema: {
+        title: 'Trip Animation Path Configuration',
+        type: 'object',
+        properties: {
             showPoints: {
                 title: 'Show points',
                 type: 'boolean',
@@ -990,6 +888,138 @@ export const tripAnimationSchema = {
                 title: 'Independant point tooltip',
                 type: 'boolean',
                 default: true
+            },
+        },
+        required: []
+    },
+    form: [
+        'showPoints', {
+            key: 'pointColor',
+            type: 'color'
+        }, 'pointSize', 'usePointAsAnchor', {
+            key: 'pointAsAnchorFunction',
+            type: 'javascript'
+        }, 'pointTooltipOnRightPanel',
+    ]
+};
+
+export const mapProviderSchema =
+{
+    schema: {
+        title: 'Map Provider Configuration',
+        type: 'object',
+        properties: {
+            provider: {
+                title: 'Map Provider',
+                type: 'string',
+                default: 'openstreet-map'
+            }
+        },
+        required: []
+    },
+    form: [
+        {
+            key: 'provider',
+            type: 'rc-select',
+            multiple: false,
+            items: [
+                {
+                    value: 'google-map',
+                    label: 'Google maps'
+                },
+                {
+                    value: 'openstreet-map',
+                    label: 'Openstreet maps'
+                },
+                {
+                    value: 'here',
+                    label: 'HERE maps'
+                },
+                {
+                    value: 'image-map',
+                    label: 'Image map'
+                },
+                {
+                    value: 'tencent-map',
+                    label: 'Tencent maps'
+                }
+            ]
+        }
+    ]
+};
+
+export const tripAnimationSchema = {
+    schema: {
+        title: 'Openstreet Map Configuration',
+        type: 'object',
+        properties: {
+            normalizationStep: {
+                title: 'Normalization data step (ms)',
+                type: 'number',
+                default: 1000
+            },
+            latKeyName: {
+                title: 'Latitude key name',
+                type: 'string',
+                default: 'latitude'
+            },
+            lngKeyName: {
+                title: 'Longitude key name',
+                type: 'string',
+                default: 'longitude'
+            },
+            showLabel: {
+                title: 'Show label',
+                type: 'boolean',
+                default: true
+            },
+            label: {
+                title: 'Label (pattern examples: \'${entityName}\', \'${entityName}: (Text ${keyName} units.)\' )',
+                type: 'string',
+                default: '${entityName}'
+            },
+            useLabelFunction: {
+                title: 'Use label function',
+                type: 'boolean',
+                default: false
+            },
+            labelFunction: {
+                title: 'Label function: f(data, dsData, dsIndex)',
+                type: 'string'
+            },
+            showTooltip: {
+                title: 'Show tooltip',
+                type: 'boolean',
+                default: true
+            },
+            tooltipColor: {
+                title: 'Tooltip background color',
+                type: 'string',
+                default: '#fff'
+            },
+            tooltipFontColor: {
+                title: 'Tooltip font color',
+                type: 'string',
+                default: '#000'
+            },
+            tooltipOpacity: {
+                title: 'Tooltip opacity (0-1)',
+                type: 'number',
+                default: 1
+            },
+            tooltipPattern: {
+                title: 'Tooltip (for ex. \'Text ${keyName} units.\' or <link-act name=\'my-action\'>Link text</link-act>\')',
+                type: 'string',
+                default: '<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}'
+            },
+            useTooltipFunction: {
+                title: 'Use tooltip function',
+                type: 'boolean',
+                default: false
+            },
+            tooltipFunction: {
+                title: 'Tooltip function: f(data, dsData, dsIndex)',
+                type: 'string'
             },
             autocloseTooltip: {
                 title: 'Auto-close point popup',
@@ -1030,111 +1060,35 @@ export const tripAnimationSchema = {
         },
         required: []
     },
-    form: [{
-        key: 'mapProvider',
-        type: 'rc-select',
-        multiple: false,
-        items: [{
-            value: 'OpenStreetMap.Mapnik',
-            label: 'OpenStreetMap.Mapnik (Default)'
-        }, {
-            value: 'OpenStreetMap.BlackAndWhite',
-            label: 'OpenStreetMap.BlackAndWhite'
-        }, {
-            value: 'OpenStreetMap.HOT',
-            label: 'OpenStreetMap.HOT'
-        }, {
-            value: 'Esri.WorldStreetMap',
-            label: 'Esri.WorldStreetMap'
-        }, {
-            value: 'Esri.WorldTopoMap',
-            label: 'Esri.WorldTopoMap'
-        }, {
-            value: 'CartoDB.Positron',
-            label: 'CartoDB.Positron'
-        }, {
-            value: 'CartoDB.DarkMatter',
-            label: 'CartoDB.DarkMatter'
-        }]
-    }, 'normalizationStep', 'latKeyName', 'lngKeyName', 'polKeyName', 'showLabel', 'label', 'useLabelFunction', {
+    form: ['normalizationStep', 'latKeyName', 'lngKeyName', 'showLabel', 'label', 'useLabelFunction', {
         key: 'labelFunction',
         type: 'javascript'
     }, 'showTooltip', {
-        key: 'tooltipColor',
-        type: 'color'
-    }, {
-        key: 'tooltipFontColor',
-        type: 'color'
-    }, 'tooltipOpacity', {
-        key: 'tooltipPattern',
-        type: 'textarea'
-    }, 'useTooltipFunction', {
-        key: 'tooltipFunction',
-        type: 'javascript'
-    }, {
-        key: 'color',
-        type: 'color'
-    }, 'useColorFunction', {
-        key: 'colorFunction',
-        type: 'javascript'
-    }, 'usePolylineDecorator', {
-        key: 'decoratorSymbol',
-        type: 'rc-select',
-        multiple: false,
-        items: [{
-            value: 'arrowHead',
-            label: 'Arrow'
+            key: 'tooltipColor',
+            type: 'color'
         }, {
-            value: 'dash',
-            label: 'Dash'
+            key: 'tooltipFontColor',
+            type: 'color'
+        }, 'tooltipOpacity', {
+            key: 'tooltipPattern',
+            type: 'textarea'
+        }, 'useTooltipFunction', {
+            key: 'tooltipFunction',
+            type: 'javascript'
+        }, 'autocloseTooltip', {
+            key: 'markerImage',
+            type: 'image'
+        }, 'markerImageSize', 'rotationAngle', 'useMarkerImageFunction',
+        {
+            key: 'markerImageFunction',
+            type: 'javascript'
+        }, {
+            key: 'markerImages',
+            items: [
+                {
+                    key: 'markerImages[]',
+                    type: 'image'
+                }
+            ]
         }]
-    }, 'decoratorSymbolSize', 'useDecoratorCustomColor', {
-        key: 'decoratorCustomColor',
-        type: 'color'
-    }, {
-        key: 'decoratorOffset',
-        type: 'textarea'
-    }, {
-        key: 'endDecoratorOffset',
-        type: 'textarea'
-    }, {
-        key: 'decoratorRepeat',
-        type: 'textarea'
-    }, 'strokeWeight', 'strokeOpacity', 'showPolygon', {
-        key: 'polygonTooltipPattern',
-        type: 'textarea'
-    }, 'usePolygonTooltipFunction', {
-        key: 'polygonTooltipFunction',
-        type: 'javascript'
-    }, {
-        key: 'polygonColor',
-        type: 'color'
-    }, 'polygonOpacity', {
-        key: 'polygonStrokeColor',
-        type: 'color'
-    }, 'polygonStrokeOpacity', 'polygonStrokeWeight', 'usePolygonColorFunction', {
-        key: 'polygonColorFunction',
-        type: 'javascript'
-    }, 'showPoints', {
-        key: 'pointColor',
-        type: 'color'
-    }, 'pointSize', 'usePointAsAnchor', {
-        key: 'pointAsAnchorFunction',
-        type: 'javascript'
-    }, 'pointTooltipOnRightPanel', 'autocloseTooltip', {
-        key: 'markerImage',
-        type: 'image'
-    }, 'markerImageSize', 'rotationAngle', 'useMarkerImageFunction',
-    {
-        key: 'markerImageFunction',
-        type: 'javascript'
-    }, {
-        key: 'markerImages',
-        items: [
-            {
-                key: 'markerImages[]',
-                type: 'image'
-            }
-        ]
-    }]
 }

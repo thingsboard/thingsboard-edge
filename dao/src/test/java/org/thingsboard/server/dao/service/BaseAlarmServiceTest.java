@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -73,8 +73,8 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testSaveAndFetchAlarm() throws ExecutionException, InterruptedException {
-        AssetId parentId = new AssetId(UUIDs.timeBased());
-        AssetId childId = new AssetId(UUIDs.timeBased());
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId childId = new AssetId(Uuids.timeBased());
 
         EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
 
@@ -110,8 +110,8 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAlarm() throws ExecutionException, InterruptedException {
-        AssetId parentId = new AssetId(UUIDs.timeBased());
-        AssetId childId = new AssetId(UUIDs.timeBased());
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId childId = new AssetId(Uuids.timeBased());
 
         EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
 
@@ -211,9 +211,9 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testFindAlarmCounts() throws ExecutionException, InterruptedException {
-        AssetId parentId = new AssetId(UUIDs.timeBased());
-        AssetId id1 = new AssetId(UUIDs.timeBased());
-        AssetId id2 = new AssetId(UUIDs.timeBased());
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId id1 = new AssetId(Uuids.timeBased());
+        AssetId id2 = new AssetId(Uuids.timeBased());
 
         EntityRelation relation = new EntityRelation(parentId, id1, EntityRelation.CONTAINS_TYPE);
         Assert.assertTrue(relationService.saveRelationAsync(tenantId, relation).get());
@@ -257,8 +257,8 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testDeleteAlarm() throws ExecutionException, InterruptedException {
-        AssetId parentId = new AssetId(UUIDs.timeBased());
-        AssetId childId = new AssetId(UUIDs.timeBased());
+        AssetId parentId = new AssetId(Uuids.timeBased());
+        AssetId childId = new AssetId(Uuids.timeBased());
 
         EntityRelation relation = new EntityRelation(parentId, childId, EntityRelation.CONTAINS_TYPE);
 

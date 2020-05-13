@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

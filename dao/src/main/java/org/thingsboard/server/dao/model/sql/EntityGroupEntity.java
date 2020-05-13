@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -102,7 +102,7 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Override
     public EntityGroup toData() {
         EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getUuid()));
-        entityGroup.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
+        entityGroup.setCreatedTime(Uuids.unixTimestamp(getUuid()));
         entityGroup.setName(name);
         entityGroup.setType(type);
         if (ownerId != null) {

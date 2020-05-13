@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.dao.nosql;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
 import java.util.concurrent.ExecutionException;
@@ -42,21 +42,19 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by ashvayka on 24.10.18.
  */
-public class TbResultSetFuture implements ResultSetFuture {
+public class TbResultSetFuture implements ListenableFuture<TbResultSet> {
 
-    private final SettableFuture<ResultSet> mainFuture;
+    private final SettableFuture<TbResultSet> mainFuture;
 
-    public TbResultSetFuture(SettableFuture<ResultSet> mainFuture) {
+    public TbResultSetFuture(SettableFuture<TbResultSet> mainFuture) {
         this.mainFuture = mainFuture;
     }
 
-    @Override
-    public ResultSet getUninterruptibly() {
+    public TbResultSet getUninterruptibly() {
         return getSafe();
     }
 
-    @Override
-    public ResultSet getUninterruptibly(long timeout, TimeUnit unit) throws TimeoutException {
+    public TbResultSet getUninterruptibly(long timeout, TimeUnit unit) throws TimeoutException {
         return getSafe(timeout, unit);
     }
 
@@ -76,12 +74,12 @@ public class TbResultSetFuture implements ResultSetFuture {
     }
 
     @Override
-    public ResultSet get() throws InterruptedException, ExecutionException {
+    public TbResultSet get() throws InterruptedException, ExecutionException {
         return mainFuture.get();
     }
 
     @Override
-    public ResultSet get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public TbResultSet get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return mainFuture.get(timeout, unit);
     }
 
@@ -90,7 +88,7 @@ public class TbResultSetFuture implements ResultSetFuture {
         mainFuture.addListener(listener, executor);
     }
 
-    private ResultSet getSafe() {
+    private TbResultSet getSafe() {
         try {
             return mainFuture.get();
         } catch (InterruptedException | ExecutionException e) {
@@ -98,7 +96,7 @@ public class TbResultSetFuture implements ResultSetFuture {
         }
     }
 
-    private ResultSet getSafe(long timeout, TimeUnit unit) throws TimeoutException {
+    private TbResultSet getSafe(long timeout, TimeUnit unit) throws TimeoutException {
         try {
             return mainFuture.get(timeout, unit);
         } catch (InterruptedException | ExecutionException e) {
