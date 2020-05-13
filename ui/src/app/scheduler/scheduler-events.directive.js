@@ -39,6 +39,7 @@ import schedulerEventsTitleTemplate from './scheduler-events-title.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 import SchedulerEventController from './scheduler-event-dialog.controller';
+import manageAssignedEdgesTemplate from "./manage-assigned-edges.tpl.html";
 
 /*@ngInject*/
 export default function SchedulerEvents() {
@@ -64,6 +65,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.write);
     vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.create);
     vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.delete);
+    vm.manageAssignedEdgeGroupsEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.manageAssignedEdgeGroups)
 
     vm.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
         userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read);
@@ -129,6 +131,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.deleteSchedulerEvents = deleteSchedulerEvents;
     vm.reloadSchedulerEvents = reloadSchedulerEvents;
     vm.updateSchedulerEvents = updateSchedulerEvents;
+    vm.manageAssignedEdgeGroupsEvent = manageAssignedEdgeGroupsEvent;
 
     $scope.$watch("vm.query.search", function(newVal, prevVal) {
         if (!angular.equals(newVal, prevVal) && vm.query.search != null) {
@@ -756,6 +759,28 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         var startIndex = vm.query.limit * (vm.query.page - 1);
         vm.schedulerEvents = result.slice(startIndex, startIndex + vm.query.limit);
         calendarElem().fullCalendar('refetchEvents');
+    }
+
+    function manageAssignedEdgeGroupsEvent($event, schedulerEvent) {
+        showManageAssignedEdgeGroupsDialog($event, [schedulerEvent.id.id], 'manage', schedulerEvent.assignedEdgeGroups);
+    }
+
+    function showManageAssignedEdgeGroupsDialog($event, schedulerEventIds, actionType, assignedEdgeGroups) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'ManageSchedulerEdgeGroupsController',
+            controllerAs: 'vm',
+            templateUrl: manageAssignedEdgesTemplate,
+            locals: {actionType: actionType, schedulerEventIds: schedulerEventIds, assignedEdgeGroups: assignedEdgeGroups},
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function () {
+            vm.grid.refreshList();
+        }, function () {
+        });
     }
 
 }

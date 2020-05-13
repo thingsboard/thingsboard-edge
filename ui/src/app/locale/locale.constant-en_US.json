@@ -2527,7 +2527,9 @@
         "time-unit-required": "Time unit is required",
         "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
         "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
-        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }",
+        "manage-assigned-edge-groups": "Manage assigned edge groups",
+        "manage-assigned-edge-groups-text": "Assigned edge groups"
     },
     "report": {
         "report-config": "Report configuration",

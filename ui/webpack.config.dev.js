@@ -85,6 +85,16 @@ module.exports = {
                 transform: function(content, path) {
                     return Buffer.from(jsonminify(content.toString()));
                 }
+            },
+            {
+                from: './src/app/scheduler/test.json',
+                to: 'scheduler/test.json',
+                ignore: [ '*.js' ]
+            },
+            {
+                from: './src/app/scheduler',
+                to: 'scheduler',
+                ignore: [ '*.js' ]
             }
         ]),
         new webpack.HotModuleReplacementPlugin(),

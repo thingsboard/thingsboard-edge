@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q, customerService) {
+function SchedulerEventService($http, $q) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,
@@ -41,35 +41,47 @@ function SchedulerEventService($http, $q, customerService) {
         getSchedulerEvent: getSchedulerEvent,
         getSchedulerEventInfo: getSchedulerEventInfo,
         saveSchedulerEvent: saveSchedulerEvent,
-        deleteSchedulerEvent: deleteSchedulerEvent
+        deleteSchedulerEvent: deleteSchedulerEvent,
+        manageSchedulerEventAssignedEdges: manageSchedulerEventAssignedEdges
     };
 
     return service;
 
-    function getSchedulerEvents(type, applyCustomersInfo, config) {
+    function getSchedulerEvents() {
         var deferred = $q.defer();
-        var url = '/api/schedulerEvents';
-        if (type) {
-            url += '?type=' + type;
-        }
-        $http.get(url, config).then(function success(response) {
-            if (applyCustomersInfo) {
-                customerService.applyAssignedCustomersInfo(response.data).then(
-                    function success(data) {
-                        deferred.resolve(data);
-                    },
-                    function fail() {
-                        deferred.reject();
-                    }
-                );
-            } else {
+        var url = 'scheduler/test.json';
+        $http.get(url).success(function(response) {
                 deferred.resolve(response.data);
-            }
-        }, function fail() {
+        }).error(function () {
             deferred.reject();
         });
         return deferred.promise;
     }
+
+    // function getSchedulerEvents(type, applyCustomersInfo, config) {
+    //     var deferred = $q.defer();
+    //     var url = '/api/schedulerEvents';
+    //     if (type) {
+    //         url += '?type=' + type;
+    //     }
+    //     $http.get(url, config).then(function success(response) {
+    //         if (applyCustomersInfo) {
+    //             customerService.applyAssignedCustomersInfo(response.data).then(
+    //                 function success(data) {
+    //                     deferred.resolve(data);
+    //                 },
+    //                 function fail() {
+    //                     deferred.reject();
+    //                 }
+    //             );
+    //         } else {
+    //             deferred.resolve(response.data);
+    //         }
+    //     }, function fail() {
+    //         deferred.reject();
+    //     });
+    //     return deferred.promise;
+    // }
 
     function getSchedulerEventsByIds(schedulerEventIds, config) {
         var deferred = $q.defer();
@@ -140,4 +152,26 @@ function SchedulerEventService($http, $q, customerService) {
         });
         return deferred.promise;
     }
+
+    function manageSchedulerEventAssignedEdges() { // eslint-disable-line no-console
+        var deferred = $q.defer();
+        return deferred.promise;
+    }
+
+    // function prepareSchedulerEvent(schedulerEvent) {
+    //     schedulerEvent.assignedEdgesText = "";
+    //     schedulerEvent.assignedEdgesIds = [];
+    //
+    //     if (ruleChain.assignedEdges && ruleChain.assignedEdges.length) {
+    //         var assignedEdgesTitles = [];
+    //         for (var j = 0; j < ruleChain.assignedEdges.length; j++) {
+    //             var assignedEdge = ruleChain.assignedEdges[j];
+    //             ruleChain.assignedEdgesIds.push(assignedEdge.edgeId.id);
+    //             assignedEdgesTitles.push(assignedEdge.title);
+    //         }
+    //         ruleChain.assignedEdgesText = assignedEdgesTitles.join(', ');
+    //     }
+    //
+    //     return ruleChain;
+    // }
 }
