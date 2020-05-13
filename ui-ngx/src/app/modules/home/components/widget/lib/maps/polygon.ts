@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { LatLngExpression, LatLngTuple, LeafletMouseEvent } from 'leaflet';
+import L, { LatLngExpression, LeafletMouseEvent } from 'leaflet';
 import { createTooltip, parseWithTranslation, safeExecute } from './maps-utils';
 import { FormattedData, PolygonSettings } from './map-models';
 
@@ -76,7 +76,7 @@ export class Polygon {
         this.tooltip.setContent(parseWithTranslation.parseTemplate(pattern, data, true));
     }
 
-    updatePolygon(data: LatLngTuple[], dataSources: FormattedData[], settings: PolygonSettings) {
+    updatePolygon(data: FormattedData, dataSources: FormattedData[], settings: PolygonSettings) {
         this.data = data;
         this.dataSources = dataSources;
         this.leafletPoly.setLatLngs(data[this.settings.polygonKeyName]);
