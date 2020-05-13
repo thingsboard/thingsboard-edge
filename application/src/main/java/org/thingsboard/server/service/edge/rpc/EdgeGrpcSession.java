@@ -41,6 +41,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
@@ -96,6 +97,7 @@ import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -110,7 +112,7 @@ import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_M
 
 @Slf4j
 @Data
-public final class EdgeGrpcSession implements Cloneable {
+public final class EdgeGrpcSession implements Closeable {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
 
@@ -183,7 +185,7 @@ public final class EdgeGrpcSession implements Cloneable {
         UUID ifOffset = null;
         do {
             pageData = ctx.getEdgeService().findQueueEvents(edge.getTenantId(), edge.getId(), pageLink);
-            if (!pageData.getData().isEmpty()) {
+            if (isConnected() && !pageData.getData().isEmpty()) {
                 log.trace("[{}] [{}] event(s) are going to be processed.", this.sessionId, pageData.getData().size());
                 for (Event event : pageData.getData()) {
                     log.trace("[{}] Processing event [{}]", this.sessionId, event);
@@ -211,7 +213,7 @@ public final class EdgeGrpcSession implements Cloneable {
                     ifOffset = event.getUuidId();
                 }
             }
-            if (pageData.hasNext()) {
+            if (isConnected() && pageData.hasNext()) {
                 pageLink = pageData.getNextPageLink();
                 try {
                     Thread.sleep(ctx.getEdgeEventStorageSettings().getSleepIntervalBetweenBatches());
@@ -219,7 +221,7 @@ public final class EdgeGrpcSession implements Cloneable {
                     log.error("Error during sleep between batches", e);
                 }
             }
-        } while (pageData.hasNext());
+        } while (isConnected() && pageData.hasNext());
 
         if (ifOffset != null) {
             Long newStartTs = UUIDs.unixTimestamp(ifOffset);
@@ -302,7 +304,7 @@ public final class EdgeGrpcSession implements Cloneable {
 
     private void processCustomDownlinkMessage(EdgeQueueEntry entry) throws IOException {
         log.trace("Executing processCustomDownlinkMessage, entry [{}]", entry);
-        TbMsg tbMsg = objectMapper.readValue(entry.getData(), TbMsg.class);
+        TbMsg tbMsg = TbMsg.fromBytes(Base64.decodeBase64(entry.getData()), TbMsgCallback.EMPTY);
         String entityName = null;
         switch (entry.getEntityType()) {
             case DEVICE:
@@ -714,5 +716,15 @@ public final class EdgeGrpcSession implements Cloneable {
                 .setRoutingKey(edge.getRoutingKey())
                 .setType(edge.getType().toString())
                 .build();
+    }
+
+    @Override
+    public void close() {
+        connected = false;
+        try {
+            outputStream.onCompleted();
+        } catch (Exception e) {
+            log.debug("[{}] Failed to close output stream: {}", sessionId, e.getMessage());
+        }
     }
 }
