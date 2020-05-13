@@ -37,7 +37,8 @@
                          the-form="vm.theForm"
                          on-delete-entity-group="vm.onDeleteEntityGroup({event: event})"
                          on-make-public="vm.onMakePublic({event: event})"
-                         on-make-private="vm.onMakePrivate({event: event})">
+                         on-make-private="vm.onMakePrivate({event: event})"
+                         on-manage-assigned-edge-groups="vm.onManageAssignedEdgeGroups({event: event})">
         </tb-entity-group>
     </md-tab>
     <md-tab md-on-select="vm.triggerResize()" label="{{ 'entity-group.columns' | translate }}">

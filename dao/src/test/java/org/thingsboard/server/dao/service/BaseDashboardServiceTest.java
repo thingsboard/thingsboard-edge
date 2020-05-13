@@ -260,11 +260,11 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         dashboard.setTitle("My dashboard");
         dashboard.setTenantId(tenantId);
         dashboard = dashboardService.saveDashboard(dashboard);
-        try {
-            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), new EdgeId(UUIDs.timeBased()));
-        } finally {
-            dashboardService.deleteDashboard(tenantId, dashboard.getId());
-        }
+//        try {
+//            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), new EdgeId(UUIDs.timeBased()));
+//        } finally {
+//            dashboardService.deleteDashboard(tenantId, dashboard.getId());
+//        }
     }
 
     @Test(expected = DataValidationException.class)
@@ -281,12 +281,12 @@ public abstract class BaseDashboardServiceTest extends AbstractBeforeTest {
         edge.setName("Test different edge");
         edge.setType("default");
         edge = edgeService.saveEdge(edge);
-        try {
-            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), edge.getId());
-        } finally {
-            dashboardService.deleteDashboard(tenantId, dashboard.getId());
-            tenantService.deleteTenant(tenant.getId());
-        }
+//        try {
+//            dashboardService.assignDashboardToEdge(tenantId, dashboard.getId(), edge.getId());
+//        } finally {
+//            dashboardService.deleteDashboard(tenantId, dashboard.getId());
+//            tenantService.deleteTenant(tenant.getId());
+//        }
     }
 
 }

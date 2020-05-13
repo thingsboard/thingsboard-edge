@@ -56,7 +56,10 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         getEntityGroupEntity: getEntityGroupEntity,
         getEntityGroupEntities: getEntityGroupEntities,
         constructGroupConfigByStateParams: constructGroupConfigByStateParams,
-        constructGroupConfig: constructGroupConfig
+        constructGroupConfig: constructGroupConfig,
+        updateEntityGroupEdges: updateEntityGroupEdges,
+        addEntityGroupEdges: addEntityGroupEdges,
+        removeEntityGroupEdges: removeEntityGroupEdges
     }
 
     return service;
@@ -103,7 +106,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
             config = {};
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
-        $http.post(url, entityGroup, config).then(function success(response) {
+        $http.post(url, cleanEntityGroup(entityGroup), config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -160,7 +163,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(response.data);
+            deferred.resolve(prepareEntityGroups(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -414,6 +417,71 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
             }
         );
         return deferred.promise;
+    }
+
+    function updateEntityGroupEdges(entityGroupId, edgeGroupIds) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups';
+        $http.post(url, edgeGroupIds).then(function success(response) {
+            deferred.resolve(prepareEntityGroup(response.data));
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function addEntityGroupEdges(entityGroupId, edgeGroupIds) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/add';
+        $http.post(url, edgeGroupIds).then(function success(response) {
+            deferred.resolve(prepareEntityGroup(response.data));
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function removeEntityGroupEdges(entityGroupId, edgeGroupIds) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/remove';
+        $http.post(url, edgeGroupIds).then(function success(response) {
+            deferred.resolve(prepareEntityGroup(response.data));
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function prepareEntityGroups(entityGroups) {
+        if (entityGroups) {
+            for (var i = 0; i < entityGroups.length; i++) {
+                entityGroups[i] = prepareEntityGroup(entityGroups[i]);
+            }
+        }
+        return entityGroups;
+    }
+
+    function prepareEntityGroup(entityGroup) {
+        entityGroup.assignedEdgeGroupsText = "";
+        entityGroup.assignedEdgeGroupIds = [];
+
+        if (entityGroup.assignedEdgeGroups && entityGroup.assignedEdgeGroups.length) {
+            var assignedEdgeGroupsTitles = [];
+            for (var j = 0; j < entityGroup.assignedEdgeGroups.length; j++) {
+                var assignedEdgeGroup = entityGroup.assignedEdgeGroups[j];
+                entityGroup.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
+                assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
+            }
+            entityGroup.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
+        }
+
+        return entityGroup;
+    }
+
+    function cleanEntityGroup(entityGroup) {
+        delete entityGroup.assignedEdgeGroupsText;
+        delete entityGroup.assignedEdgeGroupIds;
+        return entityGroup;
     }
 
     function resolveParentGroupInfo($stateParams, entityGroup) {

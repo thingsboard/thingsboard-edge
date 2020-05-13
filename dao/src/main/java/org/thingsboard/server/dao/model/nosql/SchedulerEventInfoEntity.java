@@ -34,6 +34,7 @@ import com.datastax.driver.core.utils.UUIDs;
 import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -81,6 +82,9 @@ public final class SchedulerEventInfoEntity implements SearchTextEntity<Schedule
     @Column(name = SCHEDULER_EVENT_SCHEDULE_PROPERTY, codec = JsonCodec.class)
     private JsonNode schedule;
 
+    @Column(name = SCHEDULER_EVENT_ASSIGNED_EDGE_GROUPS_PROPERTY)
+    private String assignedEdgeGroups;
+
     public SchedulerEventInfoEntity() {
         super();
     }
@@ -99,6 +103,13 @@ public final class SchedulerEventInfoEntity implements SearchTextEntity<Schedule
         this.type = schedulerEventInfo.getType();
         this.additionalInfo = schedulerEventInfo.getAdditionalInfo();
         this.schedule = schedulerEventInfo.getSchedule();
+//        if (schedulerEventInfo.getAssignedEdges() != null) {
+//            try {
+//                this.assignedEdges = objectMapper.writeValueAsString(entityGroup.getAssignedEdges());
+//            } catch (JsonProcessingException e) {
+//                log.error("Unable to serialize assigned edges to string!", e);
+//            }
+//        }
     }
 
     @Override

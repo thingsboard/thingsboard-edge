@@ -43,7 +43,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.ShortEdgeInfo;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.SearchTextEntity;
@@ -53,7 +52,6 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_ASSIGNED_EDGES_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.DASHBOARD_TITLE_PROPERTY;
@@ -69,8 +67,6 @@ public class DashboardInfoEntity implements SearchTextEntity<DashboardInfo> {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JavaType assignedCustomersType =
             objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
-    private static final JavaType assignedEdgesType =
-            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortEdgeInfo.class);
 
     @PartitionKey(value = 0)
     @Column(name = ID_PROPERTY)
@@ -89,9 +85,6 @@ public class DashboardInfoEntity implements SearchTextEntity<DashboardInfo> {
     @Column(name = DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY)
     private String assignedCustomers;
 
-    @Column(name = DASHBOARD_ASSIGNED_EDGES_PROPERTY)
-    private String assignedEdges;
-
     public DashboardInfoEntity() {
         super();
     }
@@ -109,13 +102,6 @@ public class DashboardInfoEntity implements SearchTextEntity<DashboardInfo> {
                 this.assignedCustomers = objectMapper.writeValueAsString(dashboardInfo.getAssignedCustomers());
             } catch (JsonProcessingException e) {
                 log.error("Unable to serialize assigned customers to string!", e);
-            }
-        }
-        if (dashboardInfo.getAssignedEdges() != null) {
-            try {
-                this.assignedEdges = objectMapper.writeValueAsString(dashboardInfo.getAssignedEdges());
-            } catch (JsonProcessingException e) {
-                log.error("Unable to serialize assigned edges to string!", e);
             }
         }
     }
@@ -152,13 +138,6 @@ public class DashboardInfoEntity implements SearchTextEntity<DashboardInfo> {
         this.assignedCustomers = assignedCustomers;
     }
 
-    public String getAssignedEdges() {
-        return assignedEdges;
-    }
-
-    public void setAssignedEdges(String assignedEdges) {
-        this.assignedEdges = assignedEdges;
-    }
 
     @Override
     public String getSearchTextSource() {
@@ -187,13 +166,6 @@ public class DashboardInfoEntity implements SearchTextEntity<DashboardInfo> {
                 dashboardInfo.setAssignedCustomers(objectMapper.readValue(assignedCustomers, assignedCustomersType));
             } catch (IOException e) {
                 log.warn("Unable to parse assigned customers!", e);
-            }
-        }
-        if (!StringUtils.isEmpty(assignedEdges)) {
-            try {
-                dashboardInfo.setAssignedEdges(objectMapper.readValue(assignedEdges, assignedEdgesType));
-            } catch (IOException e) {
-                log.warn("Unable to parse assigned edges!", e);
             }
         }
         return dashboardInfo;

@@ -46,7 +46,8 @@ export default function EntityGroupDetails() {
             theForm: '=',
             onDeleteEntityGroup: '&',
             onMakePublic: '&',
-            onMakePrivate: '&'
+            onMakePrivate: '&',
+            onManageAssignedEdgeGroups: '&'
         },
         controller: EntityGroupDetailsController,
         controllerAs: 'vm',

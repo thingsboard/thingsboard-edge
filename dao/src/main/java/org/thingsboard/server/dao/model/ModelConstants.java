@@ -322,6 +322,7 @@ public class ModelConstants {
     public static final String ENTITY_GROUP_OWNER_TYPE_PROPERTY = "owner_type";
     public static final String ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String ENTITY_GROUP_CONFIGURATION_PROPERTY = "configuration";
+    public static final String ENTITY_GROUP_ASSIGNED_EDGE_GROUPS_PROPERTY = "assigned_edge_groups";
 
     /**
      * Cassandra device_credentials constants.
@@ -368,7 +369,6 @@ public class ModelConstants {
     public static final String DASHBOARD_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String DASHBOARD_CONFIGURATION_PROPERTY = "configuration";
     public static final String DASHBOARD_ASSIGNED_CUSTOMERS_PROPERTY = "assigned_customers";
-    public static final String DASHBOARD_ASSIGNED_EDGES_PROPERTY = "assigned_edges";
 
     public static final String DASHBOARD_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "dashboard_by_tenant_and_search_text";
 
@@ -413,7 +413,7 @@ public class ModelConstants {
     public static final String RULE_CHAIN_FIRST_RULE_NODE_ID_PROPERTY = "first_rule_node_id";
     public static final String RULE_CHAIN_ROOT_PROPERTY = "root";
     public static final String RULE_CHAIN_CONFIGURATION_PROPERTY = "configuration";
-    public static final String RULE_CHAIN_ASSIGNED_EDGES_PROPERTY = "assigned_edges";
+    public static final String RULE_CHAIN_ASSIGNED_EDGE_GROUPS_PROPERTY = "assigned_edge_groups";
 
     public static final String RULE_CHAIN_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "rule_chain_by_tenant_and_search_text";
     public static final String RULE_CHAIN_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "rule_chain_by_tenant_by_type_and_search_text";
@@ -454,6 +454,7 @@ public class ModelConstants {
     public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
     public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
+    public static final String SCHEDULER_EVENT_ASSIGNED_EDGE_GROUPS_PROPERTY = "assigned_edge_groups";
 
     public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
     public static final String SCHEDULER_EVENT_BY_TENANT_AND_TYPE_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant_and_type";

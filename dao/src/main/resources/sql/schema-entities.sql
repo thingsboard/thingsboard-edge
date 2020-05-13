@@ -155,7 +155,6 @@ CREATE TABLE IF NOT EXISTS dashboard (
     id varchar(31) NOT NULL CONSTRAINT dashboard_pkey PRIMARY KEY,
     configuration varchar(10000000),
     assigned_customers varchar(1000000),
-    assigned_edges varchar(10000000),
     search_text varchar(255),
     tenant_id varchar(31),
     customer_id varchar(31),
@@ -270,7 +269,8 @@ CREATE TABLE IF NOT EXISTS entity_group (
     owner_id varchar(31),
     owner_type varchar(255),
     additional_info varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    assigned_edge_groups varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS rule_chain (
@@ -284,7 +284,7 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     debug_mode boolean,
     search_text varchar(255),
     tenant_id varchar(31),
-    assigned_edges varchar(10000000)
+    assigned_edge_groups varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS rule_node (
@@ -307,7 +307,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     tenant_id varchar(31),
     type varchar(255),
     schedule varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    assigned_edge_groups varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (

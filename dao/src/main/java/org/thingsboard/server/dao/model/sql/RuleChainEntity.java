@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.ShortEdgeInfo;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -73,8 +73,8 @@ import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_TYPE_PR
 public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchTextEntity<RuleChain> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final JavaType assignedEdgesType =
-            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortEdgeInfo.class);
+    private static final JavaType assignedEdgeGroupsType =
+            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortEntityGroupInfo.class);
 
     @Column(name = ModelConstants.RULE_CHAIN_TENANT_ID_PROPERTY)
     private String tenantId;
@@ -106,8 +106,8 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
     @Column(name = ModelConstants.ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
-    @Column(name = ModelConstants.RULE_CHAIN_ASSIGNED_EDGES_PROPERTY)
-    private String assignedEdges;
+    @Column(name = ModelConstants.RULE_CHAIN_ASSIGNED_EDGE_GROUPS_PROPERTY)
+    private String assignedEdgeGroups;
 
     public RuleChainEntity() {
     }
@@ -127,11 +127,11 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         this.debugMode = ruleChain.isDebugMode();
         this.configuration = ruleChain.getConfiguration();
         this.additionalInfo = ruleChain.getAdditionalInfo();
-        if (ruleChain.getAssignedEdges() != null) {
+        if (ruleChain.getAssignedEdgeGroups() != null) {
             try {
-                this.assignedEdges = objectMapper.writeValueAsString(ruleChain.getAssignedEdges());
+                this.assignedEdgeGroups = objectMapper.writeValueAsString(ruleChain.getAssignedEdgeGroups());
             } catch (JsonProcessingException e) {
-                log.error("Unable to serialize assigned edges to string!", e);
+                log.error("Unable to serialize assigned edge groups to string!", e);
             }
         }
     }
@@ -160,11 +160,11 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         ruleChain.setDebugMode(debugMode);
         ruleChain.setConfiguration(configuration);
         ruleChain.setAdditionalInfo(additionalInfo);
-        if (!StringUtils.isEmpty(assignedEdges)) {
+        if (!StringUtils.isEmpty(assignedEdgeGroups)) {
             try {
-                ruleChain.setAssignedEdges(objectMapper.readValue(assignedEdges, assignedEdgesType));
+                ruleChain.setAssignedEdgeGroups(objectMapper.readValue(assignedEdgeGroups, assignedEdgeGroupsType));
             } catch (IOException e) {
-                log.warn("Unable to parse assigned edges!", e);
+                log.warn("Unable to parse assigned edge groups!", e);
             }
         }
         return ruleChain;

@@ -124,4 +124,7 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 
+    EntityGroup assignEntityGroupToEdgeGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityGroupId edgeGroupId);
+
+    EntityGroup unassignEntityGroupFromEdgeGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityGroupId edgeGroupId, boolean remove);
 }

@@ -47,9 +47,11 @@
             <div class="md-dialog-content">
                 <fieldset>
                     <span translate>{{vm.labelText}}</span>
-                    <tb-entity-list ng-disabled="$root.loading"
-                                    ng-model="vm.assignedEdges"
-                                    entity-type="vm.types.entityType.edge"></tb-entity-list>
+                    <tb-entity-group-list
+                            ng-disabled="$root.loading"
+                            ng-model="vm.assignedEdgeGroupIds"
+                            group-type="vm.types.entityType.edge">
+                    </tb-entity-group-list>
                 </fieldset>
             </div>
         </md-dialog-content>

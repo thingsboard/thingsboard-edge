@@ -208,8 +208,9 @@ public class DefaultInitEdgeService implements InitEdgeService {
             TimePageLink pageLink = new TimePageLink(100);
             TimePageData<DashboardInfo> pageData;
             do {
-                pageData = dashboardService.findDashboardsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), pageLink).get();
-                if (!pageData.getData().isEmpty()) {
+//                pageData = dashboardService.findDashboardsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), pageLink).get();
+                pageData = null;
+                if (pageData != null && !pageData.getData().isEmpty()) {
                     log.trace("[{}] [{}] dashboard(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
                     for (DashboardInfo dashboardInfo : pageData.getData()) {
                         Dashboard dashboard = dashboardService.findDashboardById(edge.getTenantId(), dashboardInfo.getId());
@@ -239,8 +240,9 @@ public class DefaultInitEdgeService implements InitEdgeService {
             TimePageLink pageLink = new TimePageLink(100);
             TimePageData<RuleChain> pageData;
             do {
-                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), pageLink).get();
-                if (!pageData.getData().isEmpty()) {
+//                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeGroupId(edge.getTenantId(), edge.getId(), pageLink).get();
+                pageData = null;
+                if (pageData != null && !pageData.getData().isEmpty()) {
                     log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
                     for (RuleChain ruleChain : pageData.getData()) {
                         RuleChainUpdateMsg ruleChainUpdateMsg =

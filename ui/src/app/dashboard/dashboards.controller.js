@@ -35,7 +35,7 @@ import dashboardCard from './dashboard-card.tpl.html';
 import addDashboardsToCustomerTemplate from './add-dashboards-to-customer.tpl.html';
 import makeDashboardPublicDialogTemplate from './make-dashboard-public-dialog.tpl.html';
 import manageAssignedCustomersTemplate from './manage-assigned-customers.tpl.html';
-import manageAssignedEdgesTemplate from './manage-assigned-edges.tpl.html';
+import manageAssignedEdgesTemplate from './manage-assigned-edge-groups.tpl.html';
 import addDashboardsToEdgeTemplate from './add-dashboards-to-edge.tpl.html';*/
 
 /* eslint-enable import/no-unresolved, import/default */

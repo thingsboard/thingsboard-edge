@@ -31,12 +31,18 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -45,16 +51,33 @@ import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import java.io.IOException;
+import java.util.HashSet;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_CONFIGURATION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_TYPE_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.ENTITY_GROUP_COLUMN_FAMILY_NAME)
+@Slf4j
 public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements BaseEntity<EntityGroup> {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JavaType assignedEdgeGroupsType =
+            objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortEntityGroupInfo.class);
 
     @Transient
     private static final long serialVersionUID = 8050086409213322856L;
@@ -81,11 +104,14 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Column(name = ENTITY_GROUP_CONFIGURATION_PROPERTY)
     private JsonNode configuration;
 
-    public EntityGroupEntity () {
+    @Column(name = ModelConstants.ENTITY_GROUP_ASSIGNED_EDGE_GROUPS_PROPERTY)
+    private String assignedEdgeGroups;
+
+    public EntityGroupEntity() {
         super();
     }
 
-    public EntityGroupEntity (EntityGroup entityGroup) {
+    public EntityGroupEntity(EntityGroup entityGroup) {
         if (entityGroup.getId() != null) {
             this.setUuid(entityGroup.getId().getId());
         }
@@ -97,6 +123,13 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         }
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
+        if (entityGroup.getAssignedEdgeGroups() != null) {
+            try {
+                this.assignedEdgeGroups = objectMapper.writeValueAsString(entityGroup.getAssignedEdgeGroups());
+            } catch (JsonProcessingException e) {
+                log.error("Unable to serialize assigned edge groups to string!", e);
+            }
+        }
     }
 
     @Override
@@ -110,6 +143,13 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);
+        if (!StringUtils.isEmpty(assignedEdgeGroups)) {
+            try {
+                entityGroup.setAssignedEdgeGroups(objectMapper.readValue(assignedEdgeGroups, assignedEdgeGroupsType));
+            } catch (IOException e) {
+                log.warn("Unable to parse assigned edge groups!", e);
+            }
+        }
         return entityGroup;
     }
 

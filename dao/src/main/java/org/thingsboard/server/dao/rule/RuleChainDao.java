@@ -65,12 +65,12 @@ public interface RuleChainDao extends Dao<RuleChain> {
     List<RuleChain> findRuleChainsByTenantIdAndType(UUID tenantId, RuleChainType type, TextPageLink pageLink);
 
     /**
-     * Find rule chains by tenantId, edgeId and page link.
+     * Find rule chains by tenantId, edgeGroupId and page link.
      *
      * @param tenantId the tenantId
-     * @param edgeId the edgeId
+     * @param edgeGroupId the edgeGroupId
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
+    ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeGroupId(UUID tenantId, UUID edgeGroupId, TimePageLink pageLink);
 }

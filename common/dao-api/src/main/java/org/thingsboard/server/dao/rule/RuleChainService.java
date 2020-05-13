@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.rule;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -82,15 +82,15 @@ public interface RuleChainService {
 
     void deleteRuleChainsByTenantId(TenantId tenantId);
 
-    RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId);
+    RuleChain assignRuleChainToEdgeGroup(TenantId tenantId, RuleChainId ruleChainId, EntityGroupId edgeGroupId);
 
-    RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChainId ruleChainId, EdgeId edgeId, boolean remove);
+    RuleChain unassignRuleChainFromEdgeGroup(TenantId tenantId, RuleChainId ruleChainId, EntityGroupId edgeGroupId, boolean remove);
 
-    void unassignEdgeRuleChains(TenantId tenantId, EdgeId edgeId);
+    void unassignEdgeGroupRuleChains(TenantId tenantId, EntityGroupId edgeGroupId);
 
-    void updateEdgeRuleChains(TenantId tenantId, EdgeId edgeId);
+    void updateEdgeGroupRuleChains(TenantId tenantId, EntityGroupId edgeGroupId);
 
-    ListenableFuture<TimePageData<RuleChain>> findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TimePageLink pageLink);
+    ListenableFuture<TimePageData<RuleChain>> findRuleChainsByTenantIdAndEdgeGroupId(TenantId tenantId, EntityGroupId edgeGroupId, TimePageLink pageLink);
 
     RuleChain getDefaultRootEdgeRuleChain(TenantId tenantId);
 

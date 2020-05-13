@@ -32,6 +32,7 @@
 
 import addEntityGroupTemplate from './add-entity-group.tpl.html';
 import entityGroupCard from './entity-group-card.tpl.html';
+import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -51,7 +52,7 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $scope, $state, utils, tbDialogs, entityGroupService, customerService, $stateParams,
+export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams,
                                       $q, $translate, types, securityTypes, userPermissionsService) {
 
     var vm = this;
@@ -96,6 +97,20 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                        && item.additionalInfo && item.additionalInfo.isPublic
                        && userPermissionsService.isDirectlyOwnedGroup(item)
                        && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
+            }
+        },
+        {
+            onAction: function ($event, item) {
+                manageAssignedEdgeGroups($event, item);
+            },
+            name: function() { return $translate.instant('action.share') },
+            details: function() { return $translate.instant('entity-group.manage-assigned-edge-groups') },
+            icon: "wifi_tethering",
+            isEnabled: function(item) {
+                return types.edgeGroupTypes.includes(vm.groupType)
+                    && item
+                    && userPermissionsService.isDirectlyOwnedGroup(item)
+                    && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
             }
         },
         {
@@ -174,6 +189,7 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
 
     vm.makePublic = makePublic;
     vm.makePrivate = makePrivate;
+    vm.manageAssignedEdgeGroups = manageAssignedEdgeGroups;
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
         vm.deviceGridConfig.items = $stateParams.items;
@@ -336,6 +352,28 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                 vm.grid.refreshList();
             }
         );
+    }
+
+    function manageAssignedEdgeGroups($event, entityGroup) {
+        showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds);
+    }
+
+    function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        $mdDialog.show({
+            controller: 'ManageAssignedEdgeGroupsToEntityGroupController',
+            controllerAs: 'vm',
+            templateUrl: manageAssignedEdgeGroupsTemplate,
+            locals: {actionType: actionType, entityGroupIds: entityGroupId, assignedEdgeGroupIds: assignedEdgeGroupIds},
+            parent: angular.element($document[0].body),
+            fullscreen: true,
+            targetEvent: $event
+        }).then(function () {
+            vm.grid.refreshList();
+        }, function () {
+        });
     }
 
     function reload() {

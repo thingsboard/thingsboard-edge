@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.ShortEdgeInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -72,9 +71,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
@@ -382,14 +379,15 @@ public class DashboardController extends BaseController {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             checkDashboardId(dashboardId, Operation.ASSIGN_TO_EDGE);
 
-            Dashboard savedDashboard = checkNotNull(dashboardService.assignDashboardToEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
+//            Dashboard savedDashboard = checkNotNull(dashboardService.assignDashboardToEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
 
-            logEntityAction(dashboardId, savedDashboard,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, null, strDashboardId, strEdgeId, edge.getName());
+//            logEntityAction(dashboardId, savedDashboard,
+//                    null,
+//                    ActionType.ASSIGNED_TO_EDGE, null, strDashboardId, strEdgeId, edge.getName());
 
 
-            return savedDashboard;
+//            return savedDashboard;
+            return null;
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.DASHBOARD), null,
@@ -413,13 +411,14 @@ public class DashboardController extends BaseController {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.UNASSIGN_FROM_EDGE);
 
-            Dashboard savedDashboard = checkNotNull(dashboardService.unassignDashboardFromEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
+//            Dashboard savedDashboard = checkNotNull(dashboardService.unassignDashboardFromEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
 
             logEntityAction(dashboardId, dashboard,
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strDashboardId, edge.getId().toString(), edge.getName());
 
-            return savedDashboard;
+//            return savedDashboard;
+            return null;
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.DASHBOARD), null,
@@ -430,6 +429,7 @@ public class DashboardController extends BaseController {
         }
     }
 
+    /*
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/dashboard/{dashboardId}/edges", method = RequestMethod.POST)
     @ResponseBody
@@ -603,4 +603,6 @@ public class DashboardController extends BaseController {
             throw handleException(e);
         }
     }
+
+    */
 }

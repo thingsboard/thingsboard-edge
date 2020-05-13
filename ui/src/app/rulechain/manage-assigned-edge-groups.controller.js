@@ -29,29 +29,29 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function ManageAssignedEdgesToRuleChainController($mdDialog, $q, types, ruleChainService, actionType, ruleChainIds, assignedEdges) {
+export default function ManageAssignedEdgeGroupsToRuleChainController($mdDialog, $q, types, ruleChainService, actionType, ruleChainIds, assignedEdgeGroupIds) {
 
     var vm = this;
 
     vm.types = types;
     vm.actionType = actionType;
     vm.ruleChainIds = ruleChainIds;
-    vm.assignedEdges = assignedEdges;
+    vm.assignedEdgeGroupIds = assignedEdgeGroupIds;
     if (actionType != 'manage') {
-        vm.assignedEdges = [];
+        vm.assignedEdgeGroupIds = [];
     }
 
     if (actionType == 'manage') {
-        vm.titleText = 'rulechain.manage-assigned-edges';
-        vm.labelText = 'rulechain.assigned-edges';
+        vm.titleText = 'rulechain.manage-assigned-edge-groups';
+        vm.labelText = 'rulechain.assigned-edge-groups';
         vm.actionName = 'action.update';
     } else if (actionType == 'assign') {
-        vm.titleText = 'rulechain.assign-to-edges';
-        vm.labelText = 'rulechain.assign-to-edges-text';
+        vm.titleText = 'rulechain.assign-to-edge-groups';
+        vm.labelText = 'rulechain.assign-to-edge-groups-text';
         vm.actionName = 'action.assign';
     } else if (actionType == 'unassign') {
-        vm.titleText = 'rulechain.unassign-from-edges';
-        vm.labelText = 'rulechain.unassign-from-edges-text';
+        vm.titleText = 'rulechain.unassign-from-edge-groups';
+        vm.labelText = 'rulechain.unassign-from-edge-groups-text';
         vm.actionName = 'action.unassign';
     }
 
@@ -68,11 +68,11 @@ export default function ManageAssignedEdgesToRuleChainController($mdDialog, $q, 
             var ruleChainId = vm.ruleChainIds[i];
             var promise;
             if (vm.actionType == 'manage') {
-                promise = ruleChainService.updateRuleChainEdges(ruleChainId, vm.assignedEdges);
+                promise = ruleChainService.updateRuleChainEdgeGroups(ruleChainId, vm.assignedEdgeGroupIds);
             } else if (vm.actionType == 'assign') {
-                promise = ruleChainService.addRuleChainEdges(ruleChainId, vm.assignedEdges);
+                promise = ruleChainService.addRuleChainEdgeGroups(ruleChainId, vm.assignedEdgeGroupIds);
             } else if (vm.actionType == 'unassign') {
-                promise = ruleChainService.removeRuleChainEdges(ruleChainId, vm.assignedEdges);
+                promise = ruleChainService.removeRuleChainEdgeGroups(ruleChainId, vm.assignedEdgeGroupIds);
             }
             tasks.push(promise);
         }

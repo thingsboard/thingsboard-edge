@@ -34,15 +34,25 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.ShortEntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -76,6 +86,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode configuration;
 
+    @Getter
+    @Setter
+    private Set<ShortEntityGroupInfo> assignedEdgeGroups;
+
     public EntityGroup(EntityGroupId id) {
         super(id);
     }
@@ -87,6 +101,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         this.ownerId = entityGroup.getOwnerId();
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
+        this.assignedEdgeGroups = entityGroup.getAssignedEdgeGroups();
     }
 
     @Override
@@ -112,5 +127,35 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
         return false;
     }
+
+    @JsonIgnore
+    public ShortEntityGroupInfo toShortEntityGroupInfo() {
+        return new ShortEntityGroupInfo(id, name);
+    }
+
+    public boolean isAssignedToEdgeGroup(EntityGroupId entityGroupId) {
+        return EdgeUtils.isAssignedToEdgeGroup(this.assignedEdgeGroups, entityGroupId);
+    }
+
+    public ShortEntityGroupInfo getAssignedEdgeGroupInfo(EntityGroupId entityGroupId) {
+        return EdgeUtils.getAssignedEdgeGroupInfo(this.assignedEdgeGroups, entityGroupId);
+    }
+
+    public boolean addAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        if (this.assignedEdgeGroups == null) {
+            this.assignedEdgeGroups = new HashSet<>();
+        }
+        return EdgeUtils.addAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
+    }
+
+    public boolean updateAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        return EdgeUtils.updateAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
+    }
+
+    public boolean removeAssignedEdgeGroup(ShortEntityGroupInfo entityGroup) {
+        return EdgeUtils.removeAssignedEdgeGroup(this.assignedEdgeGroups, entityGroup);
+    }
+
+
 
 }
