@@ -29,8 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
 import { baseUrl } from '@app/core/utils';
+import { FormGroup } from '@angular/forms';
 
 export const handlerConfigurationTypes = {
   text: {
@@ -76,6 +77,8 @@ export const opcSecurityTypes = {
   None: 'None'
 }
 
+export type mqttCredentialType = 'anonymous' | 'basic' | 'cert.PEM';
+
 export const mqttCredentialTypes = {
   anonymous: {
     value: 'anonymous',
@@ -88,6 +91,20 @@ export const mqttCredentialTypes = {
   'cert.PEM': {
     value: 'cert.PEM',
     name: 'extension.pem'
+  }
+}
+
+export function updateIntegrationFormState(type: IntegrationType, info: IntegrationTypeInfo,
+                                           integrationForm: FormGroup, disabled: boolean) {
+  if (disabled) {
+    integrationForm.disable({emitEvent: false});
+  } else {
+    integrationForm.enable({emitEvent: false});
+    if (info.http) {
+      integrationForm.get('httpEndpoint').disable({emitEvent: false});
+    } else if (type === IntegrationType.TTN) {
+      integrationForm.get('topicFilters').disable({emitEvent: false});
+    }
   }
 }
 
@@ -105,13 +122,14 @@ export const templates = {
     clientSecret: '',
     maxTimeDiffInSeconds: 60,
     httpEndpoint: '',
-    headersFilter: ''
+    headersFilter: '',
+    ignoreNonPrimitiveFields: ['headersFilter']
   },
   [IntegrationType.MQTT]: {
     clientConfiguration: {
       host: 'localhost',
       port: 11883,
-      cleanSession: false,
+      cleanSession: true,
       ssl: false,
       connectTimeoutSec: 10,
       clientId: '',

@@ -34,7 +34,7 @@
     <fieldset>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.base-url</mat-label>
-            <input matInput formControlName="baseUrl" required (change)="integrationBaseUrlChanged()">
+            <input matInput formControlName="baseUrl" required>
             <mat-error translate *ngIf="form.get('baseUrl')?.hasError('required')">integration.base-url-required
             </mat-error>
         </mat-form-field>
@@ -46,15 +46,15 @@
         </div>
         <section *ngIf="integrationType === integrationTypes.HTTP ||
                                                 integrationType === integrationTypes.SIGFOX" class="security">
-            <mat-checkbox [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity"
-                (change)="httpEnableSecurityChanged()">{{ 'integration.enable-security' | translate }}
+            <mat-checkbox [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity">
+              {{ 'integration.enable-security' | translate }}
             </mat-checkbox>
-            <mat-accordion *ngIf="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters">
+            <mat-accordion [fxShow]="form.get('enableSecurity')?.value" class="tb-integration-panel-group header-filters">
                 <mat-expansion-panel>
                     <mat-expansion-panel-header>
                         <mat-panel-title translate>integration.headers-filter</mat-panel-title>
                     </mat-expansion-panel-header>
-                    <tb-key-val-map noDataText="integration.no-headers-filter" [disabled]="form.disabled" keyPlaceholderText="integration.header"
+                    <tb-key-val-map noDataText="integration.no-headers-filter" keyPlaceholderText="integration.header"
                         formControlName="headersFilter"></tb-key-val-map>
                     <mat-error translate *ngIf="form.get('headersFilter')?.hasError('required')">
                         integration.header-required
@@ -69,11 +69,10 @@
             </mat-form-field>
             <div fxLayout="row" fxLayoutGap="8px">
                 <mat-checkbox fxFlex [aria-label]="'integration.enable-security' | translate"
-                    formControlName="enableSecurity" (change)="thingparkEnableSecurityChanged()">
+                    formControlName="enableSecurity">
                     {{ 'integration.enable-security' | translate }}
                 </mat-checkbox>
                 <mat-checkbox fxFlex class="mat-block" *ngIf="form.get('enableSecurity')?.value"
-                    (change)="thingparkEnableSecurityNewChanged($event)"
                     [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">
                     {{ 'integration.enable-security-new' | translate}}
                 </mat-checkbox>
@@ -122,7 +121,7 @@
     <div fxLayout="row" fxLayoutGap="8px">
         <mat-form-field class="mat-block" fxFlex>
             <mat-label translate>integration.http-endpoint</mat-label>
-            <input matInput formControlName="httpEndpoint" readonly="true">
+            <input matInput formControlName="httpEndpoint">
         </mat-form-field>
         <button mat-button *ngIf="form.enabled" mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
             [cbContent]="form.get('httpEndpoint')?.value"

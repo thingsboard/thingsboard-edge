@@ -30,12 +30,13 @@
 ///
 
 import { FormGroup } from '@angular/forms';
+import { mqttCredentialType } from '@home/pages/integration/integration-forms-templates';
 
 const basic = ['username', 'password'];
 const pem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey', 'privateKeyPassword'];
 
 
-export function changeRequirement(form: FormGroup, credentialType: 'anonymous' | 'basic' | 'cert.PEM') {
+export function changeRequiredCredentialsFields(form: FormGroup, credentialType: mqttCredentialType) {
     let disabled = [];
     let enabled = [];
     switch (credentialType) {
@@ -67,7 +68,8 @@ export function disableFields(form: FormGroup, fields: string[]) {
 
 export function enableFields(form: FormGroup, fields: string[]) {
     fields.forEach(key => {
-        if (form.get(key))
-            form.get(key).enable();
+        if (form.get(key)) {
+          form.get(key).enable();
+        }
     });
 }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, ChangeDetectionStrategy, OnChanges } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, OnChanges, SimpleChanges } from '@angular/core';
 import { FormGroup, Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
@@ -54,8 +54,37 @@ export class HttpIntegrationFormComponent implements OnChanges {
 
   constructor(protected store: Store<AppState>, private translate: TranslateService) { }
 
-  ngOnChanges(): void {
-    this.integrationBaseUrlChanged();
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (propName === 'form' && change.currentValue) {
+        this.form.get('baseUrl').valueChanges.subscribe(() => {
+          this.integrationBaseUrlChanged();
+        });
+        this.form.get('enableSecurity').valueChanges.subscribe(() => {
+          if (this.integrationType === IntegrationType.HTTP || this.integrationType === IntegrationType.SIGFOX) {
+            this.httpEnableSecurityChanged();
+          } else if (this.integrationType === IntegrationType.THINGPARK || this.integrationType === IntegrationType.TPE) {
+            this.thingparkEnableSecurityChanged();
+          }
+        });
+        this.form.get('enableSecurityNew').valueChanges.subscribe(() => {
+          this.thingparkEnableSecurityNewChanged();
+        });
+      }
+      if (['routingKey', 'integrationType'].includes(propName)) {
+        this.integrationBaseUrlChanged();
+      }
+      if (propName === 'integrationType' && change.currentValue) {
+        this.resetFields();
+      }
+    }
+  }
+
+  resetFields() {
+    this.httpEnableSecurityChanged();
+    this.thingparkEnableSecurityChanged();
+    this.thingparkEnableSecurityNewChanged();
   }
 
   httpEnableSecurityChanged = () => {
@@ -68,6 +97,7 @@ export class HttpIntegrationFormComponent implements OnChanges {
     } else if (!this.form.get('enableSecurity').value) {
       headersFilter.patchValue(null);
       headersFilter.setValidators([]);
+      headersFilter.updateValueAndValidity();
     }
   };
 
@@ -80,17 +110,18 @@ export class HttpIntegrationFormComponent implements OnChanges {
       });
       disableFields(this.form, fields);
     }
-    else
+    else {
       enableFields(this.form, fields);
+    }
   };
 
-  thingparkEnableSecurityNewChanged = ($event) => {
+  thingparkEnableSecurityNewChanged = () => {
     const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret']
-    if (!$event.checked) {
+    if (!this.form.get('enableSecurityNew').value) {
       disableFields(this.form, fields);
-    }
-    else
+    } else {
       enableFields(this.form, fields);
+    }
   };
 
   onHttpEndpointCopied() {

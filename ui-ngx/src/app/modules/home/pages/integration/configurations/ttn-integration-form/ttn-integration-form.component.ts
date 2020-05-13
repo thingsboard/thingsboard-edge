@@ -49,7 +49,11 @@ export class TtnIntegrationFormComponent implements OnInit {
   hostCustom: FormControl;
   currentHostType: FormControl;
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder) {
+    this.hostRegion = this.fb.control('');
+    this.hostCustom = this.fb.control('');
+    this.currentHostType = this.fb.control('Region');
+  }
 
   ngOnInit(): void {
     this.form.get('host').setValidators(Validators.required);
@@ -57,9 +61,6 @@ export class TtnIntegrationFormComponent implements OnInit {
     this.form.get('credentials').get('username').valueChanges.subscribe(name => {
       this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
     });
-    this.hostRegion = this.fb.control('');
-    this.hostCustom = this.fb.control('');
-    this.currentHostType = this.fb.control('Region');
   }
 
   buildHostName() {

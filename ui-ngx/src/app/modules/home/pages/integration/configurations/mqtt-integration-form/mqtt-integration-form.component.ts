@@ -29,10 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectionStrategy, OnChanges, SimpleChanges } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
-import { mqttCredentialTypes } from '../../integration-forms-templates';
-import { changeRequirement } from '../../integration-utils';
+import { mqttCredentialType, mqttCredentialTypes } from '../../integration-forms-templates';
+import { changeRequiredCredentialsFields } from '../../integration-utils';
 
 
 @Component({
@@ -41,7 +41,7 @@ import { changeRequirement } from '../../integration-utils';
   styleUrls: ['./mqtt-integration-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.Default
 })
-export class MqttIntegrationFormComponent implements OnInit {
+export class MqttIntegrationFormComponent implements OnChanges {
 
 
   @Input() form: FormGroup;
@@ -52,12 +52,23 @@ export class MqttIntegrationFormComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit(): void {
-    this.updateCredentials({ value: this.form.get('credentials').get('type')?.value })
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (propName === 'form' && change.currentValue) {
+        const form = this.form.get('credentials') as FormGroup;
+        form.get('type').valueChanges.subscribe(() => {
+          this.mqttCredentialsTypeChanged();
+        });
+        this.mqttCredentialsTypeChanged();
+      }
+    }
   }
 
-  updateCredentials($event) {
+  mqttCredentialsTypeChanged() {
     const form = this.form.get('credentials') as FormGroup;
-    changeRequirement(form, $event.value)
+    const type: mqttCredentialType = form.get('type').value;
+    changeRequiredCredentialsFields(form, type)
   }
+
 }

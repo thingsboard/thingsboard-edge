@@ -85,7 +85,7 @@
                 <div formGroupName="credentials">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="type" (selectionChange)="updateCredentials($event)">
+                        <mat-select required formControlName="type">
                             <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
                                 [value]="credentialsType?.value.value">
                                 {{credentialsType?.value.name | translate}}
