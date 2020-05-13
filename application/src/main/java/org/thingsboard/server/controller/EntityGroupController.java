@@ -775,14 +775,14 @@ public class EntityGroupController extends BaseController {
                     ShortEntityGroupInfo edgeGroupInfo = savedEntityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
                     logEntityAction(entityGroupId, savedEntityGroup,
                             null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, entityGroup.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
                 }
                 for (EntityGroupId edgeGroupId : removedEdgeGroupIds) {
                     ShortEntityGroupInfo edgeGroupInfo = entityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
                     savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId, false));
                     logEntityAction(entityGroupId, entityGroup,
                             null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, entityGroup.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
 
                 }
                 return savedEntityGroup;
@@ -826,7 +826,7 @@ public class EntityGroupController extends BaseController {
                     ShortEntityGroupInfo edgeGroupInfo = savedEntityGroup.getAssignedEdgeGroupInfo(edgeGroupId);
                     logEntityAction(entityGroupId, savedEntityGroup,
                             null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, edgeGroupId.toString(), edgeGroupInfo.getName());
+                            ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, entityGroup.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
                 }
                 return savedEntityGroup;
             }
@@ -869,7 +869,7 @@ public class EntityGroupController extends BaseController {
                     savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdgeGroup(getCurrentUser().getTenantId(), entityGroupId, edgeGroupId, false));
                     logEntityAction(entityGroupId, entityGroup,
                             null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, edgeGroupId.toString(), edgeGroupInfo.getName());
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, entityGroup.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
 
                 }
                 return savedEntityGroup;

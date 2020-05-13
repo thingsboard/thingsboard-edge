@@ -125,7 +125,8 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         DeviceUpdateMsg deviceUpdateMsg =
                                 deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(
                                         UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                        device);
+                                        device,
+                                        null);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                                 .setDeviceUpdateMsg(deviceUpdateMsg)
                                 .build();

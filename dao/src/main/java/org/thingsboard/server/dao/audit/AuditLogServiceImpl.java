@@ -301,19 +301,23 @@ public class AuditLogServiceImpl implements AuditLogService {
                 break;
             case ASSIGNED_TO_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
-                String strEdgeId = extractParameter(String.class, 1, additionalInfo);
-                String strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                String strEntityName = extractParameter(String.class, 1, additionalInfo);
+                String assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
+                String assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
                 actionData.put("entityId", strEntityId);
-                actionData.put("assignedEdgeId", strEdgeId);
-                actionData.put("assignedEdgeName", strEdgeName);
+                actionData.put("entityName", strEntityName);
+                actionData.put("assignedEdgeGroupId", assignedEdgeGroupId);
+                actionData.put("assignedEdgeGroupName", assignedEdgeGroupName);
                 break;
             case UNASSIGNED_FROM_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
-                strEdgeId = extractParameter(String.class, 1, additionalInfo);
-                strEdgeName = extractParameter(String.class, 2, additionalInfo);
+                strEntityName = extractParameter(String.class, 1, additionalInfo);
+                assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
+                assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
                 actionData.put("entityId", strEntityId);
-                actionData.put("unassignedEdgeId", strEdgeId);
-                actionData.put("unassignedEdgeName", strEdgeName);
+                actionData.put("entityName", strEntityName);
+                actionData.put("unassignedEdgeGroupId", assignedEdgeGroupId);
+                actionData.put("unassignedEdgeGroupName", assignedEdgeGroupName);
                 break;
         }
         return actionData;

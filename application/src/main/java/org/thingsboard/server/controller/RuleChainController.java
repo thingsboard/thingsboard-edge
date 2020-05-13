@@ -420,7 +420,7 @@ public class RuleChainController extends BaseController {
 
             logEntityAction(ruleChainId, savedRuleChain,
                     null,
-                    ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, strEdgeGroupId, edgeGroup.getName());
+                    ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, savedRuleChain.getName(), strEdgeGroupId, edgeGroup.getName());
 
 
             return savedRuleChain;
@@ -451,7 +451,7 @@ public class RuleChainController extends BaseController {
 
             logEntityAction(ruleChainId, ruleChain,
                     null,
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, edgeGroup.getId().toString(), edgeGroup.getName());
+                    ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, savedRuleChain.getName(), strEdgeGroupId, edgeGroup.getName());
 
             return savedRuleChain;
         } catch (Exception e) {
@@ -507,14 +507,14 @@ public class RuleChainController extends BaseController {
                     ShortEntityGroupInfo edgeGroupInfo = savedRuleChain.getAssignedEdgeGroupInfo(edgeGroupId);
                     logEntityAction(ruleChainId, savedRuleChain,
                             null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, savedRuleChain.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
                 }
                 for (EntityGroupId edgeGroupId : removedEdgeGroupIds) {
                     ShortEntityGroupInfo edgeGroupInfo = ruleChain.getAssignedEdgeGroupInfo(edgeGroupId);
                     savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdgeGroup(getCurrentUser().getTenantId(), ruleChainId, edgeGroupId, false));
                     logEntityAction(ruleChainId, ruleChain,
                             null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, edgeGroupInfo.toString(), edgeGroupInfo.getName());
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, savedRuleChain.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
 
                 }
                 return savedRuleChain;
@@ -553,12 +553,12 @@ public class RuleChainController extends BaseController {
                 return ruleChain;
             } else {
                 RuleChain savedRuleChain = null;
-                for (EntityGroupId entityGroupId : edgeGroupIds) {
-                    savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdgeGroup(getCurrentUser().getTenantId(), ruleChainId, entityGroupId));
-                    ShortEntityGroupInfo edgeGroupInfo = savedRuleChain.getAssignedEdgeGroupInfo(entityGroupId);
+                for (EntityGroupId edgeGroupId : edgeGroupIds) {
+                    savedRuleChain = checkNotNull(ruleChainService.assignRuleChainToEdgeGroup(getCurrentUser().getTenantId(), ruleChainId, edgeGroupId));
+                    ShortEntityGroupInfo edgeGroupInfo = savedRuleChain.getAssignedEdgeGroupInfo(edgeGroupId);
                     logEntityAction(ruleChainId, savedRuleChain,
                             null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, entityGroupId.toString(), edgeGroupInfo.getName());
+                            ActionType.ASSIGNED_TO_EDGE, null, strRuleChainId, savedRuleChain.getName(), edgeGroupId.getId().toString(), edgeGroupInfo.getName());
                 }
                 return savedRuleChain;
             }
@@ -601,7 +601,7 @@ public class RuleChainController extends BaseController {
                     savedRuleChain = checkNotNull(ruleChainService.unassignRuleChainFromEdgeGroup(getCurrentUser().getTenantId(), ruleChainId, entityGroupId, false));
                     logEntityAction(ruleChainId, ruleChain,
                             null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, entityGroupId.toString(), edgeGroupInfo.getName());
+                            ActionType.UNASSIGNED_FROM_EDGE, null, strRuleChainId, savedRuleChain.getName(), entityGroupId.getId().toString(), edgeGroupInfo.getName());
 
                 }
                 return savedRuleChain;
