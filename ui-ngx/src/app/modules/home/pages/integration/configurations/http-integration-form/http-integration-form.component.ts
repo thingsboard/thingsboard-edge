@@ -36,7 +36,7 @@ import { ActionNotificationShow } from '@app/core/notification/notification.acti
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import { disableFields, enableFields } from '../../intagration-utils';
+import { disableFields, enableFields } from '../../integration-utils';
 
 @Component({
   selector: 'tb-http-integration-form',

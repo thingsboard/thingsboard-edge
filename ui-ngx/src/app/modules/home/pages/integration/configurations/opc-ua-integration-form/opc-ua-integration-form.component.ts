@@ -32,7 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
 import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integration-forms-templates';
-import { disableFields, enableFields } from '../../intagration-utils';
+import { disableFields, enableFields } from '../../integration-utils';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',

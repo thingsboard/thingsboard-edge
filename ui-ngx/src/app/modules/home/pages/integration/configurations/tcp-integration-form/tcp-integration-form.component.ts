@@ -33,7 +33,7 @@ import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core
 import { FormGroup, Validators } from '@angular/forms';
 import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integration-forms-templates';
 import _ from 'lodash';
-import { disableFields, enableFields } from '../../intagration-utils';
+import { disableFields, enableFields } from '../../integration-utils';
 
 
 @Component({

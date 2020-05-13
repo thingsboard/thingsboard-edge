@@ -32,7 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, FormControl } from '@angular/forms';
 import { mqttCredentialTypes } from '../../integration-forms-templates';
-import { changeRequirement } from '../../intagration-utils';
+import { changeRequirement } from '../../integration-utils';
 
 
 @Component({

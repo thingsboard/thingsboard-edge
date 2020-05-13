@@ -32,7 +32,7 @@
 import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { handlerConfigurationTypes } from '../../integration-forms-templates';
-import { disableFields, enableFields } from '../../intagration-utils';
+import { disableFields, enableFields } from '../../integration-utils';
 
 
 @Component({
