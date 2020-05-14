@@ -29,40 +29,34 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy, OnChanges, SimpleChanges } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { Component, Input } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { mqttCredentialType, mqttCredentialTypes } from '../../integration-forms-templates';
 import { changeRequiredCredentialsFields } from '../../integration-utils';
-
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-mqtt-integration-form',
   templateUrl: './mqtt-integration-form.component.html',
-  styleUrls: ['./mqtt-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  styleUrls: ['./mqtt-integration-form.component.scss']
 })
-export class MqttIntegrationFormComponent implements OnChanges {
+export class MqttIntegrationFormComponent extends IntegrationFormComponent {
 
-
-  @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
 
   mqttCredentialTypes = mqttCredentialTypes;
 
-  constructor() { }
+  constructor() {
+    super();
+  }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (propName === 'form' && change.currentValue) {
-        const form = this.form.get('credentials') as FormGroup;
-        form.get('type').valueChanges.subscribe(() => {
-          this.mqttCredentialsTypeChanged();
-        });
-        this.mqttCredentialsTypeChanged();
-      }
-    }
+  onIntegrationFormSet() {
+    const form = this.form.get('credentials') as FormGroup;
+    form.get('type').valueChanges.subscribe(() => {
+      this.mqttCredentialsTypeChanged();
+    });
+    this.mqttCredentialsTypeChanged();
   }
 
   mqttCredentialsTypeChanged() {

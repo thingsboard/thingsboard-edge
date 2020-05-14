@@ -70,16 +70,12 @@
                 <div>
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.handler-configuration-type</mat-label>
-                        <mat-select required formControlName="handlerType"
-                            (selectionChange)="handlerConfigurationTypeChanged($event)">
+                        <mat-select required formControlName="handlerType">
                             <mat-option *ngFor="let handlerConfigurationType of handlerConfigurationTypes | keyvalue"
                                 [value]="handlerConfigurationType.value.value">
                                 {{handlerConfigurationType.value.name | translate}}
                             </mat-option>
                         </mat-select>
-                        <mat-error translate
-                            *ngIf="form.get('handlerConfiguration').get('handlerType')?.hasError('required')">
-                            integration.handler-configuration-type-required</mat-error>
                     </mat-form-field>
                     <section
                         *ngIf="form.get('handlerConfiguration').get('handlerType').value === handlerConfigurationTypes.text.value">

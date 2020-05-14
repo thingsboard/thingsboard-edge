@@ -29,8 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-.tb-integration-panel-group {
+:host {
+ .tb-integration-panel-group {
     margin-top: 16px;
     margin-bottom: 32px;
     display: block;
+  }
 }

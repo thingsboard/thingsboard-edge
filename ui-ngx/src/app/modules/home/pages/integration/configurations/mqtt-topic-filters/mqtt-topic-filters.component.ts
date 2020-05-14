@@ -38,25 +38,18 @@ import { FormBuilder, FormArray, Validators } from '@angular/forms';
   templateUrl: './mqtt-topic-filters.component.html',
   styleUrls: ['./mqtt-topic-filters.component.scss']
 })
-export class MqttTopicFiltersComponent implements OnInit {
+export class MqttTopicFiltersComponent {
 
   @Input() topicFilters: FormArray;
-  @Input() disableMqttTopics: boolean;
-  @Input() defFilter = '';
 
   mqttQoSTypes = mqttQoSTypes;
 
   constructor(private fb: FormBuilder) { }
 
-  ngOnInit(): void {
-    this.topicFilters.setValidators(Validators.required);
-    this.topicFilters.setErrors({ required: true });
-  }
-
   addTopicFilter() {
     this.topicFilters.push(this.fb.group({
-      filter: [''],
-      qos: [0]
+      filter: ['', [Validators.required]],
+      qos: [0, [Validators.required]]
     }));
   }
 

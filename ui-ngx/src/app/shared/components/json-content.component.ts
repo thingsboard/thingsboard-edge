@@ -109,6 +109,15 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
     this.validateContentValue = coerceBooleanProperty(value);
   }
 
+  private validateOnChangeValue: boolean;
+  get validateOnChange(): boolean {
+    return this.validateOnChangeValue;
+  }
+  @Input()
+  set validateOnChange(value: boolean) {
+    this.validateOnChangeValue = coerceBooleanProperty(value);
+  }
+
   fullscreen = false;
 
   contentBody: string;
@@ -308,7 +317,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
     const editorValue = this.jsonEditor.getValue();
     if (this.contentBody !== editorValue) {
       this.contentBody = editorValue;
-      this.contentValid = true;
+      this.contentValid = !this.validateOnChange || this.doValidate();
       this.propagateChange(this.contentBody);
     }
   }

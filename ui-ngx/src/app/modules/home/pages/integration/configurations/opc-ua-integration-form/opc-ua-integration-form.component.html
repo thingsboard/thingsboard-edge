@@ -74,7 +74,7 @@
         <div form fxFlex fxLayout="column" formGroupName="identity" fxLayout="row" fxLayoutGap="8px">
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-security</mat-label>
-                <mat-select required [formControl]="form.get('security')" (selectionChange)="securityChanged()">
+                <mat-select required [formControl]="form.get('security')">
                     <mat-option [value]="security.key" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{security.value}}</span></mat-option>
                 </mat-select>
@@ -83,7 +83,7 @@
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.opc-ua-identity</mat-label>
-                <mat-select required formControlName="type" (selectionChange)="identityTypeChanged($event)">
+                <mat-select required formControlName="type">
                     <mat-option [value]="identity.key" *ngFor="let identity of identityType | keyvalue">
                         <span>{{identity.value | translate}}</span></mat-option>
                 </mat-select>
@@ -110,15 +110,15 @@
             </mat-form-field>
         </div>
         <mat-accordion class="tb-integration-panel-group">
-            <mat-expansion-panel *ngIf="form.get('security').value!== 'None'">
+            <mat-expansion-panel #securityExpansionPanel *ngIf="form.get('security').value !== 'None'">
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-keystore</mat-panel-title>
                     <mat-panel-description>
-                        <mat-error *ngIf="!form.get('keystore').valid && form.enabled" translate>
+                        <mat-error *ngIf="!securityExpansionPanel.expanded && form.get('keystore').invalid" translate>
                             integration.add-opc-ua-keystore-prompt </mat-error>
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <div from formGroupName="keystore">
+                <div formGroupName="keystore">
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.opc-ua-keystore-type</mat-label>
                         <mat-select required formControlName="type">
@@ -126,20 +126,15 @@
                                 <span>{{keystore.value}}</span></mat-option>
                         </mat-select>
                         <mat-error translate
-                            *ngIf="form.get('keystore').get('type')?.hasError('required') && form.enabled">
+                            *ngIf="form.get('keystore').get('type').hasError('required')">
                             integration.opc-ua-keystore-type-required </mat-error>
                     </mat-form-field>
-                    <section class="dropdown-section">
-                        <div class="tb-container">
-                            <mat-label class="tb-mat-label" translate>integration.private-key</mat-label>
-                            <tb-file-input [existingFileName]="form?.get('keystore').get('location').value"
-                                formControlName="fileContent" dropLabel="{{ 'integration.drop-file' | translate }}"
-                                mat-label="integration.opc-ua-keystore-location"
-                                (fileNameChanged)="form?.get('keystore').get('location').patchValue($event)"
-                                inputId="location">
-                            </tb-file-input>
-                        </div>
-                    </section>
+                    <tb-file-input [existingFileName]="form.get('keystore').get('location').value"
+                        formControlName="fileContent" dropLabel="{{ 'integration.drop-file' | translate }}"
+                        label="{{ 'integration.opc-ua-keystore-location' | translate }}"
+                        (fileNameChanged)="form.get('keystore').get('location').patchValue($event)"
+                        inputId="location">
+                    </tb-file-input>
                     <div fxFlex fxLayout="row" fxLayoutGap="8px">
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-password</mat-label>
@@ -165,11 +160,11 @@
                     </mat-form-field>
                 </div>
             </mat-expansion-panel>
-            <mat-expansion-panel>
+            <mat-expansion-panel #mappingExpansionPanel>
                 <mat-expansion-panel-header>
                     <mat-panel-title translate>integration.opc-ua-mapping</mat-panel-title>
                     <mat-panel-description>
-                        <mat-error *ngIf="!form.get('mapping')['length']" translate>
+                        <mat-error *ngIf="!mappingExpansionPanel.expanded && !form.get('mapping')['length']" translate>
                             integration.add-opc-ua-mapping-prompt
                         </mat-error>
                     </mat-panel-description>
@@ -227,8 +222,8 @@
                 </div>
                 <span *ngIf="!form.get('mapping')['length']" fxLayoutAlign="center center" class="no-data-found"
                     translate>integration.add-opc-ua-mapping-prompt</span>
-                <div>
-                    <button mat-button class="mat-primary mat-raised" *ngIf="form.enabled" (click)="addMap()"
+                <div style="padding-top: 16px;">
+                    <button mat-raised-button color="primary" *ngIf="form.enabled" (click)="addMap()"
                         [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
                         <mat-icon class="material-icons">add</mat-icon>
                         <span translate>integration.opc-ua-add-map</span>

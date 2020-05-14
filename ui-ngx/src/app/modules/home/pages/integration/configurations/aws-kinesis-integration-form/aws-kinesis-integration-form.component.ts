@@ -29,27 +29,40 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-
-import { initialPositionInStream } from '../../integration-forms-templates';
+import { Component } from '@angular/core';
+import { InitialPositionInStream } from '../../integration-forms-templates';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { Validators } from '@angular/forms';
+import { disableFields, enableFields } from '@home/pages/integration/integration-utils';
 
 @Component({
   selector: 'tb-aws-kinesis-integration-form',
   templateUrl: './aws-kinesis-integration-form.component.html',
-  styleUrls: ['./aws-kinesis-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./aws-kinesis-integration-form.component.scss']
 })
-export class AwsKinesisIntegrationFormComponent implements OnInit {
+export class AwsKinesisIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() form: FormGroup;
+  initialPositionInStreams = Object.keys(InitialPositionInStream);
 
+  constructor() {
+    super();
+  }
 
-  initialPositionInStream  = initialPositionInStream;
+  protected onIntegrationFormSet() {
+    this.form.get('useCredentialsFromInstanceMetadata').valueChanges.subscribe(() => {
+      this.onUseCredentialsFromInstanceMetadataChange();
+    });
+    this.onUseCredentialsFromInstanceMetadataChange();
+  }
 
-  constructor() { }
-
-  ngOnInit(): void {
+  onUseCredentialsFromInstanceMetadataChange() {
+    const fields = [ 'accessKeyId', 'secretAccessKey'];
+    const useCredentialsFromInstanceMetadata: boolean = this.form.get('useCredentialsFromInstanceMetadata').value;
+    if (useCredentialsFromInstanceMetadata) {
+      disableFields(this.form, fields, fields);
+    } else {
+      enableFields(this.form, fields, fields);
+    }
   }
 
 }

@@ -29,25 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-
+import { Component } from '@angular/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-azure-event-hub-integration-form',
   templateUrl: './azure-event-hub-integration-form.component.html',
-  styleUrls: ['./azure-event-hub-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./azure-event-hub-integration-form.component.scss']
 })
-export class AzureEventHubIntegrationFormComponent implements OnInit {
+export class AzureEventHubIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() form: FormGroup;
-
-
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor() {
+    super();
   }
 
 }

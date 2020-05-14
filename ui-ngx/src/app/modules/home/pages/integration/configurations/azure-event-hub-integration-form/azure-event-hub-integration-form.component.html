@@ -35,12 +35,12 @@
         <mat-form-field class="mat-block">
             <mat-label translate>integration.connect-timeout</mat-label>
             <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('required')">
+            <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
                 integration.connect-timeout-required</mat-error>
-            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('min')">
+            <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('min')">
                 integration.connect-timeout-range
             </mat-error>
-            <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('max')">
+            <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('max')">
                 integration.connect-timeout-range
             </mat-error>
         </mat-form-field>
@@ -49,32 +49,30 @@
         <mat-form-field class="mat-block">
             <mat-label translate>integration.service-bus-namespace-name</mat-label>
             <input matInput required formControlName="namespaceName">
-            <mat-error translate *ngIf="form.get('namespaceName')?.hasError('required')">
+            <mat-error translate *ngIf="form.get('namespaceName').hasError('required')">
                 integration.service-bus-namespace-name-required</mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.event-hub-name</mat-label>
             <input matInput required formControlName="eventHubName">
-            <mat-error translate *ngIf="form.get('eventHubName')?.hasError('required')">
+            <mat-error translate *ngIf="form.get('eventHubName').hasError('required')">
                 integration.event-hub-name-required</mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.sas-key-name</mat-label>
             <input matInput required formControlName="sasKeyName" autocomplete="new-key">
-            <mat-error translate *ngIf="form.get('sasKeyName')?.hasError('required')">integration.sas-key-name-required
+            <mat-error translate *ngIf="form.get('sasKeyName').hasError('required')">integration.sas-key-name-required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.sas-key</mat-label>
             <input matInput type="password" autocomplete="new-password" required formControlName="sasKey">
-            <mat-error translate *ngIf="form.get('sasKey')?.hasError('required')">integration.sas-key-required
+            <mat-error translate *ngIf="form.get('sasKey').hasError('required')">integration.sas-key-required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.iot-hub-name</mat-label>
-            <input matInput formControlName="iotHubName" [required]="form.parent?.parent?.get('downlinkConverterId')?.value">
-            <mat-error translate *ngIf="form.get('iotHubName')?.hasError('required')">
-                integration.event-iot-hub-name-required</mat-error>
+            <input matInput formControlName="iotHubName">
         </mat-form-field>
     </fieldset>
 </section>

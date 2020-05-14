@@ -28,14 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-integration-panel-group {
-  &.header-filters {
-    mat-expansion-panel {
-      margin-bottom: 15px;
+
+:host {
+
+ .tb-integration-panel-group {
+    &.header-filters {
+      mat-expansion-panel {
+        margin-bottom: 15px;
+      }
     }
   }
-}
 
-.security {
-  margin-bottom: 16px;
+  .security {
+    margin-bottom: 16px;
+  }
 }

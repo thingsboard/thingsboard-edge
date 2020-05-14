@@ -29,21 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
-import { FormGroup, FormArray, FormBuilder, Validators } from '@angular/forms';
-import { opcUaMappingType, extensionKeystoreType, opcSecurityTypes, identityType } from '../../integration-forms-templates';
+import { Component } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  extensionKeystoreType,
+  identityType,
+  opcSecurityTypes,
+  opcUaMappingType
+} from '../../integration-forms-templates';
 import { disableFields, enableFields } from '../../integration-utils';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
   templateUrl: './opc-ua-integration-form.component.html',
-  styleUrls: ['./opc-ua-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./opc-ua-integration-form.component.scss']
 })
-export class OpcUaIntegrationFormComponent implements OnInit {
-
-
-  @Input() form: FormGroup;
+export class OpcUaIntegrationFormComponent extends IntegrationFormComponent {
 
   identityType = identityType;
   opcUaMappingType = opcUaMappingType;
@@ -51,24 +53,29 @@ export class OpcUaIntegrationFormComponent implements OnInit {
   opcSecurityTypes = opcSecurityTypes;
   showIdentityForm: boolean;
 
-  constructor(private fb: FormBuilder, private cd: ChangeDetectorRef) { }
-
-  ngOnInit(): void {
-    if (this.form) {
-      this.form.get('mapping').setValidators(Validators.required)
-      this.form.get('keystore').get('location').setValidators(Validators.required);
-      this.form.get('keystore').get('fileContent').setValidators(Validators.required);
-      this.identityTypeChanged({ value: this.form.get('identity').get('type').value });
-    }
+  constructor(private fb: FormBuilder) {
+    super();
   }
 
-  identityTypeChanged($event?) {
-    disableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
-    if ($event?.value === 'username') {
+  onIntegrationFormSet() {
+    this.form.get('security').valueChanges.subscribe(() => {
+      this.securityChanged();
+    });
+    this.form.get('identity').get('type').valueChanges.subscribe(() => {
+      this.identityTypeChanged();
+    });
+    this.identityTypeChanged();
+  }
+
+  identityTypeChanged() {
+    const type: string = this.form.get('identity').get('type').value;
+    if (type === 'username') {
       this.showIdentityForm = true;
-      enableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
+      enableFields(this.form.get('identity') as FormGroup, ['username', 'password'], ['username', 'password']);
+    } else {
+      this.showIdentityForm = false;
+      disableFields(this.form.get('identity') as FormGroup, ['username', 'password'], ['username', 'password']);
     }
-    else this.showIdentityForm = false;
   }
 
   securityChanged() {
