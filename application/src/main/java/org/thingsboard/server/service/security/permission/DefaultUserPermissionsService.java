@@ -124,7 +124,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Override
     public MergedUserPermissions getMergedPermissions(User user, boolean isPublic) throws ThingsboardException {
-        if (user.getAuthority() == Authority.SYS_ADMIN) {
+        if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
             return sysAdminPermissions;
         }
         MergedUserPermissions result = getMergedPermissionsFromCache(user.getTenantId(), user.getCustomerId(), user.getId());

@@ -113,7 +113,7 @@ public class EntityViewController extends BaseController {
             Operation operation = entityView.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     (entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid())) {
                 entityView.setCustomerId(getCurrentUser().getCustomerId());
             }

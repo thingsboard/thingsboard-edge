@@ -130,12 +130,12 @@ public class CustomerController extends BaseController {
 
             Operation operation = customer.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 customer.setParentCustomerId(getCurrentUser().getCustomerId());
             }
 
             if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     (customer.getParentCustomerId() == null || customer.getParentCustomerId().isNullUid())) {
                 customer.setParentCustomerId(getCurrentUser().getCustomerId());
             }
@@ -236,7 +236,7 @@ public class CustomerController extends BaseController {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             List<CustomerId> additionalCustomerIds = new ArrayList<>();
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
                 additionalCustomerIds.add(getCurrentUser().getCustomerId());
             }

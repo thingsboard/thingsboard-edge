@@ -509,13 +509,13 @@ public class EntityGroupController extends BaseController {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             List<ContactBased<?>> owners = new ArrayList<>();
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                 if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
                     owners.add(tenantService.findTenantById(getCurrentUser().getTenantId()));
                 }
             }
             if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
-                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                     owners.addAll(customerService.findCustomersByTenantId(getTenantId(), pageLink)
                             .getData().stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                 } else {

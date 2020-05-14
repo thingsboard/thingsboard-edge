@@ -288,10 +288,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         userCredentials.setEnabled(true);
         userCredentials.setActivateToken(null);
         userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
-        if (authority == Authority.TENANT_ADMIN) {
+        if (Authority.TENANT_ADMIN.equals(authority)) {
             EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(user.getTenantId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
-        } else if (authority == Authority.CUSTOMER_USER) {
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
             EntityGroup users = entityGroupService.findOrCreateCustomerUsersGroup(user.getTenantId(), user.getCustomerId(), null);
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, users.getId(), user.getId());
         }

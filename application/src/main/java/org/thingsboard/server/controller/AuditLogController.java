@@ -163,7 +163,7 @@ public class AuditLogController extends BaseController {
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             List<ActionType> actionTypes = parseActionTypesStr(actionTypesStr);
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(authority)) {
                 return checkNotNull(auditLogService.findAuditLogsByTenantId(tenantId, actionTypes, pageLink));
             } else {
                 return checkNotNull(auditLogService.findAuditLogsByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), actionTypes, pageLink));

@@ -1025,7 +1025,7 @@ public abstract class BaseController {
     getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
         Resource resource = Resource.resourceFromEntityType(entityType);
-        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
+        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())  &&
                 securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
             switch (entityType) {
                 case DEVICE:

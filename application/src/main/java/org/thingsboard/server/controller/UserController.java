@@ -169,14 +169,14 @@ public class UserController extends BaseController {
                          HttpServletRequest request) throws ThingsboardException {
         try {
 
-            if (getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
+            if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
 
             Operation operation = user.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
                 user.setCustomerId(getCurrentUser().getCustomerId());
             }
@@ -197,7 +197,7 @@ public class UserController extends BaseController {
             User savedUser = checkNotNull(userService.saveUser(user));
 
             // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
+            if (operation == Operation.CREATE && Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
             } else if (entityGroupId != null && operation == Operation.CREATE) {

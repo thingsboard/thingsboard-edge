@@ -84,7 +84,7 @@ public class SysAdminPermissions extends AbstractPermissions {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity, EntityGroupId entityGroupId) {
-            if (userEntity.getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(userEntity.getAuthority())) {
                 return false;
             }
             return true;

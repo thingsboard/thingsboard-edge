@@ -349,7 +349,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         @Override
         protected void updateEntity(User entity) {
-            if (entity.getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(entity.getAuthority())) {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
         }

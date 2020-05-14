@@ -90,12 +90,12 @@ public class RoleController extends BaseController {
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 role.setCustomerId(getCurrentUser().getCustomerId());
             }
             Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
 
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (operation == Operation.CREATE && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 role.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -157,13 +157,13 @@ public class RoleController extends BaseController {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
             if (type != null && type.trim().length() > 0) {
-                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                     return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
                 } else {
                     return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
                 }
             } else {
-                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                     return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
                 } else {
                     return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
