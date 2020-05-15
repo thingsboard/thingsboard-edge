@@ -169,7 +169,7 @@ public class UserController extends BaseController {
                          HttpServletRequest request) throws ThingsboardException {
         try {
 
-            if (getCurrentUser().getAuthority() != Authority.SYS_ADMIN) {
+            if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
 
