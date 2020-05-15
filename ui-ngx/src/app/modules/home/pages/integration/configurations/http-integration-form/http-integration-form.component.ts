@@ -30,7 +30,6 @@
 ///
 
 import { Component, Input, SimpleChanges } from '@angular/core';
-import { Validators } from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -92,38 +91,31 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
 
   httpEnableSecurityChanged = () => {
     const headersFilter = this.form.get('headersFilter');
-    if (this.form.get('enableSecurity').value &&
-      !headersFilter.value) {
+    if (this.form.get('enableSecurity').value) {
+      if (!headersFilter.value) {
+        headersFilter.patchValue({});
+      }
+    } else {
       headersFilter.patchValue({});
-      headersFilter.setValidators(Validators.required);
-      headersFilter.updateValueAndValidity();
-    } else if (!this.form.get('enableSecurity').value) {
-      headersFilter.patchValue(null);
-      headersFilter.setValidators([]);
-      headersFilter.updateValueAndValidity();
     }
   };
 
   thingparkEnableSecurityChanged = () => {
-    const fields = ['clientIdNew', 'clientSecret', 'asId', 'asIdNew', 'asKey']
+    const fields = ['asId', 'asKey', 'maxTimeDiffInSeconds'];
     if (!this.form.get('enableSecurity').value) {
       this.form.get('enableSecurityNew').patchValue(false);
-      fields.forEach(field => {
-        this.form.get(field).patchValue(null)
-      });
-      disableFields(this.form, fields);
-    }
-    else {
-      enableFields(this.form, fields);
+      disableFields(this.form, fields, fields, false);
+    } else {
+      enableFields(this.form, fields, fields);
     }
   };
 
   thingparkEnableSecurityNewChanged = () => {
     const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret'];
     if (!this.form.get('enableSecurityNew').value) {
-      disableFields(this.form, fields);
+      disableFields(this.form, fields, fields, false);
     } else {
-      enableFields(this.form, fields);
+      enableFields(this.form, fields, fields);
     }
   };
 

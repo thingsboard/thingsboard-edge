@@ -136,9 +136,9 @@ export const templates = {
   http: {
     baseUrl: baseUrl(),
     replaceNoContentToOk: '',
-    enableSecurity: '',
+    enableSecurity: false,
     downlinkUrl: 'https://api.thingpark.com/thingpark/lrc/rest/downlink',
-    enableSecurityNew: '',
+    enableSecurityNew: false,
     asId: '',
     asIdNew: '',
     asKey: '',
@@ -146,7 +146,7 @@ export const templates = {
     clientSecret: '',
     maxTimeDiffInSeconds: 60,
     httpEndpoint: '',
-    headersFilter: '',
+    headersFilter: {},
     ignoreNonPrimitiveFields: ['headersFilter']
   },
   [IntegrationType.MQTT]: {

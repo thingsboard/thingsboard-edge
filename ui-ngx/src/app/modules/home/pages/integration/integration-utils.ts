@@ -61,10 +61,12 @@ export function changeRequiredCredentialsFields(form: FormGroup, credentialType:
     enableFields(form, enabled, required);
 }
 
-export function disableFields(form: FormGroup, fields: string[], required: string[] = []) {
+export function disableFields(form: FormGroup, fields: string[], required: string[] = [], clear = true) {
     fields.forEach(key => {
         if (form.get(key)) {
-          form.get(key).setValue(null);
+          if (clear) {
+            form.get(key).setValue(null);
+          }
           form.get(key).disable();
           if (required.includes(key)) {
             form.get(key).setValidators([]);

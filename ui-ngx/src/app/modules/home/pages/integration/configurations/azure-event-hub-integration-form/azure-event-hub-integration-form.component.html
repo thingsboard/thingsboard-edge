@@ -72,7 +72,9 @@
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.iot-hub-name</mat-label>
-            <input matInput formControlName="iotHubName">
+            <input matInput [required]="iotHubNameRequired" formControlName="iotHubName">
+            <mat-error translate *ngIf="form.get('iotHubName').hasError('required')">integration.event-iot-hub-name-required
+            </mat-error>
         </mat-form-field>
     </fieldset>
 </section>
