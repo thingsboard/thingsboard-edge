@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -66,6 +65,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 
@@ -93,6 +95,9 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
 
     public static final String JSON_EXT = ".json";
+
+    private static final Pattern velocityVarPattern = Pattern.compile("\\$([a-zA-Z]+)");
+    private static final String velocityVarToFreeMakerReplacementPattern = "\\${$1}";
 
     @Value("${install.data_dir:}")
     private String dataDir;
@@ -247,8 +252,22 @@ public class InstallScripts {
                 result.set(field, mailTemplatesJson.get(field));
             }
         }
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
+        if (updated.isPresent()) {
+            result = (ObjectNode) objectMapper.readTree(updated.get());
+        }
         mailTemplateSettings.setJsonValue(result);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
+        Matcher matcher = velocityVarPattern.matcher(mailTemplatesJsonString);
+        if (matcher.find()) {
+            mailTemplatesJsonString = matcher.replaceAll(velocityVarToFreeMakerReplacementPattern);
+            return Optional.of(mailTemplatesJsonString);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private JsonNode readMailTemplates() throws IOException {
