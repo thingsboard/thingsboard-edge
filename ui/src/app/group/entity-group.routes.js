@@ -418,6 +418,59 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
         })
+        .state('home.edgeGroups.edgeGroup.deviceGroups', {
+            url: '/edge/:edgeId/deviceGroups',
+            // TODO: add customerId into request as well
+            params: {'childGroupType': types.entityType.device, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.device-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.edgeGroups.edgeGroup.deviceGroups.deviceGroup', {
+            url: '/edge/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.device-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "devices_other", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
         .state('home.assetGroups', {
             url: '/assetGroups',
             params: {'groupType': types.entityType.asset, 'topIndex': 0},

@@ -241,7 +241,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
             TimePageLink pageLink = new TimePageLink(100);
             TimePageData<RuleChain> pageData;
             do {
-//                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeGroupId(edge.getTenantId(), edge.getId(), pageLink).get();
+//                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), pageLink).get();
                 pageData = null;
                 if (pageData != null && !pageData.getData().isEmpty()) {
                     log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());

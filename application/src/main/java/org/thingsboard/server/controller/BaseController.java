@@ -901,21 +901,21 @@ public abstract class BaseController {
                 } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
                     String strEntityId = extractParameter(String.class, 0, additionalInfo);
                     String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                    String assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
-                    String assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
+                    String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
+                    String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
                     metaData.putValue("entityId", strEntityId);
                     metaData.putValue("entityName", strEntityName);
-                    metaData.putValue("assignedEdgeGroupId", assignedEdgeGroupId);
-                    metaData.putValue("assignedEdgeGroupName", assignedEdgeGroupName);
+                    metaData.putValue("assignedEdgeId", assignedEdgeId);
+                    metaData.putValue("assignedEdgeName", assignedEdgeName);
                 } else if (actionType == ActionType.UNASSIGNED_FROM_EDGE) {
                     String strEntityId = extractParameter(String.class, 0, additionalInfo);
                     String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                    String assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
-                    String assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
+                    String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
+                    String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
                     metaData.putValue("entityId", strEntityId);
                     metaData.putValue("entityName", strEntityName);
-                    metaData.putValue("unassignedEdgeGroupId", assignedEdgeGroupId);
-                    metaData.putValue("unassignedEdgeGroupName", assignedEdgeGroupName);
+                    metaData.putValue("unassignedEdgeId", assignedEdgeId);
+                    metaData.putValue("unassignedEdgeName", assignedEdgeName);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {

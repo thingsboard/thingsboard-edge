@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types, userService, edgeService,
+export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils, types, userService, edgeService,
                                         importExport, userPermissionsService, securityTypes) {
 
     var service = {
@@ -58,11 +58,11 @@ export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types,
             detailsReadOnly: () => {
                 return false;
             },
-            assignmentEnabled: () => {
-                return settings.enableAssignment;
+            manageRuleChainsEnabled: () => {
+                return settings.enableRuleChainsManagement;
             },
-            manageCredentialsEnabled: () => {
-                return settings.enableCredentialsManagement;
+            manageDevicesEnabled: () => {
+                return settings.enableDevicesManagement;
             },
             deleteEnabled: () => {
                 return settings.enableDelete;
@@ -137,6 +137,29 @@ export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types,
             }
         ];*/
 
+        groupConfig.onManageDevices = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.device);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.deviceGroups', {edgeId: entity.id.id});
+            }
+        };
+
+        groupConfig.onManageRuleChains = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.entityView);
+            } else {
+                $state.go('home.edges.ruleChains', {edgeId: entity.id.id});
+            }
+
+        };
+
         groupConfig.onImportEdges = (event)  => {
             var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
             var customerId = null;
@@ -162,6 +185,38 @@ export default function EdgeGroupConfig($q, $translate, tbDialogs, utils, types,
                     },
                     onAction: ($event) => {
                         groupConfig.onImportEdges($event);
+                    }
+                }
+            );
+        }
+
+        groupConfig.actionCellDescriptors = [];
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.deviceGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-device-groups'),
+                    icon: 'devices_other',
+                    isEnabled: () => {
+                        return settings.enableDevicesManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageDevices($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-rule-chains'),
+                    icon: 'settings_ethernet',
+                    isEnabled: () => {
+                        return settings.enableRuleChainsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageRuleChains($event, entity);
                     }
                 }
             );

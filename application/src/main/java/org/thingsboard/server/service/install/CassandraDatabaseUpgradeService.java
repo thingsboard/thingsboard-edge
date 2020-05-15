@@ -405,19 +405,7 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
                 loadCql(schemaUpdateFile);
 
                 try {
-                    cluster.getSession().execute("alter table rule_chain add assigned_edge_groups text");
-                    Thread.sleep(2500);
-                } catch (InvalidQueryException e) {}
-                try {
                     cluster.getSession().execute("alter table rule_chain add type text");
-                    Thread.sleep(2500);
-                } catch (InvalidQueryException e) {}
-                try {
-                    cluster.getSession().execute("alter table entity_group add assigned_edge_groups text");
-                    Thread.sleep(2500);
-                } catch (InvalidQueryException e) {}
-                try {
-                    cluster.getSession().execute("alter table scheduler_event add assigned_edge_groups text");
                     Thread.sleep(2500);
                 } catch (InvalidQueryException e) {}
                 log.info("Schema updated.");

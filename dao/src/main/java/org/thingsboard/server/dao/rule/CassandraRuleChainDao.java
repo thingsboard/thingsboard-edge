@@ -59,8 +59,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static org.thingsboard.server.dao.model.ModelConstants.DEVICE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.DEVICE_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.RULE_CHAIN_COLUMN_FAMILY_NAME;
@@ -108,9 +106,9 @@ public class CassandraRuleChainDao extends CassandraAbstractSearchTextDao<RuleCh
     }
 
     @Override
-    public ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeGroupId(UUID tenantId, UUID edgeGroupId, TimePageLink pageLink) {
-        log.debug("Try to find rule chains by tenantId [{}], edgeGroupId [{}] and pageLink [{}]", tenantId, edgeGroupId, pageLink);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EntityGroupId(edgeGroupId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_GROUP, EntityType.DASHBOARD, pageLink);
+    public ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
+        log.debug("Try to find rule chains by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE, EntityType.DASHBOARD, pageLink);
         return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<RuleChain>> ruleChainFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {

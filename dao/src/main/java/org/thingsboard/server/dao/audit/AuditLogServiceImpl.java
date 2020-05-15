@@ -302,22 +302,22 @@ public class AuditLogServiceImpl implements AuditLogService {
             case ASSIGNED_TO_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
                 String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                String assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
-                String assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
+                String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
+                String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
                 actionData.put("entityId", strEntityId);
                 actionData.put("entityName", strEntityName);
-                actionData.put("assignedEdgeGroupId", assignedEdgeGroupId);
-                actionData.put("assignedEdgeGroupName", assignedEdgeGroupName);
+                actionData.put("assignedEdgeId", assignedEdgeId);
+                actionData.put("assignedEdgeName", assignedEdgeName);
                 break;
             case UNASSIGNED_FROM_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
                 strEntityName = extractParameter(String.class, 1, additionalInfo);
-                assignedEdgeGroupId = extractParameter(String.class, 2, additionalInfo);
-                assignedEdgeGroupName = extractParameter(String.class, 3, additionalInfo);
+                assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
+                assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
                 actionData.put("entityId", strEntityId);
                 actionData.put("entityName", strEntityName);
-                actionData.put("unassignedEdgeGroupId", assignedEdgeGroupId);
-                actionData.put("unassignedEdgeGroupName", assignedEdgeGroupName);
+                actionData.put("unassignedEdgeId", assignedEdgeId);
+                actionData.put("unassignedEdgeName", assignedEdgeName);
                 break;
         }
         return actionData;

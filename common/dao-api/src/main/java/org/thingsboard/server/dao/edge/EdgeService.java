@@ -32,9 +32,9 @@ package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -100,7 +100,7 @@ public interface EdgeService {
 
     TimePageData<Event> findQueueEvents(TenantId tenantId, EdgeId edgeId, TimePageLink pageLink);
 
-    EntityGroup setRootRuleChain(TenantId tenantId, EntityGroup edgeGroup, RuleChainId ruleChainId) throws IOException;
+    Edge setRootRuleChain(TenantId tenantId, Edge edge, RuleChainId ruleChainId) throws IOException;
 }
 
 

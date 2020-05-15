@@ -39,6 +39,10 @@
 <md-button ng-click="onDeleteEdge({event: $event})"
            ng-show="!isEdit && edgeScope === 'tenant'"
            class="md-raised md-primary">{{ 'edge.delete' | translate }}</md-button>
+<md-button ng-click="onManageDevices({event: $event})"
+           ng-if="'deviceGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageDevices && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-device-groups' | translate }}</md-button>
 
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"

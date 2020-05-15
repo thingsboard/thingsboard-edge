@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -77,6 +78,7 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         this.routingKey = edge.getRoutingKey();
         this.secret = edge.getSecret();
         this.configuration = edge.getConfiguration();
+        this.rootRuleChainId = edge.getRootRuleChainId();
     }
 
     @Override
@@ -101,5 +103,10 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         } else {
             this.customerId = new CustomerId(CustomerId.NULL_UUID);
         }
+    }
+
+    @JsonIgnore
+    public ShortEdgeInfo toShortEdgeInfo() {
+        return new ShortEdgeInfo(id, name, rootRuleChainId);
     }
 }

@@ -69,8 +69,7 @@
         </md-input-container>
         <md-checkbox ng-if="vm.entityType == vm.types.entityType.device ||
                             vm.entityType == vm.types.entityType.asset ||
-                            vm.entityType == vm.types.entityType.entityView ||
-                            vm.entityType == vm.types.entityType.edge"
+                            vm.entityType == vm.types.entityType.entityView"
                      ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-assignment-actions' | translate }}"
                      ng-model="vm.settings.enableAssignment">{{ 'entity-group.enable-assignment-actions' | translate }}
         </md-checkbox>
@@ -99,6 +98,15 @@
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-dashboards-management' | translate }}"
                          ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}
             </md-checkbox>
+        </section>
+        <section ng-if="vm.entityType == vm.types.entityType.edge" layout="column">
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-devices-management' | translate }}"
+                         ng-model="vm.settings.enableDevicesManagement">{{ 'entity-group.enable-devices-management' | translate }}
+            </md-checkbox>
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-rule-chains-management' | translate }}"
+                         ng-model="vm.settings.enableRuleChainsManagement">{{ 'entity-group.enable-rule-chains-management' | translate }}
+            </md-checkbox>
+
         </section>
     </fieldset>
 </md-content>

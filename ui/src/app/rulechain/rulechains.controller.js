@@ -48,6 +48,8 @@ export default function RuleChainsController(ruleChainService, userService, edge
 
     vm.ruleChainsScope = $state.$current.data.ruleChainsType;
 
+
+
     var ruleChainActionsList = [
         {
             onAction: function ($event, item) {
@@ -65,30 +67,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
             details: function() { return $translate.instant('rulechain.export') },
             icon: "file_download"
         },
-        {
-            onAction: function ($event, item) {
-                setRootRuleChain($event, item);
-            },
-            name: function() { return $translate.instant('rulechain.set-root') },
-            details: function() { return $translate.instant('rulechain.set-root') },
-            icon: "flag",
-            isEnabled: function(ruleChain) {
-                return isNonRootRuleChain(ruleChain) &&
-                    userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
-            }
-        },
-        {
-            onAction: function ($event, item) {
-                vm.grid.deleteItem($event, item);
-            },
-            name: function() { return $translate.instant('action.delete') },
-            details: function() { return $translate.instant('rulechain.delete') },
-            icon: "delete",
-            isEnabled: function(ruleChain) {
-                return isNonRootRuleChain(ruleChain) &&
-                    userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.delete);
-            }
-        }
+
     ];
 
     var ruleChainGroupActionsList = [];
@@ -200,7 +179,10 @@ export default function RuleChainsController(ruleChainService, userService, edge
                 name: function() { return $translate.instant('rulechain.set-root') },
                 details: function() { return $translate.instant('rulechain.set-root') },
                 icon: "flag",
-                isEnabled: isNonRootRuleChain
+                isEnabled: function(ruleChain) {
+                    return isNonRootRuleChain(ruleChain) &&
+                        userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
+                }
             });
 
             ruleChainActionsList.push({
@@ -210,7 +192,10 @@ export default function RuleChainsController(ruleChainService, userService, edge
                 name: function() { return $translate.instant('action.delete') },
                 details: function() { return $translate.instant('rulechain.delete') },
                 icon: "delete",
-                isEnabled: isNonRootRuleChain
+                isEnabled: function(ruleChain) {
+                    return isNonRootRuleChain(ruleChain) &&
+                        userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.delete);
+                }
             });
 
             ruleChainGroupActionsList.push(
@@ -392,6 +377,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
                 details: function() { return $translate.instant('rulechain.assign-new-rulechain') },
                 icon: "add"
             }
+            vm.ruleChainGridConfig.addItemActions = [];
         }
 
         vm.ruleChainGridConfig.fetchItemsFunc = fetchRuleChainsFunction;

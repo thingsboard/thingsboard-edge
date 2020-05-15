@@ -773,6 +773,14 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 settings.enableDashboardsManagement = true;
             }
         }
+        if (entityType == types.entityType.edge) {
+            if (angular.isUndefined(settings.enableDevicesManagement)) {
+                settings.enableDevicesManagement = true;
+            }
+            if (angular.isUndefined(settings.enableRuleChainsManagement)) {
+                settings.enableRuleChainsManagement = true;
+            }
+        }
         return settings;
     }
 
