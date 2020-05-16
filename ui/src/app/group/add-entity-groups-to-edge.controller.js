@@ -68,7 +68,7 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
         fetchMoreItems_: function () {
             if (vm.entityGroups.hasNext && !vm.entityGroups.pending) {
                 vm.entityGroups.pending = true;
-                entityGroupService.getEdgeEntityGroups(vm.entityGroups.nextPageLink).then(
+                entityGroupService.getEdgeEntityGroups(vm.entityGroups.nextPageLink, vm.groupType).then(
                     function success(entityGroups) {
                         vm.entityGroups.data = entityGroups.data;
                         vm.entityGroups.nextPageLink = entityGroups.nextPageLink;

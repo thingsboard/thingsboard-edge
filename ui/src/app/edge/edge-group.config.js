@@ -61,8 +61,20 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
             manageRuleChainsEnabled: () => {
                 return settings.enableRuleChainsManagement;
             },
+            manageUsersEnabled: () => {
+                return settings.enableUsersManagement;
+            },
+            manageAssetsEnabled: () => {
+                return settings.enableAssetsManagement;
+            },
             manageDevicesEnabled: () => {
                 return settings.enableDevicesManagement;
+            },
+            manageEntityViewsEnabled: () => {
+                return settings.enableEntityViewsManagement;
+            },
+            manageDashboardsEnabled: () => {
+                return settings.enableDashboardsManagement;
             },
             deleteEnabled: () => {
                 return settings.enableDelete;
@@ -142,9 +154,58 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
                 event.stopPropagation();
             }
             if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                // TODO: voba - fix this
                 params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.device);
             } else {
                 $state.go('home.edgeGroups.edgeGroup.deviceGroups', {edgeId: entity.id.id});
+            }
+        };
+
+        groupConfig.onManageUsers = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                // TODO: voba - fix this
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.user);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.userGroups', {edgeId: entity.id.id});
+            }
+        };
+
+        groupConfig.onManageAssets = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                // TODO: voba - fix this
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.asset);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.assetGroups', {edgeId: entity.id.id});
+            }
+        };
+
+        groupConfig.onManageEntityViews = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                // TODO: voba - fix this
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.entityView);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.entityViewGroups', {edgeId: entity.id.id});
+            }
+        };
+
+        groupConfig.onManageDashboards = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                // TODO: voba - fix this
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.dashboard);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.dashboardGroups', {edgeId: entity.id.id});
             }
         };
 
@@ -155,7 +216,7 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
             if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
                 params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.entityView);
             } else {
-                $state.go('home.edges.ruleChains', {edgeId: entity.id.id});
+                $state.go('home.edgeGroups.edgeGroup.ruleChains', {edgeId: entity.id.id});
             }
 
         };
@@ -192,6 +253,36 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
 
         groupConfig.actionCellDescriptors = [];
 
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.userGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-usergroups'),
+                    icon: 'account_circle',
+                    isEnabled: () => {
+                        return settings.enableUsersManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageUsers($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.assetGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-asset-groups'),
+                    icon: 'domain',
+                    isEnabled: () => {
+                        return settings.enableAssetsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageAssets($event, entity);
+                    }
+                }
+            );
+        }
+
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.deviceGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
@@ -202,6 +293,36 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
                     },
                     onAction: ($event, entity) => {
                         groupConfig.onManageDevices($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.entityViewGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-entity-view-groups'),
+                    icon: 'view_quilt',
+                    isEnabled: () => {
+                        return settings.enableEntityViewsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageEntityViews($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.dashboardGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-dashboard-groups'),
+                    icon: 'dashboard',
+                    isEnabled: () => {
+                        return settings.enableDashboardsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageDashboards($event, entity);
                     }
                 }
             );

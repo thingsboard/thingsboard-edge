@@ -30,19 +30,30 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onAssignToCustomer({event: $event})"
-           ng-show="!isEdit && edgeScope === 'tenant' && !isAssignedToCustomer"
-           class="md-raised md-primary">{{ 'edge.assign-to-customer' | translate }}</md-button>
-<md-button ng-click="onUnassignFromCustomer({event: $event, isPublic: isPublic})"
-           ng-show="!isEdit && (edgeScope === 'customer' || edgeScope === 'tenant') && isAssignedToCustomer"
-           class="md-raised md-primary">{{ isPublic ? 'edge.make-private' : 'edge.unassign-from-customer' | translate }}</md-button>
 <md-button ng-click="onDeleteEdge({event: $event})"
            ng-show="!isEdit && edgeScope === 'tenant'"
            class="md-raised md-primary">{{ 'edge.delete' | translate }}</md-button>
+<md-button ng-click="onManageUsers({event: $event})"
+           ng-if="'userGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageUsers && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-user-groups' | translate }}</md-button>
+<md-button ng-click="onManageAssets({event: $event})"
+           ng-if="'assetGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageAssets && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-asset-groups' | translate }}</md-button>
 <md-button ng-click="onManageDevices({event: $event})"
            ng-if="'deviceGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDevices && !isEdit"
            class="md-raised md-primary">{{ 'edge.manage-device-groups' | translate }}</md-button>
+<md-button ng-click="onManageEntityViews({event: $event})"
+           ng-if="'entityViewGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageEntityViews && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-entity-view-groups' | translate }}</md-button>
+<md-button ng-click="onManageDashboards({event: $event})"
+           ng-if="'dashboardGroup' | hasGenericPermission:'read'"
+           ng-show="!hideManageDashboards && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-dashboard-groups' | translate }}</md-button>
+
 
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"

@@ -380,7 +380,9 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
         } else {
             var targetStatePrefix = 'home.';
-            if (vm.customerId) {
+            if (vm.edgeId) {
+                targetStatePrefix = 'home.edgeGroups.edgeGroup.';
+            } else if (vm.customerId) {
                 targetStatePrefix = 'home.customerGroups.customerGroup.';
             }
             var targetState;
@@ -401,7 +403,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             }
             if (targetState) {
                 targetState = targetStatePrefix + targetState;
-                if (vm.customerId) {
+                if (vm.edgeId || vm.customerId) {
                     $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
                 } else {
                     $state.go(targetState, {entityGroupId: entityGroup.id.id});
