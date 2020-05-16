@@ -95,9 +95,10 @@ public class ThingsboardInstallService {
                 if ("2.5.0PE-cassandra".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard entities data from cassandra to SQL database ...");
                     entitiesMigrateService.migrate();
+
+                    dataUpdateService.updateData("3.0.0");
+
                     log.info("Updating system data...");
-
-
                     systemDataLoaderService.updateSystemWidgets();
                 } else {
                     switch (upgradeFromVersion) {

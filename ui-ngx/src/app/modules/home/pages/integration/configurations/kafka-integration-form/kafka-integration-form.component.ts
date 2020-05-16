@@ -29,30 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { generateId } from '@app/core/utils';
-
+import { Component } from '@angular/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-kafka-integration-form',
   templateUrl: './kafka-integration-form.component.html',
-  styleUrls: ['./kafka-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  styleUrls: ['./kafka-integration-form.component.scss']
 })
-export class KafkaIntegrationFormComponent implements OnInit {
-
-  @Input() form: FormGroup;
+export class KafkaIntegrationFormComponent extends IntegrationFormComponent {
 
   constructor() {
-  }
-
-  ngOnInit(): void {
-    if (!this.form.get('groupId').value)
-      this.form.get('groupId').patchValue('group_id_' + generateId(10));
-    if (!this.form.get('clientId').value)
-      this.form.get('clientId').patchValue('client_id_' + generateId(10));
+    super();
   }
 
 }

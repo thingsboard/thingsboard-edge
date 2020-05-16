@@ -39,8 +39,11 @@
             </mat-error>
         </mat-form-field>
         <tb-json-content class="integration-custom-configuration" formControlName="configuration"
-            label="{{ 'integration.integration-configuration' | translate }}" content-type="contentType.JSON.value"
-            validate-content="true" fill-height="true">
+            label="{{ 'integration.integration-configuration' | translate }}"
+            #jsonContentComponent
+            [contentType]="contentType.JSON"
+            validateContent
+            validateOnChange>
         </tb-json-content>
     </fieldset>
 </section>

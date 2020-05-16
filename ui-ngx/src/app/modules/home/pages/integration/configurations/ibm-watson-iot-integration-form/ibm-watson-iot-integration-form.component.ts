@@ -29,26 +29,22 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
-import { Observable } from 'rxjs';
-
+import { Component, Input } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
   templateUrl: './ibm-watson-iot-integration-form.component.html',
-  styleUrls: ['./ibm-watson-iot-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./ibm-watson-iot-integration-form.component.scss']
 })
-export class IbmWatsonIotIntegrationFormComponent implements OnInit {
+export class IbmWatsonIotIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() form: FormGroup;
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor() {
+    super();
   }
 
 }

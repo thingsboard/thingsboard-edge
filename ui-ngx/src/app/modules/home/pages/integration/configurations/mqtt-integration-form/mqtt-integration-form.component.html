@@ -79,7 +79,7 @@
                 <mat-expansion-panel-header fxFlex>
                     <mat-panel-title translate>integration.credentials</mat-panel-title>
                     <mat-panel-description>
-                        {{ mqttCredentialTypes[form?.get('credentials').get('type')?.value]?.name | translate }}
+                        {{ mqttCredentialTypes[form.get('credentials').get('type').value]?.name | translate }}
                     </mat-panel-description>
                 </mat-expansion-panel-header>
                 <div formGroupName="credentials">
@@ -94,7 +94,7 @@
                         <mat-error translate *ngIf="form.get('credentials').get('type')?.hasError('required')">
                             integration.credentials-type-required</mat-error>
                     </mat-form-field>
-                    <section *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes.basic.value">
+                    <section *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes.basic.value">
                         <mat-form-field class="mat-block">
                             <mat-label translate>integration.username</mat-label>
                             <input matInput required formControlName="username" autocomplete="new-username">
@@ -110,7 +110,7 @@
                         </mat-form-field>
                     </section>
                     <section
-                        *ngIf="form?.get('credentials').get('type')?.value === mqttCredentialTypes['cert.PEM'].value"
+                        *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes['cert.PEM'].value"
                         class="dropdown-section">
                         <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
                         <mat-form-field class="mat-block">

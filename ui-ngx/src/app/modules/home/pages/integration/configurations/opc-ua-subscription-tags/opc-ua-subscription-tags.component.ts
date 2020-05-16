@@ -29,14 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'tb-opc-ua-subscription-tags',
   templateUrl: './opc-ua-subscription-tags.component.html',
-  styleUrls: ['./opc-ua-subscription-tags.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./opc-ua-subscription-tags.component.scss']
 })
 export class OpcUaSubscriptionTagsComponent implements OnInit {
 
@@ -45,13 +44,15 @@ export class OpcUaSubscriptionTagsComponent implements OnInit {
   constructor(private fb: FormBuilder) { }
 
   ngOnInit(): void {
+    this.subscriptionTagsForm.setValidators(Validators.required);
+    this.subscriptionTagsForm.updateValueAndValidity();
   }
 
   addSubscriptionTag() {
     this.subscriptionTagsForm.push(this.fb.group(
       {
-        key: [''],
-        path: [''],
+        key: ['', [Validators.required]],
+        path: ['', [Validators.required]],
         required: [false]
       }
     ));

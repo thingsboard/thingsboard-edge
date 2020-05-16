@@ -29,32 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, ViewChild } from '@angular/core';
-import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
-import { ContentType } from '@shared/models/constants';
-import { JsonContentComponent } from '@shared/components/json-content.component';
+// @dynamic
+import { Directive, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 
-@Component({
-  selector: 'tb-custom-integration-form',
-  templateUrl: './custom-integration-form.component.html',
-  styleUrls: ['./custom-integration-form.component.scss']
-})
-export class CustomIntegrationFormComponent extends IntegrationFormComponent {
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
+export abstract class IntegrationFormComponent implements OnChanges {
 
-  @ViewChild('jsonContentComponent', {static: true}) jsonContentComponent: JsonContentComponent;
+  @Input() form: FormGroup;
 
-  contentType = ContentType;
-
-  constructor() {
-    super();
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (propName === 'form' && change.currentValue) {
+        this.onIntegrationFormSet();
+      }
+    }
   }
 
   protected onIntegrationFormSet() {
-    /* if (this.form.enabled) {
-      this.form.get('configuration').valueChanges.subscribe(() => {
-        this.jsonContentComponent.validateOnSubmit();
-      });
-    }*/
+
   }
+
+  updateFormState(disabled: boolean) {}
 
 }

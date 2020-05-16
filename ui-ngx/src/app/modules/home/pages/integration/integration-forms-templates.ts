@@ -30,8 +30,8 @@
 ///
 
 import { IntegrationType, IntegrationTypeInfo } from '@shared/models/integration.models';
-import { baseUrl } from '@app/core/utils';
-import { FormGroup } from '@angular/forms';
+import { baseUrl, generateId } from '@app/core/utils';
+import { AbstractControl, FormGroup, Validators } from '@angular/forms';
 
 export const handlerConfigurationTypes = {
   text: {
@@ -108,13 +108,37 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
   }
 }
 
+export function updateIntegrationFormDefaultFields(type: IntegrationType, integrationForm: FormGroup) {
+  if (type === IntegrationType.KAFKA) {
+    if (!integrationForm.get('clientConfiguration').get('groupId').value)
+      integrationForm.get('clientConfiguration').get('groupId').patchValue('group_id_' + generateId(10));
+    if (!integrationForm.get('clientConfiguration').get('clientId').value)
+      integrationForm.get('clientConfiguration').get('clientId').patchValue('client_id_' + generateId(10));
+  } else if (type === IntegrationType.CUSTOM) {
+    if (!integrationForm.get('configuration').value)
+      integrationForm.get('configuration').patchValue('{}');
+  }
+}
+
+export function updateIntegrationFormRequiredFields(integrationForm: FormGroup, requiredFields: string[] = []) {
+  for (const field of requiredFields) {
+    const path = field.split('.');
+    let control: AbstractControl = integrationForm;
+    for (const part of path) {
+      control = control.get(part);
+    }
+    control.setValidators(Validators.required);
+    control.updateValueAndValidity();
+  }
+}
+
 export const templates = {
   http: {
     baseUrl: baseUrl(),
     replaceNoContentToOk: '',
-    enableSecurity: '',
+    enableSecurity: false,
     downlinkUrl: 'https://api.thingpark.com/thingpark/lrc/rest/downlink',
-    enableSecurityNew: '',
+    enableSecurityNew: false,
     asId: '',
     asIdNew: '',
     asKey: '',
@@ -122,7 +146,7 @@ export const templates = {
     clientSecret: '',
     maxTimeDiffInSeconds: 60,
     httpEndpoint: '',
-    headersFilter: '',
+    headersFilter: {},
     ignoreNonPrimitiveFields: ['headersFilter']
   },
   [IntegrationType.MQTT]: {
@@ -147,7 +171,8 @@ export const templates = {
       },
     },
     downlinkTopicPattern: '${topic}',
-    topicFilters: []
+    topicFilters: [],
+    requiredFields: ['topicFilters']
   },
   [IntegrationType.AWS_IOT]: {
     clientConfiguration: {
@@ -168,7 +193,16 @@ export const templates = {
       }
     },
     downlinkTopicPattern: '${topic}',
-    topicFilters: []
+    topicFilters: [],
+    requiredFields: ['topicFilters',
+                     'clientConfiguration.host',
+                     'clientConfiguration.connectTimeoutSec',
+                     'clientConfiguration.credentials.caCertFileName',
+                     'clientConfiguration.credentials.caCert',
+                     'clientConfiguration.credentials.certFileName',
+                     'clientConfiguration.credentials.cert',
+                     'clientConfiguration.credentials.privateKeyFileName',
+                     'clientConfiguration.credentials.privateKey']
   },
   [IntegrationType.AWS_SQS]: {
     sqsConfiguration: {
@@ -177,17 +211,29 @@ export const templates = {
       region: 'us-west-2',
       accessKeyId: '',
       secretAccessKey: ''
-    }
+    },
+    requiredFields: ['sqsConfiguration.queueUrl',
+                     'sqsConfiguration.pollingPeriodSeconds',
+                     'sqsConfiguration.region',
+                     'sqsConfiguration.accessKeyId',
+                     'sqsConfiguration.secretAccessKey']
   },
   [IntegrationType.AWS_KINESIS]: {
-    streamName: '',
-    region: '',
-    accessKeyId: '',
-    secretAccessKey: '',
-    useCredentialsFromInstanceMetadata: false,
-    applicationName: '',
-    initialPositionInStream: '',
-    useConsumersWithEnhancedFanOut: false
+    clientConfiguration: {
+      streamName: '',
+      region: '',
+      accessKeyId: '',
+      secretAccessKey: '',
+      useCredentialsFromInstanceMetadata: false,
+      applicationName: '',
+      initialPositionInStream: '',
+      useConsumersWithEnhancedFanOut: false
+    },
+    requiredFields: ['clientConfiguration.streamName',
+                     'clientConfiguration.region',
+                     'clientConfiguration.accessKeyId',
+                     'clientConfiguration.secretAccessKey',
+                     'clientConfiguration.initialPositionInStream']
   },
   [IntegrationType.IBM_WATSON_IOT]: {
     clientConfiguration: {
@@ -206,8 +252,11 @@ export const templates = {
       filter: 'iot-2/type/+/id/+/evt/+/fmt/+',
       qos: 0
     }],
-    downlinkTopicPattern: 'iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}'
-
+    downlinkTopicPattern: 'iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}',
+    requiredFields: ['topicFilters',
+                     'clientConfiguration.connectTimeoutSec',
+                     'clientConfiguration.credentials.username',
+                     'clientConfiguration.credentials.password']
   },
   [IntegrationType.TTN]: {
     clientConfiguration: {
@@ -226,15 +275,27 @@ export const templates = {
       filter: '+/devices/+/up',
       qos: 0
     }],
-    downlinkTopicPattern: ''
+    downlinkTopicPattern: '',
+    requiredFields: ['topicFilters',
+                     'clientConfiguration.host',
+                     'clientConfiguration.connectTimeoutSec',
+                     'clientConfiguration.credentials.username',
+                     'clientConfiguration.credentials.password']
   },
   [IntegrationType.AZURE_EVENT_HUB]: {
-    connectTimeoutSec: 10,
-    namespaceName: '',
-    eventHubName: '',
-    sasKeyName: '',
-    sasKey: '',
-    iotHubName: '',
+    clientConfiguration: {
+      connectTimeoutSec: 10,
+      namespaceName: '',
+      eventHubName: '',
+      sasKeyName: '',
+      sasKey: '',
+      iotHubName: ''
+    },
+    requiredFields: ['clientConfiguration.connectTimeoutSec',
+                     'clientConfiguration.namespaceName',
+                     'clientConfiguration.eventHubName',
+                     'clientConfiguration.sasKeyName',
+                     'clientConfiguration.sasKey']
   },
   [IntegrationType.OPC_UA]: {
     clientConfiguration: {
@@ -259,7 +320,15 @@ export const templates = {
         alias: 'opc-ua-extension',
         keyPassword: 'secret',
       }
-    }
+    },
+    requiredFields: ['clientConfiguration.host',
+                     'clientConfiguration.port',
+                     'clientConfiguration.scanPeriodInSeconds',
+                     'clientConfiguration.timeoutInMillis',
+                     'clientConfiguration.security',
+                     'clientConfiguration.mapping',
+                     'clientConfiguration.keystore.location',
+                     'clientConfiguration.keystore.fileContent']
   },
   [IntegrationType.UDP]: {
     clientConfiguration: {
@@ -271,7 +340,10 @@ export const templates = {
         charsetName: 'UTF-8',
         maxFrameLength: 128
       }
-    }
+    },
+    requiredFields: ['clientConfiguration.port',
+                     'clientConfiguration.soRcvBuf',
+                     'clientConfiguration.handlerConfiguration.handlerType']
   },
   [IntegrationType.TCP]: {
     clientConfiguration: {
@@ -293,7 +365,12 @@ export const templates = {
         stripDelimiter: true,
         messageSeparator: tcpTextMessageSeparator.systemLineSeparator.value
       }
-    }
+    },
+    requiredFields: ['clientConfiguration.port',
+                     'clientConfiguration.soBacklogOption',
+                     'clientConfiguration.soRcvBuf',
+                     'clientConfiguration.soSndBuf',
+                     'clientConfiguration.handlerConfiguration.handlerType']
   },
   [IntegrationType.KAFKA]: {
     clientConfiguration: {
@@ -304,11 +381,18 @@ export const templates = {
       pollInterval: 5000,
       autoCreateTopics: false,
       otherProperties: ''
-    }
+    },
+    ignoreNonPrimitiveFields: ['otherProperties'],
+    requiredFields: ['clientConfiguration.groupId',
+                     'clientConfiguration.clientId',
+                     'clientConfiguration.topics',
+                     'clientConfiguration.bootstrapServers',
+                     'clientConfiguration.pollInterval']
   },
   [IntegrationType.CUSTOM]: {
     clazz: '',
-    configuration: ''
+    configuration: '',
+    requiredFields: ['clazz']
   }
 }
 
@@ -322,13 +406,11 @@ export const extensionKeystoreType = {
   JKS: 'JKS'
 }
 
-export const initialPositionInStream = {
-  latest: 'LATEST',
-  trim_horizon: 'TRIM_HORIZON',
-  at_timestamp: 'AT_TIMESTAMP'
+export enum InitialPositionInStream {
+  LATEST = 'LATEST',
+  TRIM_HORIZON = 'TRIM_HORIZON',
+  AT_TIMESTAMP = 'AT_TIMESTAMP'
 }
-
-export const topicFilters = {}
 
 export const identityType = {
   anonymous: 'extension.anonymous',

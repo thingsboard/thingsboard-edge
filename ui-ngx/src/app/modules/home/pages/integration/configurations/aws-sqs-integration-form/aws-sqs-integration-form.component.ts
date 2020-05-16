@@ -29,23 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-
+import { Component } from '@angular/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-aws-sqs-integration-form',
   templateUrl: './aws-sqs-integration-form.component.html',
-  styleUrls: ['./aws-sqs-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./aws-sqs-integration-form.component.scss']
 })
-export class AwsSqsIntegrationFormComponent implements OnInit {
+export class AwsSqsIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() form: FormGroup;
-
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor() {
+    super();
   }
 
 }

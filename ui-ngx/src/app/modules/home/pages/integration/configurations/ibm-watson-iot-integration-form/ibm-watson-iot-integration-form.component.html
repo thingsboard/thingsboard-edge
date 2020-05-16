@@ -34,11 +34,11 @@
     <mat-form-field class="mat-block">
         <mat-label translate>integration.connect-timeout</mat-label>
         <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-        <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('required')">
+        <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
             integration.connect-timeout-required</mat-error>
-        <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('min')">
+        <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('min')">
             integration.connect-timeout-range</mat-error>
-        <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('max')">
+        <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('max')">
             integration.connect-timeout-range</mat-error>
     </mat-form-field>
     <div class="tb-panel-title" style="padding-bottom: 15px;">
@@ -47,14 +47,14 @@
         <mat-form-field class="mat-block">
             <mat-label translate>integration.api-key</mat-label>
             <input matInput required formControlName="username" autocomplete="new-username">
-            <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
+            <mat-error translate *ngIf="form.get('credentials').get('username').hasError('required')">
                 integration.api-key-required
             </mat-error>
         </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.auth-token</mat-label>
             <input matInput type="password" required formControlName="password" autocomplete="new-password">
-            <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
+            <mat-error translate *ngIf="form.get('credentials').get('password').hasError('required')">
                 integration.auth-token-required
             </mat-error>
         </mat-form-field>

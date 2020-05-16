@@ -29,25 +29,56 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { AbstractControl, Validators } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-azure-event-hub-integration-form',
   templateUrl: './azure-event-hub-integration-form.component.html',
-  styleUrls: ['./azure-event-hub-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./azure-event-hub-integration-form.component.scss']
 })
-export class AzureEventHubIntegrationFormComponent implements OnInit {
+export class AzureEventHubIntegrationFormComponent extends IntegrationFormComponent implements OnInit, OnDestroy {
 
-  @Input() form: FormGroup;
+  @Input() downlinkConverterIdControl: AbstractControl;
 
+  iotHubNameRequired = false;
 
-  constructor() { }
+  downlinkConverterChangeSubscription: Subscription = null;
+
+  constructor() {
+    super();
+  }
 
   ngOnInit(): void {
+    this.downlinkConverterChangeSubscription = this.downlinkConverterIdControl.valueChanges.subscribe(() => {
+      this.downlinkConverterIdChanged();
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.downlinkConverterChangeSubscription) {
+      this.downlinkConverterChangeSubscription.unsubscribe();
+    }
+  }
+
+  protected onIntegrationFormSet() {
+    this.downlinkConverterIdChanged();
+  }
+
+  downlinkConverterIdChanged() {
+    const downlinkConverterId = this.downlinkConverterIdControl.value;
+    if (this.form) {
+      if (downlinkConverterId !== null) {
+        this.form.get('iotHubName').setValidators(Validators.required);
+        this.iotHubNameRequired = true;
+      } else {
+        this.form.get('iotHubName').setValidators([]);
+        this.iotHubNameRequired = false;
+      }
+      this.form.get('iotHubName').updateValueAndValidity();
+    }
   }
 
 }

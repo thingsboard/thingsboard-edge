@@ -36,13 +36,13 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-stream-name</mat-label>
                 <input matInput required formControlName="streamName">
-                <mat-error translate *ngIf="form.get('streamName')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('streamName').hasError('required')">
                     integration.kinesis-stream-name-required</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-region</mat-label>
                 <input matInput required formControlName="region">
-                <mat-error translate *ngIf="form.get('region')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('region').hasError('required')">
                     integration.kinesis-region-required</mat-error>
             </mat-form-field>
         </div>
@@ -50,16 +50,16 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-access-key-id</mat-label>
                 <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" formControlName="accessKeyId" autocomplete="new-id">
-                <mat-error translate *ngIf="form.get('accessKeyId')?.hasError('required')">
+                    formControlName="accessKeyId" autocomplete="new-id">
+                <mat-error translate *ngIf="form.get('accessKeyId').hasError('required')">
                     integration.kinesis-access-key-id-required</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.kinesis-secret-access-key</mat-label>
                 <input matInput [required]="!form.get('useCredentialsFromInstanceMetadata').value"
-                    [readonly]="form.get('useCredentialsFromInstanceMetadata').value" type="password"
+                    type="password"
                     autocomplete="new-password" formControlName="secretAccessKey">
-                <mat-error translate *ngIf="form.get('secretAccessKey')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('secretAccessKey').hasError('required')">
                     integration.kinesis-secret-access-key-required</mat-error>
             </mat-form-field>
         </div>
@@ -80,11 +80,11 @@
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
                 <mat-label translate>integration.kinesis-initial-position-in-stream</mat-label>
                 <mat-select required formControlName="initialPositionInStream">
-                    <mat-option *ngFor="let stream of initialPositionInStream | keyvalue" [value]="stream?.key">
-                        {{stream?.value}}
+                    <mat-option *ngFor="let stream of initialPositionInStreams" [value]="stream">
+                        {{stream}}
                     </mat-option>
                 </mat-select>
-                <mat-error translate *ngIf="form.get('initialPositionInStream')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('initialPositionInStream').hasError('required')">
                     integration.kinesis-initial-position-in-stream-required</mat-error>
             </mat-form-field>
         </div>

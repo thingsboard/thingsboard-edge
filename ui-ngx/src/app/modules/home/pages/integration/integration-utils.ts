@@ -29,16 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { FormGroup } from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
 import { mqttCredentialType } from '@home/pages/integration/integration-forms-templates';
 
 const basic = ['username', 'password'];
+const requiredBasic = ['username', 'password'];
 const pem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey', 'privateKeyPassword'];
-
+const requiredPem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey'];
 
 export function changeRequiredCredentialsFields(form: FormGroup, credentialType: mqttCredentialType) {
     let disabled = [];
     let enabled = [];
+    let required = [];
     switch (credentialType) {
         case 'anonymous':
             disabled = [...basic, ...pem];
@@ -46,30 +48,42 @@ export function changeRequiredCredentialsFields(form: FormGroup, credentialType:
         case 'basic':
             disabled = pem;
             enabled = basic;
+            required = requiredBasic;
             break;
         case 'cert.PEM':
             disabled = basic;
             enabled = pem;
+            required = requiredPem;
             break;
     }
 
     disableFields(form, disabled);
-    enableFields(form, enabled);
+    enableFields(form, enabled, required);
 }
 
-export function disableFields(form: FormGroup, fields: string[]) {
+export function disableFields(form: FormGroup, fields: string[], required: string[] = [], clear = true) {
     fields.forEach(key => {
         if (form.get(key)) {
+          if (clear) {
             form.get(key).setValue(null);
-            form.get(key).disable();
+          }
+          form.get(key).disable();
+          if (required.includes(key)) {
+            form.get(key).setValidators([]);
+            form.get(key).updateValueAndValidity();
+          }
         }
     });
 }
 
-export function enableFields(form: FormGroup, fields: string[]) {
+export function enableFields(form: FormGroup, fields: string[], required: string[] = []) {
     fields.forEach(key => {
         if (form.get(key)) {
           form.get(key).enable();
+          if (required.includes(key)) {
+            form.get(key).setValidators(Validators.required);
+            form.get(key).updateValueAndValidity();
+          }
         }
     });
 }

@@ -43,14 +43,10 @@
 }
 
 .tb-dialog {
-  :host {
+  :host ::ng-deep {
     mat-expansion-panel {
       margin-left: 6px;
       margin-right: 6px;
     }
   }
-}
-
-#integration-form {
-  overflow: visible;
 }

@@ -29,23 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, Input, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, Validators } from '@angular/forms';
-import { handlerConfigurationTypes, tcpBinaryByteOrder, tcpTextMessageSeparator } from '../../integration-forms-templates';
+import { Component } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import {
+  handlerConfigurationTypes,
+  tcpBinaryByteOrder,
+  tcpTextMessageSeparator
+} from '../../integration-forms-templates';
 import _ from 'lodash';
 import { disableFields, enableFields } from '../../integration-utils';
-
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
   selector: 'tb-tcp-integration-form',
   templateUrl: './tcp-integration-form.component.html',
-  styleUrls: ['./tcp-integration-form.component.scss'],
-  changeDetection: ChangeDetectionStrategy.Default
+  styleUrls: ['./tcp-integration-form.component.scss']
 })
-export class TcpIntegrationFormComponent implements OnInit {
-
-
-  @Input() form: FormGroup;
+export class TcpIntegrationFormComponent extends IntegrationFormComponent {
 
   handlerConfigurationTypes = handlerConfigurationTypes;
   handlerTypes = _.cloneDeep(handlerConfigurationTypes);
@@ -73,15 +73,23 @@ export class TcpIntegrationFormComponent implements OnInit {
     }
   }
 
-  constructor() { }
-
-  ngOnInit(): void {
+  constructor() {
+    super();
     delete this.handlerTypes.hex;
-    this.handlerConfigurationTypeChanged({ value: this.form.get('handlerConfiguration').get('handlerType').value })
   }
 
-  handlerConfigurationTypeChanged(type) {
-    const handlerConf = this.defaultHandlerConfigurations[type.value];
+  onIntegrationFormSet() {
+    if (this.form.enabled) {
+      this.form.get('handlerConfiguration').get('handlerType').valueChanges.subscribe(() => {
+        this.handlerConfigurationTypeChanged();
+      });
+      this.handlerConfigurationTypeChanged();
+    }
+  }
+
+  handlerConfigurationTypeChanged() {
+    const type: string = this.form.get('handlerConfiguration').get('handlerType').value;
+    const handlerConf = this.defaultHandlerConfigurations[type];
     const controls = this.form.get('handlerConfiguration') as FormGroup;
     const fieldsSet = {
       BINARY: [
@@ -100,8 +108,8 @@ export class TcpIntegrationFormComponent implements OnInit {
       JSON: []
     };
     disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
-    enableFields(controls, fieldsSet[type.value])
-    this.form.get('handlerConfiguration').patchValue(handlerConf);
+    enableFields(controls, fieldsSet[type]);
+    this.form.get('handlerConfiguration').patchValue(handlerConf, {emitEvent: false});
   };
 
 }
