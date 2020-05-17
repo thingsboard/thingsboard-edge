@@ -400,6 +400,9 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                     }
                 );
             }
+        } else {
+            // TODO: verify with Igor this change for security
+            vm.groupActionsList = vm.config.groupActionsList;
         }
 
         vm.addItemText = vm.config.addItemText || function () {

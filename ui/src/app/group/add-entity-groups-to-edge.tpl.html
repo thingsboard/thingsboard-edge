@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-dialog aria-label="{{ 'rulechain.assign-rulechain-to-edge' | translate }}">
+<md-dialog aria-label="{{ vm.titleText | translate }}">
     <form name="theForm" ng-submit="vm.assign()">
         <md-toolbar>
             <div class="md-toolbar-tools">
-                <h2 translate>rulechain.assign-rulechain-to-edge</h2>
+                <h2 translate>{{vm.titleText}}</h2>
                 <span flex></span>
                 <md-button class="md-icon-button" ng-click="vm.cancel()">
                     <ng-md-icon icon="close" aria-label="{{ 'dialog.close' | translate }}"></ng-md-icon>
@@ -46,13 +46,13 @@
         <md-dialog-content>
             <div class="md-dialog-content">
                 <fieldset>
-                    <span translate>rulechain.assign-rulechain-to-edge-text</span>
+                    <span translate>{{vm.assignText}}</span>
                     <md-input-container class="md-block" style='margin-bottom: 0px;'>
                         <label>&nbsp;</label>
                         <md-icon aria-label="{{ 'action.search' | translate }}" class="material-icons">
                             search
                         </md-icon>
-                        <input id="rulechain-search" autofocus ng-model="vm.searchText"
+                        <input id="entity-group-search" autofocus ng-model="vm.searchText"
                                ng-change="vm.searchEntityGroupTextUpdated()"
                                placeholder="{{ 'common.enter-search' | translate }}"/>
                     </md-input-container>
@@ -60,7 +60,7 @@
 					<span translate layout-align="center center"
                           style="text-transform: uppercase; display: flex; height: 150px;"
                           class="md-subhead"
-                          ng-show="vm.noData()">rulechain.no-entity-group-text</span>
+                          ng-show="vm.noData()">{{vm.noEntitiesText}}</span>
                         <md-virtual-repeat-container ng-show="vm.hasData()"
                                                      tb-scope-element="repeatContainer" md-top-index="vm.topIndex" flex
                                                      style='min-height: 150px; width: 100%;'>

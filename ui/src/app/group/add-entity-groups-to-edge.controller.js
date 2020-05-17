@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddEntityGroupsToEdgeController(entityGroupService, $mdDialog, $q, $filter, edgeId, entityGroups, groupType) {
+export default function AddEntityGroupsToEdgeController(entityGroupService, $mdDialog, $q, $filter, types, edgeId, entityGroups, groupType) {
 
     var vm = this;
 
@@ -43,6 +43,25 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
     vm.noData = noData;
     vm.searchEntityGroupTextUpdated = searchEntityGroupTextUpdated;
     vm.toggleEntityGroupSelection = toggleEntityGroupSelection;
+
+    vm.noEntitiesText = 'entity-group.no-entity-groups-text';
+
+    if (vm.groupType == types.entityType.user) {
+        vm.titleText = 'entity-group.assign-user-group-to-edge';
+        vm.assignText = 'entity-group.assign-user-group-to-edge-text';
+    } else if (vm.groupType == types.entityType.asset) {
+        vm.titleText = 'entity-group.assign-asset-group-to-edge';
+        vm.assignText = 'entity-group.assign-asset-group-to-edge-text';
+    } else if (vm.groupType == types.entityType.device) {
+        vm.titleText = 'entity-group.assign-device-group-to-edge';
+        vm.assignText = 'entity-group.assign-device-group-to-edge-text';
+    } else if (vm.groupType == types.entityType.entityView) {
+        vm.titleText = 'entity-group.assign-entity-view-group-to-edge';
+        vm.assignText = 'entity-group.assign-entity-view-group-to-edge-text';
+    } else if (vm.groupType == types.entityType.dashboard) {
+        vm.titleText = 'entity-group.assign-dashboard-group-to-edge';
+        vm.assignText = 'entity-group.assign-dashboard-group-to-edge-text';
+    }
 
     vm.theEntityGroups = {
         getItemAtIndex: function (index) {

@@ -36,24 +36,31 @@
 <md-button ng-click="onManageUsers({event: $event})"
            ng-if="'userGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageUsers && !isEdit"
-           class="md-raised md-primary">{{ 'edge.manage-user-groups' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'edge.manage-edge-user-groups' | translate }}</md-button>
 <md-button ng-click="onManageAssets({event: $event})"
            ng-if="'assetGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageAssets && !isEdit"
-           class="md-raised md-primary">{{ 'edge.manage-asset-groups' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'edge.manage-edge-asset-groups' | translate }}</md-button>
 <md-button ng-click="onManageDevices({event: $event})"
            ng-if="'deviceGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDevices && !isEdit"
-           class="md-raised md-primary">{{ 'edge.manage-device-groups' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'edge.manage-edge-device-groups' | translate }}</md-button>
 <md-button ng-click="onManageEntityViews({event: $event})"
            ng-if="'entityViewGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageEntityViews && !isEdit"
-           class="md-raised md-primary">{{ 'edge.manage-entity-view-groups' | translate }}</md-button>
+           class="md-raised md-primary">{{ 'edge.manage-edge-entity-view-groups' | translate }}</md-button>
 <md-button ng-click="onManageDashboards({event: $event})"
            ng-if="'dashboardGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDashboards && !isEdit"
-           class="md-raised md-primary">{{ 'edge.manage-dashboard-groups' | translate }}</md-button>
-
+           class="md-raised md-primary">{{ 'edge.manage-edge-dashboard-groups' | translate }}</md-button>
+<md-button ng-click="onManageRuleChains({event: $event})"
+           ng-if="'ruleChain' | hasGenericPermission:'read'"
+           ng-show="!hideManageRuleChains && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-edge-rule-chains' | translate }}</md-button>
+<md-button ng-click="onManageSchedulerEvents({event: $event})"
+           ng-if="'schedulerEvent' | hasGenericPermission:'read'"
+           ng-show="!hideManageSchedulerEvents && !isEdit"
+           class="md-raised md-primary">{{ 'edge.manage-edge-scheduler-events' | translate }}</md-button>
 
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"

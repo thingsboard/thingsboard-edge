@@ -121,6 +121,9 @@
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-rule-chains-management' | translate }}"
                          ng-model="vm.settings.enableRuleChainsManagement">{{ 'entity-group.enable-rule-chains-management' | translate }}
             </md-checkbox>
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-scheduler-events-management' | translate }}"
+                         ng-model="vm.settings.enableSchedulerEventsManagement">{{ 'entity-group.enable-scheduler-events-management' | translate }}
+            </md-checkbox>
         </section>
     </fieldset>
 </md-content>

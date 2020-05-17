@@ -782,6 +782,9 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             if (angular.isUndefined(settings.enableRuleChainsManagement)) {
                 settings.enableRuleChainsManagement = true;
             }
+            if (angular.isUndefined(settings.enableSchedulerEventsManagement)) {
+                settings.enableSchedulerEventsManagement = true;
+            }
         }
         return settings;
     }

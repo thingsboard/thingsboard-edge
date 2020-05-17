@@ -32,7 +32,6 @@
 
 import addRuleChainTemplate from './add-rulechain.tpl.html';
 import ruleChainCard from './rulechain-card.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
 import addRuleChainsToEdgeTemplate from "./add-rulechains-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -47,8 +46,6 @@ export default function RuleChainsController(ruleChainService, userService, edge
     var edgeId = $stateParams.edgeId;
 
     vm.ruleChainsScope = $state.$current.data.ruleChainsType;
-
-
 
     var ruleChainActionsList = [
         {
@@ -241,15 +238,6 @@ export default function RuleChainsController(ruleChainService, userService, edge
 
             ruleChainActionsList.push({
                 onAction: function ($event, item) {
-                    manageAssignedEdgeGroups($event, item);
-                },
-                name: function() { return $translate.instant('action.assign') },
-                details: function() { return $translate.instant('rulechain.manage-assigned-edge-groups') },
-                icon: "wifi_tethering"
-            });
-
-            ruleChainActionsList.push({
-                onAction: function ($event, item) {
                     vm.grid.deleteItem($event, item);
                 },
                 name: function() { return $translate.instant('action.delete') },
@@ -268,31 +256,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
                 isEnabled: isNonRootRuleChain
             });
 
-            ruleChainGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        assignRuleChainsToEdges($event, items);
-                    },
-                    name: function() { return $translate.instant('rulechain.assign-rulechains') },
-                    details: function(selectedCount) {
-                        return $translate.instant('rulechain.assign-rulechains-to-edge-text', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "wifi_tethering"
-                }
-            );
 
-            ruleChainGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        unassignRuleChainsFromEdges($event, items);
-                    },
-                    name: function() { return $translate.instant('rulechain.unassign-rulechains') },
-                    details: function(selectedCount) {
-                        return $translate.instant('rulechain.unassign-rulechains-from-edge-action-text', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "portable_wifi_off"
-                }
-            );
 
             ruleChainGroupActionsList.push(
                 {
@@ -511,26 +475,6 @@ export default function RuleChainsController(ruleChainService, userService, edge
         });
     }
 
-    function manageAssignedEdgeGroups($event, ruleChain) {
-        showManageAssignedEdgeGroupsDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgeGroupIds);
-    }
-
-    function assignRuleChainsToEdges($event, items) {
-        var ruleChainIds = [];
-        for (var id in items.selections) {
-            ruleChainIds.push(id);
-        }
-        showManageAssignedEdgeGroupsDialog($event, ruleChainIds, 'assign');
-    }
-
-    function unassignRuleChainsFromEdges($event, items) {
-        var ruleChainIds = [];
-        for (var id in items.selections) {
-            ruleChainIds.push(id);
-        }
-        showManageAssignedEdgeGroupsDialog($event, ruleChainIds, 'unassign');
-    }
-
     function unassignRuleChainsFromEdge($event, items, edgeId) {
         var confirm = $mdDialog.confirm()
             .targetEvent($event)
@@ -547,24 +491,6 @@ export default function RuleChainsController(ruleChainService, userService, edge
             $q.all(tasks).then(function () {
                 vm.grid.refreshList();
             });
-        });
-    }
-
-    function showManageAssignedEdgeGroupsDialog($event, ruleChainIds, actionType, assignedEdgeGroupIds) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsToRuleChainController',
-            controllerAs: 'vm',
-            templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {actionType: actionType, ruleChainIds: ruleChainIds, assignedEdgeGroupIds: assignedEdgeGroupIds},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            vm.grid.refreshList();
-        }, function () {
         });
     }
 

@@ -58,9 +58,6 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
             detailsReadOnly: () => {
                 return false;
             },
-            manageRuleChainsEnabled: () => {
-                return settings.enableRuleChainsManagement;
-            },
             manageUsersEnabled: () => {
                 return settings.enableUsersManagement;
             },
@@ -75,6 +72,12 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
             },
             manageDashboardsEnabled: () => {
                 return settings.enableDashboardsManagement;
+            },
+            manageRuleChainsEnabled: () => {
+                return settings.enableRuleChainsManagement;
+            },
+            manageSchedulerEventsEnabled: () => {
+                return settings.enableSchedulerEventsManagement;
             },
             deleteEnabled: () => {
                 return settings.enableDelete;
@@ -221,6 +224,18 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
 
         };
 
+        groupConfig.onManageSchedulerEvents = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.entityView);
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.schedulerEvents', {edgeId: entity.id.id});
+            }
+
+        };
+
         groupConfig.onImportEdges = (event)  => {
             var entityGroupId = !entityGroup.groupAll ? entityGroup.id.id : null;
             var customerId = null;
@@ -256,7 +271,7 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
         if (userPermissionsService.hasGenericPermission(securityTypes.resource.userGroup, securityTypes.operation.read)) {
             groupConfig.actionCellDescriptors.push(
                 {
-                    name: $translate.instant('edge.manage-edge-usergroups'),
+                    name: $translate.instant('edge.manage-edge-user-groups'),
                     icon: 'account_circle',
                     isEnabled: () => {
                         return settings.enableUsersManagement;
@@ -338,6 +353,21 @@ export default function EdgeGroupConfig($q, $translate, $state, tbDialogs, utils
                     },
                     onAction: ($event, entity) => {
                         groupConfig.onManageRuleChains($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('edge.manage-edge-scheduler-events'),
+                    icon: 'schedule',
+                    isEnabled: () => {
+                        return settings.enableSchedulerEventsManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageSchedulerEvents($event, entity);
                     }
                 }
             );

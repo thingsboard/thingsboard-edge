@@ -33,7 +33,6 @@ import './entity-group.scss';
 /* eslint-disable import/no-unresolved, import/default */
 
 import addEntityTemplate from './add-entity.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -60,7 +59,6 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
     vm.makeGroupPublic = makeGroupPublic;
     vm.makeGroupPrivate = makeGroupPrivate;
     vm.deleteEntityGroup = deleteEntityGroup;
-    vm.manageAssignedEdgeGroups = manageAssignedEdgeGroups;
     vm.addEnabled = addEnabled;
     vm.fetchMore = fetchMore;
     vm.addEntity = addEntity;
@@ -593,27 +591,6 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
             });
     }
 
-    function manageAssignedEdgeGroups($event) {
-        showManageAssignedEdgeGroupsDialog($event, 'manage');
-    }
-
-    function showManageAssignedEdgeGroupsDialog($event, actionType) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsToEntityGroupController',
-            controllerAs: 'vm',
-            templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {actionType: actionType, entityGroupIds: vm.currentEntityGroup.id.id, assignedEdgeGroupIds: vm.currentEntityGroup.assignedEdgeGroupIds},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            vm.grid.refreshList();
-        }, function () {
-        });
-    }
     function isCurrent(entity) {
         return (vm.currentEntity && entity && vm.currentEntity.id && entity.id) &&
             (vm.currentEntity.id.id === entity.id.id);

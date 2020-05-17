@@ -32,7 +32,6 @@
 
 import addEntityGroupTemplate from './add-entity-group.tpl.html';
 import entityGroupCard from './entity-group-card.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
 import addEntityGroupsToEdgeTemplate from "./add-entity-groups-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -177,7 +176,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     vm.makePublic = makePublic;
     vm.makePrivate = makePrivate;
-    vm.manageAssignedEdgeGroups = manageAssignedEdgeGroups;
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
         vm.deviceGridConfig.items = $stateParams.items;
@@ -426,28 +424,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                 vm.grid.refreshList();
             }
         );
-    }
-
-    function manageAssignedEdgeGroups($event, entityGroup) {
-        showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds);
-    }
-
-    function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsToEntityGroupController',
-            controllerAs: 'vm',
-            templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {actionType: actionType, entityGroupIds: entityGroupId, assignedEdgeGroupIds: assignedEdgeGroupIds},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            vm.grid.refreshList();
-        }, function () {
-        });
     }
 
     function reload() {
