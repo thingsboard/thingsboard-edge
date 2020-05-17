@@ -1287,7 +1287,10 @@
         "assign-user-group-to-edge-text": "Please select the user group(s) to assign to the edge",
         "assign-dashboard-group-to-edge": "Assign Dashboard Group(s) To Edge",
         "assign-dashboard-group-to-edge-text": "Please select the dashboard group(s) to assign to the edge",
-        "unassign-from-edge": "Unassign from edge"
+        "unassign-from-edge": "Unassign from edge",
+        "unassign-entity-group-from-edge-title": "Are you sure you want to unassign the entity group '{{entityGroupTitle}}'?",
+        "unassign-entity-group-from-edge-text": "After the confirmation the entity group will be unassigned and won't be accessible by the edge.",
+        "unassign-entity-group-from-edge": "Unassign entity group from edge"
     },
     "entity-field": {
         "created-time": "Created time",

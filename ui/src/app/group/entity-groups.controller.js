@@ -488,9 +488,9 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         if ($event) {
             $event.stopPropagation();
         }
-        var title = $translate.instant('entity-group.unassign-entity-group-title', {entityGroupTitle: entityGroup.name});
+        var title = $translate.instant('entity-group.unassign-entity-group-from-edge-title', {entityGroupTitle: entityGroup.name});
         var content = $translate.instant('entity-group.unassign-entity-group-from-edge-text');
-        var label = $translate.instant('entity-group.unassign-entity-group');
+        var label = $translate.instant('entity-group.unassign-entity-group-from-edge');
         var confirm = $mdDialog.confirm()
             .targetEvent($event)
             .title(title)
