@@ -599,7 +599,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.thingsboard.server.TbEdgeServerApplication</mainClass>
+                    <mainClass>org.thingsboard.server.TbEdgeApplication</mainClass>
                     <classifier>boot</classifier>
                     <layout>ZIP</layout>
                     <executable>true</executable>
