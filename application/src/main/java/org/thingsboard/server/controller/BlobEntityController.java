@@ -156,7 +156,7 @@ public class BlobEntityController extends BaseController {
         try {
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             TenantId tenantId = getCurrentUser().getTenantId();
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                 if (type != null && type.trim().length()>0) {
                     return checkNotNull(blobEntityService.findBlobEntitiesByTenantIdAndType(tenantId, type, pageLink));
                 } else {

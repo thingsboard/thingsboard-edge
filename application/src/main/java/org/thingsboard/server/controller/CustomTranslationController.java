@@ -63,11 +63,11 @@ public class CustomTranslationController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             CustomTranslation customTranslation = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 customTranslation = customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId());
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 customTranslation = customTranslationService.getMergedCustomerCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
             }
             return customTranslation;
@@ -84,11 +84,11 @@ public class CustomTranslationController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.READ);
             CustomTranslation customTranslation = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 customTranslation = customTranslationService.getSystemCustomTranslation(TenantId.SYS_TENANT_ID);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 customTranslation = customTranslationService.getTenantCustomTranslation(getTenantId());
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 customTranslation = customTranslationService.getCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId());
             }
             return customTranslation;
@@ -105,11 +105,11 @@ public class CustomTranslationController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);
             CustomTranslation savedCustomTranslation = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 savedCustomTranslation = customTranslationService.saveSystemCustomTranslation(customTranslation);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 savedCustomTranslation = customTranslationService.saveTenantCustomTranslation(getCurrentUser().getTenantId(), customTranslation);
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 savedCustomTranslation = customTranslationService.saveCustomerCustomTranslation(getTenantId(), getCurrentUser().getCustomerId(), customTranslation);
             }
             return savedCustomTranslation;

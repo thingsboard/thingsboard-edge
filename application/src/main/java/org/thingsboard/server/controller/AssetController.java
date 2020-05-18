@@ -104,7 +104,7 @@ public class AssetController extends BaseController {
             Operation operation = asset.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     (asset.getCustomerId() == null || asset.getCustomerId().isNullUid())) {
                 asset.setCustomerId(getCurrentUser().getCustomerId());
             }

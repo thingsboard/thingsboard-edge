@@ -118,7 +118,7 @@ public class DeviceController extends BaseController {
             Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
 
             if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     (device.getCustomerId() == null || device.getCustomerId().isNullUid())) {
                 device.setCustomerId(getCurrentUser().getCustomerId());
             }

@@ -99,7 +99,7 @@ public class SchedulerEventController extends BaseController {
     public SchedulerEvent saveSchedulerEvent(@RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
         try {
             schedulerEvent.setTenantId(getCurrentUser().getTenantId());
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 schedulerEvent.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -163,7 +163,7 @@ public class SchedulerEventController extends BaseController {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                 if (type != null && type.trim().length() > 0) {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndType(tenantId, type));
                 } else {

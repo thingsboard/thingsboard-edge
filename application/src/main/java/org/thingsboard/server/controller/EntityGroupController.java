@@ -509,20 +509,25 @@ public class EntityGroupController extends BaseController {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             List<ContactBased<?>> owners = new ArrayList<>();
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                 if (accessControlService.hasPermission(getCurrentUser(), Resource.TENANT, Operation.READ)) {
                     owners.add(tenantService.findTenantById(getCurrentUser().getTenantId()));
                 }
             }
             if (accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
-                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
-                if (!ownerIds.isEmpty()) {
-                    List<CustomerId> customerIds = new ArrayList<>();
-                    for (EntityId ownerId : ownerIds) {
-                        customerIds.add(new CustomerId(ownerId.getId()));
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                    owners.addAll(customerService.findCustomersByTenantId(getTenantId(), pageLink)
+                            .getData().stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
+                } else {
+                    Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), getCurrentUser().getOwnerId());
+                    if (!ownerIds.isEmpty()) {
+                        List<CustomerId> customerIds = new ArrayList<>();
+                        for (EntityId ownerId : ownerIds) {
+                            customerIds.add(new CustomerId(ownerId.getId()));
+                        }
+                        owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
+                                .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                     }
-                    owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
-                            .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                 }
             }
             owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
