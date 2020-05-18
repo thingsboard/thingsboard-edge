@@ -2535,7 +2535,7 @@
         "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
         "every-second": "every { count, plural, 1 {second} other {# seconds} }",
         "manage-assigned-edge-groups": "Manage assigned edge groups",
-        "manage-assigned-edge-groups-text": "Assigned edge groups"
+        "assigned-edge-groups": "Assigned edge groups"
     },
     "report": {
         "report-config": "Report configuration",

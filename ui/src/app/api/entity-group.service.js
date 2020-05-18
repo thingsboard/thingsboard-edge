@@ -163,7 +163,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(prepareEntityGroups(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroups(response.data, 'EntityGroup'));
         }, function fail() {
             deferred.reject();
         });
@@ -423,7 +423,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareEntityGroup(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -434,7 +434,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/add';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareEntityGroup(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -445,37 +445,11 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/remove';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareEntityGroup(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
         return deferred.promise;
-    }
-
-    function prepareEntityGroups(entityGroups) {
-        if (entityGroups) {
-            for (var i = 0; i < entityGroups.length; i++) {
-                entityGroups[i] = prepareEntityGroup(entityGroups[i]);
-            }
-        }
-        return entityGroups;
-    }
-
-    function prepareEntityGroup(entityGroup) {
-        entityGroup.assignedEdgeGroupsText = "";
-        entityGroup.assignedEdgeGroupIds = [];
-
-        if (entityGroup.assignedEdgeGroups && entityGroup.assignedEdgeGroups.length) {
-            var assignedEdgeGroupsTitles = [];
-            for (var j = 0; j < entityGroup.assignedEdgeGroups.length; j++) {
-                var assignedEdgeGroup = entityGroup.assignedEdgeGroups[j];
-                entityGroup.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
-                assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
-            }
-            entityGroup.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
-        }
-
-        return entityGroup;
     }
 
     function cleanEntityGroup(entityGroup) {

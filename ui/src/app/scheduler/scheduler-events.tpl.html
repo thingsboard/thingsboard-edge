@@ -140,7 +140,7 @@
                                 </md-tooltip>
                             </md-button>
                             <md-button ng-if="vm.manageAssignedEdgeGroupsEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.manage' | translate }}"
-                                       ng-click="vm.manageAssignedEdgeGroupsEvent($event, schedulerEvent)">
+                                       ng-click="vm.manageAssignedSchedulerEdgeGroups($event, schedulerEvent)">
                                 <md-icon aria-label="{{ 'scheduler.manage-assigned-edge-groups' | translate }}" class="material-icons">wifi_tethering</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.manage-assigned-edge-groups' | translate }}

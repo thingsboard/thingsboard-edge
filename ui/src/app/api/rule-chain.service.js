@@ -32,7 +32,7 @@ export default angular.module('thingsboard.api.ruleChain', [])
     .factory('ruleChainService', RuleChainService).name;
 
 /*@ngInject*/
-function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, componentDescriptorService) {
+function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, componentDescriptorService, utils) {
 
     var ruleNodeComponents = {};
 
@@ -80,7 +80,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
             url += '&type=' + type;
         }
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(prepareRuleChains(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroups(response.data, 'RuleChain'));
         }, function fail() {
             deferred.reject();
         });
@@ -91,7 +91,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain/' + ruleChainId;
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -102,7 +102,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain';
         $http.post(url, cleanRuleChain(ruleChain)).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -289,7 +289,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         getRuleChain(ruleChainId, {ignoreErrors: true}).then(
             (ruleChain) => {
-                deferred.resolve(prepareRuleChain(ruleChain));
+                deferred.resolve(utils.prepareAssignedEdgeGroup(ruleChain));
             },
             () => {
                 deferred.resolve({
@@ -330,7 +330,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -341,7 +341,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups/add';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -352,7 +352,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups/remove';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -370,7 +370,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
             url += '&offset=' + pageLink.idOffset;
         }
         $http.get(url, config).then(function success(response) {
-            response.data = prepareRuleChains(response.data);
+            response.data = utils.prepareAssignedEdgeGroups(response.data, 'RuleChain');
             if (pageLink.textSearch) {
                 response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
             }
@@ -389,7 +389,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
             url += '&offset=' + pageLink.idOffset;
         }
         $http.get(url, config).then(function success(response) {
-            response.data = prepareRuleChains(response.data);
+            response.data = utils.prepareAssignedEdgeGroups(response.data, 'RuleChain');
             if (pageLink.textSearch) {
                 response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
             }
@@ -404,7 +404,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/ruleChain/' + ruleChainId;
         $http.post(url, null).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -415,7 +415,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/ruleChain/' + ruleChainId;
         $http.delete(url).then(function success(response) {
-            deferred.resolve(prepareRuleChain(response.data));
+            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
         }, function fail() {
             deferred.reject();
         });
@@ -433,31 +433,31 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return deferred.promise;
     }
 
-    function prepareRuleChains(ruleChainsData) {
-        if (ruleChainsData.data) {
-            for (var i = 0; i < ruleChainsData.data.length; i++) {
-                ruleChainsData.data[i] = prepareRuleChain(ruleChainsData.data[i]);
-            }
-        }
-        return ruleChainsData;
-    }
+    // function prepareRuleChains(ruleChainsData) {
+    //     if (ruleChainsData.data) {
+    //         for (var i = 0; i < ruleChainsData.data.length; i++) {
+    //             ruleChainsData.data[i] = utils.prepareAssignedEdgeGroup(ruleChainsData.data[i]);
+    //         }
+    //     }
+    //     return ruleChainsData;
+    // }
 
-    function prepareRuleChain(ruleChain) {
-        ruleChain.assignedEdgeGroupsText = "";
-        ruleChain.assignedEdgeGroupIds = [];
-
-        if (ruleChain.assignedEdgeGroups && ruleChain.assignedEdgeGroups.length) {
-            var assignedEdgeGroupsTitles = [];
-            for (var j = 0; j < ruleChain.assignedEdgeGroups.length; j++) {
-                var assignedEdgeGroup = ruleChain.assignedEdgeGroups[j];
-                ruleChain.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
-                assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
-            }
-            ruleChain.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
-        }
-
-        return ruleChain;
-    }
+    // function prepareRuleChain(ruleChain) {
+    //     ruleChain.assignedEdgeGroupsText = "";
+    //     ruleChain.assignedEdgeGroupIds = [];
+    //
+    //     if (ruleChain.assignedEdgeGroups && ruleChain.assignedEdgeGroups.length) {
+    //         var assignedEdgeGroupsTitles = [];
+    //         for (var j = 0; j < ruleChain.assignedEdgeGroups.length; j++) {
+    //             var assignedEdgeGroup = ruleChain.assignedEdgeGroups[j];
+    //             ruleChain.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
+    //             assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
+    //         }
+    //         ruleChain.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
+    //     }
+    //
+    //     return ruleChain;
+    // }
 
     function cleanRuleChain(ruleChain) {
         delete ruleChain.assignedEdgeGroupsText;

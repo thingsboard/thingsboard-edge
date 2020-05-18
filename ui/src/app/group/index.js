@@ -42,7 +42,7 @@ import EntityGroupColumns from './entity-group-columns.directive';
 import EntityDetailsSidenav from './entity-details-sidenav.directive';
 import Entity from './entity.directive';
 import OwnerAutocompleteDirective from './owner-autocomplete.directive';
-import ManageAssignedEdgeGroupsToEntityGroupController from "./manage-assigned-edge-groups.controller";
+import ManageAssignedEdgeGroupsController from "../dialog/manage-assigned-edge-groups.controller";
 
 
 export default angular.module('thingsboard.entityGroup', [])
@@ -50,7 +50,7 @@ export default angular.module('thingsboard.entityGroup', [])
     .controller('EntityGroupsController', EntityGroupsController)
     .controller('EntityGroupCardController', EntityGroupCardController)
     .controller('EntityGroupController', EntityGroupController)
-    .controller('ManageAssignedEdgeGroupsToEntityGroupController', ManageAssignedEdgeGroupsToEntityGroupController)
+    .controller('ManageAssignedEdgeGroupsController', ManageAssignedEdgeGroupsController)
     .directive('tbEntityGroup', EntityGroupDirective)
     .directive('tbEntityGroupDetails', EntityGroupDetails)
     .directive('tbEntityGroupSettings', EntityGroupSettings)

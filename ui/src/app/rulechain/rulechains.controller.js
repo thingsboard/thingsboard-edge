@@ -32,7 +32,7 @@
 
 import addRuleChainTemplate from './add-rulechain.tpl.html';
 import ruleChainCard from './rulechain-card.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
+import manageAssignedEdgeGroupsTemplate from "../dialog/manage-assigned-edge-groups.tpl.html";
 import addRuleChainsToEdgeTemplate from "./add-rulechains-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -526,7 +526,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
     }
 
     function manageAssignedEdgeGroups($event, ruleChain) {
-        showManageAssignedEdgeGroupsDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgeGroupIds);
+        showManageAssignedEdgeGroupsDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgeGroupIds, 'RuleChain');
     }
 
     function assignRuleChainsToEdges($event, items) {
@@ -564,15 +564,21 @@ export default function RuleChainsController(ruleChainService, userService, edge
         });
     }
 
-    function showManageAssignedEdgeGroupsDialog($event, ruleChainIds, actionType, assignedEdgeGroupIds) {
+    function showManageAssignedEdgeGroupsDialog($event, ruleChainIds, actionType, assignedEdgeGroupIds, targetGroupType) {
         if ($event) {
             $event.stopPropagation();
         }
         $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsToRuleChainController',
+            controller: 'ManageAssignedEdgeGroupsController',
             controllerAs: 'vm',
             templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {actionType: actionType, ruleChainIds: ruleChainIds, assignedEdgeGroupIds: assignedEdgeGroupIds},
+            locals: {
+                actionType: actionType,
+                entityService: ruleChainService,
+                entityIds: ruleChainIds,
+                assignedEdgeGroupIds: assignedEdgeGroupIds,
+                targetGroupType: targetGroupType
+            },
             parent: angular.element($document[0].body),
             fullscreen: true,
             targetEvent: $event

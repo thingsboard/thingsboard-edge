@@ -32,7 +32,7 @@
 
 import addEntityGroupTemplate from './add-entity-group.tpl.html';
 import entityGroupCard from './entity-group-card.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "./manage-assigned-edge-groups.tpl.html";
+import manageAssignedEdgeGroupsTemplate from "../dialog/manage-assigned-edge-groups.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -355,18 +355,24 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
     }
 
     function manageAssignedEdgeGroups($event, entityGroup) {
-        showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds);
+        showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds, 'EntityGroup');
     }
 
-    function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds) {
+    function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds, targetGroupType) {
         if ($event) {
             $event.stopPropagation();
         }
         $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsToEntityGroupController',
+            controller: 'ManageAssignedEdgeGroupsController',
             controllerAs: 'vm',
             templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {actionType: actionType, entityGroupIds: entityGroupId, assignedEdgeGroupIds: assignedEdgeGroupIds},
+            locals: {
+                actionType: actionType,
+                entityService: entityGroupService,
+                entityIds: entityGroupId,
+                assignedEdgeGroupIds: assignedEdgeGroupIds,
+                targetGroupType: targetGroupType
+            },
             parent: angular.element($document[0].body),
             fullscreen: true,
             targetEvent: $event

@@ -35,11 +35,11 @@ import './scheduler-events.scss';
 import schedulerEventsTemplate from './scheduler-events.tpl.html';
 import schedulerEventTemplate from './scheduler-event-dialog.tpl.html';
 import schedulerEventsTitleTemplate from './scheduler-events-title.tpl.html';
+import manageAssignedEdgeGroupsTemplate from "../dialog/manage-assigned-edge-groups.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
 import SchedulerEventController from './scheduler-event-dialog.controller';
-import manageAssignedEdgesTemplate from "./manage-assigned-edges.tpl.html";
 
 /*@ngInject*/
 export default function SchedulerEvents() {
@@ -65,7 +65,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.write);
     vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.create);
     vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.delete);
-    vm.manageAssignedEdgeGroupsEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.manageAssignedEdgeGroups)
+    vm.manageAssignedEdgeGroupsEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.manageAssignedEdgeGroups);
 
     vm.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
         userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read);
@@ -131,7 +131,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.deleteSchedulerEvents = deleteSchedulerEvents;
     vm.reloadSchedulerEvents = reloadSchedulerEvents;
     vm.updateSchedulerEvents = updateSchedulerEvents;
-    vm.manageAssignedEdgeGroupsEvent = manageAssignedEdgeGroupsEvent;
+    vm.manageAssignedSchedulerEdgeGroups = manageAssignedEdgeGroups;
 
     $scope.$watch("vm.query.search", function(newVal, prevVal) {
         if (!angular.equals(newVal, prevVal) && vm.query.search != null) {
@@ -723,7 +723,8 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         vm.allSchedulerEvents.length = 0;
         vm.schedulerEvents.length = 0;
         vm.schedulerEventsPromise;
-        vm.schedulerEventsPromise = schedulerEventService.getSchedulerEvents(vm.defaultEventType, vm.displayCustomer);
+        vm.schedulerEventsPromise = schedulerEventService.getSchedulerEvents();
+        // vm.schedulerEventsPromise = schedulerEventService.getSchedulerEvents(vm.defaultEventType, vm.displayCustomer);
         vm.schedulerEventsPromise.then(
             function success(allSchedulerEvents) {
                 allSchedulerEvents.forEach(
@@ -761,24 +762,30 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         calendarElem().fullCalendar('refetchEvents');
     }
 
-    function manageAssignedEdgeGroupsEvent($event, schedulerEvent) {
-        showManageAssignedEdgeGroupsDialog($event, [schedulerEvent.id.id], 'manage', schedulerEvent.assignedEdgeGroups);
+    function manageAssignedEdgeGroups($event, schedulerEvent) {
+        showManageAssignedEdgeGroupsDialog($event, [schedulerEvent.id.id], 'manage', schedulerEvent.assignedEdgeGroupIds, 'Scheduler');
     }
 
-    function showManageAssignedEdgeGroupsDialog($event, schedulerEventIds, actionType, assignedEdgeGroups) {
+    function showManageAssignedEdgeGroupsDialog($event, schedulerEventIds, actionType, assignedEdgeGroupIds, targetGroupType) {
         if ($event) {
             $event.stopPropagation();
         }
         $mdDialog.show({
-            controller: 'ManageSchedulerEdgeGroupsController',
+            controller: 'ManageAssignedEdgeGroupsController',
             controllerAs: 'vm',
-            templateUrl: manageAssignedEdgesTemplate,
-            locals: {actionType: actionType, schedulerEventIds: schedulerEventIds, assignedEdgeGroups: assignedEdgeGroups},
+            templateUrl: manageAssignedEdgeGroupsTemplate,
+            locals: {
+                actionType: actionType,
+                entityService: schedulerEventService,
+                entityIds: schedulerEventIds,
+                assignedEdgeGroupIds: assignedEdgeGroupIds,
+                targetGroupType: targetGroupType
+            },
             parent: angular.element($document[0].body),
             fullscreen: true,
             targetEvent: $event
         }).then(function () {
-            vm.grid.refreshList();
+            reloadSchedulerEvents();
         }, function () {
         });
     }

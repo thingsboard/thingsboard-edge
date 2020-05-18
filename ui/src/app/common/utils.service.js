@@ -172,7 +172,9 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults,
         loadImageAspect: loadImageAspect,
-        translateText: translateText
+        translateText: translateText,
+        prepareAssignedEdgeGroups: prepareAssignedEdgeGroups,
+        prepareAssignedEdgeGroup: prepareAssignedEdgeGroup
     }
 
     return service;
@@ -814,6 +816,36 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         } else {
             return text;
         }
+    }
+    
+    function prepareAssignedEdgeGroups(targetEntityData, targetEntityType) {
+        if (targetEntityData.data && targetEntityType === 'RuleChain') {
+            for (let i = 0; i < targetEntityData.data.length; i++) {
+                targetEntityData[i] = prepareAssignedEdgeGroup(targetEntityData.data[i]);
+            }
+        }
+        else if (targetEntityData && targetEntityType === ('EntityGroup' || 'Scheduler')) {
+            for (let i = 0; i < targetEntityData.length; i++) {
+                targetEntityData[i] = prepareAssignedEdgeGroup(targetEntityData[i]);
+            }
+        }
+        return targetEntityData;
+    }
+
+    function prepareAssignedEdgeGroup(targetEntityData) {
+        targetEntityData.assignedEdgeGroupsText = "";
+        targetEntityData.assignedEdgeGroupIds = [];
+
+        if (targetEntityData.assignedEdgeGroups && targetEntityData.assignedEdgeGroups.length) {
+            var assignedEdgeGroupsTitles = [];
+            for (let j = 0; j < targetEntityData.assignedEdgeGroups.length; j++) {
+                let assignedEdgeGroup = targetEntityData.assignedEdgeGroups[j];
+                targetEntityData.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
+                assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
+            }
+            targetEntityData.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
+        }
+        return targetEntityData;
     }
 
 }

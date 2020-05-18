@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q) {
+function SchedulerEventService($http, $q, utils) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,
@@ -42,17 +42,96 @@ function SchedulerEventService($http, $q) {
         getSchedulerEventInfo: getSchedulerEventInfo,
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent,
-        manageSchedulerEventAssignedEdges: manageSchedulerEventAssignedEdges
+        updateSchedulerEdgeGroups: updateSchedulerEdgeGroups
     };
+
+    var resolvedData = [
+            {
+                "id": {
+                    "entityType": "SCHEDULER_EVENT",
+                    "id": "23fd8300-9368-11ea-9f7a-5d9b82eb7ee0"
+                },
+                "createdTime": 1589188607792,
+                "additionalInfo": null,
+                "assignedEdgeGroups": null,
+                "tenantId": {
+                    "entityType": "TENANT",
+                    "id": "ab263280-928e-11ea-bf40-57130a664206"
+                },
+                "customerId": {
+                    "entityType": "CUSTOMER",
+                    "id": "13814000-1dd2-11b2-8080-808080808080"
+                },
+                "name": "SCHEDULER 1",
+                "type": "generateReport",
+                "schedule": {
+                    "timezone": "Europe/Kiev",
+                    "startTime": 1589144400000
+                },
+                "ownerId": {
+                    "entityType": "TENANT",
+                    "id": "ad0c2200-952a-11ea-a4d0-b55ea5c970d7"
+                }
+            },
+            {
+                "id": {
+                    "entityType": "SCHEDULER_EVENT",
+                    "id": "002e2c10-9389-11ea-9f7a-5d9b82eb7ee0"
+                },
+                "createdTime": 1589202721105,
+                "additionalInfo": null,
+                "assignedEdgeGroups": null,
+                "tenantId": {
+                    "entityType": "TENANT",
+                    "id": "ab263280-928e-11ea-bf40-57130a664206"
+                },
+                "customerId": {
+                    "entityType": "CUSTOMER",
+                    "id": "13814000-1dd2-11b2-8080-808080808080"
+                },
+                "name": "SCHEDULER 2",
+                "type": "updateAttributes",
+                "schedule": {
+                    "timezone": "Europe/Kiev",
+                    "repeat": {
+                        "type": "WEEKLY",
+                        "endsOn": 1589576400000,
+                        "repeatOn": [
+                            1,
+                            2,
+                            4
+                        ]
+                    },
+                    "startTime": 1589144400000
+                },
+                "ownerId": {
+                    "entityType": "TENANT",
+                    "id": "ad0c2200-952a-11ea-a4d0-b55ea5c970d7"
+                }
+            }
+        ]
 
     return service;
 
     function getSchedulerEvents() {
         var deferred = $q.defer();
-        var url = 'scheduler/test.json';
-        $http.get(url).success(function(response) {
-                deferred.resolve(response.data);
-        }).error(function () {
+        $http.get('getSchedulerEvents').then(function success() {
+            deferred.resolve(utils.prepareAssignedEdgeGroups(angular.copy(resolvedData), 'Scheduler'));
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function updateSchedulerEdgeGroups() {
+        var deferred = $q.defer();
+
+        resolvedData[0].assignedEdgeGroups = [];
+        resolvedData[0].assignedEdgeGroups.push([{entityGroupId: {entityType: "ENTITY_GROUP", id: "SOME_ID"}, name: "All"}]);
+
+        $http.get('updateSchedulerEdgeGroups').then(function success() {
+            deferred.resolve(utils.prepareAssignedEdgeGroup(resolvedData));
+        }, function fail() {
             deferred.reject();
         });
         return deferred.promise;
@@ -152,26 +231,4 @@ function SchedulerEventService($http, $q) {
         });
         return deferred.promise;
     }
-
-    function manageSchedulerEventAssignedEdges() { // eslint-disable-line no-console
-        var deferred = $q.defer();
-        return deferred.promise;
-    }
-
-    // function prepareSchedulerEvent(schedulerEvent) {
-    //     schedulerEvent.assignedEdgesText = "";
-    //     schedulerEvent.assignedEdgesIds = [];
-    //
-    //     if (ruleChain.assignedEdges && ruleChain.assignedEdges.length) {
-    //         var assignedEdgesTitles = [];
-    //         for (var j = 0; j < ruleChain.assignedEdges.length; j++) {
-    //             var assignedEdge = ruleChain.assignedEdges[j];
-    //             ruleChain.assignedEdgesIds.push(assignedEdge.edgeId.id);
-    //             assignedEdgesTitles.push(assignedEdge.title);
-    //         }
-    //         ruleChain.assignedEdgesText = assignedEdgesTitles.join(', ');
-    //     }
-    //
-    //     return ruleChain;
-    // }
 }
