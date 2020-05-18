@@ -33,33 +33,33 @@ package org.thingsboard.server.common.data;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 
 @AllArgsConstructor
-public class ShortEntityGroupInfo {
+public class ShortEdgeInfo {
 
-    @Getter
-    @Setter
-    private EntityGroupId entityGroupId;
+    @Getter @Setter
+    private EdgeId edgeId;
 
-    @Getter
-    @Setter
-    private String name;
+    @Getter @Setter
+    private String title;
+
+    @Getter @Setter
+    private RuleChainId rootRuleChainId;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ShortEntityGroupInfo that = (ShortEntityGroupInfo) o;
+        ShortEdgeInfo that = (ShortEdgeInfo) o;
 
-        return entityGroupId.equals(that.entityGroupId);
+        return edgeId.equals(that.edgeId);
     }
-
 
     @Override
     public int hashCode() {
-        return entityGroupId.hashCode();
+        return edgeId.hashCode();
     }
 }

@@ -33,6 +33,7 @@
 import addEntityGroupTemplate from './add-entity-group.tpl.html';
 import entityGroupCard from './entity-group-card.tpl.html';
 import manageAssignedEdgeGroupsTemplate from "../dialog/manage-assigned-edge-groups.tpl.html";
+import addEntityGroupsToEdgeTemplate from "./add-entity-groups-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -58,7 +59,8 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
     var vm = this;
 
     vm.customerId = $stateParams.customerId;
-    if (vm.customerId && $stateParams.childGroupType) {
+    vm.edgeId = $stateParams.edgeId;
+    if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
         vm.groupType = $stateParams.childGroupType;
     } else {
         vm.groupType = $stateParams.groupType;
@@ -97,20 +99,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                        && item.additionalInfo && item.additionalInfo.isPublic
                        && userPermissionsService.isDirectlyOwnedGroup(item)
                        && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
-            }
-        },
-        {
-            onAction: function ($event, item) {
-                manageAssignedEdgeGroups($event, item);
-            },
-            name: function() { return $translate.instant('action.share') },
-            details: function() { return $translate.instant('entity-group.manage-assigned-edge-groups') },
-            icon: "wifi_tethering",
-            isEnabled: function(item) {
-                return types.edgeGroupTypes.includes(vm.groupType)
-                    && item
-                    && userPermissionsService.isDirectlyOwnedGroup(item)
-                    && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
             }
         },
         {
@@ -189,7 +177,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     vm.makePublic = makePublic;
     vm.makePrivate = makePrivate;
-    vm.manageAssignedEdgeGroups = manageAssignedEdgeGroups;
 
     if (angular.isDefined($stateParams.items) && $stateParams.items !== null) {
         vm.deviceGridConfig.items = $stateParams.items;
@@ -205,6 +192,78 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         };
     }
 
+    initController();
+
+    function initController() {
+        // if (edgeId) {
+        //     vm.edgeRuleChainsTitle = $translate.instant('edge.rulechains');
+        //     edgeService.getEdge(edgeId).then(
+        //         function success(edge) {
+        //             vm.edge = edge;
+        //         }
+        //     );
+        // }
+
+        if (vm.edgeId) {
+            var fetchEntityGroupsFunction = null;
+            var deleteEntityGroupFunction = null;
+            fetchEntityGroupsFunction = function (pageLink) {
+                var deferred = $q.defer();
+                entityGroupService.getEdgeEntityGroups(vm.edgeId, vm.groupType).then(
+                    function success(entityGroups) {
+                        utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                return deferred.promise;
+            };
+
+            deleteEntityGroupFunction = function (entityGroupId) {
+                return entityGroupService.unassignEntityGroupFromEdge(vm.edgeId, entityGroupId, vm.groupType);
+            };
+
+            entityGroupActionsList = [];
+            entityGroupActionsList.push(
+                {
+                    onAction: function ($event, item) {
+                        unassignFromEdge($event, item, vm.edgeId);
+                    },
+                    name: function() { return $translate.instant('action.unassign') },
+                    details: function() { return $translate.instant('entity-group.unassign-from-edge') },
+                    icon: "assignment_return",
+                }
+            );
+
+            // ruleChainGroupActionsList.push(
+            //     {
+            //         onAction: function ($event, items) {
+            //             unassignRuleChainsFromEdge($event, items, edgeId);
+            //         },
+            //         name: function() { return $translate.instant('rulechain.unassign-rulechains') },
+            //         details: function(selectedCount) {
+            //             return $translate.instant('rulechain.unassign-rulechains-from-edge-action-title', {count: selectedCount}, "messageformat");
+            //         },
+            //         icon: "assignment_return"
+            //     }
+            // );
+
+            vm.entityGroupGridConfig.addItemAction = {
+                onAction: function ($event) {
+                    addEntityGroupsToEdge($event);
+                },
+                name: function() { return $translate.instant('entity-group.assign-entity-groups') },
+                details: function() { return $translate.instant('entity-group.assign-new-entity-group') },
+                icon: "add"
+            }
+            vm.entityGroupGridConfig.addItemActions = [];
+            vm.entityGroupGridConfig.fetchItemsFunc = fetchEntityGroupsFunction;
+            vm.entityGroupGridConfig.deleteItemFunc = deleteEntityGroupFunction;
+            vm.entityGroupGridConfig.actionsList = entityGroupActionsList;
+        }
+    }
+
     function deleteEntityGroupTitle(entityGroup) {
         return $translate.instant('entity-group.delete-entity-group-title', {entityGroupName: entityGroup.name});
     }
@@ -214,15 +273,27 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
     }
 
     function deleteEntityGroupsTitle(selectedCount) {
-        return $translate.instant('entity-group.delete-entity-groups-title', {count: selectedCount}, 'messageformat');
+        if (vm.edgeId) {
+            return $translate.instant('entity-group.unassign-entity-groups-title', {count: selectedCount}, 'messageformat');
+        } else {
+            return $translate.instant('entity-group.delete-entity-groups-title', {count: selectedCount}, 'messageformat');
+        }
     }
 
     function deleteEntityGroupsActionTitle(selectedCount) {
-        return $translate.instant('entity-group.delete-entity-groups-action-title', {count: selectedCount}, 'messageformat');
+        if (vm.edgeId) {
+            return $translate.instant('entity-group.unassign-entity-groups-action-title', {count: selectedCount}, 'messageformat');
+        } else {
+            return $translate.instant('entity-group.delete-entity-groups-action-title', {count: selectedCount}, 'messageformat');
+        }
     }
 
     function deleteEntityGroupsText () {
-        return $translate.instant('entity-group.delete-entity-groups-text');
+        if (vm.edgeId) {
+            return $translate.instant('entity-group.unassign-entity-groups-text');
+        } else {
+            return $translate.instant('entity-group.delete-entity-groups-text');
+        }
     }
 
     function gridInited(grid) {
@@ -308,7 +379,9 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
         } else {
             var targetStatePrefix = 'home.';
-            if (vm.customerId) {
+            if (vm.edgeId) {
+                targetStatePrefix = 'home.edgeGroups.edgeGroup.';
+            } else if (vm.customerId) {
                 targetStatePrefix = 'home.customerGroups.customerGroup.';
             }
             var targetState;
@@ -329,7 +402,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             }
             if (targetState) {
                 targetState = targetStatePrefix + targetState;
-                if (vm.customerId) {
+                if (vm.edgeId || vm.customerId) {
                     $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
                 } else {
                     $state.go(targetState, {entityGroupId: entityGroup.id.id});
@@ -384,7 +457,8 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     function reload() {
         vm.customerId = $stateParams.customerId;
-        if (vm.customerId && $stateParams.childGroupType) {
+        vm.edgeId = $stateParams.edgeId;
+        if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
             vm.groupType = $stateParams.childGroupType;
         } else {
             vm.groupType = $stateParams.groupType;
@@ -401,5 +475,62 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         if ($stateParams.hierarchyCallbacks.viewLoaded) {
             $stateParams.hierarchyCallbacks.viewLoaded();
         }
+    }
+
+    function addEntityGroupsToEdge($event) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var pageSize = 10;
+        fetchEntityGroups({limit: pageSize, textSearch: ''}).then(
+            function success(_entityGroups) {
+                var entityGroups = {
+                    pageSize: pageSize,
+                    data: _entityGroups.data,
+                    nextPageLink: _entityGroups.nextPageLink,
+                    selections: {},
+                    selectedCount: 0,
+                    hasNext: _entityGroups.hasNext,
+                    pending: false
+                };
+                if (entityGroups.hasNext) {
+                    entityGroups.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'AddEntityGroupsToEdgeController',
+                    controllerAs: 'vm',
+                    templateUrl: addEntityGroupsToEdgeTemplate,
+                    locals: {edgeId: vm.edgeId, entityGroups: entityGroups, groupType: vm.groupType},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    vm.grid.refreshList();
+                }, function () {
+                });
+            },
+            function fail() {
+            });
+    }
+
+    function unassignFromEdge($event, entityGroup, edgeId) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var title = $translate.instant('entity-group.unassign-entity-group-from-edge-title', {entityGroupTitle: entityGroup.name});
+        var content = $translate.instant('entity-group.unassign-entity-group-from-edge-text');
+        var label = $translate.instant('entity-group.unassign-entity-group-from-edge');
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title(title)
+            .htmlContent(content)
+            .ariaLabel(label)
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+            entityGroupService.unassignEntityGroupFromEdge(edgeId, entityGroup.id.id, vm.groupType).then(function success() {
+                vm.grid.refreshList();
+            });
+        });
     }
 }

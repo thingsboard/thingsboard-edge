@@ -108,8 +108,22 @@
           on-make-public="vm.entityGroupConfig.onMakePublic(event, vm.entity)"
           on-assign-to-customer="vm.entityGroupConfig.onAssignToCustomer(event, vm.entity)"
           on-unassign-from-customer="vm.entityGroupConfig.onUnassignFromCustomer(event, vm.entity, isPublic)"
+          on-manage-users="vm.entityGroupConfig.onManageUsers(event, vm.entity)"
+          on-manage-assets="vm.entityGroupConfig.onManageAssets(event, vm.entity)"
+          on-manage-devices="vm.entityGroupConfig.onManageDevices(event, vm.entity)"
+          on-manage-entity-views="vm.entityGroupConfig.onManageEntityViews(event, vm.entity)"
+          on-manage-dashboards="vm.entityGroupConfig.onManageDashboards(event, vm.entity)"
+          on-manage-rule-chains="vm.entityGroupConfig.onManageRuleChains(event, vm.entity)"
+          on-manage-scheduler-events="vm.entityGroupConfig.onManageSchedulerEvents(event, vm.entity)"
           hide-assignment-actions="!vm.entityGroupConfig.assignmentEnabled(vm.entity)"
-          hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)">
+          hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)"
+          hide-manage-users="!vm.entityGroupConfig.manageUsersEnabled(vm.entity)"
+          hide-manage-assets="!vm.entityGroupConfig.manageAssetsEnabled(vm.entity)"
+          hide-manage-devices="!vm.entityGroupConfig.manageDevicesEnabled(vm.entity)"
+          hide-manage-entity-views="!vm.entityGroupConfig.manageEntityViewsEnabled(vm.entity)"
+          hide-manage-dashboards="!vm.entityGroupConfig.manageDashboardsEnabled(vm.entity)"
+          hide-manage-rule-chains="!vm.entityGroupConfig.manageRuleChainsEnabled(vm.entity)"
+          hide-manage-scheduler-events="!vm.entityGroupConfig.manageSchedulerEventsEnabled(vm.entity)">
 </tb-edge>
 <tb-dashboard-details  ng-if="vm.entityType == vm.types.entityType.dashboard"
                  entity-group="vm.entityGroup"

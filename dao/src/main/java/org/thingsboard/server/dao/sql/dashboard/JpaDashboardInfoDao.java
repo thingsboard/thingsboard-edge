@@ -113,7 +113,7 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
     }
 
 //    @Override
-//    public ListenableFuture<List<DashboardInfo>> findDashboardsByTenantIdAndEdgeGroupId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
+//    public ListenableFuture<List<DashboardInfo>> findDashboardsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
 //        log.debug("Try to find dashboards by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
 //
 //        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_GROUP, EntityType.DASHBOARD, pageLink);

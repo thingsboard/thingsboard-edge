@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
@@ -237,33 +238,38 @@ public final class EdgeGrpcSession implements Closeable {
     private void pushEntityAttributesToEdge(EdgeQueueEntry entry) throws IOException {
         EntityId entityId = null;
         String entityName = null;
-        switch (entry.getEntityType()) {
-            case EDGE:
-                Edge edge = objectMapper.readValue(entry.getData(), Edge.class);
-                entityId = edge.getId();
-                entityName = edge.getName();
-                break;
-            case DEVICE:
-                Device device = objectMapper.readValue(entry.getData(), Device.class);
-                entityId = device.getId();
-                entityName = device.getName();
-                break;
-            case ASSET:
-                Asset asset = objectMapper.readValue(entry.getData(), Asset.class);
-                entityId = asset.getId();
-                entityName = asset.getName();
-                break;
-            case ENTITY_VIEW:
-                EntityView entityView = objectMapper.readValue(entry.getData(), EntityView.class);
-                entityId = entityView.getId();
-                entityName = entityView.getName();
-                break;
-            case DASHBOARD:
-                Dashboard dashboard = objectMapper.readValue(entry.getData(), Dashboard.class);
-                entityId = dashboard.getId();
-                entityName = dashboard.getName();
-                break;
+        JsonNode wrapper = objectMapper.readTree(entry.getData());
+        if (wrapper != null && wrapper.get("data") != null) {
+            String data = wrapper.get("data").asText();
+            switch (entry.getEntityType()) {
+                case EDGE:
+                    Edge edge = objectMapper.readValue(data, Edge.class);
+                    entityId = edge.getId();
+                    entityName = edge.getName();
+                    break;
+                case DEVICE:
+                    Device device = objectMapper.readValue(data, Device.class);
+                    entityId = device.getId();
+                    entityName = device.getName();
+                    break;
+                case ASSET:
+                    Asset asset = objectMapper.readValue(data, Asset.class);
+                    entityId = asset.getId();
+                    entityName = asset.getName();
+                    break;
+                case ENTITY_VIEW:
+                    EntityView entityView = objectMapper.readValue(data, EntityView.class);
+                    entityId = entityView.getId();
+                    entityName = entityView.getName();
+                    break;
+                case DASHBOARD:
+                    Dashboard dashboard = objectMapper.readValue(data, Dashboard.class);
+                    entityId = dashboard.getId();
+                    entityName = dashboard.getName();
+                    break;
+            }
         }
+
         if (entityId != null) {
             final EntityId finalEntityId = entityId;
             final String finalEntityName = entityName;
@@ -331,40 +337,46 @@ public final class EdgeGrpcSession implements Closeable {
 
     private void processEntityCRUDMessage(EdgeQueueEntry entry, UpdateMsgType msgType) throws java.io.IOException {
         log.trace("Executing processEntityCRUDMessage, entry [{}], msgType [{}]", entry, msgType);
-        switch (entry.getEntityType()) {
-            case EDGE:
-                Edge edge = objectMapper.readValue(entry.getData(), Edge.class);
-                onEdgeUpdated(msgType, edge);
-                break;
-            case DEVICE:
-                Device device = objectMapper.readValue(entry.getData(), Device.class);
-                onDeviceUpdated(msgType, device);
-                break;
-            case ASSET:
-                Asset asset = objectMapper.readValue(entry.getData(), Asset.class);
-                onAssetUpdated(msgType, asset);
-                break;
-            case ENTITY_VIEW:
-                EntityView entityView = objectMapper.readValue(entry.getData(), EntityView.class);
-                onEntityViewUpdated(msgType, entityView);
-                break;
-            case DASHBOARD:
-                Dashboard dashboard = objectMapper.readValue(entry.getData(), Dashboard.class);
-                onDashboardUpdated(msgType, dashboard);
-                break;
-            case RULE_CHAIN:
-                RuleChain ruleChain = objectMapper.readValue(entry.getData(), RuleChain.class);
-                onRuleChainUpdated(msgType, ruleChain);
-                break;
-            case RULE_CHAIN_METADATA:
-                RuleChainMetaData ruleChainMetaData = objectMapper.readValue(entry.getData(), RuleChainMetaData.class);
-                onRuleChainMetadataUpdated(msgType, ruleChainMetaData);
-                break;
-            case ALARM:
-                Alarm alarm = objectMapper.readValue(entry.getData(), Alarm.class);
-                onAlarmUpdated(msgType, alarm);
-                break;
+        JsonNode wrapper = objectMapper.readTree(entry.getData());
+        if (wrapper != null) {
+            String groupName = wrapper.get("groupName") != null ? wrapper.get("groupName").asText() : null;
+            String data = wrapper.get("data").asText();
+            switch (entry.getEntityType()) {
+                case EDGE:
+                    Edge edge = objectMapper.readValue(data, Edge.class);
+                    onEdgeUpdated(msgType, edge);
+                    break;
+                case DEVICE:
+                    Device device = objectMapper.readValue(data, Device.class);
+                    onDeviceUpdated(msgType, device, groupName);
+                    break;
+                case ASSET:
+                    Asset asset = objectMapper.readValue(data, Asset.class);
+                    onAssetUpdated(msgType, asset);
+                    break;
+                case ENTITY_VIEW:
+                    EntityView entityView = objectMapper.readValue(data, EntityView.class);
+                    onEntityViewUpdated(msgType, entityView);
+                    break;
+                case DASHBOARD:
+                    Dashboard dashboard = objectMapper.readValue(data, Dashboard.class);
+                    onDashboardUpdated(msgType, dashboard);
+                    break;
+                case RULE_CHAIN:
+                    RuleChain ruleChain = objectMapper.readValue(data, RuleChain.class);
+                    onRuleChainUpdated(msgType, ruleChain);
+                    break;
+                case RULE_CHAIN_METADATA:
+                    RuleChainMetaData ruleChainMetaData = objectMapper.readValue(data, RuleChainMetaData.class);
+                    onRuleChainMetadataUpdated(msgType, ruleChainMetaData);
+                    break;
+                case ALARM:
+                    Alarm alarm = objectMapper.readValue(data, Alarm.class);
+                    onAlarmUpdated(msgType, alarm);
+                    break;
+            }
         }
+
     }
 
     private void updateQueueStartTs(Long newStartTs) {
@@ -391,9 +403,9 @@ public final class EdgeGrpcSession implements Closeable {
         this.edge = edge;
     }
 
-    private void onDeviceUpdated(UpdateMsgType msgType, Device device) {
+    private void onDeviceUpdated(UpdateMsgType msgType, Device device, String groupName) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device))
+                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, groupName))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)

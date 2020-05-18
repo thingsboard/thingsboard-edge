@@ -206,7 +206,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
-    }).state('home.edges.ruleChains', {
+    }).state('home.edgeGroups.edgeGroup.ruleChains', {
         url: '/:edgeId/ruleChains',
         params: {'topIndex': 0},
         module: 'private',
@@ -226,11 +226,11 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.edgeRuleChainsTitle }}", "translate": "false"}'
         }
-    }).state('home.edges.ruleChains.ruleChain', {
+    }).state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
         url: '/:ruleChainId',
         reloadOnSearch: false,
         module: 'private',
-        auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
+        auth: ['TENANT_ADMIN'],
         views: {
             "content@home": {
                 templateUrl: ruleChainTemplate,

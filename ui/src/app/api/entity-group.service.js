@@ -59,7 +59,10 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         constructGroupConfig: constructGroupConfig,
         updateEntityGroupEdges: updateEntityGroupEdges,
         addEntityGroupEdges: addEntityGroupEdges,
-        removeEntityGroupEdges: removeEntityGroupEdges
+        removeEntityGroupEdges: removeEntityGroupEdges,
+        getEdgeEntityGroups: getEdgeEntityGroups,
+        assignEntityGroupToEdge: assignEntityGroupToEdge,
+        unassignEntityGroupFromEdge: unassignEntityGroupFromEdge
     }
 
     return service;
@@ -527,4 +530,40 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
         }
     }
 
+    function getEdgeEntityGroups(edgeId, groupType, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/entityGroups/edge/' + edgeId + '/' + groupType;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function assignEntityGroupToEdge(edgeId, entityGroupId, groupType) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId + '/entityGroup/' + entityGroupId + '/' + groupType;
+        $http.post(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function unassignEntityGroupFromEdge(edgeId, entityGroupId, groupType) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId + '/entityGroup/' + entityGroupId + '/' + groupType;
+        $http.delete(url).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 }

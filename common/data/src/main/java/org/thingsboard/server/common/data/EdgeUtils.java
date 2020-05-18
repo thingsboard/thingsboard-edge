@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EdgeId;
 
 import java.util.Set;
 
@@ -39,14 +39,14 @@ public final class EdgeUtils {
     private EdgeUtils() {
     }
 
-    public static boolean isAssignedToEdgeGroup(Set<ShortEntityGroupInfo> assignedEdgeGroups, EntityGroupId edgeEntityGroupId) {
-        return assignedEdgeGroups != null && assignedEdgeGroups.contains(new ShortEntityGroupInfo(edgeEntityGroupId, null));
+    public static boolean isAssignedToEdge(Set<ShortEdgeInfo> assignedEdges, EdgeId edgeId) {
+        return assignedEdges != null && assignedEdges.contains(new ShortEdgeInfo(edgeId, null, null));
     }
 
-    public static ShortEntityGroupInfo getAssignedEdgeGroupInfo(Set<ShortEntityGroupInfo> assignedEdgeGroups, EntityGroupId edgeEntityGroupId) {
-        if (assignedEdgeGroups != null) {
-            for (ShortEntityGroupInfo edgeInfo : assignedEdgeGroups) {
-                if (edgeInfo.getEntityGroupId().equals(edgeEntityGroupId)) {
+    public static ShortEdgeInfo getAssignedEdgeInfo(Set<ShortEdgeInfo> assignedEdges, EdgeId edgeId) {
+        if (assignedEdges != null) {
+            for (ShortEdgeInfo edgeInfo : assignedEdges) {
+                if (edgeInfo.getEdgeId().equals(edgeId)) {
                     return edgeInfo;
                 }
             }
@@ -54,12 +54,12 @@ public final class EdgeUtils {
         return null;
     }
 
-    public static boolean addAssignedEdgeGroup(Set<ShortEntityGroupInfo> assignedEdgeGroups, ShortEntityGroupInfo entityGroup) {
-        if (assignedEdgeGroups != null && assignedEdgeGroups.contains(entityGroup)) {
+    public static boolean addAssignedEdge(Set<ShortEdgeInfo> assignedEdges, ShortEdgeInfo edgeInfo) {
+        if (assignedEdges != null && assignedEdges.contains(edgeInfo)) {
             return false;
         } else {
-            if (assignedEdgeGroups != null) {
-                assignedEdgeGroups.add(entityGroup);
+            if (assignedEdges != null) {
+                assignedEdges.add(edgeInfo);
                 return true;
             } else {
                 return false;
@@ -67,19 +67,19 @@ public final class EdgeUtils {
         }
     }
 
-    public static boolean updateAssignedEdgeGroup(Set<ShortEntityGroupInfo> assignedEdgeGroups, ShortEntityGroupInfo entityGroup) {
-        if (assignedEdgeGroups != null && assignedEdgeGroups.contains(entityGroup)) {
-            assignedEdgeGroups.remove(entityGroup);
-            assignedEdgeGroups.add(entityGroup);
+    public static boolean updateAssignedEdge(Set<ShortEdgeInfo> assignedEdges, ShortEdgeInfo edgeInfo) {
+        if (assignedEdges != null && assignedEdges.contains(edgeInfo)) {
+            assignedEdges.remove(edgeInfo);
+            assignedEdges.add(edgeInfo);
             return true;
         } else {
             return false;
         }
     }
 
-    public static boolean removeAssignedEdgeGroup(Set<ShortEntityGroupInfo> assignedEdgeGroups, ShortEntityGroupInfo entityGroup) {
-        if (assignedEdgeGroups != null && assignedEdgeGroups.contains(entityGroup)) {
-            assignedEdgeGroups.remove(entityGroup);
+    public static boolean removeAssignedEdge(Set<ShortEdgeInfo> assignedEdges, ShortEdgeInfo edgeInfo) {
+        if (assignedEdges != null && assignedEdges.contains(edgeInfo)) {
+            assignedEdges.remove(edgeInfo);
             return true;
         } else {
             return false;

@@ -109,12 +109,25 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
             isEdit: '=',
             edgeScope: '=',
             theForm: '=',
-            onAssignToCustomer: '&',
+            onManageUsers: '&',
+            onManageAssets: '&',
+            onManageDevices: '&',
+            onManageEntityViews: '&',
+            onManageDashboards: '&',
+            onManageRuleChains: '&',
+            onManageSchedulerEvents: '&',
             onMakePublic: '&',
             onUnassignFromCustomer: '&',
             onDeleteEdge: '&',
             hideAssignmentActions: '=',
-            hideDelete: '='
+            hideDelete: '=',
+            hideManageUsers: '=',
+            hideManageAssets: '=',
+            hideManageDevices: '=',
+            hideManageEntityViews: '=',
+            hideManageDashboards: '=',
+            hideManageRuleChains: '=',
+            hideManageSchedulerEvents: '='
         }
     };
 }

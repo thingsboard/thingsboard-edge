@@ -121,8 +121,8 @@ public class EdgeController extends BaseController {
             }
 
             if (created) {
-//                ruleChainService.assignRuleChainToEdgeGroup(tenantId, defaultRootEdgeRuleChain.getId(), result.getId());
-//                edgeService.setRootRuleChain(tenantId, result, defaultRootEdgeRuleChain.getId());
+                ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), result.getId());
+                edgeService.setRootRuleChain(tenantId, result, defaultRootEdgeRuleChain.getId());
             }
 
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
@@ -292,29 +292,29 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edgeGroup/{edgeGroupId}/{ruleChainId}/root", method = RequestMethod.POST)
+    @RequestMapping(value = "/edge/{edgeId}/{ruleChainId}/root", method = RequestMethod.POST)
     @ResponseBody
-    public EntityGroup setRootRuleChain(@PathVariable("edgeGroupId") String strEdgeGroupId,
+    public Edge setRootRuleChain(@PathVariable("edgeId") String strEdgeId,
                                  @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
-        checkParameter("edgeGroupId", strEdgeGroupId);
+        checkParameter("edgeId", strEdgeId);
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
             checkRuleChain(ruleChainId, Operation.WRITE);
 
-            EntityGroupId edgeGroupId = new EntityGroupId(toUUID(strEdgeGroupId));
-            EntityGroup edgeGroup = checkEntityGroupId(edgeGroupId, Operation.WRITE);
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
-            EntityGroup updatedEdgeGroup = edgeService.setRootRuleChain(getTenantId(), edgeGroup, ruleChainId);
+            Edge updatedEdge = edgeService.setRootRuleChain(getTenantId(), edge, ruleChainId);
 
-            logEntityAction(updatedEdgeGroup.getId(), updatedEdgeGroup, null, ActionType.UPDATED, null);
+            logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
 
-            return updatedEdgeGroup;
+            return updatedEdge;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.EDGE),
                     null,
                     null,
-                    ActionType.UPDATED, e, strEdgeGroupId);
+                    ActionType.UPDATED, e, strEdgeId);
             throw handleException(e);
         }
     }
