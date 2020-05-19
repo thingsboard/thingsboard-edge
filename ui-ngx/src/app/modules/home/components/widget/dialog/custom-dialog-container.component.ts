@@ -33,7 +33,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
   Component,
   ComponentFactory,
-  ComponentRef,
+  ComponentRef, HostBinding,
   Inject,
   Injector,
   OnDestroy,
@@ -60,6 +60,8 @@ export interface CustomDialogContainerData {
   template: ''
 })
 export class CustomDialogContainerComponent extends DialogComponent<CustomDialogContainerComponent> implements OnDestroy {
+
+  @HostBinding('style.height') height = '0px';
 
   private readonly customComponentRef: ComponentRef<CustomDialogComponent>;
 

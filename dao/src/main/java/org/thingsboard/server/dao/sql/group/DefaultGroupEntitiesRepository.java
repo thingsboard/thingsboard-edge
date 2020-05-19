@@ -112,7 +112,8 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 }
             } else if (type.isAttribute()) {
                 alias = String.format("alias%s", aliasCounter++);
-                columnSelection = String.format("%s as %s", this.buildAttributeSelection(type.getAttributeScope(), column.column.getKey()), alias);
+                columnSelection = String.format("%s as %s", this.buildAttributeSelection(entityType,
+                        type.getAttributeScope(), column.column.getKey()), alias);
             } else {
                 alias = String.format("alias%s", aliasCounter++);
                 columnSelection = String.format("%s as %s", this.buildTimeseriesSelection(column.column.getKey()), alias);
@@ -168,7 +169,8 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 }
             } else if (type.isAttribute()) {
                 alias = String.format("alias%s", aliasCounter++);
-                columnSelection = String.format("%s as %s", this.buildAttributeSelection(type.getAttributeScope(), column.column.getKey()), alias);
+                columnSelection = String.format("%s as %s", this.buildAttributeSelection(entityId.getEntityType(),
+                        type.getAttributeScope(), column.column.getKey()), alias);
             } else {
                 alias = String.format("alias%s", aliasCounter++);
                 columnSelection = String.format("%s as %s", this.buildTimeseriesSelection(column.column.getKey()), alias);
@@ -193,7 +195,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
 
     private String buildWhere(List<ColumnMapping> mappings, EntityType entityType, UUID groupId, String searchText) {
         String groupRelationPredicate = this.buildGroupRelationQuery(entityType, groupId);
-        String searchPredicate = this.buildSearchQuery(mappings, searchText);
+        String searchPredicate = this.buildSearchQuery(mappings, entityType, searchText);
         if (searchPredicate != null) {
             return String.join(" and ", groupRelationPredicate, searchPredicate);
         } else {
@@ -229,7 +231,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 UUIDConverter.fromTimeUUID(groupId));
     }
 
-    private String buildSearchQuery(List<ColumnMapping> mappings, String searchText) {
+    private String buildSearchQuery(List<ColumnMapping> mappings, EntityType entityType, String searchText) {
         List<String> searchPredicates = new ArrayList<>();
         if (!StringUtils.isEmpty(searchText)) {
             searchText = searchText.toLowerCase() + "%";
@@ -239,7 +241,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                     if (type == ColumnType.ENTITY_FIELD) {
                         searchPredicates.add(this.buildEntitySearch(column.entityField.getColumnName(), searchText));
                     } else if (type.isAttribute()) {
-                        searchPredicates.add(this.buildAttributeSearch(type.getAttributeScope(), column.column.getKey(), searchText));
+                        searchPredicates.add(this.buildAttributeSearch(entityType, type.getAttributeScope(), column.column.getKey(), searchText));
                     } else {
                         //TODO: timeseries
                     }
@@ -257,9 +259,10 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
         return String.format("LOWER(entity0_.%s) LIKE '%s'", columnName, searchText);
     }
 
-    private String buildAttributeSearch(String attributeType, String attributeKey, String searchText) {
+    private String buildAttributeSearch(EntityType entityType, String attributeType, String attributeKey, String searchText) {
         return String.format("entity0_.id in (select attr.entity_id " +
-                "from attribute_kv as attr where attr.entity_id = entity0_.id " +
+                "from attribute_kv as attr where attr.entity_type='%s' " +
+                "and attr.entity_id = entity0_.id " +
                 "and attr.attribute_type='%s' and attr.attribute_key='%s' " +
                 "and LOWER(" +
                 "coalesce(cast(attr.bool_v as varchar), '') || " +
@@ -267,10 +270,11 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 "coalesce(cast(attr.long_v as varchar), '') || " +
                 "coalesce(cast(attr.dbl_v as varchar), '') || " +
                 "coalesce(cast(attr.json_v as varchar), ''))" +
-                " LIKE '%s')", attributeType, attributeKey, searchText);
+                " LIKE '%s')", entityType.name(), attributeType, attributeKey, searchText);
     }
 
-    private String buildAttributeSelection(String attributeType,
+    private String buildAttributeSelection(EntityType entityType,
+                                           String attributeType,
                                            String attributeKey) {
 
         return String.format("(select (" +
@@ -279,8 +283,9 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 "coalesce(cast(attr.long_v as varchar), '') || " +
                 "coalesce(cast(attr.dbl_v as varchar), '') || " +
                 "coalesce(cast(attr.json_v as varchar), '')) " +
-                "from attribute_kv as attr where attr.entity_id = entity0_.id " +
-                "and attr.attribute_type='%s' and attr.attribute_key='%s')", attributeType, attributeKey);
+                "from attribute_kv as attr where attr.entity_type='%s' " +
+                "and attr.entity_id = entity0_.id " +
+                "and attr.attribute_type='%s' and attr.attribute_key='%s')", entityType.name(), attributeType, attributeKey);
     }
 
     private String buildTimeseriesSelection(String timeseriesKey) {

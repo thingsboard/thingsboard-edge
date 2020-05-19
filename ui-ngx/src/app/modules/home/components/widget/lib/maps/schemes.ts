@@ -875,15 +875,15 @@ export const pointSchema =
           type: 'number',
           default: 10
         },
-        // usePointAsAnchor: {
-        //     title: 'Use point as anchor',
-        //     type: 'boolean',
-        //     default: false
-        // },
-        // pointAsAnchorFunction: {
-        //     title: 'Point as anchor function: f(data, dsData, dsIndex)',
-        //     type: 'string'
-        // },
+        usePointAsAnchor: {
+            title: 'Use point as anchor',
+            type: 'boolean',
+            default: false
+        },
+        pointAsAnchorFunction: {
+            title: 'Point as anchor function: f(data, dsData, dsIndex)',
+            type: 'string'
+        },
         pointTooltipOnRightPanel: {
           title: 'Independant point tooltip',
           type: 'boolean',
@@ -899,11 +899,11 @@ export const pointSchema =
         type: 'color'
       },
       'pointSize',
-      // 'usePointAsAnchor',
-      // {
-      //   key: 'pointAsAnchorFunction',
-      //   type: 'javascript'
-      // },
+      'usePointAsAnchor',
+      {
+        key: 'pointAsAnchorFunction',
+        type: 'javascript'
+      },
       'pointTooltipOnRightPanel',
     ]
   };
