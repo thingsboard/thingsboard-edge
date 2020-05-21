@@ -89,6 +89,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
+import { EntityGroupService } from '@core/http/entity-group.service';
 
 export interface IWidgetAction {
   name: string;
@@ -164,6 +165,7 @@ export class WidgetContext {
   attributeService: AttributeService;
   entityRelationService: EntityRelationService;
   entityService: EntityService;
+  entityGroupService: EntityGroupService;
   dialogs: DialogService;
   customDialog: CustomDialogService;
   date: DatePipe;

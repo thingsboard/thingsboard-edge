@@ -45,6 +45,7 @@ import { EntityViewService } from '@core/http/entity-view.service';
 import { CustomerService } from '@core/http/customer.service';
 import { DashboardService } from '@core/http/dashboard.service';
 import { UserService } from '@core/http/user.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -57,6 +58,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['attributeService', AttributeService],
    ['entityRelationService', EntityRelationService],
    ['entityService', EntityService],
+   ['entityGroupService', EntityGroupService],
    ['dialogs', DialogService],
    ['customDialog', CustomDialogService],
    ['date', DatePipe],
