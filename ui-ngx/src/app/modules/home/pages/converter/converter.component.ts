@@ -171,6 +171,8 @@ export class ConverterComponent extends EntityComponent<Converter> {
           this.showConverterTestDialog(isDecoder, debugIn);
         }
       );
+    } else {
+      this.showConverterTestDialog(isDecoder, null);
     }
   }
 
