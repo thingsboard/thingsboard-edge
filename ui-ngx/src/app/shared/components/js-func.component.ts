@@ -50,6 +50,8 @@ import { guid, isUndefined } from '@app/core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { TbEditorCompleter } from '@shared/models/ace/completion.models';
+import { widgetEditorCompleter } from '@home/pages/widget/widget-editor.models';
 
 @Component({
   selector: 'tb-js-func',
@@ -91,6 +93,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() disabled: boolean;
 
   @Input() fillHeight: boolean;
+
+  @Input() editorCompleter: TbEditorCompleter;
 
   private noValidateValue: boolean;
   get noValidate(): boolean {
@@ -168,6 +172,9 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
       this.cleanupJsErrors();
       this.updateView();
     });
+    if (this.editorCompleter) {
+      this.jsEditor.completers = [this.editorCompleter, ...(this.jsEditor.completers || [])];
+    }
     this.editorResize$ = new ResizeObserver(() => {
       this.onAceEditorResize();
     });

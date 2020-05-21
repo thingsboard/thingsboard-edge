@@ -150,6 +150,7 @@
             formControlName="customFunction"
             [functionArgs]="customFunctionArgs"
             [validationArgs]="[]"
+            [editorCompleter]="customActionEditorCompleter"
           ></tb-js-func>
         </ng-template>
         <ng-template [ngSwitchCase]="widgetActionType.customPretty">

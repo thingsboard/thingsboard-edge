@@ -80,7 +80,6 @@ export class Polyline {
     this.dataSources = dataSources;
     this.leafletPoly.setLatLngs(locations);
     this.leafletPoly.setStyle(this.getPolyStyle(settings));
-    //  this.setPolylineLatLngs(data);
     if (this.polylineDecorator)
       this.polylineDecorator.setPaths(this.leafletPoly);
   }
@@ -106,9 +105,5 @@ export class Polyline {
 
   getPolylineLatLngs() {
     return this.leafletPoly.getLatLngs();
-  }
-
-  setPolylineLatLngs(latLngs) {
-    this.leafletPoly.setLatLngs(latLngs);
   }
 }

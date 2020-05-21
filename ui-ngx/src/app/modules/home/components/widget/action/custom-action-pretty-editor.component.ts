@@ -50,6 +50,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { combineLatest } from 'rxjs';
 import { CustomActionDescriptor } from '@shared/models/widget.models';
+import { CustomPrettyActionEditorCompleter } from '@home/components/widget/action/custom-action.models';
 
 @Component({
   selector: 'tb-custom-action-pretty-editor',
@@ -77,6 +78,8 @@ export class CustomActionPrettyEditorComponent extends PageComponent implements 
 
   @ViewChildren('rightPanel')
   rightPanelElmRef: QueryList<ElementRef<HTMLElement>>;
+
+  customPrettyActionEditorCompleter = CustomPrettyActionEditorCompleter;
 
   private propagateChange = (_: any) => {};
 

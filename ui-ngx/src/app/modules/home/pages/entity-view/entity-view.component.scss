@@ -29,16 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  mat-expansion-panel {
+  .mat-accordion-container {
     margin-bottom: 16px;
-  }
-}
-
-.tb-dialog {
-  :host {
-    mat-expansion-panel {
-      margin-left: 6px;
-      margin-right: 6px;
-    }
   }
 }
