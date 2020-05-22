@@ -757,8 +757,7 @@
                             <exclude>**/src/index.html</exclude>
                             <exclude>**/public/static/rulenode/**</exclude>
                             <exclude>**/*.proto.js</exclude>
-                            <exclude>docker/haproxy/**</exclude>
-                            <exclude>docker/tb-node/**</exclude>
+                            <exclude>docker/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>

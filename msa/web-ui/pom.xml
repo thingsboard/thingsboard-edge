@@ -49,8 +49,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <pkg.name>tb-web-ui</pkg.name>
-        <pkg.type>js</pkg.type>
         <docker.name>tb-pe-web-ui</docker.name>
         <pkg.name>tb-web-ui</pkg.name>
         <pkg.type>js</pkg.type>
