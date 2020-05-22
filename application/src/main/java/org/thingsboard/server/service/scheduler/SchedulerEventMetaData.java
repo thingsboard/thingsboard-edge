@@ -51,10 +51,10 @@ class SchedulerEventMetaData {
     }
 
     long getNextEventTime(long ts) {
-        if (ts < startTime) {
-            return startTime;
-        } else if (repeat != null && repeat.getEndsOn() > ts) {
+        if (repeat != null && repeat.getEndsOn() > ts) {
             return repeat.getNext(startTime, ts, timezone);
+        } else if (ts < startTime) {
+            return startTime;
         } else {
             return 0L;
         }
