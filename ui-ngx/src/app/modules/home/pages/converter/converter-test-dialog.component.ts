@@ -51,7 +51,7 @@ import { Router } from '@angular/router';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { ContentType, contentTypesMap } from '@shared/models/constants';
 import { JsonContentComponent } from '@shared/components/json-content.component';
-import { mergeMap } from 'rxjs/operators';
+import { mergeMap, startWith } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ConverterDebugInput, TestConverterInputParams } from '@shared/models/converter.models';
 import { base64toString, isEqual, stringToBase64 } from '@core/utils';
@@ -225,10 +225,10 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       );
     }
     const inputContentTriggers: Observable<any>[] = [
-      payloadFormGroup.get('stringContent').valueChanges
+      payloadFormGroup.get('stringContent').valueChanges.pipe(startWith(''))
     ];
     if (this.isDecoder) {
-      inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges);
+      inputContentTriggers.push(payloadFormGroup.get('contentType').valueChanges.pipe(startWith('')));
     }
     this.updateInputContent();
     combineLatest(inputContentTriggers).subscribe(() => {
@@ -254,6 +254,7 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   private updateInputContent() {
     const stringContent = this.converterTestFormGroup.get('payload').get('stringContent').value;
+    console.log(stringContent);
     if (this.isDecoder) {
       const contentType = this.converterTestFormGroup.get('payload').get('contentType').value;
       if (contentType === ContentType.BINARY) {
