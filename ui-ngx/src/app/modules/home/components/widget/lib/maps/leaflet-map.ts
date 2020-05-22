@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { FeatureGroup, LatLngBounds, LatLngTuple, markerClusterGroup, MarkerClusterGroupOptions } from 'leaflet';
+import L, { FeatureGroup, LatLngBounds, LatLngTuple, markerClusterGroup, MarkerClusterGroupOptions, MarkerClusterGroup } from 'leaflet';
 
 import 'leaflet-providers';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
@@ -60,9 +60,9 @@ export default abstract class LeafletMap {
     options: UnitedMapSettings;
     bounds: L.LatLngBounds;
     datasources: FormattedData[];
-    markersCluster;
+    markersCluster: MarkerClusterGroup;
     points: FeatureGroup;
-    markersData = [];
+    markersData: FormattedData[] = [];
 
     protected constructor(public $container: HTMLElement, options: UnitedMapSettings) {
         this.options = options;
@@ -237,6 +237,7 @@ export default abstract class LeafletMap {
                     this.bounds = this.bounds.extend(this.options.defaultCenterPosition);
                 }
                 this.map.fitBounds(this.bounds, { padding: padding || [50, 50], animate: false });
+                this.map.invalidateSize();
             }
         }
     }
@@ -259,7 +260,7 @@ export default abstract class LeafletMap {
     }
 
     // Markers
-    updateMarkers(markersData, callback?) {
+    updateMarkers(markersData: FormattedData[], callback?) {
         markersData.filter(mdata => !!this.convertPosition(mdata)).forEach(data => {
             if (data.rotationAngle || data.rotationAngle === 0) {
                 const currentImage = this.options.useMarkerImageFunction ?
@@ -286,7 +287,7 @@ export default abstract class LeafletMap {
         this.markersData = markersData;
     }
 
-    dragMarker = (e, data?) => {
+    dragMarker = (e, data = {}) => {
         if (e.type !== 'dragend') return;
         this.saveMarkerLocation({ ...data, ...this.convertToCustomFormat(e.target._latlng) });
     }
