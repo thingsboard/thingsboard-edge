@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.entityGroup', [])
     .name;
 
 /*@ngInject*/
-function EntityGroupService($http, $q, $translate, $injector, customerService, types, utils) {
+function EntityGroupService($http, $q, $translate, $injector, customerService, edgeService, types, utils) {
 
     var service = {
         getOwners: getOwners,
@@ -464,7 +464,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
     function resolveParentGroupInfo($stateParams, entityGroup) {
         var deferred = $q.defer();
         if ($stateParams.customerId) {
-            var groupType = $stateParams.childGroupType || $stateParams.groupType;
+            let groupType = $stateParams.childGroupType || $stateParams.groupType;
             customerService.getShortCustomerInfo($stateParams.customerId).then(
                 (info) => {
                     entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
@@ -486,7 +486,33 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
                     deferred.reject();
                 }
             );
-        } else {
+        }
+        else if ($stateParams.edgeId) {
+            let groupType = $stateParams.childGroupType || $stateParams.groupType;
+            edgeService.getEdge($stateParams.edgeId).then(
+                (info) => {
+                    entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant(entityGroupsTitle(groupType));
+                    if ($stateParams.childEntityGroupId) {
+                        getEntityGroup($stateParams.entityGroupId).then(
+                            (parentEntityGroup) => {
+                                entityGroup.parentEntityGroup = parentEntityGroup;
+                                deferred.resolve(entityGroup);
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        )
+                    } else {
+                        deferred.resolve(entityGroup);
+                    }
+                },
+                () => {
+                    deferred.reject();
+                }
+            );
+        }
+        else
+         {
             deferred.resolve(entityGroup);
         }
         return deferred.promise;

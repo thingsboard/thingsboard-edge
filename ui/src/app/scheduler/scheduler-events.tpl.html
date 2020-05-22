@@ -58,10 +58,16 @@
                     </div>
                 </div>
                 <span flex></span>
-                <md-button ng-if="vm.addEnabled" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
+                <md-button ng-if="vm.addEnabled && vm.schedulerScope !== 'edge'" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
                         {{ 'scheduler.add-scheduler-event' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button ng-if="vm.addEnabled && vm.schedulerScope === 'edge'" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.assignToEdgeSchedulerEvent($event)">
+                    <md-icon>add</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'scheduler.assign-to-edge' | translate }}
                     </md-tooltip>
                 </md-button>
                 <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
@@ -137,13 +143,6 @@
                                 <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.edit-scheduler-event' | translate }}
-                                </md-tooltip>
-                            </md-button>
-                            <md-button ng-if="vm.manageAssignedEdgeGroupsEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.manage' | translate }}"
-                                       ng-click="vm.manageAssignedSchedulerEdgeGroups($event, schedulerEvent)">
-                                <md-icon aria-label="{{ 'scheduler.manage-assigned-edge-groups' | translate }}" class="material-icons">wifi_tethering</md-icon>
-                                <md-tooltip md-direction="top">
-                                    {{ 'scheduler.manage-assigned-edge-groups' | translate }}
                                 </md-tooltip>
                             </md-button>
                             <md-button ng-if="!vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.view' | translate }}"

@@ -1176,6 +1176,8 @@
         "edge-group": "Edge group",
         "dashboard-groups": "Dashboard groups",
         "dashboard-group": "Dashboard group",
+        "scheduler-events-groups": "Dashboard events groups",
+        "scheduler-events-group": "Schduler events group",
         "fetch-more": "Fetch more",
         "column-type": {
             "column-type": "Column type",
@@ -2558,7 +2560,10 @@
         "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
         "every-second": "every { count, plural, 1 {second} other {# seconds} }",
         "manage-assigned-edge-groups": "Manage assigned edge groups",
-        "assigned-edge-groups": "Assigned edge groups"
+        "assigned-edge-groups": "Assigned edge groups",
+        "assign-to-edge": "Assign to edge",
+        "assign-to-edge-title": "Assign Scheduler Event(s) To Edge",
+        "assign-to-edge-text": "Please select the scheduler events to assign to the edge"
     },
     "report": {
         "report-config": "Report configuration",

@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q, utils) {
+function SchedulerEventService($http, $q, customerService, utils) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,
@@ -42,7 +42,8 @@ function SchedulerEventService($http, $q, utils) {
         getSchedulerEventInfo: getSchedulerEventInfo,
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent,
-        updateSchedulerEdgeGroups: updateSchedulerEdgeGroups
+        updateSchedulerEdgeGroups: updateSchedulerEdgeGroups,
+        getEdgeSchedulerEvents: getEdgeSchedulerEvents
     };
 
     var resolvedData = [
@@ -113,7 +114,7 @@ function SchedulerEventService($http, $q, utils) {
 
     return service;
 
-    function getSchedulerEvents() {
+    function getEdgeSchedulerEvents() {
         var deferred = $q.defer();
         $http.get('getSchedulerEvents').then(function success() {
             deferred.resolve(utils.prepareAssignedEdgeGroups(angular.copy(resolvedData), 'Scheduler'));
@@ -123,11 +124,11 @@ function SchedulerEventService($http, $q, utils) {
         return deferred.promise;
     }
 
-    function updateSchedulerEdgeGroups() {
+    function updateSchedulerEdgeGroups(edgeId, schedulerEventId) {
         var deferred = $q.defer();
 
         resolvedData[0].assignedEdgeGroups = [];
-        resolvedData[0].assignedEdgeGroups.push([{entityGroupId: {entityType: "ENTITY_GROUP", id: "SOME_ID"}, name: "All"}]);
+        resolvedData[0].assignedEdgeGroups.push([{entityGroupId: {edgeId: edgeId, schedulerEventId: schedulerEventId}, name: "All"}]);
 
         $http.get('updateSchedulerEdgeGroups').then(function success() {
             deferred.resolve(utils.prepareAssignedEdgeGroup(resolvedData));
@@ -137,30 +138,30 @@ function SchedulerEventService($http, $q, utils) {
         return deferred.promise;
     }
 
-    // function getSchedulerEvents(type, applyCustomersInfo, config) {
-    //     var deferred = $q.defer();
-    //     var url = '/api/schedulerEvents';
-    //     if (type) {
-    //         url += '?type=' + type;
-    //     }
-    //     $http.get(url, config).then(function success(response) {
-    //         if (applyCustomersInfo) {
-    //             customerService.applyAssignedCustomersInfo(response.data).then(
-    //                 function success(data) {
-    //                     deferred.resolve(data);
-    //                 },
-    //                 function fail() {
-    //                     deferred.reject();
-    //                 }
-    //             );
-    //         } else {
-    //             deferred.resolve(response.data);
-    //         }
-    //     }, function fail() {
-    //         deferred.reject();
-    //     });
-    //     return deferred.promise;
-    // }
+    function getSchedulerEvents(type, applyCustomersInfo, config) {
+        var deferred = $q.defer();
+        var url = '/api/schedulerEvents';
+        if (type) {
+            url += '?type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            if (applyCustomersInfo) {
+                customerService.applyAssignedCustomersInfo(response.data).then(
+                    function success(data) {
+                        deferred.resolve(data);
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            } else {
+                deferred.resolve(response.data);
+            }
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
     function getSchedulerEventsByIds(schedulerEventIds, config) {
         var deferred = $q.defer();

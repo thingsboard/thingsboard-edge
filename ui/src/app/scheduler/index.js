@@ -37,12 +37,12 @@ import SchedulerEventTemplateConfigDirective from './scheduler-event-template-co
 import SchedulerEventConfigDirective from './scheduler-event-config.directive';
 import SchedulerEventTypeAutocompleteDirective from './scheduler-event-type-autocomplete.directive';
 import OriginatorSelectDirective from './originator-select.directive';
-import ManageAssignedEdgeGroupsController from "../dialog/manage-assigned-edge-groups.controller";
+import AddSchedulerEventsToEdgeController from "./add-scheduler-events-to-edge.controller";
 
 export default angular.module('thingsboard.scheduler', [thingsboardSchedulerConfig])
     .config(SchedulerRoutes)
     .controller('SchedulerController', SchedulerController)
-    .controller('ManageAssignedEdgeGroupsController', ManageAssignedEdgeGroupsController)
+    .controller('AddSchedulerEventsToEdgeController', AddSchedulerEventsToEdgeController)
     .directive('tbSchedulerEvents', SchedulerEventsDirective)
     .directive('tbSchedulerEventTemplateConfig', SchedulerEventTemplateConfigDirective)
     .directive('tbSchedulerEventConfig', SchedulerEventConfigDirective)

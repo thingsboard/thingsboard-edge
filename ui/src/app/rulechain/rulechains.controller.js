@@ -476,11 +476,11 @@ export default function RuleChainsController(ruleChainService, userService, edge
         });
     }
 
-    function manageAssignedEdgeGroups($event, ruleChain) {
+    function manageAssignedEdgeGroups($event, ruleChain) { //eslint-disable-line
         showManageAssignedEdgeGroupsDialog($event, [ruleChain.id.id], 'manage', ruleChain.assignedEdgeGroupIds, 'RuleChain');
     }
 
-    function assignRuleChainsToEdges($event, items) {
+    function assignRuleChainsToEdges($event, items) { //eslint-disable-line
         var ruleChainIds = [];
         for (var id in items.selections) {
             ruleChainIds.push(id);
@@ -488,7 +488,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
         showManageAssignedEdgeGroupsDialog($event, ruleChainIds, 'assign');
     }
 
-    function unassignRuleChainsFromEdges($event, items) {
+    function unassignRuleChainsFromEdges($event, items) { //eslint-disable-line
         var ruleChainIds = [];
         for (var id in items.selections) {
             ruleChainIds.push(id);

@@ -427,7 +427,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         );
     }
 
-    function manageAssignedEdgeGroups($event, entityGroup) {
+    function manageAssignedEdgeGroups($event, entityGroup) { //eslint-disable-line
         showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds, 'EntityGroup');
     }
 
