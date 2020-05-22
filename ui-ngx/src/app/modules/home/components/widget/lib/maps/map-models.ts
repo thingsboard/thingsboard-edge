@@ -41,7 +41,7 @@ import {
 
 export type GenericFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
 export type MarkerImageFunction = (data: FormattedData, dsData: FormattedData[], dsIndex: number) => string;
-export type GetTooltip= (point: FormattedData, setTooltip?: boolean) => string;
+export type GetTooltip = (point: FormattedData, setTooltip?: boolean) => string;
 
 export type MapSettings = {
     draggableMarker: boolean;
@@ -179,9 +179,23 @@ export interface HistorySelectSettings {
 }
 
 export type TripAnimationSettings = {
+    showPoints: boolean;
     pointColor: string;
     pointSize: number;
     pointTooltipOnRightPanel: boolean;
+    usePointAsAnchor: boolean;
+    normalizationStep: number;
+    showPolygon: boolean;
+    latKeyName: string;
+    lngKeyName: string;
+    rotationAngle: number;
+    label: string;
+    tooltipPattern: string;
+    useTooltipFunction :boolean;
+    useLabelFunction:boolean;
+    pointAsAnchorFunction: GenericFunction;
+    tooltipFunction: GenericFunction;
+    labelFunction: GenericFunction;
 }
 
 export type actionsHandler = ($event: Event, datasource: Datasource) => void;
