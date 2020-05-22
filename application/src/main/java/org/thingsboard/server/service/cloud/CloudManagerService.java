@@ -33,9 +33,6 @@ package org.thingsboard.server.service.cloud;
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +49,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -62,7 +60,6 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -104,7 +101,6 @@ import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.EntityType;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
@@ -125,7 +121,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -144,6 +139,9 @@ public class CloudManagerService {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final Lock deviceCreationLock = new ReentrantLock();
+    private final Lock assetCreationLock = new ReentrantLock();
+    private final Lock entityViewCreationLock = new ReentrantLock();
+    private final Lock dashboardCreationLock = new ReentrantLock();
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -359,15 +357,24 @@ public class CloudManagerService {
         }
     }
 
+    private void addEntityToGroup(String groupName, EntityId entityId, EntityType entityType) {
+        if (!StringUtils.isEmpty(groupName)) {
+            EntityGroup orCreateEntityGroup = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, entityType, groupName, null, null);
+            if (orCreateEntityGroup != null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, orCreateEntityGroup.getId(), entityId);
+            }
+        }
+    }
+
     private void onDeviceUpdate(DeviceUpdateMsg deviceUpdateMsg) {
         log.info("onDeviceUpdate {}", deviceUpdateMsg);
         Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceUpdateMsg.getName());
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                // TODO: add syncronized lock
-                deviceCreationLock.lock();
+                // TODO: add synchronized lock
                 try {
+                    deviceCreationLock.lock();
                     if (device == null) {
                         device = new Device();
                         device.setTenantId(tenantId);
@@ -381,16 +388,11 @@ public class CloudManagerService {
                         device.setLabel(deviceUpdateMsg.getLabel());
                         device = deviceService.saveDevice(device);
                     }
+                    addEntityToGroup(deviceUpdateMsg.getGroupName(), device.getId(), EntityType.DEVICE);
+                    updateDeviceCredentials(deviceUpdateMsg, device);
                 } finally {
                     deviceCreationLock.unlock();
                 }
-                if (!StringUtils.isEmpty(deviceUpdateMsg.getGroupName())) {
-                    EntityGroup orCreateEntityGroup = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, org.thingsboard.server.common.data.EntityType.DEVICE, deviceUpdateMsg.getGroupName(), null, null);
-                    if (orCreateEntityGroup != null) {
-                        entityGroupService.addEntityToEntityGroup(tenantId, orCreateEntityGroup.getId(), device.getId());
-                    }
-                }
-                updateDeviceCredentials(deviceUpdateMsg, device);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (device != null) {
@@ -422,17 +424,23 @@ public class CloudManagerService {
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                if (asset == null) {
-                    asset = new Asset();
-                    asset.setTenantId(tenantId);
-                    asset.setName(assetUpdateMsg.getName());
-                    asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.getLabel());
-                    assetService.saveAsset(asset);
-                } else {
-                    asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.getLabel());
-                    assetService.saveAsset(asset);
+                try {
+                    assetCreationLock.lock();
+                    if (asset == null) {
+                        asset = new Asset();
+                        asset.setTenantId(tenantId);
+                        asset.setName(assetUpdateMsg.getName());
+                        asset.setType(assetUpdateMsg.getType());
+                        asset.setLabel(assetUpdateMsg.getLabel());
+                        assetService.saveAsset(asset);
+                    } else {
+                        asset.setType(assetUpdateMsg.getType());
+                        asset.setLabel(assetUpdateMsg.getLabel());
+                        assetService.saveAsset(asset);
+                    }
+                    addEntityToGroup(assetUpdateMsg.getGroupName(), asset.getId(), EntityType.ASSET);
+                } finally {
+                    assetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
@@ -452,17 +460,23 @@ public class CloudManagerService {
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                if (entityView == null) {
-                    entityView = new EntityView();
-                    entityView.setTenantId(tenantId);
-                    entityView.setName(entityViewUpdateMsg.getName());
-                    entityView.setType(entityViewUpdateMsg.getType());
-                    entityView.setEntityId(relatedEntityId);
-                    entityViewService.saveEntityView(entityView);
-                } else {
-                    entityView.setEntityId(relatedEntityId);
-                    entityView.setType(entityViewUpdateMsg.getType());
-                    entityViewService.saveEntityView(entityView);
+                try {
+                    entityViewCreationLock.lock();
+                    if (entityView == null) {
+                        entityView = new EntityView();
+                        entityView.setTenantId(tenantId);
+                        entityView.setName(entityViewUpdateMsg.getName());
+                        entityView.setType(entityViewUpdateMsg.getType());
+                        entityView.setEntityId(relatedEntityId);
+                        entityViewService.saveEntityView(entityView);
+                    } else {
+                        entityView.setEntityId(relatedEntityId);
+                        entityView.setType(entityViewUpdateMsg.getType());
+                        entityViewService.saveEntityView(entityView);
+                    }
+                    addEntityToGroup(entityViewUpdateMsg.getGroupName(), entityView.getId(), EntityType.ENTITY_VIEW);
+                } finally {
+                    entityViewCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
@@ -499,20 +513,26 @@ public class CloudManagerService {
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                boolean created = false;
-                Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                if (dashboard == null) {
-                    created = true;
-                    dashboard = new Dashboard();
-                    dashboard.setId(dashboardId);
-                    dashboard.setTenantId(tenantId);
+                try {
+                    dashboardCreationLock.lock();
+                    boolean created = false;
+                    Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
+                    if (dashboard == null) {
+                        created = true;
+                        dashboard = new Dashboard();
+                        dashboard.setId(dashboardId);
+                        dashboard.setTenantId(tenantId);
 
-                }
-                dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
-                if (created) {
-                    entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                    }
+                    dashboard.setTitle(dashboardUpdateMsg.getTitle());
+                    dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
+                    if (created) {
+                        entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+                    }
+                    addEntityToGroup(dashboardUpdateMsg.getGroupName(), savedDashboard.getId(), EntityType.DASHBOARD);
+                } finally {
+                    dashboardCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
