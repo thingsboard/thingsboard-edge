@@ -47,6 +47,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -83,6 +85,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -155,10 +158,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     private AssetService assetService;
 
     @Autowired
-    private EntityGroupService entityGroupService;
+    private DashboardService dashboardService;
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     private ExecutorService tsCallBackExecutor;
 
@@ -683,8 +689,12 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                                                 data = mapper.writeValueAsString(assetById);
                                                 break;
                                             case ENTITY_VIEW:
+                                                EntityView entityViewById = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                                                data = mapper.writeValueAsString(entityViewById);
+                                                break;
                                             case DASHBOARD:
-                                                // todo
+                                                Dashboard dashboardById = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                                                data = mapper.writeValueAsString(dashboardById);
                                                 break;
                                         }
                                         pushEventToEdge(tenantId, finalEdgeId, getEdgeQueueTypeByEntityType(entityId.getEntityType()), data, tbMsg.getType(), assignedEntityName, callback);

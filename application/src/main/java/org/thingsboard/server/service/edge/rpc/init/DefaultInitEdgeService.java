@@ -156,7 +156,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         AssetUpdateMsg assetUpdateMsg =
                                 assetUpdateMsgConstructor.constructAssetUpdatedMsg(
                                         UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                        asset);
+                                        asset, null);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                                 .setAssetUpdateMsg(assetUpdateMsg)
                                 .build();
@@ -186,7 +186,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         EntityViewUpdateMsg entityViewUpdateMsg =
                                 entityViewUpdateMsgConstructor.constructEntityViewUpdatedMsg(
                                         UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                        entityView);
+                                        entityView, null);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                                 .setEntityViewUpdateMsg(entityViewUpdateMsg)
                                 .build();
@@ -218,7 +218,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         DashboardUpdateMsg dashboardUpdateMsg =
                                 dashboardUpdateMsgConstructor.constructDashboardUpdatedMsg(
                                         UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                        dashboard);
+                                        dashboard, null);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                                 .setDashboardUpdateMsg(dashboardUpdateMsg)
                                 .build();

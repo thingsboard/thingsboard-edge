@@ -40,13 +40,16 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class AssetUpdateMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset) {
+    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, String groupName) {
         AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setName(asset.getName())
                 .setType(asset.getType());
         if (asset.getLabel() != null) {
             builder.setLabel(asset.getLabel());
+        }
+        if (groupName != null) {
+            builder.setGroupName(groupName);
         }
         return builder.build();
     }

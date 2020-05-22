@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
@@ -54,20 +55,20 @@ public class EntityViewUpdateMsgConstructor {
     @Autowired
     private AssetService assetService;
 
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView) {
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, String groupName) {
         String relatedName;
         String relatedType;
-        org.thingsboard.server.gen.edge.EntityType relatedEntityType;
+        EdgeEntityType relatedEntityType;
         if (entityView.getEntityId().getEntityType().equals(EntityType.DEVICE)) {
             Device device = deviceService.findDeviceById(entityView.getTenantId(), new DeviceId(entityView.getEntityId().getId()));
             relatedName = device.getName();
             relatedType = device.getType();
-            relatedEntityType = org.thingsboard.server.gen.edge.EntityType.DEVICE;
+            relatedEntityType = EdgeEntityType.DEVICE;
         } else {
             Asset asset = assetService.findAssetById(entityView.getTenantId(), new AssetId(entityView.getEntityId().getId()));
             relatedName = asset.getName();
             relatedType = asset.getType();
-            relatedEntityType = org.thingsboard.server.gen.edge.EntityType.ASSET;
+            relatedEntityType = EdgeEntityType.ASSET;
         }
         EntityViewUpdateMsg.Builder builder = EntityViewUpdateMsg.newBuilder()
                 .setMsgType(msgType)
@@ -76,6 +77,9 @@ public class EntityViewUpdateMsgConstructor {
                 .setRelatedName(relatedName)
                 .setRelatedType(relatedType)
                 .setRelatedEntityType(relatedEntityType);
+        if (groupName != null) {
+            builder.setGroupName(groupName);
+        }
         return builder.build();
     }
 

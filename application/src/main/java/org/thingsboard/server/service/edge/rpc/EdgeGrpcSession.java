@@ -352,15 +352,15 @@ public final class EdgeGrpcSession implements Closeable {
                     break;
                 case ASSET:
                     Asset asset = objectMapper.readValue(data, Asset.class);
-                    onAssetUpdated(msgType, asset);
+                    onAssetUpdated(msgType, asset, groupName);
                     break;
                 case ENTITY_VIEW:
                     EntityView entityView = objectMapper.readValue(data, EntityView.class);
-                    onEntityViewUpdated(msgType, entityView);
+                    onEntityViewUpdated(msgType, entityView, groupName);
                     break;
                 case DASHBOARD:
                     Dashboard dashboard = objectMapper.readValue(data, Dashboard.class);
-                    onDashboardUpdated(msgType, dashboard);
+                    onDashboardUpdated(msgType, dashboard, groupName);
                     break;
                 case RULE_CHAIN:
                     RuleChain ruleChain = objectMapper.readValue(data, RuleChain.class);
@@ -412,18 +412,18 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
-    private void onAssetUpdated(UpdateMsgType msgType, Asset asset) {
+    private void onAssetUpdated(UpdateMsgType msgType, Asset asset, String groupName) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setAssetUpdateMsg(ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset))
+                .setAssetUpdateMsg(ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, groupName))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)
                 .build());
     }
 
-    private void onEntityViewUpdated(UpdateMsgType msgType, EntityView entityView) {
+    private void onEntityViewUpdated(UpdateMsgType msgType, EntityView entityView, String groupName) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setEntityViewUpdateMsg(ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView))
+                .setEntityViewUpdateMsg(ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, groupName))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)
@@ -452,9 +452,9 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-    private void onDashboardUpdated(UpdateMsgType msgType, Dashboard dashboard) {
+    private void onDashboardUpdated(UpdateMsgType msgType, Dashboard dashboard, String groupName) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setDashboardUpdateMsg(ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard))
+                .setDashboardUpdateMsg(ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, groupName))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)
