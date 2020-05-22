@@ -45,6 +45,9 @@ public class OAuth2User {
     private String email;
     private String firstName;
     private String lastName;
+    private boolean alwaysFullScreen;
+    private String defaultDashboardName;
+
     private List<String> userGroups;
     private String parentCustomerName;
     private CustomerId parentCustomerId;

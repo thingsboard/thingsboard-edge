@@ -33,6 +33,9 @@ package org.thingsboard.server.service.security.auth.oauth2;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -41,18 +44,28 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -65,11 +78,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractOAuth2ClientMapper {
+    private static final int DASHBOARDS_REQUEST_LIMIT = 10;
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     private UserService userService;
@@ -88,6 +105,9 @@ public abstract class AbstractOAuth2ClientMapper {
 
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Autowired
+    private DashboardService dashboardService;
 
     @Autowired
     private InstallScripts installScripts;
@@ -125,6 +145,20 @@ public abstract class AbstractOAuth2ClientMapper {
                     user.setEmail(oauth2User.getEmail());
                     user.setFirstName(oauth2User.getFirstName());
                     user.setLastName(oauth2User.getLastName());
+
+                    if (!StringUtils.isEmpty(oauth2User.getDefaultDashboardName())) {
+                        Optional<DashboardId> dashboardIdOpt =
+                                user.getAuthority() == Authority.TENANT_ADMIN ?
+                                        getDashboardId(tenantId, oauth2User.getDefaultDashboardName())
+                                        : getDashboardId(tenantId, customerId, oauth2User.getDefaultDashboardName());
+                        if (dashboardIdOpt.isPresent()) {
+                            ObjectNode additionalInfo = objectMapper.createObjectNode();
+                            additionalInfo.put("defaultDashboardFullscreen", oauth2User.isAlwaysFullScreen());
+                            additionalInfo.put("defaultDashboardId", dashboardIdOpt.get().getId().toString());
+                            user.setAdditionalInfo(additionalInfo);
+                        }
+                    }
+
                     user = userService.saveUser(user);
                     if (activateUser) {
                         UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
@@ -225,5 +259,34 @@ public abstract class AbstractOAuth2ClientMapper {
             customer.setParentCustomerId(parentCustomerId);
             return customerService.saveCustomer(customer).getId();
         }
+    }
+
+    private Optional<DashboardId> getDashboardId(TenantId tenantId, String dashboardName) {
+        TextPageLink searchTextLink = new TextPageLink(1, dashboardName);
+        TextPageData<DashboardInfo> dashboardsPage = dashboardService.findDashboardsByTenantId(tenantId, searchTextLink);
+        return dashboardsPage.getData().stream()
+                .findAny()
+                .map(IdBased::getId);
+    }
+
+    private Optional<DashboardId> getDashboardId(TenantId tenantId, CustomerId customerId, String dashboardName) {
+        TimePageData<DashboardInfo> dashboardsPage = null;
+        do {
+            TimePageLink timePageLink = dashboardsPage != null ?
+                    dashboardsPage.getNextPageLink() : new TimePageLink(DASHBOARDS_REQUEST_LIMIT);
+            //TODO: Viktor Zikratyi
+//            try {
+                dashboardsPage = null;//dashboardService.findDashboardsByTenantIdAndCustomerId(tenantId, customerId, timePageLink).get();
+//            } catch (InterruptedException | ExecutionException e) {
+//                throw new RuntimeException("Failed to get customer's dashboards.", e);
+//            }
+            Optional<DashboardInfo> dashboardInfoOpt = dashboardsPage.getData().stream()
+                    .filter(dashboardInfo -> dashboardName.equals(dashboardInfo.getName()))
+                    .findAny();
+            if (dashboardInfoOpt.isPresent()) {
+                return dashboardInfoOpt.map(DashboardInfo::getId);
+            }
+        } while (dashboardsPage.hasNext());
+        return Optional.empty();
     }
 }
