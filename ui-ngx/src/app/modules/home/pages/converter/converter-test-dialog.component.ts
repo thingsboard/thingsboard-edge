@@ -254,7 +254,6 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   private updateInputContent() {
     const stringContent = this.converterTestFormGroup.get('payload').get('stringContent').value;
-    console.log(stringContent);
     if (this.isDecoder) {
       const contentType = this.converterTestFormGroup.get('payload').get('contentType').value;
       if (contentType === ContentType.BINARY) {
