@@ -100,6 +100,7 @@ import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
+import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
@@ -142,6 +143,7 @@ public class CloudManagerService {
     private final Lock assetCreationLock = new ReentrantLock();
     private final Lock entityViewCreationLock = new ReentrantLock();
     private final Lock dashboardCreationLock = new ReentrantLock();
+    private final Lock userCreationLock = new ReentrantLock();
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -491,13 +493,13 @@ public class CloudManagerService {
 
     private EntityId getRelatedEntityId(EntityViewUpdateMsg entityViewUpdateMsg) {
         String entityName = entityViewUpdateMsg.getRelatedName();
-        if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.DEVICE)) {
+        if (EdgeEntityType.DEVICE.equals(entityViewUpdateMsg.getRelatedEntityType())) {
             Device device = deviceService.findDeviceByTenantIdAndName(tenantId, entityName);
             if (device == null) {
                 throw new RuntimeException("Related device [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
             }
             return device.getId();
-        } else if (entityViewUpdateMsg.getRelatedEntityType().equals(EntityType.ASSET)) {
+        } else if (EdgeEntityType.ASSET.equals(entityViewUpdateMsg.getRelatedEntityType())) {
             Asset asset = assetService.findAssetByTenantIdAndName(tenantId, entityName);
             if (asset == null) {
                 throw new RuntimeException("Related asset [" + entityName + "] doesn't exist! Can't create entityView [" + entityViewUpdateMsg + "]");
@@ -747,42 +749,40 @@ public class CloudManagerService {
     }
 
     private void onUserUpdate(UserUpdateMsg userUpdateMsg) {
-        UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                boolean created = false;
-                User user = userService.findUserById(tenantId, userId);
-                if (user == null) {
-                    created = true;
-                    user = new User();
-                    user.setId(userId);
-                    user.setTenantId(tenantId);
-                    CustomerId customerId = new CustomerId(new UUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
-                    user.setCustomerId(customerId);
-                }
-                user.setEmail(userUpdateMsg.getEmail());
-                user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
-                user.setFirstName(userUpdateMsg.getFirstName());
-                user.setLastName(userUpdateMsg.getLastName());
-                user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
-                User savedUser = userService.saveUser(user);
+                try {
+                    userCreationLock.lock();
+                    User user = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
+                    if (user == null) {
+                        user = new User();
+                        user.setTenantId(tenantId);
+                    }
+                    user.setEmail(userUpdateMsg.getEmail());
+                    user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
+                    user.setFirstName(userUpdateMsg.getFirstName());
+                    user.setLastName(userUpdateMsg.getLastName());
+                    user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
+                    User savedUser = userService.saveUser(user);
 
-                if (created) {
-                    entityGroupService.addEntityToEntityGroupAll(savedUser.getTenantId(), savedUser.getOwnerId(), savedUser.getId());
-                }
+                    UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
+                    userCredentials.setEnabled(userUpdateMsg.getEnabled());
+                    userCredentials.setPassword(userUpdateMsg.getPassword());
+                    userCredentials.setActivateToken(null);
+                    userCredentials.setResetToken(null);
+                    userService.saveUserCredentials(tenantId, userCredentials);
 
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
-                if (created) {
-                    userCredentials = new UserCredentials();
-                    userCredentials.setUserId(savedUser.getId());
+                    addEntityToGroup(userUpdateMsg.getGroupName(), savedUser.getId(), EntityType.USER);
+                } finally {
+                    userCreationLock.unlock();
                 }
-                userCredentials.setEnabled(userUpdateMsg.getEnabled());
-                userCredentials.setPassword(userUpdateMsg.getPassword());
-                userService.saveUserCredentials(tenantId, userCredentials);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                userService.deleteUser(tenantId, userId);
+                User userToDelete = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
+                if (userToDelete != null) {
+                    userService.deleteUser(tenantId, userToDelete.getId());
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
