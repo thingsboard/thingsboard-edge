@@ -375,8 +375,8 @@ public final class EdgeGrpcSession implements Closeable {
                     onAlarmUpdated(msgType, alarm);
                     break;
                 case USER:
-                    User user = objectMapper.readValue(entry.getData(), User.class);
-                    onUserUpdated(msgType, user);
+                    User user = objectMapper.readValue(data, User.class);
+                    onUserUpdated(msgType, user, groupName);
                     break;
             }
         }
@@ -474,9 +474,9 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
-    private void onUserUpdated(UpdateMsgType msgType, User user) {
+    private void onUserUpdated(UpdateMsgType msgType, User user, String groupName) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user))
+                .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, groupName))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)

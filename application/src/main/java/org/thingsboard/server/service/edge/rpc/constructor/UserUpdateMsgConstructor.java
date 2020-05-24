@@ -47,7 +47,7 @@ public class UserUpdateMsgConstructor {
     @Autowired
     private UserService userService;
 
-    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user) {
+    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, String groupName) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setEmail(user.getEmail())
@@ -65,11 +65,17 @@ public class UserUpdateMsgConstructor {
         if (user.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
         }
+        if (groupName != null) {
+            builder.setGroupName(groupName);
+        }
         if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
                 msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
             if (userCredentials != null) {
-                builder.setEnabled(userCredentials.isEnabled()).setPassword(userCredentials.getPassword());
+                builder.setEnabled(userCredentials.isEnabled());
+                if (userCredentials.getPassword() != null) {
+                    builder.setPassword(userCredentials.getPassword());
+                }
             }
         }
         return builder.build();

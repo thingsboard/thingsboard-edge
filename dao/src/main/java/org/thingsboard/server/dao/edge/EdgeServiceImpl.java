@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeQueueEntityType;
@@ -73,6 +74,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -97,6 +99,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.user.UserService;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -150,6 +153,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @Autowired
     private RuleChainService ruleChainService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private DeviceService deviceService;
@@ -471,6 +477,8 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 return EdgeQueueEntityType.ENTITY_VIEW;
             case DASHBOARD:
                 return EdgeQueueEntityType.DASHBOARD;
+            case USER:
+                return EdgeQueueEntityType.USER;
             default:
                 log.info("Unsupported entity type: [{}]", entityType);
                 return null;
@@ -695,6 +703,10 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                                             case DASHBOARD:
                                                 Dashboard dashboardById = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
                                                 data = mapper.writeValueAsString(dashboardById);
+                                                break;
+                                            case USER:
+                                                User userById = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                                                data = mapper.writeValueAsString(userById);
                                                 break;
                                         }
                                         pushEventToEdge(tenantId, finalEdgeId, getEdgeQueueTypeByEntityType(entityId.getEntityType()), data, tbMsg.getType(), assignedEntityName, callback);
