@@ -232,4 +232,5 @@ function SchedulerEventService($http, $q, customerService, utils) {
         });
         return deferred.promise;
     }
+
 }

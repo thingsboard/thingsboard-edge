@@ -733,10 +733,10 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         vm.allSchedulerEvents.length = 0;
         vm.schedulerEvents.length = 0;
         vm.schedulerEventsPromise;
-        if (vm.schedulerScope == 'edge') {
+        if (vm.schedulerScope === 'edge') {
             vm.schedulerEventsPromise = schedulerEventService.getSchedulerEvents(vm.defaultEventType, vm.displayCustomer);
         }
-        else if (vm.schedulerScope == 'common') {
+        else if (vm.schedulerScope === 'default') {
             vm.schedulerEventsPromise = schedulerEventService.getSchedulerEvents(vm.defaultEventType, vm.displayCustomer);
         }
         vm.schedulerEventsPromise.then(
