@@ -197,7 +197,7 @@ message EntityViewUpdateMsg {
   string type = 3;
   string relatedName = 4;
   string relatedType = 5;
-  EntityType relatedEntityType = 6;
+  EdgeEntityType relatedEntityType = 6;
   string groupName = 7;
 }
 
@@ -235,17 +235,14 @@ message CustomerUpdateMsg {
 
 message UserUpdateMsg {
   UpdateMsgType msgType = 1;
-  int64 idMSB = 2;
-  int64 idLSB = 3;
-  int64 customerIdMSB = 4;
-  int64 customerIdLSB = 5;
-  string email = 7;
-  string authority = 8;
-  string firstName = 9;
-  string lastName = 10;
-  string additionalInfo = 11;
-  bool enabled = 12;
-  string password = 13;
+  string email = 2;
+  string authority = 3;
+  string firstName = 4;
+  string lastName = 5;
+  string additionalInfo = 6;
+  bool enabled = 7;
+  string password = 8;
+  string groupName = 9;
 }
 
 message RuleChainMetadataRequestMsg {
@@ -253,7 +250,7 @@ message RuleChainMetadataRequestMsg {
   int64 ruleChainIdLSB = 2;
 }
 
-enum EntityType {
+enum EdgeEntityType {
   DEVICE = 0;
   ASSET = 1;
 }

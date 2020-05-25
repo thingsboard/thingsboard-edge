@@ -46,7 +46,7 @@ public class DashboardUpdateMsgConstructor {
     @Autowired
     private DashboardService dashboardService;
 
-    public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard) {
+    public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, String groupName) {
         dashboard = dashboardService.findDashboardById(dashboard.getTenantId(), dashboard.getId());
         DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
                 .setMsgType(msgType)
@@ -54,6 +54,9 @@ public class DashboardUpdateMsgConstructor {
                 .setIdLSB(dashboard.getId().getId().getLeastSignificantBits())
                 .setTitle(dashboard.getTitle())
                 .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
+        if (groupName != null) {
+            builder.setGroupName(groupName);
+        }
         return builder.build();
     }
 

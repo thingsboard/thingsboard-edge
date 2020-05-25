@@ -47,6 +47,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeQueueEntityType;
@@ -64,6 +66,7 @@ import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -71,6 +74,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -83,6 +87,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -94,6 +99,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.user.UserService;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -149,16 +155,22 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     private RuleChainService ruleChainService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private DeviceService deviceService;
 
     @Autowired
     private AssetService assetService;
 
     @Autowired
-    private EntityGroupService entityGroupService;
+    private DashboardService dashboardService;
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     private ExecutorService tsCallBackExecutor;
 
@@ -465,6 +477,8 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 return EdgeQueueEntityType.ENTITY_VIEW;
             case DASHBOARD:
                 return EdgeQueueEntityType.DASHBOARD;
+            case USER:
+                return EdgeQueueEntityType.USER;
             default:
                 log.info("Unsupported entity type: [{}]", entityType);
                 return null;
@@ -683,8 +697,16 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                                                 data = mapper.writeValueAsString(assetById);
                                                 break;
                                             case ENTITY_VIEW:
+                                                EntityView entityViewById = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                                                data = mapper.writeValueAsString(entityViewById);
+                                                break;
                                             case DASHBOARD:
-                                                // todo
+                                                Dashboard dashboardById = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                                                data = mapper.writeValueAsString(dashboardById);
+                                                break;
+                                            case USER:
+                                                User userById = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                                                data = mapper.writeValueAsString(userById);
                                                 break;
                                         }
                                         pushEventToEdge(tenantId, finalEdgeId, getEdgeQueueTypeByEntityType(entityId.getEntityType()), data, tbMsg.getType(), assignedEntityName, callback);

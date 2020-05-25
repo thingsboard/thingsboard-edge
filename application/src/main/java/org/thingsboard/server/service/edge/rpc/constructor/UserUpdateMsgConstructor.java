@@ -31,27 +31,53 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
 @Component
 @Slf4j
-public class AssetUpdateMsgConstructor {
+public class UserUpdateMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, String groupName) {
-        AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
+    @Autowired
+    private UserService userService;
+
+    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, String groupName) {
+        UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setName(asset.getName())
-                .setType(asset.getType());
-        if (asset.getLabel() != null) {
-            builder.setLabel(asset.getLabel());
+                .setEmail(user.getEmail())
+                .setAuthority(user.getAuthority().name())
+                .setEnabled(false);
+        if (user.getFirstName() != null) {
+            builder.setFirstName(user.getFirstName());
+        }
+        if (user.getLastName() != null) {
+            builder.setLastName(user.getLastName());
+        }
+        if (user.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
+        }
+        if (user.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
         }
         if (groupName != null) {
             builder.setGroupName(groupName);
         }
+        if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
+                msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {
+            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+            if (userCredentials != null) {
+                builder.setEnabled(userCredentials.isEnabled());
+                if (userCredentials.getPassword() != null) {
+                    builder.setPassword(userCredentials.getPassword());
+                }
+            }
+        }
         return builder.build();
     }
-
 }
