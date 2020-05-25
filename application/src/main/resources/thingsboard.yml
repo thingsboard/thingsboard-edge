@@ -168,8 +168,12 @@ security:
             defaultDashboardName: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_DEFAULT_DASHBOARD_NAME:}"
             # If this field is set 'true' along with non-empty 'defaultDashboardName', user will start from the defined Dashboard in fullscreen mode
             alwaysFullScreen: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_ALWAYS_FULL_SCREEN:false}"
-            parentCustomerNamePattern: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_PARENT_CUSTOMER_NAME_PATTERN:}" # %{attribute_key} as placeholder for attributes value by key
-            userGroupsNamePattern: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_USER_GROUPS_NAME_PATTERN:Tenant Administrators}" # list of comma separated user group names, %{attribute_key} as placeholder for attributes value by key
+            # If this field is not empty, Customer will be created in the hierarchy under this parent Customer
+            # %{attribute_key} as placeholder for attributes value by key
+            parentCustomerNamePattern: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_PARENT_CUSTOMER_NAME_PATTERN:}"
+            # User will be added to the All group of the owner and additional to all groups, provided in this list
+            # List of comma separated user group names, %{attribute_key} as placeholder for attributes value by key
+            userGroupsNamePattern: "${SECURITY_OAUTH2_DEFAULT_MAPPER_BASIC_USER_GROUPS_NAME_PATTERN:Tenant Administrators}"
           custom:
             url: "${SECURITY_OAUTH2_DEFAULT_MAPPER_CUSTOM_URL:}"
             username: "${SECURITY_OAUTH2_DEFAULT_MAPPER_CUSTOM_USERNAME:}"
