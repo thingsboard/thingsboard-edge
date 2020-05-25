@@ -265,7 +265,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!StringUtils.isEmpty(ts)) {
             return Long.parseLong(ts);
         } else {
-            return (msg.getId().timestamp() / 10000) + START_EPOCH;
+            return msg.getTs();
         }
     }
 
