@@ -213,21 +213,14 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
     })
         .state('home.edgeGroups.edgeGroup.ruleChains', {
         url: '/:edgeId/ruleChains',
-        params: {'childGroupType': types.entityType.rulechain, 'topIndex': 0},
+        params: {'topIndex': 0},
         module: 'private',
         auth: ['TENANT_ADMIN'],
         views: {
             "content@home": {
                 templateUrl: ruleChainsTemplate,
                 controllerAs: 'vm',
-                // controller: 'RuleChainsController'
-                controller:
-                /*@ngInject*/
-                    function($scope, $stateParams, $controller, entityGroup) {
-                        var ctrl = $controller('RuleChainsController as vm',{$scope: $scope, $stateParams: $stateParams});
-                        ctrl.entityGroup = entityGroup;
-                        return ctrl;
-                    }
+                controller: 'RuleChainsController'
             }
         },
         data: {
@@ -235,14 +228,8 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             pageTitle: 'edge.rulechains',
             ruleChainsType: 'edge'
         },
-        resolve: {
-            entityGroup:
-                function($stateParams, entityGroupService) {
-                    return entityGroupService.constructGroupConfigByStateParams($stateParams);
-            }
-        },
         ncyBreadcrumb: {
-            label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            label: '{"icon": "settings_ethernet", "label": "{{ vm.edge.name }}", "translate": "false"}'
         }
     })
         .state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {

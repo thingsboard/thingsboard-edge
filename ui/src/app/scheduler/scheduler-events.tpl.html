@@ -37,7 +37,7 @@
                                                                   vm.query.search === null">
             <div class="md-toolbar-tools">
                 <span translate>scheduler.scheduler-events</span>
-                <div class="tb-scheduler-events-view-type-toolbar" layout="row" layout-align="start center">
+                <div ng-if="vm.schedulerScope !== 'edge'" class="tb-scheduler-events-view-type-toolbar" layout="row" layout-align="start center">
                     <div class="tb-toolbar-button" ng-class="{'tb-selected' : vm.mode === 'list'}">
                         <md-button class="md-icon-button"
                                    ng-click="vm.mode = 'list'">
@@ -58,16 +58,10 @@
                     </div>
                 </div>
                 <span flex></span>
-                <md-button ng-if="vm.addEnabled && vm.schedulerScope !== 'edge'" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
+                <md-button ng-if="vm.addEnabled" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
-                        {{ 'scheduler.add-scheduler-event' | translate }}
-                    </md-tooltip>
-                </md-button>
-                <md-button ng-if="vm.addEnabled && vm.schedulerScope === 'edge'" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.assignToEdgeSchedulerEvent($event)">
-                    <md-icon>add</md-icon>
-                    <md-tooltip md-direction="top">
-                        {{ 'scheduler.assign-to-edge' | translate }}
+                        {{ vm.addSchedulerEventTitle() }}
                     </md-tooltip>
                 </md-button>
                 <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
@@ -114,7 +108,7 @@
                 <md-button class="md-icon-button" ng-click="vm.deleteSchedulerEvents($event)">
                     <md-icon>delete</md-icon>
                     <md-tooltip md-direction="top">
-                        {{ 'action.delete' | translate }}
+                        {{ vm.deleteSchedulerEventsTitle() }}
                     </md-tooltip>
                 </md-button>
             </div>
@@ -147,7 +141,7 @@
                             </md-button>
                             <md-button ng-if="!vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.view' | translate }}"
                                        ng-click="vm.viewSchedulerEvent($event, schedulerEvent)">
-                                <md-icon aria-label="{{ 'action.view' | translate }}" class="material-icons">mo`re_horiz</md-icon>
+                                <md-icon aria-label="{{ 'action.view' | translate }}" class="material-icons">more_horiz</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.view-scheduler-event' | translate }}
                                 </md-tooltip>
@@ -155,7 +149,7 @@
                             <md-button ng-if="vm.deleteEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="Delete" class="material-icons">delete</md-icon>
                                 <md-tooltip md-direction="top">
-                                    {{ 'scheduler.delete-scheduler-event' | translate }}
+                                    {{ vm.deleteSchedulerEventTitle() }}
                                 </md-tooltip>
                             </md-button>
                         </td>

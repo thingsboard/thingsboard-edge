@@ -257,8 +257,6 @@ export default function RuleChainsController(ruleChainService, userService, edge
                 isEnabled: isNonRootRuleChain
             });
 
-
-
             ruleChainGroupActionsList.push(
                 {
                     onAction: function ($event) {

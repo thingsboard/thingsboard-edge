@@ -486,8 +486,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                     deferred.reject();
                 }
             );
-        }
-        else if ($stateParams.edgeId) {
+        } else if ($stateParams.edgeId) {
             let groupType = $stateParams.childGroupType || $stateParams.groupType;
             edgeService.getEdge($stateParams.edgeId).then(
                 (info) => {

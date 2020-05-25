@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q, customerService, utils) {
+function SchedulerEventService($http, $q, $filter, customerService) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,
@@ -42,101 +42,12 @@ function SchedulerEventService($http, $q, customerService, utils) {
         getSchedulerEventInfo: getSchedulerEventInfo,
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent,
-        updateSchedulerEdgeGroups: updateSchedulerEdgeGroups,
+        assignSchedulerEventToEdge: assignSchedulerEventToEdge,
+        unassignSchedulerEventFromEdge: unassignSchedulerEventFromEdge,
         getEdgeSchedulerEvents: getEdgeSchedulerEvents
     };
 
-    var resolvedData = [
-            {
-                "id": {
-                    "entityType": "SCHEDULER_EVENT",
-                    "id": "23fd8300-9368-11ea-9f7a-5d9b82eb7ee0"
-                },
-                "createdTime": 1589188607792,
-                "additionalInfo": null,
-                "assignedEdgeGroups": null,
-                "tenantId": {
-                    "entityType": "TENANT",
-                    "id": "ab263280-928e-11ea-bf40-57130a664206"
-                },
-                "customerId": {
-                    "entityType": "CUSTOMER",
-                    "id": "13814000-1dd2-11b2-8080-808080808080"
-                },
-                "name": "SCHEDULER 1",
-                "type": "generateReport",
-                "schedule": {
-                    "timezone": "Europe/Kiev",
-                    "startTime": 1589144400000
-                },
-                "ownerId": {
-                    "entityType": "TENANT",
-                    "id": "ad0c2200-952a-11ea-a4d0-b55ea5c970d7"
-                }
-            },
-            {
-                "id": {
-                    "entityType": "SCHEDULER_EVENT",
-                    "id": "002e2c10-9389-11ea-9f7a-5d9b82eb7ee0"
-                },
-                "createdTime": 1589202721105,
-                "additionalInfo": null,
-                "assignedEdgeGroups": null,
-                "tenantId": {
-                    "entityType": "TENANT",
-                    "id": "ab263280-928e-11ea-bf40-57130a664206"
-                },
-                "customerId": {
-                    "entityType": "CUSTOMER",
-                    "id": "13814000-1dd2-11b2-8080-808080808080"
-                },
-                "name": "SCHEDULER 2",
-                "type": "updateAttributes",
-                "schedule": {
-                    "timezone": "Europe/Kiev",
-                    "repeat": {
-                        "type": "WEEKLY",
-                        "endsOn": 1589576400000,
-                        "repeatOn": [
-                            1,
-                            2,
-                            4
-                        ]
-                    },
-                    "startTime": 1589144400000
-                },
-                "ownerId": {
-                    "entityType": "TENANT",
-                    "id": "ad0c2200-952a-11ea-a4d0-b55ea5c970d7"
-                }
-            }
-        ]
-
     return service;
-
-    function getEdgeSchedulerEvents() {
-        var deferred = $q.defer();
-        $http.get('getSchedulerEvents').then(function success() {
-            deferred.resolve(utils.prepareAssignedEdgeGroups(angular.copy(resolvedData), 'Scheduler'));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function updateSchedulerEdgeGroups(edgeId, schedulerEventId) {
-        var deferred = $q.defer();
-
-        resolvedData[0].assignedEdgeGroups = [];
-        resolvedData[0].assignedEdgeGroups.push([{entityGroupId: {edgeId: edgeId, schedulerEventId: schedulerEventId}, name: "All"}]);
-
-        $http.get('updateSchedulerEdgeGroups').then(function success() {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(resolvedData));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
 
     function getSchedulerEvents(type, applyCustomersInfo, config) {
         var deferred = $q.defer();
@@ -229,6 +140,39 @@ function SchedulerEventService($http, $q, customerService, utils) {
             deferred.resolve();
         }, function fail(response) {
             deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function assignSchedulerEventToEdge(edgeId, schedulerEventId) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId + '/schedulerEvent/' + schedulerEventId;
+        $http.post(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function unassignSchedulerEventFromEdge(edgeId, schedulerEventId) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId + '/schedulerEvent/' + schedulerEventId;
+        $http.delete(url).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEdgeSchedulerEvents(edgeId, config) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId + '/schedulerEvents';
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
         });
         return deferred.promise;
     }

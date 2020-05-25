@@ -116,7 +116,7 @@ export default function ManageAssignedEdgeGroupsController($mdDialog, $q, types,
                             promise = entityService.updateRuleChainEdgeGroups(entityId, vm.assignedEdgeGroupIds);
                             break;
                         case 'Scheduler':
-                            promise = entityService.updateSchedulerEdgeGroups();
+                            // promise = entityService.updateSchedulerEdgeGroups();
                             break;
                     }
                     break;
@@ -129,7 +129,7 @@ export default function ManageAssignedEdgeGroupsController($mdDialog, $q, types,
                             promise = entityService.addRuleChainEdgeGroups(entityId, vm.assignedEdgeGroupIds);
                             break;
                         case 'Scheduler':
-                            promise = entityService.addSchedulerEdgeGroups(entityId, vm.assignedEdgeGroupIds);
+                            // promise = entityService.addSchedulerEdgeGroups(entityId, vm.assignedEdgeGroupIds);
                             break;
                     }
                     break;
@@ -142,7 +142,7 @@ export default function ManageAssignedEdgeGroupsController($mdDialog, $q, types,
                             promise = entityService.removeRuleChainEdgeGroups(entityId, vm.assignedEdgeGroupIds);
                             break;
                         case 'Scheduler':
-                            promise = entityService.removeSchedulerEdgeGroups(entityId, vm.assignedEdgeGroupIds);
+                            // promise = entityService.removeSchedulerEdgeGroups(entityId, vm.assignedEdgeGroupIds);
                             break;
                     }
                     break;

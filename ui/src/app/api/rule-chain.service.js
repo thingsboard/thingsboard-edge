@@ -382,7 +382,6 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
     }
 
     function getEdgeRuleChains(edgeId, pageLink, config) {
-        // TODO: voba: implement on server side
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/ruleChains?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.idOffset)) {
@@ -404,7 +403,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/ruleChain/' + ruleChainId;
         $http.post(url, null).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -415,7 +414,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/ruleChain/' + ruleChainId;
         $http.delete(url).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });

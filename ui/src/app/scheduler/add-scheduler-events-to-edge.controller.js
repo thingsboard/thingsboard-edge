@@ -46,41 +46,6 @@ export default function AddSchedulerEventsToEdgeController(schedulerEventService
 
     vm.theSchedulerEvents = schedulerEvents.data;
 
-    // vm.theSchedulerEvents = {
-    //     {
-    //     getItemAtIndex: function (index) {
-    //         if (index > vm.schedulerEvents.data.length) {
-    //             vm.theSchedulerEvents.fetchMoreItems_(index);
-    //             return null;
-    //         }
-    //         return vm.schedulerEvents.data[index];
-    //     },
-    //
-    //     getLength: function () {
-    //         return vm.schedulerEvents.data.length;
-    //     },
-    //
-    //     fetchMoreItems_: function () {
-    //         if (!vm.schedulerEvents.pending) {
-    //             vm.schedulerEvents.pending = true;
-    //             schedulerEventService.getSchedulerEvents(vm.defaultEventType, false).then(
-    //                 function success(schedulerEvents) {
-    //                     vm.schedulerEvents = schedulerEvents;
-    //                     vm.schedulerEvents.nextPageLink = schedulerEvents.nextPageLink;
-    //                     vm.schedulerEvents.hasNext = schedulerEvents.hasNext;
-    //                     if (vm.schedulerEvents.hasNext) {
-    //                         vm.schedulerEvents.nextPageLink.limit = vm.schedulerEvents.pageSize;
-    //                     }
-    //                     vm.schedulerEvents.pending = false;
-    //                 },
-    //                 function fail() {
-    //                     vm.schedulerEvents.hasNext = false;
-    //                     vm.schedulerEvents.pending = false;
-    //                 });
-    //         }
-    //     }
-    // }
-
     function cancel () {
         $mdDialog.cancel();
     }
@@ -88,7 +53,7 @@ export default function AddSchedulerEventsToEdgeController(schedulerEventService
     function assign () {
         var tasks = [];
         for (var schedulerEventId in vm.schedulerEvents.selections) {
-            tasks.push(schedulerEventService.updateSchedulerEdgeGroups(edgeId, schedulerEventId));
+            tasks.push(schedulerEventService.assignSchedulerEventToEdge(edgeId, schedulerEventId));
         }
         $q.all(tasks).then(function () {
             $mdDialog.hide();

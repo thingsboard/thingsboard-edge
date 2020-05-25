@@ -35,7 +35,7 @@ import schedulerTemplate from './scheduler.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function SchedulerRoutes($stateProvider, types) {
+export default function SchedulerRoutes($stateProvider) {
     $stateProvider
         .state('home.scheduler', {
             url: '/scheduler',
@@ -59,38 +59,22 @@ export default function SchedulerRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.schedulerEvents', {
             url: '/:edgeId/schedulerEvents',
-            params: {'childGroupType': types.entityType.schedulerEvent, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: schedulerTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $controller, entityGroup) {
-                            var ctrl = $controller('SchedulerController as vm',{$scope: $scope, $stateParams: $stateParams});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                        }
+                    controller: 'SchedulerController',
+                    controllerAs: 'vm'
                 }
             },
             data: {
-                searchEnabled: true,
+                searchEnabled: false,
                 pageTitle: 'scheduler.scheduler-events',
                 schedulerScope: 'edge'
             },
-            resolve: {
-                entityGroup: EntityGroupResolver
-            },
             ncyBreadcrumb: {
-                label: '{"icon": "schedule", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+                label: '{"icon": "schedule", "label": "{{ vm.edge.name }}", "translate": "false"}'
             }
         });
-
-    /*@ngInject*/
-    function EntityGroupResolver($stateParams, entityGroupService) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams);
-    }
-
 }

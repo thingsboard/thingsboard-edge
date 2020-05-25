@@ -2563,7 +2563,12 @@
         "assigned-edge-groups": "Assigned edge groups",
         "assign-to-edge": "Assign to edge",
         "assign-to-edge-title": "Assign Scheduler Event(s) To Edge",
-        "assign-to-edge-text": "Please select the scheduler events to assign to the edge"
+        "assign-to-edge-text": "Please select the scheduler events to assign to the edge",
+        "unassign-from-edge": "Unassign from edge",
+        "unassign-scheduler-event-from-edge-title": "Are you sure you want to unassign scheduler event '{{schedulerEventName}}'?",
+        "unassign-scheduler-event-from-edge-text": "After the confirmation the scheduler event will be unassigned and won't be accessible by the edge.",
+        "unassign-scheduler-events-from-edge-title": "Unassign { count, plural, 1 {1 scheduler event} other {# scheduler events} } from edge?",
+        "unassign-scheduler-events-from-edge-text": "Be careful, after the confirmation all selected scheduler events will be unassigned and won't be accessible by the edge."
     },
     "report": {
         "report-config": "Report configuration",
