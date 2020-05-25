@@ -154,7 +154,6 @@ buildDeb {
         }
     }
 
-    link("/etc/init.d/${pkgName}", "${pkgInstallFolder}/init/${pkgName}")
     link("/etc/${pkgName}/conf", "${pkgInstallFolder}/conf")
 }
 
