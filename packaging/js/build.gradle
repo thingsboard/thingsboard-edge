@@ -88,6 +88,11 @@ ospackage {
         into "web"
     }
 
+    // Copy chromium files
+    from("${buildDir}/package/linux/chromium") {
+        into "chromium"
+    }
+
 }
 
 // Configure our RPM build task
