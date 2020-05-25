@@ -65,10 +65,6 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
-            <artifactId>proto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
             <artifactId>message</artifactId>
         </dependency>
         <dependency>
