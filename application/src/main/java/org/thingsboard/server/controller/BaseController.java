@@ -977,7 +977,7 @@ public abstract class BaseController {
                                    Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                    List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
         Resource resource = Resource.resourceFromEntityType(entityType);
-        if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN &&
+        if (securityUser.getAuthority() == Authority.TENANT_ADMIN &&
                 securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
             switch (entityType) {
                 case DEVICE:
