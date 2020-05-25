@@ -236,7 +236,10 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ruleChainsType: 'edge'
         },
         resolve: {
-            entityGroup: EntityGroupResolver
+            entityGroup:
+                function($stateParams, entityGroupService) {
+                    return entityGroupService.constructGroupConfigByStateParams($stateParams);
+            }
         },
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
@@ -252,6 +255,11 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
                 templateUrl: ruleChainTemplate,
                 controller: 'RuleChainController',
                 controllerAs: 'vm'
+                // controller:
+                //     function($scope, $stateParams, $controller, entityGroup) {
+                //     var ctrl = $controller('RuleChainController as vm',{$scope: $scope, $stateParams: $stateParams, entityGroup: entityGroup});
+                //     return ctrl;
+                // }
             }
         },
         resolve: {
@@ -281,8 +289,4 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         }
     });
 
-    /*@ngInject*/
-    function EntityGroupResolver($stateParams, entityGroupService) {
-        return entityGroupService.constructGroupConfigByStateParams($stateParams);
-    }
 }
