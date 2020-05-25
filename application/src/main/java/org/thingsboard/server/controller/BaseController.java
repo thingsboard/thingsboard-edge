@@ -148,6 +148,7 @@ import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.EntityGroupPageService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -285,6 +286,9 @@ public abstract class BaseController {
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
+
+    @Autowired
+    protected EntityGroupPageService entityGroupPageService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -959,7 +963,7 @@ public abstract class BaseController {
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                TextPageLink pageLink) throws Exception {
 
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+        return entityGroupPageService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 Collections.emptyList(), Collections.emptyList(), pageLink);
     }
 
@@ -968,156 +972,12 @@ public abstract class BaseController {
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                List<Predicate<E>> entityFilters, TextPageLink pageLink) throws Exception {
 
-        return getGroupEntitiesByPageLink(securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+        return entityGroupPageService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 entityFilters, Collections.emptyList(), pageLink);
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        getGroupEntitiesByPageLink(SecurityUser securityUser, EntityType entityType, Operation operation,
-                                   Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
-                                   List<Predicate<E>> entityFilters, List<I> additionalEntityIds, TextPageLink pageLink) throws Exception {
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (securityUser.getAuthority() == Authority.TENANT_ADMIN &&
-                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-            switch (entityType) {
-                case DEVICE:
-                    return (TextPageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
-                case ASSET:
-                    return (TextPageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
-                case CUSTOMER:
-                    return (TextPageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
-                case USER:
-                    return (TextPageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
-                case DASHBOARD:
-                    return (TextPageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
-                case ENTITY_VIEW:
-                    return (TextPageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
-                default:
-                    throw new RuntimeException("EntityType does not supported: " + entityType);
-            }
-        } else {
-            List<I> entityIds = getEntityIdsFromAllowedGroups(securityUser, entityType, operation, toIdFunction);
-            entityIds.addAll(additionalEntityIds);
-
-            return loadAndFilterEntities(entityIds, toEntitiesFunction, entityFilters, pageLink);
-        }
-    }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
         loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
-            return loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
+            return entityGroupPageService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
     }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, List<Predicate<E>> entityFilters, TextPageLink pageLink) {
-        List<E> entities;
-        if (entityIds.isEmpty()) {
-            entities = Collections.emptyList();
-        } else {
-            entities = toEntitiesFunction.apply(entityIds);
-        }
-        Stream<E> entitiesStream = entities.stream().sorted(entityComparator);
-        for (Predicate<E> entityFilter : entityFilters) {
-            entitiesStream = entitiesStream.filter(entityFilter);
-        }
-        entities = entitiesStream.filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
-        if (pageLink.getLimit() > 0 && entities.size() > pageLink.getLimit()) {
-            int toRemove = entities.size() - pageLink.getLimit();
-            entities.subList(entities.size() - toRemove, entities.size()).clear();
-        }
-        return new TextPageData<>(entities, pageLink);
-    }
-
-    protected Comparator<SearchTextBased<? extends UUIDBased>> entityComparator = (e1, e2) -> {
-        int result = e1.getSearchText().compareToIgnoreCase(e2.getSearchText());
-        if (result == 0) {
-            result = (int)(e2.getCreatedTime() - e1.getCreatedTime());
-        }
-        return result;
-    };
-
-    protected class EntityPageLinkFilter implements Predicate<SearchTextBased<? extends UUIDBased>> {
-
-        private final String textSearch;
-        private final String textOffset;
-        private final long createdTimeOffset;
-
-        EntityPageLinkFilter(TextPageLink pageLink) {
-            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
-                this.textSearch = pageLink.getTextSearch().toLowerCase();
-            } else {
-                this.textSearch = "";
-            }
-            if (!StringUtils.isEmpty(pageLink.getTextOffset())) {
-                this.textOffset = pageLink.getTextOffset();
-            } else {
-                this.textOffset = "";
-            }
-            if (pageLink.getIdOffset() != null) {
-                createdTimeOffset = UUIDs.unixTimestamp(pageLink.getIdOffset());
-            } else {
-                createdTimeOffset = Long.MAX_VALUE;
-            }
-        }
-
-        @Override
-        public boolean test(SearchTextBased<? extends UUIDBased> searchTextBased) {
-            if (textOffset.length() > 0) {
-                int result = searchTextBased.getSearchText().compareToIgnoreCase(textOffset);
-                if (result == 0 && searchTextBased.getCreatedTime() < createdTimeOffset) {
-                    return true;
-                } else if (result > 0 && searchTextBased.getSearchText().toLowerCase().startsWith(textSearch)) {
-                    return true;
-                }
-            } else if (textSearch.length() > 0) {
-                return searchTextBased.getSearchText().toLowerCase().startsWith(textSearch);
-            } else {
-                return true;
-            }
-            return false;
-        }
-    }
-
-    protected <I extends EntityId> List<I> getEntityIdsFromAllowedGroups(SecurityUser securityUser,
-                                                                         EntityType entityType,
-                                                                         Operation operation,
-                                                                         Function<EntityId, I> toIdFunction) throws Exception {
-        MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
-        if (operation == Operation.READ) {
-            groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
-        }
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
-                (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
-
-            Set<EntityId> entityIds = new HashSet<>();
-            Set<EntityGroupId> groupIds = new HashSet<>();
-            if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), securityUser.getOwnerId());
-                for (EntityId ownerId : ownerIds) {
-                    Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), ownerId,
-                            entityType, EntityGroup.GROUP_ALL_NAME).get();
-                    if (entityGroup.isPresent()) {
-                        groupIds.add(entityGroup.get().getId());
-                    }
-                }
-            }
-            if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-                groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
-            }
-            for (EntityGroupId groupId : groupIds) {
-                entityIds.addAll(entityGroupService.findAllEntityIds(getTenantId(), groupId, new TimePageLink(Integer.MAX_VALUE)).get());
-            }
-            if (!entityIds.isEmpty()) {
-                List<I> entityIdsList = new ArrayList<>();
-                entityIds.forEach((entityId) -> entityIdsList.add(toIdFunction.apply(entityId)));
-                return entityIdsList;
-            } else {
-                return Collections.emptyList();
-            }
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
 }
