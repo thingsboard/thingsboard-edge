@@ -774,6 +774,8 @@ public class CloudManagerService {
                     userService.saveUserCredentials(tenantId, userCredentials);
 
                     addEntityToGroup(userUpdateMsg.getGroupName(), savedUser.getId(), EntityType.USER);
+
+                    addEntityToGroup("Tenant Users", savedUser.getId(), EntityType.USER);
                 } finally {
                     userCreationLock.unlock();
                 }
