@@ -32,6 +32,7 @@ package org.thingsboard.server.service.security.auth.oauth2;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -190,7 +191,7 @@ public abstract class AbstractOAuth2ClientMapper {
                 if (dashboardIdOpt.isPresent()) {
                     user = userService.findUserById(user.getTenantId(), user.getId());
                     JsonNode additionalInfo = user.getAdditionalInfo();
-                    if (additionalInfo == null) {
+                    if (additionalInfo == null || additionalInfo instanceof NullNode) {
                         additionalInfo = mapper.createObjectNode();
                     }
                     ((ObjectNode) additionalInfo).put("defaultDashboardFullscreen", oauth2User.isAlwaysFullScreen());
