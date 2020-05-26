@@ -256,7 +256,7 @@ public class DashboardController extends BaseController {
                 }
             }
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(securityUser, EntityType.DASHBOARD, operationType, pageLink,
+            return ownersCacheService.getGroupEntities(getTenantId(), securityUser, EntityType.DASHBOARD, operationType, pageLink,
                     (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink)
             );
         } catch (Exception e) {

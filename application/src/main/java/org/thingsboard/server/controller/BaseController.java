@@ -155,17 +155,14 @@ import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -1020,68 +1017,4 @@ public abstract class BaseController {
             }
         }
     }
-
-    protected <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
-    getGroupEntities(SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
-                     Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())  &&
-                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-            switch (entityType) {
-                case DEVICE:
-                    return (PageData<E>) deviceService.findDevicesByTenantId(getTenantId(), pageLink);
-                case ASSET:
-                    return (PageData<E>) assetService.findAssetsByTenantId(getTenantId(), pageLink);
-                case CUSTOMER:
-                    return (PageData<E>) customerService.findCustomersByTenantId(getTenantId(), pageLink);
-                case USER:
-                    return (PageData<E>) userService.findUsersByTenantId(getTenantId(), pageLink);
-                case DASHBOARD:
-                    return (PageData<E>) dashboardService.findDashboardsByTenantId(getTenantId(), pageLink);
-                case ENTITY_VIEW:
-                    return (PageData<E>) entityViewService.findEntityViewByTenantId(getTenantId(), pageLink);
-                default:
-                    throw new RuntimeException("EntityType does not supported: " + entityType);
-            }
-        } else {
-            List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(securityUser, entityType, operation);
-            if (!groupIds.isEmpty()) {
-                return getEntitiesFunction.apply(groupIds);
-            } else {
-                return PageData.emptyPageData();
-            }
-        }
-    }
-
-    protected List<EntityGroupId> getAllowedEntityGroupIds(SecurityUser securityUser,
-                                                           EntityType entityType,
-                                                           Operation operation) throws Exception {
-        MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
-        if (operation == Operation.READ) {
-            groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
-        }
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
-                (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
-
-            Set<EntityGroupId> groupIds = new HashSet<>();
-            if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
-                Set<EntityId> ownerIds = ownersCacheService.getChildOwners(getTenantId(), securityUser.getOwnerId());
-                for (EntityId ownerId : ownerIds) {
-                    Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), ownerId,
-                            entityType, EntityGroup.GROUP_ALL_NAME).get();
-                    if (entityGroup.isPresent()) {
-                        groupIds.add(entityGroup.get().getId());
-                    }
-                }
-            }
-            if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-                groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
-            }
-            return new ArrayList<>(groupIds);
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
 }

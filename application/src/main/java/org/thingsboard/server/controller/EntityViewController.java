@@ -305,7 +305,7 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, pageLink,
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, pageLink,
                     (groupIds) -> {
                         if (type != null && type.trim().length() > 0) {
                             return entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
