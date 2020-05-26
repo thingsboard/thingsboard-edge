@@ -557,7 +557,9 @@ public class EntityGroupController extends BaseController {
                     owners.addAll(customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), customerIds).get()
                             .stream().filter(customer -> !customer.isPublic()).collect(Collectors.toList()));
                 }
-                owners = owners.stream().sorted(entityComparator).filter(new EntityPageLinkFilter(pageLink)).collect(Collectors.toList());
+                owners = owners.stream().sorted(ownersCacheService.entityComparator())
+                        .filter(ownersCacheService.entityPageLinkFilter(pageLink))
+                        .collect(Collectors.toList());
                 if (pageLink.getLimit() > 0 && owners.size() > pageLink.getLimit()) {
                     int toRemove = owners.size() - pageLink.getLimit();
                     owners.subList(owners.size() - toRemove, owners.size()).clear();
