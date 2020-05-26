@@ -104,6 +104,7 @@ interface AlarmsTableWidgetSettings extends TableWidgetSettings {
   alarmsTitle: string;
   enableSelection: boolean;
   enableStatusFilter: boolean;
+  enableStickyAction: boolean;
   displayDetails: boolean;
   allowAcknowledgment: boolean;
   allowClear: boolean;
@@ -132,6 +133,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   public readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
   public enableSelection = true;
   public displayPagination = true;
+  public enableStickyAction = false;
   public pageSizeOptions;
   public pageLink: PageLink;
   public sortOrderProperty: string;
@@ -303,6 +305,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     }
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
+    this.enableStickyAction = isDefined(this.settings.enableStickyAction) ? this.settings.enableStickyAction : false;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
     this.statusFilterAction.show = isDefined(this.settings.enableStatusFilter) ? this.settings.enableStatusFilter : true;
 
