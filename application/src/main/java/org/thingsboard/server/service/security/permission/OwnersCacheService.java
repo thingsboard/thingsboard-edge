@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -43,8 +44,15 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 
 public interface OwnersCacheService {
@@ -76,4 +84,8 @@ public interface OwnersCacheService {
     void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException;
 
     boolean isChildOwner(TenantId tenantId, CustomerId parentOwnerId, CustomerId childOwnerId);
+
+    <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
+    getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
+                     Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception;
 }

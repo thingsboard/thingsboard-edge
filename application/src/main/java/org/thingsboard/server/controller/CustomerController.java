@@ -240,7 +240,7 @@ public class CustomerController extends BaseController {
                     accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
                 additionalCustomerIds.add(getCurrentUser().getCustomerId());
             }
-            return getGroupEntities(getCurrentUser(), EntityType.CUSTOMER, Operation.READ, pageLink,
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.CUSTOMER, Operation.READ, pageLink,
                     (groupIds) -> customerService.findCustomersByEntityGroupIds(groupIds, additionalCustomerIds, pageLink)
             );
         } catch (Exception e) {

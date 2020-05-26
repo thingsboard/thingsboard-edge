@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -58,8 +59,15 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -70,8 +78,11 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -248,6 +259,71 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     @Override
     public boolean isChildOwner(TenantId tenantId, CustomerId parentOwnerId, CustomerId childOwnerId) {
         return getChildOwners(tenantId, parentOwnerId).stream().anyMatch(childOwnerId::equals);
+    }
+
+    @Override
+    public <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
+    getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
+                     Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())  &&
+                securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+            switch (entityType) {
+                case DEVICE:
+                    return (PageData<E>) deviceService.findDevicesByTenantId(tenantId, pageLink);
+                case ASSET:
+                    return (PageData<E>) assetService.findAssetsByTenantId(tenantId, pageLink);
+                case CUSTOMER:
+                    return (PageData<E>) customerService.findCustomersByTenantId(tenantId, pageLink);
+                case USER:
+                    return (PageData<E>) userService.findUsersByTenantId(tenantId, pageLink);
+                case DASHBOARD:
+                    return (PageData<E>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+                case ENTITY_VIEW:
+                    return (PageData<E>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+                default:
+                    throw new RuntimeException("EntityType does not supported: " + entityType);
+            }
+        } else {
+            List<EntityGroupId> groupIds = this.getAllowedEntityGroupIds(tenantId, securityUser, entityType, operation);
+            if (!groupIds.isEmpty()) {
+                return getEntitiesFunction.apply(groupIds);
+            } else {
+                return PageData.emptyPageData();
+            }
+        }
+    }
+
+    private List<EntityGroupId> getAllowedEntityGroupIds(TenantId tenantId,
+                                                         SecurityUser securityUser,
+                                                         EntityType entityType,
+                                                         Operation operation) throws Exception {
+        MergedGroupTypePermissionInfo groupTypePermissionInfo = null;
+        if (operation == Operation.READ) {
+            groupTypePermissionInfo = securityUser.getUserPermissions().getReadGroupPermissions().get(entityType);
+        }
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        if (securityUser.getUserPermissions().hasGenericPermission(resource, operation) ||
+                (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty())) {
+
+            Set<EntityGroupId> groupIds = new HashSet<>();
+            if (securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
+                Set<EntityId> ownerIds = getChildOwners(tenantId, securityUser.getOwnerId());
+                for (EntityId ownerId : ownerIds) {
+                    Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
+                            entityType, EntityGroup.GROUP_ALL_NAME).get();
+                    if (entityGroup.isPresent()) {
+                        groupIds.add(entityGroup.get().getId());
+                    }
+                }
+            }
+            if (groupTypePermissionInfo != null && !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                groupIds.addAll(groupTypePermissionInfo.getEntityGroupIds());
+            }
+            return new ArrayList<>(groupIds);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private EntityId fetchOwnerId(TenantId tenantId, EntityId entityId) {

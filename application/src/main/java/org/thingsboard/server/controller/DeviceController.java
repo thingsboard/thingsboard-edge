@@ -307,7 +307,7 @@ public class DeviceController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return getGroupEntities(getCurrentUser(), EntityType.DEVICE, Operation.READ, pageLink,
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.DEVICE, Operation.READ, pageLink,
                     (groupIds) -> {
                         if (type != null && type.trim().length() > 0) {
                             return deviceService.findDevicesByEntityGroupIdsAndType(groupIds, type, pageLink);
