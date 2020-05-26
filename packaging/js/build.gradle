@@ -88,6 +88,11 @@ ospackage {
         into "web"
     }
 
+    // Copy chromium files
+    from("${buildDir}/package/linux/chromium") {
+        into "chromium"
+    }
+
 }
 
 // Configure our RPM build task
@@ -107,10 +112,13 @@ buildRpm {
     permissionGroup pkgUser
 
     // Copy the system unit files
-    from("${buildDir}/control/${pkgName}.service") {
+    from("${buildDir}/control/template.service") {
         addParentDirs = false
         fileMode 0644
         into "/usr/lib/systemd/system"
+        rename { String filename ->
+            "${pkgName}.service"
+        }
     }
 
     link("/etc/${pkgName}/conf", "${pkgInstallFolder}/conf")
@@ -136,7 +144,16 @@ buildDeb {
     user pkgUser
     permissionGroup pkgUser
 
-    link("/etc/init.d/${pkgName}", "${pkgInstallFolder}/init/${pkgName}")
+    // Copy the system unit files
+    from("${buildDir}/control/template.service") {
+        addParentDirs = false
+        fileMode 0644
+        into "/lib/systemd/system"
+        rename { String filename ->
+            "${pkgName}.service"
+        }
+    }
+
     link("/etc/${pkgName}/conf", "${pkgInstallFolder}/conf")
 }
 

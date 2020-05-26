@@ -415,7 +415,7 @@ public abstract class AbstractControllerTest {
     }
 
     protected <T> ResultActions doPost(String urlTemplate, T content, String... params) throws Exception {
-        MockHttpServletRequestBuilder postRequest = post(urlTemplate);
+        MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
         setJwtToken(postRequest);
         String json = json(content);
         postRequest.contentType(contentType).content(json);
