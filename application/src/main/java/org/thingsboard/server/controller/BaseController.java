@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -94,7 +93,6 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -106,7 +104,6 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -148,27 +145,20 @@ import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.EntityGroupPageService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -286,9 +276,6 @@ public abstract class BaseController {
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
-
-    @Autowired
-    protected EntityGroupPageService entityGroupPageService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -963,7 +950,7 @@ public abstract class BaseController {
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                TextPageLink pageLink) throws Exception {
 
-        return entityGroupPageService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+        return ownersCacheService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 Collections.emptyList(), Collections.emptyList(), pageLink);
     }
 
@@ -972,12 +959,12 @@ public abstract class BaseController {
                                Function<EntityId, I> toIdFunction, Function<List<I>, List<E>> toEntitiesFunction,
                                List<Predicate<E>> entityFilters, TextPageLink pageLink) throws Exception {
 
-        return entityGroupPageService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
+        return ownersCacheService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 entityFilters, Collections.emptyList(), pageLink);
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
         loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
-            return entityGroupPageService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
+            return ownersCacheService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
     }
 }

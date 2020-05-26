@@ -57,8 +57,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -66,7 +64,7 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.permission.EntityGroupPageService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.io.IOException;
@@ -102,7 +100,7 @@ public abstract class AbstractOAuth2ClientMapper {
     private EntityGroupService entityGroupService;
 
     @Autowired
-    private EntityGroupPageService entityGroupPageService;
+    private OwnersCacheService ownersCacheService;
 
     @Autowired
     private DashboardService dashboardService;
@@ -207,7 +205,7 @@ public abstract class AbstractOAuth2ClientMapper {
     }
 
     private Optional<DashboardId> findDefaultDashboard(OAuth2User oauth2User, SecurityUser securityUser, TenantId tenantId) throws Exception {
-        return entityGroupPageService.getGroupEntitiesByPageLink(tenantId, securityUser,
+        return ownersCacheService.getGroupEntitiesByPageLink(tenantId, securityUser,
                 EntityType.DASHBOARD, Operation.READ,
                 entityId -> new DashboardId(entityId.getId()),
                 (entityIds) -> {

@@ -243,7 +243,7 @@ public class CustomerController extends BaseController {
                     accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
                 customerIds.add(getCurrentUser().getCustomerId());
             }
-            return entityGroupPageService.getGroupEntitiesByPageLink(getTenantId(), getCurrentUser(), EntityType.CUSTOMER, Operation.READ,
+            return ownersCacheService.getGroupEntitiesByPageLink(getTenantId(), getCurrentUser(), EntityType.CUSTOMER, Operation.READ,
                     entityId -> new CustomerId(entityId.getId()),
                     (entityIds) -> {
                         try {
