@@ -28,21 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.aws.kinesis;
+package org.thingsboard.server.common.data;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 
-@Data
-public class KinesisClientConfiguration {
-
-    private String streamName;
-    private String region;
-    private String accessKeyId;
-    private String secretAccessKey;
-    private boolean useConsumersWithEnhancedFanOut;
-    private boolean useCredentialsFromInstanceMetadata;
-    private String applicationName;
-    private String initialPositionInStream;
-    private Integer maxRecords;
-    private Long requestTimeout;
+public interface GroupEntity<I extends EntityId> extends HasId<I>, HasName, TenantEntity, HasCustomerId, HasOwnerId {
 }

@@ -101,8 +101,9 @@ public class AlarmController extends BaseController {
     public Alarm saveAlarm(@RequestBody Alarm alarm) throws ThingsboardException {
         try {
             alarm.setTenantId(getCurrentUser().getTenantId());
-            Operation operation = alarm.getId() == null ? Operation.CREATE : Operation.WRITE;
-            accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, operation, alarm.getId(), alarm);
+
+            checkEntity(alarm.getId(), alarm, Resource.ALARM, null);
+
             Alarm savedAlarm = checkNotNull(alarmService.createOrUpdateAlarm(alarm));
             logEntityAction(savedAlarm.getId(), savedAlarm,
                     getCurrentUser().getCustomerId(),

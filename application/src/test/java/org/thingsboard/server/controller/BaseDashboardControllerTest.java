@@ -113,6 +113,17 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     }
 
     @Test
+    public void testUpdateDashboardFromDifferentTenant() throws Exception {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle("My dashboard");
+        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
+
+        loginDifferentTenant();
+        doPost("/api/dashboard", savedDashboard, Dashboard.class, status().isForbidden());
+        deleteDifferentTenant();
+    }
+    
+    @Test
     public void testFindDashboardById() throws Exception {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");

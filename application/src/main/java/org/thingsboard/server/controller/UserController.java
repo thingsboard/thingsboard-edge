@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -173,35 +172,43 @@ public class UserController extends BaseController {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
 
-            Operation operation = user.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
-                    (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
-                user.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
             EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
                 entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             }
 
-            if (operation == Operation.CREATE || !getCurrentUser().getId().equals(user.getId())) {
-                accessControlService.checkPermission(getCurrentUser(), Resource.USER, operation,
-                        user.getId(), user, entityGroupId);
-            } else if (getCurrentUser().getId().equals(user.getId())) {
+            if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
+                    (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
+                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    user.setOwnerId(getCurrentUser().getCustomerId());
+                }
+            }
+
+            if (getCurrentUser().getId().equals(user.getId())) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
+            } else {
+                checkEntity(user.getId(), user, Resource.USER, entityGroupId);
             }
 
             boolean sendEmail = user.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(user));
 
             // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-            if (operation == Operation.CREATE && Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+            if (user.getId() == null && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
                 EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-            } else if (entityGroupId != null && operation == Operation.CREATE) {
+                logEntityAction(savedUser.getId(), savedUser,
+                        savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedUser.getId().toString(), admins.getId().toString(), admins.getName());
+            } else if (entityGroup != null && user.getId() == null) {
                 entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedUser.getId());
+                logEntityAction(savedUser.getId(), savedUser,
+                        savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
             }
 
             if (sendEmail) {

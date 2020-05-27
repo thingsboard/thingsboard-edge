@@ -116,10 +116,7 @@ public class ConverterController extends BaseController {
             converter.setTenantId(getCurrentUser().getTenantId());
             boolean created = converter.getId() == null;
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation,
-                    converter.getId(), converter);
+            checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
             tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),

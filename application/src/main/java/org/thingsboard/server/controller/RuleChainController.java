@@ -140,10 +140,7 @@ public class RuleChainController extends BaseController {
             boolean created = ruleChain.getId() == null;
             ruleChain.setTenantId(getCurrentUser().getTenantId());
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, operation,
-                    ruleChain.getId(), ruleChain);
+            checkEntity(ruleChain.getId(), ruleChain, Resource.RULE_CHAIN, null);
 
             RuleChain savedRuleChain = checkNotNull(ruleChainService.saveRuleChain(ruleChain));
 

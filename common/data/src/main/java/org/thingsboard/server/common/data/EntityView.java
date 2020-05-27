@@ -48,7 +48,7 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
-        implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+        implements GroupEntity<EntityViewId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 

@@ -98,41 +98,7 @@ public class AssetController extends BaseController {
     @ResponseBody
     public Asset saveAsset(@RequestBody Asset asset,
                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            asset.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = asset.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
-                    (asset.getCustomerId() == null || asset.getCustomerId().isNullUid())) {
-                asset.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation,
-                    asset.getId(), asset, entityGroupId);
-
-            Asset savedAsset  = checkNotNull(assetService.saveAsset(asset));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedAsset.getId());
-            }
-
-            logEntityAction(savedAsset.getId(), savedAsset,
-                    savedAsset.getCustomerId(),
-                    asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            return  savedAsset;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ASSET), asset,
-                    null, asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        return saveGroupEntity(asset, strEntityGroupId, assetService::saveAsset);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")

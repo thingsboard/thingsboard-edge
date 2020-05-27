@@ -31,18 +31,30 @@
 package org.thingsboard.integration.aws.kinesis;
 
 import lombok.Data;
+import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
+import software.amazon.kinesis.retrieval.RecordsFetcherFactory;
+import software.amazon.kinesis.retrieval.RetrievalFactory;
+import software.amazon.kinesis.retrieval.RetrievalSpecificConfig;
+import software.amazon.kinesis.retrieval.polling.SimpleRecordsFetcherFactory;
+import software.amazon.kinesis.retrieval.polling.SynchronousBlockingRetrievalFactory;
+
+import java.time.Duration;
 
 @Data
-public class KinesisClientConfiguration {
+public class KinesisPollingConfig implements RetrievalSpecificConfig {
 
-    private String streamName;
-    private String region;
-    private String accessKeyId;
-    private String secretAccessKey;
-    private boolean useConsumersWithEnhancedFanOut;
-    private boolean useCredentialsFromInstanceMetadata;
-    private String applicationName;
-    private String initialPositionInStream;
-    private Integer maxRecords;
-    private Long requestTimeout;
+    private final String streamName;
+
+    private final KinesisAsyncClient kinesisClient;
+
+    private int maxRecords = 10000;
+
+    private Duration kinesisRequestTimeout = Duration.ofSeconds(30);
+
+    private RecordsFetcherFactory recordsFetcherFactory = new SimpleRecordsFetcherFactory();
+
+    @Override
+    public RetrievalFactory retrievalFactory() {
+        return new SynchronousBlockingRetrievalFactory(streamName, kinesisClient, recordsFetcherFactory, maxRecords, kinesisRequestTimeout);
+    }
 }

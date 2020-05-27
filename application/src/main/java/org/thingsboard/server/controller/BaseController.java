@@ -42,6 +42,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -49,10 +50,14 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -76,6 +81,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -163,6 +169,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -472,11 +479,66 @@ public abstract class BaseController {
         }
     }
 
+    protected <I extends EntityId, T extends GroupEntity<I>> T
+                saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
+        try {
+            entity.setTenantId(getCurrentUser().getTenantId());
+
+            EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            }
+            if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
+                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    entity.setOwnerId(getCurrentUser().getCustomerId());
+                }
+            }
+
+            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+
+            T savedEntity = checkNotNull(saveEntityFunction.apply(entity));
+
+            if (entityGroup != null && entity.getId() == null) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntity.getId());
+                logEntityAction(savedEntity.getId(), savedEntity,
+                        savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
+            }
+
+            logEntityAction(savedEntity.getId(), savedEntity,
+                    savedEntity.getCustomerId(),
+                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            return savedEntity;
+
+        } catch (Exception e) {
+            logEntityAction(emptyId(entity.getEntityType()), entity,
+                    null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            throw handleException(e);
+        }
+    }
+
+    protected <I extends EntityId, T extends TenantEntity> void checkEntity(I entityId, T entity, Resource resource, EntityGroupId entityGroupId) throws ThingsboardException {
+        if (entityId == null) {
+            accessControlService
+                    .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity, entityGroupId);
+        } else {
+            checkEntityId(entityId, Operation.WRITE);
+        }
+    }
+
     protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             checkNotNull(entityId);
             validateId(entityId.getId(), "Incorrect entityId " + entityId);
             switch (entityId.getEntityType()) {
+                case ALARM:
+                    checkAlarmId(new AlarmId(entityId.getId()), operation);
+                    return;
                 case DEVICE:
                     checkDeviceId(new DeviceId(entityId.getId()), operation);
                     return;
@@ -521,6 +583,15 @@ public abstract class BaseController {
                     return;
                 case ROLE:
                     checkRoleId(new RoleId(entityId.getId()), operation);
+                    return;
+                case WIDGETS_BUNDLE:
+                    checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
+                    return;
+                case WIDGET_TYPE:
+                    checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                    return;
+                case GROUP_PERMISSION:
+                    checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());

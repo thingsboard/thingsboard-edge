@@ -107,10 +107,7 @@ public class IntegrationController extends BaseController {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean created = integration.getId() == null;
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
-                    integration.getId(), integration);
+            checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
             platformIntegrationService.validateIntegrationConfiguration(integration);
 

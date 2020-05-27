@@ -112,41 +112,11 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            TenantId tenantId = getTenantId();
-            device.setTenantId(tenantId);
-
-            Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
-                    (device.getCustomerId() == null || device.getCustomerId().isNullUid())) {
-                device.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
-                    device.getId(), device, entityGroupId);
-
-            Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
+            Device savedDevice = saveGroupEntity(device, strEntityGroupId,
+                    device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
-
-            logEntityAction(savedDevice.getId(), savedDevice,
-                    savedDevice.getCustomerId(),
-                    device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedDevice.getId());
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-                logEntityAction(savedDevice.getId(), savedDevice,
-                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                        savedDevice.getId().toString(), strEntityGroupId, entityGroup.getName());
-            }
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
@@ -155,8 +125,6 @@ public class DeviceController extends BaseController {
             }
             return savedDevice;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
