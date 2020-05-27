@@ -523,8 +523,13 @@ public abstract class BaseController {
 
     protected <I extends EntityId, T extends TenantEntity> void checkEntity(I entityId, T entity, Resource resource, EntityGroupId entityGroupId) throws ThingsboardException {
         if (entityId == null) {
-            accessControlService
-                    .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity, entityGroupId);
+            if (entityGroupId == null) {
+                accessControlService
+                        .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity);
+            } else {
+                accessControlService
+                        .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity, entityGroupId);
+            }
         } else {
             checkEntityId(entityId, Operation.WRITE);
         }
