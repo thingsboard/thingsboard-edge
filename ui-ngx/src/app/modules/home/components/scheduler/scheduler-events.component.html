@@ -31,8 +31,7 @@
 
 -->
 <div class="mat-padding tb-scheduler-events tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
-  <div [fxShow]="showData"
-       fxFlex fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
+  <div [fxShow]="showData" fxLayout="column" class="tb-scheduler-events-content" [ngClass]="{'mat-elevation-z1': !widgetMode}">
     <mat-toolbar class="mat-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else schedulerEventsTitle" class="tb-scheduler-events-title">{{ctx.widgetTitle}}</span>
@@ -44,7 +43,7 @@
              fxLayout="row"
              fxLayoutAlign="start center">
           <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'list'}">
-            <button mat-button mat-icon-button
+            <button mat-icon-button
                     (click)="mode = 'list'; triggerResize();"
                     matTooltip="{{'scheduler.list-mode' | translate }}"
                     matTooltipPosition="below">
@@ -52,7 +51,7 @@
             </button>
           </div>
           <div class="tb-toolbar-button" [ngClass]="{'tb-selected' : mode === 'calendar'}">
-            <button mat-button mat-icon-button
+            <button mat-icon-button
                     (click)="dataSource.selection.clear(); mode = 'calendar'; triggerResize();"
                     matTooltip="{{'scheduler.calendar-mode' | translate }}"
                     matTooltipPosition="below">
@@ -60,36 +59,36 @@
             </button>
           </div>
         </div>
-      </div>
-      <section *ngIf="!widgetMode" fxFlex fxLayout="row">
         <span fxFlex></span>
-        <button *ngIf="addEnabled"
-                [disabled]="isLoading$ | async"
-                mat-button mat-icon-button
-                (click)="addSchedulerEvent($event)"
-                matTooltip="{{'scheduler.add-scheduler-event' | translate }}"
-                matTooltipPosition="above">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button [disabled]="isLoading$ | async"
-                mat-button mat-icon-button
-                (click)="enterFilterMode()"
-                matTooltip="{{'action.search' | translate }}"
-                matTooltipPosition="above">
-          <mat-icon>search</mat-icon>
-        </button>
-        <button [disabled]="isLoading$ | async"
-                mat-button mat-icon-button
-                (click)="reloadSchedulerEvents()"
-                matTooltip="{{'action.refresh' | translate }}"
-                matTooltipPosition="above">
-          <mat-icon>refresh</mat-icon>
-        </button>
-      </section>
+        <section *ngIf="!widgetMode">
+          <button *ngIf="addEnabled"
+                  [disabled]="isLoading$ | async"
+                  mat-icon-button
+                  (click)="addSchedulerEvent($event)"
+                  matTooltip="{{'scheduler.add-scheduler-event' | translate }}"
+                  matTooltipPosition="above">
+            <mat-icon>add</mat-icon>
+          </button>
+          <button [disabled]="isLoading$ | async"
+                  mat-icon-button
+                  (click)="enterFilterMode()"
+                  matTooltip="{{'action.search' | translate }}"
+                  matTooltipPosition="above">
+            <mat-icon>search</mat-icon>
+          </button>
+          <button [disabled]="isLoading$ | async"
+                  mat-icon-button
+                  (click)="reloadSchedulerEvents()"
+                  matTooltip="{{'action.refresh' | translate }}"
+                  matTooltipPosition="above">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </section>
+      </div>
     </mat-toolbar>
     <mat-toolbar class="mat-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
-        <button mat-button mat-icon-button
+        <button mat-icon-button
                 matTooltip="{{ 'scheduler.search-scheduler-events' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
@@ -100,7 +99,7 @@
                  [(ngModel)]="pageLink.textSearch"
                  placeholder="{{ 'scheduler.search-scheduler-events' | translate }}"/>
         </mat-form-field>
-        <button mat-button mat-icon-button (click)="exitFilterMode()"
+        <button mat-icon-button (click)="exitFilterMode()"
                 matTooltip="{{ 'action.close' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>close</mat-icon>
@@ -113,7 +112,7 @@
                   {{ translate.get('scheduler.selected-scheduler-events', {count: dataSource.selection.selected.length}) | async }}
                 </span>
         <span fxFlex></span>
-        <button mat-button mat-icon-button [disabled]="isLoading$ | async"
+        <button mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
                 (click)="deleteSchedulerEvents($event)">
@@ -218,7 +217,7 @@
         </h2>
         <mat-form-field class="mat-block" fxFlex style="margin-left: 16px; margin-right: 16px;">
           <mat-label translate>scheduler.calendar-view-type</mat-label>
-          <mat-select matInput [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
+          <mat-select [(ngModel)]="currentCalendarView" (ngModelChange)="changeCalendarView()">
             <mat-option *ngFor="let viewType of schedulerCalendarViews" [value]="viewType">
               {{ schedulerCalendarViewTranslations.get(viewType) | translate }}
             </mat-option>

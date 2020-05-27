@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div style="width: 600px;">
-  <mat-toolbar fxLayout="row" color="primary">
+<div style="width: min(480px, 100vw);">
+  <mat-toolbar color="primary">
     <h2 translate>white-labeling.advanced-css</h2>
     <span fxFlex></span>
     <button mat-button mat-icon-button
@@ -64,17 +64,15 @@
       </div>
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions fxLayoutAlign="end center">
     <button *ngIf="!readonly"
-            mat-button mat-raised-button color="primary"
+            mat-raised-button color="primary"
             type="button"
             (click)="save()"
             [disabled]="(isLoading$ | async) || !valid || !isDirty">
       {{ 'action.save' | translate }}
     </button>
     <button mat-button color="primary"
-            style="margin-right: 20px;"
             type="button"
             [disabled]="(isLoading$ | async)"
             (click)="cancel()" cdkFocusInitial>

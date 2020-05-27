@@ -69,7 +69,7 @@
     <mat-checkbox fxFlex formControlName="useDashboardTimewindow" style="padding-bottom: 16px;">
       {{ 'report.use-dashboard-timewindow' | translate }}
     </mat-checkbox>
-    <section fxFlex fxLayout="row" fxLayoutAlign="start center" style="margin-bottom: 16px;">
+    <section fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutAlign="start center" fxLayoutAlign.xs="center start" style="margin-bottom: 16px;">
       <span [ngClass]="{'tb-disabled-label': reportConfigFormGroup.get('useDashboardTimewindow').value}"
             translate style="padding-right: 8px;">report.timewindow</span>
       <tb-timewindow
@@ -111,7 +111,7 @@
     </tb-entity-autocomplete>
   </div>
   <div fxLayout="row">
-    <button *ngIf="!disabled" mat-button mat-raised-button color="primary"
+    <button *ngIf="!disabled" mat-raised-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async) || reportConfigFormGroup.invalid"
             (click)="generateTestReport()">

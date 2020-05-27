@@ -43,16 +43,16 @@
     </mat-progress-bar>
     <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
     <mat-card-content style="padding-top: 16px;">
-      <div fxLayout="row" style="width: 100%;" fxLayoutGap="8px" fxLayoutAlign="start center">
+      <div fxLayout="row" fxLayout.xs="column" style="width: 100%;" fxLayoutGap="8px" fxLayoutAlign.gt-xs="start center">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>language.language</mat-label>
-          <mat-select matInput [(ngModel)]="currentLang">
+          <mat-select [(ngModel)]="currentLang">
             <mat-option *ngFor="let lang of languageList" [value]="lang">
               {{ lang ? ('language.locales.' + lang | translate) : ''}}
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-button mat-raised-button (click)="downloadLocaleJson()">{{'custom-translation.download-locale-file' | translate }}</button>
+        <button mat-raised-button (click)="downloadLocaleJson()">{{'custom-translation.download-locale-file' | translate }}</button>
       </div>
       <form #customTranslationForm="ngForm" (ngSubmit)="save()">
         <div tb-toast toastTarget="tb-custom-translation-panel" fxFlex fxLayout="column">
