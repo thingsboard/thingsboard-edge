@@ -34,7 +34,7 @@ import { HttpClient } from '@angular/common/http';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
 import { BlobEntityInfo, BlobEntityWithCustomerInfo } from '@shared/models/blob-entity.models';
-import { PageLink, TimePageLink } from '@shared/models/page/page-link';
+import { TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { map } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';

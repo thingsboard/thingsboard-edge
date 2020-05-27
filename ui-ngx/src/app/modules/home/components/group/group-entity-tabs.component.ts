@@ -32,7 +32,6 @@
 import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Device } from '@shared/models/device.models';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { PageLink } from '@shared/models/page/page-link';

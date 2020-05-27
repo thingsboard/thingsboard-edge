@@ -63,9 +63,11 @@ import {
   CSV_TYPE,
   FileType,
   ImportWidgetResult,
-  JSON_TYPE, TEMPLATE_XLS,
+  JSON_TYPE,
+  TEMPLATE_XLS,
   WidgetsBundleItem,
-  XLS_TYPE, XLSX_TYPE,
+  XLS_TYPE,
+  XLSX_TYPE,
   ZIP_TYPE
 } from './import-export.models';
 import { EntityType } from '@shared/models/entity-type.models';

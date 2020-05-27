@@ -41,7 +41,6 @@ import { NavigationEnd, Router } from '@angular/router';
 import { filter, map, publishReplay, refCount } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
 import { Operation } from '@shared/models/security.models';
-import { Customer } from '@shared/models/customer.model';
 import { EntityGroup, ShortEntityView } from '@shared/models/entity-group.models';
 
 // @dynamic

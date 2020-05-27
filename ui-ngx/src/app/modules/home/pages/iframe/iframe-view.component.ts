@@ -30,7 +30,7 @@
 ///
 
 import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute, ActivatedRouteSnapshot } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AuthService } from '@core/auth/auth.service';
 import { Subscription } from 'rxjs';

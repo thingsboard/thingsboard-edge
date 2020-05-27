@@ -46,7 +46,8 @@ import {
 import { guid, isDefined, isUndefined, removeEmptyObjects } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import {
-  templates, updateIntegrationFormDefaultFields,
+  templates,
+  updateIntegrationFormDefaultFields,
   updateIntegrationFormRequiredFields,
   updateIntegrationFormState
 } from './integration-forms-templates';

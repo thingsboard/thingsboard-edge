@@ -46,8 +46,7 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Device, DeviceCredentials } from '@app/shared/models/device.models';
-import { DeviceComponent } from '@modules/home/pages/device/device.component';
-import { forkJoin, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -56,7 +55,6 @@ import { DeviceService } from '@app/core/http/device.service';
 import { Authority } from '@app/shared/models/authority.enum';
 import { CustomerService } from '@core/http/customer.service';
 import { Customer } from '@app/shared/models/customer.model';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { DeviceTableHeaderComponent } from '@modules/home/pages/device/device-table-header.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -65,15 +63,6 @@ import {
   DeviceCredentialsDialogData
 } from '@modules/home/pages/device/device-credentials-dialog.component';
 import { DialogService } from '@core/services/dialog.service';
-import {
-  AssignToCustomerDialogComponent,
-  AssignToCustomerDialogData
-} from '@modules/home/dialogs/assign-to-customer-dialog.component';
-import { DeviceId } from '@app/shared/models/id/device-id';
-import {
-  AddEntitiesToCustomerDialogComponent,
-  AddEntitiesToCustomerDialogData
-} from '../../dialogs/add-entities-to-customer-dialog.component';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { UtilsService } from '@core/services/utils.service';

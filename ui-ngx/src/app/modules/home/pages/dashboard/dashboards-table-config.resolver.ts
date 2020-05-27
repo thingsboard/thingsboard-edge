@@ -45,7 +45,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { forkJoin, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -56,27 +56,12 @@ import { Customer } from '@app/shared/models/customer.model';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogService } from '@core/services/dialog.service';
 import {
-  AddEntitiesToCustomerDialogComponent,
-  AddEntitiesToCustomerDialogData
-} from '../../dialogs/add-entities-to-customer-dialog.component';
-import {
   Dashboard,
   DashboardInfo,
   getDashboardAssignedCustomersText,
-  isCurrentPublicDashboardCustomer,
   isPublicDashboard
 } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@app/core/http/dashboard.service';
-import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
-import {
-  ManageDashboardCustomersActionType,
-  ManageDashboardCustomersDialogComponent,
-  ManageDashboardCustomersDialogData
-} from './manage-dashboard-customers-dialog.component';
-import {
-  MakeDashboardPublicDialogComponent,
-  MakeDashboardPublicDialogData
-} from '@modules/home/pages/dashboard/make-dashboard-public-dialog.component';
 import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';

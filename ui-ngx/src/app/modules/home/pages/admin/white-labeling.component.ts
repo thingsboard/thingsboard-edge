@@ -46,9 +46,7 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Observable } from 'rxjs';
-import { PaletteDialogComponent, PaletteDialogData } from '@home/pages/admin/palette-dialog.component';
-import { ColorPalette } from '@shared/models/material.models';
-import { deepClone, isDefined, isEqual } from '@core/utils';
+import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 

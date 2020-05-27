@@ -35,22 +35,22 @@ import {
   ElementRef,
   EventEmitter,
   forwardRef,
-  Input, OnChanges,
+  Input,
+  OnChanges,
   OnInit,
-  Output, SimpleChanges,
+  Output,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR} from '@angular/forms';
-import { Observable, throwError } from 'rxjs';
-import { map, mergeMap, startWith, tap, share, publishReplay, refCount } from 'rxjs/operators';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {TranslateService} from '@ngx-translate/core';
-import { AliasEntityType, EntitySubtype, EntityType } from '@shared/models/entity-type.models';
-import {BaseData} from '@shared/models/base-data';
-import {EntityId} from '@shared/models/id/entity-id';
-import {EntityService} from '@core/http/entity.service';
-import {coerceBooleanProperty} from '@angular/cdk/coercion';
+import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { map, mergeMap, publishReplay, refCount, share, tap } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 

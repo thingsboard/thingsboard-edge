@@ -51,7 +51,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { TbEditorCompleter } from '@shared/models/ace/completion.models';
-import { widgetEditorCompleter } from '@home/pages/widget/widget-editor.models';
 
 @Component({
   selector: 'tb-js-func',

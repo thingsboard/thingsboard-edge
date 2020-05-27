@@ -33,7 +33,8 @@ import { Injectable } from '@angular/core';
 
 import { Resolve } from '@angular/router';
 import {
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import { Store } from '@ngrx/store';
@@ -37,7 +37,6 @@ import { AppState } from '@core/core.state';
 import { ActivatedRoute } from '@angular/router';
 import { AdminService } from '@core/http/admin.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { NgForm } from '@angular/forms';
 import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';

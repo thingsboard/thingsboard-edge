@@ -32,17 +32,14 @@
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
-import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import { EntityView } from '@shared/models/entity-view.models';
-import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 

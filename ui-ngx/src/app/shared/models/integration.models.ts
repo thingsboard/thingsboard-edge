@@ -33,7 +33,6 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
 
 export enum IntegrationType {
   HTTP = 'HTTP',

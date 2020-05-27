@@ -36,7 +36,7 @@ import { AppState } from '@core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ENTER } from '@angular/cdk/keycodes';
 import { Observable, of } from 'rxjs';
-import { filter, map, mergeMap, reduce, share, switchMap, tap } from 'rxjs/operators';
+import { map, mergeMap, share, tap } from 'rxjs/operators';
 import { EntityService } from '@core/http/entity.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Device } from '@shared/models/device.models';

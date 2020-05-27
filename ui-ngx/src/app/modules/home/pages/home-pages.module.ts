@@ -35,7 +35,6 @@ import { AdminModule } from './admin/admin.module';
 import { HomeLinksModule } from './home-links/home-links.module';
 import { ProfileModule } from './profile/profile.module';
 import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
-import { CustomerModule } from '@modules/home/pages/customer/customer.module';
 import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
 import { UserModule } from '@modules/home/pages/user/user.module';
 import { RuleChainModule } from '@modules/home/pages/rulechain/rulechain.module';
