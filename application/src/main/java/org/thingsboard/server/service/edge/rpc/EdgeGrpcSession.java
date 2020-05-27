@@ -154,7 +154,7 @@ public final class EdgeGrpcSession implements Closeable {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     }
                     if (ConnectResponseCode.ACCEPTED == responseMsg.getResponseCode()) {
-                        ctx.getInitEdgeService().init(edge, outputStream);
+                        ctx.getInitEdgeService().init(ctx, edge, outputStream);
                     }
                 }
                 if (connected) {

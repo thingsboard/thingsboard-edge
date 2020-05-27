@@ -34,10 +34,11 @@ import io.grpc.stub.StreamObserver;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.service.edge.EdgeContextComponent;
 
 public interface InitEdgeService {
 
-    void init(Edge edge, StreamObserver<ResponseMsg> outputStream);
+    void init(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream);
 
     void initRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream);
 }
