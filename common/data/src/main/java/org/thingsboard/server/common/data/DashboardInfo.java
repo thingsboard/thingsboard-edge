@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DashboardInfo extends SearchTextBased<DashboardId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class DashboardInfo extends SearchTextBased<DashboardId> implements GroupEntity<DashboardId> {
 
     private TenantId tenantId;
     private CustomerId customerId;

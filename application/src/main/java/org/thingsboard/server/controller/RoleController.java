@@ -94,14 +94,7 @@ public class RoleController extends BaseController {
             if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
                 role.setCustomerId(getCurrentUser().getCustomerId());
             }
-            Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
-                role.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, operation,
-                    role.getId(), role);
+            checkEntity(role.getId(), role, Resource.ROLE, null);
 
             Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
 

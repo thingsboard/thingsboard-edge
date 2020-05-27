@@ -28,30 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.common.data;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 
-@Service
-@SqlTsDao
-@PsqlDao
-@Profile("install")
-public class PsqlTsDatabaseSchemaService extends SqlAbstractDatabaseSchemaService implements TsDatabaseSchemaService {
-
-    @Value("${sql.postgres.ts_key_value_partitioning:MONTHS}")
-    private String partitionType;
-
-    public PsqlTsDatabaseSchemaService() {
-        super("schema-ts-psql.sql", null);
-    }
-
-    @Override
-    public void createDatabaseSchema() throws Exception {
-        super.createDatabaseSchema();
-        executeQuery("CREATE TABLE IF NOT EXISTS ts_kv_indefinite PARTITION OF ts_kv DEFAULT;");
-    }
+public interface GroupEntity<I extends EntityId> extends HasId<I>, HasName, TenantEntity, HasCustomerId, HasOwnerId {
 }
