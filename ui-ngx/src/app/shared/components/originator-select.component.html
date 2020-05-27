@@ -31,9 +31,9 @@
 
 -->
 <section [formGroup]="originatorFormGroup" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
-  <mat-radio-group color="primary" formControlName="isEntityGroupOriginator" fxLayout="row"
+  <mat-radio-group color="primary" formControlName="isEntityGroupOriginator" fxLayout="row" fxLayout.xs="column"
                     fxLayoutGap="16px"
-                    style="padding-top: 16px; padding-bottom: 16px;">
+                    style="padding: 16px 0;">
     <mat-radio-button [value]="false" color="primary">
       <span>{{ singleEntityText | translate }}</span>
     </mat-radio-button>

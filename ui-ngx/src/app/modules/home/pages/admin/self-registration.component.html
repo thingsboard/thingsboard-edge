@@ -57,7 +57,7 @@
             <span translate>self-registration.self-registration-url</span>
             <div fxLayout="row" fxLayoutAlign="start center">
               <pre class="tb-highlight" fxFlex><code>{{ registerLink }}</code></pre>
-              <button mat-button mat-icon-button
+              <button mat-icon-button
                       type="button"
                       ngxClipboard
                       (cbOnSuccess)="onActivationLinkCopied()"
@@ -115,8 +115,8 @@
               </editor>
             </div>
           </div>
-          <div fxLayout="row" fxLayoutAlign="end center" style="width: 100%;" class="layout-wrap">
-            <button mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
+          <div fxLayout="row" fxLayoutAlign="end center">
+            <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
                     type="submit">{{'action.save' | translate}}
             </button>
           </div>

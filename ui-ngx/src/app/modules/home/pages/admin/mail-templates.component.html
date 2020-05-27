@@ -53,7 +53,7 @@
           <div style="padding-top: 20px;"></div>
           <mat-form-field class="mat-block">
             <mat-label translate>admin.mail-template.mail-template</mat-label>
-            <mat-select matInput [disabled]="(isLoading$ | async)" [(ngModel)]="mailTemplate"
+            <mat-select  [disabled]="(isLoading$ | async)" [(ngModel)]="mailTemplate"
                         [ngModelOptions]="{standalone: true}">
               <mat-option *ngFor="let template of mailTemplateTypes" [value]="template">
                 {{mailTemplateTranslationsMap.get(template) | translate}}
@@ -76,7 +76,7 @@
           </div>
         </fieldset>
         <div fxLayout="row" fxLayoutAlign="end center" style="width: 100%;" class="layout-wrap">
-          <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+          <button *ngIf="!readonly" mat-raised-button color="primary"
                   [disabled]="(isLoading$ | async) || mailTemplatesForm.invalid || !isDirty"
                   type="submit">{{'action.save' | translate}}
           </button>

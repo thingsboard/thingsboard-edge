@@ -29,5 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-
+  form {
+    min-width: min(800px, 80vw) !important;
+  }
 }

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="schedulerEventFormGroup" (ngSubmit)="save()" style="min-width: 800px;">
+<form [formGroup]="schedulerEventFormGroup" (ngSubmit)="save()">
   <mat-toolbar fxLayout="row" color="primary">
     <h2 translate>{{ isAdd ? 'scheduler.create' : (readonly ? 'scheduler.view' : 'scheduler.edit')}}</h2>
     <span fxFlex></span>

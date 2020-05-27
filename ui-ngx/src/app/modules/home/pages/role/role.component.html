@@ -30,14 +30,14 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons">
+<div class="tb-details-buttons" fxLayout.xs="column">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           [fxShow]="!hideDelete() && !isEdit">
     {{'role.delete' | translate }}
   </button>
-  <div fxLayout="row">
+  <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onRoleIdCopied($event)"
@@ -60,7 +60,7 @@
       </mat-form-field>
       <mat-form-field class="mat-block">
         <mat-label translate>role.role-type</mat-label>
-        <mat-select matInput formControlName="type" required>
+        <mat-select formControlName="type" required>
           <mat-option *ngFor="let type of roleTypes" [value]="type">
             {{roleTypeTranslations.get(type) | translate}}
           </mat-option>

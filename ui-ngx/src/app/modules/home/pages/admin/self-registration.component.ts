@@ -68,7 +68,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       '| numlist bullist outdent indent  | removeformat | code | fullscreen',
     height: 380,
     autofocus: false,
-    branding: false
+    branding: false,
+    resize: true
   };
 
   constructor(protected store: Store<AppState>,
