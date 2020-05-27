@@ -31,8 +31,6 @@
 
 import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
-
-import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { DashboardsTableConfigResolver } from './dashboards-table-config.resolver';
 import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';

@@ -54,7 +54,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { RelationsDatasource } from '../../models/datasource/relation-datasource';
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
+import { Operation, resourceByEntityType } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 

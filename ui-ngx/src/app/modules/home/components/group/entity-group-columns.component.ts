@@ -36,7 +36,8 @@ import {
   FormArray,
   FormBuilder,
   FormGroup,
-  NG_VALUE_ACCESSOR, Validators
+  NG_VALUE_ACCESSOR,
+  Validators
 } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
 import { PageComponent } from '@shared/components/page.component';
@@ -50,7 +51,7 @@ import {
 } from '@shared/models/entity-group.models';
 import { Subscription } from 'rxjs';
 import { DndDropEvent } from 'ngx-drag-drop/dnd-dropzone.directive';
-import { isDefined, isUndefined } from '@core/utils';
+import { isUndefined } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-columns',

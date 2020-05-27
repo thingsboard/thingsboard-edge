@@ -32,7 +32,7 @@
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AfterViewInit, DoCheck, EventEmitter, Inject, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, DoCheck, Inject, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isEqual } from '@core/utils';
 import { ControlValueAccessor, NgForm } from '@angular/forms';

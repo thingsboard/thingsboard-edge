@@ -32,7 +32,8 @@
 import {
   AfterViewInit,
   Component,
-  DoCheck, HostBinding,
+  DoCheck,
+  HostBinding,
   Input,
   IterableDiffers,
   KeyValueDiffers,

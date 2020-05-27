@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Component, Input } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 const hostRegionSuffix = '.thethings.network';

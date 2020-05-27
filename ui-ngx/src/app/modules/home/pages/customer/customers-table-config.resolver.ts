@@ -44,7 +44,6 @@ import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Customer } from '@app/shared/models/customer.model';
 import { CustomerService } from '@app/core/http/customer.service';
-import { CustomerComponent } from '@modules/home/pages/customer/customer.component';
 import { CustomerTabsComponent } from '@home/pages/customer/customer-tabs.component';
 import { UtilsService } from '@core/services/utils.service';
 

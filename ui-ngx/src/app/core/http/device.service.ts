@@ -46,7 +46,6 @@ import { EntitySubtype } from '@app/shared/models/entity-type.models';
 import { AuthService } from '@core/auth/auth.service';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
-import { Asset } from '@shared/models/asset.models';
 
 @Injectable({
   providedIn: 'root'

@@ -32,11 +32,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SelfRegistrationParams, SignUpSelfRegistrationParams } from '@shared/models/self-register.models';
-import { EMPTY, Observable, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
-import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 
 @Injectable({
   providedIn: 'root'

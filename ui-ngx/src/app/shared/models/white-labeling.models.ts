@@ -30,7 +30,7 @@
 ///
 
 import { environment as env } from '@env/environment';
-import { deepClone, isDefined, isUndefined, isUndefinedOrNull } from '@core/utils';
+import { deepClone, isDefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
 import { SafeUrl } from '@angular/platform-browser';
 

@@ -32,7 +32,6 @@
 import { Component } from '@angular/core';
 import { InitialPositionInStream } from '../../integration-forms-templates';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
-import { Validators } from '@angular/forms';
 import { disableFields, enableFields } from '@home/pages/integration/integration-utils';
 
 @Component({
