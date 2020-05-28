@@ -29,18 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { FormGroup, Validators } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { mqttCredentialType } from '@home/pages/integration/integration-forms-templates';
 
 const basic = ['username', 'password'];
-const requiredBasic = ['username', 'password'];
 const pem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey', 'privateKeyPassword'];
-const requiredPem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey'];
 
 export function changeRequiredCredentialsFields(form: FormGroup, credentialType: mqttCredentialType) {
     let disabled = [];
     let enabled = [];
-    let required = [];
     switch (credentialType) {
         case 'anonymous':
             disabled = [...basic, ...pem];
@@ -48,42 +45,36 @@ export function changeRequiredCredentialsFields(form: FormGroup, credentialType:
         case 'basic':
             disabled = pem;
             enabled = basic;
-            required = requiredBasic;
             break;
         case 'cert.PEM':
             disabled = basic;
             enabled = pem;
-            required = requiredPem;
             break;
     }
 
     disableFields(form, disabled);
-    enableFields(form, enabled, required);
+    enableFields(form, enabled);
 }
 
-export function disableFields(form: FormGroup, fields: string[], required: string[] = [], clear = true) {
+export function disableFields(form: FormGroup, fields: string[], clear = true) {
     fields.forEach(key => {
-        if (form.get(key)) {
+        const field = form.get(key);
+        if (field) {
           if (clear) {
-            form.get(key).setValue(null);
+            field.setValue(null);
           }
-          form.get(key).disable();
-          if (required.includes(key)) {
-            form.get(key).setValidators([]);
-            form.get(key).updateValueAndValidity();
-          }
+          field.disable();
         }
     });
+    form.updateValueAndValidity();
 }
 
-export function enableFields(form: FormGroup, fields: string[], required: string[] = []) {
+export function enableFields(form: FormGroup, fields: string[]) {
     fields.forEach(key => {
-        if (form.get(key)) {
-          form.get(key).enable();
-          if (required.includes(key)) {
-            form.get(key).setValidators(Validators.required);
-            form.get(key).updateValueAndValidity();
-          }
+        const field = form.get(key);
+        if (field) {
+          field.enable();
         }
     });
+    form.updateValueAndValidity();
 }

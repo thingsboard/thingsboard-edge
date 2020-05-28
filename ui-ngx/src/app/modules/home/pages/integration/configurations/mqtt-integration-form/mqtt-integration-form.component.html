@@ -36,33 +36,33 @@
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
-                <mat-error translate *ngIf="form.get('host')?.hasError('required')">integration.host-required
+                <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
                 </mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
-                <mat-error translate *ngIf="form.get('port')?.hasError('required')">integration.port-required
+                <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
                 </mat-error>
-                <mat-error translate *ngIf="form.get('')?.hasError('min')">integration.port-range</mat-error>
-                <mat-error translate *ngIf="form.get('')?.hasError('max')">integration.port-range</mat-error>
+                <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
+                <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="40" class="mat-block">
                 <mat-label translate>integration.connect-timeout</mat-label>
                 <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-                <mat-error translate *ngIf="form.get('connectTimeoutSec')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
                     integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('')?.hasError('min')">integration.connect-timeout-range</mat-error>
-                <mat-error translate *ngIf="form.get('')?.hasError('max')">integration.connect-timeout-range</mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('min')">integration.connect-timeout-range</mat-error>
+                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('max')">integration.connect-timeout-range</mat-error>
             </mat-form-field>
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
             <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="/^[a-zA-Z0-9]*$/"
                 maxlength="23">
-            <mat-error translate *ngIf="form.get('clientId')?.hasError('pattern')">integration.client-id-pattern
+            <mat-error translate *ngIf="form.get('clientId').hasError('pattern')">integration.client-id-pattern
             </mat-error>
-            <mat-error translate *ngIf="form.get('clientId')?.hasError('maxlength')">integration.client-id-range
+            <mat-error translate *ngIf="form.get('clientId').hasError('maxlength')">integration.client-id-range
             </mat-error>
         </mat-form-field>
         <div fxLayout="column">

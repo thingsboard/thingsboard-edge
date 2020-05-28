@@ -64,6 +64,7 @@ export class OpcUaIntegrationFormComponent extends IntegrationFormComponent {
     this.form.get('identity').get('type').valueChanges.subscribe(() => {
       this.identityTypeChanged();
     });
+    this.securityChanged();
     this.identityTypeChanged();
   }
 
@@ -71,10 +72,10 @@ export class OpcUaIntegrationFormComponent extends IntegrationFormComponent {
     const type: string = this.form.get('identity').get('type').value;
     if (type === 'username') {
       this.showIdentityForm = true;
-      enableFields(this.form.get('identity') as FormGroup, ['username', 'password'], ['username', 'password']);
+      enableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
     } else {
       this.showIdentityForm = false;
-      disableFields(this.form.get('identity') as FormGroup, ['username', 'password'], ['username', 'password']);
+      disableFields(this.form.get('identity') as FormGroup, ['username', 'password']);
     }
   }
 

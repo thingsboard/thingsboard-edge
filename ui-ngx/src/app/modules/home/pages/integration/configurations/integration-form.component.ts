@@ -43,7 +43,9 @@ export abstract class IntegrationFormComponent implements OnChanges {
     for (const propName of Object.keys(changes)) {
       const change = changes[propName];
       if (propName === 'form' && change.currentValue) {
-        this.onIntegrationFormSet();
+        setTimeout(() => {
+          this.onIntegrationFormSet();
+        }, 0);
       }
     }
   }

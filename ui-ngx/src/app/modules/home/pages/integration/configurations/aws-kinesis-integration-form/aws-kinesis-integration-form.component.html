@@ -96,5 +96,28 @@
                 </mat-checkbox>
             </div>
         </div>
+        <div *ngIf="!form.get('useConsumersWithEnhancedFanOut').value" fxFlex
+             fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="20px">
+          <mat-form-field fxFlex="50" class="mat-block">
+            <mat-label translate>integration.kinesis-max-records</mat-label>
+            <input matInput [required]="!form.get('useConsumersWithEnhancedFanOut').value"
+                   type="number" min="1" max="10000" step="1"
+                   formControlName="maxRecords">
+            <mat-error translate *ngIf="form.get('maxRecords').hasError('required')">
+              integration.kinesis-max-records-required</mat-error>
+            <mat-error translate *ngIf="form.get('maxRecords').hasError('min')">
+              integration.kinesis-max-records-length-range</mat-error>
+            <mat-error translate *ngIf="form.get('maxRecords').hasError('max')">
+              integration.kinesis-max-records-length-range</mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="50" class="mat-block">
+            <mat-label translate>integration.kinesis-request-timeout</mat-label>
+            <input matInput [required]="!form.get('useConsumersWithEnhancedFanOut').value"
+                   type="number" step="1"
+                   formControlName="requestTimeout">
+            <mat-error translate *ngIf="form.get('requestTimeout').hasError('required')">
+              integration.kinesis-request-timeout-required</mat-error>
+          </mat-form-field>
+        </div>
     </fieldset>
 </section>

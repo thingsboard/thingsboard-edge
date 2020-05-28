@@ -44,30 +44,30 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">
-                <mat-error translate *ngIf="form.get('host')?.hasError('required')">integration.host-required
+                <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
                 </mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.port</mat-label>
                 <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
-                <mat-error translate *ngIf="form.get('port')?.hasError('required')">integration.port-required
+                <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
                 </mat-error>
-                <mat-error translate *ngIf="form.get('port')?.hasError('min')">integration.port-range</mat-error>
-                <mat-error translate *ngIf="form.get('port')?.hasError('max')">integration.port-range</mat-error>
+                <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
+                <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
             </mat-form-field>
         </div>
         <div fxFlex fxLayout="column" fxLayout="row" fxLayoutGap="8px">
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.opc-ua-scan-period-in-seconds</mat-label>
                 <input matInput type="number" required formControlName="scanPeriodInSeconds">
-                <mat-error translate *ngIf="form.get('scanPeriodInSeconds')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('scanPeriodInSeconds').hasError('required')">
                     integration.opc-ua-scan-period-in-seconds-required
                 </mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.opc-ua-timeout</mat-label>
                 <input matInput type="number" required formControlName="timeoutInMillis">
-                <mat-error translate *ngIf="form.get('timeoutInMillis')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('timeoutInMillis').hasError('required')">
                     integration.opc-ua-timeout-required</mat-error>
             </mat-form-field>
         </div>
@@ -78,7 +78,7 @@
                     <mat-option [value]="security.key" *ngFor="let security of opcSecurityTypes | keyvalue">
                         <span>{{security.value}}</span></mat-option>
                 </mat-select>
-                <mat-error translate *ngIf="form.get('securityType')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('security').hasError('required')">
                     integration.opc-ua-security-required</mat-error>
             </mat-form-field>
             <mat-form-field fxFlex="50" class="mat-block tb-container-for-select">
@@ -87,7 +87,7 @@
                     <mat-option [value]="identity.key" *ngFor="let identity of identityType | keyvalue">
                         <span>{{identity.value | translate}}</span></mat-option>
                 </mat-select>
-                <mat-error translate *ngIf="form.get('identity').get('type')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('identity').get('type').hasError('required')">
                     integration.opc-ua-identity-required
                 </mat-error>
             </mat-form-field>
@@ -96,7 +96,7 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.username</mat-label>
                 <input matInput required formControlName="username" autocomplete="new-username">
-                <mat-error translate *ngIf="form.get('identity').get('username')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('identity').get('username').hasError('required')">
                     integration.username-required
                 </mat-error>
             </mat-form-field>
@@ -104,7 +104,7 @@
             <mat-form-field fxFlex="50" class="mat-block">
                 <mat-label translate>integration.password</mat-label>
                 <input matInput required formControlName="password" autocomplete="new-password" type="password">
-                <mat-error translate *ngIf="form.get('identity').get('password')?.hasError('required')">
+                <mat-error translate *ngIf="form.get('identity').get('password').hasError('required')">
                     integration.password-required
                 </mat-error>
             </mat-form-field>
@@ -139,14 +139,14 @@
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-password</mat-label>
                             <input matInput required formControlName="password" autocomplete="new-password">
-                            <mat-error translate *ngIf="form.get('keystore').get('password')?.hasError('required')">
+                            <mat-error translate *ngIf="form.get('keystore').get('password').hasError('required')">
                                 integration.opc-ua-keystore-password-required
                             </mat-error>
                         </mat-form-field>
                         <mat-form-field fxFlex="50" class="mat-block">
                             <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
                             <input matInput required formControlName="alias">
-                            <mat-error translate *ngIf="form.get('keystore').get('alias')?.hasError('required')">
+                            <mat-error translate *ngIf="form.get('keystore').get('alias').hasError('required')">
                                 integration.opc-ua-keystore-alias-required
                             </mat-error>
                         </mat-form-field>
@@ -154,7 +154,7 @@
                     <mat-form-field class="mat-block">
                         <mat-label translate>integration.opc-ua-keystore-key-password</mat-label>
                         <input matInput required formControlName="keyPassword">
-                        <mat-error translate *ngIf="form.get('keystore').get('keyPassword')?.hasError('required')">
+                        <mat-error translate *ngIf="form.get('keystore').get('keyPassword').hasError('required')">
                             integration.opc-ua-keystore-key-password-required
                         </mat-error>
                     </mat-form-field>
@@ -198,7 +198,7 @@
                                                     {{mapping.value}}
                                                 </mat-option>
                                             </mat-select>
-                                            <mat-error translate *ngIf="map.get('mappingType')?.hasError('required')">
+                                            <mat-error translate *ngIf="map.get('mappingType').hasError('required')">
                                                 integration.opc-ua-mapping-type-required</mat-error>
                                         </mat-form-field>
                                     </div>
@@ -209,7 +209,7 @@
                                                 placeholder="{{ 'integration.opc-ua-device-node-pattern' | translate }}"
                                                 required formControlName="deviceNodePattern">
                                             <mat-error translate
-                                                *ngIf="map.get('deviceNodePattern')?.hasError('required')">
+                                                *ngIf="map.get('deviceNodePattern').hasError('required')">
                                                 integration.opc-ua-device-node-pattern-required</mat-error>
                                         </mat-form-field>
                                     </div>

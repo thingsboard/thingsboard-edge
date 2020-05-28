@@ -51,16 +51,30 @@ export class AwsKinesisIntegrationFormComponent extends IntegrationFormComponent
     this.form.get('useCredentialsFromInstanceMetadata').valueChanges.subscribe(() => {
       this.onUseCredentialsFromInstanceMetadataChange();
     });
+    this.form.get('useConsumersWithEnhancedFanOut').valueChanges.subscribe(() => {
+      this.onUseConsumersWithEnhancedFanOut();
+    });
     this.onUseCredentialsFromInstanceMetadataChange();
+    this.onUseConsumersWithEnhancedFanOut();
   }
 
   onUseCredentialsFromInstanceMetadataChange() {
-    const fields = [ 'accessKeyId', 'secretAccessKey'];
+    const fields = ['accessKeyId', 'secretAccessKey'];
     const useCredentialsFromInstanceMetadata: boolean = this.form.get('useCredentialsFromInstanceMetadata').value;
     if (useCredentialsFromInstanceMetadata) {
-      disableFields(this.form, fields, fields);
+      disableFields(this.form, fields);
     } else {
-      enableFields(this.form, fields, fields);
+      enableFields(this.form, fields);
+    }
+  }
+
+  onUseConsumersWithEnhancedFanOut() {
+    const fields = ['maxRecords', 'requestTimeout'];
+    const useConsumersWithEnhancedFanOut: boolean = this.form.get('useConsumersWithEnhancedFanOut').value;
+    if (useConsumersWithEnhancedFanOut) {
+      disableFields(this.form, fields);
+    } else {
+      enableFields(this.form, fields);
     }
   }
 

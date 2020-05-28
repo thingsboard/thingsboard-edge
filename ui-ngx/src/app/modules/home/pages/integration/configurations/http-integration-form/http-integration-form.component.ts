@@ -57,12 +57,8 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
   ngOnChanges(changes: SimpleChanges): void {
     super.ngOnChanges(changes);
     for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
       if (['routingKey', 'integrationType'].includes(propName)) {
         this.integrationBaseUrlChanged();
-      }
-      if (propName === 'integrationType' && change.currentValue) {
-        this.resetFields();
       }
     }
   }
@@ -81,6 +77,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     this.form.get('enableSecurityNew').valueChanges.subscribe(() => {
       this.thingparkEnableSecurityNewChanged();
     });
+    this.resetFields();
   }
 
   resetFields() {
@@ -104,18 +101,22 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     const fields = ['asId', 'asKey', 'maxTimeDiffInSeconds'];
     if (!this.form.get('enableSecurity').value) {
       this.form.get('enableSecurityNew').patchValue(false);
-      disableFields(this.form, fields, fields, false);
+      disableFields(this.form, fields, false);
     } else {
-      enableFields(this.form, fields, fields);
+      enableFields(this.form, fields);
     }
   };
 
   thingparkEnableSecurityNewChanged = () => {
     const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret'];
     if (!this.form.get('enableSecurityNew').value) {
-      disableFields(this.form, fields, fields, false);
+      disableFields(this.form, fields, false);
+      if (this.form.get('enableSecurity').value) {
+        enableFields(this.form, ['asId']);
+      }
     } else {
-      enableFields(this.form, fields, fields);
+      enableFields(this.form, fields);
+      disableFields(this.form, ['asId'], false);
     }
   };
 

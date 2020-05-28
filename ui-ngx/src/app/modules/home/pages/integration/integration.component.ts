@@ -33,7 +33,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -48,7 +48,7 @@ import { ConverterType } from '@shared/models/converter.models';
 import {
   templates,
   updateIntegrationFormDefaultFields,
-  updateIntegrationFormRequiredFields,
+  updateIntegrationFormValidators,
   updateIntegrationFormState
 } from './integration-forms-templates';
 import _ from 'lodash';
@@ -135,12 +135,12 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       this.integrationInfo = this.integrationTypeInfos.get(this.integrationType);
       const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[this.integrationType]);
       const ignoreNonPrimitiveFields: string[] = formTemplate.ignoreNonPrimitiveFields || [];
-      const requiredFields: string[] = formTemplate.requiredFields || [];
+      const fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = formTemplate.fieldValidators || {};
       delete formTemplate.ignoreNonPrimitiveFields;
-      delete formTemplate.requiredFields;
+      delete formTemplate.fieldValidators;
       this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
       updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
-      updateIntegrationFormRequiredFields(this.integrationForm, requiredFields);
+      updateIntegrationFormValidators(this.integrationForm, fieldValidators);
       updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
       configurationForm.push(this.integrationForm);
     } else {
