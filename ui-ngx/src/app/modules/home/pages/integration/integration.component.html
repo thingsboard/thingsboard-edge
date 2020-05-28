@@ -64,8 +64,8 @@
           {{ 'integration.type-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <div fxLayout="row">
-        <mat-checkbox fxFlex="50" formControlName="enabled">
+      <div fxLayout="row" fxLayout.xs="column">
+        <mat-checkbox fxFlex="50" fxFlex.xs formControlName="enabled">
           {{ 'integration.enabled' | translate }}
         </mat-checkbox>
         <mat-checkbox fxFlex formControlName="debugMode">

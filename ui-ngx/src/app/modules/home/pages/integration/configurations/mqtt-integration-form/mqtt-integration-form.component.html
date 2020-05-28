@@ -32,7 +32,7 @@
 -->
 <section [formGroup]="form" fxLayout="column" autocomplte="off">
     <fieldset>
-        <div fxLayout="column" fxLayout="row" fxLayoutGap="8px">
+        <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
             <mat-form-field fxFlex="60" class="mat-block">
                 <mat-label translate>integration.host</mat-label>
                 <input matInput required formControlName="host">

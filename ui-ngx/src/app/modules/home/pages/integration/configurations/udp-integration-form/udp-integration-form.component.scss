@@ -29,6 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-:host {
-
+:host ::ng-deep {
+  .mat-checkbox{
+    .mat-checkbox-layout{
+      white-space: normal;
+    }
+  }
 }
