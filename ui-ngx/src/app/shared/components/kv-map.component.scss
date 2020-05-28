@@ -40,6 +40,14 @@
         color: rgba(0, 0, 0, .38);
       }
     }
+
+    .container{
+      overflow-x: auto;
+
+      >:last-child{
+        margin-bottom: 4px;
+      }
+    }
   }
 }
 

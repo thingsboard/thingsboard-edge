@@ -42,3 +42,11 @@
     padding-bottom: 8px;
   }
 }
+
+:host ::ng-deep {
+  .mat-checkbox{
+    .mat-checkbox-layout{
+      white-space: normal;
+    }
+  }
+}

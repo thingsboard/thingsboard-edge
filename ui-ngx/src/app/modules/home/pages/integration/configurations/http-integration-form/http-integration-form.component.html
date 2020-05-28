@@ -67,7 +67,7 @@
                 <mat-label translate>integration.downlink-url</mat-label>
                 <input matInput formControlName="downlinkUrl">
             </mat-form-field>
-            <div fxLayout="row" fxLayoutGap="8px">
+            <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
                 <mat-checkbox fxFlex [aria-label]="'integration.enable-security' | translate"
                     formControlName="enableSecurity">
                     {{ 'integration.enable-security' | translate }}
@@ -77,8 +77,8 @@
                     {{ 'integration.enable-security-new' | translate}}
                 </mat-checkbox>
             </div>
-            <section *ngIf="form.get('enableSecurity').value" fxLayout="column" fxLayout.gt-sm="row"
-                fxLayoutGap="8px">
+            <section *ngIf="form.get('enableSecurity').value" fxLayout.xs="column" fxLayout="row"
+                fxLayoutGap.gt-xs="8px">
                 <mat-form-field fxFlex *ngIf="!form.get('enableSecurityNew').value" class="mat-block">
                     <mat-label translate>integration.as-id</mat-label>
                     <input matInput required formControlName="asId">
@@ -96,7 +96,7 @@
                     </mat-error>
                 </mat-form-field>
             </section>
-            <section *ngIf="form.get('enableSecurityNew').value" fxLayout="column" fxLayout="row" fxLayoutGap="8px">
+            <section *ngIf="form.get('enableSecurityNew').value" fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
                 <mat-form-field fxFlex class="mat-block">
                     <mat-label translate>integration.client-id-new</mat-label>
                     <input matInput required formControlName="clientIdNew">

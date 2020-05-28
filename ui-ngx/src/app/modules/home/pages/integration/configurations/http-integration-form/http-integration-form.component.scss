@@ -30,7 +30,6 @@
  */
 
 :host {
-
  .tb-integration-panel-group {
     &.header-filters {
       mat-expansion-panel {
@@ -41,5 +40,13 @@
 
   .security {
     margin-bottom: 16px;
+  }
+}
+
+:host ::ng-deep {
+  .mat-checkbox{
+    .mat-checkbox-layout{
+      white-space: pre-wrap;
+    }
   }
 }

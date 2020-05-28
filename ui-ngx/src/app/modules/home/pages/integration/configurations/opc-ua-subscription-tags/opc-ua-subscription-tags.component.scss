@@ -30,5 +30,10 @@
  */
 
 :host {
-
+  .container{
+    overflow-x: auto;
+  }
+  mat-checkbox  {
+    margin-bottom: 0;
+  }
 }

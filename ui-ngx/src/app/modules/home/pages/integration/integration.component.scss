@@ -40,13 +40,8 @@
     margin-bottom: 16px;
     display: block;
   }
-}
-
-.tb-dialog {
-  :host ::ng-deep {
-    mat-expansion-panel {
-      margin-left: 6px;
-      margin-right: 6px;
-    }
+  fieldset{
+    min-width: 0;
+    width: 100%;
   }
 }
