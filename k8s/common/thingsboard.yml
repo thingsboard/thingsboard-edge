@@ -52,7 +52,7 @@ spec:
         image: thingsboard/tb-pe-js-executor:latest
         env:
         - name: REMOTE_JS_EVAL_REQUEST_TOPIC
-          value: "js.eval.requests"
+          value: "js_eval.requests"
         - name: TB_KAFKA_SERVERS
           value: "tb-kafka:9092"
         - name: LOGGER_LEVEL
@@ -66,97 +66,6 @@ spec:
         - name: SCRIPT_BODY_TRACE_FREQUENCY
           value: "1000"
       restartPolicy: Always
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: tb-node
-  namespace: thingsboard
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: tb-node
-  template:
-    metadata:
-      labels:
-        app: tb-node
-    spec:
-      volumes:
-        - name: tb-node-config
-          configMap:
-            name: tb-node-config
-            items:
-            - key: conf
-              path:  thingsboard.conf
-            - key: logback
-              path:  logback.xml
-      imagePullSecrets:
-        - name: regcred
-      containers:
-      - name: server
-        imagePullPolicy: Always
-        image: thingsboard/tb-pe-node:latest
-        ports:
-        - containerPort: 8080
-          name: http
-        - containerPort: 9001
-          name: rpc
-        env:
-        - name: TB_SERVICE_ID
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: TB_SERVICE_TYPE
-          value: "monolith"
-        - name: ZOOKEEPER_ENABLED
-          value: "true"
-        - name: ZOOKEEPER_URL
-          value: "zookeeper:2181"
-        - name: TB_KAFKA_SERVERS
-          value: "tb-kafka:9092"
-        - name: JS_EVALUATOR
-          value: "remote"
-        - name: TRANSPORT_TYPE
-          value: "remote"
-        - name: CACHE_TYPE
-          value: "redis"
-        - name: REDIS_HOST
-          value: "tb-redis"
-        - name: REDIS_CONNECTION_TYPE
-          value: "cluster"
-        - name: REDIS_NODES
-          value: "tb-redis:6379"
-        - name: HTTP_LOG_CONTROLLER_ERROR_STACK_TRACE
-          value: "false"
-        - name: REPORTS_SERVER_ENDPOINT_URL
-          value: "http://tb-web-report:8383"
-        envFrom:
-        - configMapRef:
-            name: tb-node-db-config
-        volumeMounts:
-          - mountPath: /config
-            name: tb-node-config
-        livenessProbe:
-          httpGet:
-            path: /login
-            port: http
-          initialDelaySeconds: 120
-          timeoutSeconds: 10
-      restartPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tb-node
-  namespace: thingsboard
-spec:
-  type: ClusterIP
-  selector:
-    app: tb-node
-  ports:
-  - port: 8080
-    name: http
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -260,8 +169,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: TB_SERVICE_TYPE
-          value: "monolith"
+        - name: TB_QUEUE_TYPE
+          value: "kafka"
         - name: MQTT_BIND_ADDRESS
           value: "0.0.0.0"
         - name: MQTT_BIND_PORT
@@ -278,6 +187,7 @@ spec:
           tcpSocket:
             port: 1883
         livenessProbe:
+          initialDelaySeconds: 120
           periodSeconds: 20
           tcpSocket:
             port: 1883
@@ -335,8 +245,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: TB_SERVICE_TYPE
-          value: "monolith"
+        - name: TB_QUEUE_TYPE
+          value: "kafka"
         - name: HTTP_BIND_ADDRESS
           value: "0.0.0.0"
         - name: HTTP_BIND_PORT
@@ -353,6 +263,7 @@ spec:
           tcpSocket:
             port: 8080
         livenessProbe:
+          initialDelaySeconds: 120
           periodSeconds: 20
           tcpSocket:
             port: 8080
@@ -410,8 +321,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.name
-        - name: TB_SERVICE_TYPE
-          value: "monolith"
+        - name: TB_QUEUE_TYPE
+          value: "kafka"
         - name: COAP_BIND_ADDRESS
           value: "0.0.0.0"
         - name: COAP_BIND_PORT
