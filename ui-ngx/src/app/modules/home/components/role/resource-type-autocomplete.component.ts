@@ -82,7 +82,7 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
         name: this.translate.instant(resourceTypeTranslationMap.get(resource)),
         value: resource
       }
-    });
+    }).sort(this.sortResource);
 
   searchText = '';
 
@@ -97,6 +97,13 @@ export class ResourceTypeAutocompleteComponent implements ControlValueAccessor, 
     this.resourceTypeFormGroup = this.fb.group({
       resourceType: [null]
     });
+  }
+
+  private sortResource(a: ResourceTypeInfo, b: ResourceTypeInfo): number{
+    if (a.value === 'ALL' || b.value === 'ALL') return a.value === 'ALL' ? -1 : 1;
+    if (a.name > b.name) return 1;
+    if (a.name < b.name) return -1;
+    return 0;
   }
 
   registerOnChange(fn: any): void {

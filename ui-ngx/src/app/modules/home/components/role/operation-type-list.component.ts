@@ -192,12 +192,19 @@ export class OperationTypeListComponent implements ControlValueAccessor, OnInit,
       operationTypes = [];
     }
 
-    operationTypes.forEach((operationType) => {
-      this.allOperationTypeList.push({
+    this.allOperationTypeList = operationTypes.map(operationType => {
+      return {
         name: this.translate.instant(operationTypeTranslationMap.get(operationType)),
         value: operationType
-      });
-    });
+      }
+    }).sort(this.sortOperation);
+  }
+
+  private sortOperation(a: OperationTypeInfo, b: OperationTypeInfo): number {
+    if (a.value === 'ALL' || b.value === 'ALL') return a.value === 'ALL' ? -1 : 1;
+    if (a.name > b.name) return 1;
+    if (a.name < b.name) return -1;
+    return 0;
   }
 
   private validateOperationList() {
