@@ -73,14 +73,14 @@ export function getRatio(firsMoment: number, secondMoment: number, intermediateM
 
 export function interpolateOnLineSegment(
   pointA: FormattedData,
-  oointB: FormattedData,
+  pointB: FormattedData,
   latKeyName: string,
   lngKeyName: string,
   ratio: number
 ): { [key: string]: number } {
    return {
-    [latKeyName]: (pointA[latKeyName] + (oointB[latKeyName] - pointA[latKeyName]) * ratio),
-    [lngKeyName]: (pointA[lngKeyName] + (oointB[lngKeyName] - pointA[lngKeyName]) * ratio)
+    [latKeyName]: (pointA[latKeyName] + (pointB[latKeyName] - pointA[latKeyName]) * ratio),
+    [lngKeyName]: (pointA[lngKeyName] + (pointB[lngKeyName] - pointA[lngKeyName]) * ratio)
   };
 }
 
@@ -269,7 +269,7 @@ export function parseArray(input: any[]): any[] {
         const obj = {
           entityName: entityArray[0]?.datasource?.entityName,
           $datasource: entityArray[0]?.datasource,
-          dsIndex,
+          dsIndex: i,
           time: el[0],
           deviceType: null
         };

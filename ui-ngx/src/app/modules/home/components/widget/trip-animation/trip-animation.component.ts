@@ -32,7 +32,16 @@
 import _ from 'lodash';
 import tinycolor from 'tinycolor2';
 
-import { AfterViewInit, ChangeDetectorRef, Component, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  SecurityContext,
+  ViewChild
+} from '@angular/core';
 import { MapWidgetController, TbMapWidgetV2 } from '../lib/maps/map-widget2';
 import { FormattedData, MapProviders, TripAnimationSettings } from '../lib/maps/map-models';
 import { addCondition, addGroupInfo, addToSchema, initSchema } from '@app/core/schema-utils';
@@ -51,6 +60,7 @@ import {
 import { JsonSettingsSchema, WidgetConfig } from '@shared/models/widget.models';
 import moment from 'moment';
 import { isUndefined } from '@core/utils';
+import { ResizeObserver } from '@juggle/resize-observer';
 
 
 @Component({
@@ -59,7 +69,9 @@ import { isUndefined } from '@core/utils';
   templateUrl: './trip-animation.component.html',
   styleUrls: ['./trip-animation.component.scss']
 })
-export class TripAnimationComponent implements OnInit, AfterViewInit {
+export class TripAnimationComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  private mapResize$: ResizeObserver;
 
   constructor(private cd: ChangeDetectorRef, private sanitizer: DomSanitizer) { }
 
@@ -76,7 +88,7 @@ export class TripAnimationComponent implements OnInit, AfterViewInit {
   mainTooltip = '';
   visibleTooltip = false;
   activeTrip: FormattedData;
-  label;
+  label: string;
   minTime: number;
   maxTime: number;
   anchors: number[] = [];
@@ -128,6 +140,16 @@ export class TripAnimationComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     const ctxCopy: WidgetContext = _.cloneDeep(this.ctx);
     this.mapWidget = new MapWidgetController(MapProviders.openstreet, false, ctxCopy, this.mapContainer.nativeElement);
+    this.mapResize$ = new ResizeObserver(() => {
+      this.mapWidget.resize();
+    });
+    this.mapResize$.observe(this.mapContainer.nativeElement);
+  }
+
+  ngOnDestroy() {
+    if (this.mapResize$) {
+      this.mapResize$.disconnect();
+    }
   }
 
   timeUpdated(time: number) {
@@ -188,7 +210,7 @@ export class TripAnimationComponent implements OnInit, AfterViewInit {
     }
   }
 
-  calcTooltip = (point?: FormattedData) => {
+  calcTooltip = (point?: FormattedData): string => {
     const data = point ? point : this.activeTrip;
     const tooltipPattern: string = this.settings.useTooltipFunction ?
       safeExecute(this.settings.tooltipFunction, [data, this.historicalData, point.dsIndex]) : this.settings.tooltipPattern;
