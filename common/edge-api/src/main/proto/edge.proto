@@ -100,6 +100,9 @@ message EdgeConfiguration {
   string routingKey = 4;
   string type = 5;
   string cloudType = 6;
+  WhiteLabelingParamsProto whiteLabelingParams = 7;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 8;
+  CustomTranslationProto customTranslation = 9;
 }
 
 enum UpdateMsgType {
@@ -253,6 +256,63 @@ message RuleChainMetadataRequestMsg {
 enum EdgeEntityType {
   DEVICE = 0;
   ASSET = 1;
+}
+
+message LoginWhiteLabelingParamsProto {
+    string logoImageUrl = 1;
+    string logoImageChecksum = 2;
+    int64 logoImageHeight = 3;
+    string appTitle = 4;
+    FaviconProto favicon = 5;
+    string faviconChecksum = 6;
+    PaletteSettingsProto paletteSettings = 7;
+    string helpLinkBaseUrl = 8;
+    bool enableHelpLinks = 9;
+    bool whiteLabelingEnabled = 10;
+    bool showNameVersion = 11;
+    string platformName = 12;
+    string platformVersion = 13;
+    string pageBackgroundColor = 14;
+    bool darkForeground = 15;
+    string domainName = 16;
+    string adminSettingsId = 17;
+    bool showNameBottom = 18;
+}
+
+message WhiteLabelingParamsProto {
+    string logoImageUrl = 1;
+    string logoImageChecksum = 2;
+    int64 logoImageHeight = 3;
+    string appTitle = 4;
+    FaviconProto favicon = 5;
+    string faviconChecksum = 6;
+    PaletteSettingsProto paletteSettings = 7;
+    string helpLinkBaseUrl = 8;
+    bool enableHelpLinks = 9;
+    bool whiteLabelingEnabled = 10;
+    bool showNameVersion = 11;
+    string platformName = 12;
+    string platformVersion = 13;
+}
+
+message FaviconProto {
+    string url = 1;
+    string type = 2;
+}
+
+message PaletteSettingsProto {
+    PaletteProto primaryPalette = 1;
+    PaletteProto accentPalette = 2;
+}
+
+message PaletteProto {
+    string type = 1;
+    string extendsPalette = 2;
+    map<string, string> colors = 3;
+}
+
+message CustomTranslationProto {
+    map<string, string> translationMap = 1;
 }
 
 /**
