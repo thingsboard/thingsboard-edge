@@ -69,6 +69,9 @@ message EntityUpdateMsg {
   AlarmUpdateMsg alarmUpdateMsg = 7;
   UserUpdateMsg userUpdateMsg = 8;
   CustomerUpdateMsg customerUpdateMsg = 9;
+  WhiteLabelingParamsProto whiteLabelingParams = 10;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 11;
+  CustomTranslationProto customTranslation = 12;
 }
 
 enum RequestMsgType {
@@ -100,9 +103,6 @@ message EdgeConfiguration {
   string routingKey = 4;
   string type = 5;
   string cloudType = 6;
-  WhiteLabelingParamsProto whiteLabelingParams = 7;
-  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 8;
-  CustomTranslationProto customTranslation = 9;
 }
 
 enum UpdateMsgType {
@@ -268,15 +268,14 @@ message LoginWhiteLabelingParamsProto {
     PaletteSettingsProto paletteSettings = 7;
     string helpLinkBaseUrl = 8;
     bool enableHelpLinks = 9;
-    bool whiteLabelingEnabled = 10;
-    bool showNameVersion = 11;
-    string platformName = 12;
-    string platformVersion = 13;
-    string pageBackgroundColor = 14;
-    bool darkForeground = 15;
-    string domainName = 16;
-    string adminSettingsId = 17;
-    bool showNameBottom = 18;
+    bool showNameVersion = 10;
+    string platformName = 11;
+    string platformVersion = 12;
+    string pageBackgroundColor = 13;
+    bool darkForeground = 14;
+    string domainName = 15;
+    string adminSettingsId = 16;
+    bool showNameBottom = 17;
 }
 
 message WhiteLabelingParamsProto {
@@ -289,10 +288,9 @@ message WhiteLabelingParamsProto {
     PaletteSettingsProto paletteSettings = 7;
     string helpLinkBaseUrl = 8;
     bool enableHelpLinks = 9;
-    bool whiteLabelingEnabled = 10;
-    bool showNameVersion = 11;
-    string platformName = 12;
-    string platformVersion = 13;
+    bool showNameVersion = 10;
+    string platformName = 11;
+    string platformVersion = 12;
 }
 
 message FaviconProto {

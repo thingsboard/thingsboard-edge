@@ -33,36 +33,34 @@ package org.thingsboard.server.service.edge.rpc.init;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.stub.StreamObserver;
-import jnr.ffi.annotations.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -70,28 +68,33 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -143,8 +146,23 @@ public class DefaultInitEdgeService implements InitEdgeService {
     @Autowired
     private UserUpdateMsgConstructor userUpdateMsgConstructor;
 
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private CustomTranslationService customTranslationService;
+
+    @Autowired
+    private WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
+
+    @Autowired
+    private CustomTranslationProtoConstructor customTranslationProtoConstructor;
+
     @Override
     public void init(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        initLoginWhiteLabeling(edge, outputStream);
+        initWhiteLabeling(edge, outputStream);
+        initCustomTranslation(edge, outputStream);
         initRuleChains(ctx, edge, outputStream);
         initDevices(ctx, edge, outputStream);
         initAssets(ctx, edge, outputStream);
@@ -152,6 +170,85 @@ public class DefaultInitEdgeService implements InitEdgeService {
         initDashboards(ctx, edge, outputStream);
         initUsers(ctx, edge, outputStream);
         initSchedulerEvents(ctx, edge, outputStream);
+    }
+
+    private void initLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            LoginWhiteLabelingParams loginWhiteLabelingParams = null;
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(new TenantId(ownerId.getId()));
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()));
+            }
+
+
+            if (loginWhiteLabelingParams != null) {
+                LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load login white labeling params", e);
+        }
+    }
+
+    private void initWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            WhiteLabelingParams whiteLabelingParams = null;
+
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(new TenantId(ownerId.getId()), null, null);
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()), null, null);
+            }
+
+            if (whiteLabelingParams != null) {
+                WhiteLabelingParamsProto whiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setWhiteLabelingParams(whiteLabelingParamsProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load white labeling params", e);
+        }
+    }
+
+    private void initCustomTranslation(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            CustomTranslation customTranslation = null;
+
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                customTranslation = customTranslationService.getMergedTenantCustomTranslation(new TenantId(ownerId.getId()));
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                customTranslation = customTranslationService.getMergedCustomerCustomTranslation(edge.getTenantId(), new CustomerId(ownerId.getId()));
+            }
+
+
+            if (customTranslation != null) {
+                CustomTranslationProto customTranslationProto =
+                        customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setCustomTranslation(customTranslationProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load custom translation", e);
+        }
     }
 
     private void initDevices(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
