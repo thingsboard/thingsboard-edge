@@ -78,6 +78,12 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.Favicon;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.Palette;
+import org.thingsboard.server.common.data.wl.PaletteSettings;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
 import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
@@ -91,10 +97,13 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
@@ -104,6 +113,10 @@ import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.FaviconProto;
+import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.PaletteProto;
+import org.thingsboard.server.gen.edge.PaletteSettingsProto;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
@@ -111,6 +124,7 @@ import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.user.UserLoaderService;
 import org.thingsboard.storage.EventStorage;
@@ -199,6 +213,12 @@ public class CloudManagerService {
 
     @Autowired
     private RuleEngineTelemetryService telemetryService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private CustomTranslationService customTranslationService;
 
     @Autowired
     private ActorService actorService;
@@ -353,6 +373,15 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
+            } else if (entityUpdateMsg.hasCustomTranslation()) {
+                log.debug("Custom translation received [{}]", entityUpdateMsg.getCustomTranslation());
+                onCustomTranslationUpdate(entityUpdateMsg.getCustomTranslation());
+            } else if (entityUpdateMsg.hasWhiteLabelingParams()) {
+                log.debug("White labeling params received [{}]", entityUpdateMsg.getWhiteLabelingParams());
+                onWhiteLabelingParamsUpdate(entityUpdateMsg.getWhiteLabelingParams());
+            } else if (entityUpdateMsg.hasLoginWhiteLabelingParams()) {
+                log.debug("Login white labeling params received [{}]", entityUpdateMsg.getLoginWhiteLabelingParams());
+                onLoginWhiteLabelingParamsUpdate(entityUpdateMsg.getLoginWhiteLabelingParams());
             }
         } catch (Exception e) {
             log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);
@@ -666,7 +695,7 @@ public class CloudManagerService {
     }
 
     private void onAlarmUpdate(AlarmUpdateMsg alarmUpdateMsg) {
-        EntityId originatorId = getAlarmOriginator(alarmUpdateMsg.getOriginatorName(), org.thingsboard.server.common.data.EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
+        EntityId originatorId = getAlarmOriginator(alarmUpdateMsg.getOriginatorName(), EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
         if (originatorId != null) {
             try {
                 Alarm existingAlarm = alarmService.findLatestByOriginatorAndType(tenantId, originatorId, alarmUpdateMsg.getType()).get();
@@ -791,7 +820,98 @@ public class CloudManagerService {
         }
     }
 
-    private EntityId getAlarmOriginator(String entityName, org.thingsboard.server.common.data.EntityType entityType) {
+    private void onCustomTranslationUpdate(CustomTranslationProto customTranslationProto) {
+        try {
+            CustomTranslation customTranslation = new CustomTranslation();
+            customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
+            customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
+        } catch (Exception e){
+            log.error("Exception during updating custom translation", e);
+        }
+    }
+
+    private void onLoginWhiteLabelingParamsUpdate(LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
+        try {
+            LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
+            whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
+        } catch (Exception e){
+            log.error("Exception during updating login white labeling params", e);
+        }
+    }
+
+    public LoginWhiteLabelingParams constructLoginWhiteLabelingParams(LoginWhiteLabelingParamsProto loginWLPProto) {
+        LoginWhiteLabelingParams loginWLP = new LoginWhiteLabelingParams();
+        loginWLP.setLogoImageUrl(loginWLPProto.getLogoImageUrl());
+        loginWLP.setLogoImageChecksum(loginWLPProto.getLogoImageChecksum());
+        loginWLP.setLogoImageHeight((int) loginWLPProto.getLogoImageHeight());
+        loginWLP.setAppTitle(loginWLPProto.getAppTitle());
+        loginWLP.setFavicon(constructFavicon(loginWLPProto.getFavicon()));
+        loginWLP.setFaviconChecksum(loginWLPProto.getFaviconChecksum());
+        loginWLP.setPaletteSettings(constructPaletteSettings(loginWLPProto.getPaletteSettings()));
+        loginWLP.setHelpLinkBaseUrl(loginWLPProto.getHelpLinkBaseUrl());
+        loginWLP.setEnableHelpLinks(loginWLPProto.getEnableHelpLinks());
+        loginWLP.setShowNameVersion(loginWLPProto.getShowNameVersion());
+        loginWLP.setPlatformName(loginWLPProto.getPlatformName());
+        loginWLP.setPlatformVersion(loginWLPProto.getPlatformVersion());
+
+        loginWLP.setPageBackgroundColor(loginWLPProto.getPageBackgroundColor());
+        loginWLP.setDarkForeground(loginWLPProto.getDarkForeground());
+        loginWLP.setDomainName(loginWLPProto.getDomainName());
+        loginWLP.setAdminSettingsId(loginWLPProto.getAdminSettingsId());
+        loginWLP.setShowNameBottom(loginWLPProto.getShowNameBottom());
+
+        return loginWLP;
+    }
+
+    private void onWhiteLabelingParamsUpdate(WhiteLabelingParamsProto wLPProto) {
+        try {
+            WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
+            whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
+        } catch (Exception e){
+            log.error("Exception during updating white labeling params", e);
+        }
+    }
+
+    public WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
+        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.getLogoImageUrl());
+        whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.getLogoImageChecksum());
+        whiteLabelingParams.setLogoImageHeight((int) whiteLabelingParamsProto.getLogoImageHeight());
+        whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.getAppTitle());
+        whiteLabelingParams.setFavicon(constructFavicon(whiteLabelingParamsProto.getFavicon()));
+        whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.getFaviconChecksum());
+        whiteLabelingParams.setPaletteSettings(constructPaletteSettings(whiteLabelingParamsProto.getPaletteSettings()));
+        whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.getHelpLinkBaseUrl());
+        whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.getEnableHelpLinks());
+        whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.getShowNameVersion());
+        whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.getPlatformName());
+        whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.getPlatformVersion());
+        return whiteLabelingParams;
+    }
+
+    private Favicon constructFavicon(FaviconProto faviconProto) {
+        Favicon favicon = new Favicon();
+        favicon.setUrl(faviconProto.getUrl());
+        favicon.setType(faviconProto.getType());
+        return favicon;
+    }
+
+    private PaletteSettings constructPaletteSettings(PaletteSettingsProto paletteSettingsProto) {
+        PaletteSettings paletteSettings = new PaletteSettings();
+        paletteSettings.setPrimaryPalette(constructPalette(paletteSettingsProto.getPrimaryPalette()));
+        paletteSettings.setAccentPalette(constructPalette(paletteSettingsProto.getAccentPalette()));
+        return paletteSettings;
+    }
+
+    private Palette constructPalette(PaletteProto paletteProto) {
+        Palette palette = new Palette();
+        palette.setType(paletteProto.getType());
+        palette.setExtendsPalette(paletteProto.getExtendsPalette());
+        palette.setColors(paletteProto.getColorsMap());
+        return palette;
+    }
+
+    private EntityId getAlarmOriginator(String entityName, EntityType entityType) {
         switch (entityType) {
             case DEVICE:
                 return deviceService.findDeviceByTenantIdAndName(tenantId, entityName).getId();
