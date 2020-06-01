@@ -51,6 +51,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.AssetUpdateMsgConstru
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.init.InitEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
@@ -117,6 +118,10 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private RuleChainUpdateMsgConstructor ruleChainUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
 
     @Lazy
     @Autowired

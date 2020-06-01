@@ -289,7 +289,7 @@ public class SchedulerEventController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, edgeId).get());
+            return checkNotNull(schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId).get());
         } catch (Exception e) {
             throw handleException(e);
         }

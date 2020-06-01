@@ -223,11 +223,19 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId) {
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId) {
+        log.trace("Executing findSchedulerEventInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), new TimePageLink(Integer.MAX_VALUE));
+    }
+
+    @Override
+    public ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing findSchedulerEventsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
-        return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), new TimePageLink(Integer.MAX_VALUE));
+        return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), new TimePageLink(Integer.MAX_VALUE));
     }
 
     private void createRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {

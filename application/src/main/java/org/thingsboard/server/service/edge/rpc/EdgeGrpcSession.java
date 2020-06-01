@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.User;
@@ -54,7 +55,6 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.edge.EdgeQueueEntry;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -72,6 +72,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -378,6 +379,10 @@ public final class EdgeGrpcSession implements Closeable {
                     User user = objectMapper.readValue(data, User.class);
                     onUserUpdated(msgType, user, groupName);
                     break;
+                case SCHEDULER_EVENT:
+                    SchedulerEvent schedulerEvent = objectMapper.readValue(data, SchedulerEvent.class);
+                    onSchedulerEventUpdated(msgType, schedulerEvent);
+                    break;
             }
         }
 
@@ -437,6 +442,15 @@ public final class EdgeGrpcSession implements Closeable {
     private void onRuleChainUpdated(UpdateMsgType msgType, RuleChain ruleChain) {
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                 .setRuleChainUpdateMsg(ctx.getRuleChainUpdateMsgConstructor().constructRuleChainUpdatedMsg(edge.getRootRuleChainId(), msgType, ruleChain))
+                .build();
+        outputStream.onNext(ResponseMsg.newBuilder()
+                .setEntityUpdateMsg(entityUpdateMsg)
+                .build());
+    }
+
+    private void onSchedulerEventUpdated(UpdateMsgType msgType, SchedulerEvent schedulerEvent) {
+        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                .setSchedulerEventUpdateMsg(ctx.getSchedulerEventUpdateMsgConstructor().constructSchedulerEventUpdatedMsg(msgType, schedulerEvent))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)

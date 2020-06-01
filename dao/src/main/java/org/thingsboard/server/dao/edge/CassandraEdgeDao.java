@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -127,6 +128,19 @@ public class CassandraEdgeDao extends CassandraAbstractSearchTextDao<EdgeEntity,
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId) {
         log.debug("Try to find edges by tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new RuleChainId(ruleChainId), RelationTypeGroup.EDGE);
+        return Futures.transformAsync(relations, input -> {
+            List<ListenableFuture<Edge>> ruleChainFutures = new ArrayList<>(input.size());
+            for (EntityRelation relation : input) {
+                ruleChainFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
+            }
+            return Futures.successfulAsList(ruleChainFutures);
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId) {
+        log.debug("Try to find edges by tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), RelationTypeGroup.EDGE);
         return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<Edge>> ruleChainFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {

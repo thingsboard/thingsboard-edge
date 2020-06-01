@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -82,6 +83,7 @@ import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
@@ -92,6 +94,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgCon
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 
@@ -130,6 +133,9 @@ public class DefaultInitEdgeService implements InitEdgeService {
 
     @Autowired
     private RuleChainUpdateMsgConstructor ruleChainUpdateMsgConstructor;
+
+    @Autowired
+    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
 
     @Autowired
     private DeviceUpdateMsgConstructor deviceUpdateMsgConstructor;
@@ -487,24 +493,23 @@ public class DefaultInitEdgeService implements InitEdgeService {
 
     private void initSchedulerEvents(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
-            ListenableFuture<List<SchedulerEventInfo>> schedulerEventsFuture =
+            ListenableFuture<List<SchedulerEvent>> schedulerEventsFuture =
                     schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId());
             Futures.transform(schedulerEventsFuture, schedulerEvents -> {
                 if (schedulerEvents != null && !schedulerEvents.isEmpty()) {
                     log.trace("[{}] [{}] scheduler events(s) are going to be pushed to edge.", edge.getId(), schedulerEvents.size());
-//                    for (SchedulerEventInfo schedulerEventInfo : schedulerEvents) {
-//                        RuleChainUpdateMsg ruleChainUpdateMsg =
-//                                ruleChainUpdateMsgConstructor.constructRuleChainUpdatedMsg(
-//                                        edge.getRootRuleChainId(),
-//                                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
-//                                        ruleChain);
-//                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-//                                .setRuleChainUpdateMsg(ruleChainUpdateMsg)
-//                                .build();
-//                        outputStream.onNext(ResponseMsg.newBuilder()
-//                                .setEntityUpdateMsg(entityUpdateMsg)
-//                                .build());
-//                    }
+                    for (SchedulerEvent schedulerEvent : schedulerEvents) {
+                        SchedulerEventUpdateMsg schedulerEventUpdateMsg =
+                                schedulerEventUpdateMsgConstructor.constructSchedulerEventUpdatedMsg(
+                                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
+                                        schedulerEvent);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                    }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());

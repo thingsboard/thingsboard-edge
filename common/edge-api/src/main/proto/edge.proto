@@ -72,6 +72,7 @@ message EntityUpdateMsg {
   WhiteLabelingParamsProto whiteLabelingParams = 10;
   LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 11;
   CustomTranslationProto customTranslation = 12;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 13;
 }
 
 enum RequestMsgType {
@@ -251,6 +252,16 @@ message UserUpdateMsg {
 message RuleChainMetadataRequestMsg {
   int64 ruleChainIdMSB = 1;
   int64 ruleChainIdLSB = 2;
+}
+
+message SchedulerEventUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  string schedule = 6;
+  string configuration = 7;
 }
 
 enum EdgeEntityType {

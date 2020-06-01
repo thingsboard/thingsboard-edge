@@ -72,6 +72,8 @@ public interface SchedulerEventService {
 
     SchedulerEventInfo unassignSchedulerEventFromEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId, boolean remove);
 
-    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
+    ListenableFuture<List<SchedulerEvent>> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
+
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId);
 
 }

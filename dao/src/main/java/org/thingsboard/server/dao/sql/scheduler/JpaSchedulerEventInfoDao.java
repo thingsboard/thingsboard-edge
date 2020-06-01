@@ -117,8 +117,8 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
-        log.debug("Try to find scheduler events by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
+        log.debug("Try to find scheduler event infos by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE, EntityType.SCHEDULER_EVENT, pageLink);
         return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<SchedulerEventInfo>> schedulerEventFutures = new ArrayList<>(input.size());

@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -83,6 +84,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -446,6 +448,9 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     case ENTITY_GROUP:
                         processEntityGroup(tenantId, tbMsg, callback);
                         break;
+                    case SCHEDULER_EVENT:
+                        processSchedulerEvent(tenantId, tbMsg, callback);
+                        break;
                     default:
                         log.debug("Entity type [{}] is not designed to be pushed to edge", tbMsg.getOriginator().getEntityType());
                 }
@@ -645,6 +650,37 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         }
     }
 
+    private void processSchedulerEvent(TenantId tenantId, TbMsg tbMsg, FutureCallback<Void> callback) throws IOException {
+        switch (tbMsg.getType()) {
+            case DataConstants.ENTITY_ASSIGNED_TO_EDGE:
+            case DataConstants.ENTITY_UNASSIGNED_FROM_EDGE:
+                processAssignedEntity(tenantId, tbMsg, EdgeQueueEntityType.SCHEDULER_EVENT, callback);
+                break;
+            case DataConstants.ENTITY_DELETED:
+            case DataConstants.ENTITY_CREATED:
+            case DataConstants.ENTITY_UPDATED:
+                SchedulerEvent schedulerEvent = mapper.readValue(tbMsg.getData(), SchedulerEvent.class);
+                ListenableFuture<List<Edge>> edgesFuture = findEdgesByTenantIdAndSchedulerEventId(tenantId, schedulerEvent.getId());
+                Futures.transform(edgesFuture, edges -> {
+                    try {
+                        if (edges != null && !edges.isEmpty()) {
+                            for (Edge edge : edges) {
+                                pushEventToEdge(tenantId, edge.getId(), EdgeQueueEntityType.SCHEDULER_EVENT, tbMsg, callback);
+                            }
+                        }
+                    } catch (IOException e) {
+                        log.error("Exception while persisting event to edges [{}]", edges, e);
+                    }
+                    return null;
+                }, MoreExecutors.directExecutor());
+                break;
+            default:
+                log.warn("Unsupported msgType [{}], tbMsg [{}]", tbMsg.getType(), tbMsg);
+        }
+    }
+
+
+
     private void processAssignedEntity(TenantId tenantId, TbMsg tbMsg, EdgeQueueEntityType entityType, FutureCallback<Void> callback) throws IOException {
         final EntityId assignedEntityId = new EntityGroupId(UUID.fromString(tbMsg.getMetaData().getValue("entityId")));
         final String assignedEntityName = tbMsg.getMetaData().getValue("entityName");
@@ -676,6 +712,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             try {
                 switch (entityType) {
                     case RULE_CHAIN:
+                    case SCHEDULER_EVENT:
                         pushEventToEdge(tenantId, edgeId, entityType, tbMsg, callback);
                         break;
                     case ENTITY_GROUP:
@@ -822,9 +859,18 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(TenantId tenantId, RuleChainId ruleChainId) {
         log.trace("Executing findEdgesByTenantIdAndRuleChainId, tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(ruleChainId, "Incorrect edgeId " + ruleChainId);
+        Validator.validateId(ruleChainId, "Incorrect ruleChainId " + ruleChainId);
         return edgeDao.findEdgesByTenantIdAndRuleChainId(tenantId.getId(), ruleChainId.getId());
     }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(TenantId tenantId, SchedulerEventId schedulerEventId) {
+        log.trace("Executing findEdgesByTenantIdAndSchedulerEventId, tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(schedulerEventId, "Incorrect schedulerEventId " + schedulerEventId);
+        return edgeDao.findEdgesByTenantIdAndSchedulerEventId(tenantId.getId(), schedulerEventId.getId());
+    }
+
 
     private DataValidator<Edge> edgeValidator =
             new DataValidator<Edge>() {
