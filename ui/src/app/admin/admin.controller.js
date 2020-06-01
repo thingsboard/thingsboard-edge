@@ -107,6 +107,10 @@ export default function AdminController(adminService, userService, toast, $scope
                 vm.useSystemMailSettings =
                     angular.isDefined(vm.settings.jsonValue.useSystemMailSettings) ? vm.settings.jsonValue.useSystemMailSettings : true;
             }
+
+            if(vm.settings.jsonValue && vm.settings.jsonValue.enableTls && angular.isString(vm.settings.jsonValue.enableTls)){
+                vm.settings.jsonValue.enableTls = vm.settings.jsonValue.enableTls === 'true';
+            }
         });
     }
 
