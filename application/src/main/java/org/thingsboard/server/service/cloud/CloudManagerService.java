@@ -63,8 +63,8 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
@@ -96,6 +97,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
@@ -121,6 +123,7 @@ import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleNodeProto;
+import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
@@ -219,6 +222,9 @@ public class CloudManagerService {
 
     @Autowired
     private CustomTranslationService customTranslationService;
+
+    @Autowired
+    private SchedulerEventService schedulerEventService;
 
     @Autowired
     private ActorService actorService;
@@ -382,6 +388,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasLoginWhiteLabelingParams()) {
                 log.debug("Login white labeling params received [{}]", entityUpdateMsg.getLoginWhiteLabelingParams());
                 onLoginWhiteLabelingParamsUpdate(entityUpdateMsg.getLoginWhiteLabelingParams());
+            } else if (entityUpdateMsg.hasSchedulerEventUpdateMsg()) {
+                log.debug("Schedule event received [{}]", entityUpdateMsg.getSchedulerEventUpdateMsg());
+                onScheduleEventUpdate(entityUpdateMsg.getSchedulerEventUpdateMsg());
             }
         } catch (Exception e) {
             log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);
@@ -574,35 +583,70 @@ public class CloudManagerService {
         }
     }
 
+    private void onScheduleEventUpdate(SchedulerEventUpdateMsg schedulerEventUpdateMsg) {
+        try {
+            SchedulerEventId schedulerEventId = new SchedulerEventId(new UUID(schedulerEventUpdateMsg.getIdMSB(), schedulerEventUpdateMsg.getIdLSB()));
+            switch (schedulerEventUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(tenantId, schedulerEventId);
+                    if (schedulerEvent == null) {
+                        schedulerEvent = new SchedulerEvent();
+                        schedulerEvent.setId(schedulerEventId);
+                        schedulerEvent.setTenantId(tenantId);
+                    }
+                    schedulerEvent.setName(schedulerEventUpdateMsg.getName());
+                    schedulerEvent.setType(schedulerEventUpdateMsg.getType());
+                    schedulerEvent.setSchedule(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getSchedule()));
+                    schedulerEvent.setConfiguration(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getConfiguration()));
+                    schedulerEventService.saveSchedulerEvent(schedulerEvent);
+                    actorService.onEntityStateChange(tenantId, schedulerEventId, ComponentLifecycleEvent.UPDATED);
+
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    schedulerEventService.deleteSchedulerEvent(tenantId, schedulerEventId);
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (Exception e) {
+            log.error("Can't process SchedulerEventUpdateMsg [{}]", schedulerEventUpdateMsg, e);
+        }
+    }
+
     private void onRuleChainUpdate(RuleChainUpdateMsg ruleChainUpdateMsg) {
-        RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
-        switch (ruleChainUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);
-                if (ruleChain == null) {
-                    ruleChain = new RuleChain();
-                    ruleChain.setId(ruleChainId);
-                    ruleChain.setTenantId(tenantId);
-                }
-                ruleChain.setName(ruleChainUpdateMsg.getName());
-                if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
-                    ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
-                }
-                ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
-                ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
-                ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
-                ruleChainService.saveRuleChain(ruleChain);
-                actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+        try {
+            RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
+            switch (ruleChainUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                    if (ruleChain == null) {
+                        ruleChain = new RuleChain();
+                        ruleChain.setId(ruleChainId);
+                        ruleChain.setTenantId(tenantId);
+                    }
+                    ruleChain.setName(ruleChainUpdateMsg.getName());
+                    if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
+                        ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                    }
+                    ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
+                    ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
+                    ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
+                    ruleChainService.saveRuleChain(ruleChain);
+                    actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
 
-                eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
+                    eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
 
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
-                break;
-            case UNRECOGNIZED:
-                log.error("Unsupported msg type");
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (Exception e) {
+            log.error("Can't process RuleChainUpdateMsg [{}]", ruleChainUpdateMsg, e);
         }
     }
 
@@ -825,7 +869,7 @@ public class CloudManagerService {
             CustomTranslation customTranslation = new CustomTranslation();
             customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
             customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Exception during updating custom translation", e);
         }
     }
@@ -834,7 +878,7 @@ public class CloudManagerService {
         try {
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
             whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Exception during updating login white labeling params", e);
         }
     }
@@ -867,12 +911,12 @@ public class CloudManagerService {
         try {
             WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
             whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("Exception during updating white labeling params", e);
         }
     }
 
-    public WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
+    private WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.getLogoImageUrl());
         whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.getLogoImageChecksum());
