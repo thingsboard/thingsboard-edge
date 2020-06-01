@@ -46,7 +46,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { Authority } from '@shared/models/authority.enum';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { isDefined } from '@core/utils';
+import { isDefined, isString } from '@core/utils';
 
 @Component({
   selector: 'tb-mail-server',
@@ -81,14 +81,17 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
     this.adminService.getAdminSettings<MailServerSettings>('mail', false).subscribe(
       (adminSettings) => {
         this.adminSettings = adminSettings;
+        if (this.adminSettings.jsonValue && isString(this.adminSettings.jsonValue.enableTls)) {
+          this.adminSettings.jsonValue.enableTls = (this.adminSettings.jsonValue.enableTls as any) === 'true';
+        }
         this.mailSettings.reset(this.adminSettings.jsonValue);
         if (this.isTenantAdmin()) {
           this.mailSettings.get('useSystemMailSettings').setValue(
             isDefined(this.adminSettings.jsonValue.useSystemMailSettings) ?
               this.adminSettings.jsonValue.useSystemMailSettings: true, {emitEvent: false}
           );
-          this.updateValidators();
         }
+        this.updateValidators();
       }
     );
   }
@@ -109,20 +112,27 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
       timeout: ['10000', [Validators.required,
         Validators.pattern(/^[0-9]{1,6}$/),
         Validators.maxLength(6)]],
-      enableTls: ['false'],
+      enableTls: [false],
       tlsVersion: [],
+      enableProxy: [false, []],
+      proxyHost: ['', [Validators.required]],
+      proxyPort: ['', [Validators.required, Validators.min(1), Validators.max(65535)]],
+      proxyUser: [''],
+      proxyPassword: [''],
       username: [''],
       password: ['']
     });
     if (this.readonly) {
       this.mailSettings.get('smtpProtocol').disable({emitEvent: false});
       this.mailSettings.get('enableTls').disable({emitEvent: false});
+      this.mailSettings.get('enableProxy').disable({emitEvent: false});
       if (this.isTenantAdmin()) {
         this.mailSettings.get('useSystemMailSettings').disable({emitEvent: false});
       }
     } else {
       this.registerDisableOnLoadFormControl(this.mailSettings.get('smtpProtocol'));
       this.registerDisableOnLoadFormControl(this.mailSettings.get('enableTls'));
+      this.registerDisableOnLoadFormControl(this.mailSettings.get('enableProxy'));
       if (this.isTenantAdmin()) {
         this.registerDisableOnLoadFormControl(this.mailSettings.get('useSystemMailSettings'));
       }
@@ -134,15 +144,23 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
         }
       );
     }
+    this.mailSettings.get('enableProxy').valueChanges.subscribe(
+      () => {
+        this.updateValidators();
+      }
+    );
   }
 
   private updateValidators() {
     const useSystemMailSettings: boolean = this.mailSettings.get('useSystemMailSettings').value;
+    const enableProxy: boolean = this.mailSettings.get('enableProxy').value;
     if (useSystemMailSettings) {
       this.mailSettings.get('mailFrom').setValidators([]);
       this.mailSettings.get('smtpHost').setValidators([]);
       this.mailSettings.get('smtpPort').setValidators([]);
       this.mailSettings.get('timeout').setValidators([]);
+      this.mailSettings.get('proxyHost').setValidators([]);
+      this.mailSettings.get('proxyPort').setValidators([]);
     } else {
       this.mailSettings.get('mailFrom').setValidators([Validators.required]);
       this.mailSettings.get('smtpHost').setValidators([Validators.required]);
@@ -152,11 +170,15 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
       this.mailSettings.get('timeout').setValidators([Validators.required,
         Validators.pattern(/^[0-9]{1,6}$/),
         Validators.maxLength(6)]);
+      this.mailSettings.get('proxyHost').setValidators(enableProxy ? [Validators.required] : []);
+      this.mailSettings.get('proxyPort').setValidators(enableProxy ? [Validators.required, Validators.min(1), Validators.max(65535)] : []);
     }
     this.mailSettings.get('mailFrom').updateValueAndValidity({emitEvent: false});
     this.mailSettings.get('smtpHost').updateValueAndValidity({emitEvent: false});
     this.mailSettings.get('smtpPort').updateValueAndValidity({emitEvent: false});
     this.mailSettings.get('timeout').updateValueAndValidity({emitEvent: false});
+    this.mailSettings.get('proxyHost').updateValueAndValidity({emitEvent: false});
+    this.mailSettings.get('proxyPort').updateValueAndValidity({emitEvent: false});
   }
 
   sendTestMail(): void {
