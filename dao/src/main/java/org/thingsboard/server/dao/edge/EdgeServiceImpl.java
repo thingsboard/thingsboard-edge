@@ -549,10 +549,7 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             case DataConstants.ENTITY_DELETED:
             case DataConstants.ENTITY_CREATED:
             case DataConstants.ENTITY_UPDATED:
-                Edge edge = mapper.readValue(tbMsg.getData(), Edge.class);
-                if (edge != null) {
-                    pushEventToEdge(tenantId, edge.getId(), EdgeQueueEntityType.EDGE, tbMsg, callback);
-                }
+                // TODO: voba - handle properly edge creation
                 break;
             default:
                 log.warn("Unsupported msgType [{}], tbMsg [{}]", tbMsg.getType(), tbMsg);

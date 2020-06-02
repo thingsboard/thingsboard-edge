@@ -135,19 +135,6 @@ public class CassandraEdgeDao extends CassandraAbstractSearchTextDao<EdgeEntity,
     }
 
     @Override
-    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId) {
-        log.debug("Try to find edges by tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new DashboardId(dashboardId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                edgeFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
-            }
-            return Futures.successfulAsList(edgeFutures);
-        }, MoreExecutors.directExecutor());
-    }
-
-    @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId) {
         log.debug("Try to find edges by tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), RelationTypeGroup.EDGE);

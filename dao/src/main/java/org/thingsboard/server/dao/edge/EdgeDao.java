@@ -151,15 +151,6 @@ public interface EdgeDao extends Dao<Edge> {
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId);
 
     /**
-     * Find edges by tenantId and dashboardId.
-     *
-     * @param tenantId the tenantId
-     * @param dashboardId the dashboardId
-     * @return the list of rule chain objects
-     */
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId);
-
-    /**
      * Find edges by tenantId and schedulerEventId.
      *
      * @param tenantId the tenantId
