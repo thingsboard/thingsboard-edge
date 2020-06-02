@@ -119,6 +119,11 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     this.entityForm.patchValue({configuration: {description: entity.configuration ? entity.configuration.description : ''}});
   }
 
+  prepareFormValue(formValue: any): any {
+    formValue.configuration = {...(this.entity.configuration || {}), ...(formValue.configuration || {})};
+    return formValue;
+  }
+
   onPublicLinkCopied($event) {
     this.store.dispatch(new ActionNotificationShow(
      {
