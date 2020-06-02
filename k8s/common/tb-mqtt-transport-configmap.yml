@@ -1,0 +1,80 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tb-mqtt-transport-config
+  namespace: thingsboard
+  labels:
+    name: tb-mqtt-transport-config
+data:
+  conf: |
+      export JAVA_OPTS="$JAVA_OPTS -Xloggc:/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/gc.log -XX:+IgnoreUnrecognizedVMOptions -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/heapdump.bin -XX:+PrintGCDetails -XX:+PrintGCDateStamps"
+      export JAVA_OPTS="$JAVA_OPTS -XX:+PrintHeapAtGC -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10"
+      export JAVA_OPTS="$JAVA_OPTS -XX:GCLogFileSize=10M -XX:-UseBiasedLocking -XX:+UseTLAB -XX:+ResizeTLAB -XX:+PerfDisableSharedMem -XX:+UseCondCardMark"
+      export JAVA_OPTS="$JAVA_OPTS -XX:CMSWaitDuration=10000 -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+CMSParallelInitialMarkEnabled"
+      export JAVA_OPTS="$JAVA_OPTS -XX:+CMSEdenChunksRecordAlways -XX:CMSInitiatingOccupancyFraction=75 -XX:+UseCMSInitiatingOccupancyOnly -XX:+ExitOnOutOfMemoryError"
+      export LOG_FILENAME=tb-mqtt-transport.out
+      export LOADER_PATH=/usr/share/tb-mqtt-transport/conf
+  logback: |
+      <!DOCTYPE configuration>
+      <configuration scan="true" scanPeriod="10 seconds">
+
+          <appender name="fileLogAppender"
+                    class="ch.qos.logback.core.rolling.RollingFileAppender">
+              <file>/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/tb-mqtt-transport.log</file>
+              <rollingPolicy
+                      class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                  <fileNamePattern>/var/log/tb-mqtt-transport/${TB_SERVICE_ID}/tb-mqtt-transport.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                  <maxFileSize>100MB</maxFileSize>
+                  <maxHistory>30</maxHistory>
+                  <totalSizeCap>3GB</totalSizeCap>
+              </rollingPolicy>
+              <encoder>
+                  <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+              </encoder>
+          </appender>
+
+          <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+              <encoder>
+                  <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+              </encoder>
+          </appender>
+
+          <logger name="org.thingsboard.server" level="INFO" />
+
+          <root level="INFO">
+              <appender-ref ref="fileLogAppender"/>
+              <appender-ref ref="STDOUT"/>
+          </root>
+
+      </configuration>

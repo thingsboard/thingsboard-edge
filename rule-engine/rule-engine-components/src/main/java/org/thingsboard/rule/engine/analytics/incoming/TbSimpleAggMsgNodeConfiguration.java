@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,14 +36,20 @@ import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfigur
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @Data
 public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private String mathFunction;
+
+    private AggIntervalType aggIntervalType;
+    private String timeZoneId;
+    //For Static Intervals
     private String aggIntervalTimeUnit;
     private int aggIntervalValue;
+
     private boolean autoCreateIntervals;
 
     private String intervalPersistencePolicy;
@@ -65,8 +71,10 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         TbSimpleAggMsgNodeConfiguration configuration = new TbSimpleAggMsgNodeConfiguration();
 
         configuration.setMathFunction(MathFunction.AVG.name());
+        configuration.setAggIntervalType(AggIntervalType.HOUR);
         configuration.setAggIntervalTimeUnit(TimeUnit.HOURS.name());
         configuration.setAggIntervalValue(1);
+
         configuration.setAutoCreateIntervals(false);
 
         configuration.setParentEntitiesQuery(new ParentEntitiesGroup());

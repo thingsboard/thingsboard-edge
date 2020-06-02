@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,11 +49,13 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class SelfRegistrationController extends BaseController {
 
@@ -68,11 +70,16 @@ public class SelfRegistrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public SelfRegistrationParams saveSelfRegistrationParams(@RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         try {
-            Authority authority = getCurrentUser().getAuthority();
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
             checkSelfRegistrationPermissions(Operation.WRITE);
             SelfRegistrationParams savedSelfRegistrationParams = null;
-            if (authority == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(authority)) {
                 savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
+                JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
             }
             return savedSelfRegistrationParams;
         } catch (Exception e) {
@@ -88,7 +95,7 @@ public class SelfRegistrationController extends BaseController {
             SecurityUser securityUser = getCurrentUser();
             checkSelfRegistrationPermissions(Operation.READ);
             SelfRegistrationParams selfRegistrationParams = null;
-            if (securityUser.getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
                 selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
                 JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {

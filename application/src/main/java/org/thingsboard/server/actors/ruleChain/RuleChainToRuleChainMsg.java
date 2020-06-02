@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,7 +47,6 @@ public final class RuleChainToRuleChainMsg implements TbActorMsg, RuleChainAware
     private final RuleChainId source;
     private final TbMsg msg;
     private final String fromRelationType;
-    private final boolean enqueue;
 
     @Override
     public RuleChainId getRuleChainId() {

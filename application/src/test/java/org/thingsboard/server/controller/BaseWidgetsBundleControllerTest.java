@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,8 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
@@ -104,6 +104,17 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
     }
 
     @Test
+    public void testUpdateWidgetsBundleFromDifferentTenant() throws Exception {
+        WidgetsBundle widgetsBundle = new WidgetsBundle();
+        widgetsBundle.setTitle("My widgets bundle");
+        WidgetsBundle savedWidgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
+
+        loginDifferentTenant();
+        doPost("/api/widgetsBundle", savedWidgetsBundle, WidgetsBundle.class, status().isForbidden());
+        deleteDifferentTenant();
+    }
+
+    @Test
     public void testFindWidgetsBundleById() throws Exception {
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("My widgets bundle");
@@ -165,14 +176,14 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
         widgetsBundles.addAll(sysWidgetsBundles);
 
         List<WidgetsBundle> loadedWidgetsBundles = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(14);
-        TextPageData<WidgetsBundle> pageData;
+        PageLink pageLink = new PageLink(14);
+        PageData<WidgetsBundle> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/widgetsBundles?",
-                    new TypeReference<TextPageData<WidgetsBundle>>(){}, pageLink);
+                    new TypeReference<PageData<WidgetsBundle>>(){}, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -201,14 +212,14 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
         widgetsBundles.addAll(sysWidgetsBundles);
 
         List<WidgetsBundle> loadedWidgetsBundles = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(14);
-        TextPageData<WidgetsBundle> pageData;
+        PageLink pageLink = new PageLink(14);
+        PageData<WidgetsBundle> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/widgetsBundles?",
-                    new TypeReference<TextPageData<WidgetsBundle>>(){}, pageLink);
+                    new TypeReference<PageData<WidgetsBundle>>(){}, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -222,14 +233,14 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(17);
+        pageLink = new PageLink(17);
         loadedWidgetsBundles.clear();
         do {
             pageData = doGetTypedWithPageLink("/api/widgetsBundles?",
-                    new TypeReference<TextPageData<WidgetsBundle>>(){}, pageLink);
+                    new TypeReference<PageData<WidgetsBundle>>(){}, pageLink);
             loadedWidgetsBundles.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 

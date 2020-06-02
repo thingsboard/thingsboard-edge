@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,6 +41,7 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.credentials.BasicCredentials;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.security.Security;
@@ -91,7 +92,7 @@ public class TtnIntegration extends BasicMqttIntegration {
         try {
             Security.addProvider(new BouncyCastleProvider());
             return Optional.of(SslContextBuilder.forClient()
-                    .keyManager(null)
+                    .keyManager((KeyManagerFactory) null)
                     .trustManager((File) null)
                     .clientAuth(ClientAuth.NONE)
                     .build());

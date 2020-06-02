@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
@@ -72,7 +72,7 @@ public final class DeviceCredentialsEntity extends BaseSqlEntity<DeviceCredentia
 
     public DeviceCredentialsEntity(DeviceCredentials deviceCredentials) {
         if (deviceCredentials.getId() != null) {
-            this.setId(deviceCredentials.getId().getId());
+            this.setUuid(deviceCredentials.getId().getId());
         }
         if (deviceCredentials.getDeviceId() != null) {
             this.deviceId = toString(deviceCredentials.getDeviceId().getId());
@@ -84,8 +84,8 @@ public final class DeviceCredentialsEntity extends BaseSqlEntity<DeviceCredentia
 
     @Override
     public DeviceCredentials toData() {
-        DeviceCredentials deviceCredentials = new DeviceCredentials(new DeviceCredentialsId(getId()));
-        deviceCredentials.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        DeviceCredentials deviceCredentials = new DeviceCredentials(new DeviceCredentialsId(this.getUuid()));
+        deviceCredentials.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         if (deviceId != null) {
             deviceCredentials.setDeviceId(new DeviceId(toUUID(deviceId)));
         }

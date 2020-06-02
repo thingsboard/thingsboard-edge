@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -118,7 +118,7 @@ public class AuditLogEntity extends BaseSqlEntity<AuditLog> implements BaseEntit
 
     public AuditLogEntity(AuditLog auditLog) {
         if (auditLog.getId() != null) {
-            this.setId(auditLog.getId().getId());
+            this.setUuid(auditLog.getId().getId());
         }
         if (auditLog.getTenantId() != null) {
             this.tenantId = toString(auditLog.getTenantId().getId());
@@ -143,8 +143,8 @@ public class AuditLogEntity extends BaseSqlEntity<AuditLog> implements BaseEntit
 
     @Override
     public AuditLog toData() {
-        AuditLog auditLog = new AuditLog(new AuditLogId(getId()));
-        auditLog.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        AuditLog auditLog = new AuditLog(new AuditLogId(this.getUuid()));
+        auditLog.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         if (tenantId != null) {
             auditLog.setTenantId(new TenantId(toUUID(tenantId)));
         }

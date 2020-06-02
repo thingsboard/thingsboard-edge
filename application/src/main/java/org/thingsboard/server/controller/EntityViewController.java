@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,9 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -59,11 +61,11 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -71,13 +73,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
  */
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class EntityViewController extends BaseController {
@@ -102,30 +106,7 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(@RequestBody EntityView entityView,
                                      @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            entityView.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = entityView.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid())) {
-                entityView.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation,
-                    entityView.getId(), entityView, entityGroupId);
-
-            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntityView.getId());
-            }
-
+            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, entityViewService::saveEntityView);
             List<ListenableFuture<List<Void>>> futures = new ArrayList<>();
             if (savedEntityView.getKeys() != null && savedEntityView.getKeys().getAttributes() != null) {
                 futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
@@ -139,13 +120,8 @@ public class EntityViewController extends BaseController {
                     throw new RuntimeException("Failed to copy attributes to entity view", e);
                 }
             }
-
-            logEntityAction(savedEntityView.getId(), savedEntityView, null,
-                    entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedEntityView;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ENTITY_VIEW), entityView, null,
-                    entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -189,7 +165,7 @@ public class EntityViewController extends BaseController {
                     });
                 }
                 return null;
-            });
+            }, MoreExecutors.directExecutor());
         } else {
             return Futures.immediateFuture(null);
         }
@@ -235,22 +211,23 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getCustomerEntityViews(
+    public PageData<EntityView> getCustomerEntityViews(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
             } else {
@@ -262,18 +239,19 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getTenantEntityViews(
-            @RequestParam int limit,
+    public PageData<EntityView> getTenantEntityViews(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type));
@@ -286,30 +264,26 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getUserEntityViews(
-            @RequestParam int limit,
+    public PageData<EntityView> getUserEntityViews(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<EntityView>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((entityView -> entityView.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, entityId -> new EntityViewId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return entityViewService.findEntityViewsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, pageLink,
+                    (groupIds) -> {
+                        if (type != null && type.trim().length() > 0) {
+                            return entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
+                        } else {
+                            return entityViewService.findEntityViewsByEntityGroupIds(groupIds, pageLink);
                         }
-                    },
-                    filters,
-                    pageLink);
+                    }
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -346,6 +320,30 @@ public class EntityViewController extends BaseController {
         try {
             List<EntityView> entityViews = checkNotNull(entityViewService.findEntityViewsByQuery(getTenantId(), query).get());
             return filterEntityViewsByReadPermission(entityViews);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityView> getEntityViewsByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(entityViewService.findEntityViewsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.analytics.incoming;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -51,19 +52,19 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
+import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Optional;
 
 /**
  * Created by ashvayka on 07.06.18.
@@ -73,6 +74,8 @@ class TbIntervalTable {
     private final TbContext ctx;
     private final JsonParser gsonParser;
     private final Gson gson = new Gson();
+    private final AggIntervalType aggIntervalType;
+    private final ZoneId tz;
     private final long intervalDuration;
     private final long intervalTtl;
     private final MathFunction function;
@@ -82,8 +85,15 @@ class TbIntervalTable {
     TbIntervalTable(TbContext ctx, TbSimpleAggMsgNodeConfiguration config, JsonParser gson) {
         this.ctx = ctx;
         this.gsonParser = gson;
-        this.intervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
+        this.aggIntervalType = config.getAggIntervalType() == null ? AggIntervalType.CUSTOM : config.getAggIntervalType();
         this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
+        if (this.aggIntervalType == AggIntervalType.CUSTOM) {
+            this.tz = ZoneId.systemDefault();
+            this.intervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
+        } else {
+            this.tz = ZoneId.of(config.getTimeZoneId());
+            this.intervalDuration = 0L;
+        }
         this.function = MathFunction.valueOf(config.getMathFunction());
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
@@ -134,7 +144,7 @@ class TbIntervalTable {
                 Optional<Long> maxIntervalTs = intervals.keySet().stream().max(Comparator.comparingLong(Long::valueOf));
                 if (maxIntervalTs.isPresent()) {
                     for (long tmpTs = maxIntervalTs.get() + intervalDuration; tmpTs < ts; tmpTs = tmpTs + intervalDuration) {
-                        intervals.put(tmpTs, createDefaultTbIntervalState());
+                        intervals.put(calculateIntervalStart(tmpTs), createDefaultTbIntervalState());
                     }
                 } else {
                     intervals.put(calculateIntervalStart(ts), createDefaultTbIntervalState());
@@ -194,7 +204,7 @@ class TbIntervalTable {
             } else {
                 return readTbIntervalState(value);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private TbIntervalState readTbIntervalState(String value) {
@@ -237,7 +247,25 @@ class TbIntervalTable {
     }
 
     private long calculateIntervalStart(long ts) {
-        return (ts / intervalDuration) * intervalDuration;
+        if (AggIntervalType.CUSTOM.equals(aggIntervalType)) {
+            return (ts / intervalDuration) * intervalDuration;
+        } else {
+            ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), tz);
+            switch (aggIntervalType) {
+                case HOUR:
+                    return zdt.truncatedTo(ChronoUnit.HOURS).toInstant().toEpochMilli();
+                case DAY:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).toInstant().toEpochMilli();
+                case WEEK:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).with(DayOfWeek.MONDAY).toInstant().toEpochMilli();
+                case MONTH:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).withDayOfMonth(1).toInstant().toEpochMilli();
+                case YEAR:
+                    return zdt.truncatedTo(ChronoUnit.DAYS).withDayOfYear(1).toInstant().toEpochMilli();
+                default:
+                    return (ts / intervalDuration) * intervalDuration;
+            }
+        }
     }
 
 }

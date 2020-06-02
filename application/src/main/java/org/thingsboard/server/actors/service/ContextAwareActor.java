@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 package org.thingsboard.server.actors.service;
 
 import akka.actor.Terminated;
-import akka.actor.UntypedActor;
+import akka.actor.UntypedAbstractActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.msg.TbActorMsg;
 
 
-public abstract class ContextAwareActor extends UntypedActor {
+public abstract class ContextAwareActor extends UntypedAbstractActor {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 

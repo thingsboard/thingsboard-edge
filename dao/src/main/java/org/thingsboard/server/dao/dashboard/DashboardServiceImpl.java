@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,20 +30,24 @@
  */
 package org.thingsboard.server.dao.dashboard;
 
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.*;
-import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -52,19 +56,18 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
-import org.thingsboard.server.dao.service.TimePaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
@@ -80,7 +83,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private TenantDao tenantDao;
-    
+
     @Autowired
     private CustomerDao customerDao;
 
@@ -192,12 +195,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
-    public TextPageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findDashboardsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<DashboardInfo> dashboards = dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(dashboards, pageLink);
+        Validator.validatePageLink(pageLink);
+        return dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -231,43 +233,19 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     @Override
-    public ShortEntityView findGroupDashboard(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupDashboard, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
-                (dashboardEntityId) -> new DashboardId(dashboardEntityId.getId()),
-                (dashboardId) -> findDashboardInfoById(tenantId, dashboardId),
-                new DashboardViewFunction());
+    public PageData<DashboardInfo> findDashboardsByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findDashboardsByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return dashboardInfoDao.findDashboardsByEntityGroupId(groupId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findDashboardsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findDashboardsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new DashboardId(entityId.getId()),
-                (entityIds) -> findDashboardInfoByIdsAsync(tenantId, entityIds),
-                new DashboardViewFunction());
-    }
-
-    class DashboardViewFunction implements BiFunction<DashboardInfo, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(DashboardInfo dashboard, List<EntityField> entityFields) {
-            ShortEntityView entityView = new ShortEntityView(dashboard.getId());
-            entityView.put(EntityField.NAME.name().toLowerCase(), dashboard.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TITLE:
-                        entityView.put(key, dashboard.getTitle());
-                        break;
-                }
-            }
-            return entityView;
-        }
+    public PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findDashboardsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return dashboardInfoDao.findDashboardsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
 
     private DataValidator<Dashboard> dashboardValidator =
@@ -286,20 +264,20 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                         }
                     }
                 }
-    };
-    
+            };
+
     private PaginatedRemover<TenantId, DashboardInfo> tenantDashboardsRemover =
             new PaginatedRemover<TenantId, DashboardInfo>() {
-        
-        @Override
-        protected List<DashboardInfo> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
-            return dashboardInfoDao.findDashboardsByTenantId(id.getId(), pageLink);
-        }
 
-        @Override
-        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
-            deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
-        }
+                @Override
+                protected PageData<DashboardInfo> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                    return dashboardInfoDao.findDashboardsByTenantId(id.getId(), pageLink);
+                }
+
+                @Override
+                protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
+                    deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
+                }
     };
 
 }

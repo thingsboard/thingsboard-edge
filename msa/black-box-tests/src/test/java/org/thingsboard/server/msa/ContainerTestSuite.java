@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -61,7 +61,8 @@ public class ContainerTestSuite {
             testContainer = new DockerComposeContainer(
                     new File("./../../docker/docker-compose.yml"),
                     new File("./../../docker/docker-compose.postgres.yml"),
-                    new File("./../../docker/docker-compose.postgres.volumes.yml"))
+                    new File("./../../docker/docker-compose.postgres.volumes.yml"),
+                    new File("./../../docker/docker-compose.kafka.yml"))
                     .withPull(false)
                     .withLocalCompose(true)
                     .withTailChildContainers(!skipTailChildContainers)

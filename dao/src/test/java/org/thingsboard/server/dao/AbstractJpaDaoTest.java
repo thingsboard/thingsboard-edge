@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
  * Created by Valerii Sosliuk on 4/22/2017.
  */
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {JpaDaoConfig.class, SqlTsDaoConfig.class, JpaDbunitTestConfig.class})
+@ContextConfiguration(classes = {JpaDaoConfig.class, HsqlTsDaoConfig.class, JpaDbunitTestConfig.class})
 @TestPropertySource("classpath:sql-test.properties")
 @TestExecutionListeners({
         DependencyInjectionTestExecutionListener.class,

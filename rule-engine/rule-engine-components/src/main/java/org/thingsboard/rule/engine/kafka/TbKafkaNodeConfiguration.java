@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,6 +51,9 @@ public class TbKafkaNodeConfiguration implements NodeConfiguration<TbKafkaNodeCo
     private String valueSerializer;
     private Map<String, String> otherProperties;
 
+    private boolean addMetadataKeyValuesAsKafkaHeaders;
+    private String kafkaHeadersCharset;
+
     @Override
     public TbKafkaNodeConfiguration defaultConfiguration() {
         TbKafkaNodeConfiguration configuration = new TbKafkaNodeConfiguration();
@@ -64,6 +67,8 @@ public class TbKafkaNodeConfiguration implements NodeConfiguration<TbKafkaNodeCo
         configuration.setKeySerializer(StringSerializer.class.getName());
         configuration.setValueSerializer(StringSerializer.class.getName());
         configuration.setOtherProperties(Collections.emptyMap());
+        configuration.setAddMetadataKeyValuesAsKafkaHeaders(false);
+        configuration.setKafkaHeadersCharset("UTF-8");
         return configuration;
     }
 }

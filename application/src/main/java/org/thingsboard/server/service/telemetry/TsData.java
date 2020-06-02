@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,9 +33,9 @@ package org.thingsboard.server.service.telemetry;
 public class TsData implements Comparable<TsData>{
 
     private final long ts;
-    private final String value;
+    private final Object value;
 
-    public TsData(long ts, String value) {
+    public TsData(long ts, Object value) {
         super();
         this.ts = ts;
         this.value = value;
@@ -45,7 +45,7 @@ public class TsData implements Comparable<TsData>{
         return ts;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 

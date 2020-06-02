@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,17 +30,23 @@
  */
 package org.thingsboard.server.dao.nosql;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Created by ashvayka on 21.02.17.
@@ -51,7 +57,7 @@ public abstract class CassandraAbstractAsyncDao extends CassandraAbstractDao {
 
     @PostConstruct
     public void startExecutor() {
-        readResultsProcessingExecutor = Executors.newCachedThreadPool();
+        readResultsProcessingExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("cassandra-callback"));
     }
 
     @PreDestroy
@@ -61,13 +67,28 @@ public abstract class CassandraAbstractAsyncDao extends CassandraAbstractDao {
         }
     }
 
-    protected <T> ListenableFuture<T> getFuture(ResultSetFuture future, java.util.function.Function<ResultSet, T> transformer) {
-        return Futures.transform(future, new Function<ResultSet, T>() {
+    protected <T> ListenableFuture<T> getFuture(TbResultSetFuture future, java.util.function.Function<TbResultSet, T> transformer) {
+        return Futures.transform(future, new Function<TbResultSet, T>() {
             @Nullable
             @Override
-            public T apply(@Nullable ResultSet input) {
+            public T apply(@Nullable TbResultSet input) {
                 return transformer.apply(input);
             }
         }, readResultsProcessingExecutor);
     }
+
+    protected <T> ListenableFuture<T> getFutureAsync(TbResultSetFuture future, com.google.common.util.concurrent.AsyncFunction<TbResultSet, T> transformer) {
+        return Futures.transformAsync(future, new AsyncFunction<TbResultSet, T>() {
+            @Nullable
+            @Override
+            public ListenableFuture<T> apply(@Nullable TbResultSet input) {
+                try {
+                    return transformer.apply(input);
+                } catch (Exception e) {
+                    return Futures.immediateFailedFuture(e);
+                }
+            }
+        }, readResultsProcessingExecutor);
+    }
+
 }

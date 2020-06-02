@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.dao.sql.rule;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -40,14 +42,12 @@ import org.thingsboard.server.dao.util.SqlDao;
 import java.util.List;
 
 @SqlDao
-public interface RuleChainRepository extends CrudRepository<RuleChainEntity, String> {
+public interface RuleChainRepository extends PagingAndSortingRepository<RuleChainEntity, String> {
 
     @Query("SELECT rc FROM RuleChainEntity rc WHERE rc.tenantId = :tenantId " +
-            "AND LOWER(rc.searchText) LIKE LOWER(CONCAT(:searchText, '%')) " +
-            "AND rc.id > :idOffset ORDER BY rc.id")
-    List<RuleChainEntity> findByTenantId(@Param("tenantId") String tenantId,
+            "AND LOWER(rc.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<RuleChainEntity> findByTenantId(@Param("tenantId") String tenantId,
                                          @Param("searchText") String searchText,
-                                         @Param("idOffset") String idOffset,
                                          Pageable pageable);
 
 }

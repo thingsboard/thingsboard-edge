@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -92,7 +92,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
 
     public SchedulerEventEntity(SchedulerEvent schedulerEvent) {
         if (schedulerEvent.getId() != null) {
-            this.setId(schedulerEvent.getId().getId());
+            this.setUuid(schedulerEvent.getId().getId());
         }
         if (schedulerEvent.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(schedulerEvent.getTenantId().getId());
@@ -124,7 +124,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Override
     public SchedulerEvent toData() {
         SchedulerEvent schedulerEvent = new SchedulerEvent(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEvent.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        schedulerEvent.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             schedulerEvent.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

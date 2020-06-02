@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,10 +40,9 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
 
@@ -59,19 +58,19 @@ public interface AssetService {
 
     void deleteAsset(TenantId tenantId, AssetId assetId);
 
-    TextPageData<Asset> findAssetsByTenantId(TenantId tenantId, TextPageLink pageLink);
+    PageData<Asset> findAssetsByTenantId(TenantId tenantId, PageLink pageLink);
 
-    TextPageData<Asset> findAssetsByTenantIdAndType(TenantId tenantId, String type, TextPageLink pageLink);
+    PageData<Asset> findAssetsByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
     ListenableFuture<List<Asset>> findAssetsByTenantIdAndIdsAsync(TenantId tenantId, List<AssetId> assetIds);
 
     void deleteAssetsByTenantId(TenantId tenantId);
 
-    TextPageData<Asset> findAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
+    PageData<Asset> findAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    PageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink);
 
     void deleteAssetsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
-
-    TextPageData<Asset> findAssetsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
 
     ListenableFuture<List<Asset>> findAssetsByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<AssetId> assetIds);
 
@@ -79,7 +78,10 @@ public interface AssetService {
 
     ListenableFuture<List<EntitySubtype>> findAssetTypesByTenantId(TenantId tenantId);
 
-    ShortEntityView findGroupAsset(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
+    PageData<Asset> findAssetsByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
 
-    ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    PageData<Asset> findAssetsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
+
+    PageData<Asset> findAssetsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
+
 }

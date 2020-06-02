@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.api;
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.UUID;
 
@@ -43,11 +44,11 @@ import java.util.UUID;
 @Builder
 public final class RuleEngineDeviceRpcRequest {
 
+    private final TenantId tenantId;
     private final DeviceId deviceId;
     private final int requestId;
     private final UUID requestUUID;
-    private final String originHost;
-    private final int originPort;
+    private final String originServiceId;
     private final boolean oneway;
     private final String method;
     private final String body;

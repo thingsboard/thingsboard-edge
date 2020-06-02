@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,6 +36,9 @@ import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import static org.thingsboard.rule.engine.api.TbRelationTypes.FAILURE;
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
+
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
         name = "script",
@@ -48,7 +51,7 @@ import org.thingsboard.server.common.msg.TbMsg;
                 "Should return the following structure:<br/>" +
                 "<code>{ msg: <i style=\"color: #666;\">new payload</i>,<br/>&nbsp&nbsp&nbspmetadata: <i style=\"color: #666;\">new metadata</i>,<br/>&nbsp&nbsp&nbspmsgType: <i style=\"color: #666;\">new msgType</i> }</code><br/>" +
                 "All fields in resulting object are optional and will be taken from original message if not specified.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeScriptConfig")
 public class TbTransformMsgNode extends TbAbstractTransformNode {
 
@@ -64,7 +67,20 @@ public class TbTransformMsgNode extends TbAbstractTransformNode {
 
     @Override
     protected ListenableFuture<TbMsg> transform(TbContext ctx, TbMsg msg) {
-        return ctx.getJsExecutor().executeAsync(() -> jsEngine.executeUpdate(msg));
+        ctx.logJsEvalRequest();
+        return jsEngine.executeUpdateAsync(msg);
+    }
+
+    @Override
+    protected void transformSuccess(TbContext ctx, TbMsg msg, TbMsg m) {
+        ctx.logJsEvalResponse();
+        super.transformSuccess(ctx, msg, m);
+    }
+
+    @Override
+    protected void transformFailure(TbContext ctx, TbMsg msg, Throwable t) {
+        ctx.logJsEvalFailure();
+        super.transformFailure(ctx, msg, t);
     }
 
     @Override

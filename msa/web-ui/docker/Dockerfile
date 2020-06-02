@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -29,15 +29,19 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM debian:stretch
+FROM thingsboard/base
 
 COPY start-web-ui.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-web-ui.sh /usr/bin
 
-RUN dpkg -i /tmp/${pkg.name}.deb
+RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
-RUN update-rc.d ${pkg.name} disable
+RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
+
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}
+
+USER ${pkg.user}
 
 CMD ["start-web-ui.sh"]

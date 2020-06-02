@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -39,8 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -109,7 +109,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
     public void testSaveRuleChainWithInvalidTenant() {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("My RuleChain");
-        ruleChain.setTenantId(new TenantId(UUIDs.timeBased()));
+        ruleChain.setTenantId(new TenantId(Uuids.timeBased()));
         ruleChainService.saveRuleChain(ruleChain);
     }
 
@@ -155,13 +155,13 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         }
 
         List<RuleChain> loadedRuleChains = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(16);
-        TextPageData<RuleChain> pageData = null;
+        PageLink pageLink = new PageLink(16);
+        PageData<RuleChain> pageData = null;
         do {
             pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
             loadedRuleChains.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -172,7 +172,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
 
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
 
-        pageLink = new TextPageLink(31);
+        pageLink = new PageLink(31);
         pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
@@ -206,13 +206,13 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         }
 
         List<RuleChain> loadedRuleChainsName1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(19, name1);
-        TextPageData<RuleChain> pageData = null;
+        PageLink pageLink = new PageLink(19, 0, name1);
+        PageData<RuleChain> pageData = null;
         do {
             pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
             loadedRuleChainsName1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -222,12 +222,12 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
         Assert.assertEquals(ruleChainsName1, loadedRuleChainsName1);
 
         List<RuleChain> loadedRuleChainsName2 = new ArrayList<>();
-        pageLink = new TextPageLink(4, name2);
+        pageLink = new PageLink(4, 0, name2);
         do {
             pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
             loadedRuleChainsName2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -240,7 +240,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
             ruleChainService.deleteRuleChainById(tenantId, ruleChain.getId());
         }
 
-        pageLink = new TextPageLink(4, name1);
+        pageLink = new PageLink(4, 0, name1);
         pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -249,7 +249,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
             ruleChainService.deleteRuleChainById(tenantId, ruleChain.getId());
         }
 
-        pageLink = new TextPageLink(4, name2);
+        pageLink = new PageLink(4, 0, name2);
         pageData = ruleChainService.findTenantRuleChains(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

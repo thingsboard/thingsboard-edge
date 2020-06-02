@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -93,6 +93,11 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
+    }
+
+    @Override
+    protected String getTypeUplink(HttpIntegrationMsg msg) {
+        return "Uplink";
     }
 
     @Override

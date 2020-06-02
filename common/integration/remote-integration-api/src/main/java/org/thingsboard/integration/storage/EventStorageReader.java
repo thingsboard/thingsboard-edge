@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -137,7 +137,7 @@ class EventStorageReader {
                 found = true;
             }
         }
-        if(found) {
+        if (found) {
             return null;
         } else {
             return files.getDataFiles().get(0);
@@ -150,12 +150,8 @@ class EventStorageReader {
                 bufferedReader = Files.newBufferedReader(pointer.getFile().toPath());
                 int linesToSkip = pointer.getLine();
                 if (linesToSkip > 0) {
-                    while (bufferedReader.readLine() != null) {
-                        if (linesToSkip != 0) {
-                            linesToSkip--;
-                        } else {
-                            break;
-                        }
+                    while (linesToSkip != 0 && bufferedReader.readLine() != null) {
+                        linesToSkip--;
                     }
                 }
             }
@@ -176,7 +172,7 @@ class EventStorageReader {
 
         File readerFile = null;
         int readerPos = 0;
-        if (stateDataNode != null) {
+        if (stateDataNode != null && stateDataNode.has("position") && stateDataNode.has("file")) {
             readerPos = stateDataNode.get("position").asInt();
             for (File file : files.getDataFiles()) {
                 if (file.getName().equals(stateDataNode.get("file").asText())) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,10 @@ package org.thingsboard.server.dao.device;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -46,20 +48,16 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -80,13 +78,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -146,15 +142,35 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
     @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
     @Override
+    public Device saveDeviceWithAccessToken(Device device, String accessToken) {
+        return doSaveDevice(device, accessToken);
+    }
+
+    @CacheEvict(cacheNames = DEVICE_CACHE, key = "{#device.tenantId, #device.name}")
+    @Override
     public Device saveDevice(Device device) {
+        return doSaveDevice(device, null);
+    }
+
+    private Device doSaveDevice(Device device, String accessToken) {
         log.trace("Executing saveDevice [{}]", device);
         deviceValidator.validate(device, Device::getTenantId);
-        Device savedDevice = deviceDao.save(device.getTenantId(), device);
+        Device savedDevice;
+        try {
+            savedDevice = deviceDao.save(device.getTenantId(), device);
+        } catch (Exception t) {
+            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_name_unq_key")) {
+                throw new DataValidationException("Device with such name already exists!");
+            } else {
+                throw t;
+            }
+        }
         if (device.getId() == null) {
             DeviceCredentials deviceCredentials = new DeviceCredentials();
             deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
             deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
-            deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
+            deviceCredentials.setCredentialsId(!StringUtils.isEmpty(accessToken) ? accessToken : RandomStringUtils.randomAlphanumeric(20));
             deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
             entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
         }
@@ -193,22 +209,20 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public TextPageData<Device> findDevicesByTenantId(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(devices, pageLink);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
-    public TextPageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, TextPageLink pageLink) {
+    public PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
-        return new TextPageData<>(devices, pageLink);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
 
     @Override
@@ -219,7 +233,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return deviceDao.findDevicesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(deviceIds));
     }
 
-
     @Override
     public void deleteDevicesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteDevicesByTenantId, tenantId [{}]", tenantId);
@@ -228,13 +241,12 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public TextPageData<Device> findDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
+    public PageData<Device> findDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
-        return new TextPageData<>(devices, pageLink);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
 
     @Override
@@ -246,14 +258,13 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     }
 
     @Override
-    public TextPageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink) {
+    public PageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
-        return new TextPageData<>(devices, pageLink);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }
 
     @Override
@@ -279,7 +290,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 }
             }
             return Futures.successfulAsList(futures);
-        });
+        }, MoreExecutors.directExecutor());
 
         devices = Futures.transform(devices, new Function<List<Device>, List<Device>>() {
             @Nullable
@@ -287,7 +298,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             public List<Device> apply(@Nullable List<Device> deviceList) {
                 return deviceList == null ? Collections.emptyList() : deviceList.stream().filter(device -> query.getDeviceTypes().contains(device.getType())).collect(Collectors.toList());
             }
-        });
+        }, MoreExecutors.directExecutor());
 
         return devices;
     }
@@ -301,50 +312,32 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
                 deviceTypes -> {
                     deviceTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return deviceTypes;
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     @Override
-    public ShortEntityView findGroupDevice(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupDevice, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
-                (deviceEntityId) -> new DeviceId(deviceEntityId.getId()),
-                (deviceId) -> findDeviceById(tenantId, deviceId),
-                new DeviceViewFunction());
+    public PageData<Device> findDevicesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findDevicesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByEntityGroupId(groupId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findDevicesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new DeviceId(entityId.getId()),
-                (entityIds) -> findDevicesByTenantIdAndIdsAsync(tenantId, entityIds),
-                new DeviceViewFunction());
+    public PageData<Device> findDevicesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findDevicesByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
 
-    class DeviceViewFunction implements BiFunction<Device, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(Device device, List<EntityField> entityFields) {
-            ShortEntityView entityView = new ShortEntityView(device.getId());
-            entityView.put(EntityField.NAME.name().toLowerCase(), device.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TYPE:
-                        entityView.put(key, device.getType());
-                        break;
-                    case LABEL:
-                        entityView.put(key, device.getLabel());
-                        break;
-                }
-            }
-            return entityView;
-        }
+    @Override
+    public PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
+        log.trace("Executing findDevicesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return deviceDao.findDevicesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
     private DataValidator<Device> deviceValidator =
@@ -352,22 +345,10 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
                 @Override
                 protected void validateCreate(TenantId tenantId, Device device) {
-                    deviceDao.findDeviceByTenantIdAndName(device.getTenantId().getId(), device.getName()).ifPresent(
-                            d -> {
-                                throw new DataValidationException("Device with such name already exists!");
-                            }
-                    );
                 }
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Device device) {
-                    deviceDao.findDeviceByTenantIdAndName(device.getTenantId().getId(), device.getName()).ifPresent(
-                            d -> {
-                                if (!d.getUuidId().equals(device.getUuidId())) {
-                                    throw new DataValidationException("Device with such name already exists!");
-                                }
-                            }
-                    );
                 }
 
                 @Override
@@ -404,7 +385,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
             new PaginatedRemover<TenantId, Device>() {
 
                 @Override
-                protected List<Device> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+                protected PageData<Device> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
                     return deviceDao.findDevicesByTenantId(id.getId(), pageLink);
                 }
 
@@ -417,7 +398,7 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
     private PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<CustomerId, Device>() {
 
         @Override
-        protected List<Device> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
+        protected PageData<Device> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
             return deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
         }
 

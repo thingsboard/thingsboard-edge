@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -41,14 +41,12 @@ import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -56,6 +54,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Created by ashvayka on 02.12.17.
  */
+@TbCoreComponent
 @Service
 public class DefaultDataConverterService implements DataConverterService {
 
@@ -67,9 +66,6 @@ public class DefaultDataConverterService implements DataConverterService {
 
     @Autowired
     private IntegrationRpcService rpcService;
-
-    @Autowired
-    private IntegrationService integrationService;
 
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 

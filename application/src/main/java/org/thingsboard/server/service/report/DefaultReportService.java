@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -231,19 +231,18 @@ public class DefaultReportService implements ReportService {
         dashboardReportRequest.put("token", token);
         dashboardReportRequest.put("expiration", expiration);
         dashboardReportRequest.put("name", reportName);
-        dashboardReportRequest.set("reportParams", createReportParams(reportConfig, tz));
+        dashboardReportRequest.set("reportParams", createReportParams(reportConfig));
         return dashboardReportRequest;
     }
 
-    private JsonNode createReportParams(ReportConfig reportConfig, TimeZone tz) {
+    private JsonNode createReportParams(ReportConfig reportConfig) {
         ObjectNode reportParams = mapper.createObjectNode();
         reportParams.put("type", reportConfig.getType());
         reportParams.put("state", reportConfig.getState());
         if (!reportConfig.isUseDashboardTimewindow()) {
             reportParams.set("timewindow", reportConfig.getTimewindow());
         }
-        long tzOffset = -tz.getOffset(System.currentTimeMillis()) / (60 * 1000);
-        reportParams.put("tzOffset", tzOffset);
+        reportParams.put("timezone", reportConfig.getTimezone());
         return reportParams;
     }
 

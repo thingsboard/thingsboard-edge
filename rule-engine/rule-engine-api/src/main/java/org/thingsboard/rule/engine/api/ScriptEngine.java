@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
@@ -41,15 +42,21 @@ public interface ScriptEngine {
 
     TbMsg executeUpdate(TbMsg msg) throws ScriptException;
 
+    ListenableFuture<TbMsg> executeUpdateAsync(TbMsg msg);
+
     TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
 
     boolean executeFilter(TbMsg msg) throws ScriptException;
 
     boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
 
+    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
+
     Set<String> executeSwitch(TbMsg msg) throws ScriptException;
 
     JsonNode executeJson(TbMsg msg) throws ScriptException;
+
+    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg) throws ScriptException;
 
     String executeToString(TbMsg msg) throws ScriptException;
 

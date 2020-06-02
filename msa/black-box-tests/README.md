@@ -12,7 +12,7 @@ As result, in REPOSITORY column, next images should be present:
         thingsboard/tb-pe-coap-transport
         thingsboard/tb-pe-http-transport
         thingsboard/tb-pe-mqtt-transport
-        thingsboard/tb-pe-tb-node
+        thingsboard/tb-pe-node
         thingsboard/tb-pe-web-ui
         thingsboard/tb-pe-js-executor
         thingsboard/tb-pe-web-report

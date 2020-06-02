@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
@@ -48,11 +48,11 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface IntegrationContext {
 
     /**
-     * Returns current server address that is used mostly for logging.
+     * Returns current service id that is used mostly for logging.
      *
-     * @return server address
+     * @return service id
      */
-    ServerAddress getServerAddress();
+    String getServiceId();
 
     /**
      * Returns context of execution for uplink data converter
@@ -75,6 +75,8 @@ public interface IntegrationContext {
      * @return
      */
     void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+
+    void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 
     void createEntityView(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
 
@@ -103,6 +105,7 @@ public interface IntegrationContext {
     /**
      * Provides access to ScheduledExecutorService to schedule periodic tasks.
      * Allows using N threads per M integrations instead of using N threads per integration.
+     *
      * @return scheduled executor
      */
     ScheduledExecutorService getScheduledExecutorService();

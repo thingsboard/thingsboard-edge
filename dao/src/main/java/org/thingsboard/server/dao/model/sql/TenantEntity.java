@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -87,6 +87,12 @@ public final class TenantEntity extends BaseSqlEntity<Tenant> implements SearchT
     @Column(name = ModelConstants.EMAIL_PROPERTY)
     private String email;
 
+    @Column(name = ModelConstants.TENANT_ISOLATED_TB_CORE)
+    private boolean isolatedTbCore;
+
+    @Column(name = ModelConstants.TENANT_ISOLATED_TB_RULE_ENGINE)
+    private boolean isolatedTbRuleEngine;
+
     @Type(type = "json")
     @Column(name = ModelConstants.TENANT_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
@@ -97,7 +103,7 @@ public final class TenantEntity extends BaseSqlEntity<Tenant> implements SearchT
 
     public TenantEntity(Tenant tenant) {
         if (tenant.getId() != null) {
-            this.setId(tenant.getId().getId());
+            this.setUuid(tenant.getId().getId());
         }
         this.title = tenant.getTitle();
         this.region = tenant.getRegion();
@@ -110,6 +116,8 @@ public final class TenantEntity extends BaseSqlEntity<Tenant> implements SearchT
         this.phone = tenant.getPhone();
         this.email = tenant.getEmail();
         this.additionalInfo = tenant.getAdditionalInfo();
+        this.isolatedTbCore = tenant.isIsolatedTbCore();
+        this.isolatedTbRuleEngine = tenant.isIsolatedTbRuleEngine();
     }
 
     @Override
@@ -128,8 +136,8 @@ public final class TenantEntity extends BaseSqlEntity<Tenant> implements SearchT
 
     @Override
     public Tenant toData() {
-        Tenant tenant = new Tenant(new TenantId(getId()));
-        tenant.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        Tenant tenant = new Tenant(new TenantId(this.getUuid()));
+        tenant.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         tenant.setTitle(title);
         tenant.setRegion(region);
         tenant.setCountry(country);
@@ -141,6 +149,8 @@ public final class TenantEntity extends BaseSqlEntity<Tenant> implements SearchT
         tenant.setPhone(phone);
         tenant.setEmail(email);
         tenant.setAdditionalInfo(additionalInfo);
+        tenant.setIsolatedTbCore(isolatedTbCore);
+        tenant.setIsolatedTbRuleEngine(isolatedTbRuleEngine);
         return tenant;
     }
 

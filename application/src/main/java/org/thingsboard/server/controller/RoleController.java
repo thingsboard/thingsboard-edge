@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,9 +47,8 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -57,6 +56,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class RoleController extends BaseController {
@@ -89,17 +90,10 @@ public class RoleController extends BaseController {
     public Role saveRole(@RequestBody Role role) throws ThingsboardException {
         try {
             role.setTenantId(getCurrentUser().getTenantId());
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 role.setCustomerId(getCurrentUser().getCustomerId());
             }
-            Operation operation = role.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
-                role.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, operation,
-                    role.getId(), role);
+            checkEntity(role.getId(), role, Resource.ROLE, null);
 
             Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
 
@@ -124,8 +118,8 @@ public class RoleController extends BaseController {
             RoleId roleId = new RoleId(toUUID(strRoleId));
             Role role = checkRoleId(roleId, Operation.DELETE);
 
-            TimePageData<GroupPermission> groupPermissions =
-                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new TimePageLink(1));
+            PageData<GroupPermission> groupPermissions =
+                    groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), role.getId(), new PageLink(1));
             if (!groupPermissions.getData().isEmpty()) {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
@@ -141,27 +135,28 @@ public class RoleController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/roles", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/roles", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Role> getRoles(
-            @RequestParam int limit,
+    public PageData<Role> getRoles(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
             if (type != null && type.trim().length() > 0) {
-                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                     return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
                 } else {
                     return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
                 }
             } else {
-                if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                     return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
                 } else {
                     return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));

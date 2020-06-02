@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,18 +63,6 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
                 KafkaConsumerConfiguration.class);
     }
 
-//    @Override
-//    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
-//        KafkaConsumerConfiguration kafkaConsumerConfiguration;
-//        try {
-//            kafkaConsumerConfiguration = mapper.readValue(
-//                    mapper.writeValueAsString(configuration.get("consumerConfiguration")),
-//                    KafkaConsumerConfiguration.class);
-//        } catch (IOException e) {
-//            throw new IllegalArgumentException("Invalid Kafka Integration Configuration structure!");
-//        }
-//    }
-
     @Override
     public void process(T msg) {
         String status = "OK";
@@ -125,6 +113,9 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         properties.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, configuration.getAutoCreateTopics());
+        if (configuration.getOtherProperties() != null) {
+            configuration.getOtherProperties().forEach(properties::put);
+        }
         kafkaConsumer = new KafkaConsumer<>(properties);
         kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
 

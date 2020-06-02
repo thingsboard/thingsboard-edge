@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,13 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.Velocity;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
 
@@ -61,13 +64,14 @@ public class MailTemplates {
         }
     }
 
-    public static String body(JsonNode config, String template, Map<String, Object> model) {
+    public static String body(JsonNode config, String template, Map<String, Object> model) throws IOException, TemplateException {
         JsonNode templateNode = getTemplate(config, template);
         if (templateNode.has(BODY)) {
             String bodyTemplate = templateNode.get(BODY).asText();
-            VelocityContext velocityContext = new VelocityContext(model);
+            Template freeMakerTemplate = new Template(template, new StringReader(bodyTemplate),
+                    new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS));
             StringWriter out = new StringWriter();
-            Velocity.evaluate(velocityContext, out, template, bodyTemplate);
+            freeMakerTemplate.process(model, out);
             return out.toString();
         } else {
             throw new IncorrectParameterException("Template '"+template+"' doesn't have body field.");

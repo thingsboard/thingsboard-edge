@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -91,7 +91,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
 
     public BlobEntityEntity(BlobEntity blobEntity) {
         if (blobEntity.getId() != null) {
-            this.setId(blobEntity.getId().getId());
+            this.setUuid(blobEntity.getId().getId());
         }
         if (blobEntity.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(blobEntity.getTenantId().getId());
@@ -123,7 +123,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
     @Override
     public BlobEntity toData() {
         BlobEntity blobEntity = new BlobEntity(new BlobEntityId(UUIDConverter.fromString(id)));
-        blobEntity.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        blobEntity.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             blobEntity.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

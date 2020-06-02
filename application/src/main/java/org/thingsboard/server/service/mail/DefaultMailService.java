@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -98,10 +98,10 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.TEST);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.TEST, model);
+        String message = body(mailTemplates, MailTemplates.TEST, model);
 
         sendMail(testMailSender, mailFrom, email, subject, message);
     }
@@ -112,11 +112,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACTIVATION);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("activationLink", activationLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACTIVATION, model);
+        String message = body(mailTemplates, MailTemplates.ACTIVATION, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -127,11 +127,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("loginLink", loginLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
+        String message = body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -142,11 +142,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.RESET_PASSWORD);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("passwordResetLink", passwordResetLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
+        String message = body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -157,11 +157,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("loginLink", loginLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
+        String message = body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -176,7 +176,7 @@ public class DefaultMailService implements MailService {
         model.put("userEmail", userEmail);
         model.put(TARGET_EMAIL, targetEmail);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
+        String message = body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
 
         sendMail(tenantId, targetEmail, subject, message);
     }
@@ -191,7 +191,7 @@ public class DefaultMailService implements MailService {
         model.put("userEmail", userEmail);
         model.put(TARGET_EMAIL, targetEmail);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.USER_REGISTERED, model);
+        String message = body(mailTemplates, MailTemplates.USER_REGISTERED, model);
 
         sendMail(tenantId, targetEmail, subject, message);
     }
@@ -247,7 +247,7 @@ public class DefaultMailService implements MailService {
         model.put("maxFailedLoginAttempts", maxFailedLoginAttempts);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT, model);
+        String message = body(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -286,11 +286,37 @@ public class DefaultMailService implements MailService {
         javaMailProperties.put(MAIL_PROP + protocol + ".port", getStringValue(jsonConfig, "smtpPort"));
         javaMailProperties.put(MAIL_PROP + protocol + ".timeout", getStringValue(jsonConfig, "timeout"));
         javaMailProperties.put(MAIL_PROP + protocol + ".auth", String.valueOf(StringUtils.isNotEmpty(getStringValue(jsonConfig, "username"))));
-        String enableTls = getStringValue(jsonConfig, "enableTls");
-        if (StringUtils.isEmpty(enableTls)) {
-            enableTls = "false";
+        boolean enableTls = false;
+        if (jsonConfig.has("enableTls")) {
+            if (jsonConfig.get("enableTls").isBoolean() && jsonConfig.get("enableTls").booleanValue()) {
+                enableTls = true;
+            } else if (jsonConfig.get("enableTls").isTextual()) {
+                enableTls = "true".equalsIgnoreCase(jsonConfig.get("enableTls").asText());
+            }
         }
         javaMailProperties.put(MAIL_PROP + protocol + ".starttls.enable", enableTls);
+        if (enableTls && jsonConfig.has("tlsVersion") && !jsonConfig.get("tlsVersion").isNull()) {
+            String tlsVersion = jsonConfig.get("tlsVersion").asText();
+            if (StringUtils.isNoneEmpty(tlsVersion)) {
+                javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
+            }
+        }
+        
+        boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
+
+        if (enableProxy) {
+            javaMailProperties.put(MAIL_PROP + protocol + ".proxy.host", jsonConfig.get("proxyHost").asText());
+            javaMailProperties.put(MAIL_PROP + protocol + ".proxy.port", jsonConfig.get("proxyPort").asText());
+            String proxyUser = jsonConfig.get("proxyUser").asText();
+            if (StringUtils.isNoneEmpty(proxyUser)) {
+                javaMailProperties.put(MAIL_PROP + protocol + ".proxy.user", proxyUser);
+            }
+            String proxyPassword = jsonConfig.get("proxyPassword").asText();
+            if (StringUtils.isNoneEmpty(proxyPassword)) {
+                javaMailProperties.put(MAIL_PROP + protocol + ".proxy.password", proxyPassword);
+            }
+        }
+
         return javaMailProperties;
     }
 
@@ -361,6 +387,14 @@ public class DefaultMailService implements MailService {
         }
     }
 
+    private String body(JsonNode mailTemplates, String template, Map<String, Object> model) throws ThingsboardException {
+        try {
+            return MailTemplates.body(mailTemplates, template, model);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     protected ThingsboardException handleException(Exception exception) {
         String message;
         if (exception instanceof NestedRuntimeException) {
@@ -368,6 +402,7 @@ public class DefaultMailService implements MailService {
         } else {
             message = exception.getMessage();
         }
+        log.warn("Unable to send mail: {}", message);
         return new ThingsboardException(String.format("Unable to send mail: %s", message),
                 ThingsboardErrorCode.GENERAL);
     }

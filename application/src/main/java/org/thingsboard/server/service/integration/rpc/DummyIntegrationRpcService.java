@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,31 +30,12 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import com.google.common.io.Resources;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
-import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
-import org.thingsboard.server.gen.integration.RequestMsg;
-import org.thingsboard.server.gen.integration.ResponseMsg;
-import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
-import org.thingsboard.server.service.integration.IntegrationContextComponent;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j

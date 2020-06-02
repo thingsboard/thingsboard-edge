@@ -1,0 +1,154 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+
+$tb-button-selected-color: rgb(255, 110, 64) !default;
+
+.tb-scheduler-events {
+  .tb-scheduler-events-content {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+
+    .tb-scheduler-events-title {
+      padding-right: 20px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tb-scheduler-events-view-type-toolbar {
+      height: 55px;
+      min-height: 55px;
+      padding-right: 16px;
+      background-color: transparent;
+      box-shadow: none;
+
+      .tb-toolbar-button {
+        height: 40px;
+        button.mat-icon-button {
+          margin: 0;
+        }
+        &.tb-selected {
+          background-color: rgba(255, 255, 255, .15);
+          border-bottom: $tb-button-selected-color solid 4px;
+
+          button.mat-icon-button {
+            margin-bottom: -4px;
+
+            mat-icon {
+              color: $tb-button-selected-color;
+              fill: $tb-button-selected-color;
+            }
+          }
+        }
+      }
+    }
+
+    .table-container {
+      overflow: auto;
+
+      .mat-sort-header-sorted .mat-sort-header-arrow {
+        opacity: 1 !important;
+      }
+    }
+
+    .calendar-container {
+      position: relative;
+      min-height: 0;
+      box-sizing: border-box;
+
+      .fc-event {
+        border-radius: 2px;
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(58, 135, 173, .4);
+      }
+
+      .fc-day-grid-event {
+        margin: 2px 5px 0;
+      }
+    }
+  }
+}
+
+.tb-event-schedule-calendar-menu {
+  min-width: 256px;
+  max-height: 404px;
+  border-radius: 8px;
+  margin-left: -20px;
+
+  &.mat-menu-below {
+    margin-top: -60px;
+  }
+
+  .mat-menu-content {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    .tb-event-schedule-context-menu-container {
+      pointer-events: auto;
+      padding: 0 0 8px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+  }
+
+  .tb-context-menu-header {
+    display: flex;
+    box-sizing: content-box;
+    flex-direction: column;
+    height: 36px;
+    min-height: 36px;
+    padding: 8px 5px 5px 20px;
+    font-size: 14px;
+    color: #fff;
+    background-color: #3788d8;
+
+    .tb-context-menu-title {
+      font-weight: 500;
+    }
+
+    .tb-context-menu-subtitle {
+      font-size: 12px;
+    }
+  }
+}
+
+.tb-scheduler-tooltip-title {
+  padding-bottom: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+.tb-scheduler-tooltip-content {
+  padding-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+}

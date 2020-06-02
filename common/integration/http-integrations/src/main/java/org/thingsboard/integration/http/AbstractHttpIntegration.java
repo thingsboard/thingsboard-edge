@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -72,7 +72,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context,  getTypeUplink(msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -84,5 +84,6 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
     }
+    protected abstract String getTypeUplink(T msg) ;
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,7 +53,7 @@ import java.util.List;
         nodeDescription = "Duplicates message to all entities belonging to specific Entity Group",
         nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group can be specified directly or can be message originator entity itself. " +
                 "For each entity from group new message is created with entity as originator and message parameters copied from original message.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeDuplicateToGroupConfig",
         icon = "call_split"
 )

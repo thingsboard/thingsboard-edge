@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,8 +40,11 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.List;
 
 /**
  * Created by ashvayka on 11.05.17.
@@ -62,6 +65,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
     private long clearTs;
     private transient JsonNode details;
     private boolean propagate;
+    private List<String> propagateRelationTypes;
 
     public Alarm() {
         super();
@@ -85,6 +89,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity {
         this.clearTs = alarm.getClearTs();
         this.details = alarm.getDetails();
         this.propagate = alarm.isPropagate();
+        this.propagateRelationTypes = alarm.getPropagateRelationTypes();
     }
 
     @Override

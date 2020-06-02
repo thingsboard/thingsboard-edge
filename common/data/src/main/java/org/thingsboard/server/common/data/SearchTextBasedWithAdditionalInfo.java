@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,7 @@ import java.util.function.Supplier;
 @Slf4j
 public abstract class SearchTextBasedWithAdditionalInfo<I extends UUIDBased> extends SearchTextBased<I> implements HasAdditionalInfo {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
     private transient JsonNode additionalInfo;
     @JsonIgnore
     private byte[] additionalInfoBytes;
@@ -112,7 +113,7 @@ public abstract class SearchTextBasedWithAdditionalInfo<I extends UUIDBased> ext
     public static void setJson(JsonNode json, Consumer<JsonNode> jsonConsumer, Consumer<byte[]> bytesConsumer) {
         jsonConsumer.accept(json);
         try {
-            bytesConsumer.accept(new ObjectMapper().writeValueAsBytes(json));
+            bytesConsumer.accept(mapper.writeValueAsBytes(json));
         } catch (JsonProcessingException e) {
             log.warn("Can't serialize json data: ", e);
         }

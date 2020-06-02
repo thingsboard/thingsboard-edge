@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.blob;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
+import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
@@ -44,6 +46,8 @@ import java.util.UUID;
  */
 public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
 
+    BlobEntityWithCustomerInfo findBlobEntityWithCustomerInfoById(UUID tenantId, UUID blobEntityId);
+
     /**
      * Find blob entities by tenantId.
      *
@@ -51,7 +55,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink);
+    PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and type.
@@ -61,7 +65,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink);
+    PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and customerId.
@@ -71,7 +75,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
+    PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId, customerId and type.
@@ -82,7 +86,7 @@ public interface BlobEntityInfoDao extends Dao<BlobEntityInfo> {
      * @param pageLink the pageLink
      * @return the list of blob entity objects
      */
-    List<BlobEntityInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink);
+    PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink);
 
     /**
      * Find blob entities by tenantId and blob entity Ids.

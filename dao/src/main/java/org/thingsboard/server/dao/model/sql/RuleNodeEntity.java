@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -84,7 +84,7 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
 
     public RuleNodeEntity(RuleNode ruleNode) {
         if (ruleNode.getId() != null) {
-            this.setId(ruleNode.getUuidId());
+            this.setUuid(ruleNode.getUuidId());
         }
         if (ruleNode.getRuleChainId() != null) {
             this.ruleChainId = toString(DaoUtil.getId(ruleNode.getRuleChainId()));
@@ -109,8 +109,8 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
 
     @Override
     public RuleNode toData() {
-        RuleNode ruleNode = new RuleNode(new RuleNodeId(getId()));
-        ruleNode.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        RuleNode ruleNode = new RuleNode(new RuleNodeId(this.getUuid()));
+        ruleNode.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         if (ruleChainId != null) {
             ruleNode.setRuleChainId(new RuleChainId(toUUID(ruleChainId)));
         }

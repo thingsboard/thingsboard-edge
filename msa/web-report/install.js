@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,7 +64,7 @@ async function downloadChromiumPlatform(platform) {
         }
         console.log(`Downloading Chromium ${chromium_platform} r${chromium_revision}`);
         var chromiumPath = path.join(projectRoot(), 'target', 'chromium');
-        const browserFetcher = new BrowserFetcher({
+        const browserFetcher = new BrowserFetcher(projectRoot(),{
             path: chromiumPath,
             platform: chromium_platform
         });

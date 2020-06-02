@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,8 @@ import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.TenantAwareMsg;
-import org.thingsboard.server.gen.transport.TransportToDeviceActorMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -51,9 +52,11 @@ public class TransportToDeviceActorMsgWrapper implements TbActorMsg, DeviceAware
     private final TenantId tenantId;
     private final DeviceId deviceId;
     private final TransportToDeviceActorMsg msg;
+    private final TbCallback callback;
 
-    public TransportToDeviceActorMsgWrapper(TransportToDeviceActorMsg msg) {
+    public TransportToDeviceActorMsgWrapper(TransportToDeviceActorMsg msg, TbCallback callback) {
         this.msg = msg;
+        this.callback = callback;
         this.tenantId = new TenantId(new UUID(msg.getSessionInfo().getTenantIdMSB(), msg.getSessionInfo().getTenantIdLSB()));
         this.deviceId = new DeviceId(new UUID(msg.getSessionInfo().getDeviceIdMSB(), msg.getSessionInfo().getDeviceIdLSB()));
     }

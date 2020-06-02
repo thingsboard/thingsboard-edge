@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,8 @@ package org.thingsboard.server.service.ruleengine;
 
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -41,8 +43,7 @@ import java.util.function.Consumer;
  */
 public interface RuleEngineCallService {
 
-    void processRestAPICallToRuleEngine(TenantId tenantId, TbMsg request, Consumer<TbMsg> response);
+    void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> response);
 
-    void processRestAPICallResponseFromRuleEngine(UUID requestId, TbMsg response);
-
+    void onQueueMsg(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback);
 }

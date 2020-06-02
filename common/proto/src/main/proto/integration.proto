@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ option java_multiple_files = true;
 option java_package = "org.thingsboard.server.gen.integration";
 option java_outer_classname = "IntegrationProtos";
 
-import "transport.proto";
+import "queue.proto";
 
 package integration;
 
@@ -96,8 +96,18 @@ message DeviceUplinkDataProto {
   string deviceName = 1;
   string deviceType = 2;
   string customerName = 3;
-  transport.PostTelemetryMsg postTelemetryMsg = 4;
-  transport.PostAttributeMsg postAttributesMsg = 5;
+  string groupName = 4;
+  transport.PostTelemetryMsg postTelemetryMsg = 5;
+  transport.PostAttributeMsg postAttributesMsg = 6;
+}
+
+message AssetUplinkDataProto {
+  string assetName = 1;
+  string assetType = 2;
+  string customerName = 3;
+  string groupName = 4;
+  transport.PostTelemetryMsg postTelemetryMsg = 5;
+  transport.PostAttributeMsg postAttributesMsg = 6;
 }
 
 message EntityViewDataProto {
@@ -175,6 +185,7 @@ message UplinkMsg {
   repeated IntegrationStatisticsProto integrationStatistics = 4;
   repeated TbEventProto eventsData = 5;
   repeated bytes tbMsg = 6;
+  repeated AssetUplinkDataProto assetData = 7;
 }
 
 message UplinkResponseMsg {

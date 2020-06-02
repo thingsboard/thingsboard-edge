@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-public class Customer extends ContactBased<CustomerId> implements TenantEntity, HasCustomerId, HasOwnerId {
+public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId> {
 
     private static final long serialVersionUID = -1599722990298929275L;
     

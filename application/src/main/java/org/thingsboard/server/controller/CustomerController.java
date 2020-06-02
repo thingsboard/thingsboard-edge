@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.swagger.annotations.ApiParam;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -48,22 +49,26 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class CustomerController extends BaseController {
 
@@ -120,46 +125,7 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public Customer saveCustomer(@RequestBody Customer customer,
                                  @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            customer.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = customer.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
-                customer.setParentCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (customer.getParentCustomerId() == null || customer.getParentCustomerId().isNullUid())) {
-                customer.setParentCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, operation, customer.getId(), customer, entityGroupId);
-
-            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedCustomer.getId());
-            }
-
-            logEntityAction(savedCustomer.getId(), savedCustomer,
-                    savedCustomer.getId(),
-                    customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            return savedCustomer;
-        } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.CUSTOMER), customer,
-                    null, customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-
-            throw handleException(e);
-        }
+        return saveGroupEntity(customer, strEntityGroupId, customerService::saveCustomer);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -188,15 +154,16 @@ public class CustomerController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/customers", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Customer> getCustomers(@RequestParam int limit,
-                                               @RequestParam(required = false) String textSearch,
-                                               @RequestParam(required = false) String idOffset,
-                                               @RequestParam(required = false) String textOffset) throws ThingsboardException {
+    public PageData<Customer> getCustomers(@RequestParam int pageSize,
+                                           @RequestParam int page,
+                                           @RequestParam(required = false) String textSearch,
+                                           @RequestParam(required = false) String sortProperty,
+                                           @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(customerService.findCustomersByTenantId(tenantId, pageLink));
         } catch (Exception e) {
@@ -219,31 +186,24 @@ public class CustomerController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/customers", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Customer> getUserCustomers(
-            @RequestParam int limit,
+    public PageData<Customer> getUserCustomers(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<CustomerId> customerIds = new ArrayList<>();
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            List<CustomerId> additionalCustomerIds = new ArrayList<>();
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
                     accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
-                customerIds.add(getCurrentUser().getCustomerId());
+                additionalCustomerIds.add(getCurrentUser().getCustomerId());
             }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.CUSTOMER, Operation.READ, entityId -> new CustomerId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return customerService.findCustomersByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    Collections.emptyList(),
-                    customerIds,
-                    pageLink);
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.CUSTOMER, Operation.READ, pageLink,
+                    (groupIds) -> customerService.findCustomersByEntityGroupIds(groupIds, additionalCustomerIds, pageLink)
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -264,6 +224,30 @@ public class CustomerController extends BaseController {
             }
             List<Customer> customers = checkNotNull(customerService.findCustomersByTenantIdAndIdsAsync(tenantId, customerIds).get());
             return filterCustomersByReadPermission(customers);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Customer> getCustomersByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(customerService.findCustomersByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

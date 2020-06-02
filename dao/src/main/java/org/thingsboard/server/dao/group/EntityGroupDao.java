@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,10 +31,17 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface EntityGroupDao extends Dao<EntityGroup> {
@@ -46,4 +53,21 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
      * @return the list of entity group objects
      */
     ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
+
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType);
+
+    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
+            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, PageLink pageLink);
+
+    ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
+
+    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
+                                                                         EntityType parentEntityType, String relationType, String name);
+
+    PageData<ShortEntityView> findGroupEntities(EntityType entityType, UUID groupId,
+                                                List<ColumnConfiguration> columns, PageLink pageLink);
+
+    ShortEntityView findGroupEntity(EntityId entityId, UUID groupId,
+                                    List<ColumnConfiguration> columns);
+
 }

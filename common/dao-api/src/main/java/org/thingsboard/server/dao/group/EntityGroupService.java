@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,8 +39,10 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
@@ -69,6 +71,8 @@ public interface EntityGroupService {
     EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName,
                                         String description, CustomerId publicCustomerId);
 
+    Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName);
+
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
     EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId);
@@ -91,6 +95,9 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
+    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
+                                                                              EntityType groupType, PageLink pageLink);
+
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
     void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
@@ -103,15 +110,9 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                             Function<EntityId, I> toIdFunction,
-                                                                             Function<I, E> toEntityFunction,
-                                                                             BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
-    <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                                          Function<EntityId, I> toIdFunction,
-                                                                                                          Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                                                                                                          BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    PageData<ShortEntityView> findGroupEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
     ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 

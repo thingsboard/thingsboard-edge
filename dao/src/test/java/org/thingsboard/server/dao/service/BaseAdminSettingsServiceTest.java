@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,15 +80,6 @@ public abstract class BaseAdminSettingsServiceTest extends AbstractServiceTest {
     public void testChangeAdminSettingsKey() {
         AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(SYSTEM_TENANT_ID, "mail");
         adminSettings.setKey("newKey");
-        adminSettingsService.saveAdminSettings(SYSTEM_TENANT_ID, adminSettings);
-    }
-    
-    @Test(expected = DataValidationException.class)
-    public void testSaveAdminSettingsWithNewJsonStructure() {
-        AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(SYSTEM_TENANT_ID, "mail");
-        JsonNode json = adminSettings.getJsonValue();
-        ((ObjectNode) json).put("newKey", "my new value");
-        adminSettings.setJsonValue(json);
         adminSettingsService.saveAdminSettings(SYSTEM_TENANT_ID, adminSettings);
     }
 }

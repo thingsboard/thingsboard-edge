@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -57,7 +57,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         configClazz = TbGenerateReportNodeConfiguration.class,
         nodeDescription = "Generates report",
         nodeDetails = "Generates dashboard based reports.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGenerateReportConfig",
         icon = "description"
 )
@@ -119,11 +119,11 @@ public class TbGenerateReportNode implements TbNode {
                         ctx.tellNext(newMsg, SUCCESS);
                     },
                     throwable -> {
-                        ctx.tellNext(msg, FAILURE, throwable);
+                        ctx.tellFailure(msg, throwable);
                     }
             );
         } catch (Exception e) {
-            ctx.tellNext(msg, FAILURE, e);
+            ctx.tellFailure(msg, e);
         }
     }
 

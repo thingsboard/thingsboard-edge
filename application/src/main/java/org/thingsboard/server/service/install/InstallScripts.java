@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,6 +65,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 
@@ -92,6 +95,9 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
 
     public static final String JSON_EXT = ".json";
+
+    private static final Pattern velocityVarPattern = Pattern.compile("\\$([a-zA-Z]+)");
+    private static final String velocityVarToFreeMakerReplacementPattern = "\\${$1}";
 
     @Value("${install.data_dir:}")
     private String dataDir;
@@ -145,32 +151,9 @@ public class InstallScripts {
     }
 
     public void createDefaultRuleChains(TenantId tenantId) throws IOException {
-        Path tenantChainsDir = getTenantRuleChainsDir();
-        Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tenantChainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(
-                    path -> {
-                        try {
-                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
-
-                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
-                            ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
-
-                        } catch (Exception e) {
-                            log.error("Unable to load rule chain from json: [{}]", path.toString());
-                            throw new RuntimeException("Unable to load rule chain from json", e);
-                        }
-                    }
-            );
-        }
+        Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
-        String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
-        for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
-            String key = "${" + entry.getKey() + "}";
-            rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
-        }
-        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
-        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+        loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
     }
 
     private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId) {
@@ -269,12 +252,64 @@ public class InstallScripts {
                 result.set(field, mailTemplatesJson.get(field));
             }
         }
+        Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
+        if (updated.isPresent()) {
+            result = (ObjectNode) objectMapper.readTree(updated.get());
+        }
         mailTemplateSettings.setJsonValue(result);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
+        Matcher matcher = velocityVarPattern.matcher(mailTemplatesJsonString);
+        if (matcher.find()) {
+            mailTemplatesJsonString = matcher.replaceAll(velocityVarToFreeMakerReplacementPattern);
+            return Optional.of(mailTemplatesJsonString);
+        } else {
+            return Optional.empty();
+        }
     }
 
     private JsonNode readMailTemplates() throws IOException {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
         return objectMapper.readTree(mailTemplatesFile.toFile());
+    }
+
+    public void loadDemoRuleChains(TenantId tenantId) throws Exception {
+        Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
+        ruleChainIdMap.putAll(loadAdditionalTenantRuleChains(tenantId, Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, RULE_CHAINS_DIR)));
+        Path rootRuleChainFile = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, ROOT_RULE_CHAIN_DIR).resolve("root_rule_chain.json");
+        loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
+    }
+
+    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
+        String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
+        for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
+            String key = "${" + entry.getKey() + "}";
+            rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
+        }
+        JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
+        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+    }
+
+    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {
+        Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(chainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(
+                    path -> {
+                        try {
+                            JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
+
+                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
+                            ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
+
+                        } catch (Exception e) {
+                            log.error("Unable to load rule chain from json: [{}]", path.toString());
+                            throw new RuntimeException("Unable to load rule chain from json", e);
+                        }
+                    }
+            );
+        }
+        return ruleChainIdMap;
     }
 }

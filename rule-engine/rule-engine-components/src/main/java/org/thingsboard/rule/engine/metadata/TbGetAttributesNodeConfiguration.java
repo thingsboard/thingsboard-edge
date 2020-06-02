@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ public class TbGetAttributesNodeConfiguration implements NodeConfiguration<TbGet
     private List<String> latestTsKeyNames;
 
     private boolean tellFailureIfAbsent;
+    private boolean getLatestValueWithTs;
 
     @Override
     public TbGetAttributesNodeConfiguration defaultConfiguration() {
@@ -58,6 +59,7 @@ public class TbGetAttributesNodeConfiguration implements NodeConfiguration<TbGet
         configuration.setServerAttributeNames(Collections.emptyList());
         configuration.setLatestTsKeyNames(Collections.emptyList());
         configuration.setTellFailureIfAbsent(true);
+        configuration.setGetLatestValueWithTs(false);
         return configuration;
     }
 }

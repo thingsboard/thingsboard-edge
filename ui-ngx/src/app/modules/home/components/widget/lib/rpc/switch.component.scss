@@ -1,0 +1,157 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$thumb-img: url("./svg/thumb.svg") !default;
+$thumb-checked-img: url("./svg/thumb-checked.svg") !default;
+$thumb-bar-img: url("./svg/thumb-bar.svg") !default;
+$thumb-bar-checked-img: url("./svg/thumb-bar-checked.svg") !default;
+
+$error-height: 14px !default;
+
+:host {
+
+  .tb-switch {
+    width: 100%;
+    height: 100%;
+
+    .error-container {
+      position: absolute;
+      top: 1%;
+      right: 0;
+      left: 0;
+      z-index: 4;
+      height: $error-height;
+
+      .switch-error {
+        color: #ff3315;
+        white-space: nowrap;
+      }
+    }
+
+    .onoff-container {
+      height: 100%;
+      font-weight: 500;
+      color: #757575;
+      white-space: nowrap;
+
+      .off-label {
+        color: #b7b5b5;
+      }
+
+      .on-label {
+        color: #ff7e57;
+        text-shadow: #ff6e4a 1px 1px 10px, #ffd1c3 1px 1px 10px;
+      }
+    }
+
+    .title-container {
+      .switch-title {
+        font-weight: 500;
+        color: #757575;
+        white-space: nowrap;
+      }
+    }
+
+    #switch-container {
+      padding-right: 10px;
+      padding-left: 10px;
+    }
+
+    .switch {
+      position: relative;
+    }
+
+    #text-measure {
+      position: absolute;
+      width: auto;
+      height: auto;
+      white-space: nowrap;
+      visibility: hidden;
+    }
+  }
+}
+
+:host ::ng-deep {
+  .tb-switch {
+    .switch {
+      mat-slide-toggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: 0;
+
+        .mat-slide-toggle-bar {
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: $thumb-bar-img no-repeat;
+          background-size: contain;
+          border-radius: 0;
+        }
+
+        .mat-slide-toggle-thumb-container {
+          top: 5%;
+          left: .25%;
+          width: 50%;
+          height: 90%;
+        }
+
+        .mat-slide-toggle-thumb {
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: $thumb-img no-repeat;
+          background-size: contain;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        &.mat-checked {
+          .mat-slide-toggle-thumb-container {
+            transform: translate3d(100%,0,0);
+          }
+          .mat-slide-toggle-bar {
+            background: $thumb-bar-checked-img no-repeat;
+            background-size: contain;
+          }
+
+          .mat-slide-toggle-thumb {
+            background: $thumb-checked-img no-repeat;
+            background-size: contain;
+          }
+        }
+      }
+    }
+  }
+}

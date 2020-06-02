@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,8 @@ source "${CONF_FOLDER}/${configfile}"
 export LOADER_PATH=/config,${LOADER_PATH}
 
 echo "Starting '${project.name}' ..."
+
+cd ${pkg.installFolder}/bin
 
 exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.mqtt.ThingsboardMqttTransportApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \

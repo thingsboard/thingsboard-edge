@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -33,11 +33,13 @@
 CONF_FOLDER="/config"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
-run_user=${pkg.name}
+run_user=${pkg.user}
 
 source "${CONF_FOLDER}/${configfile}"
 
 export LOADER_PATH=/config,${LOADER_PATH}
+
+cd ${pkg.installFolder}/bin
 
 if [ "$INSTALL_TB" == "true" ]; then
 

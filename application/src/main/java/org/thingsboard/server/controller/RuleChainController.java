@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,17 +60,19 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
 import java.util.List;
@@ -82,6 +83,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class RuleChainController extends BaseController {
 
@@ -138,14 +140,11 @@ public class RuleChainController extends BaseController {
             boolean created = ruleChain.getId() == null;
             ruleChain.setTenantId(getCurrentUser().getTenantId());
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, operation,
-                    ruleChain.getId(), ruleChain);
+            checkEntity(ruleChain.getId(), ruleChain, Resource.RULE_CHAIN, null);
 
             RuleChain savedRuleChain = checkNotNull(ruleChainService.saveRuleChain(ruleChain));
 
-            actorService.onEntityStateChange(ruleChain.getTenantId(), savedRuleChain.getId(),
+            tbClusterService.onEntityStateChange(ruleChain.getTenantId(), savedRuleChain.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(savedRuleChain.getId(), savedRuleChain,
@@ -173,18 +172,18 @@ public class RuleChainController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             RuleChain previousRootRuleChain = ruleChainService.getRootTenantRuleChain(tenantId);
             if (ruleChainService.setRootRuleChain(getTenantId(), ruleChainId)) {
+                if (previousRootRuleChain != null) {
+                    previousRootRuleChain = ruleChainService.findRuleChainById(getTenantId(), previousRootRuleChain.getId());
 
-                previousRootRuleChain = ruleChainService.findRuleChainById(getTenantId(), previousRootRuleChain.getId());
+                    tbClusterService.onEntityStateChange(previousRootRuleChain.getTenantId(), previousRootRuleChain.getId(),
+                            ComponentLifecycleEvent.UPDATED);
 
-                actorService.onEntityStateChange(previousRootRuleChain.getTenantId(), previousRootRuleChain.getId(),
-                        ComponentLifecycleEvent.UPDATED);
-
-                logEntityAction(previousRootRuleChain.getId(), previousRootRuleChain,
-                        null, ActionType.UPDATED, null);
-
+                    logEntityAction(previousRootRuleChain.getId(), previousRootRuleChain,
+                            null, ActionType.UPDATED, null);
+                }
                 ruleChain = ruleChainService.findRuleChainById(getTenantId(), ruleChainId);
 
-                actorService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(),
+                tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(),
                         ComponentLifecycleEvent.UPDATED);
 
                 logEntityAction(ruleChain.getId(), ruleChain,
@@ -218,7 +217,7 @@ public class RuleChainController extends BaseController {
             RuleChain ruleChain = checkRuleChain(ruleChainMetaData.getRuleChainId(), Operation.WRITE);
             RuleChainMetaData savedRuleChainMetaData = checkNotNull(ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetaData));
 
-            actorService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.UPDATED);
+            tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(ruleChain.getId(), ruleChain,
                     null,
@@ -235,17 +234,18 @@ public class RuleChainController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/ruleChains", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/ruleChains", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<RuleChain> getRuleChains(
-            @RequestParam int limit,
+    public PageData<RuleChain> getRuleChains(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(ruleChainService.findTenantRuleChains(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -270,9 +270,9 @@ public class RuleChainController extends BaseController {
             referencingRuleChainIds.remove(ruleChain.getId());
 
             referencingRuleChainIds.forEach(referencingRuleChainId ->
-                    actorService.onEntityStateChange(ruleChain.getTenantId(), referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
+                    tbClusterService.onEntityStateChange(ruleChain.getTenantId(), referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
 
-            actorService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.DELETED);
+            tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(ruleChainId, ruleChain,
                     null,
@@ -333,7 +333,7 @@ public class RuleChainController extends BaseController {
             ScriptEngine engine = null;
             try {
                 engine = new RuleNodeJsScriptEngine(jsInvokeService, getCurrentUser().getId(), script, argNames);
-                TbMsg inMsg = new TbMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadata), data, null, null, 0L);
+                TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadata), TbMsgDataType.JSON, data);
                 switch (scriptType) {
                     case "update":
                         output = msgToOutput(engine.executeUpdate(inMsg));

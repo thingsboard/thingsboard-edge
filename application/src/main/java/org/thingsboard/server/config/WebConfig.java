@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class WebConfig {
 
-    @RequestMapping(value = "/{path:^(?!api$)(?!static$)(?!webjars$)[^\\.]*}/**")
+    @RequestMapping(value = "/{path:^(?!api$)(?!assets$)(?!static$)(?!webjars$)[^\\.]*}/**")
     public String redirect() {
         return "forward:/index.html";
     }

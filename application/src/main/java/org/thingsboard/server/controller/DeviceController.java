@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,8 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.rule.engine.api.msg.DeviceCredentialsUpdateNotificationMsg;
+import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
+import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -55,29 +60,32 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.controller.claim.data.ClaimRequest;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class DeviceController extends BaseController {
 
@@ -101,42 +109,14 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/device", method = RequestMethod.POST)
     @ResponseBody
     public Device saveDevice(@RequestBody Device device,
+                             @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            device.setTenantId(getCurrentUser().getTenantId());
+            Device savedDevice = saveGroupEntity(device, strEntityGroupId,
+                    device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
-            Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (device.getCustomerId() == null || device.getCustomerId().isNullUid())) {
-                device.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
-                    device.getId(), device, entityGroupId);
-
-            Device savedDevice = checkNotNull(deviceService.saveDevice(device));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDevice.getId());
-            }
-
-            actorService
-                    .onDeviceNameOrTypeUpdate(
-                            savedDevice.getTenantId(),
-                            savedDevice.getId(),
-                            savedDevice.getName(),
-                            savedDevice.getType());
-
-            logEntityAction(savedDevice.getId(), savedDevice,
-                    savedDevice.getCustomerId(),
-                    device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
+                    savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
@@ -145,8 +125,6 @@ public class DeviceController extends BaseController {
             }
             return savedDevice;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -204,7 +182,9 @@ public class DeviceController extends BaseController {
         try {
             Device device = checkDeviceId(deviceCredentials.getDeviceId(), Operation.WRITE_CREDENTIALS);
             DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
-            actorService.onCredentialsUpdate(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId());
+
+            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId()), null);
+
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
@@ -218,18 +198,19 @@ public class DeviceController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/devices", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Device> getTenantDevices(
-            @RequestParam int limit,
+    public PageData<Device> getTenantDevices(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink));
             } else {
@@ -255,22 +236,23 @@ public class DeviceController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/devices", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Device> getCustomerDevices(
+    public PageData<Device> getCustomerDevices(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(deviceService.findDevicesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
             } else {
@@ -282,30 +264,26 @@ public class DeviceController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/devices", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Device> getUserDevices(
-            @RequestParam int limit,
+    public PageData<Device> getUserDevices(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<Device>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((device -> device.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.DEVICE, Operation.READ, entityId -> new DeviceId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return deviceService.findDevicesByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.DEVICE, Operation.READ, pageLink,
+                    (groupIds) -> {
+                        if (type != null && type.trim().length() > 0) {
+                            return deviceService.findDevicesByEntityGroupIdsAndType(groupIds, type, pageLink);
+                        } else {
+                            return deviceService.findDevicesByEntityGroupIds(groupIds, pageLink);
                         }
-                    },
-                    filters,
-                    pageLink);
+                    }
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -347,6 +325,30 @@ public class DeviceController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/devices", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Device> getDevicesByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(deviceService.findDevicesByEntityGroupId(entityGroupId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     private List<Device> filterDevicesByReadPermission(List<Device> devices) {
         return devices.stream().filter(device -> {
             try {
@@ -371,7 +373,7 @@ public class DeviceController extends BaseController {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('CUSTOMER_USER')")
+    @PreAuthorize("hasAuthority('CUSTOMER_USER')")
     @RequestMapping(value = "/customer/device/{deviceName}/claim", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> claimDevice(@PathVariable(DEVICE_NAME) String deviceName,
@@ -421,7 +423,7 @@ public class DeviceController extends BaseController {
                 public void onFailure(Throwable t) {
                     deferredResult.setErrorResult(t);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return deferredResult;
         } catch (Exception e) {
             throw handleException(e);
@@ -458,7 +460,7 @@ public class DeviceController extends BaseController {
                 public void onFailure(Throwable t) {
                     deferredResult.setErrorResult(t);
                 }
-            });
+            }, MoreExecutors.directExecutor());
             return deferredResult;
         } catch (Exception e) {
             throw handleException(e);

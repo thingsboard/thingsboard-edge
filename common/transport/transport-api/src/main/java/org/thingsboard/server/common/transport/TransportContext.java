@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,9 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.kafka.TbNodeIdProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -47,22 +49,23 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 @Data
-public class TransportContext {
+@Service
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || '${service.type:null}'=='monolith'")
+public abstract class TransportContext {
 
     protected final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private TransportService transportService;
-
     @Autowired
-    private TbNodeIdProvider nodeIdProvider;
+    private TbServiceInfoProvider serviceInfoProvider;
 
     @Getter
     private ExecutorService executor;
 
     @PostConstruct
     public void init() {
-        executor = Executors.newCachedThreadPool();
+        executor = Executors.newWorkStealingPool(50);
     }
 
     @PreDestroy
@@ -73,7 +76,7 @@ public class TransportContext {
     }
 
     public String getNodeId() {
-        return nodeIdProvider.getNodeId();
+        return serviceInfoProvider.getServiceId();
     }
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
@@ -42,8 +48,11 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
@@ -52,6 +61,9 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
 
     @Autowired
     EntityGroupRepository entityGroupRepository;
+
+    @Autowired
+    GroupEntitiesRepository groupEntitiesRepository;
 
     @Override
     protected Class<EntityGroupEntity> getEntityClass() {
@@ -66,6 +78,54 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     @Override
     public ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds) {
         return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByIdIn(fromTimeUUIDs(entityGroupIds))));
+    }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType) {
+        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByType(
+                fromTimeUUID(parentEntityId),
+                parentEntityType.name(),
+                relationType)));
+    }
+
+    @Override
+    public ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(UUID tenantId, UUID parentEntityId,
+                                                                                     EntityType parentEntityType, String relationType, PageLink pageLink) {
+        return service.submit(() -> DaoUtil.toPageData(entityGroupRepository
+                .findEntityGroupsByTypeAndPageLink(
+                        fromTimeUUID(parentEntityId),
+                        parentEntityType.name(),
+                        relationType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink))));
+    }
+
+    @Override
+    public ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType) {
+        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findAllEntityGroups(
+                fromTimeUUID(parentEntityId),
+                parentEntityType.name())));
+    }
+
+    @Override
+    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
+                                                                                String relationType, String name) {
+        return service.submit(() ->
+            Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
+                    fromTimeUUID(parentEntityId),
+                    parentEntityType.name(),
+                    relationType,
+                    name))));
+    }
+
+    @Override
+    public PageData<ShortEntityView> findGroupEntities(EntityType entityType, UUID groupId, List<ColumnConfiguration> columns, PageLink pageLink) {
+        return groupEntitiesRepository.findGroupEntities(entityType, groupId, columns, pageLink);
+    }
+
+    @Override
+    public ShortEntityView findGroupEntity(EntityId entityId, UUID groupId, List<ColumnConfiguration> columns) {
+        return groupEntitiesRepository.findGroupEntity(entityId, groupId, columns);
     }
 
 }

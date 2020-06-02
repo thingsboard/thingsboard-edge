@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.dao.nosql;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.oss.driver.api.core.cql.AsyncResultSet;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +54,7 @@ import java.util.Map;
 @Component
 @Slf4j
 @NoSqlAnyDao
-public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<CassandraStatementTask, ResultSetFuture, ResultSet> {
+public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<CassandraStatementTask, TbResultSetFuture, TbResultSet> {
 
     @Autowired
     private EntityService entityService;
@@ -71,19 +71,32 @@ public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<
             @Value("${cassandra.query.poll_ms:50}") long pollMs,
             @Value("${cassandra.query.tenant_rate_limits.enabled}") boolean tenantRateLimitsEnabled,
             @Value("${cassandra.query.tenant_rate_limits.configuration}") String tenantRateLimitsConfiguration,
-            @Value("${cassandra.query.tenant_rate_limits.print_tenant_names}") boolean printTenantNames) {
-        super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, tenantRateLimitsEnabled, tenantRateLimitsConfiguration);
+            @Value("${cassandra.query.tenant_rate_limits.print_tenant_names}") boolean printTenantNames,
+            @Value("${cassandra.query.print_queries_freq:0}") int printQueriesFreq) {
+        super(queueLimit, concurrencyLimit, maxWaitTime, dispatcherThreads, callbackThreads, pollMs, tenantRateLimitsEnabled, tenantRateLimitsConfiguration, printQueriesFreq);
         this.printTenantNames = printTenantNames;
     }
 
     @Scheduled(fixedDelayString = "${cassandra.query.rate_limit_print_interval_ms}")
     public void printStats() {
-        log.info("Permits queueSize [{}] totalAdded [{}] totalLaunched [{}] totalReleased [{}] totalFailed [{}] totalExpired [{}] totalRejected [{}] " +
-                        "totalRateLimited [{}] totalRateLimitedTenants [{}] currBuffer [{}] ",
-                getQueueSize(),
-                totalAdded.getAndSet(0), totalLaunched.getAndSet(0), totalReleased.getAndSet(0),
-                totalFailed.getAndSet(0), totalExpired.getAndSet(0), totalRejected.getAndSet(0),
-                totalRateLimited.getAndSet(0), rateLimitedTenants.size(), concurrencyLevel.get());
+        int queueSize = getQueueSize();
+        int totalAddedValue = totalAdded.getAndSet(0);
+        int totalLaunchedValue = totalLaunched.getAndSet(0);
+        int totalReleasedValue = totalReleased.getAndSet(0);
+        int totalFailedValue = totalFailed.getAndSet(0);
+        int totalExpiredValue = totalExpired.getAndSet(0);
+        int totalRejectedValue = totalRejected.getAndSet(0);
+        int totalRateLimitedValue = totalRateLimited.getAndSet(0);
+        int rateLimitedTenantsValue = rateLimitedTenants.size();
+        int concurrencyLevelValue = concurrencyLevel.get();
+        if (queueSize > 0 || totalAddedValue > 0 || totalLaunchedValue > 0 || totalReleasedValue > 0 ||
+                totalFailedValue > 0 || totalExpiredValue > 0 || totalRejectedValue > 0 || totalRateLimitedValue > 0 || rateLimitedTenantsValue > 0
+                || concurrencyLevelValue > 0) {
+            log.info("Permits queueSize [{}] totalAdded [{}] totalLaunched [{}] totalReleased [{}] totalFailed [{}] totalExpired [{}] totalRejected [{}] " +
+                            "totalRateLimited [{}] totalRateLimitedTenants [{}] currBuffer [{}] ",
+                    queueSize, totalAddedValue, totalLaunchedValue, totalReleasedValue,
+                    totalFailedValue, totalExpiredValue, totalRejectedValue, totalRateLimitedValue, rateLimitedTenantsValue, concurrencyLevelValue);
+        }
 
         rateLimitedTenants.forEach(((tenantId, counter) -> {
             if (printTenantNames) {
@@ -109,19 +122,22 @@ public class CassandraBufferedRateExecutor extends AbstractBufferedRateExecutor<
     }
 
     @Override
-    protected SettableFuture<ResultSet> create() {
+    protected SettableFuture<TbResultSet> create() {
         return SettableFuture.create();
     }
 
     @Override
-    protected ResultSetFuture wrap(CassandraStatementTask task, SettableFuture<ResultSet> future) {
+    protected TbResultSetFuture wrap(CassandraStatementTask task, SettableFuture<TbResultSet> future) {
         return new TbResultSetFuture(future);
     }
 
     @Override
-    protected ResultSetFuture execute(AsyncTaskContext<CassandraStatementTask, ResultSet> taskCtx) {
+    protected ListenableFuture<TbResultSet> execute(AsyncTaskContext<CassandraStatementTask, TbResultSet> taskCtx) {
         CassandraStatementTask task = taskCtx.getTask();
-        return task.getSession().executeAsync(task.getStatement());
+        return task.executeAsync(
+                statement ->
+                    this.submit(new CassandraStatementTask(task.getTenantId(), task.getSession(), statement))
+        );
     }
 
 }

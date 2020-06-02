@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,14 +59,21 @@ public abstract class TbAbstractTransformNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         withCallback(transform(ctx, msg),
-                m -> {
-                    if (m != null) {
-                        ctx.tellNext(m, SUCCESS);
-                    } else {
-                        ctx.tellNext(msg, FAILURE);
-                    }
-                },
-                t -> ctx.tellFailure(msg, t));
+                m -> transformSuccess(ctx, msg, m),
+                t -> transformFailure(ctx, msg, t),
+                ctx.getDbCallbackExecutor());
+    }
+
+    protected void transformFailure(TbContext ctx, TbMsg msg, Throwable t) {
+        ctx.tellFailure(msg, t);
+    }
+
+    protected void transformSuccess(TbContext ctx, TbMsg msg, TbMsg m) {
+        if (m != null) {
+            ctx.tellSuccess(m);
+        } else {
+            ctx.tellNext(msg, FAILURE);
+        }
     }
 
     protected abstract ListenableFuture<TbMsg> transform(TbContext ctx, TbMsg msg);

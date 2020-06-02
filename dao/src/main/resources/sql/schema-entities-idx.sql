@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -29,10 +29,22 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-CREATE INDEX IF NOT EXISTS idx_alarm_originator_alarm_type ON alarm(tenant_id, type, originator_type, originator_id);
+CREATE INDEX IF NOT EXISTS idx_alarm_originator_alarm_type ON alarm(originator_id, type, start_ts DESC);
 
 CREATE INDEX IF NOT EXISTS idx_event_type_entity_id ON event(tenant_id, event_type, entity_type, entity_id);
 
 CREATE INDEX IF NOT EXISTS idx_relation_to_id ON relation(relation_type_group, to_type, to_id);
 
 CREATE INDEX IF NOT EXISTS idx_relation_from_id ON relation(relation_type_group, from_type, from_id);
+
+CREATE INDEX IF NOT EXISTS idx_device_customer_id ON device(tenant_id, customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_device_customer_id_and_type ON device(tenant_id, customer_id, type);
+
+CREATE INDEX IF NOT EXISTS idx_device_type ON device(tenant_id, type);
+
+CREATE INDEX IF NOT EXISTS idx_asset_customer_id ON asset(tenant_id, customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_asset_customer_id_and_type ON asset(tenant_id, customer_id, type);
+
+CREATE INDEX IF NOT EXISTS idx_asset_type ON asset(tenant_id, type);

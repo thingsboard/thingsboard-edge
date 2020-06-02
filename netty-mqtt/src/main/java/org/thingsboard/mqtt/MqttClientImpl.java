@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -422,8 +422,12 @@ final class MqttClientImpl implements MqttClient {
     }
 
     private MqttMessageIdVariableHeader getNewMessageId() {
-        this.nextMessageId.compareAndSet(0xffff, 1);
-        return MqttMessageIdVariableHeader.from(this.nextMessageId.getAndIncrement());
+        int messageId;
+        synchronized (this.nextMessageId) {
+            this.nextMessageId.compareAndSet(0xffff, 1);
+            messageId = this.nextMessageId.getAndIncrement();
+        }
+        return MqttMessageIdVariableHeader.from(messageId);
     }
 
     private Future<Void> createSubscription(String topic, MqttHandler handler, boolean once, MqttQoS qos) {

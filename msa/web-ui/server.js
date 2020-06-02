@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,23 +80,26 @@ var server;
 
             apiProxy.on('error', function (err, req, res) {
                 logger.warn('API proxy error: %s', err.message);
-                res.writeHead(500);
-                if (err.code && err.code === 'ECONNREFUSED') {
+                if (res.writeHead) {
+                  res.writeHead(500);
+                  if (err.code && err.code === 'ECONNREFUSED') {
                     res.end('Unable to connect to ThingsBoard server.');
-                } else {
+                  } else {
                     res.end('Thingsboard server connection error: ' + err.code ? err.code : '');
+                  }
                 }
             });
-        }
-
-        if (useApiProxy) {
             app.all('/api/*', (req, res) => {
-                logger.debug(req.method + ' ' + req.originalUrl);
-                apiProxy.web(req, res);
+              logger.debug(req.method + ' ' + req.originalUrl);
+              apiProxy.web(req, res);
             });
 
             app.all('/static/rulenode/*', (req, res) => {
-                apiProxy.web(req, res);
+              apiProxy.web(req, res);
+            });
+
+            server.on('upgrade', (req, socket, head) => {
+              apiProxy.ws(req, socket, head);
             });
         }
 
@@ -106,16 +109,6 @@ var server;
         const root = path.join(webDir, 'public');
 
         app.use(express.static(root));
-
-        if (useApiProxy) {
-            app.get('*', (req, res) => {
-                apiProxy.web(req, res);
-            });
-
-            server.on('upgrade', (req, socket, head) => {
-                apiProxy.ws(req, socket, head);
-            });
-        }
 
         server.listen(bindPort, bindAddress, (error) => {
             if (error) {

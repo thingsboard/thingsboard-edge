@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,17 +31,30 @@
 package org.thingsboard.rule.engine.rest;
 
 import lombok.Data;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 
 @Data
 public class TbSendRestApiCallReplyNodeConfiguration implements NodeConfiguration<TbSendRestApiCallReplyNodeConfiguration> {
+    public static final String SERVICE_ID = "serviceId";
+    public static final String REQUEST_UUID = "requestUUID";
 
+    private String serviceIdMetaDataAttribute;
     private String requestIdMetaDataAttribute;
 
     @Override
     public TbSendRestApiCallReplyNodeConfiguration defaultConfiguration() {
         TbSendRestApiCallReplyNodeConfiguration configuration = new TbSendRestApiCallReplyNodeConfiguration();
-        configuration.setRequestIdMetaDataAttribute("requestUUID");
+        configuration.setRequestIdMetaDataAttribute(REQUEST_UUID);
+        configuration.setServiceIdMetaDataAttribute(SERVICE_ID);
         return configuration;
+    }
+
+    public String getServiceIdMetaDataAttribute() {
+        return !StringUtils.isEmpty(serviceIdMetaDataAttribute) ? serviceIdMetaDataAttribute : SERVICE_ID;
+    }
+
+    public String getRequestIdMetaDataAttribute() {
+        return !StringUtils.isEmpty(requestIdMetaDataAttribute) ? requestIdMetaDataAttribute : REQUEST_UUID;
     }
 }

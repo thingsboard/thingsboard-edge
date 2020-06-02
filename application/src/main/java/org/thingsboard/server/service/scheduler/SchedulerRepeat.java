@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = DailyRepeat.class, name = "DAILY"),
         @JsonSubTypes.Type(value = WeeklyRepeat.class, name = "WEEKLY"),
+        @JsonSubTypes.Type(value = MonthlyRepeat.class, name = "MONTHLY"),
+        @JsonSubTypes.Type(value = YearlyRepeat.class, name = "YEARLY"),
         @JsonSubTypes.Type(value = TimerRepeat.class, name = "TIMER")
 })
 public interface SchedulerRepeat {

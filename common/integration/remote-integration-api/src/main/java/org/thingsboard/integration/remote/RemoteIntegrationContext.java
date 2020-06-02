@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,12 +33,9 @@ package org.thingsboard.integration.remote;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
@@ -47,16 +44,13 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Data
@@ -85,13 +79,18 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public ServerAddress getServerAddress() {
-        return new ServerAddress(clientId, port, ServerType.CORE);
+    public String getServiceId() {
+        return "[" + clientId + ":" + port + "]";
     }
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto msg, IntegrationCallback<Void> callback) {
         eventStorage.write(UplinkMsg.newBuilder().addDeviceData(msg).build(), callback);
+    }
+
+    @Override
+    public void processUplinkData(AssetUplinkDataProto msg, IntegrationCallback<Void> callback) {
+        eventStorage.write(UplinkMsg.newBuilder().addAssetData(msg).build(), callback);
     }
 
     @Override
@@ -101,7 +100,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
+        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(TbMsg.toByteString(msg)).build(), callback);
     }
 
     @Override

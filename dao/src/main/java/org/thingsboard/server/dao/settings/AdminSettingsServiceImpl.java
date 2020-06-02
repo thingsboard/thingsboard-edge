@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -95,9 +95,6 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
                     if (existentAdminSettings != null) {
                         if (!existentAdminSettings.getKey().equals(adminSettings.getKey())) {
                             throw new DataValidationException("Changing key of admin settings entry is prohibited!");
-                        }
-                        if (adminSettings.getKey().equals("mail")) {
-                            validateJsonStructure(existentAdminSettings.getJsonValue(), adminSettings.getJsonValue());
                         }
                     }
                 }

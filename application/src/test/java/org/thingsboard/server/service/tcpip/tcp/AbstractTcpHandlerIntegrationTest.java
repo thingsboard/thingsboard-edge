@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,7 +67,6 @@ public abstract class AbstractTcpHandlerIntegrationTest extends AbstractTcpipInt
         configuration.put("soRcvBuf", SO_RCV_BUF);
         configuration.put("soSndBuf", SO_SND_BUF);
         configuration.put("soKeepaliveOption", SO_KEEPALIVE);
-        configuration.put("soReuseAddr", SO_REUSE_ADDR);
         configuration.put("tcpNoDelay", TCP_NO_DELAY);
         configuration.put("charsetName", CHARSET_NAME);
         configuration.set("metadata", mapper.createObjectNode());

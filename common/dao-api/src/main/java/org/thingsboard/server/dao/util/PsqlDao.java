@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,10 @@ package org.thingsboard.server.dao.util;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
 @ConditionalOnProperty(prefix = "spring.jpa", value = "database-platform", havingValue = "org.hibernate.dialect.PostgreSQLDialect")
 public @interface PsqlDao {
 }

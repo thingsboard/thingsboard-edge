@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.mqtt.rpc;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +52,7 @@ import org.thingsboard.server.service.security.AccessValidator;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -70,6 +71,8 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
     private User tenantAdmin;
     private Long asyncContextTimeoutToUseRpcPlugin;
 
+    private static final AtomicInteger atomicInteger = new AtomicInteger(2);
+
 
     @Before
     public void beforeTest() throws Exception {
@@ -85,7 +88,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(savedTenant.getId());
-        tenantAdmin.setEmail("tenant2@thingsboard.org");
+        tenantAdmin.setEmail("tenant" + atomicInteger.getAndIncrement() + "@thingsboard.org");
         tenantAdmin.setFirstName("Joe");
         tenantAdmin.setLastName("Downs");
 
@@ -113,16 +116,17 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, clientId);
+        CountDownLatch latch = new CountDownLatch(1);
+        TestMqttCallback callback = new TestMqttCallback(client, latch);
+        client.setCallback(callback);
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(accessToken);
         client.connect(options).waitForCompletion();
 
-        CountDownLatch latch = new CountDownLatch(1);
-        TestMqttCallback callback = new TestMqttCallback(client, latch);
-        client.setCallback(callback);
-
         client.subscribe("v1/devices/me/rpc/request/+", MqttQoS.AT_MOST_ONCE.value());
+
+        Thread.sleep(2000);
 
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
@@ -143,7 +147,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String accessToken = deviceCredentials.getCredentialsId();
         assertNotNull(accessToken);
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1},\"timeout\": 6000}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"24\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
         doPostAsync("/api/plugins/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
@@ -152,8 +156,8 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
     @Test
     public void testServerMqttOneWayRpcDeviceDoesNotExist() throws Exception {
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
-        String nonExistentDeviceId = UUIDs.timeBased().toString();
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"25\",\"value\": 1}}";
+        String nonExistentDeviceId = Uuids.timeBased().toString();
 
         String result = doPostAsync("/api/plugins/rpc/oneway/" + nonExistentDeviceId, setGpioRequest, String.class,
                 status().isNotFound());
@@ -173,14 +177,16 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient(MQTT_URL, clientId);
+        client.setCallback(new TestMqttCallback(client, new CountDownLatch(1)));
 
         MqttConnectOptions options = new MqttConnectOptions();
         options.setUserName(accessToken);
         client.connect(options).waitForCompletion();
         client.subscribe("v1/devices/me/rpc/request/+", 1);
-        client.setCallback(new TestMqttCallback(client, new CountDownLatch(1)));
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
+        Thread.sleep(2000);
+
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"26\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
 
         String result = doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isOk());
@@ -198,7 +204,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String accessToken = deviceCredentials.getCredentialsId();
         assertNotNull(accessToken);
 
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1},\"timeout\": 6000}";
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"27\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
         doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
@@ -207,8 +213,8 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
 
     @Test
     public void testServerMqttTwoWayRpcDeviceDoesNotExist() throws Exception {
-        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
-        String nonExistentDeviceId = UUIDs.timeBased().toString();
+        String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"28\",\"value\": 1}}";
+        String nonExistentDeviceId = Uuids.timeBased().toString();
 
         String result = doPostAsync("/api/plugins/rpc/twoway/" + nonExistentDeviceId, setGpioRequest, String.class,
                 status().isNotFound());

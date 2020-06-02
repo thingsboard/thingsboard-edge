@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,7 +54,7 @@ import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttHandler;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -387,11 +387,11 @@ public class MqttClientTest extends AbstractContainerTest {
     }
 
     private RuleChainId getDefaultRuleChainId() {
-        ResponseEntity<TextPageData<RuleChain>> ruleChains = restClient.getRestTemplate().exchange(
-                HTTPS_URL + "/api/ruleChains?limit=40&textSearch=",
+        ResponseEntity<PageData<RuleChain>> ruleChains = restClient.getRestTemplate().exchange(
+                HTTPS_URL + "/api/ruleChains?pageSize=40&page=0&textSearch=",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<TextPageData<RuleChain>>() {
+                new ParameterizedTypeReference<PageData<RuleChain>>() {
                 });
 
         Optional<RuleChain> defaultRuleChain = ruleChains.getBody().getData()

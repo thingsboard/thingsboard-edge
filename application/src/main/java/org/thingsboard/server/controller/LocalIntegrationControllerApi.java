@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,11 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.IntegrationControllerApi;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import java.util.concurrent.Executor;
 
+@TbCoreComponent
 @Component
 public class LocalIntegrationControllerApi implements IntegrationControllerApi {
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -55,6 +57,11 @@ import javax.persistence.Table;
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME)
 public final class CustomerEntity extends BaseSqlEntity<Customer> implements SearchTextEntity<Customer> {
+
+    public static final Map<String,String> customerColumnMap = new HashMap<>();
+    static {
+        customerColumnMap.put("name", "title");
+    }
 
     @Column(name = ModelConstants.CUSTOMER_TENANT_ID_PROPERTY)
     private String tenantId;
@@ -102,7 +109,7 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
 
     public CustomerEntity(Customer customer) {
         if (customer.getId() != null) {
-            this.setId(customer.getId().getId());
+            this.setUuid(customer.getId().getId());
         }
         this.tenantId = UUIDConverter.fromTimeUUID(customer.getTenantId().getId());
         if (customer.getParentCustomerId() != null) {
@@ -132,8 +139,8 @@ public final class CustomerEntity extends BaseSqlEntity<Customer> implements Sea
 
     @Override
     public Customer toData() {
-        Customer customer = new Customer(new CustomerId(getId()));
-        customer.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        Customer customer = new Customer(new CustomerId(this.getUuid()));
+        customer.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         customer.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         if (parentCustomerId != null) {
             customer.setParentCustomerId(new CustomerId(UUIDConverter.fromString(parentCustomerId)));

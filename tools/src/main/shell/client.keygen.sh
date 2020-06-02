@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ usage() {
     echo "and imports server public key to client keystore"
     echo "usage: ./client.keygen.sh [-p file]"
     echo "    -p | --props | --properties file  Properties file. default value is ./keygen.properties"
-	echo "    -h | --help  | ?                  Show this message"
+    echo "    -h | --help  | ?                  Show this message"
 }
 
 PROPERTIES_FILE=keygen.properties
@@ -70,7 +70,7 @@ while :
             echo "Done"
             exit 0
             ;;
-        [yY]|[yY][eE]|[yY][eE]|[sS]|[yY]|"")
+        [yY]|[yY][eE]|[yY][eE][sS]|"")
             echo "Cleaning up files"
             rm -rf $CLIENT_FILE_PREFIX.jks
             rm -rf $CLIENT_FILE_PREFIX.pub.pem

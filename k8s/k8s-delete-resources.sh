@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -32,5 +32,9 @@
 
 set -e
 
+source .env
+
 kubectl config set-context $(kubectl config current-context) --namespace=thingsboard
-kubectl delete -f thingsboard.yml
+
+kubectl delete -f common/thingsboard.yml
+kubectl delete -f common/tb-node.yml

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -78,6 +78,8 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);
         env.put("TB_HTTP_TRANSPORT_LOG_VOLUME", tbHttpTransportLogVolume);
         env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
+        env.put("DOCKER_REPO", "thingsboard");
+        env.put("TB_VERSION", "latest");
         dockerCompose.withEnv(env);
     }
 
@@ -107,7 +109,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("up -d redis postgres");
             dockerCompose.invokeCompose();
 
-            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb1");
+            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-core1");
             dockerCompose.invokeCompose();
 
         } finally {

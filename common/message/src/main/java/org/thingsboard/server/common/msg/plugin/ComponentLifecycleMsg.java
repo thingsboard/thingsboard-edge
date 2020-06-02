@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import java.util.Optional;
  * @author Andrew Shvayka
  */
 @ToString
-public class ComponentLifecycleMsg implements TbActorMsg, TenantAwareMsg, ToAllNodesMsg {
+public class ComponentLifecycleMsg implements TenantAwareMsg, ToAllNodesMsg {
     @Getter
     private final TenantId tenantId;
     @Getter

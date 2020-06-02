@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,14 +61,15 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -80,10 +80,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends BaseController {
-    
+
     @Autowired
     private EventService eventService;
 
@@ -115,13 +116,10 @@ public class ConverterController extends BaseController {
             converter.setTenantId(getCurrentUser().getTenantId());
             boolean created = converter.getId() == null;
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, operation,
-                    converter.getId(), converter);
+            checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+            tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(result.getId(), result,
@@ -137,17 +135,18 @@ public class ConverterController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/converters", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Converter> getConverters(
-            @RequestParam int limit,
+    public PageData<Converter> getConverters(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -163,7 +162,7 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
-            actorService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+            tbClusterService.onEntityStateChange(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(converterId, converter,
                     null,
@@ -211,7 +210,7 @@ public class ConverterController extends BaseController {
                             String in = body.get("in").asText();
                             JsonNode inJson = objectMapper.readTree(in);
                             if (inJson.isArray() && inJson.size() > 0) {
-                                JsonNode msgJson = inJson.get(inJson.size()-1);
+                                JsonNode msgJson = inJson.get(inJson.size() - 1);
                                 JsonNode msg = msgJson.get("msg");
                                 if (msg.isTextual()) {
                                     inContent = "";
@@ -285,16 +284,18 @@ public class ConverterController extends BaseController {
             JsonNode integrationMetadata = inputParams.get("integrationMetadata");
             String encoder = inputParams.get("encoder").asText();
 
-            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {});
+            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+            });
 
-            Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {});
+            Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
+            });
             IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
 
             JsonNode output = null;
             String errorText = "";
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
-                TbMsg inMsg = TbMsg.createNewMsg(UUIDs.timeBased(), msgType, null, new TbMsgMetaData(metadataMap), data);
+                TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
                 jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, getCurrentUser().getId(), encoder);
                 output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
                 validateDownLinkOutput(output);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,12 +40,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class ComponentDescriptorController extends BaseController {
 

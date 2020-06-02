@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,6 +44,12 @@ public class TbSendEmailNodeConfiguration implements NodeConfiguration {
     private String smtpProtocol;
     private int timeout;
     private boolean enableTls;
+    private String tlsVersion;
+    private boolean enableProxy;
+    private String proxyHost;
+    private String proxyPort;
+    private String proxyUser;
+    private String proxyPassword;
 
     @Override
     public TbSendEmailNodeConfiguration defaultConfiguration() {
@@ -54,6 +60,8 @@ public class TbSendEmailNodeConfiguration implements NodeConfiguration {
         configuration.setSmtpPort(25);
         configuration.setTimeout(10000);
         configuration.setEnableTls(false);
+        configuration.setTlsVersion("TLSv1.2");
+        configuration.setEnableProxy(false);
         return configuration;
     }
 }

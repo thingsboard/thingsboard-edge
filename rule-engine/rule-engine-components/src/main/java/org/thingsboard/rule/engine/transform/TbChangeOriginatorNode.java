@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ import java.util.HashSet;
         nodeDetails = "Related Entity found using configured relation direction and Relation Type. " +
                 "If multiple Related Entities are found, only first Entity is used as new Originator, other entities are discarded.<br/>" +
                 "Alarm Originator found only in case original Originator is <code>Alarm</code> entity.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbTransformationNodeChangeOriginatorConfig",
         icon = "find_replace"
 )

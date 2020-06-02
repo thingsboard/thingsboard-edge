@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,10 +51,10 @@ class SchedulerEventMetaData {
     }
 
     long getNextEventTime(long ts) {
-        if (ts < startTime) {
-            return startTime;
-        } else if (repeat != null && repeat.getEndsOn() > ts) {
+        if (repeat != null && repeat.getEndsOn() > ts) {
             return repeat.getNext(startTime, ts, timezone);
+        } else if (ts < startTime) {
+            return startTime;
         } else {
             return 0L;
         }

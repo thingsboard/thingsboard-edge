@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,11 +30,16 @@
  */
 package org.thingsboard.server.dao.nosql;
 
-import com.datastax.driver.core.Session;
-import com.datastax.driver.core.Statement;
+import com.datastax.oss.driver.api.core.cql.Statement;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.cassandra.guava.GuavaSession;
 import org.thingsboard.server.dao.util.AsyncTask;
+
+import java.util.function.Function;
 
 /**
  * Created by ashvayka on 24.10.18.
@@ -43,7 +48,14 @@ import org.thingsboard.server.dao.util.AsyncTask;
 public class CassandraStatementTask implements AsyncTask {
 
     private final TenantId tenantId;
-    private final Session session;
+    private final GuavaSession session;
     private final Statement statement;
+
+    public ListenableFuture<TbResultSet> executeAsync(Function<Statement, TbResultSetFuture> executeAsyncFunction) {
+        return Futures.transform(session.executeAsync(statement),
+                result -> new TbResultSet(statement, result, executeAsyncFunction),
+                MoreExecutors.directExecutor()
+        );
+    }
 
 }

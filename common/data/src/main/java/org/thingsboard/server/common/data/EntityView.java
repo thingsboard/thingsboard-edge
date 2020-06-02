@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,7 +48,7 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
-        implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+        implements GroupEntity<EntityViewId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -71,6 +71,14 @@ public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
 
     public EntityView(EntityView entityView) {
         super(entityView);
+        this.entityId = entityView.getEntityId();
+        this.tenantId = entityView.getTenantId();
+        this.customerId = entityView.getCustomerId();
+        this.name = entityView.getName();
+        this.type = entityView.getType();
+        this.keys = entityView.getKeys();
+        this.startTimeMs = entityView.getStartTimeMs();
+        this.endTimeMs = entityView.getEndTimeMs();
     }
 
     @Override

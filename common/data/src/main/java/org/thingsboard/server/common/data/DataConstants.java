@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,7 @@ public class DataConstants {
     public static final String CLIENT_SCOPE = "CLIENT_SCOPE";
     public static final String SERVER_SCOPE = "SERVER_SCOPE";
     public static final String SHARED_SCOPE = "SHARED_SCOPE";
+    public static final String LATEST_TS = "LATEST_TS";
 
     public static final String[] allScopes() {
         return new String[]{CLIENT_SCOPE, SHARED_SCOPE, SERVER_SCOPE};

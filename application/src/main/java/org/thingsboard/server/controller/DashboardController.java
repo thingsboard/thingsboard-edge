@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,15 +53,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
@@ -68,7 +67,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
+
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class DashboardController extends BaseController {
 
@@ -120,45 +123,10 @@ public class DashboardController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public Dashboard saveDashboard(@RequestBody Dashboard dashboard,
                                    @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            dashboard.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = dashboard.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid())) {
-                dashboard.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation,
-                    dashboard.getId(), dashboard, entityGroupId);
-
-            Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDashboard.getId());
-            }
-
-            logEntityAction(savedDashboard.getId(), savedDashboard,
-                    null,
-                    dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            return savedDashboard;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DASHBOARD), dashboard,
-                    null, dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-
-            throw handleException(e);
-        }
+        return saveGroupEntity(dashboard, strEntityGroupId, dashboardService::saveDashboard);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -184,18 +152,19 @@ public class DashboardController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/tenant/{tenantId}/dashboards", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/{tenantId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<DashboardInfo> getTenantDashboards(
+    public PageData<DashboardInfo> getTenantDashboards(
             @PathVariable("tenantId") String strTenantId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             TenantId tenantId = new TenantId(toUUID(strTenantId));
             checkTenantId(tenantId, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -203,17 +172,18 @@ public class DashboardController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/dashboards", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<DashboardInfo> getTenantDashboards(
-            @RequestParam int limit,
+    public PageData<DashboardInfo> getTenantDashboards(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -221,13 +191,14 @@ public class DashboardController extends BaseController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @RequestMapping(value = "/user/dashboards", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<DashboardInfo> getUserDashboards(
-            @RequestParam int limit,
+    public PageData<DashboardInfo> getUserDashboards(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) String operation,
             @RequestParam(name = "userId", required = false) String strUserId) throws ThingsboardException {
         try {
@@ -248,30 +219,25 @@ public class DashboardController extends BaseController {
                     throw new ThingsboardException("Unsupported operation type '" + operation + "'!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
                 }
             }
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            return getGroupEntitiesByPageLink(securityUser, EntityType.DASHBOARD, operationType, entityId -> new DashboardId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return dashboardService.findDashboardInfoByIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    pageLink);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return ownersCacheService.getGroupEntities(getTenantId(), securityUser, EntityType.DASHBOARD, operationType, pageLink,
+                    (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink)
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", params = { "limit" }, method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<DashboardInfo> getGroupDashboards(
+    public PageData<DashboardInfo> getGroupDashboards(
             @PathVariable("entityGroupId") String strEntityGroupId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             checkParameter("entityGroupId", strEntityGroupId);
             EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -279,17 +245,8 @@ public class DashboardController extends BaseController {
             if (entityGroup.getType() != EntityType.DASHBOARD) {
                 throw new ThingsboardException("Invalid entity group type '" + entityGroup.getType() + "'! Should be 'DASHBOARD'.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<EntityId> ids = entityGroupService.findAllEntityIds(getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
-            List<DashboardId> dashboardIdsList = new ArrayList<>();
-            ids.forEach((dashboardId) -> dashboardIdsList.add(new DashboardId(dashboardId.getId())));
-            return loadAndFilterEntities(dashboardIdsList, (entityIds) -> {
-                try {
-                    return dashboardService.findDashboardInfoByIdsAsync(getTenantId(), entityIds).get();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }, pageLink);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(dashboardService.findDashboardsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -310,6 +267,30 @@ public class DashboardController extends BaseController {
             }
             List<DashboardInfo> dashboards = checkNotNull(dashboardService.findDashboardInfoByIdsAsync(tenantId, dashboardIds).get());
             return filterDashboardsByReadPermission(dashboards);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<DashboardInfo> getDashboardsByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(dashboardService.findDashboardsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

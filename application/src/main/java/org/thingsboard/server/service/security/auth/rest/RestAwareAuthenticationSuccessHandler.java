@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,7 +51,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
+@Component(value = "defaultAuthenticationSuccessHandler")
 public class RestAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final ObjectMapper mapper;
     private final JwtTokenFactory tokenFactory;

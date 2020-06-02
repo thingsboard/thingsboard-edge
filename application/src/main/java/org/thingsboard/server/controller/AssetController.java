@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,16 +48,22 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -64,7 +71,10 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class AssetController extends BaseController {
 
@@ -88,41 +98,7 @@ public class AssetController extends BaseController {
     @ResponseBody
     public Asset saveAsset(@RequestBody Asset asset,
                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            asset.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = asset.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (asset.getCustomerId() == null || asset.getCustomerId().isNullUid())) {
-                asset.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation,
-                    asset.getId(), asset, entityGroupId);
-
-            Asset savedAsset  = checkNotNull(assetService.saveAsset(asset));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedAsset.getId());
-            }
-
-            logEntityAction(savedAsset.getId(), savedAsset,
-                    savedAsset.getCustomerId(),
-                    asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            return  savedAsset;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ASSET), asset,
-                    null, asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        return saveGroupEntity(asset, strEntityGroupId, assetService::saveAsset);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -149,18 +125,19 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getTenantAssets(
-            @RequestParam int limit,
+    public PageData<Asset> getTenantAssets(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink));
             } else {
@@ -186,22 +163,23 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getCustomerAssets(
+    public PageData<Asset> getCustomerAssets(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length()>0) {
                 return checkNotNull(assetService.findAssetsByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
             } else {
@@ -213,30 +191,26 @@ public class AssetController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/assets", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Asset> getUserAssets(
-            @RequestParam int limit,
+    public PageData<Asset> getUserAssets(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<Asset>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((asset -> asset.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ASSET, Operation.READ, entityId -> new AssetId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return assetService.findAssetsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.ASSET, Operation.READ, pageLink,
+                    (groupIds) -> {
+                        if (type != null && type.trim().length() > 0) {
+                            return assetService.findAssetsByEntityGroupIdsAndType(groupIds, type, pageLink);
+                        } else {
+                            return assetService.findAssetsByEntityGroupIds(groupIds, pageLink);
                         }
-                    },
-                    filters,
-                    pageLink);
+                    }
+            );
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -273,6 +247,30 @@ public class AssetController extends BaseController {
         try {
             List<Asset> assets = checkNotNull(assetService.findAssetsByQuery(getTenantId(), query).get());
             return filterAssetsByReadPermission(assets);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Asset> getAssetsByEntityGroupId(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        EntityType entityType = entityGroup.getType();
+        checkEntityGroupType(entityType);
+        try {
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(assetService.findAssetsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

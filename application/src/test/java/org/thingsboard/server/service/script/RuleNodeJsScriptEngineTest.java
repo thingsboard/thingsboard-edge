@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.script;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
@@ -40,6 +40,7 @@ import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import javax.script.ScriptException;
@@ -56,7 +57,7 @@ public class RuleNodeJsScriptEngineTest {
     private ScriptEngine scriptEngine;
     private TestNashornJsInvokeService jsSandboxService;
 
-    private EntityId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
+    private EntityId ruleNodeId = new RuleNodeId(Uuids.timeBased());
 
     @Before
     public void beforeTest() throws Exception {
@@ -78,7 +79,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, rawJson);
 
         TbMsg actual = scriptEngine.executeUpdate(msg);
         assertEquals("70", actual.getMetaData().getValue("temp"));
@@ -94,7 +95,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, rawJson);
 
         TbMsg actual = scriptEngine.executeUpdate(msg);
         assertEquals("94", actual.getMetaData().getValue("newAttr"));
@@ -110,7 +111,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\":\"Vit\",\"passed\": 5,\"bigObj\":{\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg =TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, rawJson);
 
         TbMsg actual = scriptEngine.executeUpdate(msg);
 
@@ -128,7 +129,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg("USER", null, metaData, TbMsgDataType.JSON, rawJson);
         assertFalse(scriptEngine.executeFilter(msg));
         scriptEngine.destroy();
     }
@@ -142,7 +143,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData,TbMsgDataType.JSON,  rawJson);
         assertTrue(scriptEngine.executeFilter(msg));
         scriptEngine.destroy();
     }
@@ -163,7 +164,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, rawJson);
         Set<String> actual = scriptEngine.executeSwitch(msg);
         assertEquals(Sets.newHashSet("one"), actual);
         scriptEngine.destroy();
@@ -185,7 +186,7 @@ public class RuleNodeJsScriptEngineTest {
         metaData.putValue("humidity", "99");
         String rawJson = "{\"name\": \"Vit\", \"passed\": 5, \"bigObj\": {\"prop\":42}}";
 
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, null, null, 0L);
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, rawJson);
         Set<String> actual = scriptEngine.executeSwitch(msg);
         assertEquals(Sets.newHashSet("one", "three"), actual);
         scriptEngine.destroy();

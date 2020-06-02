@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,8 +37,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.annotation.Nullable;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
 /**
  * Created by ashvayka on 02.04.18.
  */
@@ -49,7 +47,7 @@ class TelemetryNodeCallback implements FutureCallback<Void> {
 
     @Override
     public void onSuccess(@Nullable Void result) {
-        ctx.tellNext(msg, SUCCESS);
+        ctx.tellSuccess(msg);
     }
 
     @Override

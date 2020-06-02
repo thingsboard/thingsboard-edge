@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -115,12 +118,12 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public WhiteLabelingParams getTenantWhiteLabelingParams(TenantId tenantId) {
+    public ListenableFuture<WhiteLabelingParams> getTenantWhiteLabelingParams(TenantId tenantId) {
         return getEntityWhiteLabelParams(tenantId, tenantId);
     }
 
     @Override
-    public WhiteLabelingParams getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
+    public ListenableFuture<WhiteLabelingParams> getCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
         return getEntityWhiteLabelParams(tenantId, customerId);
     }
 
@@ -132,24 +135,24 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) {
-        return getEntityLoginWhiteLabelParams(tenantId, tenantId);
+    public LoginWhiteLabelingParams getTenantLoginWhiteLabelingParams(TenantId tenantId) throws Exception {
+        return getEntityLoginWhiteLabelParams(tenantId, tenantId).get();
     }
 
     @Override
-    public LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) {
-        return getEntityLoginWhiteLabelParams(tenantId, customerId);
+    public LoginWhiteLabelingParams getCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId) throws Exception {
+        return getEntityLoginWhiteLabelParams(tenantId, customerId).get();
     }
 
     @Override
-    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) {
+    public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception {
         AdminSettings loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName));
         LoginWhiteLabelingParams result;
         if (loginWhiteLabelSettings != null) {
             String strEntityType = loginWhiteLabelSettings.getJsonValue().get("entityType").asText();
             String strEntityId = loginWhiteLabelSettings.getJsonValue().get("entityId").asText();
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-            result = getEntityLoginWhiteLabelParams(tenantId, entityId);
+            result = getEntityLoginWhiteLabelParams(tenantId, entityId).get();
             if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
                 Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
                 if (customer.isSubCustomer()) {
@@ -165,8 +168,8 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return result;
     }
 
-    private LoginWhiteLabelingParams getCustomerHierarchyLoginWhileLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams childCustomerWLLParams) {
-        LoginWhiteLabelingParams entityLoginWhiteLabelParams = getEntityLoginWhiteLabelParams(tenantId, customerId);
+    private LoginWhiteLabelingParams getCustomerHierarchyLoginWhileLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams childCustomerWLLParams) throws Exception {
+        LoginWhiteLabelingParams entityLoginWhiteLabelParams = getEntityLoginWhiteLabelParams(tenantId, customerId).get();
         childCustomerWLLParams.merge(entityLoginWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
@@ -177,27 +180,27 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) {
-        WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId);
+    public WhiteLabelingParams getMergedTenantWhiteLabelingParams(TenantId tenantId, String logoImageChecksum, String faviconChecksum) throws Exception {
+        WhiteLabelingParams result = getTenantWhiteLabelingParams(tenantId).get();
         result.merge(getSystemWhiteLabelingParams(tenantId));
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
 
     @Override
-    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) {
-        WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId);
+    public WhiteLabelingParams getMergedCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, String logoImageChecksum, String faviconChecksum) throws Exception {
+        WhiteLabelingParams result = getCustomerWhiteLabelingParams(tenantId, customerId).get();
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             result.merge(getMergedCustomerHierarchyWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
         }
-        result.merge(getTenantWhiteLabelingParams(tenantId)).merge(getSystemWhiteLabelingParams(tenantId));
+        result.merge(getTenantWhiteLabelingParams(tenantId).get()).merge(getSystemWhiteLabelingParams(tenantId));
         result.prepareImages(logoImageChecksum, faviconChecksum);
         return result;
     }
 
-    private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) {
-        WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId);
+    private WhiteLabelingParams getMergedCustomerHierarchyWhileLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams childCustomerWLParams) throws Exception {
+        WhiteLabelingParams entityWhiteLabelParams = getEntityWhiteLabelParams(tenantId, customerId).get();
         childCustomerWLParams.merge(entityWhiteLabelParams);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
@@ -252,13 +255,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams) {
+    public LoginWhiteLabelingParams saveTenantLoginWhiteLabelingParams(TenantId tenantId, LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
         saveEntityLoginWhiteLabelingParams(tenantId, tenantId, loginWhiteLabelingParams);
         return getTenantLoginWhiteLabelingParams(tenantId);
     }
 
     @Override
-    public LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams) {
+    public LoginWhiteLabelingParams saveCustomerLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
         saveEntityLoginWhiteLabelingParams(tenantId, customerId, loginWhiteLabelingParams);
         return getCustomerLoginWhiteLabelingParams(tenantId, customerId);
     }
@@ -310,17 +313,17 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     @Override
-    public WhiteLabelingParams saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
+    public ListenableFuture<WhiteLabelingParams> saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams, WHITE_LABEL_PARAMS);
-        return getTenantWhiteLabelingParams(tenantId);
+        ListenableFuture<List<Void>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams, WHITE_LABEL_PARAMS);
+        return Futures.transformAsync(listListenableFuture, list -> getTenantWhiteLabelingParams(tenantId), MoreExecutors.directExecutor());
     }
 
     @Override
-    public WhiteLabelingParams saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
+    public ListenableFuture<WhiteLabelingParams> saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams, WHITE_LABEL_PARAMS);
-        return getCustomerWhiteLabelingParams(tenantId, customerId);
+        ListenableFuture<List<Void>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams, WHITE_LABEL_PARAMS);
+        return Futures.transformAsync(listListenableFuture, list -> getCustomerWhiteLabelingParams(tenantId, customerId), MoreExecutors.directExecutor());
     }
 
     @Override
@@ -335,16 +338,28 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
-        return whiteLabelingParams.merge(getTenantWhiteLabelingParams(tenantId)).
-                merge(getSystemWhiteLabelingParams(tenantId));
+        WhiteLabelingParams otherWlParams;
+        try {
+            otherWlParams = getTenantWhiteLabelingParams(tenantId).get();
+            return whiteLabelingParams.merge(otherWlParams).
+                    merge(getSystemWhiteLabelingParams(tenantId));
+        } catch (Exception e) {
+            log.error("Unable to merge Customer White Labeling Params!", e);
+            throw new RuntimeException("Unable to merge Customer White Labeling Params!", e);
+        }
     }
 
     @Override
     public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, EntityId entityId) {
-        LoginWhiteLabelingParams params = getEntityLoginWhiteLabelParams(tenantId, entityId);
-        if (!StringUtils.isEmpty(params.getDomainName())) {
-            String loginWhiteLabelKey = constructLoginWhileLabelKey(params.getDomainName());
-            adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+        try {
+            LoginWhiteLabelingParams params = getEntityLoginWhiteLabelParams(tenantId, entityId).get();
+            if (!StringUtils.isEmpty(params.getDomainName())) {
+                String loginWhiteLabelKey = constructLoginWhileLabelKey(params.getDomainName());
+                adminSettingsService.deleteAdminSettingsByKey(tenantId, loginWhiteLabelKey);
+            }
+        } catch (Exception e) {
+            log.error("Unable to get entity Login White Labeling Params!", e);
+            throw new RuntimeException("Unable to get entity Login White Labeling Params!", e);
         }
     }
 
@@ -377,14 +392,14 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return result;
     }
 
-    private WhiteLabelingParams getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
-        String json;
+    private ListenableFuture<WhiteLabelingParams> getEntityWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+        ListenableFuture<String> jsonFuture;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            json = getEntityAttributeValue(tenantId, entityId, WHITE_LABEL_PARAMS);
+            jsonFuture = getEntityAttributeValue(tenantId, entityId, WHITE_LABEL_PARAMS);
         } else {
-            json = "";
+            jsonFuture = Futures.immediateFuture("");
         }
-        return constructWlParams(json, false);
+        return Futures.transform(jsonFuture, json -> constructWlParams(json, false), MoreExecutors.directExecutor());
     }
 
     private LoginWhiteLabelingParams constructLoginWlParams(String json) {
@@ -403,19 +418,22 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return result;
     }
 
-    private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
-        String json;
+    private ListenableFuture<LoginWhiteLabelingParams> getEntityLoginWhiteLabelParams(TenantId tenantId, EntityId entityId) {
+        ListenableFuture<String> jsonFuture;
         if (isWhiteLabelingAllowed(tenantId, entityId)) {
-            json = getEntityAttributeValue(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS);
+            jsonFuture = getEntityAttributeValue(tenantId, entityId, LOGIN_WHITE_LABEL_PARAMS);
         } else {
-            json = "";
+            jsonFuture = Futures.immediateFuture("");
         }
-        return constructLoginWlParams(json);
+        return Futures.transform(jsonFuture, this::constructLoginWlParams, MoreExecutors.directExecutor());
     }
 
     public boolean isWhiteLabelingAllowed(TenantId tenantId, EntityId entityId) {
         if (entityId.getEntityType().equals(EntityType.CUSTOMER)) {
             Customer customer = customerService.findCustomerById(tenantId, (CustomerId) entityId);
+            if (customer == null) {
+                return false;
+            }
             if (customer.isSubCustomer()) {
                 if (isWhiteLabelingAllowed(tenantId, customer.getParentCustomerId())) {
                     return isWhiteLabelingAllowed(tenantId, customer.getCustomerId());
@@ -436,7 +454,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             }
         } else if (entityId.getEntityType().equals(EntityType.TENANT)) {
             Tenant tenant = tenantService.findTenantById((TenantId) entityId);
-            JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+            JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING) : null;
             if (allowWhiteLabelJsonNode == null) {
                 return true;
             } else {
@@ -450,12 +468,12 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     @Override
     public boolean isCustomerWhiteLabelingAllowed(TenantId tenantId) {
         Tenant tenant = tenantService.findTenantById(tenantId);
-        JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING);
+        JsonNode allowWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_WHITE_LABELING) : null;
         if (allowWhiteLabelJsonNode == null) {
             return true;
         } else {
             if (allowWhiteLabelJsonNode.asBoolean()) {
-                JsonNode allowCustomerWhiteLabelJsonNode = tenant.getAdditionalInfo().get(ALLOW_CUSTOMER_WHITE_LABELING);
+                JsonNode allowCustomerWhiteLabelJsonNode = tenant.getAdditionalInfo() != null ? tenant.getAdditionalInfo().get(ALLOW_CUSTOMER_WHITE_LABELING) : null;
                 if (allowCustomerWhiteLabelJsonNode == null) {
                     return true;
                 } else {
@@ -467,23 +485,25 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }
     }
 
-    private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) {
-        List<AttributeKvEntry> attributeKvEntries;
+    private ListenableFuture<String> getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) {
+        ListenableFuture<List<AttributeKvEntry>> attributeKvEntriesFuture;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key)).get();
+            attributeKvEntriesFuture = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(key));
         } catch (Exception e) {
             log.error("Unable to read White Labeling Params from attributes!", e);
             throw new IncorrectParameterException("Unable to read White Labeling Params from attributes!");
         }
-        if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
-            AttributeKvEntry kvEntry = attributeKvEntries.get(0);
-            return kvEntry.getValueAsString();
-        } else {
-            return "";
-        }
+        return Futures.transform(attributeKvEntriesFuture, attributeKvEntries -> {
+            if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
+                AttributeKvEntry kvEntry = attributeKvEntries.get(0);
+                return kvEntry.getValueAsString();
+            } else {
+                return "";
+            }
+        }, MoreExecutors.directExecutor());
     }
 
-    private void saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
+    private ListenableFuture<List<Void>> saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
         String json;
         try {
             json = objectMapper.writeValueAsString(whiteLabelingParams);
@@ -491,15 +511,15 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
             log.error("Unable to convert White Labeling Params to JSON!", e);
             throw new IncorrectParameterException("Unable to convert White Labeling Params to JSON!");
         }
-        saveEntityAttribute(tenantId, entityId, attributeKey, json);
+        return saveEntityAttribute(tenantId, entityId, attributeKey, json);
     }
 
-    private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {
+    private ListenableFuture<List<Void>> saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
         try {
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
+            return attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes);
         } catch (Exception e) {
             log.error("Unable to save White Labeling Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save White Labeling Params to attributes!");

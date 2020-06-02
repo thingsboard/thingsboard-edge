@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -43,13 +44,10 @@ import java.util.List;
 public interface IntegrationRepository extends CrudRepository<IntegrationEntity, String> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantIdAndPageLink(@Param("tenantId") String tenantId,
-                                     @Param("textSearch") String textSearch,
-                                     @Param("idOffset") String idOffset,
-                                     Pageable pageable);
-
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<IntegrationEntity> findByTenantId(@Param("tenantId") String tenantId,
+                                                      @Param("searchText") String searchText,
+                                                      Pageable pageable);
 
     IntegrationEntity findByRoutingKey(String routingKey);
 

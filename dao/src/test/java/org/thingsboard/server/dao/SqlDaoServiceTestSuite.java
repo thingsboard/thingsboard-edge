@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,9 +45,23 @@ public class SqlDaoServiceTestSuite {
 
     @ClassRule
     public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
-            Arrays.asList("sql/schema-ts.sql", "sql/schema-entities.sql", "sql/schema-entities-idx.sql", "sql/system-data.sql", "sql/system-test.sql"),
-            "sql/drop-all-tables.sql",
+            Arrays.asList("sql/schema-ts-hsql.sql", "sql/schema-entities-hsql.sql", "sql/schema-entities-idx.sql", "sql/system-data.sql", "sql/system-test.sql"),
+            "sql/hsql/drop-all-tables.sql",
             "sql-test.properties"
     );
+
+//    @ClassRule
+//    public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
+//            Arrays.asList("sql/schema-ts-psql.sql", "sql/schema-entities.sql", "sql/schema-entities-idx.sql", "sql/system-data.sql", "sql/system-test.sql"),
+//            "sql/psql/drop-all-tables.sql",
+//            "sql-test.properties"
+//    );
+
+//    @ClassRule
+//    public static CustomSqlUnit sqlUnit = new CustomSqlUnit(
+//            Arrays.asList("sql/schema-timescale.sql", "sql/schema-entities.sql", "sql/schema-entities-idx.sql", "sql/system-data.sql", "sql/system-test.sql"),
+//            "sql/timescale/drop-all-tables.sql",
+//            "sql-test.properties"
+//    );
 
 }

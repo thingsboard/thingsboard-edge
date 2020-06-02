@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,14 +33,15 @@
 const Long = require('long'),
       uuidParse = require('uuid-parse');
 
-var logger = require('../config/logger')('Utils');
-
 exports.toUUIDString = function(mostSigBits, leastSigBits) {
     var msbBytes = Long.fromValue(mostSigBits, false).toBytes(false);
     var lsbBytes = Long.fromValue(leastSigBits, false).toBytes(false);
     var uuidBytes = msbBytes.concat(lsbBytes);
-    var buff = new Buffer(uuidBytes, 'utf8');
     return uuidParse.unparse(uuidBytes);
+}
+
+exports.UUIDFromBuffer = function(buf) {
+    return uuidParse.unparse(buf);
 }
 
 exports.UUIDToBits = function(uuidString) {

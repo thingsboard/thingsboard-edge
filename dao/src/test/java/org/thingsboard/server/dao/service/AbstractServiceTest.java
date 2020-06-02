@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -151,6 +152,9 @@ public abstract class AbstractServiceTest {
     @Autowired
     private ComponentDescriptorService componentDescriptorService;
 
+    @Autowired
+    protected EntityGroupService entityGroupService;
+
     class IdComparator<D extends BaseData<? extends UUIDBased>> implements Comparator<D> {
         @Override
         public int compare(D o1, D o2) {
@@ -161,7 +165,7 @@ public abstract class AbstractServiceTest {
 
     protected Event generateEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) throws IOException {
         if (tenantId == null) {
-            tenantId = new TenantId(UUIDs.timeBased());
+            tenantId = new TenantId(Uuids.timeBased());
         }
         Event event = new Event();
         event.setTenantId(tenantId);

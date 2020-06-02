@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,11 +40,12 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -52,6 +53,8 @@ import java.util.List;
  */
 @Slf4j
 public abstract class AbstractUplinkDataConverter extends AbstractDataConverter implements TBUplinkDataConverter {
+
+    private static final String DEFAULT_DEVICE_TYPE = "default";
 
     @Override
     public void init(Converter configuration) {
@@ -86,16 +89,27 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     protected abstract String doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
-        if (!src.has("deviceName")) {
-            throw new JsonParseException("Device name is not set!");
-        } else if (!src.has("deviceType")) {
-            throw new JsonParseException("Device type is not set!");
-        }
+        boolean isAsset = getIsAssetAndVerify(src);
+
         UplinkData.UplinkDataBuilder builder = UplinkData.builder();
-        builder.deviceName(src.get("deviceName").getAsString());
-        builder.deviceType(src.get("deviceType").getAsString());
+        builder.isAsset(isAsset);
+        if (isAsset) {
+            builder.assetName(src.get("assetName").getAsString());
+            builder.assetType(src.get("assetType").getAsString());
+        } else {
+            builder.deviceName(src.get("deviceName").getAsString());
+            if (src.has("deviceType")) {
+                builder.deviceType(src.get("deviceType").getAsString());
+            } else {
+                builder.deviceType(DEFAULT_DEVICE_TYPE);
+            }
+        }
+
         if (src.has("customerName")) {
             builder.customerName(src.get("customerName").getAsString());
+        }
+        if (src.has("groupName")) {
+            builder.groupName(src.get("groupName").getAsString());
         }
         if (src.has("telemetry")) {
             builder.telemetry(parseTelemetry(src.get("telemetry")));
@@ -108,6 +122,30 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return builder.build();
     }
 
+    private boolean getIsAssetAndVerify(JsonObject src) {
+        boolean isAsset;
+        boolean isDeviceNamePresent = src.has("deviceName");
+        boolean isAssetNamePresent = src.has("assetName");
+        boolean isAssetTypePresent = src.has("assetType");
+
+        if (!isDeviceNamePresent && !isAssetNamePresent) {
+            throw new JsonParseException("Either 'deviceName' or 'assetName' should be present in the converter output!");
+        }
+        if (isDeviceNamePresent && isAssetNamePresent) {
+            throw new JsonParseException("Both 'deviceName' and 'assetName' can't be present in the converter output!");
+        }
+
+        if (isDeviceNamePresent) {
+            isAsset = false;
+        } else {
+            if (!isAssetTypePresent) {
+                throw new JsonParseException("Asset type is not set!");
+            }
+            isAsset = true;
+        }
+        return isAsset;
+    }
+
     private PostTelemetryMsg parseTelemetry(JsonElement src) {
         return JsonConverter.convertToTelemetryProto(src);
     }
@@ -116,10 +154,9 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToAttributesProto(src);
     }
 
-    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage,
-                                    String outMessage, UplinkMetaData metadata) {
+    private void persistUplinkDebug(ConverterContext context, String inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
-            persistDebug(context, "Uplink", inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
+            persistDebug(context, getTypeUplink (inMessage), inMessageType, inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
             log.warn("Failed to persist uplink debug message");
         }
@@ -137,4 +174,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return mapper.writeValueAsString(metaData.getKvMap());
     }
 
+    private String getTypeUplink (byte[] inMessage) throws JsonProcessingException {
+        return (inMessage != null && inMessage.length >23 &&Arrays.equals(Arrays.copyOfRange(inMessage, 1, 23), mapper.writeValueAsBytes("DevEUI_downlink_Sent")))? "Downlink_Sent": "Uplink";
+    }
 }

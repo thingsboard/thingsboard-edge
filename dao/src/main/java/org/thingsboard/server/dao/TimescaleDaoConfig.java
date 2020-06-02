@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,15 +36,17 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.thingsboard.server.dao.util.PsqlDao;
 import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan("org.thingsboard.server.dao.sqlts.timescale")
-@EnableJpaRepositories("org.thingsboard.server.dao.sqlts.timescale")
-@EntityScan("org.thingsboard.server.dao.model.sqlts.timescale")
+@ComponentScan({"org.thingsboard.server.dao.sqlts.timescale"})
+@EnableJpaRepositories({"org.thingsboard.server.dao.sqlts.timescale", "org.thingsboard.server.dao.sqlts.insert.latest.psql", "org.thingsboard.server.dao.sqlts.insert.timescale", "org.thingsboard.server.dao.sqlts.dictionary", "org.thingsboard.server.dao.sqlts.latest"})
+@EntityScan({"org.thingsboard.server.dao.model.sqlts.timescale", "org.thingsboard.server.dao.model.sqlts.dictionary", "org.thingsboard.server.dao.model.sqlts.latest"})
 @EnableTransactionManagement
 @TimescaleDBTsDao
+@PsqlDao
 public class TimescaleDaoConfig {
 
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -50,11 +51,10 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.gen.integration.IntegrationTransportGrpc;
 import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
-import org.thingsboard.server.service.cluster.discovery.ServerInstanceService;
-import org.thingsboard.server.service.cluster.routing.ClusterRoutingService;
-import org.thingsboard.server.service.cluster.rpc.ClusterGrpcService;
-import org.thingsboard.server.service.cluster.rpc.ClusterRpcService;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
+import org.thingsboard.server.service.queue.TbClusterService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -65,7 +65,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
-@ConditionalOnProperty(prefix = "integrations.rpc", value = "enabled", havingValue = "true")
+@ConditionalOnExpression("('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core') && ('${integrations.rpc.enabled:false}'=='true')")
 public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
 
     private final Map<IntegrationId, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
@@ -79,19 +79,21 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     @Value("${integrations.rpc.ssl.privateKey}")
     private String privateKeyResource;
 
-    @Autowired
-    private ServerInstanceService instanceService;
-    @Autowired
-    private IntegrationContextComponent ctx;
-    @Autowired
-    private RemoteIntegrationSessionService sessionsCache;
-    @Autowired
-    @Lazy
-    private ClusterRpcService clusterRpcService;
-    @Autowired
-    private DeviceService deviceService;
-
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final IntegrationContextComponent ctx;
+    private final RemoteIntegrationSessionService sessionsCache;
+    private final TbClusterService clusterService;
+    private final DeviceService deviceService;
     private Server server;
+
+    public GrpcIntegrationRpcService(TbServiceInfoProvider serviceInfoProvider, IntegrationContextComponent ctx,
+                                     RemoteIntegrationSessionService sessionsCache, TbClusterService clusterService, DeviceService deviceService) {
+        this.serviceInfoProvider = serviceInfoProvider;
+        this.ctx = ctx;
+        this.sessionsCache = sessionsCache;
+        this.clusterService = clusterService;
+        this.deviceService = deviceService;
+    }
 
     @PostConstruct
     public void init() {
@@ -164,9 +166,9 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
             sessionFound = true;
         } else {
             IntegrationSession remoteSession = sessionsCache.findIntegrationSession(msg.getIntegrationId());
-            if (remoteSession != null && !remoteSession.getServerAddress().equals(instanceService.getSelf().getServerAddress())) {
-                log.debug("[{}] Remote integration session found for [{}] downlink @ Server [{}].", msg.getIntegrationId(), msg.getEntityId(), remoteSession.getServerAddress());
-                clusterRpcService.tell(remoteSession.getServerAddress(), msg);
+            if (remoteSession != null && !remoteSession.getServiceId().equals(serviceInfoProvider.getServiceId())) {
+                log.debug("[{}] Remote integration session found for [{}] downlink @ Server [{}].", msg.getIntegrationId(), msg.getEntityId(), remoteSession.getServiceId());
+                clusterService.pushNotificationToCore(remoteSession.getServiceId(), msg, null);
                 sessionFound = true;
             }
         }
@@ -175,7 +177,7 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
 
     private void onIntegrationConnect(IntegrationId integrationId, IntegrationGrpcSession integrationGrpcSession) {
         sessions.put(integrationId, integrationGrpcSession);
-        sessionsCache.putIntegrationSession(integrationId, new IntegrationSession(instanceService.getSelf().getServerAddress()));
+        sessionsCache.putIntegrationSession(integrationId, new IntegrationSession(serviceInfoProvider.getServiceId()));
     }
 
     private void onIntegrationDisconnect(IntegrationId integrationId) {

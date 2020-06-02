@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,24 +30,12 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.gson.JsonObject;
 import lombok.Data;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.server.common.data.alarm.AlarmId;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 @Data
 public class AlarmsCountMapping {
@@ -58,32 +46,18 @@ public class AlarmsCountMapping {
     private List<AlarmStatus> statusList;
     private long latestInterval;
 
-    public Predicate<AlarmInfo> createAlarmFilter() {
-        long maxTime = System.currentTimeMillis() - latestInterval;
-        return alarmInfo -> {
-            if (!matches(typesList, alarmInfo.getType())) {
-                return false;
-            }
-            if (!matches(severityList, alarmInfo.getSeverity())) {
-                return false;
-            }
-            if (!matches(statusList, alarmInfo.getStatus())) {
-                return false;
-            }
-            if (latestInterval > 0) {
-                if (alarmInfo.getCreatedTime() < maxTime) {
-                    return false;
-                }
-            }
-            return true;
-        };
+    public AlarmFilter createAlarmFilter() {
+        Long startTime = null;
+        if (latestInterval > 0) {
+            startTime = System.currentTimeMillis() - latestInterval;
+        }
+        return new AlarmFilter(nullIfEmpty(this.typesList), nullIfEmpty(this.severityList), nullIfEmpty(this.statusList), startTime);
     }
 
-    private <T> boolean matches(List<T> filterList, T value) {
-        if (filterList != null && !filterList.isEmpty()) {
-            return filterList.contains(value);
-        } else {
-            return true;
+    private <T> List<T> nullIfEmpty(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
         }
+        return list;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,21 +30,18 @@
  */
 package org.thingsboard.server.dao.tenant;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -196,11 +193,10 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     }
 
     @Override
-    public TextPageData<Tenant> findTenants(TextPageLink pageLink) {
+    public PageData<Tenant> findTenants(PageLink pageLink) {
         log.trace("Executing findTenants pageLink [{}]", pageLink);
-        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<Tenant> tenants = tenantDao.findTenantsByRegion(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION, pageLink);
-        return new TextPageData<>(tenants, pageLink);
+        Validator.validatePageLink(pageLink);
+        return tenantDao.findTenantsByRegion(new TenantId(EntityId.NULL_UUID), DEFAULT_TENANT_REGION, pageLink);
     }
 
     @Override
@@ -220,13 +216,25 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
                         validateEmail(tenant.getEmail());
                     }
                 }
+
+                @Override
+                protected void validateUpdate(TenantId tenantId, Tenant tenant) {
+                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
+                    if (old == null) {
+                        throw new DataValidationException("Can't update non existing tenant!");
+                    } else if (old.isIsolatedTbRuleEngine() != tenant.isIsolatedTbRuleEngine()) {
+                        throw new DataValidationException("Can't update isolatedTbRuleEngine property!");
+                    } else if (old.isIsolatedTbCore() != tenant.isIsolatedTbCore()) {
+                        throw new DataValidationException("Can't update isolatedTbCore property!");
+                    }
+                }
             };
 
     private PaginatedRemover<String, Tenant> tenantsRemover =
             new PaginatedRemover<String, Tenant>() {
 
                 @Override
-                protected List<Tenant> findEntities(TenantId tenantId, String region, TextPageLink pageLink) {
+                protected PageData<Tenant> findEntities(TenantId tenantId, String region, PageLink pageLink) {
                     return tenantDao.findTenantsByRegion(tenantId, region, pageLink);
                 }
 

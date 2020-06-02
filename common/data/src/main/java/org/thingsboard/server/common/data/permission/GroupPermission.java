@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -129,9 +129,9 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     @Override
     public String getName() {
         if (entityGroupId != null && entityGroupType != null) {
-            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString(), entityGroupId.toString(), entityGroupType.name());
         } else {
-            return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
+            return String.format("GENERIC_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString());
         }
     }
 

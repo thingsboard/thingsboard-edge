@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,7 +38,6 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 @Data
 public class LocalConverterContext implements ConverterContext {
@@ -48,8 +47,8 @@ public class LocalConverterContext implements ConverterContext {
     private final ConverterId converterId;
 
     @Override
-    public ServerAddress getServerAddress() {
-        return ctx.getDiscoveryService().getCurrentServer().getServerAddress();
+    public String getServiceId() {
+        return ctx.getServiceInfoProvider().getServiceId();
     }
 
     @Override

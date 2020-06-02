@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,18 +30,11 @@
  */
 package org.thingsboard.server.dao.sql;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-
-import javax.annotation.PreDestroy;
-import java.util.concurrent.Executors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class JpaAbstractDaoListeningExecutorService {
 
-    protected ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(10));
+    @Autowired
+    protected JpaExecutorService service;
 
-    @PreDestroy
-    void onDestroy() {
-        service.shutdown();
-    }
 }

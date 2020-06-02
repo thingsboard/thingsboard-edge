@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.rule.engine.metadata;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -78,7 +79,7 @@ public class TbGetCustomerDetailsNode extends TbAbstractGetEntityDetailsNode<TbG
             } else {
                 return Futures.immediateFuture(null);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<Customer> getCustomer(TbContext ctx, TbMsg msg) {
@@ -94,7 +95,7 @@ public class TbGetCustomerDetailsNode extends TbAbstractGetEntityDetailsNode<TbG
                     } else {
                         return Futures.immediateFuture(null);
                     }
-                });
+                }, MoreExecutors.directExecutor());
             case ASSET:
                 return Futures.transformAsync(ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), new AssetId(msg.getOriginator().getId())), asset -> {
                     if (asset != null) {
@@ -106,7 +107,7 @@ public class TbGetCustomerDetailsNode extends TbAbstractGetEntityDetailsNode<TbG
                     } else {
                         return Futures.immediateFuture(null);
                     }
-                });
+                }, MoreExecutors.directExecutor());
             case ENTITY_VIEW:
                 return Futures.transformAsync(ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId())), entityView -> {
                     if (entityView != null) {
@@ -118,7 +119,7 @@ public class TbGetCustomerDetailsNode extends TbAbstractGetEntityDetailsNode<TbG
                     } else {
                         return Futures.immediateFuture(null);
                     }
-                });
+                }, MoreExecutors.directExecutor());
             default:
                 throw new RuntimeException("Entity with entityType '" + msg.getOriginator().getEntityType() + "' is not supported.");
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.transform;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -41,10 +41,15 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.thingsboard.rule.engine.api.*;
+import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import javax.script.ScriptException;
@@ -52,7 +57,10 @@ import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -74,17 +82,17 @@ public class TbTransformMsgNodeTest {
         metaData.putValue("temp", "7");
         String rawJson = "{\"passed\": 5}";
 
-        RuleChainId ruleChainId = new RuleChainId(UUIDs.timeBased());
-        RuleNodeId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
-        TbMsg transformedMsg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, "{new}", ruleChainId, ruleNodeId, 0L);
+        RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
+        RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON,rawJson, ruleChainId, ruleNodeId);
+        TbMsg transformedMsg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, "{new}", ruleChainId, ruleNodeId);
         mockJsExecutor();
-        when(scriptEngine.executeUpdate(msg)).thenReturn(transformedMsg);
+        when(scriptEngine.executeUpdateAsync(msg)).thenReturn(Futures.immediateFuture(transformedMsg));
 
         node.onMsg(ctx, msg);
-        verify(ctx).getJsExecutor();
+        verify(ctx).getDbCallbackExecutor();
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx).tellSuccess(captor.capture());
         TbMsg actualMsg = captor.getValue();
         assertEquals(transformedMsg, actualMsg);
     }
@@ -96,11 +104,11 @@ public class TbTransformMsgNodeTest {
         metaData.putValue("temp", "7");
         String rawJson = "{\"passed\": 5";
 
-        RuleChainId ruleChainId = new RuleChainId(UUIDs.timeBased());
-        RuleNodeId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
-        TbMsg msg = new TbMsg(UUIDs.timeBased(), "USER", null, metaData, rawJson, ruleChainId, ruleNodeId, 0L);
+        RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
+        RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
+        TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, rawJson, ruleChainId, ruleNodeId);
         mockJsExecutor();
-        when(scriptEngine.executeUpdate(msg)).thenThrow(new IllegalStateException("error"));
+        when(scriptEngine.executeUpdateAsync(msg)).thenReturn(Futures.immediateFailedFuture(new IllegalStateException("error")));
 
         node.onMsg(ctx, msg);
         verifyError(msg, "error", IllegalStateException.class);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@ package org.thingsboard.integration.api.data;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.gen.transport.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -44,8 +44,12 @@ public class UplinkData {
 
     private final String deviceName;
     private final String deviceType;
+    private final String assetName;
+    private final String assetType;
     private final String customerName;
+    private final String groupName;
     private final PostTelemetryMsg telemetry;
     private final PostAttributeMsg attributesUpdate;
+    private final boolean isAsset;
 
 }

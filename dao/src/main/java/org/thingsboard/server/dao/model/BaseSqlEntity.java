@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,14 +50,15 @@ public abstract class BaseSqlEntity<D> implements BaseEntity<D> {
     protected String id;
 
     @Override
-    public UUID getId() {
+    public UUID getUuid() {
         if (id == null) {
             return null;
         }
         return UUIDConverter.fromString(id);
     }
 
-    public void setId(UUID id) {
+    @Override
+    public void setUuid(UUID id) {
         this.id = UUIDConverter.fromTimeUUID(id);
     }
 

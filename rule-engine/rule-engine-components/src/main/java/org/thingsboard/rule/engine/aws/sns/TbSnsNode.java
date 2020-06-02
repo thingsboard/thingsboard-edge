@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -89,11 +89,8 @@ public class TbSnsNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         withCallback(publishMessageAsync(ctx, msg),
-                m -> ctx.tellNext(m, TbRelationTypes.SUCCESS),
-                t -> {
-                    TbMsg next = processException(ctx, msg, t);
-                    ctx.tellFailure(next, t);
-                });
+                ctx::tellSuccess,
+                t -> ctx.tellFailure(processException(ctx, msg, t), t));
     }
 
     private ListenableFuture<TbMsg> publishMessageAsync(TbContext ctx, TbMsg msg) {

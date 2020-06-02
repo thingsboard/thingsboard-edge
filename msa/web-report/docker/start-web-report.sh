@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -41,4 +41,6 @@ identity=${pkg.name}
 
 source "${CONF_FOLDER}/${configfile}"
 
-su -s /bin/sh -c "$mainfile"
+cd ${pkg.installFolder}/bin
+
+exec /bin/sh -c "$mainfile"

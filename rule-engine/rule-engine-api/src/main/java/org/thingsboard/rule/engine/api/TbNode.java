@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,7 @@
 package org.thingsboard.rule.engine.api;
 
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
+import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 import java.util.concurrent.ExecutionException;
 
@@ -46,6 +46,6 @@ public interface TbNode {
 
     void destroy();
 
-    default void onClusterEventMsg(TbContext ctx, ClusterEventMsg msg) {}
+    default void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {}
 
 }

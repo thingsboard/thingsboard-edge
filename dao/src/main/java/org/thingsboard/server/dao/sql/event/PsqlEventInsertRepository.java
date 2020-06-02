@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import org.thingsboard.server.dao.util.SqlDao;
 @SqlDao
 @PsqlDao
 @Repository
-public class PsqlEventInsertRepository extends EventInsertRepository {
+public class PsqlEventInsertRepository extends AbstractEventInsertRepository {
 
     private static final String P_KEY_CONFLICT_STATEMENT = "(id)";
     private static final String UNQ_KEY_CONFLICT_STATEMENT = "(tenant_id, entity_type, entity_id, event_type, event_uid)";
@@ -63,6 +63,6 @@ public class PsqlEventInsertRepository extends EventInsertRepository {
     }
 
     private static String getInsertOrUpdateString(String eventKeyStatement, String updateKeyStatement) {
-        return "INSERT INTO event (id, body, entity_id, entity_type, event_type, event_uid, tenant_id) VALUES (:id, :body, :entity_id, :entity_type, :event_type, :event_uid, :tenant_id) ON CONFLICT " + eventKeyStatement + " DO UPDATE SET body = :body, " + updateKeyStatement + " returning *";
+        return "INSERT INTO event (id, body, entity_id, entity_type, event_type, event_uid, tenant_id, ts) VALUES (:id, :body, :entity_id, :entity_type, :event_type, :event_uid, :tenant_id, :ts) ON CONFLICT " + eventKeyStatement + " DO UPDATE SET body = :body, ts = :ts," + updateKeyStatement + " returning *";
     }
 }

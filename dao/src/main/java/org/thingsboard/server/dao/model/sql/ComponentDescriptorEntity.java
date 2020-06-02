@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,7 +49,6 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -87,7 +86,7 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
 
     public ComponentDescriptorEntity(ComponentDescriptor component) {
         if (component.getId() != null) {
-            this.setId(component.getId().getId());
+            this.setUuid(component.getId().getId());
         }
         this.actions = component.getActions();
         this.type = component.getType();
@@ -100,7 +99,7 @@ public class ComponentDescriptorEntity extends BaseSqlEntity<ComponentDescriptor
 
     @Override
     public ComponentDescriptor toData() {
-        ComponentDescriptor data = new ComponentDescriptor(new ComponentDescriptorId(this.getId()));
+        ComponentDescriptor data = new ComponentDescriptor(new ComponentDescriptorId(this.getUuid()));
         data.setType(type);
         data.setScope(scope);
         data.setName(this.getName());

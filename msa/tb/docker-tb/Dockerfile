@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,11 @@
 FROM thingsboard/openjdk8
 
 RUN apt-get update
-RUN apt-get install -y postgresql postgresql-contrib
+RUN apt-get install -y curl
+RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' | tee --append /etc/apt/sources.list.d/pgdg.list > /dev/null
+RUN curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+RUN apt-get update
+RUN apt-get install -y postgresql-11
 RUN update-rc.d postgresql disable
 
 RUN mkdir -p /var/log/postgres
@@ -73,7 +77,7 @@ RUN chmod a+x /tmp/*.sh \
 
 RUN dpkg -i /tmp/tb-web-report.deb
 
-RUN dpkg -i /tmp/${pkg.name}.deb
+RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
@@ -84,7 +88,6 @@ ENV DATA_FOLDER=/data
 
 ENV HTTP_BIND_PORT=9090
 ENV DATABASE_TS_TYPE=sql
-ENV DATABASE_ENTITIES_TYPE=sql
 
 ENV PGDATA=/data/db
 

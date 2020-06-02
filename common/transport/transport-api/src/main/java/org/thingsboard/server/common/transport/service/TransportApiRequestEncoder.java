@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.common.transport.service;
 
-import org.thingsboard.server.gen.transport.TransportApiRequestMsg;
-import org.thingsboard.server.kafka.TbKafkaEncoder;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
+import org.thingsboard.server.queue.kafka.TbKafkaEncoder;
 
 /**
  * Created by ashvayka on 05.10.18.

@@ -1,0 +1,60 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-knob" fxLayout="column" [ngStyle]="{'pointerEvents': ctx.isEdit ? 'none' : 'all'}">
+  <div #knobContainer id="knob-container" fxFlex fxLayout="column" fxLayoutAlign="center center">
+    <div #knob class="knob">
+      <div #knobValueContainer class="value-container" fxLayout="row" fxLayoutAlign="center center">
+        <span #knobValue class="knob-value">{{ value }}</span>
+      </div>
+      <div class="canvas-background"></div>
+      <canvas #canvasBar id="canvasBar"></canvas>
+      <div #knobTopPointerContainer class="top-pointer-container">
+        <div #knobTopPointer class="top-pointer"></div>
+      </div>
+      <div class="top"></div>
+      <div #knobErrorContainer class="error-container" [ngStyle]="{'background': error?.length ? 'rgba(255,255,255,0.25)' : 'none'}"
+           fxLayout="row" fxLayoutAlign="center center">
+        <span #knobError class="knob-error" [innerHTML]="error"></span>
+      </div>
+      <div #knobTitleContainer class="title-container" fxLayout="row" fxLayoutAlign="center center">
+        <span #knobTitle class="knob-title">{{ title }}</span>
+      </div>
+      <div #knobMinmaxContainer class="minmax-container" fxLayout="row" fxLayoutAlign="start center">
+        <span class="minmax-label">min</span>
+        <span fxFlex></span>
+        <span class="minmax-label">max</span>
+      </div>
+      <div #textMeasure id="text-measure"></div>
+    </div>
+  </div>
+</div>

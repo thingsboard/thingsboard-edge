@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -120,6 +120,11 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         } else {
             return fromStatus(HttpStatus.FORBIDDEN);
         }
+    }
+
+    @Override
+    protected String getTypeUplink(ThingParkIntegrationMsg msg) {
+        return "Uplink";
     }
 
     @Override

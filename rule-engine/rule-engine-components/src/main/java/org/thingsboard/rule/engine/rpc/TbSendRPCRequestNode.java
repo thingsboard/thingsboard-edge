@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,9 +30,7 @@
  */
 package org.thingsboard.rule.engine.rpc;
 
-import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -53,7 +51,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -100,11 +97,9 @@ public class TbSendRPCRequestNode implements TbNode {
             boolean oneway = !StringUtils.isEmpty(tmp) && Boolean.parseBoolean(tmp);
 
             tmp = msg.getMetaData().getValue("requestUUID");
-            UUID requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : UUIDs.timeBased();
-            tmp = msg.getMetaData().getValue("originHost");
-            String originHost = !StringUtils.isEmpty(tmp) ? tmp : null;
-            tmp = msg.getMetaData().getValue("originPort");
-            int originPort = !StringUtils.isEmpty(tmp) ? Integer.parseInt(tmp) : 0;
+            UUID requestUUID = !StringUtils.isEmpty(tmp) ? UUID.fromString(tmp) : Uuids.timeBased();
+            tmp = msg.getMetaData().getValue("originServiceId");
+            String originServiceId = !StringUtils.isEmpty(tmp) ? tmp : null;
 
             tmp = msg.getMetaData().getValue("expirationTime");
             long expirationTime = !StringUtils.isEmpty(tmp) ? Long.parseLong(tmp) : (System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(config.getTimeoutInSeconds()));
@@ -121,24 +116,25 @@ public class TbSendRPCRequestNode implements TbNode {
                     .oneway(oneway)
                     .method(json.get("method").getAsString())
                     .body(params)
+                    .tenantId(ctx.getTenantId())
                     .deviceId(new DeviceId(msg.getOriginator().getId()))
                     .requestId(requestId)
                     .requestUUID(requestUUID)
-                    .originHost(originHost)
-                    .originPort(originPort)
+                    .originServiceId(originServiceId)
                     .expirationTime(expirationTime)
                     .restApiCall(restApiCall)
                     .build();
 
-            ctx.getRpcService().sendRpcRequest(request, ruleEngineDeviceRpcResponse -> {
+            ctx.getRpcService().sendRpcRequestToDevice(request, ruleEngineDeviceRpcResponse -> {
                 if (!ruleEngineDeviceRpcResponse.getError().isPresent()) {
-                    TbMsg next = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), msg.getMetaData(), ruleEngineDeviceRpcResponse.getResponse().orElse("{}"));
-                    ctx.tellNext(next, TbRelationTypes.SUCCESS);
+                    TbMsg next = ctx.newMsg(msg.getType(), msg.getOriginator(), msg.getMetaData(), ruleEngineDeviceRpcResponse.getResponse().orElse("{}"));
+                    ctx.enqueueForTellNext(next, TbRelationTypes.SUCCESS);
                 } else {
-                    TbMsg next = ctx.transformMsg(msg, msg.getType(), msg.getOriginator(), msg.getMetaData(), wrap("error", ruleEngineDeviceRpcResponse.getError().get().name()));
-                    ctx.tellFailure(next, new RuntimeException(ruleEngineDeviceRpcResponse.getError().get().name()));
+                    TbMsg next = ctx.newMsg(msg.getType(), msg.getOriginator(), msg.getMetaData(), wrap("error", ruleEngineDeviceRpcResponse.getError().get().name()));
+                    ctx.enqueueForTellFailure(next, ruleEngineDeviceRpcResponse.getError().get().name());
                 }
             });
+            ctx.ack(msg);
         }
     }
 

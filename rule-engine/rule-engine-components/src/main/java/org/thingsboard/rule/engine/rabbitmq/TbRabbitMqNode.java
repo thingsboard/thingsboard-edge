@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -89,9 +89,9 @@ public class TbRabbitMqNode implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         withCallback(publishMessageAsync(ctx, msg),
-                m -> ctx.tellNext(m, TbRelationTypes.SUCCESS),
+                ctx::tellSuccess,
                 t -> {
                     TbMsg next = processException(ctx, msg, t);
                     ctx.tellFailure(next, t);

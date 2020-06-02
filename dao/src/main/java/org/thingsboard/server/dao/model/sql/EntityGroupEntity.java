@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -87,7 +87,7 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
 
     public EntityGroupEntity (EntityGroup entityGroup) {
         if (entityGroup.getId() != null) {
-            this.setId(entityGroup.getId().getId());
+            this.setUuid(entityGroup.getId().getId());
         }
         this.name = entityGroup.getName();
         this.type = entityGroup.getType();
@@ -101,8 +101,8 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
 
     @Override
     public EntityGroup toData() {
-        EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getId()));
-        entityGroup.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getUuid()));
+        entityGroup.setCreatedTime(Uuids.unixTimestamp(getUuid()));
         entityGroup.setName(name);
         entityGroup.setType(type);
         if (ownerId != null) {

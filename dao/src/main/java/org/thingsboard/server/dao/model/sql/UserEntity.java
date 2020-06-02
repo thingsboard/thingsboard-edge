@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -52,6 +52,9 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.thingsboard.server.common.data.UUIDConverter.fromString;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
@@ -64,6 +67,11 @@ import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME)
 public class UserEntity extends BaseSqlEntity<User> implements SearchTextEntity<User> {
+
+    public static final Map<String,String> userColumnMap = new HashMap<>();
+    static {
+        userColumnMap.put("name", "email");
+    }
 
     @Column(name = ModelConstants.USER_TENANT_ID_PROPERTY)
     private String tenantId;
@@ -96,7 +104,7 @@ public class UserEntity extends BaseSqlEntity<User> implements SearchTextEntity<
 
     public UserEntity(User user) {
         if (user.getId() != null) {
-            this.setId(user.getId().getId());
+            this.setUuid(user.getId().getId());
         }
         this.authority = user.getAuthority();
         if (user.getTenantId() != null) {
@@ -123,8 +131,8 @@ public class UserEntity extends BaseSqlEntity<User> implements SearchTextEntity<
 
     @Override
     public User toData() {
-        User user = new User(new UserId(getId()));
-        user.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        User user = new User(new UserId(this.getUuid()));
+        user.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         user.setAuthority(authority);
         if (tenantId != null) {
             user.setTenantId(new TenantId(fromString(tenantId)));

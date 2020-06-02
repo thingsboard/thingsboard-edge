@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,31 +31,21 @@
 package org.thingsboard.server.dao.model.sqlts.ts;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.dao.model.ToData;
-import org.thingsboard.server.dao.model.sql.AbsractTsKvEntity;
+import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.KEY_COLUMN;
 
 @Data
 @Entity
 @Table(name = "ts_kv")
 @IdClass(TsKvCompositeKey.class)
-public final class TsKvEntity extends AbsractTsKvEntity implements ToData<TsKvEntry> {
-
-    @Id
-    @Enumerated(EnumType.STRING)
-    @Column(name = ENTITY_TYPE_COLUMN)
-    private EntityType entityType;
+public final class TsKvEntity extends AbstractTsKvEntity {
 
     public TsKvEntity() {
     }
@@ -103,18 +93,19 @@ public final class TsKvEntity extends AbsractTsKvEntity implements ToData<TsKvEn
         }
     }
 
-    public TsKvEntity(Long booleanValueCount, Long strValueCount, Long longValueCount, Long doubleValueCount) {
+    public TsKvEntity(Long booleanValueCount, Long strValueCount, Long longValueCount, Long doubleValueCount, Long jsonValueCount) {
         if (!isAllNull(booleanValueCount, strValueCount, longValueCount, doubleValueCount)) {
             if (booleanValueCount != 0) {
                 this.longValue = booleanValueCount;
             } else if (strValueCount != 0) {
                 this.longValue = strValueCount;
+            } else if (jsonValueCount != 0) {
+                this.longValue = jsonValueCount;
             } else {
                 this.longValue = longValueCount + doubleValueCount;
             }
         }
     }
-
 
     @Override
     public boolean isNotEmpty() {

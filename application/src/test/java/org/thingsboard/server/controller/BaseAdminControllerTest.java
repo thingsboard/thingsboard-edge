@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -107,19 +107,7 @@ public abstract class BaseAdminControllerTest extends AbstractControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(statusReason(containsString("is prohibited")));
     }
-    
-    @Test
-    public void testSaveAdminSettingsWithNewJsonStructure() throws Exception {
-        loginSysAdmin();
-        AdminSettings adminSettings = doGet("/api/admin/settings/mail", AdminSettings.class); 
-        JsonNode json = adminSettings.getJsonValue();
-        ((ObjectNode) json).put("newKey", "my new value");
-        adminSettings.setJsonValue(json);
-        doPost("/api/admin/settings", adminSettings)
-        .andExpect(status().isBadRequest())
-        .andExpect(statusReason(containsString("Provided json structure is different")));
-    }
-    
+
     @Test
     public void testSendTestMail() throws Exception {
         loginSysAdmin();

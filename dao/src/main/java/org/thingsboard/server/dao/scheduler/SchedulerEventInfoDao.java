@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.scheduler;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -43,13 +44,17 @@ import java.util.UUID;
  */
 public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
 
+    SchedulerEventWithCustomerInfo findSchedulerEventWithCustomerInfoById(UUID tenantId, UUID schedulerEventId);
+
+    List<SchedulerEventInfo> findSchedulerEventsByTenantId(UUID tenantId);
+
     /**
      * Find scheduler events by tenantId.
      *
      * @param tenantId the tenantId
      * @return the list of scheduler event objects
      */
-    List<SchedulerEventInfo> findSchedulerEventsByTenantId(UUID tenantId);
+    List<SchedulerEventWithCustomerInfo> findSchedulerEventsWithCustomerInfoByTenantId(UUID tenantId);
 
     /**
      * Find scheduler events by tenantId and type.
@@ -58,7 +63,7 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * @param type the type
      * @return the list of scheduler event objects
      */
-    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type);
+    List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(UUID tenantId, String type);
 
     /**
      * Find scheduler events by tenantId and customerId.
@@ -67,7 +72,7 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * @param customerId the customerId
      * @return the list of scheduler event objects
      */
-    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerId(UUID tenantId, UUID customerId);
+    List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerId(UUID tenantId, UUID customerId);
 
     /**
      * Find scheduler events by tenantId, customerId and type.
@@ -77,7 +82,7 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
      * @param type the type
      * @return the list of scheduler event objects
      */
-    List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type);
+    List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type);
 
     /**
      * Find scheduler events by tenantId and scheduler event Ids.

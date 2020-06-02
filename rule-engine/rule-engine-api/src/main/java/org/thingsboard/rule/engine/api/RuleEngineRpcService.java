@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.api;
 
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
@@ -41,10 +40,10 @@ import java.util.function.Consumer;
  */
 public interface RuleEngineRpcService {
 
-    void sendRpcReply(DeviceId deviceId, int requestId, String body);
+    void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body);
 
-    void sendRpcRequest(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
+    void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
 
-    void sendRestApiCallReply(UUID requestId, TbMsg msg);
+    void sendRestApiCallReply(String serviceIdStr, UUID requestId, TbMsg msg);
 
 }

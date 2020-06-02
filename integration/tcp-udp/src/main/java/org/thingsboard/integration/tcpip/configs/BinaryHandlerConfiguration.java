@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
 @Data
@@ -46,6 +47,6 @@ public class BinaryHandlerConfiguration implements HandlerConfiguration {
 
     @Override
     public String getHandlerType() {
-        return "BINARY";
+        return AbstractIpIntegration.BINARY_PAYLOAD;
     }
 }

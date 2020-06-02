@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,7 @@ import org.thingsboard.server.common.msg.TbMsg;
         relationTypes = {"True", "False"},
         nodeDescription = "Filter incoming messages by message Originator Type",
         nodeDetails = "If Originator Type of incoming message is expected - send Message via <b>True</b> chain, otherwise <b>False</b> chain is used.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbFilterNodeOriginatorTypeConfig")
 public class TbOriginatorTypeFilterNode implements TbNode {
 
@@ -57,7 +57,7 @@ public class TbOriginatorTypeFilterNode implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         EntityType originatorType = msg.getOriginator().getEntityType();
         ctx.tellNext(msg, config.getOriginatorTypes().contains(originatorType) ? "True" : "False");
     }

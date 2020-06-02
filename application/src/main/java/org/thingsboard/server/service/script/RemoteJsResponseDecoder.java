@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,18 +30,24 @@
  */
 package org.thingsboard.server.service.script;
 
+import com.google.protobuf.util.JsonFormat;
+import org.thingsboard.server.queue.TbQueueMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.kafka.TbKafkaDecoder;
+import org.thingsboard.server.queue.kafka.TbKafkaDecoder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by ashvayka on 25.09.18.
  */
-public class RemoteJsResponseDecoder implements TbKafkaDecoder<JsInvokeProtos.RemoteJsResponse> {
+public class RemoteJsResponseDecoder implements TbKafkaDecoder<TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> {
 
     @Override
-    public JsInvokeProtos.RemoteJsResponse decode(byte[] data) throws IOException {
-        return JsInvokeProtos.RemoteJsResponse.parseFrom(data);
+    public TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse> decode(TbQueueMsg msg) throws IOException {
+        JsInvokeProtos.RemoteJsResponse.Builder builder = JsInvokeProtos.RemoteJsResponse.newBuilder();
+        JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);
+        return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
     }
 }

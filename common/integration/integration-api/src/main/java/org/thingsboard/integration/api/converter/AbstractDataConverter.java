@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,11 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         this.configuration = configuration;
     }
 
+    @Override
+    public String getName() {
+        return configuration != null ? configuration.getName() : null;
+    }
+
     protected String toString(Exception e) {
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
@@ -80,7 +85,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                                 String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
                 .put("in", convertToString(inMessageType, inMessage))

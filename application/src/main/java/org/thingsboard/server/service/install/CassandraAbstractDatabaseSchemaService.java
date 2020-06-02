@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,10 +60,18 @@ public abstract class CassandraAbstractDatabaseSchemaService implements Database
 
     @Override
     public void createDatabaseSchema() throws Exception {
+        this.createDatabaseSchema(true);
+    }
+
+    @Override
+    public void createDatabaseSchema(boolean createIndexes) throws Exception {
         log.info("Installing Cassandra DataBase schema part: " + schemaCql);
         Path schemaFile = Paths.get(installScripts.getDataDir(), CASSANDRA_DIR, schemaCql);
         loadCql(schemaFile);
+    }
 
+    @Override
+    public void createDatabaseIndexes() throws Exception {
     }
 
     private void loadCql(Path cql) throws Exception {

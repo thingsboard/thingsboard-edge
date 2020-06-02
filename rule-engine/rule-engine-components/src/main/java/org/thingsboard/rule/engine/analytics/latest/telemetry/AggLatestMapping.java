@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -90,7 +90,7 @@ public class AggLatestMapping {
             if ("LATEST_TELEMETRY".equals(sourceScope)) {
                 ListenableFuture<List<TsKvEntry>> latest = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, Collections.singletonList(source));
                 List<TsKvEntry> latestTs = latest.get();
-                if (latestTs != null && !latestTs.isEmpty()) {
+                if (latestTs != null && !latestTs.isEmpty() && latestTs.get(0).getValue() != null) {
                     return Optional.of(latestTs.get(0));
                 }
             } else {

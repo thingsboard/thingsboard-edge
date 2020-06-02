@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,13 +31,12 @@
 package org.thingsboard.server.service.integration.rpc;
 
 import lombok.Data;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 import java.io.Serializable;
 
 @Data
 public class IntegrationSession implements Serializable {
 
-    private final ServerAddress serverAddress;
+    private final String serviceId;
 
 }

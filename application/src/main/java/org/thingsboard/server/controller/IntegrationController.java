@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,11 +47,12 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class IntegrationController extends BaseController {
 
@@ -105,15 +107,12 @@ public class IntegrationController extends BaseController {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean created = integration.getId() == null;
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
-                    integration.getId(), integration);
+            checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
             platformIntegrationService.validateIntegrationConfiguration(integration);
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+            tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return result;
@@ -126,17 +125,18 @@ public class IntegrationController extends BaseController {
 
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/integrations", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Integration> getIntegrations(
-            @RequestParam int limit,
+    public PageData<Integration> getIntegrations(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -153,7 +153,7 @@ public class IntegrationController extends BaseController {
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            actorService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            tbClusterService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(integrationId, integration,
                     null,

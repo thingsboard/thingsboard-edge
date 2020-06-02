@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,8 @@
  */
 package org.thingsboard.server.dao.rule;
 
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.Dao;
 
@@ -49,6 +50,6 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    List<RuleChain> findRuleChainsByTenantId(UUID tenantId, TextPageLink pageLink);
+    PageData<RuleChain> findRuleChainsByTenantId(UUID tenantId, PageLink pageLink);
 
 }

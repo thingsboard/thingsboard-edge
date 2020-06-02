@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,12 +32,12 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
@@ -51,7 +51,6 @@ import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
 @SqlDao
@@ -61,13 +60,12 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     private ConverterRepository converterRepository;
 
     @Override
-    public List<Converter> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(converterRepository
-                .findByTenantIdAndPageLink(
+    public PageData<Converter> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                converterRepository.findByTenantId(
                         fromTimeUUID(tenantId),
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override

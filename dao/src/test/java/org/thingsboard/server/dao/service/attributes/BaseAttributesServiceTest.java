@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service.attributes;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public abstract class BaseAttributesServiceTest extends AbstractServiceTest {
 
     @Test
     public void saveAndFetch() throws Exception {
-        DeviceId deviceId = new DeviceId(UUIDs.timeBased());
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
         KvEntry attrValue = new StringDataEntry("attribute1", "value1");
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         attributesService.save(SYSTEM_TENANT_ID, deviceId, DataConstants.CLIENT_SCOPE, Collections.singletonList(attr)).get();
@@ -73,7 +73,7 @@ public abstract class BaseAttributesServiceTest extends AbstractServiceTest {
 
     @Test
     public void saveMultipleTypeAndFetch() throws Exception {
-        DeviceId deviceId = new DeviceId(UUIDs.timeBased());
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
         KvEntry attrOldValue = new StringDataEntry("attribute1", "value1");
         AttributeKvEntry attrOld = new BaseAttributeKvEntry(attrOldValue, 42L);
 
@@ -93,7 +93,7 @@ public abstract class BaseAttributesServiceTest extends AbstractServiceTest {
 
     @Test
     public void findAll() throws Exception {
-        DeviceId deviceId = new DeviceId(UUIDs.timeBased());
+        DeviceId deviceId = new DeviceId(Uuids.timeBased());
 
         KvEntry attrAOldValue = new StringDataEntry("A", "value1");
         AttributeKvEntry attrAOld = new BaseAttributeKvEntry(attrAOldValue, 42L);

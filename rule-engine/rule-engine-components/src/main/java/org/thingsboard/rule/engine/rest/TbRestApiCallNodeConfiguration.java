@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,6 +43,11 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
     private String requestMethod;
     private Map<String, String> headers;
     private boolean useSimpleClientHttpFactory;
+    private int readTimeoutMs;
+    private int maxParallelRequestsCount;
+    private boolean useRedisQueueForMsgPersistence;
+    private boolean trimQueue;
+    private int maxQueueSize;
 
     @Override
     public TbRestApiCallNodeConfiguration defaultConfiguration() {
@@ -51,6 +56,10 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
         configuration.setRequestMethod("POST");
         configuration.setHeaders(Collections.emptyMap());
         configuration.setUseSimpleClientHttpFactory(false);
+        configuration.setReadTimeoutMs(0);
+        configuration.setMaxParallelRequestsCount(0);
+        configuration.setUseRedisQueueForMsgPersistence(false);
+        configuration.setTrimQueue(false);
         return configuration;
     }
 }

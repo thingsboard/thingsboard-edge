@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,11 +53,13 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class GroupPermissionController extends BaseController {
@@ -76,19 +79,30 @@ public class GroupPermissionController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/groupPermission/info/{groupPermissionId}", method = RequestMethod.GET)
+    @ResponseBody
+    public GroupPermissionInfo getGroupPermissionInfoById(
+            @PathVariable(GROUP_PERMISSION_ID) String strGroupPermissionId,
+            @RequestParam boolean isUserGroup) throws ThingsboardException {
+        checkParameter(GROUP_PERMISSION_ID, strGroupPermissionId);
+        try {
+            return checkGroupPermissionInfoId(new GroupPermissionId(toUUID(strGroupPermissionId)), Operation.READ, isUserGroup);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission", method = RequestMethod.POST)
     @ResponseBody
     public GroupPermission saveGroupPermission(@RequestBody GroupPermission groupPermission) throws ThingsboardException {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
 
-            Operation operation = groupPermission.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation,
-                    groupPermission.getId(), groupPermission);
+            checkEntity(groupPermission.getId(), groupPermission, Resource.GROUP_PERMISSION, null);
 
             if (groupPermission.isPublic()) {
-                permissionDenied();
+                throw permissionDenied();
             }
 
             Role role = checkRoleId(groupPermission.getRoleId(), Operation.READ);
@@ -161,6 +175,21 @@ public class GroupPermissionController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
             List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(tenantId, userGroupId).get();
             return applyPermissionInfo(groupPermissions);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/userGroup/groupPermissions/info", method = RequestMethod.POST)
+    @ResponseBody
+    public List<GroupPermissionInfo> loadUserGroupPermissionInfos(
+           @RequestBody List<GroupPermission> permissions) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
+            List<GroupPermissionInfo> permissionInfoList = groupPermissionService.loadUserGroupPermissionInfoListAsync(tenantId, permissions).get();
+            return applyPermissionInfo(permissionInfoList);
         } catch (Exception e) {
             throw handleException(e);
         }

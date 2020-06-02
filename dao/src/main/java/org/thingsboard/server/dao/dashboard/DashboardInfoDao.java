@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@ package org.thingsboard.server.dao.dashboard;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -51,17 +51,7 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      * @param pageLink the page link
      * @return the list of dashboard objects
      */
-    List<DashboardInfo> findDashboardsByTenantId(UUID tenantId, TextPageLink pageLink);
-
-    /**
-     * Find dashboards by tenantId, customerId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param customerId the customerId
-     * @param pageLink the page link
-     * @return the list of dashboard objects
-     */
-    ListenableFuture<List<DashboardInfo>> findDashboardsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink);
+    PageData<DashboardInfo> findDashboardsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find dashboards by dashboard Ids.
@@ -71,6 +61,10 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
      * @return the list of dashboard objects
      */
     ListenableFuture<List<DashboardInfo>> findDashboardsByIdsAsync(UUID tenantId, List<UUID> dashboardIds);
+
+    PageData<DashboardInfo> findDashboardsByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
 
 
 }

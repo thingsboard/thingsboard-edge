@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,8 +32,8 @@ package org.thingsboard.server.common.transport.service;
 
 import lombok.Data;
 import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SessionType;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 
 import java.util.concurrent.ScheduledFuture;
 
@@ -50,6 +50,7 @@ class SessionMetaData {
     private ScheduledFuture scheduledFuture;
 
     private volatile long lastActivityTime;
+    private volatile long lastReportedActivityTime;
     private volatile boolean subscribedToAttributes;
     private volatile boolean subscribedToRPC;
 

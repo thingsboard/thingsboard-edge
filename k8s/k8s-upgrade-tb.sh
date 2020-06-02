@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -51,8 +51,8 @@ else
     fromVersion="${FROM_VERSION// }"
 fi
 
-kubectl apply -f database-setup.yml &&
+kubectl apply -f common/database-setup.yml &&
 kubectl wait --for=condition=Ready pod/tb-db-setup --timeout=120s &&
-kubectl exec tb-db-setup -- sh -c 'export UPGRADE_TB=true; export FROM_VERSION='"$fromVersion"'; start-tb-node.sh; touch /install-finished;'
+kubectl exec tb-db-setup -- sh -c 'export UPGRADE_TB=true; export FROM_VERSION='"$fromVersion"'; start-tb-node.sh; touch /tmp/install-finished;'
 
 kubectl delete pod tb-db-setup

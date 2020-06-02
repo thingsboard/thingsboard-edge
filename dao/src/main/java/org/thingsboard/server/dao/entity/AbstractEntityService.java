@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,11 +31,14 @@
 package org.thingsboard.server.dao.entity;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.relation.RelationService;
+
+import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractEntityService {
@@ -55,4 +58,15 @@ public abstract class AbstractEntityService {
         log.trace("Executing deleteEntityGroups [{}]", entityId);
         entityGroupService.deleteAllEntityGroups(tenantId, entityId);
     }
+
+    protected Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
+        if (t instanceof ConstraintViolationException) {
+            return Optional.of((ConstraintViolationException) t);
+        } else if (t.getCause() instanceof ConstraintViolationException) {
+            return Optional.of((ConstraintViolationException) (t.getCause()));
+        } else {
+            return Optional.empty();
+        }
+    }
+
 }

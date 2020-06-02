@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.integration.api;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,6 +46,7 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
@@ -137,10 +138,39 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
+        if (data.isAsset()) {
+            processAssetUplinkData(context, data);
+        } else {
+            processDeviceUplinkData(context, data);
+        }
+    }
+
+    private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
-        if(data.getCustomerName() != null) {
+        if (data.getCustomerName() != null) {
             builder.setCustomerName(data.getCustomerName());
+        }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
+        }
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
+        }
+        if (data.getAttributesUpdate() != null) {
+            builder.setPostAttributesMsg(data.getAttributesUpdate());
+        }
+        context.processUplinkData(builder.build(), null);
+    }
+
+    private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
+        AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
+                .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
+        if (data.getCustomerName() != null) {
+            builder.setCustomerName(data.getCustomerName());
+        }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
         }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
@@ -172,7 +202,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("messageType", messageType)
                 .put("message", message)
@@ -182,7 +212,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, UUIDs.timeBased().toString(), node, new DebugEventCallback());
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, Uuids.timeBased().toString(), node, new DebugEventCallback());
     }
 
     private String toString(Exception e) {

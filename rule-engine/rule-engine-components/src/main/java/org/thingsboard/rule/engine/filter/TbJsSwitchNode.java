@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.filter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.api.*;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -68,9 +69,16 @@ public class TbJsSwitchNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         ListeningExecutor jsExecutor = ctx.getJsExecutor();
+        ctx.logJsEvalRequest();
         withCallback(jsExecutor.executeAsync(() -> jsEngine.executeSwitch(msg)),
-                result -> processSwitch(ctx, msg, result),
-                t -> ctx.tellFailure(msg, t));
+                result -> {
+                    ctx.logJsEvalResponse();
+                    processSwitch(ctx, msg, result);
+                },
+                t -> {
+                    ctx.logJsEvalFailure();
+                    ctx.tellFailure(msg, t);
+                }, ctx.getDbCallbackExecutor());
     }
 
     private void processSwitch(TbContext ctx, TbMsg msg, Set<String> nextRelations) {

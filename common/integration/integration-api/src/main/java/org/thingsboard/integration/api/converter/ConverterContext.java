@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.integration.api.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 /**
  * Created by ashvayka on 05.12.17.
@@ -44,7 +43,7 @@ public interface ConverterContext {
      *
      * @return server address
      */
-    ServerAddress getServerAddress();
+    String getServiceId();
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the converter

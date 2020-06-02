@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.ClusterEventMsg;
+import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +56,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         nodeDescription = "Periodically generates messages",
         nodeDetails = "Generates messages with configurable period. Javascript function used for message generation.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeGeneratorConfig",
         icon = "repeat"
 )
@@ -89,7 +89,7 @@ public class TbMsgGeneratorNode implements TbNode {
     }
 
     @Override
-    public void onClusterEventMsg(TbContext ctx, ClusterEventMsg msg) {
+    public void onPartitionChangeMsg(TbContext ctx, PartitionChangeMsg msg) {
         updateGeneratorState(ctx);
     }
 
@@ -112,7 +112,7 @@ public class TbMsgGeneratorNode implements TbNode {
             withCallback(generate(ctx),
                     m -> {
                         if (initialized && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
-                            ctx.tellNext(m, SUCCESS);
+                            ctx.enqueueForTellNext(m, SUCCESS);
                             scheduleTickMsg(ctx);
                             currentMsgCount++;
                         }
@@ -144,7 +144,9 @@ public class TbMsgGeneratorNode implements TbNode {
                 prevMsg = ctx.newMsg("", originatorId, new TbMsgMetaData(), "{}");
             }
             if (initialized) {
+                ctx.logJsEvalRequest();
                 TbMsg generated = jsEngine.executeGenerate(prevMsg);
+                ctx.logJsEvalResponse();
                 prevMsg = ctx.newMsg(generated.getType(), originatorId, generated.getMetaData(), generated.getData());
             }
             return prevMsg;

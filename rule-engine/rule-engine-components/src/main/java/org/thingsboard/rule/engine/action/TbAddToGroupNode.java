@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -163,7 +163,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Asset> assetListenableFuture = ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), new AssetId(msg.getOriginator().getId()));
                 return Futures.transformAsync(assetListenableFuture, asset -> {
                     if (asset != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), asset.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), asset.getOwnerId(), EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -172,7 +172,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Customer> customerListenableFuture = ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), new CustomerId(msg.getOriginator().getId()));
                 return Futures.transformAsync(customerListenableFuture, customer -> {
                     if (customer != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), customer.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), customer.getOwnerId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -181,7 +181,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<EntityView> entityViewListenableFuture = ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId()));
                 return Futures.transformAsync(entityViewListenableFuture, entityView -> {
                     if (entityView != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), entityView.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), entityView.getOwnerId(), EntityType.ENTITY_VIEW, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -190,7 +190,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Dashboard> dashboardListenableFuture = ctx.getDashboardService().findDashboardByIdAsync(ctx.getTenantId(), new DashboardId(msg.getOriginator().getId()));
                 return Futures.transformAsync(dashboardListenableFuture, dashboard -> {
                     if (dashboard != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }

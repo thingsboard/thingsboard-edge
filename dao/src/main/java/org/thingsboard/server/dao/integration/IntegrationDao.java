@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,8 @@ package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public interface IntegrationDao extends Dao<Integration> {
      * @param pageLink the page link
      * @return the list of integration objects
      */
-    List<Integration> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink);
+    PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find integrations by routing Key.

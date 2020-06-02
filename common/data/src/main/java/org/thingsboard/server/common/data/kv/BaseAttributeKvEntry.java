@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.kv;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.Optional;
 
 /**
@@ -43,6 +45,10 @@ public class BaseAttributeKvEntry implements AttributeKvEntry {
     public BaseAttributeKvEntry(KvEntry kv, long lastUpdateTs) {
         this.kv = kv;
         this.lastUpdateTs = lastUpdateTs;
+    }
+
+    public BaseAttributeKvEntry(long lastUpdateTs, KvEntry kv) {
+        this(kv, lastUpdateTs);
     }
 
     @Override
@@ -78,6 +84,11 @@ public class BaseAttributeKvEntry implements AttributeKvEntry {
     @Override
     public Optional<Double> getDoubleValue() {
         return kv.getDoubleValue();
+    }
+
+    @Override
+    public Optional<String> getJsonValue() {
+        return kv.getJsonValue();
     }
 
     @Override

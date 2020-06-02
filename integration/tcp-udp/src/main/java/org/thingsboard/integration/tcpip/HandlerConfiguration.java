@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,18 +34,19 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.HexHandlerConfiguration;
+import org.thingsboard.integration.tcpip.configs.JsonHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME, property = "handlerType")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TextHandlerConfiguration.class, name = "TEXT"),
-        @JsonSubTypes.Type(value = HexHandlerConfiguration.class, name = "HEX"),
-        @JsonSubTypes.Type(value = BinaryHandlerConfiguration.class, name = "BINARY")
+        @JsonSubTypes.Type(value = BinaryHandlerConfiguration.class, name = "BINARY"),
+        @JsonSubTypes.Type(value = JsonHandlerConfiguration.class, name = "JSON"),
+        @JsonSubTypes.Type(value = HexHandlerConfiguration.class, name = "HEX")
 })
 public interface HandlerConfiguration {
 
-    int getMaxFrameLength();
     String getHandlerType();
 
 }

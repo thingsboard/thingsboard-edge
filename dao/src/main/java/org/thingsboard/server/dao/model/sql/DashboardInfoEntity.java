@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +51,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 @Data
 @Slf4j
@@ -59,6 +61,11 @@ import java.util.HashSet;
 @Entity
 @Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
 public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
+
+    public static final Map<String,String> dashboardColumnMap = new HashMap<>();
+    static {
+        dashboardColumnMap.put("name", "title");
+    }
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JavaType assignedCustomersType =
@@ -85,7 +92,7 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
 
     public DashboardInfoEntity(DashboardInfo dashboardInfo) {
         if (dashboardInfo.getId() != null) {
-            this.setId(dashboardInfo.getId().getId());
+            this.setUuid(dashboardInfo.getId().getId());
         }
         if (dashboardInfo.getTenantId() != null) {
             this.tenantId = toString(dashboardInfo.getTenantId().getId());
@@ -116,8 +123,8 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
 
     @Override
     public DashboardInfo toData() {
-        DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(getId()));
-        dashboardInfo.setCreatedTime(UUIDs.unixTimestamp(getId()));
+        DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
+        dashboardInfo.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
         if (tenantId != null) {
             dashboardInfo.setTenantId(new TenantId(toUUID(tenantId)));
         }

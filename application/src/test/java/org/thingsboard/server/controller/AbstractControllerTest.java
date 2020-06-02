@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,7 +63,6 @@ import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -80,7 +79,8 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
@@ -89,7 +89,6 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -129,9 +128,7 @@ public abstract class AbstractControllerTest {
      */
     private static final long DEFAULT_TIMEOUT = -1L;
 
-    protected MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
-            MediaType.APPLICATION_JSON.getSubtype(),
-            Charset.forName("utf8"));
+    protected MediaType contentType = MediaType.APPLICATION_JSON;
 
     protected MockMvc mockMvc;
 
@@ -214,6 +211,7 @@ public abstract class AbstractControllerTest {
         createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
 
         logout();
+
         log.info("Executed setup");
     }
 
@@ -236,6 +234,27 @@ public abstract class AbstractControllerTest {
 
     protected void loginCustomerUser() throws Exception {
         login(CUSTOMER_USER_EMAIL, CUSTOMER_USER_PASSWORD);
+    }
+
+    private Tenant savedDifferentTenant;
+    protected void loginDifferentTenant() throws Exception {
+        loginSysAdmin();
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Different tenant");
+        savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Assert.assertNotNull(savedDifferentTenant);
+        User differentTenantAdmin = new User();
+        differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
+        differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
+        differentTenantAdmin.setEmail("different_tenant@thingsboard.org");
+
+        createUserAndLogin(differentTenantAdmin, "testPassword");
+    }
+
+    protected void deleteDifferentTenant() throws Exception {
+        loginSysAdmin();
+        doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
+                .andExpect(status().isOk());
     }
 
     protected User createUserAndLogin(User user, String password) throws Exception {
@@ -329,22 +348,20 @@ public abstract class AbstractControllerTest {
     }
 
     protected <T> T doGetTypedWithPageLink(String urlTemplate, TypeReference<T> responseType,
-                                           TextPageLink pageLink,
+                                           PageLink pageLink,
                                            Object... urlVariables) throws Exception {
         List<Object> pageLinkVariables = new ArrayList<>();
-        urlTemplate += "limit={limit}";
-        pageLinkVariables.add(pageLink.getLimit());
+        urlTemplate += "pageSize={pageSize}&page={page}";
+        pageLinkVariables.add(pageLink.getPageSize());
+        pageLinkVariables.add(pageLink.getPage());
         if (StringUtils.isNotEmpty(pageLink.getTextSearch())) {
             urlTemplate += "&textSearch={textSearch}";
             pageLinkVariables.add(pageLink.getTextSearch());
         }
-        if (pageLink.getIdOffset() != null) {
-            urlTemplate += "&idOffset={idOffset}";
-            pageLinkVariables.add(pageLink.getIdOffset().toString());
-        }
-        if (StringUtils.isNotEmpty(pageLink.getTextOffset())) {
-            urlTemplate += "&textOffset={textOffset}";
-            pageLinkVariables.add(pageLink.getTextOffset());
+        if (pageLink.getSortOrder() != null) {
+            urlTemplate += "&sortProperty={sortProperty}&sortOrder={sortOrder}";
+            pageLinkVariables.add(pageLink.getSortOrder().getProperty());
+            pageLinkVariables.add(pageLink.getSortOrder().getDirection().name());
         }
 
         Object[] vars = new Object[urlVariables.length + pageLinkVariables.size()];
@@ -358,8 +375,9 @@ public abstract class AbstractControllerTest {
                                                 TimePageLink pageLink,
                                                 Object... urlVariables) throws Exception {
         List<Object> pageLinkVariables = new ArrayList<>();
-        urlTemplate += "limit={limit}";
-        pageLinkVariables.add(pageLink.getLimit());
+        urlTemplate += "pageSize={pageSize}&page={page}";
+        pageLinkVariables.add(pageLink.getPageSize());
+        pageLinkVariables.add(pageLink.getPage());
         if (pageLink.getStartTime() != null) {
             urlTemplate += "&startTime={startTime}";
             pageLinkVariables.add(pageLink.getStartTime());
@@ -368,13 +386,14 @@ public abstract class AbstractControllerTest {
             urlTemplate += "&endTime={endTime}";
             pageLinkVariables.add(pageLink.getEndTime());
         }
-        if (pageLink.getIdOffset() != null) {
-            urlTemplate += "&offset={offset}";
-            pageLinkVariables.add(pageLink.getIdOffset().toString());
+        if (StringUtils.isNotEmpty(pageLink.getTextSearch())) {
+            urlTemplate += "&textSearch={textSearch}";
+            pageLinkVariables.add(pageLink.getTextSearch());
         }
-        if (pageLink.isAscOrder()) {
-            urlTemplate += "&ascOrder={ascOrder}";
-            pageLinkVariables.add(pageLink.isAscOrder());
+        if (pageLink.getSortOrder() != null) {
+            urlTemplate += "&sortProperty={sortProperty}&sortOrder={sortOrder}";
+            pageLinkVariables.add(pageLink.getSortOrder().getProperty());
+            pageLinkVariables.add(pageLink.getSortOrder().getDirection().name());
         }
         Object[] vars = new Object[urlVariables.length + pageLinkVariables.size()];
         System.arraycopy(urlVariables, 0, vars, 0, urlVariables.length);
@@ -415,7 +434,7 @@ public abstract class AbstractControllerTest {
     }
 
     protected <T> ResultActions doPost(String urlTemplate, T content, String... params) throws Exception {
-        MockHttpServletRequestBuilder postRequest = post(urlTemplate);
+        MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
         setJwtToken(postRequest);
         String json = json(content);
         postRequest.contentType(contentType).content(json);

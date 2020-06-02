@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
@@ -41,9 +40,12 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
+import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -63,7 +65,7 @@ import java.util.function.Predicate;
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
                 "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
         inEnabled = false,
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
         icon = "functions"
 )
@@ -92,10 +94,9 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                        parentEntityId, new TbMsgMetaData(), TbMsgDataType.JSON,
-                        "", null, null, 0L);
-                ctx.tellFailure(msg, new RuntimeException("Failed to fetch child entities for parent entity [" + parentEntityId + "]", e));
+                TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                        parentEntityId, new TbMsgMetaData(), "");
+                ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
         }
         Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> result = new HashMap<>();
@@ -110,7 +111,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
 
     private JsonObject countAlarms(TbContext ctx, EntityId entityId) {
         List<AlarmsCountMapping> mappings = this.config.getAlarmsCountMappings();
-        List<Predicate<AlarmInfo>> filters = new ArrayList<>();
+        List<AlarmFilter> filters = new ArrayList<>();
         for (AlarmsCountMapping mapping : mappings) {
             filters.add(mapping.createAlarmFilter());
         }
@@ -124,15 +125,16 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             }
         }
         TimePageLink pageLink;
+        PageLink alarmSearchPageLink = new PageLink(Integer.MAX_VALUE);
         if (interval > 0) {
-            pageLink = new TimePageLink(100, System.currentTimeMillis() - interval);
+            pageLink = new TimePageLink(alarmSearchPageLink, System.currentTimeMillis() - interval, null);
         } else {
-            pageLink = new TimePageLink(100);
+            pageLink = new TimePageLink(alarmSearchPageLink, null, null);
         }
-        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false);
+        AlarmQuery alarmQuery = new AlarmQuery(entityId, pageLink, null, null, false, null);
         List<Long> alarmCounts = ctx.getAlarmService().findAlarmCounts(ctx.getTenantId(), alarmQuery, filters);
         JsonObject obj = new JsonObject();
-        for (int i=0;i<mappings.size();i++) {
+        for (int i = 0; i < mappings.size(); i++) {
             obj.addProperty(mappings.get(i).getTarget(), alarmCounts.get(i));
         }
         return obj;

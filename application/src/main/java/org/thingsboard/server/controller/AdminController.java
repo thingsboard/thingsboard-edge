@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.UpdateMessage;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,18 +55,19 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.service.security.model.SecuritySettings;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.update.UpdateService;
-import org.thingsboard.server.service.update.model.UpdateMessage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api/admin")
 public class AdminController extends BaseController {
 
@@ -73,7 +75,7 @@ public class AdminController extends BaseController {
 
     @Autowired
     private MailService mailService;
-    
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
@@ -91,10 +93,10 @@ public class AdminController extends BaseController {
     @ResponseBody
     public AdminSettings getAdminSettings(@PathVariable("key") String key,
                                           @RequestParam(required = false,
-                                                        defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
+                                                  defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
                 return checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
@@ -107,11 +109,11 @@ public class AdminController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public AdminSettings saveAdminSettings(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
                 adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
@@ -153,15 +155,15 @@ public class AdminController extends BaseController {
     public void sendTestMail(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
             } else {
                 accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
             }
             adminSettings = checkNotNull(adminSettings);
             if (adminSettings.getKey().equals("mail")) {
-               String email = getCurrentUser().getEmail();
-               mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
+                String email = getCurrentUser().getEmail();
+                mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
         } catch (Exception e) {
             throw handleException(e);
@@ -186,7 +188,8 @@ public class AdminController extends BaseController {
         if (!StringUtils.isEmpty(jsonString)) {
             try {
                 jsonValue = objectMapper.readTree(jsonString);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonValue == null) {
             if (systemByDefault) {
@@ -209,7 +212,8 @@ public class AdminController extends BaseController {
         if (jsonValue != null) {
             try {
                 jsonString = objectMapper.writeValueAsString(jsonValue);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (jsonString == null) {
             jsonString = "";

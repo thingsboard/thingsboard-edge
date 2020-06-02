@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -51,20 +51,21 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.DeviceInfoProto;
-import org.thingsboard.server.gen.transport.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.SessionCloseNotificationProto;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.SubscribeToAttributeUpdatesMsg;
-import org.thingsboard.server.gen.transport.SubscribeToRPCMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceCredentialsResponseMsg;
-import org.thingsboard.server.gen.transport.ValidateDeviceTokenRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -76,7 +77,7 @@ import java.util.function.Consumer;
  * @author Andrew Shvayka
  */
 @RestController
-@ConditionalOnExpression("'${transport.type:null}'=='null' || ('${transport.type}'=='local' && '${transport.http.enabled}'=='true')")
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.http.enabled}'=='true')")
 @RequestMapping("/api/v1")
 @Slf4j
 public class DeviceApiController {
@@ -117,6 +118,7 @@ public class DeviceApiController {
                     TransportService transportService = transportContext.getTransportService();
                     transportService.process(sessionInfo, JsonConverter.convertToAttributesProto(new JsonParser().parse(json)),
                             new HttpOkCallback(responseWriter));
+                    reportActivity(sessionInfo);
                 }));
         return responseWriter;
     }
@@ -130,6 +132,7 @@ public class DeviceApiController {
                     TransportService transportService = transportContext.getTransportService();
                     transportService.process(sessionInfo, JsonConverter.convertToTelemetryProto(new JsonParser().parse(json)),
                             new HttpOkCallback(responseWriter));
+                    reportActivity(sessionInfo);
                 }));
         return responseWriter;
     }
@@ -236,6 +239,8 @@ public class DeviceApiController {
                         .setDeviceIdLSB(deviceInfoProto.getDeviceIdLSB())
                         .setSessionIdMSB(sessionId.getMostSignificantBits())
                         .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                        .setDeviceName(msg.getDeviceInfo().getDeviceName())
+                        .setDeviceType(msg.getDeviceInfo().getDeviceType())
                         .build();
                 onSuccess.accept(sessionInfo);
             } else {
@@ -287,7 +292,6 @@ public class DeviceApiController {
         }
     }
 
-
     private static class HttpSessionListener implements SessionMsgListener {
 
         private final DeferredResult<ResponseEntity> responseWriter;
@@ -321,4 +325,13 @@ public class DeviceApiController {
             responseWriter.setResult(new ResponseEntity<>(JsonConverter.toJson(msg).toString(), HttpStatus.OK));
         }
     }
+
+    private void reportActivity(SessionInfoProto sessionInfo) {
+        transportContext.getTransportService().process(sessionInfo, SubscriptionInfoProto.newBuilder()
+                .setAttributeSubscription(false)
+                .setRpcSubscription(false)
+                .setLastActivityTime(System.currentTimeMillis())
+                .build(), TransportServiceCallback.EMPTY);
+    }
+
 }

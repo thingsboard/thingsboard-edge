@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -105,7 +105,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
 
     public IntegrationEntity(Integration integration) {
         if (integration.getId() != null) {
-            this.setId(integration.getId().getId());
+            this.setUuid(integration.getId().getId());
         }
         if (integration.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(integration.getTenantId().getId());
@@ -144,7 +144,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Override
     public Integration toData() {
         Integration integration = new Integration(new IntegrationId(UUIDConverter.fromString(id)));
-        integration.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        integration.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
         if (tenantId != null) {
             integration.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
         }

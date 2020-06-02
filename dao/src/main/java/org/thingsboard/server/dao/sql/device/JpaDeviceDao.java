@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,15 +32,16 @@ package org.thingsboard.server.dao.sql.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
@@ -56,7 +57,6 @@ import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
@@ -79,13 +79,19 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public List<Device> findDevicesByTenantId(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
-                deviceRepository.findByTenantId(
-                        fromTimeUUID(tenantId),
-                        Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+    public PageData<Device> findDevicesByTenantId(UUID tenantId, PageLink pageLink) {
+        if (StringUtils.isEmpty(pageLink.getTextSearch())) {
+            return DaoUtil.toPageData(
+                    deviceRepository.findByTenantId(
+                            fromTimeUUID(tenantId),
+                            DaoUtil.toPageable(pageLink)));
+        } else {
+            return DaoUtil.toPageData(
+                    deviceRepository.findByTenantId(
+                            fromTimeUUID(tenantId),
+                            Objects.toString(pageLink.getTextSearch(), ""),
+                            DaoUtil.toPageable(pageLink)));
+        }
     }
 
     @Override
@@ -94,14 +100,41 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public List<Device> findDevicesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Device> findDevicesByEntityGroupId(UUID groupId, PageLink pageLink) {
+        return DaoUtil.toPageData(deviceRepository
+                .findByEntityGroupId(
+                        fromTimeUUID(groupId),
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Device> findDevicesByEntityGroupIds(List<UUID> groupIds, PageLink pageLink) {
+        return DaoUtil.toPageData(deviceRepository
+                .findByEntityGroupIds(
+                        fromTimeUUIDs(groupIds),
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Device> findDevicesByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink) {
+        return DaoUtil.toPageData(deviceRepository
+                .findByEntityGroupIdsAndType(
+                        fromTimeUUIDs(groupIds),
+                        type,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Device> findDevicesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 deviceRepository.findByTenantIdAndCustomerId(
                         fromTimeUUID(tenantId),
                         fromTimeUUID(customerId),
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
@@ -117,26 +150,24 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     }
 
     @Override
-    public List<Device> findDevicesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Device> findDevicesByTenantIdAndType(UUID tenantId, String type, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 deviceRepository.findByTenantIdAndType(
                         fromTimeUUID(tenantId),
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public List<Device> findDevicesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Device> findDevicesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 deviceRepository.findByTenantIdAndCustomerIdAndType(
                         fromTimeUUID(tenantId),
                         fromTimeUUID(customerId),
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        new PageRequest(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override

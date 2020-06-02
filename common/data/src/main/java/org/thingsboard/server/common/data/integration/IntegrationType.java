@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
+    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
     AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), AZURE_EVENT_HUB(true), OPC_UA(true),
     CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false);
 

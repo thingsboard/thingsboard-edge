@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,7 +35,8 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.gen.transport.DeviceSessionsCacheEntry;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceSessionsCacheEntry;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Collections;
 
@@ -45,6 +46,7 @@ import static org.thingsboard.server.common.data.CacheConstants.SESSIONS_CACHE;
  * Created by ashvayka on 29.10.18.
  */
 @Service
+@TbCoreComponent
 @Slf4j
 public class DefaultDeviceSessionCacheService implements DeviceSessionCacheService {
 

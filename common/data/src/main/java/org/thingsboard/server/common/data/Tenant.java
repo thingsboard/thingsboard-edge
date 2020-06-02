@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2019 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,8 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity {
     
     private String title;
     private String region;
+    private boolean isolatedTbCore;
+    private boolean isolatedTbRuleEngine;
 
     public Tenant() {
         super();
@@ -72,6 +74,11 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity {
     }
 
     @Override
+    public void setTenantId(TenantId tenantId) {
+        this.setId(tenantId);
+    }
+
+    @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return title;
@@ -83,6 +90,22 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity {
 
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    public boolean isIsolatedTbCore() {
+        return isolatedTbCore;
+    }
+
+    public void setIsolatedTbCore(boolean isolatedTbCore) {
+        this.isolatedTbCore = isolatedTbCore;
+    }
+
+    public boolean isIsolatedTbRuleEngine() {
+        return isolatedTbRuleEngine;
+    }
+
+    public void setIsolatedTbRuleEngine(boolean isolatedTbRuleEngine) {
+        this.isolatedTbRuleEngine = isolatedTbRuleEngine;
     }
 
     @Override
@@ -97,6 +120,10 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity {
         builder.append(title);
         builder.append(", region=");
         builder.append(region);
+        builder.append(", isolatedTbCore=");
+        builder.append(isolatedTbCore);
+        builder.append(", isolatedTbRuleEngine=");
+        builder.append(isolatedTbRuleEngine);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());
         builder.append(", country=");
