@@ -75,6 +75,7 @@ import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -266,6 +267,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private MailService mailService;
+
+    @Autowired
+    @Getter
+    private ClaimDevicesService claimDevicesService;
 
     //TODO: separate context for TbCore and TbRuleEngine
     @Autowired(required = false)

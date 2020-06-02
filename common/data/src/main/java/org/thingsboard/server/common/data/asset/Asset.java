@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.asset;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -45,7 +46,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 

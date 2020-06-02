@@ -106,10 +106,7 @@ public class SchedulerEventController extends BaseController {
                 schedulerEvent.setCustomerId(getCurrentUser().getCustomerId());
             }
 
-            Operation operation = schedulerEvent.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, operation,
-                    schedulerEvent.getId(), schedulerEvent);
+            checkEntity(schedulerEvent.getId(), schedulerEvent, Resource.SCHEDULER_EVENT, null);
 
             SchedulerEvent savedSchedulerEvent = checkNotNull(schedulerEventService.saveSchedulerEvent(schedulerEvent));
 

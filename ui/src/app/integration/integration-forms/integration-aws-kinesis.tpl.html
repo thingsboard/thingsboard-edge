@@ -116,14 +116,33 @@
                 </div>
             </md-input-container>
         </div>
-        <div flex layout="column" layout-gt-sm="row">
-            <md-input-container class="md-block">
-                <md-checkbox ng-disabled="$root.loading || !isEdit"
-                             aria-label="{{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}"
-                             ng-model="configuration.clientConfiguration.useConsumersWithEnhancedFanOut">
-                    {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
-                </md-checkbox>
-            </md-input-container>
+            <div flex layout="column" layout-gt-sm="row">
+                <md-input-container class="md-block">
+                    <md-checkbox ng-disabled="$root.loading || !isEdit"
+                                 aria-label="{{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}"
+                                 ng-model="configuration.clientConfiguration.useConsumersWithEnhancedFanOut">
+                        {{ 'integration.kinesis-use-consumers-with-enhanced-fan-out' | translate }}
+                    </md-checkbox>
+                </md-input-container>
+            </div>
+            <div flex layout="column" layout-gt-sm="row">
+                <md-input-container flex="50" class="md-block" ng-if="!configuration.clientConfiguration.useConsumersWithEnhancedFanOut">
+                    <label translate>integration.kinesis-max-records</label>
+                    <input type="number" min="1" max="10000" step="1" required name="maxRecords" ng-model="configuration.clientConfiguration.maxRecords">
+                    <div ng-messages="kinesisIntegrationForm.maxRecords.$error">
+                        <div translate ng-message="required">integration.kinesis-max-records-required</div>
+                        <div translate ng-message="min">integration.kinesis-max-records-length-range</div>
+                        <div translate ng-message="max">integration.kinesis-max-records-length-range</div>
+                    </div>
+                </md-input-container>
+                <md-input-container flex="50" class="md-block" ng-if="!configuration.clientConfiguration.useConsumersWithEnhancedFanOut">
+                    <label translate>integration.kinesis-request-timeout</label>
+                    <input type="number" step="1" required name="requestTimeout" ng-model="configuration.clientConfiguration.requestTimeout">
+                    <div ng-messages="kinesisIntegrationForm.requestTimeout.$error">
+                        <div translate ng-message="required">integration.kinesis-request-timeout-required</div>
+                    </div>
+                </md-input-container>
+            </div>
         </div>
     </fieldset>
 </section>

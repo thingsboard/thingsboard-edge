@@ -74,6 +74,11 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity {
     }
 
     @Override
+    public void setTenantId(TenantId tenantId) {
+        this.setId(tenantId);
+    }
+
+    @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
         return title;

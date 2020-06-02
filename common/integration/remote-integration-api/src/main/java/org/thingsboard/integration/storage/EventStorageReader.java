@@ -172,7 +172,7 @@ class EventStorageReader {
 
         File readerFile = null;
         int readerPos = 0;
-        if (stateDataNode != null) {
+        if (stateDataNode != null && stateDataNode.has("position") && stateDataNode.has("file")) {
             readerPos = stateDataNode.get("position").asInt();
             for (File file : files.getDataFiles()) {
                 if (file.getName().equals(stateDataNode.get("file").asText())) {

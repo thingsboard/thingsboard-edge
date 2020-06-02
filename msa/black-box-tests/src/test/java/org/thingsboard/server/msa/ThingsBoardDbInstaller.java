@@ -78,6 +78,8 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         env.put("TB_COAP_TRANSPORT_LOG_VOLUME", tbCoapTransportLogVolume);
         env.put("TB_HTTP_TRANSPORT_LOG_VOLUME", tbHttpTransportLogVolume);
         env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
+        env.put("DOCKER_REPO", "thingsboard");
+        env.put("TB_VERSION", "latest");
         dockerCompose.withEnv(env);
     }
 

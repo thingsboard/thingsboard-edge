@@ -76,6 +76,7 @@ public class TbSendRestApiCallReplyNode implements TbNode {
             ctx.tellFailure(msg, new RuntimeException("Request body is empty!"));
         } else {
             ctx.getRpcService().sendRestApiCallReply(serviceIdStr, UUID.fromString(requestIdStr), msg);
+            ctx.tellSuccess(msg);
         }
     }
 

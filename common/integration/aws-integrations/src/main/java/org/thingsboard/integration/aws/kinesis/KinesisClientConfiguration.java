@@ -43,4 +43,6 @@ public class KinesisClientConfiguration {
     private boolean useCredentialsFromInstanceMetadata;
     private String applicationName;
     private String initialPositionInStream;
+    private Integer maxRecords;
+    private Long requestTimeout;
 }
