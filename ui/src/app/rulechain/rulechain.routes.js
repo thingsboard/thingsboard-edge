@@ -71,8 +71,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ncyBreadcrumb: {
                 label: '{"icon": "settings_ethernet", "label": "rulechain.system-rulechains"}'
             }
-        })
-        .state('home.ruleChains.system.ruleChain', {
+        }).state('home.ruleChains.system.ruleChain', {
             url: '/:ruleChainId',
             reloadOnSearch: false,
             module: 'private',
@@ -109,8 +108,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ncyBreadcrumb: {
                 label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name + (vm.ruleChain.root ? (\' (\' + (\'rulechain.root\' | translate) + \')\') : \'\') }}", "translate": "false"}'
             }
-    })
-        .state('home.ruleChains.importRuleChain', {
+    }).state('home.ruleChains.importRuleChain', {
         url: '/ruleChain/import',
         reloadOnSearch: false,
         module: 'private',
@@ -151,8 +149,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ (\'rulechain.import\' | translate) + \': \'+ vm.ruleChain.name }}", "translate": "false"}'
         }
-    })
-        .state('home.ruleChains.edge', {
+    }).state('home.ruleChains.edge', {
         url: '/ruleChains/edge',
         params: {'topIndex': 0},
         module: 'private',
@@ -172,8 +169,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "rulechain.edge-rulechains"}'
         }
-    })
-        .state('home.ruleChains.edge.ruleChain', {
+    }).state('home.ruleChains.edge.ruleChain', {
         url: '/:ruleChainId',
         reloadOnSearch: false,
         module: 'private',
@@ -210,8 +206,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
-    })
-        .state('home.edgeGroups.edgeGroup.ruleChains', {
+    }).state('home.edgeGroups.edgeGroup.ruleChains', {
         url: '/:edgeId/ruleChains',
         params: {'topIndex': 0},
         module: 'private',
@@ -231,8 +226,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.edge.name }}", "translate": "false"}'
         }
-    })
-        .state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
+    }).state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
         url: '/:ruleChainId',
         reloadOnSearch: false,
         module: 'private',
@@ -242,11 +236,6 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
                 templateUrl: ruleChainTemplate,
                 controller: 'RuleChainController',
                 controllerAs: 'vm'
-                // controller:
-                //     function($scope, $stateParams, $controller, entityGroup) {
-                //     var ctrl = $controller('RuleChainController as vm',{$scope: $scope, $stateParams: $stateParams, entityGroup: entityGroup});
-                //     return ctrl;
-                // }
             }
         },
         resolve: {

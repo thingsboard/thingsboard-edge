@@ -30,5 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div ng-if="(vm.parentCtl.ruleChainsScope === 'tenant' && item && item.root) || (vm.parentCtl.ruleChainsScope === 'edge' &&  vm.parentCtl.isRootRuleChain(item))" translate>rulechain.root</div>
-<div ng-if="vm.parentCtl.ruleChainsScope === 'edges' && item && item.root" translate>edge.default-root-rule-chain</div>
+<div ng-if="(vm.parentCtl.ruleChainsScope === 'tenant' && item && item.root) ||
+            (vm.parentCtl.ruleChainsScope === 'edge' && vm.parentCtl.isRootRuleChain(item)) ||
+            (vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isRootRuleChain(item))" translate>rulechain.root </div>
+
+<div ng-if="(vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isDefaultEdgeRuleChain(item))" translate>rulechain.default </div>

@@ -34,7 +34,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -45,7 +44,6 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
 
     private TenantId tenantId;
     private CustomerId customerId;
-    private EdgeId edgeId;
     private String name;
     private String type;
     private String label;
@@ -65,7 +63,6 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.name = device.getName();
         this.type = device.getType();
         this.label = device.getLabel();
-        this.edgeId = device.getEdgeId();
     }
 
     public TenantId getTenantId() {
@@ -82,14 +79,6 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
 
     public void setCustomerId(CustomerId customerId) {
         this.customerId = customerId;
-    }
-
-    public EdgeId getEdgeId() {
-        return edgeId;
-    }
-
-    public void setEdgeId(EdgeId edgeId) {
-        this.edgeId = edgeId;
     }
 
     @Override
@@ -143,8 +132,6 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         builder.append(tenantId);
         builder.append(", customerId=");
         builder.append(customerId);
-        builder.append(", edgeId=");
-        builder.append(edgeId);
         builder.append(", name=");
         builder.append(name);
         builder.append(", type=");

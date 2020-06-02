@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -165,13 +166,26 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId) {
         log.debug("Try to find edges by tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new RuleChainId(ruleChainId), RelationTypeGroup.EDGE);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new RuleChainId(ruleChainId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
         return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<Edge>> ruleChainFutures = new ArrayList<>(input.size());
+            List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
-                ruleChainFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
+                edgeFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
             }
-            return Futures.successfulAsList(ruleChainFutures);
+            return Futures.successfulAsList(edgeFutures);
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId) {
+        log.debug("Try to find edges by tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new DashboardId(dashboardId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
+        return Futures.transformAsync(relations, input -> {
+            List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
+            for (EntityRelation relation : input) {
+                edgeFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
+            }
+            return Futures.successfulAsList(edgeFutures);
         }, MoreExecutors.directExecutor());
     }
 
@@ -180,11 +194,11 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
         log.debug("Try to find edges by tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), RelationTypeGroup.EDGE);
         return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<Edge>> ruleChainFutures = new ArrayList<>(input.size());
+            List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {
-                ruleChainFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
+                edgeFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
             }
-            return Futures.successfulAsList(ruleChainFutures);
+            return Futures.successfulAsList(edgeFutures);
         }, MoreExecutors.directExecutor());
     }
 

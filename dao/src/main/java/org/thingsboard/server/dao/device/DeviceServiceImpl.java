@@ -48,14 +48,13 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -68,6 +67,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -122,6 +122,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -363,41 +366,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
                 (entityId) -> new DeviceId(entityId.getId()),
                 (entityIds) -> findDevicesByTenantIdAndIdsAsync(tenantId, entityIds));
-    }
-
-    @Override
-    public Device assignDeviceToEdge(TenantId tenantId, DeviceId deviceId, EdgeId edgeId) {
-        Device device = findDeviceById(tenantId, deviceId);
-        device.setEdgeId(edgeId);
-        return saveDevice(device);
-    }
-
-    @Override
-    public Device unassignDeviceFromEdge(TenantId tenantId, DeviceId deviceId) {
-        Device device = findDeviceById(tenantId, deviceId);
-        device.setEdgeId(null);
-        return saveDevice(device);
-    }
-
-    @Override
-    public TextPageData<Device> findDevicesByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TextPageLink pageLink) {
-        log.trace("Executing findDevicesByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
-        return new TextPageData<>(devices, pageLink);
-    }
-
-    @Override
-    public TextPageData<Device> findDevicesByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink) {
-        log.trace("Executing findDevicesByTenantIdAndEdgeIdAndType, tenantId [{}], edgeId [{}], type [{}], pageLink [{}]", tenantId, edgeId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Device> devices = deviceDao.findDevicesByTenantIdAndEdgeIdAndType(tenantId.getId(), edgeId.getId(), type, pageLink);
-        return new TextPageData<>(devices, pageLink);
     }
 
     class DeviceViewFunction implements BiFunction<Device, List<EntityField>, ShortEntityView> {

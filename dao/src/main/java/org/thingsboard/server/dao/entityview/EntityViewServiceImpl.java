@@ -44,11 +44,15 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -73,14 +77,18 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_VIEW_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
+
 
 /**
  * Created by Victor Basanets on 8/28/2017.
@@ -93,7 +101,6 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ENTITY_VIEW_ID = "Incorrect entityViewId ";
-    public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
 
     @Autowired
     private EntityViewDao entityViewDao;
@@ -344,48 +351,6 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             }
             return shortEntityView;
         }
-    }
-
-    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
-    @Override
-    public EntityView assignEntityViewToEdge(TenantId tenantId, EntityViewId entityViewId, EdgeId edgeId) {
-        EntityView entityView = findEntityViewById(tenantId, entityViewId);
-        entityView.setEdgeId(edgeId);
-        return saveEntityView(entityView);
-    }
-
-    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
-    @Override
-    public EntityView unassignEntityViewFromEdge(TenantId tenantId, EntityViewId entityViewId) {
-        EntityView entityView = findEntityViewById(tenantId, entityViewId);
-        entityView.setEdgeId(null);
-        return saveEntityView(entityView);
-    }
-
-    @Override
-    public TextPageData<EntityView> findEntityViewsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId,
-                                                                       TextPageLink pageLink) {
-        log.trace("Executing findEntityViewsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]," +
-                " pageLink [{}]", tenantId, edgeId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndEdgeId(tenantId.getId(),
-                edgeId.getId(), pageLink);
-        return new TextPageData<>(entityViews, pageLink);
-    }
-
-    @Override
-    public TextPageData<EntityView> findEntityViewsByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink) {
-        log.trace("Executing findEntityViewsByTenantIdAndEdgeIdAndType, tenantId [{}], edgeId [{}]," +
-                " pageLink [{}], type [{}]", tenantId, edgeId, pageLink, type);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        validateString(type, "Incorrect type " + type);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndEdgeIdAndType(tenantId.getId(),
-                edgeId.getId(), type, pageLink);
-        return new TextPageData<>(entityViews, pageLink);
     }
 
     private DataValidator<EntityView> entityViewValidator =

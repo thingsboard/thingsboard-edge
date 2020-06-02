@@ -776,16 +776,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return relationsToEntityGroups(tenantId, relations);
     }
 
-    private void createRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
-        log.debug("Creating relation: {}", relation);
-        relationService.saveRelation(tenantId, relation);
-    }
-
-    private void deleteRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
-        log.debug("Deleting relation: {}", relation);
-        relationService.deleteRelation(tenantId, relation);
-    }
-
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
         ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);

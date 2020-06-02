@@ -593,10 +593,7 @@ public final class EdgeGrpcSession implements Closeable {
                             getOrCreateDevice(deviceName, deviceType);
                             break;
                         case ENTITY_DELETED_RPC_MESSAGE:
-                            Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);
-                            if (device != null) {
-                                ctx.getDeviceService().unassignDeviceFromEdge(edge.getTenantId(), device.getId());
-                            }
+                            //TODO: voba
                             break;
                     }
                 }
@@ -699,7 +696,8 @@ public final class EdgeGrpcSession implements Closeable {
             device.setTenantId(edge.getTenantId());
             device.setCustomerId(edge.getCustomerId());
             device = ctx.getDeviceService().saveDevice(device);
-            device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
+            // TODO: voba
+            // device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
             createRelationFromEdge(device.getId());
             ctx.getRelationService().saveRelationAsync(TenantId.SYS_TENANT_ID, new EntityRelation(edge.getId(), device.getId(), "Created"));
             ctx.getDeviceStateService().onDeviceAdded(device);

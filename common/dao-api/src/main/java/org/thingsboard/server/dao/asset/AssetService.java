@@ -85,12 +85,4 @@ public interface AssetService {
     ListenableFuture<TimePageData<ShortEntityView>> findAssetsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
     ListenableFuture<TimePageData<Asset>> findAssetEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
-
-    Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId);
-
-    Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId);
-
-    TextPageData<Asset> findAssetsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TextPageLink pageLink);
-
-    TextPageData<Asset> findAssetsByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink);
 }

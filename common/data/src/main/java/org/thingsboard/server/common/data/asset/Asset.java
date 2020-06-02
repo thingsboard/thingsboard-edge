@@ -54,7 +54,6 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     private String name;
     private String type;
     private String label;
-    private EdgeId edgeId;
 
     public Asset() {
         super();
@@ -71,7 +70,6 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
-        this.edgeId = asset.getEdgeId();
     }
 
     public TenantId getTenantId() {
@@ -102,14 +100,6 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         } else {
             this.customerId = new CustomerId(CustomerId.NULL_UUID);
         }
-    }
-
-    public EdgeId getEdgeId() {
-        return edgeId;
-    }
-
-    public void setEdgeId(EdgeId edgeId) {
-        this.edgeId = edgeId;
     }
 
     @Override
@@ -149,8 +139,6 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         builder.append(tenantId);
         builder.append(", customerId=");
         builder.append(customerId);
-        builder.append(", edgeId=");
-        builder.append(edgeId);
         builder.append(", name=");
         builder.append(name);
         builder.append(", type=");

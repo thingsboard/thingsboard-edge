@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS asset (
     id varchar(31) NOT NULL CONSTRAINT asset_pkey PRIMARY KEY,
     additional_info varchar,
     customer_id varchar(31),
-    edge_id varchar(31),
     name varchar(255),
     label varchar(255),
     search_text varchar(255),
@@ -165,7 +164,6 @@ CREATE TABLE IF NOT EXISTS device (
     id varchar(31) NOT NULL CONSTRAINT device_pkey PRIMARY KEY,
     additional_info varchar,
     customer_id varchar(31),
-    edge_id varchar(31),
     type varchar(255),
     name varchar(255),
     label varchar(255),
@@ -269,8 +267,7 @@ CREATE TABLE IF NOT EXISTS entity_group (
     owner_id varchar(31),
     owner_type varchar(255),
     additional_info varchar,
-    configuration varchar(10000000),
-    assigned_edge_groups varchar(10000000)
+    configuration varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS rule_chain (
@@ -283,8 +280,7 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     root boolean,
     debug_mode boolean,
     search_text varchar(255),
-    tenant_id varchar(31),
-    assigned_edge_groups varchar(10000000)
+    tenant_id varchar(31)
 );
 
 CREATE TABLE IF NOT EXISTS rule_node (
@@ -307,8 +303,7 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     tenant_id varchar(31),
     type varchar(255),
     schedule varchar,
-    configuration varchar(10000000),
-    assigned_edge_groups varchar(10000000)
+    configuration varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
@@ -320,7 +315,7 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     content_type varchar(255),
     search_text varchar(255),
     data varchar(10485760),
-        additional_info varchar
+    additional_info varchar
 );
 
 CREATE TABLE IF NOT EXISTS entity_view (
@@ -329,7 +324,6 @@ CREATE TABLE IF NOT EXISTS entity_view (
     entity_type varchar(255),
     tenant_id varchar(31),
     customer_id varchar(31),
-    edge_id varchar(31),
     type varchar(255),
     name varchar(255),
     keys varchar(10000000),
@@ -387,7 +381,7 @@ BEGIN
     IF ttl > 0 THEN
         ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - ttl::bigint * 1000)::bigint;
         EXECUTE format(
-                'WITH deleted AS (DELETE FROM event WHERE ts < %L::bigint AND (event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar) RETURNING *) SELECT count(*) FROM deleted', ttl_ts, 'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') into ttl_deleted_count;
+                'WITH deleted AS (DELETE FROM event WHERE ts < %L::bigint AND (event_type != %L::varchar AND event_type != %L::varchar) RETURNING *) SELECT count(*) FROM deleted', ttl_ts, 'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') into ttl_deleted_count;
     END IF;
     IF debug_ttl > 0 THEN
         debug_ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - debug_ttl::bigint * 1000)::bigint;
