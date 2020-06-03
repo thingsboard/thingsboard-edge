@@ -31,7 +31,10 @@
 package org.thingsboard.server.dao.relation;
 
 import com.google.common.base.Function;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -221,17 +224,20 @@ public class BaseRelationService implements RelationService {
                 relations -> {
                     List<ListenableFuture<Boolean>> results = deleteRelationGroupsAsync(tenantId, relations, cache, true);
                     return Futures.allAsList(results);
-                });
+                }, MoreExecutors.directExecutor());
 
         ListenableFuture<List<Boolean>> outboundDeletions = Futures.transformAsync(outboundRelations,
                 relations -> {
                     List<ListenableFuture<Boolean>> results = deleteRelationGroupsAsync(tenantId, relations, cache, false);
                     return Futures.allAsList(results);
-                });
+                }, MoreExecutors.directExecutor());
 
         ListenableFuture<List<List<Boolean>>> deletionsFuture = Futures.allAsList(inboundDeletions, outboundDeletions);
 
-        return Futures.transform(Futures.transformAsync(deletionsFuture, (deletions) -> relationDao.deleteOutboundRelationsAsync(tenantId, entityId)), result -> null);
+        return Futures.transform(Futures.transformAsync(deletionsFuture,
+                (deletions) -> relationDao.deleteOutboundRelationsAsync(tenantId, entityId),
+                MoreExecutors.directExecutor()),
+                result -> null, MoreExecutors.directExecutor());
     }
 
     private List<ListenableFuture<Boolean>> deleteRelationGroupsAsync(TenantId tenantId, List<List<EntityRelation>> relations, Cache cache, boolean deleteFromDb) {
@@ -321,9 +327,11 @@ public class BaseRelationService implements RelationService {
                         public void onSuccess(@Nullable List<EntityRelation> result) {
                             cache.putIfAbsent(fromAndTypeGroup, result);
                         }
+
                         @Override
-                        public void onFailure(Throwable t) {}
-             });
+                        public void onFailure(Throwable t) {
+                        }
+                    }, MoreExecutors.directExecutor());
             return relationsFuture;
         }
     }
@@ -343,7 +351,7 @@ public class BaseRelationService implements RelationService {
                                     EntityRelationInfo::setToName))
                     );
                     return Futures.successfulAsList(futures);
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#from, #relationType, #typeGroup, 'FROM'}")
@@ -400,9 +408,11 @@ public class BaseRelationService implements RelationService {
                         public void onSuccess(@Nullable List<EntityRelation> result) {
                             cache.putIfAbsent(toAndTypeGroup, result);
                         }
+
                         @Override
-                        public void onFailure(Throwable t) {}
-                    });
+                        public void onFailure(Throwable t) {
+                        }
+                    }, MoreExecutors.directExecutor());
             return relationsFuture;
         }
     }
@@ -422,7 +432,7 @@ public class BaseRelationService implements RelationService {
                                     EntityRelationInfo::setFromName))
                     );
                     return Futures.successfulAsList(futures);
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<EntityRelationInfo> fetchRelationInfoAsync(TenantId tenantId, EntityRelation relation,
@@ -433,7 +443,7 @@ public class BaseRelationService implements RelationService {
             EntityRelationInfo entityRelationInfo1 = new EntityRelationInfo(relation);
             entityNameSetter.accept(entityRelationInfo1, entityName1);
             return entityRelationInfo1;
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     @Cacheable(cacheNames = RELATIONS_CACHE, key = "{#to, #relationType, #typeGroup, 'TO'}")
@@ -481,7 +491,7 @@ public class BaseRelationService implements RelationService {
                     }
                 }
                 return relations;
-            });
+            }, MoreExecutors.directExecutor());
         } catch (Exception e) {
             log.warn("Failed to query relations: [{}]", query, e);
             throw new RuntimeException(e);
@@ -508,7 +518,7 @@ public class BaseRelationService implements RelationService {
                                     }))
                     );
                     return Futures.successfulAsList(futures);
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     protected void validate(EntityRelation relation) {
@@ -615,7 +625,7 @@ public class BaseRelationService implements RelationService {
         }
         //TODO: try to remove this blocking operation
         List<Set<EntityRelation>> relations = Futures.successfulAsList(futures).get();
-        if (fetchLastLevelOnly && lvl > 0){
+        if (fetchLastLevelOnly && lvl > 0) {
             children.clear();
         }
         relations.forEach(r -> r.forEach(children::add));

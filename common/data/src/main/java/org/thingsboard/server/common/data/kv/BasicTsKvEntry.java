@@ -74,6 +74,11 @@ public class BasicTsKvEntry implements TsKvEntry {
     }
 
     @Override
+    public Optional<String> getJsonValue() {
+        return kv.getJsonValue();
+    }
+
+    @Override
     public Object getValue() {
         return kv.getValue();
     }

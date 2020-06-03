@@ -35,9 +35,8 @@ import io.netty.channel.EventLoopGroup;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
@@ -49,11 +48,11 @@ import java.util.concurrent.ScheduledExecutorService;
 public interface IntegrationContext {
 
     /**
-     * Returns current server address that is used mostly for logging.
+     * Returns current service id that is used mostly for logging.
      *
-     * @return server address
+     * @return service id
      */
-    ServerAddress getServerAddress();
+    String getServiceId();
 
     /**
      * Returns context of execution for uplink data converter
@@ -75,9 +74,11 @@ public interface IntegrationContext {
      *
      * @return
      */
-    void processUplinkData(DeviceUplinkDataProto uplinkData, RpcCallback<Void> callback);
+    void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 
-    void createEntityView(EntityViewDataProto entityViewDataProto, RpcCallback<Void> callback);
+    void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+
+    void createEntityView(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback);
 
     /**
      * Dispatch custom message to the rule engine.
@@ -85,14 +86,14 @@ public interface IntegrationContext {
      *
      * @param msg - custom message to dispatch
      */
-    void processCustomMsg(TbMsg msg, RpcCallback<Void> callback);
+    void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback);
 
     /**
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
-    void saveEvent(String type, String uid, JsonNode body, RpcCallback<Void> callback);
+    void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 
-    void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, RpcCallback<Void> callback);
+    void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 
     /**
      * Provides Netty Event loop group to be used by integrations in order to avoid creating separate threads per integration.
@@ -104,6 +105,7 @@ public interface IntegrationContext {
     /**
      * Provides access to ScheduledExecutorService to schedule periodic tasks.
      * Allows using N threads per M integrations instead of using N threads per integration.
+     *
      * @return scheduled executor
      */
     ScheduledExecutorService getScheduledExecutorService();

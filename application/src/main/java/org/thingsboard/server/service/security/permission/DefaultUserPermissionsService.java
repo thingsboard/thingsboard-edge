@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.gen.cluster.ClusterAPIProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                     } else {
                         return Collections.emptyList();
                     }
-                });
+                }, MoreExecutors.directExecutor());
             } else {
                 groups = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), user.getId());
             }
@@ -276,14 +277,14 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     }
 
     private byte[] toBytes(MergedUserPermissions result) {
-        ClusterAPIProtos.MergedUserPermissionsProto.Builder builder = ClusterAPIProtos.MergedUserPermissionsProto.newBuilder();
+        TransportProtos.MergedUserPermissionsProto.Builder builder = TransportProtos.MergedUserPermissionsProto.newBuilder();
         result.getGenericPermissions().forEach(((resource, operations) -> {
-            builder.addGeneric(ClusterAPIProtos.GenericUserPermissionsProto.newBuilder()
+            builder.addGeneric(TransportProtos.GenericUserPermissionsProto.newBuilder()
                     .setResource(resource.name())
                     .addAllOperation(operations.stream().map(Operation::name).collect(Collectors.toList())));
         }));
         result.getGroupPermissions().forEach((entityGroupId, mergedGroupPermissionInfo) -> {
-            builder.addGroup(ClusterAPIProtos.GroupUserPermissionsProto.newBuilder()
+            builder.addGroup(TransportProtos.GroupUserPermissionsProto.newBuilder()
                     .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
                     .setEntityType(mergedGroupPermissionInfo.getEntityType().name())
@@ -295,16 +296,16 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     }
 
     private MergedUserPermissions fromBytes(byte[] data) throws InvalidProtocolBufferException {
-        ClusterAPIProtos.MergedUserPermissionsProto proto = ClusterAPIProtos.MergedUserPermissionsProto.parseFrom(data);
+        TransportProtos.MergedUserPermissionsProto proto = TransportProtos.MergedUserPermissionsProto.parseFrom(data);
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         Map<EntityGroupId, MergedGroupPermissionInfo> groupSpecificPermissions = new HashMap<>();
 
-        for (ClusterAPIProtos.GenericUserPermissionsProto genericPermissionsProto : proto.getGenericList()) {
+        for (TransportProtos.GenericUserPermissionsProto genericPermissionsProto : proto.getGenericList()) {
             HashSet<Operation> operations = new HashSet<>();
             genericPermissionsProto.getOperationList().forEach(o -> operations.add(Operation.valueOf(o)));
             genericPermissions.put(Resource.valueOf(genericPermissionsProto.getResource()), operations);
         }
-        for (ClusterAPIProtos.GroupUserPermissionsProto groupPermissionsProto : proto.getGroupList()) {
+        for (TransportProtos.GroupUserPermissionsProto groupPermissionsProto : proto.getGroupList()) {
             HashSet<Operation> operations = new HashSet<>();
             groupPermissionsProto.getOperationList().forEach(o -> operations.add(Operation.valueOf(o)));
             groupSpecificPermissions.put(new EntityGroupId(new UUID(groupPermissionsProto.getEntityGroupIdMSB(), groupPermissionsProto.getEntityGroupIdLSB())),

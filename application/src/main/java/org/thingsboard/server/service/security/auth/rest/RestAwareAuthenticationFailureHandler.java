@@ -41,7 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
+@Component(value = "defaultAuthenticationFailureHandler")
 public class RestAwareAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
     private final ThingsboardErrorResponseHandler errorResponseHandler;

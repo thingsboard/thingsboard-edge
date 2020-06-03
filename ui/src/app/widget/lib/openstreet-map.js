@@ -44,7 +44,7 @@ export default class TbOpenStreetMap {
 		this.dontFitMapBounds = dontFitMapBounds;
 		this.minZoomLevel = minZoomLevel;
 		this.tooltips = [];
-		this.isMarketCluster = markerClusteringSetting.isMarketCluster;
+		this.isMarketCluster = markerClusteringSetting && markerClusteringSetting.isMarketCluster;
 
 		if (!mapProvider) {
 			mapProvider = {
@@ -165,8 +165,10 @@ export default class TbOpenStreetMap {
 		onMarkerIconReady(iconInfo);
 	}
 
-	createMarker(location, dsIndex, settings, onClickListener, markerArgs) {
-		var marker = L.marker(location, {});
+	createMarker(location, dsIndex, settings, onClickListener, markerArgs, onDragendListener) {
+		var marker = L.marker(location, {
+			draggable: settings.drraggable
+		});
 		var opMap = this;
 		this.createMarkerIcon(marker, settings, (iconInfo) => {
 			marker.setIcon(iconInfo.icon);
@@ -184,6 +186,10 @@ export default class TbOpenStreetMap {
 
 		if (onClickListener) {
 			marker.on('click', onClickListener);
+		}
+
+		if (onDragendListener) {
+			marker.on('dragend', onDragendListener);
 		}
 
 		return marker;
@@ -282,9 +288,9 @@ export default class TbOpenStreetMap {
 		polygon.redraw();
 	}
 
-	fitBounds(bounds) {
+	fitBounds(bounds, useDefaultZoom) {
 		if (bounds.isValid()) {
-			if (this.dontFitMapBounds && this.defaultZoomLevel) {
+			if ((this.dontFitMapBounds || useDefaultZoom) && this.defaultZoomLevel) {
 				this.map.setZoom(this.defaultZoomLevel, {animate: false});
 				this.map.panTo(bounds.getCenter(), {animate: false});
 			} else {
@@ -339,6 +345,10 @@ export default class TbOpenStreetMap {
 
 	getTooltips() {
 		return this.tooltips;
+	}
+
+	getCenter() {
+		return this.map.getCenter();
 	}
 
 }

@@ -119,11 +119,11 @@ public class TbGenerateReportNode implements TbNode {
                         ctx.tellNext(newMsg, SUCCESS);
                     },
                     throwable -> {
-                        ctx.tellNext(msg, FAILURE, throwable);
+                        ctx.tellFailure(msg, throwable);
                     }
             );
         } catch (Exception e) {
-            ctx.tellNext(msg, FAILURE, e);
+            ctx.tellFailure(msg, e);
         }
     }
 

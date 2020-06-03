@@ -89,6 +89,7 @@
         "timeout-required": "Таймаут обязателен.",
         "timeout-invalid": "Недействительный таймаут.",
         "enable-tls": "Включить TLS",
+        "tls-version" : "Версия TLS",
         "send-test-mail": "Отправить пробное письмо",
         "use-system-mail-settings": "Использовать параметры системного почтового сервера",
         "mail-templates": "Шаблоны писем",
@@ -183,7 +184,13 @@
         "clear-alarms-text": "Вы точно хотите сбросить { count, plural, 1 {1 оповещение} other {# оповещений} }?",
         "clear-alarm-title": "Сбросить оповещение",
         "clear-alarm-text": "Вы точно хотите сбросить оповещение?",
-        "alarm-status-filter": "Фильтр оповещений"
+        "alarm-status-filter": "Фильтр оповещений",
+        "max-count-load": "Максимальное количество оповещений для загрузки (0 - неограниченно)",
+        "max-count-load-required": "Максимальное количество оповещений для загрузки обязателен.",
+        "max-count-load-error-min": "Минимальное значение 0.",
+        "fetch-size": "Размер пакета для загрузки",
+        "fetch-size-required": "Размер пакета для загрузки обязателен.",
+        "fetch-size-error-min": "Минимальное значение 10."
     },
     "alias": {
         "add": "Добавить псевдоним",
@@ -195,10 +202,13 @@
         "filter-type-entity-group": "Группа объектов",
         "filter-type-entity-list": "Список объектов",
         "filter-type-entity-name": "Название объекта",
-        "filter-type-entity-group-list": "Список групп объетов",
-        "filter-type-entity-group-name": "Название группы объктов",
+        "filter-type-entity-group-list": "Список групп объектов",
+        "filter-type-entity-group-name": "Название группы объектов",
+        "filter-type-entities-by-group-name": "Объекты по названию группы",
         "filter-type-state-entity": "Объект из состояния дашборда",
         "filter-type-state-entity-description": "Объект, полученный из параметров состояния дашборда",
+        "filter-type-state-entity-owner": "Владелец объекта из состояния дашборда",
+        "filter-type-state-entity-owner-description": "Владелец объекта, полученного из параметров состояния дашборда",
         "filter-type-asset-type": "Тип актива",
         "filter-type-asset-type-description": "Активы типа '{{assetType}}'",
         "filter-type-asset-type-and-name-description": "Активы типа '{{assetType}}' и названием, начинающимся с '{{prefix}}'",
@@ -224,6 +234,7 @@
         "no-entity-filter-specified": "Не указан фильтр объектов",
         "root-state-entity": "Использовать объект, полученный из дашборда, как корневой",
         "group-state-entity": "Использовать объект сосотояния как группу объектов",
+        "last-level-relation": "Использовать только отношения последнего уровня",
         "root-entity": "Корневой объект",
         "state-entity-parameter-name": "Название объекта состояния",
         "default-state-entity": "Объект состояния по умолчанию",
@@ -232,7 +243,7 @@
         "max-relation-level": "Максимальная глубина отношений",
         "unlimited-level": "Неограниченная глубина",
         "state-entity": "Объект состояния дашборда",
-        "entities-of-group-state-entity": "Объекты из групы объктов состояния",
+        "entities-of-group-state-entity": "Объекты из групы объектов состояния",
         "all-entities": "Все объекты",
         "any-relation": "не указано"
     },
@@ -730,6 +741,7 @@
         "configuration": "Конфигурация ключа данных",
         "timeseries": "Телеметрия",
         "attributes": "Атрибуты",
+        "entity-field": "Поле объекта",
         "alarm": "Параметры оповещения",
         "timeseries-required": "Телеметрия объекта обязательна.",
         "timeseries-or-attributes-required": "Телеметрия/атрибуты обязательны.",
@@ -752,6 +764,7 @@
     "details": {
         "details": "Детали",
         "edit-mode": "Режим редактирования",
+        "edit-json": "Редактировать JSON",
         "toggle-edit-mode": "Режим редактирования"
     },
     "device": {
@@ -809,7 +822,7 @@
         "delete-device-title": "Вы точно хотите удалить устройство '{{deviceName}}'?",
         "delete-device-text": "Внимание, после подтверждения устройство и все связанные с ним данные будут безвозвратно утеряны.",
         "delete-devices-title": "Вы точно хотите удалить { count, plural, one {1 устройство} few {# устройства} other {# устройств} }?",
-        "delete-devices-action-title": "Удалить { count, plural, one {1 устройство} few {# устройства} other {# устройств} } }",
+        "delete-devices-action-title": "Удалить { count, plural, one {1 устройство} few {# устройства} other {# устройств} }",
         "delete-devices-text": "Внимание, после подтверждения выбранные устройства и все связанные с ними данные будут безвозвратно утеряны..",
         "unassign-device-title": "Вы точно хотите отозвать устройство '{{deviceName}}'?",
         "unassign-device-text": "После подтверждения устройство будет недоступно клиенту.",
@@ -961,6 +974,7 @@
         "list-of-rulenodes": "{ count, plural, 1 {Одно правило} other {Список из # правил} }",
         "rulenode-name-starts-with": "Правила, чьи названия начинаются с '{{prefix}}'",
         "type-current-customer": "Текущий клиент",
+        "type-current-tenant": "Текущий владелец",
         "search": "Поиск объектов",
         "selected-entities": "Выбран(ы) { count, plural, 1 {1 объект} few {# объекта} other {# объектов} }",
         "entity-name": "Название объекта",
@@ -1117,7 +1131,25 @@
         "make-private-entity-group-title": "Вы уверенны, что хотите сделать группу объектов '{{entityGroupName}}' приватной?",
         "make-private-entity-group-text": "После подтверждения группа объектов и все ее объекты станут приватными и не будут доступны для других пользователей.",
         "copyId": "Копировать Id группы объектов",
-        "idCopiedMessage": "Id группы объектов был скопирован в буфер обмена"
+        "idCopiedMessage": "Id группы объектов был скопирован в буфер обмена",
+        "entity-group-name": "Название группы объектов"
+    },
+    "entity-field": {
+        "created-time": "Время создания",
+        "name": "Название",
+        "type": "Тип",
+        "first-name": "Имя",
+        "last-name": "Фамилия",
+        "email": "Электронная почта",
+        "title": "Название",
+        "country": "Страна",
+        "state": "Штат/Область",
+        "city": "Город",
+        "address": "Адрес",
+        "address2": "Адрес 2",
+        "zip": "Индекс",
+        "phone": "Телефон",
+        "label": "Метка"
     },
     "entity-view": {
         "entity-view": "Представление Объекта",
@@ -1513,6 +1545,7 @@
         "idCopiedMessage": "Id интеграции скопировано в буфер обмена",
         "debug-mode": "Режим отладки",
         "enable-security": "Включить безопасность",
+        "enable-security-new": "Включить безопасность для автоматического обновления токена",
         "headers-filter": "Фильтр заголовков",
         "header": "Заголовок",
         "no-headers-filter": "Нет ни одного фильтра заголовков",
@@ -1522,6 +1555,10 @@
         "as-id-required": "Необходимо указать AS ID.",
         "as-key": "Ключ AS",
         "as-key-required": "Необходимо указать ключ AS.",
+        "client-id-new": "Id клиента",
+        "client-id-new-required": "Необходимо указать Id клиента (логин).",
+        "client-secret": "Пароль Клиента",
+        "client-secret-required": "Необходимо указать Пароль Клиента.",
         "max-time-diff-in-seconds": "Максимальная разница во времени (секунды)",
         "max-time-diff-in-seconds-required": "Необходимо указать максимальную разницу во времени.",
         "name": "Название",
@@ -1617,6 +1654,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -1683,8 +1721,7 @@
     },
     "js-func": {
         "no-return-error": "Функция должна возвращать значение!",
-        "return-type-mismatch": "Функция должна возвращать значение типа '{{type}}'!",
-        "tidy": "Tidy"
+        "return-type-mismatch": "Функция должна возвращать значение типа '{{type}}'!"
     },
     "key-val": {
         "key": "Ключ",
@@ -1739,7 +1776,9 @@
         "password-link-sent-message": "Ссылка для сброса пароля была успешно отправлена!",
         "email": "Эл. адрес",
         "no-account": "У Вас еще нет учетной записи?",
-        "create-account": "Создать учетную запись"
+        "create-account": "Создать учетную запись",
+        "login-with": "Войти через {{name}}",
+        "or": "или"
     },
     "signup": {
         "firstname": "Имя",
@@ -2056,7 +2095,8 @@
                 "IMPERSONATE": "Вход как пользователь",
                 "CHANGE_OWNER": "Изменение владельца",
                 "ADD_TO_GROUP": "Добавление в группу",
-                "REMOVE_FROM_GROUP": "Удаление из группы"
+                "REMOVE_FROM_GROUP": "Удаление из группы",
+                "SHARE_GROUP": "Поделиться группой"
             }
         }
     },
@@ -2096,6 +2136,8 @@
         "repeats": "Повторы",
         "daily": "Ежедневно",
         "weekly": "Еженедельно",
+        "monthly": "Ежемесячно",
+        "yearly": "Ежегодно",
         "timer": "Указать время",
         "repeats-required": "Необходимо указать период повтора.",
         "repeat-on": "Повторять по",
@@ -2211,6 +2253,11 @@
         "select-timezone": "Выбрать часовой пояс",
         "no-timezones-matching": "Не найдены часовые пояса соответствующие '{{timezone}}'.",
         "timezone-required": "Необходимо указать часовой пояс."
+    },
+    "queue": {
+        "select_name": "Выберите имя для Queue",
+        "name": "Имя для Queue",
+        "name_required": "Поле 'Имя для Queue' обязательно к заполнению!"
     },
     "tenant": {
         "tenant": "Владелец",
@@ -2395,6 +2442,7 @@
         "export-data": "Экспортировать данные виджета",
         "export-to-csv": "Экспортировать в CSV...",
         "export-to-excel": "Экспортировать в XLS...",
+        "export-to-excel-xlsx": "Экспортировать в XLSX...",
         "no-data": "Нет данных для отображения"
     },
     "widget-action": {
@@ -2670,21 +2718,6 @@
         }
     },
     "language": {
-        "language": "Язык",
-        "locales": {
-            "de_DE": "Немецкий",
-            "en_US": "Английский",
-            "zh_CN": "Китайский",
-            "ko_KR": "Корейский",
-            "es_ES": "Испанский",
-            "it_IT": "Итальянский",
-            "ru_RU": "Русский",
-            "tr_TR": "Турецкий",
-            "fr_FR": "Французский",
-            "ja_JA": "Японский",
-            "fa_IR": "Персидский",
-            "uk_UA": "Украинский",
-            "cs_CZ": "Чешский"
-        }
+        "language": "Язык"
     }
 }

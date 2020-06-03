@@ -50,6 +50,7 @@ export default function AdminController(adminService, userService, toast, $scope
     });
 
     vm.mailTemplate = types.mailTemplate.test.value;
+    vm.tlsVersions = ['TLSv1', 'TLSv1.1', 'TLSv1.2', 'TLSv1.3'];
 
     $translate('admin.test-mail-sent').then(function (translation) {
         vm.testMailSent = translation;
@@ -105,6 +106,10 @@ export default function AdminController(adminService, userService, toast, $scope
             if (isTenantAdmin()) {
                 vm.useSystemMailSettings =
                     angular.isDefined(vm.settings.jsonValue.useSystemMailSettings) ? vm.settings.jsonValue.useSystemMailSettings : true;
+            }
+
+            if(vm.settings.jsonValue && vm.settings.jsonValue.enableTls && angular.isString(vm.settings.jsonValue.enableTls)){
+                vm.settings.jsonValue.enableTls = vm.settings.jsonValue.enableTls === 'true';
             }
         });
     }

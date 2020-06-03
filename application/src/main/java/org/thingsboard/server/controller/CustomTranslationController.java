@@ -46,8 +46,10 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class CustomTranslationController extends BaseController {
 

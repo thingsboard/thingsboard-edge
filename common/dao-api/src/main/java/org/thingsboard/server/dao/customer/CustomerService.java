@@ -75,4 +75,6 @@ public interface CustomerService {
 
     ListenableFuture<TimePageData<ShortEntityView>> findCustomersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
+    ListenableFuture<TimePageData<Customer>> findCustomerEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
 }

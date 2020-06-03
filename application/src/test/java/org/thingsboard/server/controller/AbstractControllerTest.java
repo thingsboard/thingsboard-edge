@@ -89,7 +89,6 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -130,9 +129,7 @@ public abstract class AbstractControllerTest {
      */
     private static final long DEFAULT_TIMEOUT = -1L;
 
-    protected MediaType contentType = new MediaType(MediaType.APPLICATION_JSON.getType(),
-            MediaType.APPLICATION_JSON.getSubtype(),
-            Charset.forName("utf8"));
+    protected MediaType contentType = MediaType.APPLICATION_JSON;
 
     protected MockMvc mockMvc;
 
@@ -215,6 +212,7 @@ public abstract class AbstractControllerTest {
         createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
 
         logout();
+
         log.info("Executed setup");
     }
 
@@ -237,6 +235,27 @@ public abstract class AbstractControllerTest {
 
     protected void loginCustomerUser() throws Exception {
         login(CUSTOMER_USER_EMAIL, CUSTOMER_USER_PASSWORD);
+    }
+
+    private Tenant savedDifferentTenant;
+    protected void loginDifferentTenant() throws Exception {
+        loginSysAdmin();
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Different tenant");
+        savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Assert.assertNotNull(savedDifferentTenant);
+        User differentTenantAdmin = new User();
+        differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
+        differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
+        differentTenantAdmin.setEmail("different_tenant@thingsboard.org");
+
+        createUserAndLogin(differentTenantAdmin, "testPassword");
+    }
+
+    protected void deleteDifferentTenant() throws Exception {
+        loginSysAdmin();
+        doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
+                .andExpect(status().isOk());
     }
 
     protected User createUserAndLogin(User user, String password) throws Exception {
@@ -416,7 +435,7 @@ public abstract class AbstractControllerTest {
     }
 
     protected <T> ResultActions doPost(String urlTemplate, T content, String... params) throws Exception {
-        MockHttpServletRequestBuilder postRequest = post(urlTemplate);
+        MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
         setJwtToken(postRequest);
         String json = json(content);
         postRequest.contentType(contentType).content(json);

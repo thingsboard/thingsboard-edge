@@ -90,6 +90,10 @@ export default class Subscription {
                 options.alarmSearchStatus : this.ctx.types.alarmSearchStatus.any;
             this.alarmsPollingInterval = angular.isDefined(options.alarmsPollingInterval) ?
                 options.alarmsPollingInterval : 5000;
+            this.alarmsMaxCountLoad = angular.isDefined(options.alarmsMaxCountLoad) ?
+                options.alarmsMaxCountLoad : 0;
+            this.alarmsFetchSize = angular.isDefined(options.alarmsFetchSize) ?
+                options.alarmsFetchSize : 100;
 
             this.alarmSourceListener = null;
             this.alarms = [];
@@ -190,8 +194,7 @@ export default class Subscription {
     }
 
     getFirstEntityInfo() {
-        var entityId;
-        var entityName;
+        var entityId, entityName, entityLabel = null;
         if (this.type === this.ctx.types.widgetType.rpc.value) {
             if (this.targetDeviceId) {
                 entityId = {
@@ -207,6 +210,7 @@ export default class Subscription {
                     id: this.alarmSource.entityId
                 };
                 entityName = this.alarmSource.entityName;
+                entityLabel = this.alarmSource.entityLabel;
             }
         } else {
             for (var i=0;i<this.datasources.length;i++) {
@@ -217,6 +221,7 @@ export default class Subscription {
                         id: datasource.entityId
                     };
                     entityName = datasource.entityName;
+                    entityLabel = datasource.entityLabel;
                     break;
                 }
             }
@@ -224,7 +229,8 @@ export default class Subscription {
         if (entityId) {
             return {
                 entityId: entityId,
-                entityName: entityName
+                entityName: entityName,
+                entityLabel: entityLabel
             };
         } else {
             return null;
@@ -343,7 +349,8 @@ export default class Subscription {
 
             for (var a = 0; a < datasource.dataKeys.length; a++) {
                 var dataKey = datasource.dataKeys[a];
-                dataKey.hidden = false;
+                dataKey.hidden = dataKey.settings.hideDataByDefault ? true : false;
+                dataKey.inLegend = dataKey.settings.removeFromLegend ? false : true;
                 dataKey.label = this.ctx.utils.customTranslation(dataKey.label,dataKey.label);
                 dataKey.pattern = angular.copy(dataKey.label);
 
@@ -361,6 +368,11 @@ export default class Subscription {
                     dataKey: dataKey,
                     data: []
                 };
+                if (dataKey.type === this.ctx.types.dataKeyType.entityField) {
+                    if(datasource.entity && datasource.entity[this.ctx.types.entityField[dataKey.name].value]){
+                        datasourceData.data.push([Date.now(), datasource.entity[this.ctx.types.entityField[dataKey.name].value]]);
+                    }
+                }
                 this.data.push(datasourceData);
                 this.hiddenData.push({data: []});
                 if (this.displayLegend) {
@@ -889,8 +901,14 @@ export default class Subscription {
                     };
                 }
 
+                var entityFieldKey = false;
+
                 for (var a = 0; a < datasource.dataKeys.length; a++) {
-                    this.data[index + a].data = [];
+                    if (datasource.dataKeys[a].type !== this.ctx.types.dataKeyType.entityField) {
+                        this.data[index + a].data = [];
+                    } else {
+                        entityFieldKey = true;
+                    }
                 }
 
                 index += datasource.dataKeys.length;
@@ -902,7 +920,7 @@ export default class Subscription {
                 }
 
                 var forceUpdate = false;
-                if (datasource.unresolvedStateEntity ||
+                if (datasource.unresolvedStateEntity || entityFieldKey ||
                     !datasource.dataKeys.length ||
                     (datasource.type === this.ctx.types.datasourceType.entity && !datasource.entityId)
                 ) {
@@ -931,6 +949,8 @@ export default class Subscription {
             alarmSource: this.alarmSource,
             alarmSearchStatus: this.alarmSearchStatus,
             alarmsPollingInterval: this.alarmsPollingInterval,
+            alarmsMaxCountLoad: this.alarmsMaxCountLoad,
+            alarmsFetchSize: this.alarmsFetchSize,
             alarmsUpdated: function(alarms, apply) {
                 subscription.alarmsUpdated(alarms, apply);
             }
@@ -1009,7 +1029,7 @@ export default class Subscription {
     }
 
     exportData() {
-        var exportedData = [], dataObj, col, row, ts, key, value;
+        var exportedData = [], dataObj, col, row, ts, key, value, tsKey;
         if (this.type == this.ctx.types.widgetType.timeseries.value || this.type == this.ctx.types.widgetType.latest.value) {
 
             const checkProperty = (dataObj, key) => {
@@ -1029,12 +1049,17 @@ export default class Subscription {
                     for (row=0; row < this.data[col].data.length; row ++) {
                         key = this.data[col].dataKey.label;
                         ts = this.data[col].data[row][0];
+                        tsKey = ts;
+                        if(this.type === this.ctx.types.widgetType.timeseries.value && this.datasources.length > 1){
+                            tsKey += "_" + this.data[col].datasource.entityName;
+                        }
                         value = this.data[col].data[row][1];
-                        var tsRow = tsRows[ts];
+                        var tsRow = tsRows[tsKey];
                         if (!tsRow) {
                             tsRow = {};
                             tsRow["Timestamp"] = this.ctx.$filter('date')(ts, 'yyyy-MM-dd HH:mm:ss');
-                            tsRows[ts] = tsRow;
+                            tsRow["Entity Name"] = this.data[col].datasource.entityName;
+                            tsRows[tsKey] = tsRow;
                         }
                         key = checkProperty(tsRow, key);
                         if (!allKeys[key]) {
@@ -1051,6 +1076,9 @@ export default class Subscription {
                     tsRow = tsRows[timestamps[row]];
                     dataObj = {};
                     dataObj["Timestamp"] = tsRow["Timestamp"];
+                    if(this.type === this.ctx.types.widgetType.timeseries.value && this.datasources.length > 1) {
+                        dataObj["Entity Name"] = tsRow["Entity Name"];
+                    }
                     for (col=0;col<rowKeys.length;col++) {
                         key = rowKeys[col];
                         if (angular.isDefined(tsRow[key])) {

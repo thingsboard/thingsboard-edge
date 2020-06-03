@@ -99,7 +99,14 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.groupType = null;
                     filter.entityGroupNameFilter = '';
                     break;
+                case types.aliasFilterType.entitiesByGroupName.value:
+                    filter.groupStateEntity = false;
+                    filter.stateEntityParamName = null;
+                    filter.groupType = null;
+                    filter.entityGroupNameFilter = '';
+                    break;
                 case types.aliasFilterType.stateEntity.value:
+                case types.aliasFilterType.stateEntityOwner.value:
                     filter.stateEntityParamName = null;
                     filter.defaultStateEntity = null;
                     filter.resolveMultiple = false;
@@ -126,6 +133,7 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
                     filter.rootEntity = null;
                     filter.direction = types.entitySearchDirection.from;
                     filter.maxLevel = 1;
+                    filter.fetchLastLevelOnly = false;
                     if (filter.type === types.aliasFilterType.relationsQuery.value) {
                         filter.filters = [];
                     } else if (filter.type === types.aliasFilterType.assetSearchQuery.value) {

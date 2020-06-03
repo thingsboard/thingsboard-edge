@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import lombok.extern.slf4j.Slf4j;
@@ -52,10 +51,10 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
@@ -72,6 +71,7 @@ import java.util.concurrent.TimeoutException;
  * Created by ashvayka on 22.03.18.
  */
 @RestController
+@TbCoreComponent
 @RequestMapping(TbUrlConstants.RULE_ENGINE_URL_PREFIX)
 @Slf4j
 public class RuleEngineController extends BaseController {
@@ -89,7 +89,7 @@ public class RuleEngineController extends BaseController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> handleRuleEngineRequest(@RequestBody String requestBody) throws ThingsboardException {
-        return handleRuleEngineRequest( null, null, DEFAULT_TIMEOUT, requestBody);
+        return handleRuleEngineRequest(null, null, DEFAULT_TIMEOUT, requestBody);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -123,12 +123,13 @@ public class RuleEngineController extends BaseController {
                 @Override
                 public void onSuccess(@Nullable DeferredResult<ResponseEntity> result) {
                     long expTime = System.currentTimeMillis() + timeout;
-                    UUID msgId = UUIDs.timeBased();
                     HashMap<String, String> metaData = new HashMap<>();
-                    metaData.put("requestUUID", msgId.toString());
+                    UUID requestId = UUID.randomUUID();
+                    metaData.put("serviceId", serviceInfoProvider.getServiceId());
+                    metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
-                    TbMsg msg = TbMsg.createNewMsg(msgId, DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), msg,
+                    TbMsg msg = TbMsg.newMsg(DataConstants.REST_API_REQUEST, entityId, new TbMsgMetaData(metaData), requestBody);
+                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 
@@ -183,7 +184,7 @@ public class RuleEngineController extends BaseController {
                 user.getCustomerId(),
                 user.getId(),
                 user.getName(),
-                (UUIDBased & EntityId) entityId,
+                entityId,
                 null,
                 ActionType.REST_API_RULE_ENGINE_CALL,
                 BaseController.toException(e),

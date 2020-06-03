@@ -46,8 +46,10 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.menu.CustomMenuService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class CustomMenuController extends BaseController {
 
@@ -67,6 +69,9 @@ public class CustomMenuController extends BaseController {
                 customMenu = customMenuService.getMergedTenantCustomMenu(getCurrentUser().getTenantId());
             } else if (authority == Authority.CUSTOMER_USER) {
                 customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            }
+            if (customMenu == null) {
+                customMenu = new CustomMenu();
             }
             return customMenu;
         } catch (Exception e) {

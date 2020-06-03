@@ -53,6 +53,10 @@
     <dependencies>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
+            <artifactId>proto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
             <artifactId>data</artifactId>
         </dependency>
         <dependency>
@@ -62,10 +66,6 @@
         <dependency>
             <groupId>org.thingsboard.common.js</groupId>
             <artifactId>js-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
-            <artifactId>proto</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>

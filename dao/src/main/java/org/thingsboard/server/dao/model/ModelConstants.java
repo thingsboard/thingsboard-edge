@@ -45,6 +45,9 @@ public class ModelConstants {
     public static final String NULL_UUID_STR = UUIDConverter.fromTimeUUID(NULL_UUID);
     public static final TenantId SYSTEM_TENANT = new TenantId(ModelConstants.NULL_UUID);
 
+    // this is the difference between midnight October 15, 1582 UTC and midnight January 1, 1970 UTC as 100 nanosecond units
+    public static final long EPOCH_DIFF = 122192928000000000L;
+
     /**
      * Generic constants.
      */
@@ -67,7 +70,7 @@ public class ModelConstants {
     public static final String LAST_UPDATE_TS_COLUMN = "last_update_ts";
 
     /**
-     * user constants.
+     * User constants.
      */
     public static final String USER_PG_HIBERNATE_COLUMN_FAMILY_NAME = "tb_user";
     public static final String USER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
@@ -116,6 +119,8 @@ public class ModelConstants {
     public static final String TENANT_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String TENANT_REGION_PROPERTY = "region";
     public static final String TENANT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String TENANT_ISOLATED_TB_CORE = "isolated_tb_core";
+    public static final String TENANT_ISOLATED_TB_RULE_ENGINE = "isolated_tb_rule_engine";
 
     /**
      * customer constants.
@@ -229,6 +234,7 @@ public class ModelConstants {
     public static final String ALARM_ACK_TS_PROPERTY = "ack_ts";
     public static final String ALARM_CLEAR_TS_PROPERTY = "clear_ts";
     public static final String ALARM_PROPAGATE_PROPERTY = "propagate";
+    public static final String ALARM_PROPAGATE_RELATION_TYPES = "propagate_relation_types";
 
 
     /**
@@ -382,6 +388,7 @@ public class ModelConstants {
      * attributes and timeseries constants.
      */
     public static final String KEY_COLUMN = "key";
+    public static final String KEY_ID_COLUMN = "key_id";
     public static final String TS_COLUMN = "ts";
 
     /**
@@ -391,6 +398,7 @@ public class ModelConstants {
     public static final String STRING_VALUE_COLUMN = "str_v";
     public static final String LONG_VALUE_COLUMN = "long_v";
     public static final String DOUBLE_VALUE_COLUMN = "dbl_v";
+    public static final String JSON_VALUE_COLUMN = "json_v";
 
     public static String min(String s) {
         return "min(" + s + ")";

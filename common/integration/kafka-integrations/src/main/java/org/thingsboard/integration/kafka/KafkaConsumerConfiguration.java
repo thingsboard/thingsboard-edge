@@ -32,6 +32,8 @@ package org.thingsboard.integration.kafka;
 
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class KafkaConsumerConfiguration {
 
@@ -41,4 +43,5 @@ public class KafkaConsumerConfiguration {
     private String bootstrapServers;
     private String autoCreateTopics;
     private long pollInterval;
+    private Map<String, String> otherProperties;
 }

@@ -34,7 +34,7 @@ import com.google.protobuf.AbstractMessageLite;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -84,7 +84,7 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
     }
 
     @Override
-    public void write(T msg, RpcCallback<Void> callback) {
+    public void write(T msg, IntegrationCallback<Void> callback) {
         writeLock.lock();
         try {
             storageWriter.write(msg, callback);

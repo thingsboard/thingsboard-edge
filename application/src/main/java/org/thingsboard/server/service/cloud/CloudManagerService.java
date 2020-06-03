@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.gson.JsonParser;
@@ -41,7 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
@@ -68,7 +67,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
@@ -86,8 +84,7 @@ import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -600,7 +597,9 @@ public class CloudManagerService {
                     schedulerEvent.setSchedule(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getSchedule()));
                     schedulerEvent.setConfiguration(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getConfiguration()));
                     schedulerEventService.saveSchedulerEvent(schedulerEvent);
-                    actorService.onEntityStateChange(tenantId, schedulerEventId, ComponentLifecycleEvent.UPDATED);
+
+                    // TODO: voba fix
+                    // actorService.onEntityStateChange(tenantId, schedulerEventId, ComponentLifecycleEvent.UPDATED);
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
@@ -634,7 +633,9 @@ public class CloudManagerService {
                     ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
-                    actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+
+                    // TODO: voba fix
+                    // actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
 
                     eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
 
@@ -660,7 +661,7 @@ public class CloudManagerService {
         return builder.build();
     }
 
-    private RpcCallback<Void> edgeEventSaveCallback = new RpcCallback<Void>() {
+    private IntegrationCallback<Void> edgeEventSaveCallback = new IntegrationCallback<Void>() {
         @Override
         public void onSuccess(@Nullable Void aVoid) {
             log.debug("Event saved successfully!");
@@ -685,7 +686,9 @@ public class CloudManagerService {
                     ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
                     ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
                     ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
-                    actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+
+                    // TODO: voba fix
+                    // actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
@@ -974,13 +977,13 @@ public class CloudManagerService {
             if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                     TbMsg tbMsg = null;
-                    TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray());
+                    TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray(), TbMsgCallback.EMPTY);
                     switch (tmp.getOriginator().getEntityType()) {
                         case DEVICE:
                             String deviceName = entityData.getEntityName();
                             Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
                             if (device != null) {
-                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), device.getId(), tmp.getMetaData().copy(),
+                                tbMsg = TbMsg.newMsg(tmp.getType(), device.getId(), tmp.getMetaData().copy(),
                                         tmp.getDataType(), tmp.getData(), null, null);
                             }
                             break;
@@ -988,7 +991,7 @@ public class CloudManagerService {
                             String assetName = entityData.getEntityName();
                             Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
                             if (asset != null) {
-                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
+                                tbMsg = TbMsg.newMsg(tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
                                         tmp.getDataType(), tmp.getData(), null, null);
                             }
                             break;
@@ -996,7 +999,7 @@ public class CloudManagerService {
                             String entityViewName = entityData.getEntityName();
                             EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
                             if (entityView != null) {
-                                tbMsg = new TbMsg(UUIDs.timeBased(), tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
+                                tbMsg = TbMsg.newMsg(tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
                                         tmp.getDataType(), tmp.getData(), null, null);
                             }
                             break;
@@ -1016,7 +1019,9 @@ public class CloudManagerService {
                                 }
                             });
                         }
-                        actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+
+                        // TODO: voba - fix
+                        // actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
                     }
                 }
             }

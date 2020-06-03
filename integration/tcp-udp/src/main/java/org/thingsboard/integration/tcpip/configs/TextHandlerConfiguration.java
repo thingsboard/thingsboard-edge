@@ -31,6 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
 @Data
@@ -39,9 +40,10 @@ public class TextHandlerConfiguration implements HandlerConfiguration {
     private int maxFrameLength;
     private boolean stripDelimiter;
     private String messageSeparator;
+    private String charsetName;
 
     @Override
     public String getHandlerType() {
-        return "TEXT";
+        return AbstractIpIntegration.TEXT_PAYLOAD;
     }
 }

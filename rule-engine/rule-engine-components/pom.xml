@@ -49,8 +49,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <aws.sdk.version>1.11.323</aws.sdk.version>
-        <pubsub.client.version>1.83.0</pubsub.client.version>
+        <aws.sdk.version>1.11.747</aws.sdk.version>
         <google.common.protos.version>1.16.0</google.common.protos.version>
     </properties>
 
@@ -113,7 +112,6 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
-            <version>${pubsub.client.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.api.grpc</groupId>
@@ -162,30 +160,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>org.thingsboard.server.dao.queue.QueueBenchmark</mainClass>
-                    <classifier>boot</classifier>
-                    <layout>ZIP</layout>
-                    <executable>true</executable>
-                    <excludeDevtools>true</excludeDevtools>
-                    <!--<embeddedLaunchScriptProperties>-->
-                    <!--<confFolder>${pkg.installFolder}/conf</confFolder>-->
-                    <!--<logFolder>${pkg.unixLogFolder}</logFolder>-->
-                    <!--<logFilename>${pkg.name}.out</logFilename>-->
-                    <!--<initInfoProvides>${pkg.name}</initInfoProvides>-->
-                    <!--</embeddedLaunchScriptProperties>-->
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

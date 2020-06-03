@@ -59,8 +59,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
     function openState(id, params, openRightLayout) {
         if (vm.states && vm.states[id]) {
             resolveEntity(params).then(
-                function success(entityName) {
-                    params.entityName = entityName;
+                function success() {
                     var newState = {
                         id: id,
                         params: params
@@ -81,8 +80,7 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
         }
         if (vm.states && vm.states[id]) {
             resolveEntity(params).then(
-                function success(entityName) {
-                    params.entityName = entityName;
+                function success() {
                     var newState = {
                         id: id,
                         params: params
@@ -176,16 +174,23 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
     }
 
     function getStateName(index) {
-        var result = '';
+        let result = '';
         if (vm.stateObject[index]) {
-            var stateName = vm.states[vm.stateObject[index].id].name;
+            let stateName = vm.states[vm.stateObject[index].id].name;
             stateName = utils.customTranslation(stateName, stateName);
             var params = vm.stateObject[index].params;
-            var entityName = params && params.entityName ? params.entityName : '';
+
+            let entityName = params && params.entityName ? params.entityName : '';
+            let entityLabel = params && params.entityLabel ? params.entityLabel : entityName;
+
             result = utils.insertVariable(stateName, 'entityName', entityName);
-            for (var prop in params) {
+            result = utils.insertVariable(result, 'entityLabel', entityLabel);
+            for (let prop in params) {
                 if (params[prop] && params[prop].entityName) {
                     result = utils.insertVariable(result, prop + ':entityName', params[prop].entityName);
+                }
+                if (params[prop] && params[prop].entityLabel) {
+                    result = utils.insertVariable(result, prop + ':entityLabel', params[prop].entityLabel);
                 }
             }
         }
@@ -198,16 +203,20 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
             params = params[params.targetEntityParamName];
         }
         if (params && params.entityId && params.entityId.id && params.entityId.entityType) {
-            if (params.entityName && params.entityName.length) {
-                deferred.resolve(params.entityName);
+            if (isEntityResolved(params)) {
+                deferred.resolve();
             } else {
                 entityService.getEntity(params.entityId.entityType, params.entityId.id, {
                     ignoreLoading: true,
                     ignoreErrors: true
                 }).then(
                     function success(entity) {
-                        var entityName = entity.name;
-                        deferred.resolve(entityName);
+                        params.entityName = entity.name;
+                        params.entityLabel = entity.label;
+                        if (params.entityId.entityType === types.entityType.entityGroup) {
+                            params.entityGroupType = entity.type;
+                        }
+                        deferred.resolve();
                     },
                     function fail() {
                         deferred.reject();
@@ -215,9 +224,19 @@ export default function EntityStateController($rootScope, $scope, $timeout, $loc
                 );
             }
         } else {
-            deferred.resolve('');
+            deferred.resolve();
         }
         return deferred.promise;
+    }
+
+    function isEntityResolved(params) {
+        if (params.entityId.entityType === types.entityType.entityGroup && !params.entityGroupType) {
+            return false;
+        }
+        if (!params.entityName || !params.entityName.length) {
+            return false;
+        }
+        return true;
     }
 
     function parseState(stateBase64) {

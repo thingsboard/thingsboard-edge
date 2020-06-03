@@ -37,7 +37,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.thingsboard.server.service.update.model.UpdateMessage;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.UpdateMessage;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -52,6 +54,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@TbCoreComponent
 @Slf4j
 public class DefaultUpdateService implements UpdateService {
 
@@ -65,7 +68,7 @@ public class DefaultUpdateService implements UpdateService {
     @Value("${updates.enabled}")
     private boolean updatesEnabled;
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1, ThingsBoardThreadFactory.forName("tb-update-service"));
 
     private ScheduledFuture checkUpdatesFuture = null;
     private RestTemplate restClient = new RestTemplate();

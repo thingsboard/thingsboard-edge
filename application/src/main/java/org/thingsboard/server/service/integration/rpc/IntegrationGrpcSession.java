@@ -30,11 +30,12 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -63,8 +65,8 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.cluster.SendToClusterMsg;
-import org.thingsboard.server.common.msg.system.ServiceToRuleEngineMsg;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -72,6 +74,7 @@ import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.ConverterUpdateMsg;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
@@ -83,10 +86,7 @@ import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
-import org.thingsboard.server.gen.transport.KeyValueProto;
-import org.thingsboard.server.gen.transport.KeyValueType;
-import org.thingsboard.server.gen.transport.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TsKvListProto;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.Nullable;
@@ -100,12 +100,16 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
+
 @Data
 @Slf4j
 public final class IntegrationGrpcSession implements Closeable {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     public static final ObjectMapper mapper = new ObjectMapper();
+    private final Gson gson = new Gson();
 
     private final UUID sessionId;
     private final BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener;
@@ -205,78 +209,117 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private UplinkResponseMsg processUplinkMsg(UplinkMsg msg) {
-        if (msg.getDeviceDataCount() > 0) {
-            for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
-                Device device = getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), data.getCustomerName());
+        try {
+            if (msg.getDeviceDataCount() > 0) {
+                for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
+                    Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getCustomerName(), data.getGroupName());
 
-                UUID sessionId = UUID.randomUUID();
-                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
-                        .setSessionIdMSB(sessionId.getMostSignificantBits())
-                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                        .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                        .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                        .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                        .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                        .build();
+                    UUID sessionId = UUID.randomUUID();
+                    TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+                            .setSessionIdMSB(sessionId.getMostSignificantBits())
+                            .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                            .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                            .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                            .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                            .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                            .setDeviceName(device.getName())
+                            .setDeviceType(device.getType())
+                            .build();
 
-                if (data.hasPostTelemetryMsg()) {
-                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
-                }
+                    if (data.hasPostTelemetryMsg()) {
+                        //TODO: Empty callback may cause message to be acknowledged faster then it is pushed to queue?
+                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
+                    }
 
-                if (data.hasPostAttributesMsg()) {
-                    ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
-                }
-            }
-        }
-
-        if (msg.getEntityViewDataCount() > 0) {
-            for (EntityViewDataProto data : msg.getEntityViewDataList()) {
-                createEntityViewForDeviceIfAbsent(getOrCreateDevice(data.getDeviceName(), data.getDeviceType(), null), data);
-            }
-        }
-
-        if (msg.getIntegrationStatisticsCount() > 0) {
-            for (IntegrationStatisticsProto data : msg.getIntegrationStatisticsList()) {
-                processIntegrationStatistics(data);
-            }
-        }
-
-        if (msg.getEventsDataCount() > 0) {
-            for (TbEventProto proto : msg.getEventsDataList()) {
-                switch (proto.getSource()) {
-                    case INTEGRATION:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getId(), proto);
-                        break;
-                    case UPLINK_CONVERTER:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
-                        break;
-                    case DOWNLINK_CONVERTER:
-                        saveDebugEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
-                        break;
-                    case DEVICE:
-                        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), proto.getDeviceName());
-                        if (device != null) {
-                            saveDebugEvent(configuration.getTenantId(), device.getId(), proto);
-                        }
-                        break;
+                    if (data.hasPostAttributesMsg()) {
+                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
+                    }
                 }
             }
-        }
 
-        if (msg.getTbMsgCount() > 0) {
-            for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray());
-                ctx.getActorService().onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(configuration.getTenantId(), tbMsg)));
+            if (msg.getAssetDataCount() > 0) {
+                for (AssetUplinkDataProto data : msg.getAssetDataList()) {
+                    Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getCustomerName(), data.getGroupName());
+
+                    if (data.hasPostTelemetryMsg()) {
+                        data.getPostTelemetryMsg().getTsKvListList()
+                                .forEach(tsKv -> {
+                                    TbMsgMetaData metaData = new TbMsgMetaData();
+                                    metaData.putValue("assetName", data.getAssetName());
+                                    metaData.putValue("assetType", data.getAssetType());
+                                    metaData.putValue("ts", tsKv.getTs() + "");
+                                    JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+                                    TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+                                    ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
+                                });
+                    }
+
+                    if (data.hasPostAttributesMsg()) {
+                        TbMsgMetaData metaData = new TbMsgMetaData();
+                        metaData.putValue("assetName", data.getAssetName());
+                        metaData.putValue("assetType", data.getAssetType());
+                        JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
+                        TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), metaData, gson.toJson(json));
+                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
+                    }
+                }
             }
-        }
 
+            if (msg.getEntityViewDataCount() > 0) {
+                for (EntityViewDataProto data : msg.getEntityViewDataList()) {
+                    Device device = ctx.getPlatformIntegrationService()
+                            .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null);
+                    ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
+                }
+            }
+
+            if (msg.getIntegrationStatisticsCount() > 0) {
+                for (IntegrationStatisticsProto data : msg.getIntegrationStatisticsList()) {
+                    processIntegrationStatistics(data);
+                }
+            }
+
+            if (msg.getEventsDataCount() > 0) {
+                for (TbEventProto proto : msg.getEventsDataList()) {
+                    switch (proto.getSource()) {
+                        case INTEGRATION:
+                            saveEvent(configuration.getTenantId(), configuration.getId(), proto);
+                            break;
+                        case UPLINK_CONVERTER:
+                            saveEvent(configuration.getTenantId(), configuration.getDefaultConverterId(), proto);
+                            break;
+                        case DOWNLINK_CONVERTER:
+                            saveEvent(configuration.getTenantId(), configuration.getDownlinkConverterId(), proto);
+                            break;
+                        case DEVICE:
+                            Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), proto.getDeviceName());
+                            if (device != null) {
+                                saveEvent(configuration.getTenantId(), device.getId(), proto);
+                            }
+                            break;
+                    }
+                }
+            }
+
+            if (msg.getTbMsgCount() > 0) {
+                for (ByteString tbMsgByteString : msg.getTbMsgList()) {
+                    TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
+                }
+            }
+        } catch (Exception e) {
+            return UplinkResponseMsg.newBuilder()
+                    .setSuccess(false)
+                    .setErrorMsg(e.getMessage())
+                    .build();
+        }
         return UplinkResponseMsg.newBuilder()
                 .setSuccess(true)
                 .setErrorMsg("")
                 .build();
     }
 
-    private void saveDebugEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
+    private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
             Event event = new Event();
             event.setTenantId(tenantId);
@@ -288,84 +331,6 @@ public final class IntegrationGrpcSession implements Closeable {
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
         }
-    }
-
-    private Device getOrCreateDevice(String deviceName, String deviceType, String customerName) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device == null) {
-            entityCreationLock.lock();
-            try {
-                return processGetOrCreateDevice(deviceName, deviceType, customerName);
-            } finally {
-                entityCreationLock.unlock();
-            }
-        }
-        return device;
-    }
-
-    private Device processGetOrCreateDevice(String deviceName, String deviceType, String customerName) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
-        if (device == null) {
-            device = new Device();
-            device.setName(deviceName);
-            device.setType(deviceType);
-            device.setTenantId(configuration.getTenantId());
-            if (!StringUtils.isEmpty(customerName)) {
-                Customer customer;
-                Optional<Customer> customerOptional = ctx.getCustomerService().findCustomerByTenantIdAndTitle(configuration.getTenantId(), customerName);
-                if (customerOptional.isPresent()) {
-                    customer = customerOptional.get();
-                } else {
-                    customer = new Customer();
-                    customer.setTitle(customerName);
-                    customer.setTenantId(configuration.getTenantId());
-                    customer = ctx.getCustomerService().saveCustomer(customer);
-                    pushCustomerCreatedEventToRuleEngine(customer);
-                }
-                device.setCustomerId(customer.getId());
-            }
-            device = ctx.getDeviceService().saveDevice(device);
-            createRelationFromIntegration(device.getId());
-            ctx.getActorService().onDeviceAdded(device);
-            pushDeviceCreatedEventToRuleEngine(device);
-        }
-        return device;
-    }
-
-    private void createEntityViewForDeviceIfAbsent(Device device, EntityViewDataProto proto) {
-        String entityViewName = proto.getViewName();
-        EntityView entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
-        if (entityView == null) {
-            entityCreationLock.lock();
-            try {
-                entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
-                if (entityView == null) {
-                    entityView = new EntityView();
-                    entityView.setName(entityViewName);
-                    entityView.setType(proto.getViewType());
-                    entityView.setTenantId(configuration.getTenantId());
-                    entityView.setEntityId(device.getId());
-
-                    TelemetryEntityView telemetryEntityView = new TelemetryEntityView();
-                    telemetryEntityView.setTimeseries(proto.getTelemetryKeysList());
-                    entityView.setKeys(telemetryEntityView);
-
-                    entityView = ctx.getEntityViewService().saveEntityView(entityView);
-                    createRelationFromIntegration(entityView.getId());
-                }
-            } finally {
-                entityCreationLock.unlock();
-            }
-        }
-    }
-
-    private void createRelationFromIntegration(EntityId entityId) {
-        EntityRelation relation = new EntityRelation();
-        relation.setFrom(configuration.getId());
-        relation.setTo(entityId);
-        relation.setTypeGroup(RelationTypeGroup.COMMON);
-        relation.setType(EntityRelation.INTEGRATION_TYPE);
-        ctx.getRelationService().saveRelation(configuration.getTenantId(), relation);
     }
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
@@ -395,46 +360,6 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setConfiguration(mapper.writeValueAsString(converter.getConfiguration()))
                 .setAdditionalInfo(mapper.writeValueAsString(converter.getAdditionalInfo()))
                 .build();
-    }
-
-    private void pushDeviceCreatedEventToRuleEngine(Device device) {
-        try {
-            ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(device), mapper.writeValueAsString(entityNode), null, null);
-            ctx.getActorService().onMsg(new SendToClusterMsg(device.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
-        }
-    }
-
-    private void pushCustomerCreatedEventToRuleEngine(Customer customer) {
-        try {
-            ObjectNode entityNode = mapper.valueToTree(customer);
-            TbMsg msg = new TbMsg(UUIDs.timeBased(), DataConstants.ENTITY_CREATED, customer.getId(), customerActionTbMsgMetaData(), mapper.writeValueAsString(entityNode), null, null);
-            ctx.getActorService().onMsg(new SendToClusterMsg(customer.getId(), new ServiceToRuleEngineMsg(configuration.getTenantId(), msg)));
-        } catch (JsonProcessingException | IllegalArgumentException e) {
-            log.warn("[{}] Failed to push customer action to rule engine: {}", customer.getId(), DataConstants.ENTITY_CREATED, e);
-        }
-    }
-
-    private TbMsgMetaData deviceActionTbMsgMetaData(Device device) {
-        TbMsgMetaData metaData = getTbMsgMetaData();
-        CustomerId customerId = device.getCustomerId();
-        if (customerId != null && !customerId.isNullUid()) {
-            metaData.putValue("customerId", customerId.toString());
-        }
-        return metaData;
-    }
-
-    private TbMsgMetaData customerActionTbMsgMetaData() {
-        return getTbMsgMetaData();
-    }
-
-    private TbMsgMetaData getTbMsgMetaData() {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("integrationId", configuration.getId().toString());
-        metaData.putValue("integrationName", configuration.getName());
-        return metaData;
     }
 
     @Override
@@ -491,7 +416,7 @@ public final class IntegrationGrpcSession implements Closeable {
                                 DeviceDownlinkDataProto.newBuilder()
                                         .setDeviceName(device.getName())
                                         .setDeviceType(device.getType())
-                                        .setTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg.getTbMsg())))
+                                        .setTbMsg(TbMsg.toByteString(msg.getTbMsg()))
                                         .build()
                         )
                         .build())
@@ -500,13 +425,13 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private void processIntegrationStatistics(IntegrationStatisticsProto data) {
         List<TsKvEntry> statsTs = new ArrayList<>();
-        for (TsKvListProto tsKvListProto : data.getPostTelemetryMsg().getTsKvListList()) {
-            for (KeyValueProto keyValueProto : tsKvListProto.getKvList()) {
-                if (keyValueProto.getType().equals(KeyValueType.LONG_V)) {
+        for (TransportProtos.TsKvListProto tsKvListProto : data.getPostTelemetryMsg().getTsKvListList()) {
+            for (TransportProtos.KeyValueProto keyValueProto : tsKvListProto.getKvList()) {
+                if (keyValueProto.getType().equals(TransportProtos.KeyValueType.LONG_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new LongDataEntry(keyValueProto.getKey(), keyValueProto.getLongV())));
-                } else if (keyValueProto.getType().equals(KeyValueType.DOUBLE_V)) {
+                } else if (keyValueProto.getType().equals(TransportProtos.KeyValueType.DOUBLE_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new DoubleDataEntry(keyValueProto.getKey(), keyValueProto.getDoubleV())));
-                } else if (keyValueProto.getType().equals(KeyValueType.BOOLEAN_V)) {
+                } else if (keyValueProto.getType().equals(TransportProtos.KeyValueType.BOOLEAN_V)) {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new BooleanDataEntry(keyValueProto.getKey(), keyValueProto.getBoolV())));
                 } else {
                     statsTs.add(new BasicTsKvEntry(tsKvListProto.getTs(), new StringDataEntry(keyValueProto.getKey(), keyValueProto.getStringV())));

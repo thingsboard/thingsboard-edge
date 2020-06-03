@@ -92,6 +92,10 @@ function TelemetryWebsocketService($rootScope, $websocket, $timeout, $window, $m
         }
     });
 
+    $rootScope.telemetryWsLoginHandle = $rootScope.$on('authenticated', function () {
+        reset(true);
+    });
+
     return service;
 
     function publishCommands () {

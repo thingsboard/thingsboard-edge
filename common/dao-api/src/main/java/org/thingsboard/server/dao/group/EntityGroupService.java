@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -68,6 +69,8 @@ public interface EntityGroupService {
 
     EntityGroup findOrCreateEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName,
                                         String description, CustomerId publicCustomerId);
+
+    Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName);
 
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
@@ -108,6 +111,10 @@ public interface EntityGroupService {
                                                                                                           Function<EntityId, I> toIdFunction,
                                                                                                           Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
                                                                                                           BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+
+    <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
+                                                                                            Function<EntityId, I> toIdFunction,
+                                                                                            Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction);
 
     ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 

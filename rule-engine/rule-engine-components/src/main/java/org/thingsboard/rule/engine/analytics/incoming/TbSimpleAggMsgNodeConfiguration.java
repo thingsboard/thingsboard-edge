@@ -36,14 +36,20 @@ import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfigur
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 @Data
 public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfiguration {
 
     private String mathFunction;
+
+    private AggIntervalType aggIntervalType;
+    private String timeZoneId;
+    //For Static Intervals
     private String aggIntervalTimeUnit;
     private int aggIntervalValue;
+
     private boolean autoCreateIntervals;
 
     private String intervalPersistencePolicy;
@@ -65,8 +71,10 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         TbSimpleAggMsgNodeConfiguration configuration = new TbSimpleAggMsgNodeConfiguration();
 
         configuration.setMathFunction(MathFunction.AVG.name());
+        configuration.setAggIntervalType(AggIntervalType.HOUR);
         configuration.setAggIntervalTimeUnit(TimeUnit.HOURS.name());
         configuration.setAggIntervalValue(1);
+
         configuration.setAutoCreateIntervals(false);
 
         configuration.setParentEntitiesQuery(new ParentEntitiesGroup());

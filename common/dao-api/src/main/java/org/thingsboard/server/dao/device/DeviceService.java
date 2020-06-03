@@ -57,6 +57,8 @@ public interface DeviceService {
 
     Device saveDevice(Device device);
 
+    Device saveDeviceWithAccessToken(Device device, String accessToken);
+
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
 
     TextPageData<Device> findDevicesByTenantId(TenantId tenantId, TextPageLink pageLink);
@@ -82,5 +84,7 @@ public interface DeviceService {
     ShortEntityView findGroupDevice(TenantId tenantId,EntityGroupId entityGroupId, EntityId entityId);
 
     ListenableFuture<TimePageData<ShortEntityView>> findDevicesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+
+    ListenableFuture<TimePageData<Device>> findDeviceEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
 }

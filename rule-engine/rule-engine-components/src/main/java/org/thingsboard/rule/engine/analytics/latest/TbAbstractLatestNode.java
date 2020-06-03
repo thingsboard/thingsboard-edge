@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.analytics.latest;
 import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -102,26 +103,24 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                        TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                originatorId, new TbMsgMetaData(), TbMsgDataType.JSON,
-                                "", null, null);
-                        ctx.tellFailure(msg, e);
+                        TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                                originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
+                        ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
-                    });
+                    }, MoreExecutors.directExecutor());
                     ListenableFuture<TbMsg> msgFuture = Futures.transform(aggregateFutureWithFallback, element -> {
                         if (element.isPresent()) {
                             TbMsgMetaData metaData = new TbMsgMetaData();
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
-                            TbMsg msg = new TbMsg(UUIDs.timeBased(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                                    originatorId, metaData, TbMsgDataType.JSON,
-                                    gson.toJson(messageData), null, null);
-                            ctx.tellNext(msg, SUCCESS);
+                            TbMsg msg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                                    originatorId, metaData, gson.toJson(messageData));
+                            ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;
                         } else {
                             return null;
                         }
-                    });
+                    }, MoreExecutors.directExecutor());
                     msgFutures.add(msgFuture);
                 }));
             });

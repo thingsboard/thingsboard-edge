@@ -45,7 +45,6 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @RuleNode(
@@ -79,7 +78,7 @@ public class TbIntegrationDownlinkNode implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         if (integrationId != null) {
             ctx.getPeContext().pushToIntegration(integrationId, msg, new FutureCallback<Void>() {
                 @Override

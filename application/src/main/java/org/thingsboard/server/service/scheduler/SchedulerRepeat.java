@@ -43,6 +43,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = DailyRepeat.class, name = "DAILY"),
         @JsonSubTypes.Type(value = WeeklyRepeat.class, name = "WEEKLY"),
+        @JsonSubTypes.Type(value = MonthlyRepeat.class, name = "MONTHLY"),
+        @JsonSubTypes.Type(value = YearlyRepeat.class, name = "YEARLY"),
         @JsonSubTypes.Type(value = TimerRepeat.class, name = "TIMER")
 })
 public interface SchedulerRepeat {

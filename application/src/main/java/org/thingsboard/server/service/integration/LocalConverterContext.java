@@ -33,12 +33,11 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import org.thingsboard.common.util.DonAsynchron;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
 
 @Data
 public class LocalConverterContext implements ConverterContext {
@@ -48,12 +47,12 @@ public class LocalConverterContext implements ConverterContext {
     private final ConverterId converterId;
 
     @Override
-    public ServerAddress getServerAddress() {
-        return ctx.getDiscoveryService().getCurrentServer().getServerAddress();
+    public String getServiceId() {
+        return ctx.getServiceInfoProvider().getServiceId();
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, RpcCallback<Void> callback) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
         Event event = new Event();
         event.setTenantId(tenantId);
         event.setEntityId(converterId);

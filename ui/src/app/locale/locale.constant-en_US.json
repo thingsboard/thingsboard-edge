@@ -54,7 +54,8 @@
         "move": "Move",
         "select": "Select",
         "continue": "Continue",
-        "discard-changes": "Discard Changes"
+        "discard-changes": "Discard Changes",
+        "download": "Download"
     },
     "aggregation": {
         "aggregation": "Aggregation",
@@ -89,6 +90,15 @@
         "timeout-required": "Timeout is required.",
         "timeout-invalid": "That doesn't look like a valid timeout.",
         "enable-tls": "Enable TLS",
+        "tls-version": "TLS version",
+        "enable-proxy": "Enable proxy",
+        "proxy-host": "Proxy host",
+        "proxy-host-required": "Proxy host is required.",
+        "proxy-port": "Proxy port",
+        "proxy-port-required": "You must supply a proxy port.",
+        "proxy-port-invalid": "That doesn't look like a valid proxy port.",
+        "proxy-user": "Proxy user",
+        "proxy-password": "Proxy password",
         "send-test-mail": "Send test mail",
         "use-system-mail-settings": "Use System Mail Server Settings",
         "mail-templates": "Mail Templates",
@@ -183,7 +193,13 @@
         "clear-alarms-text": "Are you sure you want to clear { count, plural, 1 {1 alarm} other {# alarms} }?",
         "clear-alarm-title": "Clear Alarm",
         "clear-alarm-text": "Are you sure you want to clear Alarm?",
-        "alarm-status-filter": "Alarm Status Filter"
+        "alarm-status-filter": "Alarm Status Filter",
+        "max-count-load": "Maximum number of alarms to load (0 - unlimited)",
+        "max-count-load-required": "Maximum number of alarms to load is required.",
+        "max-count-load-error-min": "Minimum value is 0.",
+        "fetch-size": "Fetch size",
+        "fetch-size-required": "Fetch size is required.",
+        "fetch-size-error-min": "Minimum value is 10."
     },
     "alias": {
         "add": "Add alias",
@@ -197,8 +213,11 @@
         "filter-type-entity-name": "Entity name",
         "filter-type-entity-group-list": "Entity group list",
         "filter-type-entity-group-name": "Entity group name",
+        "filter-type-entities-by-group-name": "Entities by group name",
         "filter-type-state-entity": "Entity from dashboard state",
         "filter-type-state-entity-description": "Entity taken from dashboard state parameters",
+        "filter-type-state-entity-owner": "Owner of entity from dashboard state",
+        "filter-type-state-entity-owner-description": "Owner of entity taken from dashboard state parameters",
         "filter-type-asset-type": "Asset type",
         "filter-type-asset-type-description": "Assets of type '{{assetType}}'",
         "filter-type-asset-type-and-name-description": "Assets of type '{{assetType}}' and with name starting with '{{prefix}}'",
@@ -224,6 +243,7 @@
         "no-entity-filter-specified": "No entity filter specified",
         "root-state-entity": "Use dashboard state entity as root",
         "group-state-entity": "Use dashboard state entity as entity group",
+        "last-level-relation": "Fetch last level relation only",
         "root-entity": "Root entity",
         "state-entity-parameter-name": "State entity parameter name",
         "default-state-entity": "Default state entity",
@@ -733,6 +753,7 @@
         "configuration": "Data key configuration",
         "timeseries": "Timeseries",
         "attributes": "Attributes",
+        "entity-field": "Entity field",
         "alarm": "Alarm fields",
         "timeseries-required": "Entity timeseries are required.",
         "timeseries-or-attributes-required": "Entity timeseries/attributes are required.",
@@ -755,6 +776,7 @@
     "details": {
         "details": "Details",
         "edit-mode": "Edit mode",
+        "edit-json": "Edit JSON",
         "toggle-edit-mode": "Toggle edit mode"
     },
     "device": {
@@ -973,6 +995,7 @@
         "list-of-rulenodes": "{ count, plural, 1 {One rule node} other {List of # rule nodes} }",
         "rulenode-name-starts-with": "Rule nodes whose names start with '{{prefix}}'",
         "type-current-customer": "Current Customer",
+        "type-current-tenant": "Current Tenant",
         "search": "Search entities",
         "selected-entities": "{ count, plural, 1 {1 entity} other {# entities} } selected",
         "entity-name": "Entity name",
@@ -1129,7 +1152,25 @@
         "make-private-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' private?",
         "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others.",
         "copyId": "Copy entity group Id",
-        "idCopiedMessage": "Entity group Id has been copied to clipboard"
+        "idCopiedMessage": "Entity group Id has been copied to clipboard",
+        "entity-group-name": "Entity group name"
+    },
+    "entity-field": {
+        "created-time": "Created time",
+        "name": "Name",
+        "type": "Type",
+        "first-name": "First name",
+        "last-name": "Last name",
+        "email": "Email",
+        "title": "Title",
+        "country": "Country",
+        "state": "State",
+        "city": "City",
+        "address": "Address",
+        "address2": "Address 2",
+        "zip": "Zip",
+        "phone": "Phone",
+        "label": "Label"
     },
     "entity-view": {
         "entity-view": "Entity View",
@@ -1431,8 +1472,9 @@
         "file": "Extensions file",
         "invalid-file-error": "Invalid extension file",
         "text": "TEXT",
-        "hex": "HEX",
-        "binary": "BINARY"
+        "json": "JSON",
+        "binary": "BINARY",
+        "hex": "HEX"
     },
     "fullscreen": {
         "expand": "Expand to fullscreen",
@@ -1442,6 +1484,85 @@
     },
     "function": {
         "function": "Function"
+    },
+    "gateway": {
+        "add-entry": "Add configuration",
+        "connector-add": "Add new connector",
+        "connector-enabled": "Enable connector",
+        "connector-name": "Connector name",
+        "connector-name-required": "Connector name is required.",
+        "connector-type": "Connector type",
+        "connector-type-required": "Connector type is required.",
+        "connectors": "Connectors configuration",
+        "create-new-gateway": "Create a new gateway",
+        "create-new-gateway-text": "Are you sure you want create a new gateway with name: '{{gatewayName}}'?",
+        "delete": "Delete configuration",
+        "download-tip": "Download configuration file",
+        "gateway": "Gateway",
+        "gateway-exists": "Device with same name is already exists.",
+        "gateway-name": "Gateway name",
+        "gateway-name-required": "Gateway name is required.",
+        "gateway-saved": "Gateway configuration successfully saved.",
+        "json-parse": "Not valid JSON.",
+        "json-required": "Field cannot be empty.",
+        "no-connectors": "No connectors",
+        "no-data": "No configurations",
+        "no-gateway-found": "No gateway found.",
+        "no-gateway-matching": " '{{item}}' not found.",
+        "path-logs": "Path to log files",
+        "path-logs-required": "Path is required.",
+        "remote": "Remote configuration",
+        "remote-logging-level": "Logging level",
+        "remove-entry": "Remove configuration",
+        "save-tip": "Save configuration file",
+        "security-type": "Security type",
+        "security-types": {
+            "access-token": "Access Token",
+            "tls": "TLS"
+        },
+        "storage": "Storage",
+        "storage-max-file-records": "Maximum records in file",
+        "storage-max-files": "Maximum number of files",
+        "storage-max-files-min": "Minimum number is 1.",
+        "storage-max-files-pattern": "Number is not valid.",
+        "storage-max-files-required": "Number is required.",
+        "storage-max-records": "Maximum records in storage",
+        "storage-max-records-min": "Minimum number of records is 1.",
+        "storage-max-records-pattern": "Number is not valid.",
+        "storage-max-records-required": "Maximum records is required.",
+        "storage-pack-size": "Maximum event pack size",
+        "storage-pack-size-min": "Minimum number is 1.",
+        "storage-pack-size-pattern": "Number is not valid.",
+        "storage-pack-size-required": "Maximum event pack size is required.",
+        "storage-path": "Storage path",
+        "storage-path-required": "Storage path is required.",
+        "storage-type": "Storage type",
+        "storage-types": {
+            "file-storage": "File storage",
+            "memory-storage": "Memory storage"
+        },
+        "thingsboard": "ThingsBoard",
+        "thingsboard-host": "ThingsBoard host",
+        "thingsboard-host-required": "Host is required.",
+        "thingsboard-port": "ThingsBoard port",
+        "thingsboard-port-max": "Maximum port number is 65535.",
+        "thingsboard-port-min": "Minimum port number is 1.",
+        "thingsboard-port-pattern": "Port is not valid.",
+        "thingsboard-port-required": "Port is required.",
+        "tidy": "Tidy",
+        "tidy-tip": "Tidy config JSON",
+        "title-connectors-json": "Connector {{typeName}} configuration",
+        "tls-path-ca-certificate": "Path to CA certificate on gateway",
+        "tls-path-client-certificate": "Path to client certificate on gateway",
+        "tls-path-private-key": "Path to private key on gateway",
+        "toggle-fullscreen": "Toggle fullscreen",
+        "transformer-json-config": "Configuration JSON*",
+        "update-config": "Add/update configuration JSON",
+        "state-title": "Gateway state",
+        "show-config-tip": "Show gateway configuration",
+        "title-show-config": "Show gateway configuration",
+        "read-only": "Read only",
+        "read-write": ""
     },
     "grid": {
         "delete-item-title": "Are you sure you want to delete this item?",
@@ -1491,7 +1612,9 @@
             "server-attribute": "Server attribute",
             "timeseries": "Timeseries",
             "entity-field": "Entity field",
-            "access-token": "Access token"
+            "access-token": "Access token",
+            "isgateway": "Is Gateway",
+            "description": "Description"
         },
         "stepper-text":{
             "select-file": "Select a file",
@@ -1531,6 +1654,7 @@
         "idCopiedMessage": "Integration Id has been copied to clipboard",
         "debug-mode": "Debug mode",
         "enable-security": "Enable security",
+        "enable-security-new": "Enable security for automatic token updates",
         "headers-filter": "Headers filter",
         "header": "Header",
         "no-headers-filter": "No headers filter",
@@ -1540,6 +1664,10 @@
         "as-id-required": "AS ID is required.",
         "as-key": "AS Key",
         "as-key-required": "AS Key is required.",
+        "client-id-new": "Client Id",
+        "client-id-new-required": "Client Id (login) is required (login).",
+        "client-secret": "Client Secret",
+        "client-secret-required": "Client Secret (password) is required (password).",
         "max-time-diff-in-seconds": "Maximum time difference (seconds)",
         "max-time-diff-in-seconds-required": "Maximum time difference is required.",
         "name": "Name",
@@ -1645,6 +1773,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -1702,6 +1831,12 @@
         "kinesis-application-name": "Application name (by default equals Stream name)",
         "kinesis-initial-position-in-stream": "Initial position in stream",
         "kinesis-initial-position-in-stream-required": "Initial position in stream required",
+        "kinesis-max-records": "Max records",
+        "kinesis-max-records-required": "Max records is required",
+        "kinesis-max-records-length-range": "Max records length should be in a range from 1 to 10000",
+        "kinesis-request-timeout": "Request timeout in seconds",
+        "kinesis-request-timeout-required": "Request timeout is required",
+        "other-properties": "Other properties",
         "subscription-tags": "Subscription tags",
         "remove-subscription-tag": "Remove subscription tag",
         "add-subscription-tag": "Add subscription tag",
@@ -1718,11 +1853,11 @@
         "execute-remotely": "Execute remotely",
         "handler-configuration": "Handler Configuration",
         "handler-configuration-type": "Handler Type",
-        "so-broadcast": "Broadcast",
-        "so-keepalive-option": "Keepalive",
+        "so-broadcast": "Enable broadcast - integration will accepts broadcast address packets",
+        "so-keepalive-option": "Enable sending of keep-alive messages on connection-oriented sockets",
         "so-reuse-addr": "Bind the process to a port",
-        "tcp-no-delay": "Tcp No Delay",
-        "fail-fast": "Fail Fast",
+        "tcp-no-delay": "Forces a socket to send the data without buffering (disable Nagle's buffering algorithm)",
+        "fail-fast": "Thrown exception soon as the decoder notices the length of the frame will exceed max size",
         "strip-delimiter": "Strip Delimiter",
         "length-field-offset": "Length Field Offset",
         "length-field-offset-required": "Length Field Offset is required.",
@@ -1730,34 +1865,40 @@
         "length-field-length": "Length Field Length",
         "length-field-length-required": "Length Field Length is required.",
         "length-field-length-range": "Length Field Length should be in a range from 0 to 8.",
-        "length-adjustment": "Length Adjustment",
+        "length-adjustment": "Length Adjustment (the compensation value to add to the value of the length field)",
         "length-adjustment-required": "Length Adjustment is required.",
         "length-adjustment-range": "Length Adjustment should be in a range from 0 to 8.",
-        "byte-order": "Byte Order",
-        "initial-bytes-to-strip": "Initial Bytes To Strip",
-        "initial-bytes-to-strip-required": "Initial Bytes To Strip is required.",
-        "initial-bytes-to-strip-range": "Initial Bytes To Strip should be in a range from 0 to 8.",
+        "byte-order": "Byte Order of the length field",
+        "initial-bytes-to-strip": "Number of first bytes to strip out from the decoded frame",
+        "initial-bytes-to-strip-required": "Number of first bytes to strip out from the decoded frame is required.",
+        "initial-bytes-to-strip-range": "Number of first bytes to strip out from the decoded frame should be in a range from 0 to 8.",
         "so-backlog-option": "Max number of pending connects on the socket",
         "so-backlog-option-required": "The max number of pending connects on the socket is required.",
         "so-backlog-option-range": "The max number of pending connects on the socket should be in a range from 1 to 65535.",
-        "so-rcv-buf": "Buffer size of Sockets accepted from the ServerSocket",
-        "so-rcv-buf-required": "The Buffer size of Sockets accepted from the ServerSocket is required.",
-        "so-rcv-buf-range": "The Buffer size of Sockets accepted from the ServerSocket should be in a range from 1 to 65535.",
-        "so-snd-buf": "Buffer size of Sockets sent to the ServerSocket",
-        "so-snd-buf-required": "Buffer size of Sockets sent to the ServerSocket is required.",
-        "so-snd-buf-range": "Buffer size of Sockets sent to the ServerSocket be in a range from 1 to 65535.",
+        "so-rcv-buf": "Size of the buffer for inbound socket (in KB)",
+        "so-rcv-buf-required": "Size of the buffer for inbound socket (in KB) is required.",
+        "so-rcv-buf-range": "Size of the buffer for inbound socket (in KB) should be in a range from 1 to 65535.",
+        "so-snd-buf": "Size of the buffer for outbound socket (in KB)",
+        "so-snd-buf-required": "Size of the buffer for outbound socket (in KB) is required.",
+        "so-snd-buf-range": "Size of the buffer for outbound socket (in KB) should be in a range from 1 to 65535.",
         "charset-name": "Charset Name",
         "charset-name-required": "Charset Name is required.",
         "message-separator": "Message Separator",
         "message-separator-required": "Message Separator is required.",
         "character-sequence": "Character Sequence",
         "character-sequence-required": "Character Sequence is required.",
-        "max-frame-length": "Max Frame Length",
-        "max-frame-length-required": "Max Frame Length is required.",
-        "max-frame-length-range": "Max Frame Length should be in a range from 1 to 65535.",
+        "max-frame-length": "Max Frame Length (in bytes)",
+        "max-frame-length-required": "Max Frame Length (in bytes) is required.",
+        "max-frame-length-range": "Max Frame Length (in bytes) should be in a range from 1 to 65535.",
         "handler-type": "Handler Type",
         "message-size": "Message Size",
-        "message-size-required": "Message Size is required."
+        "message-size-required": "Message Size is required.",
+        "tcp": {
+            "system-line-separator": "System Line Separator",
+            "nul-delimiter": "Nul Delimiter",
+            "byte-order-little-endian": "Little Endian",
+            "byte-order-big-endian": "Big Endian"
+        }
     },
     "item": {
         "selected": "Selected"
@@ -1765,7 +1906,8 @@
     "js-func": {
         "no-return-error": "Function must return value!",
         "return-type-mismatch": "Function must return value of '{{type}}' type!",
-        "tidy": "Tidy"
+        "tidy": "Tidy",
+        "mini": "Mini"
     },
     "key-val": {
         "key": "Key",
@@ -1820,7 +1962,10 @@
         "password-link-sent-message": "Password reset link was successfully sent!",
         "email": "Email",
         "no-account": "Do not have an account?",
-        "create-account": "Create an account"
+        "create-account": "Create an account",
+        "login-with": "Login with {{name}}",
+        "or": "or",
+        "error": "Login error"
     },
     "signup": {
         "firstname": "First name",
@@ -2137,7 +2282,8 @@
                 "IMPERSONATE": "Impersonate",
                 "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
-                "REMOVE_FROM_GROUP": "Remove from Group"
+                "REMOVE_FROM_GROUP": "Remove from Group",
+                "SHARE_GROUP": "Share Group"
             }
         }
     },
@@ -2177,6 +2323,8 @@
         "repeats": "Repeats",
         "daily": "Daily",
         "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly",
         "timer": "Timer-based",
         "repeats-required": "Repeats is required.",
         "repeat-on": "Repeat on",
@@ -2239,7 +2387,10 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "time-interval-required": "Time interval is required",
-        "time-unit-required": "Time unit is required"
+        "time-unit-required": "Time unit is required",
+        "every-hour": "every { count, plural, 1 {hour} other {# hours} }",
+        "every-minute": "every { count, plural, 1 {minute} other {# minutes} }",
+        "every-second": "every { count, plural, 1 {second} other {# seconds} }"
     },
     "report": {
         "report-config": "Report configuration",
@@ -2293,6 +2444,11 @@
         "no-timezones-matching": "No timezones matching '{{timezone}}' were found.",
         "timezone-required": "Timezone is required."
     },
+    "queue": {
+        "select_name": "Select queue name",
+        "name": "Queue Name",
+        "name_required": "Queue name is required!"
+    },
     "tenant": {
         "tenant": "Tenant",
         "tenants": "Tenants",
@@ -2322,7 +2478,11 @@
         "selected-tenants": "{ count, plural, 1 {1 tenant} other {# tenants} } selected",
         "search": "Search tenants",
         "allow-white-labeling": "Allow White Labeling",
-        "allow-customer-white-labeling": "Allow Customer White Labeling"
+        "allow-customer-white-labeling": "Allow Customer White Labeling",
+        "isolated-tb-core": "Processing in isolated ThingsBoard Core container",
+        "isolated-tb-rule-engine": "Processing in isolated ThingsBoard Rule Engine container",
+        "isolated-tb-core-details": "Requires separate microservice(s) per isolated Tenant",
+        "isolated-tb-rule-engine-details": "Requires separate microservice(s) per isolated Tenant"
     },
     "timeinterval": {
         "seconds-interval": "{ seconds, plural, 1 {1 second} other {# seconds} }",
@@ -2420,7 +2580,9 @@
         "boolean-value": "Boolean value",
         "false": "False",
         "true": "True",
-        "long": "Long"
+        "long": "Long",
+        "json": "JSON",
+        "json-value": "JSON value"
     },
     "widget": {
         "widget-library": "Widgets Library",
@@ -2477,6 +2639,7 @@
         "export-data": "Export widget data",
         "export-to-csv": "Export data to CSV...",
         "export-to-excel": "Export data to XLS...",
+        "export-to-excel-xlsx": "Export data to XLSX...",
         "no-data": "No data to display on widget"
     },
     "widget-action": {
@@ -2756,19 +2919,23 @@
     "language": {
         "language": "Language",
         "locales": {
-            "de_DE": "German",
-            "fr_FR": "French",
-            "zh_CN": "Chinese",
+            "de_DE": "Deutsch",
+            "fr_FR": "Français",
+            "zh_CN": "简体中文",
+            "zh_TW": "繁體中文",
             "en_US": "English",
-            "it_IT": "Italian",
-            "ko_KR": "Korean",
-            "ru_RU": "Russian",
-            "es_ES": "Spanish",
-            "ja_JA": "Japanese",
-            "tr_TR": "Turkish",
-            "fa_IR": "Persian",
-            "uk_UA": "Ukrainian",
-            "cs_CZ": "Czech"            
+            "it_IT": "Italiano",
+            "ko_KR": "한글",
+            "ru_RU": "Русский",
+            "es_ES": "Español",
+            "ja_JA": "日本語",
+            "tr_TR": "Türkçe",
+            "fa_IR": "فارسي",
+            "uk_UA": "Українська",
+            "cs_CZ": "Česky",
+            "el_GR": "Ελληνικά",
+            "ro_RO": "Română",
+            "lv_LV": "Latviešu"
         }
     }
 }

@@ -68,13 +68,15 @@ public class TbSendRestApiCallReplyNode implements TbNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
+        String serviceIdStr = msg.getMetaData().getValue(config.getServiceIdMetaDataAttribute());
         String requestIdStr = msg.getMetaData().getValue(config.getRequestIdMetaDataAttribute());
         if (StringUtils.isEmpty(requestIdStr)) {
             ctx.tellFailure(msg, new RuntimeException("Request id is not present in the metadata!"));
         } else if (StringUtils.isEmpty(msg.getData())) {
             ctx.tellFailure(msg, new RuntimeException("Request body is empty!"));
         } else {
-            ctx.getRpcService().sendRestApiCallReply(UUID.fromString(requestIdStr), msg);
+            ctx.getRpcService().sendRestApiCallReply(serviceIdStr, UUID.fromString(requestIdStr), msg);
+            ctx.tellSuccess(msg);
         }
     }
 

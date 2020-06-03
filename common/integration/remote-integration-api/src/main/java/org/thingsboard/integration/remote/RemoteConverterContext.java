@@ -35,10 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.rpc.api.RpcCallback;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
@@ -48,19 +46,19 @@ import org.thingsboard.storage.EventStorage;
 @Slf4j
 public class RemoteConverterContext implements ConverterContext {
 
-    private final EventStorage<UplinkMsg> eventStorage;
+    private final EventStorage eventStorage;
     private final boolean isUplink;
     private final ObjectMapper mapper;
     private final String clientId;
     private final int port;
 
     @Override
-    public ServerAddress getServerAddress() {
-        return new ServerAddress(clientId, port, ServerType.CORE);
+    public String getServiceId() {
+        return "[" + clientId + ":" + port + "]";
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, RpcCallback<Void> callback) {
+    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
         TbEventSource source;
         if (isUplink) {
             source = TbEventSource.UPLINK_CONVERTER;

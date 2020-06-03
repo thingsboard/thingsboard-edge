@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 
@@ -54,6 +54,11 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
+    }
+
+    @Override
+    public String getName() {
+        return configuration != null ? configuration.getName() : null;
     }
 
     protected String toString(Exception e) {
@@ -80,7 +85,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                                 String outMessageType, byte[] outMessage, String metadata, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("inMessageType", inMessageType)
                 .put("in", convertToString(inMessageType, inMessage))
@@ -94,8 +99,7 @@ public abstract class AbstractDataConverter implements TBDataConverter {
         context.saveEvent(DataConstants.DEBUG_CONVERTER, node, new DebugEventCallback());
     }
 
-    private static class DebugEventCallback implements RpcCallback<Void> {
-
+    private static class DebugEventCallback implements IntegrationCallback<Void> {
         @Override
         public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {
@@ -108,4 +112,5 @@ public abstract class AbstractDataConverter implements TBDataConverter {
             log.error("Failed to save the debug event!", e);
         }
     }
+
 }

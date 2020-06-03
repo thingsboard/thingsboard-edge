@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -77,10 +78,10 @@ import software.amazon.kinesis.lifecycle.events.ShutdownRequestedInput;
 import software.amazon.kinesis.processor.ShardRecordProcessor;
 import software.amazon.kinesis.processor.ShardRecordProcessorFactory;
 import software.amazon.kinesis.retrieval.RetrievalConfig;
-import software.amazon.kinesis.retrieval.polling.PollingConfig;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -149,7 +150,14 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
         if (kinesisClientConfiguration.isUseConsumersWithEnhancedFanOut()) {
             retrievalConfig = configsBuilder.retrievalConfig();
         } else {
-            retrievalConfig = configsBuilder.retrievalConfig().retrievalSpecificConfig(new PollingConfig(streamName, kinesisClient));
+            KinesisPollingConfig config = new KinesisPollingConfig(streamName, kinesisClient);
+            if (kinesisClientConfiguration.getMaxRecords() != null) {
+                config.setMaxRecords(kinesisClientConfiguration.getMaxRecords());
+            }
+            if (kinesisClientConfiguration.getRequestTimeout() != null) {
+                config.setKinesisRequestTimeout(Duration.ofSeconds(kinesisClientConfiguration.getRequestTimeout()));
+            }
+            retrievalConfig = configsBuilder.retrievalConfig().retrievalSpecificConfig(config);
         }
 
         scheduler = new Scheduler(
@@ -173,7 +181,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
         if (StringUtils.isNoneBlank(kinesisClientConfiguration.getInitialPositionInStream())) {
             initialPositionInStream = InitialPositionInStream.valueOf(kinesisClientConfiguration.getInitialPositionInStream());
         } else {
-            initialPositionInStream =  InitialPositionInStream.LATEST;
+            initialPositionInStream = InitialPositionInStream.LATEST;
         }
         return configsBuilder
                 .leaseManagementConfig()
@@ -333,7 +341,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -377,7 +385,8 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
             }
 
             @Override
-            public void onSuccess(UserRecordResult result) {}
+            public void onSuccess(UserRecordResult result) {
+            }
 
         };
 
@@ -388,7 +397,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
                 logKinesisDownlink(context, producerKey, data);
                 ByteBuffer dataPayload = ByteBuffer.wrap(data.getData());
                 ListenableFuture<UserRecordResult> f = kinesisProducer.addUserRecord(producerKey.getStreamName(), producerKey.getPartitionKey(), dataPayload);
-                Futures.addCallback(f, producerCallback);
+                Futures.addCallback(f, producerCallback, MoreExecutors.directExecutor());
             }
         }
         return !producerKeyToDataMap.isEmpty();

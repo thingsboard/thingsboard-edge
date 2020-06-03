@@ -48,15 +48,30 @@ import org.mockito.internal.verification.Times;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
-import org.thingsboard.rule.engine.api.*;
-import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.rule.engine.api.ScriptEngine;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.relation.*;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -66,12 +81,18 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import javax.script.ScriptException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -126,8 +147,7 @@ public class TbAggLatestTelemetryNodeTest {
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[1];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[2];
             String data = (String) (invocationOnMock.getArguments())[3];
-            return new TbMsg(UUIDs.timeBased(), type, originator, metaData.copy(), data,
-                    ruleChainId, ruleNodeId);
+            return TbMsg.newMsg(type, originator, metaData.copy(), data);
         }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(EntityId.class),
                 Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
 
@@ -180,7 +200,7 @@ public class TbAggLatestTelemetryNodeTest {
         try {
             when(scriptEngine.executeAttributesFilter(Matchers.anyMap())).then(
                     (Answer<Boolean>) invocation -> {
-                        Map<String,String> attributes = (Map<String, String>) (invocation.getArguments())[0];
+                        Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
                         if (attributes.containsKey("temperature")) {
                             try {
                                 double temperature = Double.parseDouble(attributes.get("temperature"));
@@ -250,20 +270,20 @@ public class TbAggLatestTelemetryNodeTest {
 
         List<EntityRelation> parentEntityRelations = new ArrayList<>();
 
-        int parentCount = 10 + (int)(Math.random()*20);
+        int parentCount = 10 + (int) (Math.random() * 20);
 
-        for (int i=0;i<parentCount;i++) {
+        for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(UUIDs.timeBased());
             parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
 
             List<EntityRelation> childRelations = new ArrayList<>();
-            int childCount = 10 + (int)(Math.random()*20);
+            int childCount = 10 + (int) (Math.random() * 20);
 
             BigDecimal sum = BigDecimal.ZERO;
 
             int expectedDeviceCount = 0;
 
-            for (int c=0;c<childCount;c++) {
+            for (int c = 0; c < childCount; c++) {
                 EntityId childEntityId = new DeviceId(UUIDs.timeBased());
                 childRelations.add(createEntityRelation(parentEntityId, childEntityId));
 
@@ -271,16 +291,16 @@ public class TbAggLatestTelemetryNodeTest {
                 if (Math.random() > 0.5) {
                     double temperature = 17 + Math.random() * 10;
                     sum = sum.add(BigDecimal.valueOf(temperature));
-                    kvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry("temperature", ""+temperature));
+                    kvEntry = new BasicTsKvEntry(System.currentTimeMillis(), new StringDataEntry("temperature", "" + temperature));
                     if (temperature > 21) {
                         expectedDeviceCount++;
                     }
                 }
                 when(timeseriesService.findLatest(Matchers.any(), Matchers.eq(childEntityId), Matchers.eq(Collections.singletonList("temperature")))).thenReturn(
-                    Futures.immediateFuture(kvEntry != null ? Collections.singletonList(kvEntry) : Collections.emptyList())
+                        Futures.immediateFuture(kvEntry != null ? Collections.singletonList(kvEntry) : Collections.emptyList())
                 );
 
-                Map<String,String> attributes = new HashMap<>();
+                Map<String, String> attributes = new HashMap<>();
                 if (kvEntry != null) {
                     attributes.put("temperature", kvEntry.getValueAsString());
                 }
@@ -290,7 +310,7 @@ public class TbAggLatestTelemetryNodeTest {
             expectedDeviceCountMap.put(parentEntityId, expectedDeviceCount);
 
             expectedAvgTempMap.put(parentEntityId,
-                sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
+                    sum.divide(BigDecimal.valueOf(childCount), 2, BigDecimal.ROUND_HALF_UP).doubleValue());
 
             when(relationService.findByQuery(Matchers.any(), Matchers.eq(buildQuery(parentEntityId, relationsQuery)))).thenReturn(Futures.immediateFuture(childRelations));
         }
@@ -300,30 +320,30 @@ public class TbAggLatestTelemetryNodeTest {
         node.init(ctx, nodeConfiguration);
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(parentCount*2)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(parentCount * 2)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
             verifyMessage(msg);
-       }
+        }
     }
 
     @Test
     public void someFailedOtherAggregated() throws TbNodeException {
         List<EntityRelation> parentEntityRelations = new ArrayList<>();
 
-        int parentCount = 10 + (int)(Math.random()*20);
+        int parentCount = 10 + (int) (Math.random() * 20);
 
         int successAvgTempCount = 0;
 
         Map<EntityId, String> invalidValueMap = new HashMap<>();
 
-        for (int i=0;i<parentCount;i++) {
+        for (int i = 0; i < parentCount; i++) {
             EntityId parentEntityId = new AssetId(UUIDs.timeBased());
             parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
 
             List<EntityRelation> childRelations = new ArrayList<>();
-            int childCount = 10 + (int)(Math.random()*20);
+            int childCount = 10 + (int) (Math.random() * 20);
 
             BigDecimal sum = BigDecimal.ZERO;
 
@@ -334,10 +354,10 @@ public class TbAggLatestTelemetryNodeTest {
             if (!shouldFail) {
                 successAvgTempCount++;
             } else {
-                failedChildIndex = (int)Math.floor(Math.random() * childCount);
+                failedChildIndex = (int) Math.floor(Math.random() * childCount);
             }
 
-            for (int c=0;c<childCount;c++) {
+            for (int c = 0; c < childCount; c++) {
                 EntityId childEntityId = new DeviceId(UUIDs.timeBased());
                 childRelations.add(createEntityRelation(parentEntityId, childEntityId));
                 double temperature = 17 + Math.random() * 10;
@@ -346,7 +366,7 @@ public class TbAggLatestTelemetryNodeTest {
 
                 boolean setInvalidTemperature = failedChildIndex == c;
 
-                String temperatureString = (setInvalidTemperature ? "invalid" : "")+temperature;
+                String temperatureString = (setInvalidTemperature ? "invalid" : "") + temperature;
                 if (setInvalidTemperature) {
                     invalidValueMap.put(parentEntityId, temperatureString);
                 } else if (temperature > 21) {
@@ -375,7 +395,7 @@ public class TbAggLatestTelemetryNodeTest {
         int successMsgCount = parentCount + successAvgTempCount;
 
         ArgumentCaptor<TbMsg> captor = ArgumentCaptor.forClass(TbMsg.class);
-        verify(ctx, new Times(successMsgCount)).tellNext(captor.capture(), eq(SUCCESS));
+        verify(ctx, new Times(successMsgCount)).enqueueForTellNext(captor.capture(), eq(SUCCESS));
 
         List<TbMsg> messages = captor.getAllValues();
         for (TbMsg msg : messages) {
@@ -386,20 +406,19 @@ public class TbAggLatestTelemetryNodeTest {
 
         if (failedMsgCount > 0) {
             ArgumentCaptor<TbMsg> failureMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
-            ArgumentCaptor<Throwable> throwableCaptor = ArgumentCaptor.forClass(Throwable.class);
+            ArgumentCaptor<String> throwableCaptor = ArgumentCaptor.forClass(String.class);
 
-            verify(ctx, new Times(failedMsgCount)).tellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
+            verify(ctx, new Times(failedMsgCount)).enqueueForTellFailure(failureMsgCaptor.capture(), throwableCaptor.capture());
 
             List<TbMsg> failedMessages = failureMsgCaptor.getAllValues();
-            List<Throwable> throwables = throwableCaptor.getAllValues();
-            for (int i=0;i<failedMessages.size();i++) {
+            List<String> throwables = throwableCaptor.getAllValues();
+            for (int i = 0; i < failedMessages.size(); i++) {
                 TbMsg failedMsg = failedMessages.get(i);
-                Throwable t = throwables.get(i);
-                Assert.assertTrue(t instanceof IllegalArgumentException);
-                Assert.assertTrue(t.getMessage().startsWith("Aggregation failed. Unable to parse value"));
+                String t = throwables.get(i);
+                Assert.assertTrue(t.startsWith("Aggregation failed. Unable to parse value"));
                 String invalidValue = invalidValueMap.get(failedMsg.getOriginator());
                 Assert.assertNotNull(invalidValue);
-                Assert.assertTrue(t.getMessage().contains(invalidValue));
+                Assert.assertTrue(t.contains(invalidValue));
             }
         }
     }

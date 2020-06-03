@@ -69,4 +69,6 @@ public interface UserRepository extends CrudRepository<UserEntity, String> {
 
     List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
 
+    List<UserEntity> findUsersByTenantId(String tenantId, Pageable pageable);
+
 }

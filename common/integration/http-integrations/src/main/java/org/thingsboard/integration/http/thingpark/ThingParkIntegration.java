@@ -123,6 +123,11 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     }
 
     @Override
+    protected String getTypeUplink(ThingParkIntegrationMsg msg) {
+        return "Uplink";
+    }
+
+    @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, msg.getType(), msg);

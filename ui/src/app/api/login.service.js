@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.login', [])
     .name;
 
 /*@ngInject*/
-function LoginService($http, $q) {
+function LoginService($http, $q, $rootScope) {
 
     var service = {
         activate: activate,
@@ -44,7 +44,8 @@ function LoginService($http, $q) {
         resetPassword: resetPassword,
         sendResetPasswordLink: sendResetPasswordLink,
         activateByEmailCode: activateByEmailCode,
-        resendEmailActivation: resendEmailActivation
+        resendEmailActivation: resendEmailActivation,
+        loadOAuth2Clients: loadOAuth2Clients
     }
 
     return service;
@@ -102,9 +103,12 @@ function LoginService($http, $q) {
         return deferred.promise;
     }
 
-    function activate(activateToken, password) {
+    function activate(activateToken, password, sendActivationMail) {
         var deferred = $q.defer();
         var url = '/api/noauth/activate';
+        if(sendActivationMail === true || sendActivationMail === false) {
+            url += '?sendActivationMail=' + sendActivationMail;
+        }
         $http.post(url, {activateToken: activateToken, password: password}).then(function success(response) {
             deferred.resolve(response);
         }, function fail() {
@@ -140,6 +144,18 @@ function LoginService($http, $q) {
         var url = '/api/noauth/resendEmailActivation?email=' + email;
         $http.post(url, null).then(function success(response) {
             deferred.resolve(response);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function loadOAuth2Clients(){
+        var deferred = $q.defer();
+        var url = '/api/noauth/oauth2Clients';
+        $http.post(url).then(function success(response) {
+            $rootScope.oauth2Clients = response.data;
+            deferred.resolve();
         }, function fail() {
             deferred.reject();
         });

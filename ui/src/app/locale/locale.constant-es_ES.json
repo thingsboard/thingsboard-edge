@@ -87,6 +87,7 @@
         "timeout-required": "Tiempo de espera es requerido.",
         "timeout-invalid": "Eso no parece un tiempo de espera válido.",
         "enable-tls": "Habilitar TLS",
+        "tls-version": "Versión TLS",
         "send-test-mail": "Enviar correo de prueba",
         "use-system-mail-settings": "Usar La Configuración Del Servidor De Correo Del Sistema",
         "mail-templates": "Plantillas De Correo",
@@ -1040,6 +1041,22 @@
         "name-starts-with": "El nombre de la entidad de grupo comienza con",
         "entity-group-name-filter-required": "Nombre de filtro para entidad de grupo es requerido."
     },
+    "entity-field": {
+        "created-time": "Tiempo de creación",
+        "name": "Nombre",
+        "type": "Tipo",
+        "first-name": "Nombre",
+        "last-name": "Apellido",
+        "email": "Correo electrónico",
+        "title": "Título",
+        "country": "País",
+        "state": "Estado",
+        "city": "Ciudad",
+        "address": "Dirección",
+        "address2": "Dirección 2",
+        "zip": "Código postal",
+        "phone": "Teléfono"
+    },
     "entity-view": {
         "entity-view": "Vista de entidad",
         "entity-view-required": "Vista de entidad es requerido.",
@@ -1422,6 +1439,7 @@
         "idCopiedMessage": "ID de integración ha sido copiada al portapapeles",
         "debug-mode": "Modo de depuración",
         "enable-security": "Habilitar seguridad",
+        "enable-security-new": "Habilite la seguridad para las actualizaciones automáticas de tokens",
         "headers-filter": "Filtro de encabezados",
         "header": "Encabezado",
         "no-headers-filter": "Ningún filtro de encabezado",
@@ -1431,6 +1449,10 @@
         "as-id-required": "ID AS es requerida.",
         "as-key": "Clave AS",
         "as-key-required": "Clave AS es requerida.",
+        "client-id-new": "Identificación del cliente",
+        "client-id-new-required": "Se requiere ID de cliente (inicio de sesión)",
+        "client-secret": "Contraseña del cliente",
+        "client-secret-required": "Se requiere el secreto del cliente (contraseña).",
         "max-time-diff-in-seconds": "Máxima diferencia de tiempo (segundos)",
         "max-time-diff-in-seconds-required": "Diferencia máxima de tiempo es requerida.",
         "name": "Nombre",
@@ -1511,6 +1533,7 @@
         "type-ocean-connect": "OceanConnect",
         "type-sigfox": "SigFox",
         "type-thingpark": "ThingPark",
+        "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile – IoT CDP",
         "type-mqtt": "MQTT",
         "type-aws-iot": "AWS IoT",
@@ -1606,11 +1629,12 @@
         "remember-me": "Recordarme",
         "forgot-password": "¿Olvidó la contraseña?",
         "password-reset": "Restablecer contraseña",
-        "expired-password-reset-message": "",
         "new-password": "Nueva contraseña",
         "new-password-again": "Repita la nueva contraseña",
         "password-link-sent-message": "¡El enlace para el restablecer la contraseña fue enviado correctamente!",
-        "email": "Correo electrónico"
+        "email": "Correo electrónico",
+        "login-with": "Iniciar sesión con {{name}}",
+        "or": "o"
     },
     "position": {
         "top": "Superior",
@@ -2085,10 +2109,10 @@
         "export": "Exportar widget",
         "export-data": "Exportar datos del widget",
         "export-to-csv": "Exportar datos a CSV...",
-        "export-to-excel": "Exportar datos a XLS..."
+        "export-to-excel": "Exportar datos a XLS...",
+        "export-to-excel-xlsx": "Exportar datos a XLSX..."
     },
     "widget-action": {
-        "custom-pretty": "",
         "header-button": "Botón del encabezado del widget",
         "open-dashboard-state": "Navegar a nuevo estado del panel",
         "update-dashboard-state": "Actualizar estado vigente del panel",
@@ -2325,21 +2349,6 @@
         }
     },
     "language": {
-        "language": "Lenguaje",
-        "locales": {
-            "de_DE": "Alemán",
-            "fr_FR": "Francés",
-            "zh_CN": "Chino",
-            "en_US": "Inglés",
-            "it_IT": "Italiano",
-            "ko_KR": "Coreano",
-            "ru_RU": "Ruso",
-            "es_ES": "Español",
-            "ja_JA": "Japonés",
-            "tr_TR": "Turco",
-            "fa_IR": "Persa",
-            "uk_UA": "Ucraniano",
-            "cs_CZ": "Checo"
-        }
+        "language": "Lenguaje"
     }
 }

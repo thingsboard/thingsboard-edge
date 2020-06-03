@@ -44,7 +44,7 @@ export default class TbGoogleMap {
         this.tooltips = [];
         this.defaultMapType = gmDefaultMapType;
         this.defaultCenterPosition = defaultCenterPosition;
-        this.isMarketCluster = markerClusteringSetting.isMarketCluster;
+        this.isMarketCluster = markerClusteringSetting && markerClusteringSetting.isMarketCluster;
 
         function clearGlobalId() {
             if (gmGlobals.loadingGmId && gmGlobals.loadingGmId === tbMap.mapId) {
@@ -70,7 +70,7 @@ export default class TbGoogleMap {
                     angular.merge({imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'}, markerClusteringSetting));
             }
             if (initCallback) {
-                initCallback();
+                setTimeout(initCallback, 0);// eslint-disable-line
             }
 
         }
@@ -109,7 +109,7 @@ export default class TbGoogleMap {
         window[this.initMapFunctionName] = function() { // eslint-disable-line no-undef, angular/window-service
             lazyLoad.load([ // eslint-disable-line no-undef
                 { type: 'js', path: 'https://unpkg.com/@google/markerwithlabel@1.2.3/src/markerwithlabel.js' },
-                { type: 'js', path: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js' }
+                { type: 'js', path: 'https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js' }
             ]).then(
                 function success() {
                     gmGlobals.gmApiKeys[tbMap.apiKey].loaded = true;
@@ -249,17 +249,19 @@ export default class TbGoogleMap {
     /* eslint-enable no-undef */
 
     /* eslint-disable no-undef */
-    createMarker(location, dsIndex, settings, onClickListener, markerArgs) {
+    createMarker(location, dsIndex, settings, onClickListener, markerArgs, onDragendListener) {
         var marker;
         if (settings.showLabel) {
             marker = new MarkerWithLabel({
                 position: location,
                 labelContent: '<div style="color: '+ settings.labelColor +';"><b>'+settings.labelText+'</b></div>',
-                labelClass: "tb-labels"
+                labelClass: "tb-labels",
+                draggable: settings.drraggable,
             });
         } else {
             marker = new google.maps.Marker({
                 position: location,
+                draggable: settings.drraggable,
             });
         }
         var gMap = this;
@@ -281,6 +283,10 @@ export default class TbGoogleMap {
 
         if (onClickListener) {
             marker.addListener('click', onClickListener);
+        }
+
+        if (onDragendListener) {
+            marker.addListener('dragend', onDragendListener);
         }
 
         return marker;
@@ -430,8 +436,8 @@ export default class TbGoogleMap {
 
 
     /* eslint-disable no-undef */
-    fitBounds(bounds) {
-        if (this.dontFitMapBounds && this.defaultZoomLevel) {
+    fitBounds(bounds, useDefaultZoom) {
+        if ((this.dontFitMapBounds || useDefaultZoom) && this.defaultZoomLevel) {
             this.map.setZoom(this.defaultZoomLevel);
             this.map.setCenter(bounds.getCenter());
         } else {
@@ -489,6 +495,10 @@ export default class TbGoogleMap {
 
     getTooltips() {
         return this.tooltips;
+    }
+
+    getCenter() {
+        return this.map.getCenter().toJSON();
     }
 
 }

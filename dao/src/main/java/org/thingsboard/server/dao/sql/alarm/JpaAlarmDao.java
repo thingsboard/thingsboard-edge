@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.alarm;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -90,11 +91,9 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     public ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type) {
         return service.submit(() -> {
             List<AlarmEntity> latest = alarmRepository.findLatestByOriginatorAndType(
-                    UUIDConverter.fromTimeUUID(tenantId.getId()),
                     UUIDConverter.fromTimeUUID(originator.getId()),
-                    originator.getEntityType(),
                     type,
-                    new PageRequest(0, 1));
+                    PageRequest.of(0, 1));
             return latest.isEmpty() ? null : DaoUtil.getData(latest.get(0));
         });
     }
@@ -123,9 +122,9 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
             for (EntityRelation relation : input) {
                 alarmFutures.add(Futures.transform(
                         findAlarmByIdAsync(tenantId, relation.getTo().getId()),
-                        AlarmInfo::new));
+                        AlarmInfo::new, MoreExecutors.directExecutor()));
             }
             return Futures.successfulAsList(alarmFutures);
-        });
+        }, MoreExecutors.directExecutor());
     }
 }

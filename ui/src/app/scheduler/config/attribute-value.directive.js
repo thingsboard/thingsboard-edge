@@ -31,12 +31,15 @@
 /* eslint-disable import/no-unresolved, import/default */
 
 import attributeValueTemplate from './attribute-value.tpl.html';
+import attributeDialogEditJsonTemplate from "../../entity/attribute/attribute-dialog-edit-json.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
 
+import AttributeDialogEditJsonController from "../../entity/attribute/attribute-dialog-edit-json.controller";
+
 
 /*@ngInject*/
-export default function AttributeValueDirective($compile, $templateCache, types) {
+export default function AttributeValueDirective($compile, $templateCache, types, $mdDialog) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
         var template = $templateCache.get(attributeValueTemplate);
@@ -65,6 +68,8 @@ export default function AttributeValueDirective($compile, $templateCache, types)
                 scope.model.value = false;
             } else if (scope.valueType === types.valueType.string) {
                 scope.model.value = '';
+            } else if (scope.valueType === types.valueType.json) {
+                scope.model.value = {};
             } else {
                 scope.model.value = null;
             }
@@ -75,7 +80,9 @@ export default function AttributeValueDirective($compile, $templateCache, types)
             scope.model = {
                 value: attributeValue
             };
-            if (scope.model.value === true || scope.model.value === false) {
+            if (angular.isObject(scope.model.value)) {
+                scope.valueType = types.valueType.json;
+            } else if (scope.model.value === true || scope.model.value === false) {
                 scope.valueType = types.valueType.boolean;
             } else if (angular.isNumber(scope.model.value)) {
                 if (scope.model.value.toString().indexOf('.') == -1) {
@@ -87,6 +94,30 @@ export default function AttributeValueDirective($compile, $templateCache, types)
                 scope.valueType = types.valueType.string;
             }
         };
+
+        scope.addJSON = ($event) => {
+            showJsonDialog($event, scope.model.value, scope.disabled).then((response) => {
+                scope.model.value = response;
+            })
+        };
+
+        function showJsonDialog($event, jsonValue, readOnly) {
+            if ($event) {
+                $event.stopPropagation();
+            }
+            return $mdDialog.show({
+                controller: AttributeDialogEditJsonController,
+                controllerAs: 'vm',
+                templateUrl: attributeDialogEditJsonTemplate,
+                locals: {
+                    jsonValue: jsonValue,
+                    readOnly: readOnly
+                },
+                targetEvent: $event,
+                fullscreen: true,
+                multiple: true,
+            });
+        }
 
         $compile(element.contents())(scope);
     };

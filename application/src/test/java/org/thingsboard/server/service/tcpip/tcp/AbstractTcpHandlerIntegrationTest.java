@@ -67,7 +67,6 @@ public abstract class AbstractTcpHandlerIntegrationTest extends AbstractTcpipInt
         configuration.put("soRcvBuf", SO_RCV_BUF);
         configuration.put("soSndBuf", SO_SND_BUF);
         configuration.put("soKeepaliveOption", SO_KEEPALIVE);
-        configuration.put("soReuseAddr", SO_REUSE_ADDR);
         configuration.put("tcpNoDelay", TCP_NO_DELAY);
         configuration.put("charsetName", CHARSET_NAME);
         configuration.set("metadata", mapper.createObjectNode());

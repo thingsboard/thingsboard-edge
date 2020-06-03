@@ -38,6 +38,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
+import org.thingsboard.server.service.install.DatabaseTsUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
@@ -60,6 +62,12 @@ public class ThingsboardInstallService {
     private TsDatabaseSchemaService tsDatabaseSchemaService;
 
     @Autowired
+    private DatabaseEntitiesUpgradeService databaseEntitiesUpgradeService;
+
+    @Autowired(required = false)
+    private DatabaseTsUpgradeService databaseTsUpgradeService;
+
+    @Autowired
     private ComponentDiscoveryService componentDiscoveryService;
 
     @Autowired
@@ -74,7 +82,7 @@ public class ThingsboardInstallService {
                 log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
 
                 switch (upgradeFromVersion) {
-                    case "2.5.0":
+                    case "1.0.0":
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");

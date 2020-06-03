@@ -33,7 +33,7 @@ package org.thingsboard.storage;
 import com.google.protobuf.AbstractMessageLite;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -64,7 +64,7 @@ class EventStorageWriter<T extends AbstractMessageLite> {
     }
 
     // TODO: remove RpcCallback
-    void write(T msg, RpcCallback<Void> callback) {
+    void write(T msg, IntegrationCallback<Void> callback) {
         newRecordAfterFlush = true;
         if (isFileFull(currentFileRecordsCount)) {
             if (log.isDebugEnabled()) {

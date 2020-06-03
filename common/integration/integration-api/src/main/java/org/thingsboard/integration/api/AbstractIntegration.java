@@ -43,10 +43,10 @@ import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
@@ -138,10 +138,39 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void processUplinkData(IntegrationContext context, UplinkData data) {
+        if (data.isAsset()) {
+            processAssetUplinkData(context, data);
+        } else {
+            processDeviceUplinkData(context, data);
+        }
+    }
+
+    private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName()).setDeviceType(data.getDeviceType());
-        if(data.getCustomerName() != null) {
+        if (data.getCustomerName() != null) {
             builder.setCustomerName(data.getCustomerName());
+        }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
+        }
+        if (data.getTelemetry() != null) {
+            builder.setPostTelemetryMsg(data.getTelemetry());
+        }
+        if (data.getAttributesUpdate() != null) {
+            builder.setPostAttributesMsg(data.getAttributesUpdate());
+        }
+        context.processUplinkData(builder.build(), null);
+    }
+
+    private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
+        AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
+                .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
+        if (data.getCustomerName() != null) {
+            builder.setCustomerName(data.getCustomerName());
+        }
+        if (data.getGroupName() != null) {
+            builder.setGroupName(data.getGroupName());
         }
         if (data.getTelemetry() != null) {
             builder.setPostTelemetryMsg(data.getTelemetry());
@@ -173,7 +202,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
         ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServerAddress().toString())
+                .put("server", context.getServiceId())
                 .put("type", type)
                 .put("messageType", messageType)
                 .put("message", message)
@@ -256,7 +285,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    private static class DebugEventCallback implements RpcCallback<Void> {
+    private static class DebugEventCallback implements IntegrationCallback<Void> {
         @Override
         public void onSuccess(Void msg) {
             if (log.isDebugEnabled()) {
@@ -269,5 +298,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             log.error("Failed to save the debug event!", e);
         }
     }
+
 
 }

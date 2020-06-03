@@ -58,4 +58,9 @@ public class TMobileIotCdpIntegration extends AbstractHttpIntegration<HttpIntegr
         return fromStatus(HttpStatus.OK);
     }
 
+    @Override
+    protected String getTypeUplink(HttpIntegrationMsg msg) {
+        return "Uplink";
+    }
+
 }

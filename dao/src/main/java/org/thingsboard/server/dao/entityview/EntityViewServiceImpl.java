@@ -34,6 +34,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -198,7 +199,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                 }
             }
             return Futures.successfulAsList(futures);
-        });
+        }, MoreExecutors.directExecutor());
 
         entityViews = Futures.transform(entityViews, new Function<List<EntityView>, List<EntityView>>() {
             @Nullable
@@ -206,7 +207,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             public List<EntityView> apply(@Nullable List<EntityView> entityViewList) {
                 return entityViewList == null ? Collections.emptyList() : entityViewList.stream().filter(entityView -> query.getEntityViewTypes().contains(entityView.getType())).collect(Collectors.toList());
             }
-        });
+        }, MoreExecutors.directExecutor());
 
         return entityViews;
     }
@@ -245,7 +246,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                         public void onFailure(Throwable t) {
                             log.error("Error while finding entity views by tenantId and entityId", t);
                         }
-                    });
+                    }, MoreExecutors.directExecutor());
             return entityViewsFuture;
         }
     }
@@ -286,7 +287,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                 entityViewTypes -> {
                     entityViewTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return entityViewTypes;
-                });
+                }, MoreExecutors.directExecutor());
     }
 
     @Override
@@ -309,6 +310,16 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
                 (entityId) -> new EntityViewId(entityId.getId()),
                 (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds),
                 new EntityViewViewFunction());
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<EntityView>> findEntityViewEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findEntityViewEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new EntityViewId(entityId.getId()),
+                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds));
     }
 
     class EntityViewViewFunction implements BiFunction<EntityView, List<EntityField>, ShortEntityView> {

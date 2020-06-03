@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -61,6 +62,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@TbCoreComponent
 @RequestMapping("/api")
 public class IntegrationController extends BaseController {
 
@@ -105,15 +107,12 @@ public class IntegrationController extends BaseController {
             integration.setTenantId(getCurrentUser().getTenantId());
             boolean created = integration.getId() == null;
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, operation,
-                    integration.getId(), integration);
+            checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
             platformIntegrationService.validateIntegrationConfiguration(integration);
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            actorService.onEntityStateChange(result.getTenantId(), result.getId(),
+            tbClusterService.onEntityStateChange(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
             return result;
@@ -153,7 +152,7 @@ public class IntegrationController extends BaseController {
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            actorService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            tbClusterService.onEntityStateChange(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(integrationId, integration,
                     null,

@@ -33,19 +33,17 @@ package org.thingsboard.integration.remote;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.rpc.api.RpcCallback;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbEventProto;
@@ -62,7 +60,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final String REMOTE_INTEGRATION_CACHE = "remoteIntegration";
 
-    protected final EventStorage<UplinkMsg> eventStorage;
+    protected final EventStorage eventStorage;
     protected final Integration configuration;
     protected final String clientId;
     protected final int port;
@@ -70,7 +68,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext downlinkConverterContext;
     protected final ScheduledExecutorService scheduledExecutorService;
 
-    public RemoteIntegrationContext(EventStorage<UplinkMsg> eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port) {
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
@@ -81,32 +79,37 @@ public class RemoteIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public ServerAddress getServerAddress() {
-        return new ServerAddress(clientId, port, ServerType.CORE);
+    public String getServiceId() {
+        return "[" + clientId + ":" + port + "]";
     }
 
     @Override
-    public void processUplinkData(DeviceUplinkDataProto msg, RpcCallback<Void> callback) {
+    public void processUplinkData(DeviceUplinkDataProto msg, IntegrationCallback<Void> callback) {
         eventStorage.write(UplinkMsg.newBuilder().addDeviceData(msg).build(), callback);
     }
 
     @Override
-    public void createEntityView(EntityViewDataProto msg, RpcCallback<Void> callback) {
+    public void processUplinkData(AssetUplinkDataProto msg, IntegrationCallback<Void> callback) {
+        eventStorage.write(UplinkMsg.newBuilder().addAssetData(msg).build(), callback);
+    }
+
+    @Override
+    public void createEntityView(EntityViewDataProto msg, IntegrationCallback<Void> callback) {
         eventStorage.write(UplinkMsg.newBuilder().addEntityViewData(msg).build(), callback);
     }
 
     @Override
-    public void processCustomMsg(TbMsg msg, RpcCallback<Void> callback) {
-        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(ByteString.copyFrom(TbMsg.toBytes(msg))).build(), callback);
+    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
+        eventStorage.write(UplinkMsg.newBuilder().addTbMsg(TbMsg.toByteString(msg)).build(), callback);
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, RpcCallback<Void> callback) {
+    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         saveEvent(TbEventSource.INTEGRATION, "", type, uid, body, callback);
     }
 
     @Override
-    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, RpcCallback<Void> callback) {
+    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         saveEvent(TbEventSource.DEVICE, deviceName, type, uid, body, callback);
     }
 
@@ -140,7 +143,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
         return false;
     }
 
-    private void saveEvent(TbEventSource tbEventSource, String deviceName, String type, String uid, JsonNode body, RpcCallback<Void> callback) {
+    private void saveEvent(TbEventSource tbEventSource, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
         String eventData = "";
         try {
             eventData = mapper.writeValueAsString(body);

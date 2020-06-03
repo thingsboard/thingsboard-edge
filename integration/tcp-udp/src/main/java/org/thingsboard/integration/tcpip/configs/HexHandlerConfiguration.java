@@ -31,6 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
+import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
 @Data
@@ -40,6 +41,6 @@ public class HexHandlerConfiguration implements HandlerConfiguration {
 
     @Override
     public String getHandlerType() {
-        return "HEX";
+        return AbstractIpIntegration.HEX_PAYLOAD;
     }
 }

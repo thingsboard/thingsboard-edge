@@ -30,9 +30,8 @@
  */
 package org.thingsboard.rule.engine.edge;
 
-import com.google.common.util.concurrent.FutureCallback;
 import lombok.Data;
-import org.thingsboard.rpc.api.RpcCallback;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -41,7 +40,7 @@ import javax.annotation.Nullable;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Data
-class PushToCloudNodeCallback implements RpcCallback<Void> {
+class PushToCloudNodeCallback implements IntegrationCallback<Void> {
     private final TbContext ctx;
     private final TbMsg msg;
 

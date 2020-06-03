@@ -31,11 +31,9 @@
 package org.thingsboard.server.service.scheduler;
 
 import lombok.Data;
-import org.springframework.util.StringUtils;
 
 import java.util.Calendar;
 import java.util.List;
-import java.util.TimeZone;
 
 /**
  * Created by ashvayka on 28.11.17.
@@ -55,13 +53,7 @@ public class WeeklyRepeat implements SchedulerRepeat {
 
     @Override
     public long getNext(long startTime, long ts, String timezone) {
-        TimeZone tz;
-        if (StringUtils.isEmpty(timezone)) {
-            tz = TimeZone.getTimeZone("UTC");
-        } else {
-            tz = TimeZone.getTimeZone(timezone);
-        }
-        Calendar calendar = Calendar.getInstance(tz);
+        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
 
         for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
             if (tmp > ts) {

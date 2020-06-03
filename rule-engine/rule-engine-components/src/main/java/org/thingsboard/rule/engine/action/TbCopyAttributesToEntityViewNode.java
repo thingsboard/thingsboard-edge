@@ -86,6 +86,7 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (DataConstants.ATTRIBUTES_UPDATED.equals(msg.getType()) ||
                 DataConstants.ATTRIBUTES_DELETED.equals(msg.getType()) ||
+                DataConstants.ACTIVITY_EVENT.equals(msg.getType()) ||
                 SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msg.getType())) {
             if (!msg.getMetaData().getData().isEmpty()) {
                 long now = System.currentTimeMillis();
@@ -102,6 +103,7 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
                                 long endTime = entityView.getEndTimeMs();
                                 if ((endTime != 0 && endTime > now && startTime < now) || (endTime == 0 && startTime < now)) {
                                     if (DataConstants.ATTRIBUTES_UPDATED.equals(msg.getType()) ||
+                                            DataConstants.ACTIVITY_EVENT.equals(msg.getType()) ||
                                             SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msg.getType())) {
                                         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(msg.getData()));
                                         List<AttributeKvEntry> filteredAttributes =
@@ -130,13 +132,14 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
                                         }
                                         List<String> filteredAttributes =
                                                 attributes.stream().filter(attr -> attributeContainsInEntityView(scope, attr, entityView)).collect(Collectors.toList());
-                                        if (filteredAttributes != null && !filteredAttributes.isEmpty()) {
+                                        if (!filteredAttributes.isEmpty()) {
                                             ctx.getAttributesService().removeAll(ctx.getTenantId(), entityView.getId(), scope, filteredAttributes);
                                             transformAndTellNext(ctx, msg, entityView);
                                         }
                                     }
                                 }
                             }
+                            ctx.ack(msg);
                         },
                         t -> ctx.tellFailure(msg, t));
             } else {
@@ -148,8 +151,7 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
     }
 
     private void transformAndTellNext(TbContext ctx, TbMsg msg, EntityView entityView) {
-        TbMsg updMsg = ctx.transformMsg(msg, msg.getType(), entityView.getId(), msg.getMetaData(), msg.getData());
-        ctx.tellNext(updMsg, SUCCESS);
+        ctx.enqueueForTellNext(ctx.newMsg(msg.getType(), entityView.getId(), msg.getMetaData(), msg.getData()), SUCCESS);
     }
 
     private boolean attributeContainsInEntityView(String scope, String attrKey, EntityView entityView) {

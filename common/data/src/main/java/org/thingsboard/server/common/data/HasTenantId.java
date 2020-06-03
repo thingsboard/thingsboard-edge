@@ -36,4 +36,6 @@ public interface HasTenantId {
 
     TenantId getTenantId();
 
+    void setTenantId(TenantId tenantId);
+
 }

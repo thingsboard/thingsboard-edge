@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +177,7 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public Optional<GroupPermission> findPublicGroupPermissionByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findPublicGroupPermissionByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         List<GroupPermission> groupPermissions = groupPermissionDao.findGroupPermissionsByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), new TimePageLink(Integer.MAX_VALUE));
-        List<GroupPermission> permissions = groupPermissions.stream().filter((groupPermission -> groupPermission.isPublic())).collect(Collectors.toList());
+        List<GroupPermission> permissions = groupPermissions.stream().filter((GroupPermission::isPublic)).collect(Collectors.toList());
         if (permissions.isEmpty()) {
             return Optional.empty();
         } else {
@@ -293,12 +294,12 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                     return Futures.transform(ownerName, ownerName1 -> {
                         groupPermissionInfo.setEntityGroupOwnerName(ownerName1);
                         return groupPermissionInfo;
-                    });
-                });
+                    }, MoreExecutors.directExecutor());
+                }, MoreExecutors.directExecutor());
             } else {
                 return Futures.immediateFuture(groupPermissionInfo);
             }
-        });
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<GroupPermissionInfo> fetchEntityGroupPermissionInfoAsync(TenantId tenantId, GroupPermission groupPermission) {
@@ -315,9 +316,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 return Futures.transform(ownerName, ownerName1 -> {
                     groupPermissionInfo.setUserGroupOwnerName(ownerName1);
                     return groupPermissionInfo;
-                });
-            });
-        });
+                }, MoreExecutors.directExecutor());
+            }, MoreExecutors.directExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     private DataValidator<GroupPermission> groupPermissionValidator =

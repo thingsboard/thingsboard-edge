@@ -72,7 +72,7 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
         }
         if (configuration.isDebugMode()) {
             try {
-                persistDebug(context, "Uplink", getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
+                persistDebug(context,  getTypeUplink(msg) , getUplinkContentType(), mapper.writeValueAsString(msg.getMsg()), status, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -84,5 +84,6 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg> exte
     protected static ResponseEntity fromStatus(HttpStatus status) {
         return new ResponseEntity<>(status);
     }
+    protected abstract String getTypeUplink(T msg) ;
 
 }

@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 @Slf4j
 public abstract class SqlAbstractDatabaseSchemaService implements DatabaseSchemaService {
@@ -47,13 +48,13 @@ public abstract class SqlAbstractDatabaseSchemaService implements DatabaseSchema
     private static final String SQL_DIR = "sql";
 
     @Value("${spring.datasource.url}")
-    private String dbUrl;
+    protected String dbUrl;
 
     @Value("${spring.datasource.username}")
-    private String dbUserName;
+    protected String dbUserName;
 
     @Value("${spring.datasource.password}")
-    private String dbPassword;
+    protected String dbPassword;
 
     @Autowired
     private InstallScripts installScripts;
@@ -85,6 +86,16 @@ public abstract class SqlAbstractDatabaseSchemaService implements DatabaseSchema
                 String sql = new String(Files.readAllBytes(schemaIdxFile), Charset.forName("UTF-8"));
                 conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to load initial thingsboard database schema
             }
+        }
+    }
+
+    protected void executeQuery(String query) {
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+            conn.createStatement().execute(query); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+            log.info("Successfully executed query: {}", query);
+            Thread.sleep(5000);
+        } catch (InterruptedException | SQLException e) {
+            log.info("Failed to execute query: {} due to: {}", query, e.getMessage());
         }
     }
 

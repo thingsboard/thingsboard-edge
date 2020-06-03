@@ -50,6 +50,7 @@ import java.util.function.Supplier;
 @Slf4j
 public abstract class SearchTextBasedWithAdditionalInfo<I extends UUIDBased> extends SearchTextBased<I> implements HasAdditionalInfo {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
     private transient JsonNode additionalInfo;
     @JsonIgnore
     private byte[] additionalInfoBytes;
@@ -112,7 +113,7 @@ public abstract class SearchTextBasedWithAdditionalInfo<I extends UUIDBased> ext
     public static void setJson(JsonNode json, Consumer<JsonNode> jsonConsumer, Consumer<byte[]> bytesConsumer) {
         jsonConsumer.accept(json);
         try {
-            bytesConsumer.accept(new ObjectMapper().writeValueAsBytes(json));
+            bytesConsumer.accept(mapper.writeValueAsBytes(json));
         } catch (JsonProcessingException e) {
             log.warn("Can't serialize json data: ", e);
         }

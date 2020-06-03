@@ -36,6 +36,7 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,11 +59,17 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.util.TenantRateLimitException;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.ValidationCallback;
 import org.thingsboard.server.service.security.ValidationResult;
 import org.thingsboard.server.service.security.ValidationResultCode;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.subscription.TbAttributeSubscription;
+import org.thingsboard.server.service.subscription.TbAttributeSubscriptionScope;
+import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
+import org.thingsboard.server.service.subscription.TbTimeseriesSubscription;
 import org.thingsboard.server.service.telemetry.cmd.AttributesSubscriptionCmd;
 import org.thingsboard.server.service.telemetry.cmd.GetHistoryCmd;
 import org.thingsboard.server.service.telemetry.cmd.SubscriptionCmd;
@@ -72,7 +79,6 @@ import org.thingsboard.server.service.telemetry.cmd.TimeseriesSubscriptionCmd;
 import org.thingsboard.server.service.telemetry.exception.UnauthorizedException;
 import org.thingsboard.server.service.telemetry.exception.ValidationException;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionErrorCode;
-import org.thingsboard.server.service.telemetry.sub.SubscriptionState;
 import org.thingsboard.server.service.telemetry.sub.SubscriptionUpdate;
 
 import javax.annotation.Nullable;
@@ -98,6 +104,7 @@ import java.util.stream.Collectors;
  * Created by ashvayka on 27.03.18.
  */
 @Service
+@TbCoreComponent
 @Slf4j
 public class DefaultTelemetryWebSocketService implements TelemetryWebSocketService {
 
@@ -113,7 +120,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     private final ConcurrentMap<String, WsSessionMetaData> wsSessionsMap = new ConcurrentHashMap<>();
 
     @Autowired
-    private TelemetrySubscriptionService subscriptionManager;
+    private TbLocalSubscriptionService subService;
 
     @Autowired
     private TelemetryWebSocketMsgEndpoint msgEndpoint;
@@ -126,6 +133,9 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
 
     @Autowired
     private TimeseriesService tsService;
+
+    @Autowired
+    private TbServiceInfoProvider serviceInfoProvider;
 
     @Value("${server.ws.limits.max_subscriptions_per_tenant:0}")
     private int maxSubscriptionsPerTenant;
@@ -142,9 +152,11 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     private ConcurrentMap<UserId, Set<String>> publicUserSubscriptionsMap = new ConcurrentHashMap<>();
 
     private ExecutorService executor;
+    private String serviceId;
 
     @PostConstruct
     public void initExecutor() {
+        serviceId = serviceInfoProvider.getServiceId();
         executor = Executors.newWorkStealingPool(50);
     }
 
@@ -168,7 +180,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 break;
             case CLOSED:
                 wsSessionsMap.remove(sessionId);
-                subscriptionManager.cleanupLocalWsSessionSubscriptions(sessionRef, sessionId);
+                subService.cancelAllSessionSubscriptions(sessionId);
                 processSessionClose(sessionRef);
                 break;
         }
@@ -349,8 +361,18 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 keys.forEach(key -> subState.put(key, 0L));
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), sessionRef.getSecurityCtx().getTenantId(), entityId, TelemetryFeature.ATTRIBUTES, false, subState, cmd.getScope());
-                subscriptionManager.addLocalWsSubscription(sessionId, entityId, sub);
+                TbAttributeSubscriptionScope scope = StringUtils.isEmpty(cmd.getScope()) ? TbAttributeSubscriptionScope.ANY_SCOPE : TbAttributeSubscriptionScope.valueOf(cmd.getScope());
+
+                TbAttributeSubscription sub = TbAttributeSubscription.builder()
+                        .serviceId(serviceId)
+                        .sessionId(sessionId)
+                        .subscriptionId(cmd.getCmdId())
+                        .tenantId(sessionRef.getSecurityCtx().getTenantId())
+                        .entityId(entityId)
+                        .allKeys(false)
+                        .keyStates(subState)
+                        .scope(scope).build();
+                subService.addSubscription(sub);
             }
 
             @Override
@@ -437,8 +459,18 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 Map<String, Long> subState = new HashMap<>(attributesData.size());
                 attributesData.forEach(v -> subState.put(v.getKey(), v.getTs()));
 
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), sessionRef.getSecurityCtx().getTenantId(), entityId, TelemetryFeature.ATTRIBUTES, true, subState, cmd.getScope());
-                subscriptionManager.addLocalWsSubscription(sessionId, entityId, sub);
+                TbAttributeSubscriptionScope scope = StringUtils.isEmpty(cmd.getScope()) ? TbAttributeSubscriptionScope.ANY_SCOPE : TbAttributeSubscriptionScope.valueOf(cmd.getScope());
+
+                TbAttributeSubscription sub = TbAttributeSubscription.builder()
+                        .serviceId(serviceId)
+                        .sessionId(sessionId)
+                        .subscriptionId(cmd.getCmdId())
+                        .tenantId(sessionRef.getSecurityCtx().getTenantId())
+                        .entityId(entityId)
+                        .allKeys(true)
+                        .keyStates(subState)
+                        .scope(scope).build();
+                subService.addSubscription(sub);
             }
 
             @Override
@@ -510,8 +542,16 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 sendWsMsg(sessionRef, new SubscriptionUpdate(cmd.getCmdId(), data));
                 Map<String, Long> subState = new HashMap<>(data.size());
                 data.forEach(v -> subState.put(v.getKey(), v.getTs()));
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), sessionRef.getSecurityCtx().getTenantId(), entityId, TelemetryFeature.TIMESERIES, true, subState, cmd.getScope());
-                subscriptionManager.addLocalWsSubscription(sessionId, entityId, sub);
+
+                TbTimeseriesSubscription sub = TbTimeseriesSubscription.builder()
+                        .serviceId(serviceId)
+                        .sessionId(sessionId)
+                        .subscriptionId(cmd.getCmdId())
+                        .tenantId(sessionRef.getSecurityCtx().getTenantId())
+                        .entityId(entityId)
+                        .allKeys(true)
+                        .keyStates(subState).build();
+                subService.addSubscription(sub);
             }
 
             @Override
@@ -537,12 +577,19 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
             @Override
             public void onSuccess(List<TsKvEntry> data) {
                 sendWsMsg(sessionRef, new SubscriptionUpdate(cmd.getCmdId(), data));
-
                 Map<String, Long> subState = new HashMap<>(keys.size());
                 keys.forEach(key -> subState.put(key, startTs));
                 data.forEach(v -> subState.put(v.getKey(), v.getTs()));
-                SubscriptionState sub = new SubscriptionState(sessionId, cmd.getCmdId(), sessionRef.getSecurityCtx().getTenantId(), entityId, TelemetryFeature.TIMESERIES, false, subState, cmd.getScope());
-                subscriptionManager.addLocalWsSubscription(sessionId, entityId, sub);
+
+                TbTimeseriesSubscription sub = TbTimeseriesSubscription.builder()
+                        .serviceId(serviceId)
+                        .sessionId(sessionId)
+                        .subscriptionId(cmd.getCmdId())
+                        .tenantId(sessionRef.getSecurityCtx().getTenantId())
+                        .entityId(entityId)
+                        .allKeys(false)
+                        .keyStates(subState).build();
+                subService.addSubscription(sub);
             }
 
             @Override
@@ -589,9 +636,9 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
 
     private void unsubscribe(TelemetryWebSocketSessionRef sessionRef, SubscriptionCmd cmd, String sessionId) {
         if (cmd.getEntityId() == null || cmd.getEntityId().isEmpty()) {
-            subscriptionManager.cleanupLocalWsSessionSubscriptions(sessionRef, sessionId);
+            subService.cancelAllSessionSubscriptions(sessionId);
         } else {
-            subscriptionManager.removeSubscription(sessionId, cmd.getCmdId());
+            subService.cancelSubscription(sessionId, cmd.getCmdId());
         }
     }
 
@@ -661,7 +708,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 }
 
                 ListenableFuture<List<AttributeKvEntry>> future = mergeAllAttributesFutures(futures);
-                Futures.addCallback(future, callback);
+                Futures.addCallback(future, callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -675,7 +722,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         return new FutureCallback<ValidationResult>() {
             @Override
             public void onSuccess(@Nullable ValidationResult result) {
-                Futures.addCallback(attributesService.find(tenantId, entityId, scope, keys), callback);
+                Futures.addCallback(attributesService.find(tenantId, entityId, scope, keys), callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -695,7 +742,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
                 }
 
                 ListenableFuture<List<AttributeKvEntry>> future = mergeAllAttributesFutures(futures);
-                Futures.addCallback(future, callback);
+                Futures.addCallback(future, callback, MoreExecutors.directExecutor());
             }
 
             @Override
@@ -709,7 +756,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         return new FutureCallback<ValidationResult>() {
             @Override
             public void onSuccess(@Nullable ValidationResult result) {
-                Futures.addCallback(attributesService.findAll(tenantId, entityId, scope), callback);
+                Futures.addCallback(attributesService.findAll(tenantId, entityId, scope), callback, MoreExecutors.directExecutor());
             }
 
             @Override

@@ -63,8 +63,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.cluster.ServerAddress;
-import org.thingsboard.server.common.msg.cluster.ServerType;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
@@ -72,10 +71,10 @@ import org.thingsboard.server.gen.integration.IntegrationStatisticsProto;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
-import org.thingsboard.server.gen.transport.KeyValueProto;
-import org.thingsboard.server.gen.transport.KeyValueType;
-import org.thingsboard.server.gen.transport.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.TsKvListProto;
+import org.thingsboard.server.gen.transport.TransportProtos.KeyValueProto;
+import org.thingsboard.server.gen.transport.TransportProtos.KeyValueType;
+import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TsKvListProto;
 import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.PostConstruct;
@@ -152,8 +151,11 @@ public class RemoteIntegrationManagerService {
     private volatile boolean initialized;
     private volatile boolean updatingIntegration;
 
+    private String serviceId;
+
     @PostConstruct
     public void init() {
+        serviceId = "[" + clientId + ":" + port + "]";
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
@@ -206,10 +208,11 @@ public class RemoteIntegrationManagerService {
             integration = createPlatformIntegration(integrationConfigurationProto.getType(), configuration.getConfiguration());
             integration.validateConfiguration(configuration, allowLocalNetworkHosts);
 
-            if (uplinkDataConverter == null) {
+            if (uplinkDataConverter == null || !uplinkDataConverter.getName().equals(integrationConfigurationProto.getUplinkConverter().getName())) {
                 uplinkDataConverter = createUplinkConverter(integrationConfigurationProto.getUplinkConverter());
             }
-            if (downlinkDataConverter == null) {
+
+            if (downlinkDataConverter == null || !downlinkDataConverter.getName().equals(integrationConfigurationProto.getDownlinkConverter().getName())) {
                 downlinkDataConverter = createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter());
             }
 
@@ -255,7 +258,8 @@ public class RemoteIntegrationManagerService {
     private void onDownlink(DeviceDownlinkDataProto deviceDownlinkDataProto) {
         DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
                 integration.getConfiguration().getTenantId(),
-                integration.getConfiguration().getId(), TbMsg.fromBytes(deviceDownlinkDataProto.getTbMsg().toByteArray()));
+                integration.getConfiguration().getId(),
+                TbMsg.fromBytes(deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY));
 
         integration.onDownlinkMsg(downlinkMsg);
     }
@@ -341,6 +345,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.http.oc.OceanConnectIntegration");
             case THINGPARK:
                 return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegration");
+            case TPE:
+                return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise");
             case TMOBILE_IOT_CDP:
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
             case MQTT:
@@ -393,11 +399,11 @@ public class RemoteIntegrationManagerService {
     }
 
     private void persistStatistics() {
-        ServerAddress serverAddress = new ServerAddress(clientId, port, ServerType.CORE);
+
         long ts = System.currentTimeMillis();
         IntegrationStatistics statistics = integration.popStatistics();
         try {
-            String eventData = mapper.writeValueAsString(toBodyJson(serverAddress, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+            String eventData = mapper.writeValueAsString(toBodyJson(statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
             eventStorage.write(UplinkMsg.newBuilder()
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
@@ -435,7 +441,7 @@ public class RemoteIntegrationManagerService {
 
     private void persistLifecycleEvent(ComponentLifecycleEvent event, Exception e) {
         try {
-            String eventData = mapper.writeValueAsString(toBodyJson(new ServerAddress(clientId, port, ServerType.CORE), event, Optional.ofNullable(e)));
+            String eventData = mapper.writeValueAsString(toBodyJson(event, Optional.ofNullable(e)));
             eventStorage.write(UplinkMsg.newBuilder()
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
@@ -450,12 +456,12 @@ public class RemoteIntegrationManagerService {
         }
     }
 
-    private JsonNode toBodyJson(ServerAddress server, long messagesProcessed, long errorsOccurred) {
-        return mapper.createObjectNode().put("server", server.toString()).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
+    private JsonNode toBodyJson(long messagesProcessed, long errorsOccurred) {
+        return mapper.createObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
     }
 
-    private JsonNode toBodyJson(ServerAddress server, ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", server.toString()).put("event", event.name());
+    private JsonNode toBodyJson(ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = mapper.createObjectNode().put("server", serviceId).put("event", event.name());
         if (e.isPresent()) {
             node = node.put("success", false);
             node = node.put("error", toString(e.get()));

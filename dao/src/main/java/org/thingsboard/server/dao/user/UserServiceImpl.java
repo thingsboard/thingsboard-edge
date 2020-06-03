@@ -254,6 +254,15 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public TextPageData<User> findUsersByTenantId(TenantId tenantId, TextPageLink pageLink) {
+        log.trace("Executing findUsersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        List<User> users = userDao.findUsersByTenantId(tenantId.getId(), pageLink);
+        return new TextPageData<>(users, pageLink);
+    }
+
+    @Override
     public void deleteTenantAdmins(TenantId tenantId) {
         log.trace("Executing deleteTenantAdmins, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -307,6 +316,16 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
                 (entityId) -> new UserId(entityId.getId()),
                 (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds),
                 new UserViewFunction());
+    }
+
+    @Override
+    public ListenableFuture<TimePageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+        log.trace("Executing findUserEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
+                (entityId) -> new UserId(entityId.getId()),
+                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds));
     }
 
     class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {

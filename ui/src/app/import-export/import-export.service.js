@@ -33,6 +33,8 @@
 import importDialogTemplate from './import-dialog.tpl.html';
 import importDialogCSVTemplate from './import-dialog-csv.tpl.html';
 import entityAliasesTemplate from '../entity/alias/entity-aliases.tpl.html';
+import Excel from 'exceljs';
+import * as JSZip from 'jszip';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -59,6 +61,11 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         extension: 'xls'
     };
 
+    const XLSX_TYPE = {
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        extension: 'xlsx'
+    };
+
     const TEMPLATE_XLS = `
         <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
         <meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8"/>
@@ -66,6 +73,11 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{title}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml>
         <![endif]--></head>
         <body>{table}</body></html>`;
+
+    const ZIP_TYPE = {
+        mimeType: 'application/zip',
+        extension: 'zip'
+    };
 
     var service = {
         exportDashboard: exportDashboard,
@@ -82,6 +94,8 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         importWidgetsBundle: importWidgetsBundle,
         exportCsv: exportCsv,
         exportXls: exportXls,
+        exportXlsx: exportXlsx,
+        exportJSZip: exportJSZip,
         exportExtension: exportExtension,
         importExtension: importExtension,
         importEntities: importEntities,
@@ -1051,15 +1065,22 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         downloadFile(data, filename, JSON_TYPE);
     }
 
+    function processCSVCell(cellData){
+        var result = cellData.replace(/"/g, '""');
+        if (result.search(/([",\n])/g) >= 0)
+            result = '"' + result + '"';
+        return result;
+    }
+
     function exportCsv(data, filename) {
         var colsHead;
         var colsData;
         if (data && data.length) {
             formatDataAccordingToLocale(data);
-            colsHead = Object.keys(data[0]).map(key => [key]).join(';');
+            colsHead = Object.keys(data[0]).map(key => [processCSVCell(key)]).join(';');
             colsData = data.map(obj => [ // obj === row
                 Object.keys(obj).map(col => [
-                    obj[col]
+                    processCSVCell(obj[col])
                 ]).join(';')
             ]).join('\n');
         } else {
@@ -1090,27 +1111,57 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         downloadFile(xlsData, filename, XLS_TYPE);
     }
 
-    function downloadFile(data, filename, fileType) {
-        if (!filename) {
-            filename = 'download';
-        }
-        filename += '.' + fileType.extension;
-        var blob = new Blob([data], {type: fileType.mimeType});
-        // FOR IE:
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveOrOpenBlob(blob, filename);
-        } else {
-            var e = document.createEvent('MouseEvents'),
-                a = document.createElement('a');
-            a.download = filename;
-            a.href = window.URL.createObjectURL(blob);
-            a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
-            e.initEvent('click', true, false, window,
-                0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            a.dispatchEvent(e);
-        }
-    }
+    function exportXlsx(data, filename) {
+        let workbook = new Excel.Workbook();
+        workbook.creator = 'ThingsBoard, Inc.';
+        workbook.lastModifiedBy = 'ThingsBoard, Inc.';
+        workbook.properties.date1904 = false;
 
+        let sheet = workbook.addWorksheet('Export');
+
+        const cellBorderStyle = {
+            top: {style: 'thin'},
+            left: {style: 'thin'},
+            bottom: {style: 'thin'},
+            right: {style: 'thin'}
+        };
+
+        const dateFormat = 'yyyy-MM-dd HH:mm:ss';
+
+        if (data && data.length) {
+            const titles = Object.keys(data[0]);
+            let columnsTable = [];
+            titles.forEach((title) => {
+                columnsTable.push({
+                    header: title,
+                    key: title,
+                    width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
+                    style: {
+                        numFmt: title === 'Timestamp' ? dateFormat : null
+                    }
+                });
+            });
+
+            sheet.columns = columnsTable;
+            sheet.views = [
+                {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
+            ];
+            sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
+
+            data.forEach((item) => {
+                if (item.Timestamp) {
+                    item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
+                }
+                sheet.addRow(item).eachCell((cell) => {
+                    cell.border = cellBorderStyle;
+                });
+            })
+        }
+
+        workbook.xlsx.writeBuffer().then((xlsxData) => {
+            downloadFile(xlsxData, filename, XLSX_TYPE);
+        });
+    }
 
     function formatDataAccordingToLocale(data) {
         for (var i = 0; i < data.length; i++) {
@@ -1151,6 +1202,38 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
     function fixedDialogSize(scope, element) {
         let dialogElement = element[0].getElementsByTagName('md-dialog');
         dialogElement[0].style.width = dialogElement[0].offsetWidth + 2 + "px";
+    }
+
+    function exportJSZip(data, filename) {
+        let jsZip = new JSZip();
+        for (let keyName in data) {
+            let valueData = data[keyName];
+            jsZip.file(keyName, valueData);
+        }
+        jsZip.generateAsync({type: "blob"}).then(function (content) {
+            downloadFile(content, filename, ZIP_TYPE);
+        });
+    }
+
+    function downloadFile(data, filename, fileType) {
+        if (!filename) {
+            filename = 'download';
+        }
+        filename += '.' + fileType.extension;
+        var blob = new Blob([data], {type: fileType.mimeType});
+        // FOR IE:
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, filename);
+        } else {
+            var e = document.createEvent('MouseEvents'),
+                a = document.createElement('a');
+            a.download = filename;
+            a.href = window.URL.createObjectURL(blob);
+            a.dataset.downloadurl = [fileType.mimeType, a.download, a.href].join(':');
+            e.initEvent('click', true, false, window,
+                0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            a.dispatchEvent(e);
+        }
     }
 }
 

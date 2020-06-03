@@ -91,7 +91,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
 
     public BlobEntityEntity(BlobEntity blobEntity) {
         if (blobEntity.getId() != null) {
-            this.setId(blobEntity.getId().getId());
+            this.setUuid(blobEntity.getId().getId());
         }
         if (blobEntity.getTenantId() != null) {
             this.tenantId = UUIDConverter.fromTimeUUID(blobEntity.getTenantId().getId());

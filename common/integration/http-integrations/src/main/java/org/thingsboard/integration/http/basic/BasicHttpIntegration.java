@@ -96,6 +96,11 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
     }
 
     @Override
+    protected String getTypeUplink(HttpIntegrationMsg msg) {
+        return "Uplink";
+    }
+
+    @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg msg) {
         logDownlink(context, "Downlink: " + msg.getTbMsg().getType(), msg);
         if (downlinkConverter != null) {

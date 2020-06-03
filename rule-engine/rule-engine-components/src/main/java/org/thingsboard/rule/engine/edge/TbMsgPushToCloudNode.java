@@ -124,7 +124,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         EntityDataProto entityData = EntityDataProto.newBuilder()
                 .setEntityName(entityName)
                 .setEntityType(entityType)
-                .setTbMsg(ByteString.copyFrom(TbMsg.toBytes(tbMsg))).build();
+                .setTbMsg(ByteString.copyFrom(TbMsg.toByteArray(tbMsg))).build();
 
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .addAllEntityData(Collections.singletonList(entityData));

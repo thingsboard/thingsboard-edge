@@ -121,10 +121,10 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             timezone = vm.schedulerEvent.schedule.timezone;
         }
         var offset = moment.tz.zone(timezone).utcOffset(time) * 60 * 1000; //eslint-disable-line
-        return new Date(time - offset + Date.getTimezoneOffset() * 60 * 1000);
+        return new Date(time - offset + new Date().getTimezoneOffset() * 60 * 1000);
     }
 
-    function dateTimeToUtcTime(date, time, timezone) {
+    function dateTimeToUtcTime(date, timezone) {
         if (!timezone) {
             timezone = vm.schedulerEvent.schedule.timezone;
         }
@@ -132,13 +132,13 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             date.getFullYear(),
             date.getMonth(),
             date.getDate(),
-            time.getHours(),
-            time.getMinutes(),
-            time.getSeconds(),
-            time.getMilliseconds()
+            date.getHours(),
+            date.getMinutes(),
+            date.getSeconds(),
+            date.getMilliseconds()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - Date.getTimezoneOffset() * 60 * 1000;
+        return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
     }
 
     function dateToUtcTime(date, timezone) {
@@ -151,12 +151,12 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             date.getDate()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - Date.getTimezoneOffset() * 60 * 1000;
+        return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
     }
 
     function timezoneChange() {
         if (!angular.equals(vm.schedulerEvent.schedule.timezone, vm.lastAppliedTimezone)) {
-            var startTime = dateTimeToUtcTime(vm.startDate, vm.startDateTime, vm.lastAppliedTimezone);
+            var startTime = dateTimeToUtcTime(vm.startDate, vm.lastAppliedTimezone);
             var startDate = dateFromUtcTime(startTime);
             setStartDate(startDate);
             if (vm.endsOn) {
@@ -168,12 +168,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
     }
 
     function setStartDate(startDate) {
-        vm.startDate = new Date(
-            startDate.getFullYear(),
-            startDate.getMonth(),
-            startDate.getDate());
-        var millis = (startDate.getHours() * 60 * 60 * 1000 + startDate.getMinutes() * 60 * 1000) + Date.getTimezoneOffset() * 60 * 1000;
-        vm.startDateTime = new Date(millis);
+        vm.startDate = startDate;
     }
 
     function repeatsChange() {
@@ -239,7 +234,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
                 delete vm.schedulerEvent.schedule.repeat.repeatOn;
             }
         }
-        vm.schedulerEvent.schedule.startTime = dateTimeToUtcTime(vm.startDate, vm.startDateTime);
+        vm.schedulerEvent.schedule.startTime = dateTimeToUtcTime(vm.startDate);
         schedulerEventService.saveSchedulerEvent(vm.schedulerEvent).then(
             () => {
                 $mdDialog.hide();

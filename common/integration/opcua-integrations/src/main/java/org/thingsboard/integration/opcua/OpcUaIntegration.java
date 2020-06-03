@@ -91,8 +91,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -271,6 +269,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                     .filter(e -> e.getSecurityPolicyUri().equals(securityPolicy.getSecurityPolicyUri()))
                     .findFirst().orElseThrow(() -> new Exception("no desired endpoints returned"));
 
+            if (!endpoint.getEndpointUrl().equals(endpointUrl)) {
+                endpoint = new EndpointDescription(
+                        endpointUrl,
+                        endpoint.getServer(),
+                        endpoint.getServerCertificate(),
+                        endpoint.getSecurityMode(),
+                        endpoint.getSecurityPolicyUri(),
+                        endpoint.getUserIdentityTokens(),
+                        endpoint.getTransportProfileUri(),
+                        endpoint.getSecurityLevel());
+            }
+
             OpcUaClientConfigBuilder configBuilder = OpcUaClientConfig.builder()
                     .setApplicationName(LocalizedText.english(configuration.getApplicationName()))
                     .setApplicationUri(configuration.getApplicationUri())
@@ -319,7 +329,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         tbMsgMetaData.putValue("id", this.configuration.getId().getId().toString());
         tbMsgMetaData.putValue("host", opcUaServerConfiguration.getHost());
         tbMsgMetaData.putValue("port", Integer.toString(opcUaServerConfiguration.getPort()));
-        TbMsg tbMsg = new TbMsg(UUIDs.timeBased(), messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}", null, null);
+        TbMsg tbMsg = TbMsg.newMsg(messageType, this.configuration.getId(), tbMsgMetaData, TbMsgDataType.JSON, "{}");
 
         if (context != null) {
             context.processCustomMsg(tbMsg, null);

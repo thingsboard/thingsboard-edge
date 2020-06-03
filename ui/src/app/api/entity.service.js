@@ -117,6 +117,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             case types.entityType.role:
                 promise = roleService.getRole(entityId, true, config);
                 break;
+            case types.entityType.entityGroup:
+                promise = entityGroupService.getEntityGroup(entityId, true, config);
+                break;
         }
         return promise;
     }
@@ -376,15 +379,28 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
     function getEntitiesByPageLinkPromise(entityType, pageLink, config, subType) {
         var promise;
         var user = userService.getCurrentUser();
+        var isGenericPermission = userPermissionsService.hasReadGenericPermission(securityTypes.resource[entityType]);
         switch (entityType) {
             case types.entityType.device:
-                promise = deviceService.getUserDevices(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = deviceService.getTenantDevices(pageLink, false, config, subType);
+                } else {
+                    promise = deviceService.getUserDevices(pageLink, config, subType);
+                }
                 break;
             case types.entityType.asset:
-                promise = assetService.getUserAssets(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = assetService.getTenantAssets(pageLink, false, config, subType);
+                } else {
+                    promise = assetService.getUserAssets(pageLink, config, subType);
+                }
                 break;
             case types.entityType.entityView:
-                promise = entityViewService.getUserEntityViews(pageLink, config, subType);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = entityViewService.getTenantEntityViews(pageLink, false, config, subType);
+                } else {
+                    promise = entityViewService.getUserEntityViews(pageLink, config, subType);
+                }
                 break;
             case types.entityType.tenant:
                 if (user.authority === 'TENANT_ADMIN') {
@@ -400,7 +416,11 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = ruleChainService.getRuleChains(pageLink, config);
                 break;
             case types.entityType.dashboard:
-                promise = dashboardService.getUserDashboards(null, null, pageLink, config);
+                if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {
+                    promise = dashboardService.getTenantDashboards(pageLink, config);
+                } else {
+                    promise = dashboardService.getUserDashboards(null, null, pageLink, config);
+                }
                 break;
             case types.entityType.user:
                 promise = userService.getUserUsers(pageLink, config);
@@ -503,15 +523,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred) {
-        var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config);
+    function getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType) {
+        var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config, entityGroupType);
         if (promise) {
             promise.then(
                 function success(result) {
                     data = data.concat(result.data);
                     if (result.hasNext) {
                         pageLink = result.nextPageLink;
-                        getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred);
+                        getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType);
                     } else {
                         if (data && data.length > 0) {
                             deferred.resolve(data);
@@ -529,15 +549,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         }
     }
 
-    function getEntityGroupEntities(entityGroupId, limit, config) {
+    function getEntityGroupEntities(entityGroupId, limit, config, entityGroupType) {
         var deferred = $q.defer();
         var pageLink = {limit: limit};
         if (limit == -1) { // all
             var data = [];
             pageLink.limit = 100;
-            getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred);
+            getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, config, data, deferred, entityGroupType);
         } else {
-            var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config);
+            var promise = entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, true, config, entityGroupType);
             if (promise) {
                 promise.then(
                     function success(result) {
@@ -558,6 +578,49 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
+    function getEntitiesByGroupName(entityType, entityNameFilter, limit, config, stateEntiTyId) {
+        var deferred = $q.defer();
+        var promise;
+        if(angular.isDefined(stateEntiTyId)) {
+            promise = getEntity(stateEntiTyId.entityType, stateEntiTyId.id, config).then(function success(result) {
+                let entityId;
+                if(result.id.entityType === types.entityType.customer) {
+                    entityId = result.id;
+                } else {
+                    entityId = result.ownerId;
+                }
+                return entityId;
+            }, function fail() {
+                deferred.resolve(null);
+            }).then(function (entityId) {
+                return entityGroupService.getEntityGroupsByOwnerId(entityId.entityType, entityId.id, entityType, true, config);
+            })
+        } else {
+            promise = entityGroupService.getEntityGroups(entityType);
+        }
+
+        promise.then(function success(result) {
+            if (result && result.length) {
+                for (let i = 0; i < result.length; i++) {
+                    if (result[i].name === entityNameFilter) {
+                        return result[i].id.id;
+                    }
+                }
+            }
+        }, function fail() {
+            deferred.resolve(null);
+        }).then(function (groupId) {
+            getEntityGroupEntities(groupId, limit, config, entityType).then(
+                function success(result) {
+                    deferred.resolve(result);
+                }, function fail() {
+                    deferred.resolve(null);
+                }
+            )
+        });
+        return deferred.promise;
+    }
+
     function entityToEntityInfo(entity) {
         return {
             origEntity: entity,
@@ -569,18 +632,20 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         };
     }
 
-    function entityRelationInfoToEntityInfo(entityRelationInfo, direction) {
+    function entityRelationInfoToEntityInfoFunc(entityRelationInfo, direction) {
+      return function() {
         var deferred = $q.defer();
         var entityId = direction == types.entitySearchDirection.from ? entityRelationInfo.to : entityRelationInfo.from;
         getEntity(entityId.entityType, entityId.id, {ignoreLoading: true}).then(
-            function success(entity) {
-                deferred.resolve(entityToEntityInfo(entity));
-            },
-            function fail() {
-                deferred.reject();
-            }
+          function success(entity) {
+            deferred.resolve(entityToEntityInfo(entity));
+          },
+          function fail() {
+            deferred.reject();
+          }
         );
         return deferred.promise;
+      }
     }
 
     function entitiesToEntitiesInfo(entities) {
@@ -595,23 +660,56 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
 
     function entityRelationInfosToEntitiesInfo(entityRelations, direction) {
         var deferred = $q.defer();
-        var entitiesInfoTaks = [];
-        if (entityRelations) {
-            for (var d = 0; d < entityRelations.length; d++) {
-                entitiesInfoTaks.push(entityRelationInfoToEntityInfo(entityRelations[d], direction));
+        if (entityRelations && entityRelations.length) {
+          var entityInfoTasks = [];
+          for (var d = 0; d < entityRelations.length; d++) {
+            entityInfoTasks.push(entityRelationInfoToEntityInfoFunc(entityRelations[d], direction));
+          }
+          sendPackedRequests(entityInfoTasks).then(
+            function success(entityInfos) {
+              deferred.resolve(entityInfos);
+            }, function fail () {
+              deferred.reject();
             }
+          );
+        } else {
+          deferred.resolve([]);
         }
-        $q.all(entitiesInfoTaks).then(
-            function success(entitiesInfo) {
-                deferred.resolve(entitiesInfo);
-            },
-            function fail() {
-                deferred.reject();
-            }
-        );
         return deferred.promise;
     }
 
+    function sendPackedRequests(taskFunctions) {
+      var taskFunctionPacks = [];
+      for (var e = 0; e < taskFunctions.length; e+=100) {
+        taskFunctionPacks.push(taskFunctions.slice(e,e + 100));
+      }
+      var deferred = $q.defer();
+      var resolvePack = [];
+      doSendPackedRequests(taskFunctionPacks, 0, resolvePack, deferred);
+      return deferred.promise;
+    }
+
+    function doSendPackedRequests (functionPack, index, resolvePack, deferred) {
+      var tasks = [];
+      var currentFunctionPack = functionPack[index];
+      for (var i=0;i<currentFunctionPack.length;i++) {
+        tasks.push(currentFunctionPack[i]());
+      }
+      $q.all(tasks).then(
+        function(response) {
+          resolvePack = resolvePack.concat(response);
+          index++;
+          if (functionPack[index]) {
+            doSendPackedRequests(functionPack, index, resolvePack, deferred);
+          } else {
+            deferred.resolve(resolvePack);
+          }
+        },
+        function fail() {
+          deferred.reject();
+        }
+      );
+    }
 
     function resolveAlias(entityAlias, stateParams) {
         var deferred = $q.defer();
@@ -649,19 +747,26 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             if (user.authority === 'CUSTOMER_USER') {
                 entityId.id = user.customerId;
             }
+        } else if (entityType === types.aliasEntityType.current_tenant){
+            let user = userService.getCurrentUser();
+            entityId.entityType = types.entityType.tenant;
+            entityId.id = user.tenantId;
         }
         return entityId;
     }
 
-    function getStateEntityId(filter, stateParams) {
+    function getStateEntityInfo(filter, stateParams) {
         var entityId = null;
+        var entityGroupType = null;
         if (stateParams) {
             if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
                 if (stateParams[filter.stateEntityParamName]) {
                     entityId = stateParams[filter.stateEntityParamName].entityId;
+                    entityGroupType = stateParams[filter.stateEntityParamName].entityGroupType;
                 }
             } else {
                 entityId = stateParams.entityId;
+                entityGroupType = stateParams.entityGroupType;
             }
         }
         if (!entityId) {
@@ -669,7 +774,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityId = {
                     entityType: types.entityType.entityGroup,
                     id: filter.defaultStateEntityGroup
-                }
+                };
+                entityGroupType = filter.defaultStateGroupType;
             } else {
                 entityId = filter.defaultStateEntity;
             }
@@ -677,7 +783,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         if (entityId) {
             entityId = resolveAliasEntityId(entityId.entityType, entityId.id);
         }
-        return entityId;
+        return {
+            entityId: entityId,
+            entityGroupType: entityGroupType
+        };
     }
 
     function resolveAliasFilter(filter, stateParams, maxItems, failOnEmpty) {
@@ -689,7 +798,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         if (filter.stateEntityParamName && filter.stateEntityParamName.length) {
             result.entityParamName = filter.stateEntityParamName;
         }
-        var stateEntityId = getStateEntityId(filter, stateParams);
+        var stateEntityInfo = getStateEntityInfo(filter, stateParams);
+        var stateEntityId = stateEntityInfo.entityId;
+        var stateEntityGroupType = stateEntityInfo.entityGroupType;
         switch (filter.type) {
             case types.aliasFilterType.singleEntity.value:
                 var aliasEntityId = resolveAliasEntityId(filter.singleEntity.entityType, filter.singleEntity.id);
@@ -705,13 +816,15 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.aliasFilterType.entityGroup.value:
                 result.stateEntity = filter.groupStateEntity;
-                var entityGroup;
+                var entityGroup, entityType;
                 if (result.stateEntity && stateEntityId) {
                     entityGroup = stateEntityId.id;
+                    entityType = stateEntityGroupType;
                 } else if (!result.stateEntity) {
                     entityGroup = filter.entityGroup;
+                    entityType = filter.groupType;
                 }
-                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true, ignoreErrors: true}).then(
+                getEntityGroupEntities(entityGroup, maxItems, {ignoreLoading: true, ignoreErrors: true}, entityType).then(
                     function success(entities) {
                         if (entities && entities.length || !failOnEmpty) {
                             result.entities = entitiesToEntitiesInfo(entities);
@@ -786,6 +899,22 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     }
                 );
                 break;
+            case types.aliasFilterType.entitiesByGroupName.value:
+                result.stateEntity = filter.groupStateEntity;
+                getEntitiesByGroupName(filter.groupType, filter.entityGroupNameFilter, maxItems, {ignoreLoading: true, ignoreErrors: true}, stateEntityId).then(
+                    function success(entities) {
+                        if (entities && entities.length || !failOnEmpty) {
+                            result.entities = entitiesToEntitiesInfo(entities);
+                            deferred.resolve(result);
+                        } else {
+                            deferred.reject();
+                        }
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+                break;
             case types.aliasFilterType.stateEntity.value:
                 result.stateEntity = true;
                 if (stateEntityId) {
@@ -793,6 +922,29 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         function success(entity) {
                             result.entities = entitiesToEntitiesInfo([entity]);
                             deferred.resolve(result);
+                        },
+                        function fail() {
+                            deferred.resolve(result);
+                        }
+                    );
+                } else {
+                    deferred.resolve(result);
+                }
+                break;
+            case types.aliasFilterType.stateEntityOwner.value:
+                result.stateEntity = true;
+                if (stateEntityId) {
+                    getEntity(stateEntityId.entityType, stateEntityId.id, {ignoreLoading: true, ignoreErrors: true}).then(
+                        function success(entity) {
+                            getEntity(entity.ownerId.entityType, entity.ownerId.id, {ignoreLoading: true, ignoreErrors: true}).then(
+                                function success(entity) {
+                                    result.entities = entitiesToEntitiesInfo([entity]);
+                                    deferred.resolve(result);
+                                },
+                                function fail() {
+                                    deferred.resolve(result);
+                                }
+                            );
                         },
                         function fail() {
                             deferred.resolve(result);
@@ -864,7 +1016,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         parameters: {
                             rootId: relationQueryRootEntityId.id,
                             rootType: relationQueryRootEntityId.entityType,
-                            direction: filter.direction
+                            direction: filter.direction,
+                            fetchLastLevelOnly: filter.fetchLastLevelOnly
                         },
                         filters: filter.filters
                     };
@@ -914,7 +1067,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         parameters: {
                             rootId: searchQueryRootEntityId.id,
                             rootType: searchQueryRootEntityId.entityType,
-                            direction: filter.direction
+                            direction: filter.direction,
+                            fetchLastLevelOnly: filter.fetchLastLevelOnly
                         },
                         relationType: filter.relationType
                     };
@@ -971,7 +1125,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     return entityTypes.indexOf(types.entityType.entityGroup) > -1 ? true : false;
                 case types.aliasFilterType.entityGroupName.value:
                     return entityTypes.indexOf(types.entityType.entityGroup) > -1 ? true : false;
+                case types.aliasFilterType.entitiesByGroupName.value:
+                    return entityTypes.indexOf(filter.entityType) > -1 ? true : false;
                 case types.aliasFilterType.stateEntity.value:
+                case types.aliasFilterType.stateEntityOwner.value:
                     return true;
                 case types.aliasFilterType.assetType.value:
                     return entityTypes.indexOf(types.entityType.asset)  > -1 ? true : false;
@@ -1025,7 +1182,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 return entityType === types.entityType.entityGroup;
             case types.aliasFilterType.entityGroupName.value:
                 return entityType === types.entityType.entityGroup;
+            case types.aliasFilterType.entitiesByGroupName.value:
+                return true;
             case types.aliasFilterType.stateEntity.value:
+            case types.aliasFilterType.stateEntityOwner.value:
                 return true;
             case types.aliasFilterType.assetType.value:
                 return entityType === types.entityType.asset;
@@ -1093,6 +1253,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 entityTypes.role = types.entityType.role;
                 if (useAliasEntityTypes) {
                     entityTypes.current_customer = types.aliasEntityType.current_customer;
+                    entityTypes.current_tenant = types.aliasEntityType.current_tenant;
                 }
                 break;
             case 'CUSTOMER_USER':
@@ -1153,7 +1314,50 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
+    function getEntityFieldKeys (entityType, searchText) {
+        let entityFieldKeys = [];
+        let query = searchText ? searchText.toLowerCase() : "";
+        switch(entityType) {
+            case types.entityType.user:
+                entityFieldKeys.push(types.entityField.name.keyName);
+                entityFieldKeys.push(types.entityField.email.keyName);
+                entityFieldKeys.push(types.entityField.firstName.keyName);
+                entityFieldKeys.push(types.entityField.lastName.keyName);
+                break;
+            case types.entityType.tenant:
+            case types.entityType.customer:
+                entityFieldKeys.push(types.entityField.title.keyName);
+                entityFieldKeys.push(types.entityField.email.keyName);
+                entityFieldKeys.push(types.entityField.country.keyName);
+                entityFieldKeys.push(types.entityField.state.keyName);
+                entityFieldKeys.push(types.entityField.city.keyName);
+                entityFieldKeys.push(types.entityField.address.keyName);
+                entityFieldKeys.push(types.entityField.address2.keyName);
+                entityFieldKeys.push(types.entityField.zip.keyName);
+                entityFieldKeys.push(types.entityField.phone.keyName);
+                break;
+            case types.entityType.entityView:
+                entityFieldKeys.push(types.entityField.name.keyName);
+                entityFieldKeys.push(types.entityField.type.keyName);
+                break;
+            case types.entityType.device:
+            case types.entityType.asset:
+                entityFieldKeys.push(types.entityField.name.keyName);
+                entityFieldKeys.push(types.entityField.type.keyName);
+                entityFieldKeys.push(types.entityField.label.keyName);
+                break;
+            case types.entityType.dashboard:
+                entityFieldKeys.push(types.entityField.title.keyName);
+                break;
+        }
+
+        return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;
+    }
+
     function getEntityKeys(entityType, entityId, query, type, config) {
+        if (type === types.dataKeyType.entityField) {
+            return $q.when(getEntityFieldKeys(entityType, query));
+        }
         var deferred = $q.defer();
         var url = '/api/plugins/telemetry/' + entityType + '/' + entityId + '/keys/';
         if (type === types.dataKeyType.timeseries) {
@@ -1334,10 +1538,10 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         }
     }
 
-    function getRelatedEntities(rootEntityId, entityType, entitySubTypes, maxLevel, keys, typeTranslatePrefix, relationType, direction) {
+    function getRelatedEntities(rootEntityId, entityType, entitySubTypes, maxLevel, keys, typeTranslatePrefix, relationType, direction, fetchLastLevelOnly) {
         var deferred = $q.defer();
 
-        var entitySearchQuery = constructRelatedEntitiesSearchQuery(rootEntityId, entityType, entitySubTypes, maxLevel, relationType, direction);
+        var entitySearchQuery = constructRelatedEntitiesSearchQuery(rootEntityId, entityType, entitySubTypes, maxLevel, relationType, direction,fetchLastLevelOnly);
         if (!entitySearchQuery) {
             deferred.reject();
         } else {
@@ -1437,9 +1641,20 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             name: entityParameters.name,
             type: entityParameters.type,
             label: entityParameters.label,
-            customerId: customerId
+            customerId: customerId,
+            additionalInfo: {
+                    description: entityParameters.description
+             }
         };
-        let saveEntityPromise = getEntitySavePromise(entityType, newEntity, config);
+
+        if (entityType === types.entityType.device && entityParameters.gateway !== null) {
+            newEntity.additionalInfo = {
+                ...newEntity.additionalInfo,
+                gateway: entityParameters.gateway
+            };
+        }
+
+        let saveEntityPromise = getEntitySavePromise(entityType, entityGroupId, newEntity, config);
 
         saveEntityPromise.then(function success(response) {
             saveEntityRelation(entityType, response.id, entityParameters, config).then(function success() {
@@ -1469,7 +1684,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                     if(response.label !== entityParameters.label || response.type !== entityParameters.type){
                         response.label = entityParameters.label;
                         response.type = entityParameters.type;
-                        promises.push(getEntitySavePromise(entityType, response, config));
+                        promises.push(getEntitySavePromise(entityType, entityGroupId, response, config));
                     }
                     promises.push(saveEntityRelation(entityType, response.id, entityParameters, config));
 
@@ -1500,14 +1715,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         return deferred.promise;
     }
 
-    function getEntitySavePromise(entityType, newEntity, config) {
+    function getEntitySavePromise(entityType, entityGroupId, newEntity, config) {
         let promise;
         switch (entityType) {
             case types.entityType.device:
-                promise = deviceService.saveDevice(newEntity, config);
+                promise = deviceService.saveDevice(newEntity, entityGroupId, config);
                 break;
             case types.entityType.asset:
-                promise = assetService.saveAsset(newEntity, true, config);
+                promise = assetService.saveAsset(newEntity, true, config, entityGroupId);
                 break;
         }
         return promise;
@@ -1736,13 +1951,14 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             );
     }
 
-    function constructRelatedEntitiesSearchQuery(rootEntityId, entityType, entitySubTypes, maxLevel, relationType, direction) {
+    function constructRelatedEntitiesSearchQuery(rootEntityId, entityType, entitySubTypes, maxLevel, relationType, direction, fetchLastLevelOnly) {
 
         var searchQuery = {
             parameters: {
                 rootId: rootEntityId.id,
                 rootType: rootEntityId.entityType,
-                direction: direction
+                direction: direction,
+                fetchLastLevelOnly: !!fetchLastLevelOnly
             },
             relationType: relationType
         };
