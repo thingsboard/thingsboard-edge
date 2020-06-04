@@ -180,14 +180,14 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private void initLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
             EntityId ownerId = edge.getOwnerId();
-            LoginWhiteLabelingParams loginWhiteLabelingParams = null;
+            String domainName = "localhost";
             if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(new TenantId(ownerId.getId()));
+                domainName = whiteLabelingService.getTenantLoginWhiteLabelingParams(new TenantId(ownerId.getId())).getDomainName();
             } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()));
+                domainName = whiteLabelingService.getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId())).getDomainName();
             }
 
-
+            LoginWhiteLabelingParams loginWhiteLabelingParams = whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName == null ? "localhost" : domainName, null, null);
             if (loginWhiteLabelingParams != null) {
                 LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
                         whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
