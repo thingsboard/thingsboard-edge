@@ -46,9 +46,9 @@ if [ ! -f ${firstlaunch} ]; then
     touch ${firstlaunch}
 fi
 
-echo "Starting ThingsBoard ..."
+echo "Starting ThingsBoard Edge ..."
 
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardServerApplication \
+java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dlogging.config=${CONF_FOLDER}/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher

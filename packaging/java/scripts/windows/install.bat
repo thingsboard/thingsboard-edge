@@ -28,7 +28,7 @@ SET installDir=%BASE%\data
 
 PUSHD "%BASE%\conf"
 
-java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication^
+java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication^
                     -Dinstall.data_dir="%installDir%"^
                     -Dinstall.load_demo=%loadDemo%^
                     -Dspring.jpa.hibernate.ddl-auto=none^

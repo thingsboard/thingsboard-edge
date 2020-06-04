@@ -880,7 +880,7 @@ public class CloudManagerService {
     private void onLoginWhiteLabelingParamsUpdate(LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
         try {
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
-            whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams);
+            whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
         } catch (Exception e) {
             log.error("Exception during updating login white labeling params", e);
         }

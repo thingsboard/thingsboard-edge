@@ -60,7 +60,7 @@ source "${CONF_FOLDER}/${configfile}"
 
 run_user=${pkg.user}
 
-su -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
+su -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
                     -Dinstall.data_dir=${installDir} \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dinstall.upgrade=true \
@@ -69,9 +69,9 @@ su -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.s
                     org.springframework.boot.loader.PropertiesLauncher" "$run_user"
 
 if [ $? -ne 0 ]; then
-    echo "TB Edge upgrade failed!"
+    echo "ThingsBoard upgrade failed!"
 else
-    echo "TB Edge upgraded successfully!"
+    echo "ThingsBoard upgraded successfully!"
 fi
 
 exit $?

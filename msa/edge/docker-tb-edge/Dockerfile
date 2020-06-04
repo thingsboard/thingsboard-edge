@@ -86,7 +86,7 @@ RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
 
 ENV DATA_FOLDER=/data
 
-ENV HTTP_BIND_PORT=9090
+ENV HTTP_BIND_PORT=19090
 ENV DATABASE_TS_TYPE=sql
 ENV DATABASE_ENTITIES_TYPE=sql
 
@@ -104,4 +104,4 @@ EXPOSE 15683/udp
 
 VOLUME ["/data"]
 
-CMD ["start-tb-edge-edge.sh"]
+CMD ["start-tb-edge.sh"]

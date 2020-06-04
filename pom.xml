@@ -139,11 +139,11 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
-        <module>integration</module>
+<!--        <module>integration</module>-->
         <module>ui</module>
         <module>tools</module>
         <module>application</module>
-<!--        <module>msa</module>-->
+        <module>msa</module>
         <module>rest-client</module>
     </modules>
 

@@ -28,7 +28,7 @@ SET installDir=%BASE%\data
 
 PUSHD "%BASE%\conf"
 
-java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication^
+java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication^
                     -Dinstall.data_dir="%installDir%"^
                     -Dspring.jpa.hibernate.ddl-auto=none^
                     -Dinstall.upgrade=true^
@@ -37,7 +37,7 @@ java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplicati
                     org.springframework.boot.loader.PropertiesLauncher
 
 if errorlevel 1 (
-   @echo TB Edge upgrade failed!
+   @echo ThingsBoard upgrade failed!
    POPD
    exit /b %errorlevel%
 )

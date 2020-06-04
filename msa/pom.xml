@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -31,51 +30,48 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<!DOCTYPE configuration>
-<configuration>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.thingsboard</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>thingsboard</artifactId>
+    </parent>
+    <artifactId>msa</artifactId>
+    <packaging>pom</packaging>
 
-    <appender name="fileLogAppender"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${pkg.logFolder}/install.log</file>
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${pkg.logFolder}/install.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <maxFileSize>100MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>3GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+    <name>ThingsBoard Microservices</name>
+    <url>https://thingsboard.io</url>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%msg%n</pattern>
-        </encoder>
-    </appender>
+    <properties>
+        <main.dir>${basedir}/..</main.dir>
+        <docker.repo>volodymyrbabak</docker.repo>
+        <dockerfile.skip>true</dockerfile.skip>
+    </properties>
 
-    <logger name="org.thingsboard.server.install" level="INFO">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <modules>
+        <module>edge</module>
+        <module>web-report</module>
+    </modules>
 
-    <logger name="org.thingsboard.server.service.install" level="INFO">
-        <appender-ref ref="STDOUT" />
-    </logger>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.spotify</groupId>
+                    <artifactId>dockerfile-maven-plugin</artifactId>
+                    <version>1.4.5</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
-    <logger name="org.thingsboard.server.ThingsboardInstallApplication" level="ERROR">
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <logger name="org.apache.tomcat.jdbc.pool" level="ERROR">
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <logger name="org.thingsboard.server" level="INFO" />
-    <logger name="akka" level="INFO" />
-
-    <root level="INFO">
-        <appender-ref ref="fileLogAppender"/>
-    </root>
-
-</configuration>
+</project>

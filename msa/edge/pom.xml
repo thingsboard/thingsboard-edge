@@ -39,32 +39,37 @@
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
-    <artifactId>web-report</artifactId>
+    <artifactId>tb-edge</artifactId>
     <packaging>pom</packaging>
 
-    <name>Thingsboard Web Report Microservice</name>
+    <name>ThingsBoard Edge Docker Images</name>
     <url>https://thingsboard.io</url>
-    <description>Report service for generating ThingsBoard reports</description>
+    <description>ThingsBoard Edge Docker Images</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <docker.name>tb-pe-web-report</docker.name>
-        <pkg.name>tb-web-report</pkg.name>
-        <pkg.type>js</pkg.type>
-        <pkg.disabled>false</pkg.disabled>
-        <pkg.process-resources.phase>process-resources</pkg.process-resources.phase>
-        <pkg.package.phase>package</pkg.package.phase>
-        <pkg.linux.dist>${project.build.directory}/package/linux</pkg.linux.dist>
-        <pkg.win.dist>${project.build.directory}/package/windows</pkg.win.dist>
+        <pkg.name>tb-edge</pkg.name>
+        <tb.docker.name>tb-edge</tb.docker.name>
+        <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <pkg.upgradeVersion>1.0.0</pkg.upgradeVersion>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.sun.winsw</groupId>
-            <artifactId>winsw</artifactId>
-            <classifier>bin</classifier>
-            <type>exe</type>
+            <groupId>org.thingsboard</groupId>
+            <artifactId>application</artifactId>
+            <version>${project.version}</version>
+            <classifier>deb</classifier>
+            <type>deb</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.msa</groupId>
+            <artifactId>web-report</artifactId>
+            <version>${project.version}</version>
+            <classifier>deb</classifier>
+            <type>deb</type>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -72,78 +77,91 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.0</version>
-                <configuration>
-                    <installDirectory>target</installDirectory>
-                    <workingDirectory>${basedir}</workingDirectory>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>install node and npm</id>
+                        <id>copy-tb-edge-deb</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>install-node-and-npm</goal>
+                            <goal>copy</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v10.16.0</nodeVersion>
-                            <npmVersion>6.4.1</npmVersion>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install</arguments>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.thingsboard</groupId>
+                                    <artifactId>application</artifactId>
+                                    <classifier>deb</classifier>
+                                    <type>deb</type>
+                                    <destFileName>${pkg.name}.deb</destFileName>
+                                    <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.thingsboard.msa</groupId>
+                                    <artifactId>web-report</artifactId>
+                                    <classifier>deb</classifier>
+                                    <type>deb</type>
+                                    <destFileName>tb-web-report.deb</destFileName>
+                                    <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.thingsboard</groupId>
-                <artifactId>gradle-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-docker-tb-edge-config</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>docker</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>docker-tb-edge</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>build-docker-image</id>
+                        <id>build-docker-tb-edge-image</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>build</goal>
                         </goals>
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
+                            <repository>${docker.repo}/${tb.docker.name}</repository>
                             <verbose>true</verbose>
                             <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
-                            <contextDirectory>${project.build.directory}</contextDirectory>
+                            <contextDirectory>${project.build.directory}/docker-tb-edge</contextDirectory>
                         </configuration>
                     </execution>
                     <execution>
-                        <id>tag-docker-image</id>
+                        <id>tag-docker-tb-edge-image</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>tag</goal>
                         </goals>
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
-                            <repository>${docker.repo}/${docker.name}</repository>
+                            <repository>${docker.repo}/${tb.docker.name}</repository>
                             <tag>${project.version}</tag>
                         </configuration>
                     </execution>
@@ -152,39 +170,6 @@
         </plugins>
     </build>
     <profiles>
-        <profile>
-            <id>npm-start</id>
-            <activation>
-                <property>
-                    <name>npm-start</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.0</version>
-                        <configuration>
-                            <installDirectory>target</installDirectory>
-                            <workingDirectory>${basedir}</workingDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>npm start</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-
-                                <configuration>
-                                    <arguments>start</arguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>push-docker-image</id>
             <activation>
@@ -199,25 +184,25 @@
                         <artifactId>dockerfile-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>push-latest-docker-image</id>
+                                <id>push-latest-docker-tb-edge-image</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
                                     <tag>latest</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
+                                    <repository>${docker.repo}/${tb.docker.name}</repository>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>push-version-docker-image</id>
+                                <id>push-version-docker-tb-edge-image</id>
                                 <phase>pre-integration-test</phase>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
                                 <configuration>
                                     <tag>${project.version}</tag>
-                                    <repository>${docker.repo}/${docker.name}</repository>
+                                    <repository>${docker.repo}/${tb.docker.name}</repository>
                                 </configuration>
                             </execution>
                         </executions>

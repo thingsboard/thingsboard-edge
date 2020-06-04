@@ -1,0 +1,178 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    ext {
+        osPackageVersion = "8.3.0"
+    }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("com.netflix.nebula:gradle-ospackage-plugin:${osPackageVersion}")
+    }
+}
+
+apply plugin: "nebula.ospackage"
+
+buildDir = projectBuildDir
+version = projectVersion
+distsDirName = "./"
+
+// OS Package plugin configuration
+ospackage {
+    packageName = pkgName
+    version = "${project.version}"
+    release = 1
+    os = LINUX
+    type = BINARY
+
+    into pkgInstallFolder
+
+    user pkgUser
+    permissionGroup pkgUser
+
+    // Copy the executable file
+    from("${buildDir}/package/linux/bin/${pkgName}") {
+        fileMode 0500
+        into "bin"
+    }
+
+    // Copy the init file
+    from("${buildDir}/package/linux/init/template") {
+        fileMode 0500
+        into "init"
+        rename { String filename ->
+            "${pkgName}"
+        }
+    }
+
+    // Copy the config files
+    from("${buildDir}/package/linux/conf") {
+        fileType CONFIG | NOREPLACE
+        fileMode 0754
+        into "conf"
+    }
+
+    // Copy web files
+    from("${buildDir}/web") {
+        into "web"
+    }
+
+    // Copy chromium files
+    from("${buildDir}/package/linux/chromium") {
+        into "chromium"
+    }
+
+}
+
+// Configure our RPM build task
+buildRpm {
+
+    arch = X86_64
+
+    archiveVersion = projectVersion.replace('-', '')
+    archiveFileName = "${pkgName}.rpm"
+
+    preInstall file("${buildDir}/control/rpm/preinst")
+    postInstall file("${buildDir}/control/rpm/postinst")
+    preUninstall file("${buildDir}/control/rpm/prerm")
+    postUninstall file("${buildDir}/control/rpm/postrm")
+
+    user pkgUser
+    permissionGroup pkgUser
+
+    // Copy the system unit files
+    from("${buildDir}/control/template.service") {
+        addParentDirs = false
+        fileMode 0644
+        into "/usr/lib/systemd/system"
+        rename { String filename ->
+            "${pkgName}.service"
+        }
+    }
+
+    link("/etc/${pkgName}/conf", "${pkgInstallFolder}/conf")
+}
+
+// Same as the buildRpm task
+buildDeb {
+
+    arch = "amd64"
+
+    archiveFileName = "${pkgName}.deb"
+
+    configurationFile("${pkgInstallFolder}/conf/${pkgName}.conf")
+    configurationFile("${pkgInstallFolder}/conf/custom-environment-variables.yml")
+    configurationFile("${pkgInstallFolder}/conf/default.yml")
+    configurationFile("${pkgInstallFolder}/conf/logger.js")
+
+    preInstall file("${buildDir}/control/deb/preinst")
+    postInstall file("${buildDir}/control/deb/postinst")
+    preUninstall file("${buildDir}/control/deb/prerm")
+    postUninstall file("${buildDir}/control/deb/postrm")
+
+    user pkgUser
+    permissionGroup pkgUser
+
+    // Copy the system unit files
+    from("${buildDir}/control/template.service") {
+        addParentDirs = false
+        fileMode 0644
+        into "/lib/systemd/system"
+        rename { String filename ->
+            "${pkgName}.service"
+        }
+    }
+
+    link("/etc/${pkgName}/conf", "${pkgInstallFolder}/conf")
+}
+
+task renameDeb(type: Copy) {
+    from("${buildDir}/") {
+        include '*.deb'
+        destinationDir file("${buildDir}/")
+        rename { String filename ->
+            "${pkgName}.deb"
+        }
+    }
+}
+
+task renameRpm(type: Copy) {
+    from("${buildDir}/") {
+        include '*.rpm'
+        destinationDir file("${buildDir}/")
+        rename { String filename ->
+            "${pkgName}.rpm"
+        }
+    }
+}

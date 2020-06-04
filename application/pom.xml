@@ -56,8 +56,8 @@
         <pkg.name>tb-edge</pkg.name>
         <pkg.win.dist>${project.build.directory}/windows</pkg.win.dist>
         <pkg.copyInstallScripts>true</pkg.copyInstallScripts>
-        <pkg.implementationTitle>ThingsBoard Professional Edition</pkg.implementationTitle>
-        <pkg.mainClass>org.thingsboard.server.ThingsboardServerApplication</pkg.mainClass>
+        <pkg.implementationTitle>ThingsBoard Edge</pkg.implementationTitle>
+        <pkg.mainClass>org.thingsboard.server.TbEdgeApplication</pkg.mainClass>
     </properties>
 
     <dependencies>
@@ -457,7 +457,7 @@
         <repository>
             <id>jenkins</id>
             <name>Jenkins Repository</name>
-            <url>http://repo.jenkins-ci.org/releases</url>
+            <url>https://repo.jenkins-ci.org/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
