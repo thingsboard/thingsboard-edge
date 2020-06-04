@@ -90,12 +90,12 @@ public interface SchedulerEventInfoDao extends Dao<SchedulerEventInfo> {
     ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> schedulerEventIds);
 
     /**
-     * Find scheduler events by tenantId, edgeId and page link.
+     * Find scheduler event infos by tenantId, edgeId and page link.
      *
      * @param tenantId the tenantId
      * @param edgeId the edgeId
      * @param pageLink the page link
      * @return the list of scheduler event objects
      */
-    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
+    ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
 }

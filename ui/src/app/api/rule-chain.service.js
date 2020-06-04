@@ -56,10 +56,13 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         removeRuleChainEdgeGroups: removeRuleChainEdgeGroups,
         getEdgeGroupRuleChains: getEdgeGroupRuleChains,
         getEdgeRuleChains: getEdgeRuleChains,
+        getEdgesRuleChains: getEdgesRuleChains,
         assignRuleChainToEdge: assignRuleChainToEdge,
         unassignRuleChainFromEdge: unassignRuleChainFromEdge,
         setDefaultRootEdgeRuleChain: setDefaultRootEdgeRuleChain,
-        getEdgesRuleChains: getEdgesRuleChains
+        addDefaultEdgeRuleChain: addDefaultEdgeRuleChain,
+        removeDefaultEdgeRuleChain: removeDefaultEdgeRuleChain,
+        getDefaultEdgeRuleChains: getDefaultEdgeRuleChains
     };
 
     return service;
@@ -80,7 +83,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
             url += '&type=' + type;
         }
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroups(response.data, 'RuleChain'));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -91,7 +94,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         var url = '/api/ruleChain/' + ruleChainId;
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -101,8 +104,8 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
     function saveRuleChain(ruleChain) {
         var deferred = $q.defer();
         var url = '/api/ruleChain';
-        $http.post(url, cleanRuleChain(ruleChain)).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+        $http.post(url, ruleChain).then(function success(response) {
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -289,7 +292,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         var deferred = $q.defer();
         getRuleChain(ruleChainId, {ignoreErrors: true}).then(
             (ruleChain) => {
-                deferred.resolve(utils.prepareAssignedEdgeGroup(ruleChain));
+                deferred.resolve(ruleChain);
             },
             () => {
                 deferred.resolve({
@@ -388,7 +391,6 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
             url += '&offset=' + pageLink.idOffset;
         }
         $http.get(url, config).then(function success(response) {
-            response.data = utils.prepareAssignedEdgeGroups(response.data, 'RuleChain');
             if (pageLink.textSearch) {
                 response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
             }
@@ -432,35 +434,36 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return deferred.promise;
     }
 
-    // function prepareRuleChains(ruleChainsData) {
-    //     if (ruleChainsData.data) {
-    //         for (var i = 0; i < ruleChainsData.data.length; i++) {
-    //             ruleChainsData.data[i] = utils.prepareAssignedEdgeGroup(ruleChainsData.data[i]);
-    //         }
-    //     }
-    //     return ruleChainsData;
-    // }
+    function addDefaultEdgeRuleChain(ruleChainId) {
+        var deferred = $q.defer();
+        var url = '/api/ruleChain/' + ruleChainId + '/defaultEdge';
+        $http.post(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
-    // function prepareRuleChain(ruleChain) {
-    //     ruleChain.assignedEdgeGroupsText = "";
-    //     ruleChain.assignedEdgeGroupIds = [];
-    //
-    //     if (ruleChain.assignedEdgeGroups && ruleChain.assignedEdgeGroups.length) {
-    //         var assignedEdgeGroupsTitles = [];
-    //         for (var j = 0; j < ruleChain.assignedEdgeGroups.length; j++) {
-    //             var assignedEdgeGroup = ruleChain.assignedEdgeGroups[j];
-    //             ruleChain.assignedEdgeGroupIds.push(assignedEdgeGroup.entityGroupId.id);
-    //             assignedEdgeGroupsTitles.push(assignedEdgeGroup.name);
-    //         }
-    //         ruleChain.assignedEdgeGroupsText = assignedEdgeGroupsTitles.join(', ');
-    //     }
-    //
-    //     return ruleChain;
-    // }
+    function removeDefaultEdgeRuleChain(ruleChainId) {
+        var deferred = $q.defer();
+        var url = '/api/ruleChain/' + ruleChainId + '/defaultEdge';
+        $http.delete(url).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
 
-    function cleanRuleChain(ruleChain) {
-        delete ruleChain.assignedEdgeGroupsText;
-        delete ruleChain.assignedEdgeGroupIds;
-        return ruleChain;
+    function getDefaultEdgeRuleChains(config) {
+        var deferred = $q.defer();
+        var url = '/api/ruleChain/defaultEdgeRuleChains';
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
     }
 }

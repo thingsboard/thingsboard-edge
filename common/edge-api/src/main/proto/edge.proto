@@ -69,6 +69,10 @@ message EntityUpdateMsg {
   AlarmUpdateMsg alarmUpdateMsg = 7;
   UserUpdateMsg userUpdateMsg = 8;
   CustomerUpdateMsg customerUpdateMsg = 9;
+  WhiteLabelingParamsProto whiteLabelingParams = 10;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 11;
+  CustomTranslationProto customTranslation = 12;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 13;
 }
 
 enum RequestMsgType {
@@ -250,9 +254,74 @@ message RuleChainMetadataRequestMsg {
   int64 ruleChainIdLSB = 2;
 }
 
+message SchedulerEventUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  string schedule = 6;
+  string configuration = 7;
+}
+
 enum EdgeEntityType {
   DEVICE = 0;
   ASSET = 1;
+}
+
+message LoginWhiteLabelingParamsProto {
+    string logoImageUrl = 1;
+    string logoImageChecksum = 2;
+    int64 logoImageHeight = 3;
+    string appTitle = 4;
+    FaviconProto favicon = 5;
+    string faviconChecksum = 6;
+    PaletteSettingsProto paletteSettings = 7;
+    string helpLinkBaseUrl = 8;
+    bool enableHelpLinks = 9;
+    bool showNameVersion = 10;
+    string platformName = 11;
+    string platformVersion = 12;
+    string pageBackgroundColor = 13;
+    bool darkForeground = 14;
+    string domainName = 15;
+    string adminSettingsId = 16;
+    bool showNameBottom = 17;
+}
+
+message WhiteLabelingParamsProto {
+    string logoImageUrl = 1;
+    string logoImageChecksum = 2;
+    int64 logoImageHeight = 3;
+    string appTitle = 4;
+    FaviconProto favicon = 5;
+    string faviconChecksum = 6;
+    PaletteSettingsProto paletteSettings = 7;
+    string helpLinkBaseUrl = 8;
+    bool enableHelpLinks = 9;
+    bool showNameVersion = 10;
+    string platformName = 11;
+    string platformVersion = 12;
+}
+
+message FaviconProto {
+    string url = 1;
+    string type = 2;
+}
+
+message PaletteSettingsProto {
+    PaletteProto primaryPalette = 1;
+    PaletteProto accentPalette = 2;
+}
+
+message PaletteProto {
+    string type = 1;
+    string extendsPalette = 2;
+    map<string, string> colors = 3;
+}
+
+message CustomTranslationProto {
+    map<string, string> translationMap = 1;
 }
 
 /**

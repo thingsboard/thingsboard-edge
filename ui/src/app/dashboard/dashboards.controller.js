@@ -35,8 +35,7 @@ import dashboardCard from './dashboard-card.tpl.html';
 import addDashboardsToCustomerTemplate from './add-dashboards-to-customer.tpl.html';
 import makeDashboardPublicDialogTemplate from './make-dashboard-public-dialog.tpl.html';
 import manageAssignedCustomersTemplate from './manage-assigned-customers.tpl.html';
-import manageAssignedEdgesTemplate from './manage-assigned-edge-groups.tpl.html';
-import addDashboardsToEdgeTemplate from './add-dashboards-to-edge.tpl.html';*/
+import addDashboardsToEdgeTemplate from './add-dashboards-to-edge.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -237,14 +236,7 @@ export function DashboardsController(/*userService, dashboardService, customerSe
                         return dashboard;
                     }
                 });
-                dashboardActionsList.push({
-                    onAction: function ($event, item) {
-                        manageAssignedEdges($event, item);
-                    },
-                    name: function() { return $translate.instant('action.assign') },
-                    details: function() { return $translate.instant('dashboard.manage-assigned-edges') },
-                    icon: "wifi_tethering"
-                });
+
                 /*dashboardActionsList.push({
                         onAction: function ($event, item) {
                             assignToCustomer($event, [ item.id.id ]);
@@ -276,32 +268,6 @@ export function DashboardsController(/*userService, dashboardService, customerSe
                     name: function() { return $translate.instant('action.delete') },
                     details: function() { return $translate.instant('dashboard.delete') },
                     icon: "delete"
-                }
-            );
-
-            dashboardGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        assignDashboardsToEdges($event, items);
-                    },
-                    name: function() { return $translate.instant('dashboard.assign-dashboards') },
-                    details: function(selectedCount) {
-                        return $translate.instant('dashboard.assign-dashboards-to-edge-text', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "wifi_tethering"
-                }
-            );
-
-            dashboardGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        unassignDashboardsFromEdges($event, items);
-                    },
-                    name: function() { return $translate.instant('dashboard.unassign-dashboards') },
-                    details: function(selectedCount) {
-                        return $translate.instant('dashboard.unassign-dashboards-from-edge-action-text', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "portable_wifi_off"
                 }
             );
 
@@ -730,29 +696,14 @@ export function DashboardsController(/*userService, dashboardService, customerSe
                     dashboardId: dashboard.id.id
                 });
             }
+        } else if (vm.dashboardsScope === 'edge') {
+            $state.go('home.edges.dashboards.dashboard', {
+                edgeId: edgeId,
+                dashboardId: dashboard.id.id
+            });
         } else {
             $state.go('home.dashboard', {dashboardId: dashboard.id.id});
         }
-    }
-
-    function manageAssignedEdges($event, dashboard) {
-        showManageAssignedEdgesDialog($event, [dashboard.id.id], 'manage', dashboard.assignedEdgesIds);
-    }
-
-    function assignDashboardsToEdges($event, items) {
-        var dashboardIds = [];
-        for (var id in items.selections) {
-            dashboardIds.push(id);
-        }
-        showManageAssignedEdgesDialog($event, dashboardIds, 'assign');
-    }
-
-    function unassignDashboardsFromEdges($event, items) {
-        var dashboardIds = [];
-        for (var id in items.selections) {
-            dashboardIds.push(id);
-        }
-        showManageAssignedEdgesDialog($event, dashboardIds, 'unassign');
     }
 
     function unassignDashboardsFromEdge($event, items, edgeId) {
@@ -771,24 +722,6 @@ export function DashboardsController(/*userService, dashboardService, customerSe
             $q.all(tasks).then(function () {
                 vm.grid.refreshList();
             });
-        });
-    }
-
-    function showManageAssignedEdgesDialog($event, dashboardIds, actionType, assignedEdges) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageAssignedEdgesToDashboardController',
-            controllerAs: 'vm',
-            templateUrl: manageAssignedEdgesTemplate,
-            locals: {actionType: actionType, dashboardIds: dashboardIds, assignedEdges: assignedEdges},
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            vm.grid.refreshList();
-        }, function () {
         });
     }
 

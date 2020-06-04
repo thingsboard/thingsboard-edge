@@ -34,8 +34,7 @@
 import assetCard from './asset-card.tpl.html';
 import assignToCustomerTemplate from './assign-to-customer.tpl.html';
 import addAssetsToCustomerTemplate from './add-assets-to-customer.tpl.html';
-import assignToEdgeTemplate from './assign-to-edge.tpl.html';
-import addAssetsToEdgeTemplate from './add-assets-to-edge.tpl.html'; */
+import addAssetsToEdgeTemplate from './add-assets-to-edge.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -233,32 +232,6 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
                 }
             });
 
-            assetActionsList.push({
-                    onAction: function ($event, item) {
-                        assignToEdge($event, [ item.id.id ]);
-                    },
-                    name: function() { return $translate.instant('action.assign') },
-                    details: function() { return $translate.instant('asset.assign-to-edge') },
-                    icon: "wifi_tethering",
-                    isEnabled: function(asset) {
-                        return asset && (!asset.edgeId || asset.edgeId.id === types.id.nullUid);
-                    }
-                }
-            );
-
-            assetActionsList.push({
-                    onAction: function ($event, item) {
-                        unassignFromEdge($event, item, false);
-                    },
-                    name: function() { return $translate.instant('action.unassign') },
-                    details: function() { return $translate.instant('asset.unassign-from-edge') },
-                    icon: "portable_wifi_off",
-                    isEnabled: function(asset) {
-                        return asset && asset.edgeId && asset.edgeId.id !== types.id.nullUid;
-                    }
-                }
-            );
-
             assetActionsList.push(
                 {
                     onAction: function ($event, item) {
@@ -280,19 +253,6 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
                         return $translate.instant('asset.assign-assets-text', {count: selectedCount}, "messageformat");
                     },
                     icon: "assignment_ind"
-                }
-            );
-
-            assetGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        assignAssetsToEdge($event, items);
-                    },
-                    name: function() { return $translate.instant('asset.assign-assets') },
-                    details: function(selectedCount) {
-                        return $translate.instant('asset.assign-assets-text', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "wifi_tethering"
                 }
             );
 
@@ -381,7 +341,7 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
                 return assetService.getEdgeAssets(edgeId, pageLink, null, assetType);
             };
             deleteAssetFunction = function (assetId) {
-                return assetService.unassignAssetFromEdge(assetId);
+                return assetService.unassignAssetFromEdge(edgeId, assetId);
             };
             refreshAssetsParamsFunction = function () {
                 return {"edgeId": edgeId, "topIndex": vm.topIndex};
@@ -405,7 +365,7 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
                     },
                     name: function() { return $translate.instant('asset.unassign-assets') },
                     details: function(selectedCount) {
-                        return $translate.instant('asset.unassign-assets-action-title', {count: selectedCount}, "messageformat");
+                        return $translate.instant('asset.unassign-assets-from-edge-action-title', {count: selectedCount}, "messageformat");
                     },
                     icon: "assignment_return"
                 }
@@ -574,41 +534,6 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
         );
     }
 
-    function assignToEdge($event, assetIds) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        var pageSize = 10;
-        edgeService.getEdges({limit: pageSize, textSearch: ''}).then(
-            function success(_edges) {
-                var edges = {
-                    pageSize: pageSize,
-                    data: _edges.data,
-                    nextPageLink: _edges.nextPageLink,
-                    selection: null,
-                    hasNext: _edges.hasNext,
-                    pending: false
-                };
-                if (edges.hasNext) {
-                    edges.nextPageLink.limit = pageSize;
-                }
-                $mdDialog.show({
-                    controller: 'AssignAssetToEdgeController',
-                    controllerAs: 'vm',
-                    templateUrl: assignToEdgeTemplate,
-                    locals: {assetIds: assetIds, edges: edges},
-                    parent: angular.element($document[0].body),
-                    fullscreen: true,
-                    targetEvent: $event
-                }).then(function () {
-                    vm.grid.refreshList();
-                }, function () {
-                });
-            },
-            function fail() {
-            });
-    }
-
     function addAssetsToEdge($event) {
         if ($event) {
             $event.stopPropagation();
@@ -645,14 +570,6 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
             });
     }
 
-    function assignAssetsToEdge($event, items) {
-        var assetIds = [];
-        for (var id in items.selections) {
-            assetIds.push(id);
-        }
-        assignToEdge($event, assetIds);
-    }
-
     function unassignFromEdge($event, asset) {
         if ($event) {
             $event.stopPropagation();
@@ -668,7 +585,7 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
         $mdDialog.show(confirm).then(function () {
-            assetService.unassignAssetFromEdge(asset.id.id).then(function success() {
+            assetService.unassignAssetFromEdge(edgeId, asset.id.id).then(function success() {
                 vm.grid.refreshList();
             });
         });
@@ -677,15 +594,15 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
     function unassignAssetsFromEdge($event, items) {
         var confirm = $mdDialog.confirm()
             .targetEvent($event)
-            .title($translate.instant('asset.unassign-assets-title', {count: items.selectedCount}, 'messageformat'))
-            .htmlContent($translate.instant('asset.unassign-assets-text'))
-            .ariaLabel($translate.instant('asset.unassign-asset'))
+            .title($translate.instant('asset.unassign-assets-from-edge-title', {count: items.selectedCount}, 'messageformat'))
+            .htmlContent($translate.instant('asset.unassign-assets-from-edge-text'))
+            .ariaLabel($translate.instant('asset.unassign-asset-from-edge'))
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
         $mdDialog.show(confirm).then(function () {
             var tasks = [];
             for (var id in items.selections) {
-                tasks.push(assetService.unassignAssetFromEdge(id));
+                tasks.push(assetService.unassignAssetFromEdge(edgeId, id));
             }
             $q.all(tasks).then(function () {
                 vm.grid.refreshList();

@@ -66,6 +66,8 @@ export default function IntegrationAwsKinesisDirective($compile, $templateCache,
                     accessKeyId: '',
                     secretAccessKey: '',
                     useConsumersWithEnhancedFanOut: false,
+                    maxRecords: 10000,
+                    requestTimeout: 30,
                     applicationName: '',
                     useCredentialsFromInstanceMetadata: false
                 }

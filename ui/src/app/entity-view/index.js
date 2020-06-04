@@ -40,7 +40,6 @@ import {EntityViewController, EntityViewCardController} from './entity-view.cont
 //import AddEntityViewsToCustomerController from './add-entity-views-to-customer.controller';
 import EntityViewDirective from './entity-view.directive';
 import EntityViewGroupConfig from './entity-view-group.config';
-import AssignEntityViewToEdgeController from './assign-to-edge.controller';
 import AddEntityViewsToEdgeController from './add-entity-views-to-edge.controller';
 
 export default angular.module('thingsboard.entityView', [
@@ -55,7 +54,6 @@ export default angular.module('thingsboard.entityView', [
     .controller('EntityViewCardController', EntityViewCardController)
 //    .controller('AssignEntityViewToCustomerController', AssignEntityViewToCustomerController)
 //    .controller('AddEntityViewsToCustomerController', AddEntityViewsToCustomerController)
-    .controller('AssignEntityViewToEdgeController', AssignEntityViewToEdgeController)
     .controller('AddEntityViewsToEdgeController', AddEntityViewsToEdgeController)
     .directive('tbEntityView', EntityViewDirective)
     .factory('entityViewGroupConfig', EntityViewGroupConfig)

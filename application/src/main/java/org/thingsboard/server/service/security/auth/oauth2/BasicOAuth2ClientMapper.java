@@ -73,6 +73,11 @@ public class BasicOAuth2ClientMapper extends AbstractOAuth2ClientMapper implemen
             String customerName = sub.replace(config.getBasic().getCustomerNamePattern());
             oauth2User.setCustomerName(customerName);
         }
+        oauth2User.setAlwaysFullScreen(config.getBasic().isAlwaysFullScreen());
+        if (!StringUtils.isEmpty(config.getBasic().getDefaultDashboardName())) {
+            oauth2User.setDefaultDashboardName(config.getBasic().getDefaultDashboardName());
+        }
+
         if (!StringUtils.isEmpty(config.getBasic().getParentCustomerNamePattern())) {
             StrSubstitutor sub = new StrSubstitutor(attributes, START_PLACEHOLDER_PREFIX, END_PLACEHOLDER_PREFIX);
             String parentCustomerName = sub.replace(config.getBasic().getParentCustomerNamePattern());
@@ -88,6 +93,8 @@ public class BasicOAuth2ClientMapper extends AbstractOAuth2ClientMapper implemen
             }
             oauth2User.setUserGroups(userGroups);
         }
+
+
         return getOrCreateSecurityUserFromOAuth2User(oauth2User, config.isAllowUserCreation(), config.isActivateUser());
     }
 
@@ -97,7 +104,7 @@ public class BasicOAuth2ClientMapper extends AbstractOAuth2ClientMapper implemen
                 return getStringAttributeByKey(attributes, config.getBasic().getEmailAttributeKey());
             case DOMAIN_TENANT_STRATEGY:
                 String email = getStringAttributeByKey(attributes, config.getBasic().getEmailAttributeKey());
-                return email.substring(email .indexOf("@") + 1);
+                return email.substring(email.indexOf("@") + 1);
             case CUSTOM_TENANT_STRATEGY:
                 StrSubstitutor sub = new StrSubstitutor(attributes, START_PLACEHOLDER_PREFIX, END_PLACEHOLDER_PREFIX);
                 return sub.replace(config.getBasic().getTenantNamePattern());

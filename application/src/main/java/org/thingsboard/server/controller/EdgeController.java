@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -114,19 +115,20 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            Edge result = checkNotNull(edgeService.saveEdge(edge));
+            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
 
             if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, result.getId());
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
             }
 
             if (created) {
-                ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), result.getId());
-                edgeService.setRootRuleChain(tenantId, result, defaultRootEdgeRuleChain.getId());
+                ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), savedEdge.getId());
+                edgeService.setEdgeRootRuleChain(tenantId, savedEdge, defaultRootEdgeRuleChain.getId());
+                edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
             }
 
-            logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
-            return result;
+            logEntityAction(savedEdge.getId(), savedEdge, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+            return savedEdge;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.EDGE), edge,
                     null, edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
@@ -305,7 +307,7 @@ public class EdgeController extends BaseController {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.WRITE);
 
-            Edge updatedEdge = edgeService.setRootRuleChain(getTenantId(), edge, ruleChainId);
+            Edge updatedEdge = edgeService.setEdgeRootRuleChain(getTenantId(), edge, ruleChainId);
 
             logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
 

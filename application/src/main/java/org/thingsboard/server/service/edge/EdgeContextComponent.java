@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge;
 
 import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -50,9 +51,11 @@ import org.thingsboard.server.service.edge.rpc.constructor.AssetUpdateMsgConstru
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.init.InitEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
@@ -118,6 +121,10 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
     private AlarmUpdateMsgConstructor alarmUpdateMsgConstructor;
 
     @Lazy
@@ -143,4 +150,8 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
+
+    @Autowired
+    @Getter
+    private DbCallbackExecutorService dbCallbackExecutor;
 }

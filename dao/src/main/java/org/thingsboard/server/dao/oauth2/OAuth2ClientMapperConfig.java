@@ -49,6 +49,9 @@ public class OAuth2ClientMapperConfig {
         private String tenantNameStrategy;
         private String tenantNamePattern;
         private String customerNamePattern;
+        private boolean alwaysFullScreen;
+        private String defaultDashboardName;
+
         private String parentCustomerNamePattern;
         private String userGroupsNamePattern;
     }

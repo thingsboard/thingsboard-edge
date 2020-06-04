@@ -65,7 +65,6 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -130,45 +129,10 @@ public class DashboardController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard", method = RequestMethod.POST)
-    @ResponseBody 
+    @ResponseBody
     public Dashboard saveDashboard(@RequestBody Dashboard dashboard,
                                    @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            dashboard.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = dashboard.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (dashboard.getCustomerId() == null || dashboard.getCustomerId().isNullUid())) {
-                dashboard.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.DASHBOARD, operation,
-                    dashboard.getId(), dashboard, entityGroupId);
-
-            Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedDashboard.getId());
-            }
-
-            logEntityAction(savedDashboard.getId(), savedDashboard,
-                    null,
-                    dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            return savedDashboard;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DASHBOARD), dashboard,
-                    null, dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-
-            throw handleException(e);
-        }
+        return saveGroupEntity(dashboard, strEntityGroupId, dashboardService::saveDashboard);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -430,158 +394,6 @@ public class DashboardController extends BaseController {
     }
 
     /*
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/dashboard/{dashboardId}/edges", method = RequestMethod.POST)
-    @ResponseBody
-    public Dashboard updateDashboardEdges(@PathVariable(DASHBOARD_ID) String strDashboardId,
-                                          @RequestBody String[] strEdgeIds) throws ThingsboardException {
-        checkParameter(DASHBOARD_ID, strDashboardId);
-        try {
-            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            Dashboard dashboard = checkDashboardId(dashboardId, Operation.ASSIGN_TO_EDGE);
-
-            Set<EdgeId> edgeIds = new HashSet<>();
-            if (strEdgeIds != null) {
-                for (String strEdgeId : strEdgeIds) {
-                    edgeIds.add(new EdgeId(toUUID(strEdgeId)));
-                }
-            }
-
-            Set<EdgeId> addedEdgeIds = new HashSet<>();
-            Set<EdgeId> removedEdgeIds = new HashSet<>();
-            for (EdgeId edgeId : edgeIds) {
-                if (!dashboard.isAssignedToEdge(edgeId)) {
-                    addedEdgeIds.add(edgeId);
-                }
-            }
-
-            Set<ShortEdgeInfo> assignedEdges = dashboard.getAssignedEdges();
-            if (assignedEdges != null) {
-                for (ShortEdgeInfo edgeInfo : assignedEdges) {
-                    if (!edgeIds.contains(edgeInfo.getEdgeId())) {
-                        removedEdgeIds.add(edgeInfo.getEdgeId());
-                    }
-                }
-            }
-
-            if (addedEdgeIds.isEmpty() && removedEdgeIds.isEmpty()) {
-                return dashboard;
-            } else {
-                Dashboard savedDashboard = null;
-                for (EdgeId edgeId : addedEdgeIds) {
-                    savedDashboard = checkNotNull(dashboardService.assignDashboardToEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
-                    ShortEdgeInfo edgeInfo = savedDashboard.getAssignedEdgeInfo(edgeId);
-                    logEntityAction(dashboardId, savedDashboard,
-                            null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strDashboardId, edgeId.toString(), edgeInfo.getTitle());
-                }
-                for (EdgeId edgeId : removedEdgeIds) {
-                    ShortEdgeInfo edgeInfo = dashboard.getAssignedEdgeInfo(edgeId);
-                    savedDashboard = checkNotNull(dashboardService.unassignDashboardFromEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
-                    logEntityAction(dashboardId, dashboard,
-                            null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strDashboardId, edgeId.toString(), edgeInfo.getTitle());
-
-                }
-                return savedDashboard;
-            }
-        } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.DASHBOARD), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strDashboardId);
-
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/dashboard/{dashboardId}/edges/add", method = RequestMethod.POST)
-    @ResponseBody
-    public Dashboard addDashboardEdges(@PathVariable(DASHBOARD_ID) String strDashboardId,
-                                       @RequestBody String[] strEdgeIds) throws ThingsboardException {
-        checkParameter(DASHBOARD_ID, strDashboardId);
-        try {
-            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            Dashboard dashboard = checkDashboardId(dashboardId, Operation.ASSIGN_TO_EDGE);
-
-            Set<EdgeId> edgeIds = new HashSet<>();
-            if (strEdgeIds != null) {
-                for (String strEdgeId : strEdgeIds) {
-                    EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-                    if (!dashboard.isAssignedToEdge(edgeId)) {
-                        edgeIds.add(edgeId);
-                    }
-                }
-            }
-
-            if (edgeIds.isEmpty()) {
-                return dashboard;
-            } else {
-                Dashboard savedDashboard = null;
-                for (EdgeId edgeId : edgeIds) {
-                    savedDashboard = checkNotNull(dashboardService.assignDashboardToEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
-                    ShortEdgeInfo edgeInfo = savedDashboard.getAssignedEdgeInfo(edgeId);
-                    logEntityAction(dashboardId, savedDashboard,
-                            null,
-                            ActionType.ASSIGNED_TO_EDGE, null, strDashboardId, edgeId.toString(), edgeInfo.getTitle());
-                }
-                return savedDashboard;
-            }
-        } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.DASHBOARD), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strDashboardId);
-
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/dashboard/{dashboardId}/edges/remove", method = RequestMethod.POST)
-    @ResponseBody
-    public Dashboard removeDashboardEdges(@PathVariable(DASHBOARD_ID) String strDashboardId,
-                                          @RequestBody String[] strEdgeIds) throws ThingsboardException {
-        checkParameter(DASHBOARD_ID, strDashboardId);
-        try {
-            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            Dashboard dashboard = checkDashboardId(dashboardId, Operation.UNASSIGN_FROM_EDGE);
-
-            Set<EdgeId> edgeIds = new HashSet<>();
-            if (strEdgeIds != null) {
-                for (String strEdgeId : strEdgeIds) {
-                    EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-                    if (dashboard.isAssignedToEdge(edgeId)) {
-                        edgeIds.add(edgeId);
-                    }
-                }
-            }
-
-            if (edgeIds.isEmpty()) {
-                return dashboard;
-            } else {
-                Dashboard savedDashboard = null;
-                for (EdgeId edgeId : edgeIds) {
-                    ShortEdgeInfo edgeInfo = dashboard.getAssignedEdgeInfo(edgeId);
-                    savedDashboard = checkNotNull(dashboardService.unassignDashboardFromEdge(getCurrentUser().getTenantId(), dashboardId, edgeId));
-                    logEntityAction(dashboardId, dashboard,
-                            null,
-                            ActionType.UNASSIGNED_FROM_EDGE, null, strDashboardId, edgeId.toString(), edgeInfo.getTitle());
-
-                }
-                return savedDashboard;
-            }
-        } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.DASHBOARD), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strDashboardId);
-
-            throw handleException(e);
-        }
-    }
-
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/dashboards", params = { "limit" }, method = RequestMethod.GET)
     @ResponseBody

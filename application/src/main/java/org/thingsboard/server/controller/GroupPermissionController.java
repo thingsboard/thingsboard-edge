@@ -84,10 +84,7 @@ public class GroupPermissionController extends BaseController {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
 
-            Operation operation = groupPermission.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation,
-                    groupPermission.getId(), groupPermission);
+            checkEntity(groupPermission.getId(), groupPermission, Resource.GROUP_PERMISSION, null);
 
             if (groupPermission.isPublic()) {
                 throw permissionDenied();

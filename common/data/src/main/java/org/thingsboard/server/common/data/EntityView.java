@@ -35,7 +35,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,14 +48,13 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class EntityView extends SearchTextBasedWithAdditionalInfo<EntityViewId>
-        implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+        implements GroupEntity<EntityViewId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
     private EntityId entityId;
     private TenantId tenantId;
     private CustomerId customerId;
-    private EdgeId edgeId;
     private String name;
     private String type;
     private TelemetryEntityView keys;

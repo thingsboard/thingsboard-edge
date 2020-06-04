@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 
 @EqualsAndHashCode(callSuper = true)
-public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements GroupEntity<UserId> {
 
     private static final long serialVersionUID = 8250339805336035966L;
 

@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,13 +51,11 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -71,9 +68,6 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -86,7 +80,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
-import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
@@ -117,30 +110,7 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(@RequestBody EntityView entityView,
                                      @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            entityView.setTenantId(getCurrentUser().getTenantId());
-
-            Operation operation = entityView.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (entityView.getCustomerId() == null || entityView.getCustomerId().isNullUid())) {
-                entityView.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, operation,
-                    entityView.getId(), entityView, entityGroupId);
-
-            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntityView.getId());
-            }
-
+            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, entityViewService::saveEntityView);
             List<ListenableFuture<List<Void>>> futures = new ArrayList<>();
             if (savedEntityView.getKeys() != null && savedEntityView.getKeys().getAttributes() != null) {
                 futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
@@ -154,13 +124,8 @@ public class EntityViewController extends BaseController {
                     throw new RuntimeException("Failed to copy attributes to entity view", e);
                 }
             }
-
-            logEntityAction(savedEntityView.getId(), savedEntityView, null,
-                    entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
             return savedEntityView;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ENTITY_VIEW), entityView, null,
-                    entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -419,84 +384,4 @@ public class EntityViewController extends BaseController {
             throw handleException(e);
         }
     }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/{edgeId}/entityView/{entityViewId}", method = RequestMethod.POST)
-    @ResponseBody
-    public EntityView assignEntityViewToEdge(@PathVariable(EDGE_ID) String strEdgeId,
-                                             @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
-        checkParameter(EDGE_ID, strEdgeId);
-        checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
-
-            EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
-            checkEntityViewId(entityViewId, Operation.ASSIGN_TO_EDGE);
-
-            EntityView savedEntityView = checkNotNull(entityViewService.assignEntityViewToEdge(getTenantId(), entityViewId, edgeId));
-            logEntityAction(entityViewId, savedEntityView,
-                    savedEntityView.getCustomerId(),
-                    ActionType.ASSIGNED_TO_EDGE, null, strEntityViewId, strEdgeId, edge.getName());
-            return savedEntityView;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ENTITY_VIEW), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strEntityViewId, strEdgeId);
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/entityView/{entityViewId}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public EntityView unassignEntityViewFromEdge(@PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
-        checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        try {
-            EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
-            EntityView entityView = checkEntityViewId(entityViewId, Operation.UNASSIGN_FROM_EDGE);
-            if (entityView.getEdgeId() == null || entityView.getEdgeId().getId().equals(ModelConstants.NULL_UUID)) {
-                throw new IncorrectParameterException("Entity View isn't assigned to any edge!");
-            }
-            Edge edge = checkEdgeId(entityView.getEdgeId(), Operation.READ);
-            EntityView savedEntityView = checkNotNull(entityViewService.unassignEntityViewFromEdge(getTenantId(), entityViewId));
-            logEntityAction(entityViewId, entityView,
-                    entityView.getCustomerId(),
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strEntityViewId, edge.getId().toString(), edge.getName());
-
-            return savedEntityView;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ENTITY_VIEW), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strEntityViewId);
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/{edgeId}/entityViews", params = {"limit"}, method = RequestMethod.GET)
-    @ResponseBody
-    public TextPageData<EntityView> getEdgeEntityViews(
-            @PathVariable("edgeId") String strEdgeId,
-            @RequestParam int limit,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
-        checkParameter("edgeId", strEdgeId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            checkEdgeId(edgeId, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            if (type != null && type.trim().length()>0) {
-                return checkNotNull(entityViewService.findEntityViewsByTenantIdAndEdgeIdAndType(tenantId, edgeId, type, pageLink));
-            } else {
-                return checkNotNull(entityViewService.findEntityViewsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
 }

@@ -327,9 +327,9 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
                 }
                 log.info("Schema updated.");
                 break;
-            case "2.5.0":
+            case "2.5.1":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.0pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.1pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";

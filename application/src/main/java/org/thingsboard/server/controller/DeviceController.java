@@ -58,13 +58,11 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -77,8 +75,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -90,7 +86,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
-import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 
 @RestController
 @TbCoreComponent
@@ -120,41 +115,11 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            TenantId tenantId = getTenantId();
-            device.setTenantId(tenantId);
-
-            Operation operation = device.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            if (operation == Operation.CREATE
-                    && getCurrentUser().getAuthority() == Authority.CUSTOMER_USER &&
-                    (device.getCustomerId() == null || device.getCustomerId().isNullUid())) {
-                device.setCustomerId(getCurrentUser().getCustomerId());
-            }
-
-            EntityGroupId entityGroupId = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            }
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE, operation,
-                    device.getId(), device, entityGroupId);
-
-            Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
+            Device savedDevice = saveGroupEntity(device, strEntityGroupId,
+                    device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
-
-            logEntityAction(savedDevice.getId(), savedDevice,
-                    savedDevice.getCustomerId(),
-                    device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            if (entityGroupId != null && operation == Operation.CREATE) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedDevice.getId());
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-                logEntityAction(savedDevice.getId(), savedDevice,
-                        savedDevice.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                        savedDevice.getId().toString(), strEntityGroupId, entityGroup.getName());
-            }
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
@@ -163,8 +128,6 @@ public class DeviceController extends BaseController {
             }
             return savedDevice;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }
@@ -521,88 +484,5 @@ public class DeviceController extends BaseController {
             return secretKey;
         }
         return DataConstants.DEFAULT_SECRET_KEY;
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/{edgeId}/device/{deviceId}", method = RequestMethod.POST)
-    @ResponseBody
-    public Device assignDeviceToEdge(@PathVariable(EDGE_ID) String strEdgeId,
-                                     @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
-        checkParameter(EDGE_ID, strEdgeId);
-        checkParameter(DEVICE_ID, strDeviceId);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
-
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            checkDeviceId(deviceId, Operation.ASSIGN_TO_EDGE);
-
-            Device savedDevice = checkNotNull(deviceService.assignDeviceToEdge(getCurrentUser().getTenantId(), deviceId, edgeId));
-
-            logEntityAction(deviceId, savedDevice,
-                    savedDevice.getCustomerId(),
-                    ActionType.ASSIGNED_TO_EDGE, null, strDeviceId, strEdgeId, edge.getName());
-
-            return savedDevice;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strDeviceId, strEdgeId);
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/device/{deviceId}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public Device unassignDeviceFromEdge(@PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
-        checkParameter(DEVICE_ID, strDeviceId);
-        try {
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            Device device = checkDeviceId(deviceId, Operation.UNASSIGN_FROM_EDGE);
-            if (device.getEdgeId() == null || device.getEdgeId().getId().equals(ModelConstants.NULL_UUID)) {
-                throw new IncorrectParameterException("Device isn't assigned to any edge!");
-            }
-            Edge edge = checkEdgeId(device.getEdgeId(), Operation.READ);
-
-            Device savedDevice = checkNotNull(deviceService.unassignDeviceFromEdge(getCurrentUser().getTenantId(), deviceId));
-
-            logEntityAction(deviceId, device,
-                    device.getCustomerId(),
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strDeviceId, edge.getId().toString(), edge.getName());
-
-            return savedDevice;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strDeviceId);
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/{edgeId}/devices", params = {"limit"}, method = RequestMethod.GET)
-    @ResponseBody
-    public TextPageData<Device> getEdgeDevices(
-            @PathVariable("edgeId") String strEdgeId,
-            @RequestParam int limit,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
-        checkParameter("edgeId", strEdgeId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            checkEdgeId(edgeId, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            if (type != null && type.trim().length()>0) {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndEdgeIdAndType(tenantId, edgeId, type, pageLink));
-            } else {
-                return checkNotNull(deviceService.findDevicesByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
-        }
     }
 }

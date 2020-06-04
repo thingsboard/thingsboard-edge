@@ -30,9 +30,13 @@
  */
 package org.thingsboard.server.service.security.auth.oauth2;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,29 +44,33 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
@@ -70,6 +78,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractOAuth2ClientMapper {
+    private static final int DASHBOARDS_REQUEST_LIMIT = 10;
+
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private UserService userService;
@@ -90,6 +101,12 @@ public abstract class AbstractOAuth2ClientMapper {
     private EntityGroupService entityGroupService;
 
     @Autowired
+    private OwnersCacheService ownersCacheService;
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
     private InstallScripts installScripts;
 
     private final Lock userCreationLock = new ReentrantLock();
@@ -102,6 +119,8 @@ public abstract class AbstractOAuth2ClientMapper {
         if (user == null && !allowUserCreation) {
             throw new UsernameNotFoundException("User not found: " + oauth2User.getEmail());
         }
+
+        boolean isNewUser = false;
 
         if (user == null) {
             userCreationLock.lock();
@@ -125,11 +144,13 @@ public abstract class AbstractOAuth2ClientMapper {
                     user.setEmail(oauth2User.getEmail());
                     user.setFirstName(oauth2User.getFirstName());
                     user.setLastName(oauth2User.getLastName());
+
                     user = userService.saveUser(user);
                     if (activateUser) {
                         UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                         userService.activateUserCredentials(user.getTenantId(), userCredentials.getActivateToken(), passwordEncoder.encode(""));
                     }
+                    isNewUser = true;
                 }
             } catch (Exception e) {
                 log.error("Can't get or create security user from oauth2 user", e);
@@ -147,13 +168,58 @@ public abstract class AbstractOAuth2ClientMapper {
             throw new RuntimeException("Error while adding user to entity groups", e);
         }
 
+        SecurityUser securityUser;
         try {
-            SecurityUser securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
-            return (SecurityUser) new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities()).getPrincipal();
+            securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
         } catch (Exception e) {
             log.error("Can't get or create security user from oauth2 user", e);
             throw new RuntimeException("Can't get or create security user from oauth2 user", e);
         }
+
+        if (isNewUser && !StringUtils.isEmpty(oauth2User.getDefaultDashboardName())) {
+            TenantId tenantId = user.getTenantId();
+            try {
+                Optional<DashboardId> dashboardIdOpt = findDefaultDashboard(oauth2User, securityUser, tenantId);
+                if (dashboardIdOpt.isPresent()) {
+                    user = userService.findUserById(user.getTenantId(), user.getId());
+                    JsonNode additionalInfo = user.getAdditionalInfo();
+                    if (additionalInfo == null || additionalInfo instanceof NullNode) {
+                        additionalInfo = mapper.createObjectNode();
+                    }
+                    ((ObjectNode) additionalInfo).put("defaultDashboardFullscreen", oauth2User.isAlwaysFullScreen());
+                    ((ObjectNode) additionalInfo).put("defaultDashboardId", dashboardIdOpt.get().getId().toString());
+                    user.setAdditionalInfo(additionalInfo);
+                    user = userService.saveUser(user);
+                    securityUser = new SecurityUser(user, true, principal, getMergedUserPermissions(user));
+                }
+            } catch (Exception e) {
+                log.error("Error while setting default dashboard for user", e);
+            }
+        }
+
+        try {
+            return (SecurityUser) new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities()).getPrincipal();
+        } catch (Exception e) {
+            log.error("Can't create authentication token from security user", e);
+            throw new RuntimeException("Can't create authentication token from security user", e);
+        }
+    }
+
+    private Optional<DashboardId> findDefaultDashboard(OAuth2User oauth2User, SecurityUser securityUser, TenantId tenantId) throws Exception {
+        return ownersCacheService.getGroupEntitiesByPageLink(tenantId, securityUser,
+                EntityType.DASHBOARD, Operation.READ,
+                entityId -> new DashboardId(entityId.getId()),
+                (entityIds) -> {
+                    try {
+                        return dashboardService.findDashboardInfoByIdsAsync(tenantId, entityIds).get();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                },
+                Collections.emptyList(), Collections.emptyList(), new TextPageLink(1, oauth2User.getDefaultDashboardName()))
+                .getData().stream()
+                .findAny()
+                .map(IdBased::getId);
     }
 
     private ListenableFuture<Void> addUserToUserGroups(OAuth2User oauth2User, User user) {

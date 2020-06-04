@@ -94,4 +94,11 @@ public interface RuleChainService {
     RuleChain getDefaultRootEdgeRuleChain(TenantId tenantId);
 
     boolean setDefaultRootEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+
+    boolean addDefaultEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+
+    boolean removeDefaultEdgeRuleChain(TenantId tenantId, RuleChainId ruleChainId);
+
+    ListenableFuture<List<RuleChain>> findDefaultEdgeRuleChainsByTenantId(TenantId tenantId);
+
 }

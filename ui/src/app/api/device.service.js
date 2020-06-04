@@ -35,7 +35,7 @@ export default angular.module('thingsboard.api.device', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function DeviceService($http, $q, $window, userService, attributeService, customerService, types) {
+function DeviceService($http, $q, $window, $filter, userService, attributeService, customerService, types) {
 
     var service = {
         //assignDeviceToCustomer: assignDeviceToCustomer,
@@ -61,10 +61,7 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         getDeviceTypes: getDeviceTypes,
         findByName: findByName,
         claimDevice: claimDevice,
-        unclaimDevice: unclaimDevice,
-        assignDeviceToEdge: assignDeviceToEdge,
-        unassignDeviceFromEdge: unassignDeviceFromEdge,
-        getEdgeDevices: getEdgeDevices
+        unclaimDevice: unclaimDevice
     };
 
     return service;
@@ -402,51 +399,4 @@ function DeviceService($http, $q, $window, userService, attributeService, custom
         });
         return deferred.promise;
     }
-
-    function assignDeviceToEdge(edgeId, deviceId) {
-        var deferred = $q.defer();
-        var url = '/api/edge/' + edgeId + '/device/' + deviceId;
-        $http.post(url, null).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function unassignDeviceFromEdge(deviceId) {
-        var deferred = $q.defer();
-        var url = '/api/edge/device/' + deviceId;
-        $http.delete(url).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function getEdgeDevices(edgeId, pageLink, config, type) {
-        var deferred = $q.defer();
-        var url = '/api/edge/' + edgeId + '/devices?limit=' + pageLink.limit;
-        if (angular.isDefined(pageLink.textSearch)) {
-            url += '&textSearch=' + pageLink.textSearch;
-        }
-        if (angular.isDefined(pageLink.idOffset)) {
-            url += '&idOffset=' + pageLink.idOffset;
-        }
-        if (angular.isDefined(pageLink.textOffset)) {
-            url += '&textOffset=' + pageLink.textOffset;
-        }
-        if (angular.isDefined(type) && type.length) {
-            url += '&type=' + type;
-        }
-        $http.get(url, config).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-
-        return deferred.promise;
-    }
-
 }

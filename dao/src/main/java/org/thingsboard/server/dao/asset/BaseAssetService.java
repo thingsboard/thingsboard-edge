@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.asset;
 
 
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -44,10 +45,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
@@ -64,7 +66,9 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -73,6 +77,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -114,6 +119,9 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -365,41 +373,6 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
             }
             return entityView;
         }
-    }
-
-    @Override
-    public Asset assignAssetToEdge(TenantId tenantId, AssetId assetId, EdgeId edgeId) {
-        Asset asset = findAssetById(tenantId, assetId);
-        asset.setEdgeId(edgeId);
-        return saveAsset(asset);
-    }
-
-    @Override
-    public Asset unassignAssetFromEdge(TenantId tenantId, AssetId assetId) {
-        Asset asset = findAssetById(tenantId, assetId);
-        asset.setEdgeId(null);
-        return saveAsset(asset);
-    }
-
-    @Override
-    public TextPageData<Asset> findAssetsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TextPageLink pageLink) {
-        log.trace("Executing findAssetsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Asset> assets = assetDao.findAssetsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
-        return new TextPageData<>(assets, pageLink);
-    }
-
-    @Override
-    public TextPageData<Asset> findAssetsByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, TextPageLink pageLink) {
-        log.trace("Executing findAssetsByTenantIdAndEdgeIdAndType, tenantId [{}], edgeId [{}], type [{}], pageLink [{}]", tenantId, edgeId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
-        validateString(type, "Incorrect type " + type);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Asset> assets = assetDao.findAssetsByTenantIdAndEdgeIdAndType(tenantId.getId(), edgeId.getId(), type, pageLink);
-        return new TextPageData<>(assets, pageLink);
     }
 
     private DataValidator<Asset> assetValidator =

@@ -141,14 +141,21 @@ public interface EdgeDao extends Dao<Edge> {
      */
     Optional<Edge> findByRoutingKey(UUID tenantId, String routingKey);
 
-
-
     /**
-     * Find rule chains by tenantId and ruleChainId.
+     * Find edges by tenantId and ruleChainId.
      *
      * @param tenantId the tenantId
      * @param ruleChainId the ruleChainId
      * @return the list of rule chain objects
      */
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId);
+
+    /**
+     * Find edges by tenantId and schedulerEventId.
+     *
+     * @param tenantId the tenantId
+     * @param schedulerEventId the schedulerEventId
+     * @return the list of rule chain objects
+     */
+    ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId);
 }
