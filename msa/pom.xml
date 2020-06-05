@@ -51,8 +51,7 @@
     </properties>
 
     <modules>
-        <module>edge</module>
-        <module>web-report</module>
+        <module>tb-edge</module>
     </modules>
 
     <build>

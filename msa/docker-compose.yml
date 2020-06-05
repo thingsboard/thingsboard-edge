@@ -29,7 +29,20 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-export NODE_CONFIG_DIR=${pkg.installFolder}/conf
-export LOG_FOLDER=${pkg.logFolder}
-export NODE_ENV=production
-export CHROME_EXECUTABLE=${pkg.installFolder}/chromium/chrome
+version: '2.2'
+services:
+  mytbedge:
+    restart: always
+    image: "volodymyrbabak/tb-edge:latest"
+    ports:
+      - "19090:8080"
+      - "11883:1883"
+      - "15683:5683/udp"
+    environment:
+      CLOUD_ROUTING_KEY: 3b16bfba73b47782490aaa9792fe9b13
+      CLOUD_ROUTING_SECRET: bh3mid4pi2yren2c4noa
+      CLOUD_PRC_HOST: 192.168.1.124
+      CLOUD_RPC_PORT: 60110
+    volumes:
+      - ~/.mytbedge-data:/data
+      - ~/.mytbedge-logs:/var/log/tb-edge

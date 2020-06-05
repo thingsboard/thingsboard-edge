@@ -30,7 +30,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db-edge.sh
+start-db.sh
 
 service tb-web-report start
 

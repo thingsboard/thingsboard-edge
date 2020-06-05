@@ -934,6 +934,13 @@
                 <version>${thingsboard-cloud.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.msa</groupId>
+                <artifactId>web-report</artifactId>
+                <version>${thingsboard-cloud.version}</version>
+                <classifier>deb</classifier>
+                <type>deb</type>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard</groupId>
                 <artifactId>tools</artifactId>
                 <version>${project.version}</version>

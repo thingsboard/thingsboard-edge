@@ -59,13 +59,13 @@ upgradeversion=${DATA_FOLDER}/.upgradeversion
 
 source "${CONF_FOLDER}/${configfile}"
 
-echo "Starting ThingsBoard installation ..."
+echo "Starting ThingsBoard Edge installation ..."
 
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
+java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
                     -Dinstall.load_demo=${loadDemo} \
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dinstall.upgrade=false \
-                    -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
+                    -Dlogging.config=/usr/share/tb-edge/bin/install/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher
 
 echo "${pkg.upgradeVersion}" > ${upgradeversion}

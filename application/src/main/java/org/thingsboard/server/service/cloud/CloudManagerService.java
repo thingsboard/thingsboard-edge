@@ -240,7 +240,7 @@ public class CloudManagerService {
 
     @PostConstruct
     public void init() {
-        log.info("Starting edge mock service");
+        log.info("Starting Cloud Edge service");
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
