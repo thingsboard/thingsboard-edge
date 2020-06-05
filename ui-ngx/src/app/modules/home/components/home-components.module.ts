@@ -36,7 +36,6 @@ import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dia
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { DetailsPanelComponent } from '@home/components/details-panel.component';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
-import { ContactComponent } from '@home/components/contact.component';
 import { AuditLogDetailsDialogComponent } from '@home/components/audit-log/audit-log-details-dialog.component';
 import { AuditLogTableComponent } from '@home/components/audit-log/audit-log-table.component';
 import { EventTableHeaderComponent } from '@home/components/event/event-table-header.component';
@@ -111,7 +110,6 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
       AddEntityDialogComponent,
       DetailsPanelComponent,
       EntityDetailsPanelComponent,
-      ContactComponent,
       AuditLogTableComponent,
       AuditLogDetailsDialogComponent,
       EventContentDialogComponent,
@@ -183,7 +181,6 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
     AddEntityDialogComponent,
     DetailsPanelComponent,
     EntityDetailsPanelComponent,
-    ContactComponent,
     AuditLogTableComponent,
     EventTableComponent,
     RelationTableComponent,
