@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.queue;
 
-import akka.actor.ActorRef;
 import com.google.protobuf.ProtocolStringList;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +65,6 @@ import org.thingsboard.server.service.queue.processing.TbRuleEngineProcessingStr
 import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategy;
 import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategyFactory;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.stats.RuleEngineStatisticsService;
 
@@ -247,7 +245,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
             Optional<TbActorMsg> actorMsg = encodingService.decode(nfMsg.getComponentLifecycleMsg().toByteArray());
             if (actorMsg.isPresent()) {
                 log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                actorContext.tell(actorMsg.get(), ActorRef.noSender());
+                actorContext.tellWithHighPriority(actorMsg.get());
             }
             callback.onSuccess();
         } else if (nfMsg.hasFromDeviceRpcResponse()) {
@@ -276,7 +274,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
             }
         }
         msg = new QueueToRuleEngineMsg(tenantId, tbMsg, relationTypes, toRuleEngineMsg.getFailureMessage());
-        actorContext.tell(msg, ActorRef.noSender());
+        actorContext.tell(msg);
     }
 
     @Scheduled(fixedDelayString = "${queue.rule-engine.stats.print-interval-ms}")

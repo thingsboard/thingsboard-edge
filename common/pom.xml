@@ -53,6 +53,7 @@
         <module>proto</module>
         <module>util</module>
         <module>message</module>
+        <module>actor</module>
         <module>queue</module>
         <module>js</module>
         <module>transport</module>
