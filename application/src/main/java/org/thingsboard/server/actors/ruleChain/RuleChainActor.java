@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
-import akka.actor.OneForOneStrategy;
-import akka.actor.SupervisorStrategy;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.actors.TbActor;
+import org.thingsboard.server.actors.TbActorCtx;
+import org.thingsboard.server.actors.TbActorId;
+import org.thingsboard.server.actors.TbEntityActorId;
 import org.thingsboard.server.actors.service.ComponentActor;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -42,18 +44,24 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
-import scala.concurrent.duration.Duration;
 
 public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMessageProcessor> {
 
+    private final RuleChain ruleChain;
+
     private RuleChainActor(ActorSystemContext systemContext, TenantId tenantId, RuleChain ruleChain) {
         super(systemContext, tenantId, ruleChain.getId());
-        setProcessor(new RuleChainActorMessageProcessor(tenantId, ruleChain, systemContext,
-                context().parent(), context().self()));
+        this.ruleChain = ruleChain;
     }
 
     @Override
-    protected boolean process(TbActorMsg msg) {
+    protected RuleChainActorMessageProcessor createProcessor(TbActorCtx ctx) {
+        return new RuleChainActorMessageProcessor(tenantId, ruleChain, systemContext,
+                ctx.getParentRef(), ctx);
+    }
+
+    @Override
+    protected boolean doProcess(TbActorMsg msg) {
         switch (msg.getMsgType()) {
             case COMPONENT_LIFE_CYCLE_MSG:
                 onComponentLifecycleMsg((ComponentLifecycleMsg) msg);
@@ -79,7 +87,7 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
         return true;
     }
 
-    public static class ActorCreator extends ContextBasedCreator<RuleChainActor> {
+    public static class ActorCreator extends ContextBasedCreator {
         private static final long serialVersionUID = 1L;
 
         private final TenantId tenantId;
@@ -92,7 +100,12 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
         }
 
         @Override
-        public RuleChainActor create() {
+        public TbActorId createActorId() {
+            return new TbEntityActorId(ruleChain.getId());
+        }
+
+        @Override
+        public TbActor createActor() {
             return new RuleChainActor(context, tenantId, ruleChain);
         }
     }
@@ -102,13 +115,4 @@ public class RuleChainActor extends ComponentActor<RuleChainId, RuleChainActorMe
         return systemContext.getRuleChainErrorPersistFrequency();
     }
 
-    @Override
-    public SupervisorStrategy supervisorStrategy() {
-        return strategy;
-    }
-
-    private final SupervisorStrategy strategy = new OneForOneStrategy(3, Duration.create("1 minute"), t -> {
-        logAndPersist("Unknown Failure", ActorSystemContext.toException(t));
-        return SupervisorStrategy.resume();
-    });
 }
