@@ -483,11 +483,14 @@ export class ImportExportService {
     );
   }
 
-  private processCSVCell(cellData: string): string {
-    let result = cellData.replace(/"/g, '""');
-    if (result.search(/([",\n])/g) >= 0)
-      result = `"${result}"`;
-    return result;
+  private processCSVCell(cellData: string | null): string {
+    if (cellData) {
+      let result = cellData.replace(/"/g, '""');
+      if (result.search(/([",\n])/g) >= 0)
+        result = `"${result}"`;
+      return result;
+    }
+    return cellData;
   }
 
   public exportCsv(data: {[key: string]: any}[], filename: string) {
