@@ -38,14 +38,14 @@ public interface TbActor {
 
     TbActorRef getActorRef();
 
-    default void init(TbActorCtx ctx) {
+    default void init(TbActorCtx ctx) throws TbActorException {
     }
 
-    default void destroy() {
+    default void destroy() throws TbActorException {
     }
 
     default InitFailureStrategy onInitFailure(int attempt, Throwable t) {
-        return InitFailureStrategy.retryWithDelay(5000);
+        return InitFailureStrategy.retryWithDelay(5000 * attempt);
     }
 
     default ProcessFailureStrategy onProcessFailure(Throwable t) {

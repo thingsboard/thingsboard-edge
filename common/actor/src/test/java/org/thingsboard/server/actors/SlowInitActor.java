@@ -40,7 +40,7 @@ public class SlowInitActor extends TestRootActor {
     }
 
     @Override
-    public void init(TbActorCtx ctx) {
+    public void init(TbActorCtx ctx) throws TbActorException {
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {

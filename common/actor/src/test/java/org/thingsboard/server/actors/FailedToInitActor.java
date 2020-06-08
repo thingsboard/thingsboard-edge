@@ -28,50 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.queue;
+package org.thingsboard.server.actors;
 
-import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Objects;
+@Slf4j
+public class FailedToInitActor extends TestRootActor {
 
-@ToString
-public class ServiceQueue {
+    int retryAttempts;
+    int retryDelay;
+    int attempts = 0;
 
-    public static final String MAIN = "Main";
-
-    private final ServiceType type;
-    private final String queue;
-
-    public ServiceQueue(ServiceType type) {
-        this.type = type;
-        this.queue = MAIN;
-    }
-
-    public ServiceQueue(ServiceType type, String queue) {
-        this.type = type;
-        this.queue = queue != null ? queue : MAIN;
-    }
-
-    public ServiceType getType() {
-        return type;
-    }
-
-    public String getQueue() {
-        return queue;
+    public FailedToInitActor(TbActorId actorId, ActorTestCtx testCtx, int retryAttempts, int retryDelay) {
+        super(actorId, testCtx);
+        this.retryAttempts = retryAttempts;
+        this.retryDelay = retryDelay;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ServiceQueue that = (ServiceQueue) o;
-        return type == that.type &&
-                queue.equals(that.queue);
+    public void init(TbActorCtx ctx) throws TbActorException {
+        if (attempts < retryAttempts) {
+            attempts++;
+            throw new TbActorException("Test attempt", new RuntimeException());
+        } else {
+            super.init(ctx);
+        }
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(type, queue);
+    public InitFailureStrategy onInitFailure(int attempt, Throwable t) {
+        return InitFailureStrategy.retryWithDelay(retryDelay);
     }
 
+    public static class FailedToInitActorCreator implements TbActorCreator {
+
+        private final TbActorId actorId;
+        private final ActorTestCtx testCtx;
+        private final int retryAttempts;
+        private final int retryDelay;
+
+        public FailedToInitActorCreator(TbActorId actorId, ActorTestCtx testCtx, int retryAttempts, int retryDelay) {
+            this.actorId = actorId;
+            this.testCtx = testCtx;
+            this.retryAttempts = retryAttempts;
+            this.retryDelay = retryDelay;
+        }
+
+        @Override
+        public TbActorId createActorId() {
+            return actorId;
+        }
+
+        @Override
+        public TbActor createActor() {
+            return new FailedToInitActor(actorId, testCtx, retryAttempts, retryDelay);
+        }
+    }
 }
