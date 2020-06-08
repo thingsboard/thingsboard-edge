@@ -90,6 +90,8 @@ import { CustomDialogService } from '@home/components/widget/dialog/custom-dialo
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { PageLink } from '@shared/models/page/page-link';
+import { SortOrder } from '@shared/models/page/sort-order';
 
 export interface IWidgetAction {
   name: string;
@@ -318,6 +320,10 @@ export class WidgetContext {
     this.widgetTitle = undefined;
     this.widgetActions = undefined;
   }
+
+  pageLink(pageSize: number, page: number = 0, textSearch: string = null, sortOrder: SortOrder = null): PageLink {
+    return new PageLink(pageSize, page, textSearch, sortOrder);
+  };
 }
 
 export interface IDynamicWidgetComponent {

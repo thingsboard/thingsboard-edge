@@ -94,6 +94,9 @@ export class MapWidgetController implements MapWidgetInterface {
         this.map = new MapClass($element, this.settings, this.ctx.$injector);
         this.map.setImageAlias(this.subscribeForImageAttribute());
         this.map.saveMarkerLocation = this.setMarkerLocation;
+        if (this.settings.draggableMarker) {
+            this.map.setDataSources(parseData(this.data));
+        }
     }
 
     map: LeafletMap;
@@ -266,9 +269,6 @@ export class MapWidgetController implements MapWidgetInterface {
             this.map.updatePolylines(parseArray(this.data));
         if (this.settings.showPolygon) {
             this.map.updatePolygons(parseData(this.data));
-        }
-        if (this.settings.draggableMarker) {
-            this.map.setDataSources(parseData(this.data));
         }
         this.map.updateMarkers(parseData(this.data));
     }
