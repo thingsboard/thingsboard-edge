@@ -65,7 +65,6 @@ export class ImageMap extends LeafletMap {
             return aspectCache(res);
         })).subscribe(aspect => {
             this.aspect = aspect;
-            console.log("ImageMap -> setImageAlias -> aspect", aspect)
             this.onResize(true);
         });
     }
