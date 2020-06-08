@@ -256,8 +256,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return TbMsg.newMsg(type, originator, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
+    public TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data) {
+        return TbMsg.newMsg(queueName, type, originator, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
     }
 
     @Override

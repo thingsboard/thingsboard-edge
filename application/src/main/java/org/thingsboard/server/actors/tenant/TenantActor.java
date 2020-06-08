@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActor;
 import org.thingsboard.server.actors.TbActorCtx;
+import org.thingsboard.server.actors.TbActorException;
 import org.thingsboard.server.actors.TbActorId;
 import org.thingsboard.server.actors.TbActorNotRegisteredException;
 import org.thingsboard.server.actors.TbActorRef;
@@ -85,7 +86,7 @@ public class TenantActor extends RuleChainManagerActor {
     boolean cantFindTenant = false;
 
     @Override
-    public void init(TbActorCtx ctx) {
+    public void init(TbActorCtx ctx) throws TbActorException {
         super.init(ctx);
         log.info("[{}] Starting tenant actor.", tenantId);
         try {
@@ -117,6 +118,8 @@ public class TenantActor extends RuleChainManagerActor {
         } catch (Exception e) {
             log.warn("[{}] Unknown failure", tenantId);
             log.warn("Failure:", e);
+//            TODO: throw this in 3.1?
+//            throw new TbActorException("Failed to init actor", e);
         }
     }
 

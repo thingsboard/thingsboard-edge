@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
@@ -257,7 +258,7 @@ public class RemoteIntegrationManagerService {
         DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
                 integration.getConfiguration().getTenantId(),
                 integration.getConfiguration().getId(),
-                TbMsg.fromBytes(deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY));
+                TbMsg.fromBytes(ServiceQueue.MAIN, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY));
 
         integration.onDownlinkMsg(downlinkMsg);
     }
