@@ -307,7 +307,13 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 entity.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
             } else {
                 Object value = ((Object[]) obj)[column.propertyIndex];
-                entity.put(column.propertyName, this.convertValue(value));
+                String strValue;
+                if (column.column.getType() == ColumnType.ENTITY_FIELD) {
+                    strValue = value != null ? value.toString() : "";
+                } else {
+                    strValue = this.convertValue(value);
+                }
+                entity.put(column.propertyName, strValue);
             }
         }
         return entity;
@@ -325,13 +331,15 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 }
                 try {
                     double dblVal = Double.parseDouble(strVal);
-                    return new Double(dblVal).toString();
+                    if (!Double.isInfinite(dblVal)) {
+                        return new Double(dblVal).toString();
+                    }
                 } catch (NumberFormatException e) {
                 }
             }
             return strVal;
         } else {
-            return null;
+            return "";
         }
     }
 
