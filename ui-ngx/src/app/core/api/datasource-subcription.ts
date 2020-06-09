@@ -329,7 +329,7 @@ export class DatasourceSubscription {
                       });
                     stateDataReceived = true;
                   } else {
-                    firstStateData = data;
+                    firstStateData = subscriptionUpdate;
                   }
                 } else {
                   if (subsTw.aggregation.stateData && !stateDataReceived) {
