@@ -125,9 +125,6 @@ public class TbAggLatestTelemetryNodeTest {
     private TbAggLatestTelemetryNode node;
     private TbNodeConfiguration nodeConfiguration;
 
-    private RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
-    private RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
-
     private RelationsQuery relationsQuery;
     private EntityId rootEntityId;
 
