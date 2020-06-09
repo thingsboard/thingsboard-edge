@@ -309,7 +309,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 Object value = ((Object[]) obj)[column.propertyIndex];
                 String strValue;
                 if (column.column.getType() == ColumnType.ENTITY_FIELD) {
-                    strValue = value != null ? value.toString() : "";
+                    strValue = value != null ? value.toString() : null;
                 } else {
                     strValue = this.convertValue(value);
                 }
@@ -339,7 +339,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
             }
             return strVal;
         } else {
-            return "";
+            return null;
         }
     }
 
