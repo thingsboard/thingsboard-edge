@@ -59,6 +59,8 @@ public interface CustomerService {
 
     Customer saveCustomer(Customer customer);
 
+    Customer saveCustomer(Customer customer, boolean forceCreate);
+
     void deleteCustomer(TenantId tenantId, CustomerId customerId);
 
     Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId);

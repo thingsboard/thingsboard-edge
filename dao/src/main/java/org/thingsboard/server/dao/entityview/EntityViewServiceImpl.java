@@ -107,10 +107,23 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
     @Override
     public EntityView saveEntityView(EntityView entityView) {
+        return doSaveEntityView(entityView, false);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.entityId}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
+            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
+    @Override
+    public EntityView saveEntityView(EntityView entityView, boolean forceCreate) {
+        return doSaveEntityView(entityView, forceCreate);
+    }
+
+    private EntityView doSaveEntityView(EntityView entityView, boolean forceCreate) {
         log.trace("Executing save entity view [{}]", entityView);
         entityViewValidator.validate(entityView, EntityView::getTenantId);
         EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
-        if (entityView.getId() == null) {
+        if (entityView.getId() == null || forceCreate) {
             entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
         }
         return savedEntityView;

@@ -141,6 +141,16 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     @CacheEvict(cacheNames = ASSET_CACHE, key = "{#asset.tenantId, #asset.name}")
     @Override
     public Asset saveAsset(Asset asset) {
+        return doSaveAsset(asset, false);
+    }
+
+    @CacheEvict(cacheNames = ASSET_CACHE, key = "{#asset.tenantId, #asset.name}")
+    @Override
+    public Asset saveAsset(Asset asset, boolean forceCreate) {
+        return doSaveAsset(asset, forceCreate);
+    }
+
+    private Asset doSaveAsset(Asset asset, boolean forceCreate) {
         log.trace("Executing saveAsset [{}]", asset);
         assetValidator.validate(asset, Asset::getTenantId);
         Asset savedAsset;
@@ -158,7 +168,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
                 }
             }
         }
-        if (asset.getId() == null) {
+        if (asset.getId() == null || forceCreate) {
             entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
         }
         return savedAsset;

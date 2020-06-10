@@ -241,6 +241,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
                 if (targetCtx != null) {
                     log.trace("[{}][{}] Pushing message to target rule node", entityId, targetId);
                     pushMsgToNode(targetCtx, msg, "");
+                    pushUpdatesToCloud(msg);
                 } else {
                     log.trace("[{}][{}] Rule node does not exist. Probably old message", entityId, targetId);
                     msg.getCallback().onSuccess();
@@ -368,7 +369,6 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             log.error("[{}][{}] RuleNodeCtx is empty", entityId, ruleChainName);
             msg.getCallback().onFailure(new RuleEngineException("Rule Node CTX is empty"));
         }
-        pushUpdatesToCloud(msg);
     }
 
     private void pushUpdatesToCloud(TbMsg tbMsg) {

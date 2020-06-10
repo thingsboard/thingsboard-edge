@@ -54,6 +54,8 @@ public interface EntityViewService {
 
     EntityView saveEntityView(EntityView entityView);
 
+    EntityView saveEntityView(EntityView entityView, boolean forceCreate);
+
     EntityView findEntityViewById(TenantId tenantId, EntityViewId entityViewId);
 
     EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name);

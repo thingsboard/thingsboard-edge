@@ -57,6 +57,8 @@ public interface DeviceService {
 
     Device saveDevice(Device device);
 
+    Device saveDevice(Device device, boolean forceCreate);
+
     Device saveDeviceWithAccessToken(Device device, String accessToken);
 
     void deleteDevice(TenantId tenantId, DeviceId deviceId);
