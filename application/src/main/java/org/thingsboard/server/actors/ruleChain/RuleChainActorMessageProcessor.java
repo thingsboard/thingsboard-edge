@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.RuleNodeException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
@@ -97,6 +99,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
     private final Map<RuleNodeId, List<RuleNodeRelation>> nodeRoutes;
     private final RuleChainService service;
     private final TbClusterService clusterService;
+    private final DeviceCredentialsService deviceCredentialsService;
     private String ruleChainName;
 
     private RuleNodeId firstId;
@@ -113,6 +116,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         this.nodeRoutes = new HashMap<>();
         this.service = systemContext.getRuleChainService();
         this.clusterService = systemContext.getClusterService();
+        this.deviceCredentialsService = systemContext.getDeviceCredentialsService();
     }
 
     @Override
@@ -383,25 +387,27 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
     }
 
     private void pushDeviceUpdatesToCloud(TbMsg tbMsg) {
+        UpdateMsgType updateMsgType = null;
         switch (tbMsg.getType()) {
             case DataConstants.ENTITY_CREATED:
-                try {
-                    Device device = mapper.readValue(tbMsg.getData(), Device.class);
-                    UplinkMsg createMsg = constructDeviceUpdateMsg(device, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
-                    systemContext.getEdgeEventStorage().write(createMsg, edgeEventSaveCallback);
-                } catch (IOException e) {
-                    log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
-                }
+                updateMsgType = UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+                break;
+            case DataConstants.ENTITY_UPDATED:
+                updateMsgType = UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
                 break;
             case DataConstants.ENTITY_DELETED:
-                try {
-                    Device device = mapper.readValue(tbMsg.getData(), Device.class);
-                    UplinkMsg deleteMsg = constructDeviceUpdateMsg(device, UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE);
-                    systemContext.getEdgeEventStorage().write(deleteMsg, edgeEventSaveCallback);
-                } catch (IOException e) {
-                    log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
-                }
+                updateMsgType = UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
                 break;
+        }
+        if (updateMsgType != null) {
+            try {
+                Device device = mapper.readValue(tbMsg.getData(), Device.class);
+                UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                        .addAllDeviceUpdateMsg(Collections.singletonList(constructDeviceUpdateMsg(device, updateMsgType)));
+                systemContext.getEdgeEventStorage().write(builder.build(), edgeEventSaveCallback);
+            } catch (IOException e) {
+                log.error("Can't push to edge updates, entity type [{}], data [{}]", tbMsg.getOriginator().getEntityType(), tbMsg.getData(), e);
+            }
         }
     }
 
@@ -440,18 +446,30 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         }
     }
 
-    private UplinkMsg constructDeviceUpdateMsg(Device device, UpdateMsgType updateMsgType) {
-        DeviceUpdateMsg.Builder deviceBuilder = DeviceUpdateMsg.newBuilder()
+    private DeviceUpdateMsg constructDeviceUpdateMsg(Device device, UpdateMsgType msgType) {
+        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(device.getId().getId().getMostSignificantBits())
+                .setIdLSB(device.getId().getId().getLeastSignificantBits())
                 .setName(device.getName())
-                .setType(device.getType())
-                .setMsgType(updateMsgType);
-
+                .setType(device.getType());
         if (device.getLabel() != null) {
-            deviceBuilder.setLabel(device.getLabel());
+            builder.setLabel(device.getLabel());
         }
-
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllDeviceUpdateMsg(Collections.singletonList(deviceBuilder.build()));
+        if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
+                msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {
+            DeviceCredentials deviceCredentials
+                    = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), device.getId());
+            if (deviceCredentials != null) {
+                if (deviceCredentials.getCredentialsType() != null) {
+                    builder.setCredentialsType(deviceCredentials.getCredentialsType().name())
+                            .setCredentialsId(deviceCredentials.getCredentialsId());
+                }
+                if (deviceCredentials.getCredentialsValue() != null) {
+                    builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
+                }
+            }
+        }
         return builder.build();
     }
 
@@ -473,6 +491,9 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             case ENTITY_VIEW:
                 entityName = systemContext.getEntityViewService().findEntityViewById(alarm.getTenantId(), new EntityViewId(alarm.getOriginator().getId())).getName();
                 break;
+            default:
+                log.debug("Unsupported tbMsgType [{}]",  alarm.getOriginator().getEntityType());
+                return null;
         }
         AlarmUpdateMsg.Builder builder = AlarmUpdateMsg.newBuilder()
                 .setMsgType(msgType)

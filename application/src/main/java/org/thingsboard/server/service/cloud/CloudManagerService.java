@@ -416,35 +416,62 @@ public class CloudManagerService {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                try {
-                    deviceCreationLock.lock();
-                    Device device = deviceService.findDeviceById(tenantId, deviceId);
-                    boolean create = false;
-                    if (device == null) {
-                        device = new Device();
-                        device.setTenantId(tenantId);
-                        device.setId(deviceId);
-                        create = true;
-                    }
-                    device.setName(deviceUpdateMsg.getName());
-                    device.setType(deviceUpdateMsg.getType());
-                    device.setLabel(deviceUpdateMsg.getLabel());
-                    device = deviceService.saveDevice(device, create);
-                    if (create) {
-                        deviceStateService.onDeviceAdded(device);
-                    }
-                    addEntityToGroup(deviceUpdateMsg.getGroupName(), device.getId(), EntityType.DEVICE);
-                    updateDeviceCredentials(deviceUpdateMsg, device);
-                } finally {
-                    deviceCreationLock.unlock();
-                }
+                saveOrUpdateDevice(deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 deviceService.deleteDevice(tenantId, deviceId);
                 break;
+            case DEVICE_CONFLICT_RPC_MESSAGE:
+                String deviceName = deviceUpdateMsg.getName();
+                Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+                if (deviceByName != null) {
+                    Device deviceCopy = saveOrUpdateDevice(deviceUpdateMsg);
+                    copyDeviceRelatedEntities();
+                    deviceService.deleteDevice(tenantId, deviceByName.getId());
+                }
+                break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+    }
+
+    private void copyDeviceRelatedEntities() {
+        // TODO
+        // alarm
+        // audit_log
+        // attribute_kv
+        // device_credentials
+        // event
+        // relation
+        // entity_view
+    }
+
+    private Device saveOrUpdateDevice(DeviceUpdateMsg deviceUpdateMsg) {
+        Device device;
+        try {
+            deviceCreationLock.lock();
+            DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+            device = deviceService.findDeviceById(tenantId, deviceId);
+            boolean create = false;
+            if (device == null) {
+                device = new Device();
+                device.setTenantId(tenantId);
+                device.setId(deviceId);
+                create = true;
+            }
+            device.setName(deviceUpdateMsg.getName());
+            device.setType(deviceUpdateMsg.getType());
+            device.setLabel(deviceUpdateMsg.getLabel());
+            device = deviceService.saveDevice(device, create);
+            if (create) {
+                deviceStateService.onDeviceAdded(device);
+            }
+            addEntityToGroup(deviceUpdateMsg.getGroupName(), device.getId(), EntityType.DEVICE);
+            updateDeviceCredentials(deviceUpdateMsg, device);
+        } finally {
+            deviceCreationLock.unlock();
+        }
+        return device;
     }
 
     private void updateDeviceCredentials(DeviceUpdateMsg deviceUpdateMsg, Device device) {

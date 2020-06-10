@@ -77,6 +77,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -156,6 +157,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceService deviceService;
+
+    @Autowired
+    @Getter
+    private DeviceCredentialsService deviceCredentialsService;
 
     @Autowired
     @Getter
