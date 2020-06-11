@@ -110,9 +110,6 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private RuleChainService ruleChainService;
 
     @Autowired
-    private SchedulerEventService schedulerEventService;
-
-    @Autowired
     private DeviceService deviceService;
 
     @Autowired
@@ -131,10 +128,16 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private EntityGroupService entityGroupService;
 
     @Autowired
-    private RuleChainUpdateMsgConstructor ruleChainUpdateMsgConstructor;
+    private SchedulerEventService schedulerEventService;
 
     @Autowired
-    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
+    private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private CustomTranslationService customTranslationService;
+
+    @Autowired
+    private RuleChainUpdateMsgConstructor ruleChainUpdateMsgConstructor;
 
     @Autowired
     private DeviceUpdateMsgConstructor deviceUpdateMsgConstructor;
@@ -152,10 +155,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private UserUpdateMsgConstructor userUpdateMsgConstructor;
 
     @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Autowired
-    private CustomTranslationService customTranslationService;
+    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
 
     @Autowired
     private WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
@@ -168,6 +168,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
         initLoginWhiteLabeling(edge, outputStream);
         initWhiteLabeling(edge, outputStream);
         initCustomTranslation(edge, outputStream);
+
         initRuleChains(ctx, edge, outputStream);
         initDevices(ctx, edge, outputStream);
         initAssets(ctx, edge, outputStream);
@@ -177,82 +178,31 @@ public class DefaultInitEdgeService implements InitEdgeService {
         initSchedulerEvents(ctx, edge, outputStream);
     }
 
-    private void initLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void initRuleChains(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
-            EntityId ownerId = edge.getOwnerId();
-            String domainName = "localhost";
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                domainName = whiteLabelingService.getTenantLoginWhiteLabelingParams(new TenantId(ownerId.getId())).getDomainName();
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                domainName = whiteLabelingService.getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId())).getDomainName();
-            }
-
-            LoginWhiteLabelingParams loginWhiteLabelingParams = whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName == null ? "localhost" : domainName, null, null);
-            if (loginWhiteLabelingParams != null) {
-                LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                        whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
-                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                        .setLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
-                        .build();
-                outputStream.onNext(ResponseMsg.newBuilder()
-                        .setEntityUpdateMsg(entityUpdateMsg)
-                        .build());
-            }
+            ListenableFuture<TimePageData<RuleChain>> pageDataFuture =
+                    ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
+            Futures.transform(pageDataFuture, pageData -> {
+                if (pageData != null && !pageData.getData().isEmpty()) {
+                    log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
+                    for (RuleChain ruleChain : pageData.getData()) {
+                        RuleChainUpdateMsg ruleChainUpdateMsg =
+                                ruleChainUpdateMsgConstructor.constructRuleChainUpdatedMsg(
+                                        edge.getRootRuleChainId(),
+                                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
+                                        ruleChain);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setRuleChainUpdateMsg(ruleChainUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                    }
+                }
+                return null;
+            }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Can't load login white labeling params", e);
-        }
-    }
-
-    private void initWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            WhiteLabelingParams whiteLabelingParams = null;
-
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(new TenantId(ownerId.getId()), null, null);
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()), null, null);
-            }
-
-            if (whiteLabelingParams != null) {
-                WhiteLabelingParamsProto whiteLabelingParamsProto =
-                        whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
-                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                        .setWhiteLabelingParams(whiteLabelingParamsProto)
-                        .build();
-                outputStream.onNext(ResponseMsg.newBuilder()
-                        .setEntityUpdateMsg(entityUpdateMsg)
-                        .build());
-            }
-        } catch (Exception e) {
-            log.error("Can't load white labeling params", e);
-        }
-    }
-
-    private void initCustomTranslation(Edge edge, StreamObserver<ResponseMsg> outputStream) {
-        try {
-            EntityId ownerId = edge.getOwnerId();
-            CustomTranslation customTranslation = null;
-
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                customTranslation = customTranslationService.getMergedTenantCustomTranslation(new TenantId(ownerId.getId()));
-            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
-                customTranslation = customTranslationService.getMergedCustomerCustomTranslation(edge.getTenantId(), new CustomerId(ownerId.getId()));
-            }
-
-
-            if (customTranslation != null) {
-                CustomTranslationProto customTranslationProto =
-                        customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
-                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                        .setCustomTranslation(customTranslationProto)
-                        .build();
-                outputStream.onNext(ResponseMsg.newBuilder()
-                        .setEntityUpdateMsg(entityUpdateMsg)
-                        .build());
-            }
-        } catch (Exception e) {
-            log.error("Can't load custom translation", e);
+            log.error("Exception during loading edge rule chain(s) on init!");
         }
     }
 
@@ -462,34 +412,6 @@ public class DefaultInitEdgeService implements InitEdgeService {
         }
     }
 
-    private void initRuleChains(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
-        try {
-            ListenableFuture<TimePageData<RuleChain>> pageDataFuture =
-                    ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-            Futures.transform(pageDataFuture, pageData -> {
-                if (pageData != null && !pageData.getData().isEmpty()) {
-                    log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-                    for (RuleChain ruleChain : pageData.getData()) {
-                        RuleChainUpdateMsg ruleChainUpdateMsg =
-                                ruleChainUpdateMsgConstructor.constructRuleChainUpdatedMsg(
-                                        edge.getRootRuleChainId(),
-                                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
-                                        ruleChain);
-                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                .setRuleChainUpdateMsg(ruleChainUpdateMsg)
-                                .build();
-                        outputStream.onNext(ResponseMsg.newBuilder()
-                                .setEntityUpdateMsg(entityUpdateMsg)
-                                .build());
-                    }
-                }
-                return null;
-            }, ctx.getDbCallbackExecutor());
-        } catch (Exception e) {
-            log.error("Exception during loading edge rule chain(s) on init!");
-        }
-    }
-
     private void initSchedulerEvents(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<SchedulerEvent>> schedulerEventsFuture =
@@ -514,6 +436,85 @@ public class DefaultInitEdgeService implements InitEdgeService {
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Exception during loading edge scheduler event(s) on init!");
+        }
+    }
+
+    private void initLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            String domainName = "localhost";
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                domainName = whiteLabelingService.getTenantLoginWhiteLabelingParams(new TenantId(ownerId.getId())).getDomainName();
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                domainName = whiteLabelingService.getCustomerLoginWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId())).getDomainName();
+            }
+
+            LoginWhiteLabelingParams loginWhiteLabelingParams = whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, domainName == null ? "localhost" : domainName, null, null);
+            if (loginWhiteLabelingParams != null) {
+                LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(loginWhiteLabelingParams);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load login white labeling params", e);
+        }
+    }
+
+    private void initWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            WhiteLabelingParams whiteLabelingParams = null;
+
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                whiteLabelingParams = whiteLabelingService.getMergedTenantWhiteLabelingParams(new TenantId(ownerId.getId()), null, null);
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                whiteLabelingParams = whiteLabelingService.getMergedCustomerWhiteLabelingParams(edge.getTenantId(), new CustomerId(ownerId.getId()), null, null);
+            }
+
+            if (whiteLabelingParams != null) {
+                WhiteLabelingParamsProto whiteLabelingParamsProto =
+                        whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(whiteLabelingParams);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setWhiteLabelingParams(whiteLabelingParamsProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load white labeling params", e);
+        }
+    }
+
+    private void initCustomTranslation(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            EntityId ownerId = edge.getOwnerId();
+            CustomTranslation customTranslation = null;
+
+            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+                customTranslation = customTranslationService.getMergedTenantCustomTranslation(new TenantId(ownerId.getId()));
+            } else if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                customTranslation = customTranslationService.getMergedCustomerCustomTranslation(edge.getTenantId(), new CustomerId(ownerId.getId()));
+            }
+
+
+            if (customTranslation != null) {
+                CustomTranslationProto customTranslationProto =
+                        customTranslationProtoConstructor.constructCustomTranslationProto(customTranslation);
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setCustomTranslation(customTranslationProto)
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.error("Can't load custom translation", e);
         }
     }
 
