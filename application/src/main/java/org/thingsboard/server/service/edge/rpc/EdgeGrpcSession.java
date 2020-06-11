@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.User;
@@ -72,6 +73,8 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -116,7 +119,7 @@ import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_M
 @Data
 public final class EdgeGrpcSession implements Closeable {
 
-    private static final ReentrantLock entityCreationLock = new ReentrantLock();
+    private static final ReentrantLock deviceCreationLock = new ReentrantLock();
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
@@ -296,7 +299,7 @@ public final class EdgeGrpcSession implements Closeable {
                                 , objectMapper.writeValueAsString(entityNode));
                         log.debug("Sending donwlink entity data msg, entityName [{}], tbMsg [{}]", finalEntityName, tbMsg);
                         outputStream.onNext(ResponseMsg.newBuilder()
-                                .setDownlinkMsg(constructDownlinkEntityDataMsg(finalEntityName, tbMsg))
+                                .setDownlinkMsg(constructDownlinkEntityDataMsg(finalEntityName, finalEntityId, tbMsg))
                                 .build());
                     } catch (Exception e) {
                         log.error("[{}] Failed to send attribute updates to the edge", edge.getName(), e);
@@ -313,25 +316,29 @@ public final class EdgeGrpcSession implements Closeable {
         log.trace("Executing processCustomDownlinkMessage, entry [{}]", entry);
         TbMsg tbMsg = TbMsg.fromBytes(Base64.decodeBase64(entry.getData()), TbMsgCallback.EMPTY);
         String entityName = null;
+        EntityId entityId = null;
         switch (entry.getEntityType()) {
             case DEVICE:
                 Device device = ctx.getDeviceService().findDeviceById(edge.getTenantId(), new DeviceId(tbMsg.getOriginator().getId()));
                 entityName = device.getName();
+                entityId = device.getId();
                 break;
             case ASSET:
                 Asset asset = ctx.getAssetService().findAssetById(edge.getTenantId(), new AssetId(tbMsg.getOriginator().getId()));
                 entityName = asset.getName();
+                entityId = asset.getId();
                 break;
             case ENTITY_VIEW:
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(edge.getTenantId(), new EntityViewId(tbMsg.getOriginator().getId()));
                 entityName = entityView.getName();
+                entityId = entityView.getId();
                 break;
 
         }
-        if (entityName != null) {
-            log.debug("Sending donwlink entity data msg, entityName [{}], tbMsg [{}]", entityName, tbMsg);
+        if (entityName != null && entityId != null) {
+            log.debug("Sending downlink entity data msg, entityName [{}], tbMsg [{}]", entityName, tbMsg);
             outputStream.onNext(ResponseMsg.newBuilder()
-                    .setDownlinkMsg(constructDownlinkEntityDataMsg(entityName, tbMsg))
+                    .setDownlinkMsg(constructDownlinkEntityDataMsg(entityName, entityId, tbMsg))
                     .build());
         }
     }
@@ -523,10 +530,13 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-    private DownlinkMsg constructDownlinkEntityDataMsg(String entityName, TbMsg tbMsg) {
+    private DownlinkMsg constructDownlinkEntityDataMsg(String entityName, EntityId entityId, TbMsg tbMsg) {
         EntityDataProto entityData = EntityDataProto.newBuilder()
                 .setEntityName(entityName)
-                .setTbMsg(ByteString.copyFrom(TbMsg.toByteArray(tbMsg))).build();
+                .setTbMsg(ByteString.copyFrom(TbMsg.toByteArray(tbMsg)))
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .build();
 
         DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                 .addAllEntityData(Collections.singletonList(entityData));
@@ -552,32 +562,15 @@ public final class EdgeGrpcSession implements Closeable {
                 for (EntityDataProto entityData : uplinkMsg.getEntityDataList()) {
                     TbMsg tbMsg = null;
                     TbMsg originalTbMsg = TbMsg.fromBytes(entityData.getTbMsg().toByteArray(), TbMsgCallback.EMPTY);
-                    switch (originalTbMsg.getOriginator().getEntityType()) {
-                        case DEVICE:
-                            String deviceName = entityData.getEntityName();
-                            String deviceType = entityData.getEntityType();
-                            Device device = getOrCreateDevice(deviceName, deviceType);
-                            if (device != null) {
-                                tbMsg = TbMsg.newMsg(originalTbMsg.getType(), device.getId(), originalTbMsg.getMetaData().copy(),
-                                        originalTbMsg.getDataType(), originalTbMsg.getData());
-                            }
-                            break;
-                        case ASSET:
-                            String assetName = entityData.getEntityName();
-                            Asset asset = ctx.getAssetService().findAssetByTenantIdAndName(edge.getTenantId(), assetName);
-                            if (asset != null) {
-                                tbMsg = TbMsg.newMsg(originalTbMsg.getType(), asset.getId(), originalTbMsg.getMetaData().copy(),
-                                        originalTbMsg.getDataType(), originalTbMsg.getData());
-                            }
-                            break;
-                        case ENTITY_VIEW:
-                            String entityViewName = entityData.getEntityName();
-                            EntityView entityView = ctx.getEntityViewService().findEntityViewByTenantIdAndName(edge.getTenantId(), entityViewName);
-                            if (entityView != null) {
-                                tbMsg = TbMsg.newMsg(originalTbMsg.getType(), entityView.getId(), originalTbMsg.getMetaData().copy(),
-                                        originalTbMsg.getDataType(), originalTbMsg.getData());
-                            }
-                            break;
+                    if (originalTbMsg.getOriginator().getEntityType() == EntityType.DEVICE) {
+                        String deviceName = entityData.getEntityName();
+                        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);
+                        if (device != null) {
+                            tbMsg = TbMsg.newMsg(originalTbMsg.getType(), device.getId(), originalTbMsg.getMetaData().copy(),
+                                    originalTbMsg.getDataType(), originalTbMsg.getData());
+                        }
+                    } else {
+                        tbMsg = originalTbMsg;
                     }
                     if (tbMsg != null) {
                         ctx.getTbClusterService().pushMsgToRuleEngine(edge.getTenantId(), tbMsg.getOriginator(), tbMsg, null);
@@ -586,16 +579,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getDeviceUpdateMsgList() != null && !uplinkMsg.getDeviceUpdateMsgList().isEmpty()) {
                 for (DeviceUpdateMsg deviceUpdateMsg : uplinkMsg.getDeviceUpdateMsgList()) {
-                    String deviceName = deviceUpdateMsg.getName();
-                    String deviceType = deviceUpdateMsg.getType();
-                    switch (deviceUpdateMsg.getMsgType()) {
-                        case ENTITY_CREATED_RPC_MESSAGE:
-                            getOrCreateDevice(deviceName, deviceType);
-                            break;
-                        case ENTITY_DELETED_RPC_MESSAGE:
-                            //TODO: voba
-                            break;
-                    }
+                    onDeviceUpdate(deviceUpdateMsg);
                 }
             }
             if (uplinkMsg.getAlarmUpdateMsgList() != null && !uplinkMsg.getAlarmUpdateMsgList().isEmpty()) {
@@ -613,6 +597,103 @@ public final class EdgeGrpcSession implements Closeable {
         }
 
         return UplinkResponseMsg.newBuilder().setSuccess(true).build();
+    }
+
+    private void onDeviceUpdate(DeviceUpdateMsg deviceUpdateMsg) {
+        log.info("onDeviceUpdate {}", deviceUpdateMsg);
+        DeviceId edgeDeviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+        switch (deviceUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+                String deviceName = deviceUpdateMsg.getName();
+                Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);
+                if (device != null) {
+                    // device with this name already exists on the cloud - update ID on the edge
+                    if (!device.getId().equals(edgeDeviceId)) {
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, device, deviceUpdateMsg.getGroupName()))
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                    }
+                } else {
+                    Device deviceById = ctx.getDeviceService().findDeviceById(edge.getTenantId(), edgeDeviceId);
+                    if (deviceById != null) {
+                        // this ID already used by other device - create new device and update ID on the edge
+                        Device savedDevice = createDevice(deviceUpdateMsg);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, savedDevice, deviceUpdateMsg.getGroupName()))
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                    } else {
+                        createDevice(deviceUpdateMsg);
+                    }
+                }
+                break;
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                updateDevice(deviceUpdateMsg);
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                // TODO: voba proper handle unassign
+                //Device deviceToDelete = ctx.getDeviceService().findDeviceById(edge.getTenantId(), edgeDeviceId);
+                //if (deviceToDelete != null) {
+                //    ctx.getDeviceService().unassignDeviceFromEdge(edge.getTenantId(), edgeDeviceId, edge.getId());
+                //}
+                break;
+            case UNRECOGNIZED:
+                log.error("Unsupported msg type");
+        }
+    }
+
+    private void updateDevice(DeviceUpdateMsg deviceUpdateMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+        Device device = ctx.getDeviceService().findDeviceById(edge.getTenantId(), deviceId);
+        device.setName(deviceUpdateMsg.getName());
+        device.setType(deviceUpdateMsg.getType());
+        device.setLabel(deviceUpdateMsg.getLabel());
+        device = ctx.getDeviceService().saveDevice(device);
+        updateDeviceCredentials(deviceUpdateMsg, device);
+    }
+
+    private void updateDeviceCredentials(DeviceUpdateMsg deviceUpdateMsg, Device device) {
+        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
+
+        DeviceCredentials deviceCredentials = ctx.getDeviceCredentialsService().findDeviceCredentialsByDeviceId(edge.getTenantId(), device.getId());
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceUpdateMsg.getCredentialsType()));
+        deviceCredentials.setCredentialsId(deviceUpdateMsg.getCredentialsId());
+        deviceCredentials.setCredentialsValue(deviceUpdateMsg.getCredentialsValue());
+        ctx.getDeviceCredentialsService().updateDeviceCredentials(edge.getTenantId(), deviceCredentials);
+        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
+
+    }
+
+    private Device createDevice(DeviceUpdateMsg deviceUpdateMsg) {
+        Device device;
+        try {
+            deviceCreationLock.lock();
+            DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+            device = new Device();
+            device.setTenantId(edge.getTenantId());
+            device.setCustomerId(edge.getCustomerId());
+            device.setId(deviceId);
+            device.setName(deviceUpdateMsg.getName());
+            device.setType(deviceUpdateMsg.getType());
+            device.setLabel(deviceUpdateMsg.getLabel());
+            device = ctx.getDeviceService().saveDevice(device);
+            // TODO: voba - properly hanlde assing device functionality
+            // device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
+            createRelationFromEdge(device.getId());
+            ctx.getRelationService().saveRelationAsync(TenantId.SYS_TENANT_ID, new EntityRelation(edge.getId(), device.getId(), "Created"));
+            ctx.getDeviceStateService().onDeviceAdded(device);
+            updateDeviceCredentials(deviceUpdateMsg, device);
+        } finally {
+            deviceCreationLock.unlock();
+        }
+        return device;
     }
 
     private EntityId getAlarmOriginator(String entityName, org.thingsboard.server.common.data.EntityType entityType) {
@@ -672,37 +753,6 @@ public final class EdgeGrpcSession implements Closeable {
                 log.error("Error during finding existent alarm", e);
             }
         }
-    }
-
-    private Device getOrCreateDevice(String deviceName, String deviceType) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);
-        if (device == null) {
-            entityCreationLock.lock();
-            try {
-                return processGetOrCreateDevice(deviceName, deviceType);
-            } finally {
-                entityCreationLock.unlock();
-            }
-        }
-        return device;
-    }
-
-    private Device processGetOrCreateDevice(String deviceName, String deviceType) {
-        Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);
-        if (device == null) {
-            device = new Device();
-            device.setName(deviceName);
-            device.setType(deviceType);
-            device.setTenantId(edge.getTenantId());
-            device.setCustomerId(edge.getCustomerId());
-            device = ctx.getDeviceService().saveDevice(device);
-            // TODO: voba
-            // device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
-            createRelationFromEdge(device.getId());
-            ctx.getRelationService().saveRelationAsync(TenantId.SYS_TENANT_ID, new EntityRelation(edge.getId(), device.getId(), "Created"));
-            ctx.getDeviceStateService().onDeviceAdded(device);
-        }
-        return device;
     }
 
     private ConnectResponseMsg processConnect(ConnectRequestMsg request) {

@@ -48,7 +48,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
@@ -98,8 +97,8 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -258,6 +257,8 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
         Edge edge = edgeDao.findById(tenantId, edgeId.getId());
 
+        // TODO: voba - properly handle edge remove
+        // dashboardService.unassignEdgeDashboards(tenantId, edgeId);
         // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
         ruleChainService.unassignEdgeRuleChains(tenantId, edgeId);
 
@@ -692,7 +693,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
 
-
     private void processAssignedEntity(TenantId tenantId, TbMsg tbMsg, EdgeQueueEntityType entityType, FutureCallback<Void> callback) throws IOException {
         final EntityId assignedEntityId = new EntityGroupId(UUID.fromString(tbMsg.getMetaData().getValue("entityId")));
         final String assignedEntityName = tbMsg.getMetaData().getValue("entityName");
@@ -924,6 +924,11 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                                     throw new DataValidationException("Edge with such name already exists!");
                                 }
                         );
+                        edgeDao.findByRoutingKey(edge.getTenantId().getId(), edge.getRoutingKey()).ifPresent(
+                                d -> {
+                                    throw new DataValidationException("Edge with such routing_key already exists");
+                                }
+                        );
                     }
                 }
 
@@ -934,6 +939,13 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                                 e -> {
                                     if (!e.getUuidId().equals(edge.getUuidId())) {
                                         throw new DataValidationException("Edge with such name already exists!");
+                                    }
+                                }
+                        );
+                        edgeDao.findByRoutingKey(edge.getTenantId().getId(), edge.getRoutingKey()).ifPresent(
+                                e -> {
+                                    if (!e.getUuidId().equals(edge.getUuidId())) {
+                                        throw new DataValidationException("Edge with such routing_key already exists!");
                                     }
                                 }
                         );
