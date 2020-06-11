@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.audit;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -46,6 +47,8 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import java.util.List;
 
 public interface AuditLogService {
+
+    ListenableFuture<Void> saveOrUpdateAuditLog(AuditLog auditLogEntry);
 
     TimePageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink);
 

@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
@@ -68,6 +69,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -93,6 +95,12 @@ public class AuditLogServiceImpl implements AuditLogService {
 
     @Autowired
     private AuditLogSink auditLogSink;
+
+    @Override
+    public ListenableFuture<Void> saveOrUpdateAuditLog(AuditLog auditLogEntry) {
+        auditLogValidator.validate(auditLogEntry, AuditLog::getTenantId);
+        return auditLogDao.saveByTenantId(auditLogEntry);
+    }
 
     @Override
     public TimePageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink) {

@@ -32,8 +32,12 @@ package org.thingsboard.server.service.cloud;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,12 +54,16 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
+import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -71,6 +79,12 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
@@ -91,12 +105,16 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -204,7 +222,19 @@ public class CloudManagerService {
     private EntityViewService entityViewService;
 
     @Autowired
+    private RelationService relationService;
+
+    @Autowired
     private AlarmService alarmService;
+
+    @Autowired
+    private AttributesService attributesService;
+
+    @Autowired
+    private AuditLogService auditLogService;
+
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -422,12 +452,23 @@ public class CloudManagerService {
                 deviceService.deleteDevice(tenantId, deviceId);
                 break;
             case DEVICE_CONFLICT_RPC_MESSAGE:
-                String deviceName = deviceUpdateMsg.getName();
-                Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                if (deviceByName != null) {
-                    Device deviceCopy = saveOrUpdateDevice(deviceUpdateMsg);
-                    copyDeviceRelatedEntities();
-                    deviceService.deleteDevice(tenantId, deviceByName.getId());
+                try {
+                    deviceCreationLock.lock();
+                    String deviceName = deviceUpdateMsg.getName();
+                    Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+                    if (deviceByName != null) {
+                        deviceByName.setName(RandomStringUtils.randomAlphabetic(15));
+                        deviceService.saveDevice(deviceByName);
+                        Device deviceCopy = saveOrUpdateDevice(deviceUpdateMsg);
+                        ListenableFuture<List<Void>> future = updateOrCopyDeviceRelatedEntities(deviceByName, deviceCopy);
+                        Futures.transform(future, list -> {
+                            log.debug("Related entities copied, removing origin device [{}]", deviceByName.getId());
+                            deviceService.deleteDevice(tenantId, deviceByName.getId());
+                            return null;
+                        }, MoreExecutors.directExecutor());
+                    }
+                } finally {
+                    deviceCreationLock.unlock();
                 }
                 break;
             case UNRECOGNIZED:
@@ -435,15 +476,97 @@ public class CloudManagerService {
         }
     }
 
-    private void copyDeviceRelatedEntities() {
-        // TODO
-        // alarm
-        // audit_log
-        // attribute_kv
-        // device_credentials
-        // event
-        // relation
-        // entity_view
+    private ListenableFuture<List<Void>> updateOrCopyDeviceRelatedEntities(Device origin, Device destination) {
+        updateAuditLogs(origin, destination);
+        updateEvents(origin, destination);
+        ArrayList<ListenableFuture<Void>> futures = new ArrayList<>();
+        futures.add(updateEntityViews(origin, destination));
+        futures.add(updateAlarms(origin, destination));
+        futures.add(copyAttributes(origin, destination));
+        futures.add(copyRelations(origin, destination, EntitySearchDirection.FROM));
+        futures.add(copyRelations(origin, destination, EntitySearchDirection.TO));
+        return Futures.allAsList(futures);
+    }
+
+    private ListenableFuture<Void> copyRelations(Device origin, Device destination, EntitySearchDirection direction) {
+        EntityRelationsQuery query = new EntityRelationsQuery();
+        query.setParameters(new RelationsSearchParameters(origin.getId(), direction, -1, false));
+        ListenableFuture<List<EntityRelation>> relationsByQueryFuture = relationService.findByQuery(tenantId, query);
+        return Futures.transform(relationsByQueryFuture, relationsByQuery -> {
+            if (relationsByQuery != null && !relationsByQuery.isEmpty()) {
+                for (EntityRelation relation : relationsByQuery) {
+                    if (EntitySearchDirection.FROM.equals(direction)) {
+                        relation.setFrom(destination.getId());
+                    } else {
+                        relation.setTo(destination.getId());
+                    }
+                    relationService.saveRelationAsync(tenantId, relation);
+                }
+            }
+            log.debug("Related [{}] relations copied, origin [{}], destination [{}]", direction.name(), origin.getId(), destination.getId());
+            return null;
+        }, MoreExecutors.directExecutor());
+    }
+
+    private ListenableFuture<Void> updateEntityViews(Device origin, Device destination) {
+        ListenableFuture<List<EntityView>> entityViewsFuture = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(tenantId, origin.getId());
+        return Futures.transform(entityViewsFuture, entityViews -> {
+            if (entityViews != null && !entityViews.isEmpty()) {
+                for (EntityView entityView : entityViews) {
+                    entityView.setEntityId(destination.getId());
+                    entityViewService.saveEntityView(entityView);
+               }
+            }
+            log.debug("Related entity views updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
+            return null;
+        }, MoreExecutors.directExecutor());
+    }
+
+    private ListenableFuture<Void> copyAttributes(Device origin, Device destination) {
+        ListenableFuture<List<AttributeKvEntry>> allFuture = attributesService.findAll(tenantId, origin.getId(), DataConstants.SERVER_SCOPE);
+        return Futures.transform(allFuture, attributes -> {
+            if (attributes != null && !attributes.isEmpty()) {
+                attributesService.save(tenantId, destination.getId(), DataConstants.SERVER_SCOPE, attributes);
+            }
+            log.debug("Related attributes copied, origin [{}], destination [{}]", origin.getId(), destination.getId());
+            return null;
+        }, MoreExecutors.directExecutor());
+    }
+
+    private ListenableFuture<Void> updateAlarms(Device origin, Device destination) {
+        ListenableFuture<TimePageData<AlarmInfo>> alarmsFuture = alarmService.findAlarms(tenantId, new AlarmQuery(origin.getId(), new TimePageLink(Integer.MAX_VALUE), null, null, false));
+        return Futures.transform(alarmsFuture, alarms -> {
+            if (alarms != null && alarms.getData() != null && !alarms.getData().isEmpty()) {
+                for (AlarmInfo alarm : alarms.getData()) {
+                    alarm.setOriginator(destination.getId());
+                    alarmService.createOrUpdateAlarm(alarm);
+                }
+            }
+            log.debug("Related alarms updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
+            return null;
+        }, MoreExecutors.directExecutor());
+    }
+
+    private void updateAuditLogs(Device origin, Device destination) {
+        TimePageData<AuditLog> auditLogs = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, new TimePageLink(Integer.MAX_VALUE));
+        if (auditLogs != null && auditLogs.getData() != null && !auditLogs.getData().isEmpty()) {
+            for (AuditLog auditLogEntry : auditLogs.getData()) {
+                auditLogEntry.setEntityId(destination.getId());
+                auditLogService.saveOrUpdateAuditLog(auditLogEntry);
+            }
+        }
+        log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
+    }
+
+    private void updateEvents(Device origin, Device destination) {
+        TimePageData<Event> events = eventService.findEvents(tenantId, origin.getId(), new TimePageLink(Integer.MAX_VALUE));
+        if (events != null && events.getData() != null && !events.getData().isEmpty()) {
+            for (Event event : events.getData()) {
+                event.setEntityId(destination.getId());
+                eventService.saveAsync(event);
+            }
+        }
+        log.debug("Related events updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
     private Device saveOrUpdateDevice(DeviceUpdateMsg deviceUpdateMsg) {
@@ -478,11 +601,15 @@ public class CloudManagerService {
         log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
                 device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
 
-        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
-        deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceUpdateMsg.getCredentialsType()));
-        deviceCredentials.setCredentialsId(deviceUpdateMsg.getCredentialsId());
-        deviceCredentials.setCredentialsValue(deviceUpdateMsg.getCredentialsValue());
-        deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
+        try {
+            DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
+            deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceUpdateMsg.getCredentialsType()));
+            deviceCredentials.setCredentialsId(deviceUpdateMsg.getCredentialsId());
+            deviceCredentials.setCredentialsValue(deviceUpdateMsg.getCredentialsValue());
+            deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
+        } catch (Exception e) {
+            log.error("Can't update device credentials for device [{}], deviceUpdateMsg [{}]", device.getName(), deviceUpdateMsg, e);
+        }
         log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
                 device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
 
