@@ -70,6 +70,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -81,9 +82,11 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -137,6 +140,7 @@ import org.thingsboard.server.gen.edge.FaviconProto;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.PaletteProto;
 import org.thingsboard.server.gen.edge.PaletteSettingsProto;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
@@ -146,6 +150,7 @@ import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.user.UserLoaderService;
 import org.thingsboard.storage.EventStorage;
@@ -195,10 +200,13 @@ public class CloudManagerService {
     private EventStorage<UplinkMsg> eventStorage;
 
     @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
     private UserLoaderService userLoaderService;
 
     @Autowired
-    private RuleChainService ruleChainService;
+    protected TbClusterService tbClusterService;
 
     @Autowired
     private DashboardService dashboardService;
@@ -410,6 +418,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasCustomerUpdateMsg()) {
                 log.debug("Customer message received [{}]", entityUpdateMsg.getCustomerUpdateMsg());
                 onCustomerUpdate(entityUpdateMsg.getCustomerUpdateMsg());
+            } else if (entityUpdateMsg.hasRelationUpdateMsg()) {
+                log.debug("Relation update message received [{}]", entityUpdateMsg.getRelationUpdateMsg());
+                onRelationUpdate(entityUpdateMsg.getRelationUpdateMsg());
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 onUserUpdate(entityUpdateMsg.getUserUpdateMsg());
@@ -779,8 +790,7 @@ public class CloudManagerService {
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
 
-                    // TODO: voba fix
-                    // actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+                    tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.UPDATED);
 
                     eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
 
@@ -832,8 +842,7 @@ public class CloudManagerService {
                     ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
                     ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
 
-                    // TODO: voba fix
-                    // actorService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+                    tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
@@ -929,6 +938,39 @@ public class CloudManagerService {
             } catch (Exception e) {
                 log.error("Error during on alarm update msg", e);
             }
+        }
+    }
+
+    private void onRelationUpdate(RelationUpdateMsg relationUpdateMsg) {
+        log.info("onRelationUpdate {}", relationUpdateMsg);
+        try {
+            EntityRelation entityRelation = new EntityRelation();
+
+            UUID fromUUID = new UUID(relationUpdateMsg.getFromIdMSB(), relationUpdateMsg.getFromIdLSB());
+            EntityId fromId = EntityIdFactory.getByTypeAndUuid(EntityType.valueOf(relationUpdateMsg.getFromEntityType()), fromUUID);
+            entityRelation.setFrom(fromId);
+
+            UUID toUUID = new UUID(relationUpdateMsg.getToIdMSB(), relationUpdateMsg.getToIdLSB());
+            EntityId toId = EntityIdFactory.getByTypeAndUuid(EntityType.valueOf(relationUpdateMsg.getToEntityType()), toUUID);
+            entityRelation.setTo(toId);
+
+            entityRelation.setType(relationUpdateMsg.getType());
+            entityRelation.setTypeGroup(RelationTypeGroup.valueOf(relationUpdateMsg.getTypeGroup()));
+            entityRelation.setAdditionalInfo(mapper.readTree(relationUpdateMsg.getAdditionalInfo()));
+
+            switch (relationUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    relationService.saveRelationAsync(tenantId, entityRelation);
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    relationService.deleteRelation(tenantId, entityRelation);
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (Exception e) {
+            log.error("Error during relation update msg", e);
         }
     }
 
