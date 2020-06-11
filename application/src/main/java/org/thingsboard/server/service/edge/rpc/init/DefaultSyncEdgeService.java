@@ -55,6 +55,10 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -66,6 +70,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -78,6 +83,7 @@ import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
@@ -92,11 +98,13 @@ import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProt
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -104,10 +112,13 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-public class DefaultInitEdgeService implements InitEdgeService {
+public class DefaultSyncEdgeService implements SyncEdgeService {
 
     @Autowired
     private RuleChainService ruleChainService;
+
+    @Autowired
+    private RelationService relationService;
 
     @Autowired
     private DeviceService deviceService;
@@ -155,6 +166,9 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private UserUpdateMsgConstructor userUpdateMsgConstructor;
 
     @Autowired
+    private RelationUpdateMsgConstructor relationUpdateMsgConstructor;
+
+    @Autowired
     private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
 
     @Autowired
@@ -164,21 +178,23 @@ public class DefaultInitEdgeService implements InitEdgeService {
     private CustomTranslationProtoConstructor customTranslationProtoConstructor;
 
     @Override
-    public void init(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
-        initLoginWhiteLabeling(edge, outputStream);
-        initWhiteLabeling(edge, outputStream);
-        initCustomTranslation(edge, outputStream);
+    public void sync(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+        syncLoginWhiteLabeling(edge, outputStream);
+        syncWhiteLabeling(edge, outputStream);
+        syncCustomTranslation(edge, outputStream);
 
-        initRuleChains(ctx, edge, outputStream);
-        initDevices(ctx, edge, outputStream);
-        initAssets(ctx, edge, outputStream);
-        initEntityViews(ctx, edge, outputStream);
-        initDashboards(ctx, edge, outputStream);
-        initUsers(ctx, edge, outputStream);
-        initSchedulerEvents(ctx, edge, outputStream);
+        Set<EntityId> pushedEntityIds = new HashSet<>();
+        syncRuleChains(ctx, edge, pushedEntityIds, outputStream);
+        syncDevices(ctx, edge, pushedEntityIds, outputStream);
+        syncAssets(ctx, edge, pushedEntityIds, outputStream);
+        syncEntityViews(ctx, edge, pushedEntityIds, outputStream);
+        syncDashboards(ctx, edge, pushedEntityIds, outputStream);
+        syncUsers(ctx, edge, pushedEntityIds, outputStream);
+        syncRelations(ctx, edge, pushedEntityIds, outputStream);
+        syncSchedulerEvents(ctx, edge, pushedEntityIds, outputStream);
     }
 
-    private void initRuleChains(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncRuleChains(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<TimePageData<RuleChain>> pageDataFuture =
                     ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
@@ -197,16 +213,17 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         outputStream.onNext(ResponseMsg.newBuilder()
                                 .setEntityUpdateMsg(entityUpdateMsg)
                                 .build());
+                        pushedEntityIds.add(ruleChain.getId());
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge rule chain(s) on init!");
+            log.error("Exception during loading edge rule chain(s) on sync!");
         }
     }
 
-    private void initDevices(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncDevices(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<EntityGroup>> deviceGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DEVICE);
             Futures.transform(deviceGroupsFuture, deviceGroups -> {
@@ -232,23 +249,24 @@ public class DefaultInitEdgeService implements InitEdgeService {
                                         outputStream.onNext(ResponseMsg.newBuilder()
                                                 .setEntityUpdateMsg(entityUpdateMsg)
                                                 .build());
+                                        pushedEntityIds.add(deviceById.getId());
                                     }
                                     return null;
                                 }, ctx.getDbCallbackExecutor());
                             }
                         }
                     } catch (Exception e) {
-                        log.error("Exception during loading edge device(s) on init!", e);
+                        log.error("Exception during loading edge device(s) on sync!", e);
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge device(s) on init!", e);
+            log.error("Exception during loading edge device(s) on sync!", e);
         }
     }
 
-    private void initAssets(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncAssets(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<EntityGroup>> assetGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.ASSET);
             Futures.transform(assetGroupsFuture, assetGroups -> {
@@ -273,23 +291,24 @@ public class DefaultInitEdgeService implements InitEdgeService {
                                         outputStream.onNext(ResponseMsg.newBuilder()
                                                 .setEntityUpdateMsg(entityUpdateMsg)
                                                 .build());
+                                        pushedEntityIds.add(assetById.getId());
                                     }
                                     return null;
                                 }, ctx.getDbCallbackExecutor());
                             }
                         }
                     } catch (Exception e) {
-                        log.error("Exception during loading edge asset(s) on init!", e);
+                        log.error("Exception during loading edge asset(s) on sync!", e);
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge asset(s) on init!", e);
+            log.error("Exception during loading edge asset(s) on sync!", e);
         }
     }
 
-    private void initEntityViews(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncEntityViews(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<EntityGroup>> entityViewGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.ENTITY_VIEW);
             Futures.transform(entityViewGroupsFuture, entityViewGroups -> {
@@ -314,23 +333,24 @@ public class DefaultInitEdgeService implements InitEdgeService {
                                         outputStream.onNext(ResponseMsg.newBuilder()
                                                 .setEntityUpdateMsg(entityUpdateMsg)
                                                 .build());
+                                        pushedEntityIds.add(entityViewById.getId());
                                     }
                                     return null;
                                 }, ctx.getDbCallbackExecutor());
                             }
                         }
                     } catch (Exception e) {
-                        log.error("Exception during loading edge entity view(s) on init!", e);
+                        log.error("Exception during loading edge entity view(s) on sync!", e);
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge entity view(s) on init!", e);
+            log.error("Exception during loading edge entity view(s) on sync!", e);
         }
     }
 
-    private void initDashboards(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncDashboards(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<EntityGroup>> dashboardGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DASHBOARD);
             Futures.transform(dashboardGroupsFuture, dashboardGroups -> {
@@ -355,23 +375,24 @@ public class DefaultInitEdgeService implements InitEdgeService {
                                         outputStream.onNext(ResponseMsg.newBuilder()
                                                 .setEntityUpdateMsg(entityUpdateMsg)
                                                 .build());
+                                        pushedEntityIds.add(dashboardById.getId());
                                     }
                                     return null;
                                 }, ctx.getDbCallbackExecutor());
                             }
                         }
                     } catch (Exception e) {
-                        log.error("Exception during loading edge dashboard(s) on init!", e);
+                        log.error("Exception during loading edge dashboard(s) on sync!", e);
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge dashboard(s) on init!", e);
+            log.error("Exception during loading edge dashboard(s) on sync!", e);
         }
     }
 
-    private void initUsers(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncUsers(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<EntityGroup>> userGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.USER);
             Futures.transform(userGroupsFuture, userGroups -> {
@@ -396,23 +417,24 @@ public class DefaultInitEdgeService implements InitEdgeService {
                                         outputStream.onNext(ResponseMsg.newBuilder()
                                                 .setEntityUpdateMsg(entityUpdateMsg)
                                                 .build());
+                                        pushedEntityIds.add(userById.getId());
                                     }
                                     return null;
                                 }, ctx.getDbCallbackExecutor());
                             }
                         }
                     } catch (Exception e) {
-                        log.error("Exception during loading edge user(s) on init!", e);
+                        log.error("Exception during loading edge user(s) on sync!", e);
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge user(s) on init!", e);
+            log.error("Exception during loading edge user(s) on sync!", e);
         }
     }
 
-    private void initSchedulerEvents(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncSchedulerEvents(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<SchedulerEvent>> schedulerEventsFuture =
                     schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId());
@@ -430,16 +452,17 @@ public class DefaultInitEdgeService implements InitEdgeService {
                         outputStream.onNext(ResponseMsg.newBuilder()
                                 .setEntityUpdateMsg(entityUpdateMsg)
                                 .build());
+                        pushedEntityIds.add(schedulerEvent.getId());
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
-            log.error("Exception during loading edge scheduler event(s) on init!");
+            log.error("Exception during loading edge scheduler event(s) on sync!");
         }
     }
 
-    private void initLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncLoginWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
             EntityId ownerId = edge.getOwnerId();
             String domainName = "localhost";
@@ -465,7 +488,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
         }
     }
 
-    private void initWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncWhiteLabeling(Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
             EntityId ownerId = edge.getOwnerId();
             WhiteLabelingParams whiteLabelingParams = null;
@@ -491,7 +514,7 @@ public class DefaultInitEdgeService implements InitEdgeService {
         }
     }
 
-    private void initCustomTranslation(Edge edge, StreamObserver<ResponseMsg> outputStream) {
+    private void syncCustomTranslation(Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
             EntityId ownerId = edge.getOwnerId();
             CustomTranslation customTranslation = null;
@@ -518,8 +541,59 @@ public class DefaultInitEdgeService implements InitEdgeService {
         }
     }
 
+    private void syncRelations(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+        if (!pushedEntityIds.isEmpty()) {
+            List<ListenableFuture<List<EntityRelation>>> futures = new ArrayList<>();
+            for (EntityId entityId : pushedEntityIds) {
+                futures.add(syncRelations(edge, entityId, EntitySearchDirection.FROM));
+                futures.add(syncRelations(edge, entityId, EntitySearchDirection.TO));
+            }
+            ListenableFuture<List<List<EntityRelation>>> relationsListFuture = Futures.allAsList(futures);
+            Futures.transform(relationsListFuture, relationsList -> {
+                try {
+                    Set<EntityRelation> uniqueEntityRelations = new HashSet<>();
+                    if (!relationsList.isEmpty()) {
+                        for (List<EntityRelation> entityRelations : relationsList) {
+                            if (!entityRelations.isEmpty()) {
+                                uniqueEntityRelations.addAll(entityRelations);
+                            }
+                        }
+                    }
+                    if (!uniqueEntityRelations.isEmpty()) {
+                        log.trace("[{}] [{}] relation(s) are going to be pushed to edge.", edge.getId(), uniqueEntityRelations.size());
+                        for (EntityRelation relation : uniqueEntityRelations) {
+                            try {
+                                RelationUpdateMsg relationUpdateMsg =
+                                        relationUpdateMsgConstructor.constructRelationUpdatedMsg(
+                                                UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                                relation);
+                                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                        .setRelationUpdateMsg(relationUpdateMsg)
+                                        .build();
+                                outputStream.onNext(ResponseMsg.newBuilder()
+                                        .setEntityUpdateMsg(entityUpdateMsg)
+                                        .build());
+                            } catch (Exception e) {
+                                log.error("Exception during loading relation [{}] to edge on sync!", relation, e);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Exception during loading relation(s) to edge on sync!", e);
+                }
+                return null;
+            }, ctx.getDbCallbackExecutor());
+        }
+    }
+
+    private ListenableFuture<List<EntityRelation>> syncRelations(Edge edge, EntityId entityId, EntitySearchDirection direction) {
+        EntityRelationsQuery query = new EntityRelationsQuery();
+        query.setParameters(new RelationsSearchParameters(entityId, direction, -1, false));
+        return relationService.findByQuery(edge.getTenantId(), query);
+    }
+
     @Override
-    public void initRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream) {
+    public void syncRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream) {
         if (ruleChainMetadataRequestMsg.getRuleChainIdMSB() != 0 && ruleChainMetadataRequestMsg.getRuleChainIdLSB() != 0) {
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
             RuleChainMetaData ruleChainMetaData = ruleChainService.loadRuleChainMetaData(edge.getTenantId(), ruleChainId);

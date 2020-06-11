@@ -28,8 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-public enum EdgeQueueEntityType {
-    DASHBOARD, ASSET, DEVICE, ENTITY_VIEW, ALARM, RULE_CHAIN, RULE_CHAIN_METADATA, EDGE, USER, CUSTOMER, RELATION, ENTITY_GROUP, SCHEDULER_EVENT
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+
+@Component
+@Slf4j
+public class RelationUpdateMsgConstructor {
+
+    public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
+        RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setFromIdMSB(entityRelation.getFrom().getId().getMostSignificantBits())
+                .setFromIdLSB(entityRelation.getFrom().getId().getLeastSignificantBits())
+                .setFromEntityType(entityRelation.getFrom().getEntityType().name())
+                .setToIdMSB(entityRelation.getTo().getId().getMostSignificantBits())
+                .setToIdLSB(entityRelation.getTo().getId().getLeastSignificantBits())
+                .setToEntityType(entityRelation.getTo().getEntityType().name())
+                .setType(entityRelation.getType())
+                .setAdditionalInfo(JacksonUtil.toString(entityRelation.getAdditionalInfo()));
+        if (entityRelation.getTypeGroup() != null) {
+            builder.setTypeGroup(entityRelation.getTypeGroup().name());
+        }
+        return builder.build();
+    }
 }

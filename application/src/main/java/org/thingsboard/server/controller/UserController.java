@@ -85,6 +85,8 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
+import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")

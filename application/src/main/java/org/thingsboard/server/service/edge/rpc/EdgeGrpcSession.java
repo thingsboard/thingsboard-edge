@@ -158,7 +158,7 @@ public final class EdgeGrpcSession implements Closeable {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     }
                     if (ConnectResponseCode.ACCEPTED == responseMsg.getResponseCode()) {
-                        ctx.getInitEdgeService().init(ctx, edge, outputStream);
+                        ctx.getSyncEdgeService().sync(ctx, edge, outputStream);
                     }
                 }
                 if (connected) {
@@ -386,6 +386,10 @@ public final class EdgeGrpcSession implements Closeable {
                     User user = objectMapper.readValue(data, User.class);
                     onUserUpdated(msgType, user, groupName);
                     break;
+                case RELATION:
+                    EntityRelation entityRelation = objectMapper.readValue(entry.getData(), EntityRelation.class);
+                    onEntityRelationUpdated(msgType, entityRelation);
+                    break;
                 case SCHEDULER_EVENT:
                     SchedulerEvent schedulerEvent = objectMapper.readValue(data, SchedulerEvent.class);
                     onSchedulerEventUpdated(msgType, schedulerEvent);
@@ -504,6 +508,15 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
+    private void onEntityRelationUpdated(UpdateMsgType msgType, EntityRelation entityRelation) {
+        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                .setRelationUpdateMsg(ctx.getRelationUpdateMsgConstructor().constructRelationUpdatedMsg(msgType, entityRelation))
+                .build();
+        outputStream.onNext(ResponseMsg.newBuilder()
+                .setEntityUpdateMsg(entityUpdateMsg)
+                .build());
+    }
+
     private UpdateMsgType getResponseMsgType(String msgType) {
         if (msgType.equals(SessionMsgType.POST_TELEMETRY_REQUEST.name()) ||
                 msgType.equals(SessionMsgType.POST_ATTRIBUTES_REQUEST.name()) ||
@@ -589,7 +602,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getRuleChainMetadataRequestMsgList() != null && !uplinkMsg.getRuleChainMetadataRequestMsgList().isEmpty()) {
                 for (RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg : uplinkMsg.getRuleChainMetadataRequestMsgList()) {
-                    ctx.getInitEdgeService().initRuleChainMetadata(edge, ruleChainMetadataRequestMsg, outputStream);
+                    ctx.getSyncEdgeService().syncRuleChainMetadata(edge, ruleChainMetadataRequestMsg, outputStream);
                 }
             }
         } catch (Exception e) {

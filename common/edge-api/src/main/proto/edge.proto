@@ -69,10 +69,11 @@ message EntityUpdateMsg {
   AlarmUpdateMsg alarmUpdateMsg = 7;
   UserUpdateMsg userUpdateMsg = 8;
   CustomerUpdateMsg customerUpdateMsg = 9;
-  WhiteLabelingParamsProto whiteLabelingParams = 10;
-  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 11;
-  CustomTranslationProto customTranslation = 12;
-  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 13;
+  RelationUpdateMsg relationUpdateMsg = 10;
+  WhiteLabelingParamsProto whiteLabelingParams = 11;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 12;
+  CustomTranslationProto customTranslation = 13;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 14;
 }
 
 enum RequestMsgType {
@@ -243,6 +244,19 @@ message CustomerUpdateMsg {
   string phone = 11;
   string email = 12;
   string additionalInfo = 13;
+}
+
+message RelationUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 fromIdMSB = 2;
+  int64 fromIdLSB = 3;
+  string fromEntityType = 4;
+  int64 toIdMSB = 5;
+  int64 toIdLSB = 6;
+  string toEntityType = 7;
+  string type = 8;
+  string typeGroup = 9;
+  string additionalInfo = 10;
 }
 
 message UserUpdateMsg {

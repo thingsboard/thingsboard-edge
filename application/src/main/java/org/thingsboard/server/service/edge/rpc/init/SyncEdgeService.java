@@ -36,9 +36,9 @@ import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
-public interface InitEdgeService {
+public interface SyncEdgeService {
 
-    void init(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream);
+    void sync(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream);
 
-    void initRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream);
+    void syncRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream);
 }

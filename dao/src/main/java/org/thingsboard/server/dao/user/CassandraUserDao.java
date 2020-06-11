@@ -85,9 +85,9 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
         List<UserEntity> userEntities = findPageWithTextSearch(new TenantId(tenantId),
                 ModelConstants.USER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.USER_TENANT_ID_PROPERTY, tenantId),
-                              eq(ModelConstants.USER_CUSTOMER_ID_PROPERTY, ModelConstants.NULL_UUID),
-                              eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.TENANT_ADMIN.name())),
-                pageLink); 
+                        eq(ModelConstants.USER_CUSTOMER_ID_PROPERTY, ModelConstants.NULL_UUID),
+                        eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.TENANT_ADMIN.name())),
+                pageLink);
         log.trace("Found tenant admin users [{}] by tenantId [{}] and pageLink [{}]", userEntities, tenantId, pageLink);
         return DaoUtil.convertDataList(userEntities);
     }
@@ -109,9 +109,9 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
         List<UserEntity> userEntities = findPageWithTextSearch(new TenantId(tenantId),
                 ModelConstants.USER_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME,
                 Arrays.asList(eq(ModelConstants.USER_TENANT_ID_PROPERTY, tenantId),
-                              eq(ModelConstants.USER_CUSTOMER_ID_PROPERTY, customerId),
-                              eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.CUSTOMER_USER.name())),
-                pageLink); 
+                        eq(ModelConstants.USER_CUSTOMER_ID_PROPERTY, customerId),
+                        eq(ModelConstants.USER_AUTHORITY_PROPERTY, Authority.CUSTOMER_USER.name())),
+                pageLink);
         log.trace("Found customer users [{}] by tenantId [{}], customerId [{}] and pageLink [{}]", userEntities, tenantId, customerId, pageLink);
         return DaoUtil.convertDataList(userEntities);
     }
@@ -136,5 +136,4 @@ public class CassandraUserDao extends CassandraAbstractSearchTextDao<UserEntity,
         query.and(in(ID_PROPERTY, userIds));
         return findListByStatementAsync(new TenantId(tenantId), query);
     }
-
 }
