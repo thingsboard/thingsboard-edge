@@ -141,9 +141,9 @@ message RuleChainMetadataUpdateMsg {
   int64 ruleChainIdMSB = 2;
   int64 ruleChainIdLSB = 3;
   int32 firstNodeIndex = 4;
-  repeated RuleNodeProto nodes =  5;
-  repeated NodeConnectionInfoProto connections =  6;
-  repeated RuleChainConnectionInfoProto ruleChainConnections =  7;
+  repeated RuleNodeProto nodes = 5;
+  repeated NodeConnectionInfoProto connections = 6;
+  repeated RuleChainConnectionInfoProto ruleChainConnections = 7;
 }
 
 message RuleNodeProto {
