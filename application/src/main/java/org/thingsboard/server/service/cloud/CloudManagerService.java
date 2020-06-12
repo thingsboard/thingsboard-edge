@@ -790,8 +790,6 @@ public class CloudManagerService {
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
 
-                    //tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(), ComponentLifecycleEvent.UPDATED);
-
                     eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
 
                     break;
