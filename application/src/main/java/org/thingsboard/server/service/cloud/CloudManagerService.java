@@ -1030,7 +1030,9 @@ public class CloudManagerService {
                         create = true;
                     }
                     user.setEmail(userUpdateMsg.getEmail());
-                    user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
+                    // TODO: voba - fix this hardcoded authority
+                    user.setAuthority(Authority.TENANT_ADMIN);
+                    // user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.getFirstName());
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
