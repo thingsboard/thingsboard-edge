@@ -50,6 +50,14 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
 
   integrationTypes = IntegrationType;
 
+  get integrationTypeHttpOrSigfox(): boolean{
+    return this.integrationType === IntegrationType.HTTP || this.integrationType === IntegrationType.SIGFOX;
+  }
+
+  get integrationTypeThingparkOrTpe(): boolean{
+    return this.integrationType === IntegrationType.THINGPARK || this.integrationType === IntegrationType.TPE;
+  }
+
   constructor(protected store: Store<AppState>, private translate: TranslateService) {
     super();
   }
@@ -58,7 +66,9 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     super.ngOnChanges(changes);
     for (const propName of Object.keys(changes)) {
       if (['routingKey', 'integrationType'].includes(propName)) {
-        this.integrationBaseUrlChanged();
+        setTimeout(() => {
+          this.integrationBaseUrlChanged();
+        }, 0);
       }
     }
   }
@@ -68,15 +78,17 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       this.integrationBaseUrlChanged();
     });
     this.form.get('enableSecurity').valueChanges.subscribe(() => {
-      if (this.integrationType === IntegrationType.HTTP || this.integrationType === IntegrationType.SIGFOX) {
+      if (this.integrationTypeHttpOrSigfox) {
         this.httpEnableSecurityChanged();
-      } else if (this.integrationType === IntegrationType.THINGPARK || this.integrationType === IntegrationType.TPE) {
+      } else if (this.integrationTypeThingparkOrTpe) {
         this.thingparkEnableSecurityChanged();
       }
     });
-    this.form.get('enableSecurityNew').valueChanges.subscribe(() => {
-      this.thingparkEnableSecurityNewChanged();
-    });
+    if (this.integrationTypeThingparkOrTpe) {
+      this.form.get('enableSecurityNew').valueChanges.subscribe(() => {
+        this.thingparkEnableSecurityNewChanged();
+      });
+    }
     this.resetFields();
   }
 
@@ -99,7 +111,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
 
   thingparkEnableSecurityChanged = () => {
     const fields = ['asId', 'asKey', 'maxTimeDiffInSeconds'];
-    if (!this.form.get('enableSecurity').value) {
+    if (!this.form.get('enableSecurity').value || this.integrationTypeHttpOrSigfox) {
       this.form.get('enableSecurityNew').patchValue(false);
       disableFields(this.form, fields, false);
     } else {
@@ -111,7 +123,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret'];
     if (!this.form.get('enableSecurityNew').value) {
       disableFields(this.form, fields, false);
-      if (this.form.get('enableSecurity').value) {
+      if (this.form.get('enableSecurity').value && !this.integrationTypeHttpOrSigfox) {
         enableFields(this.form, ['asId']);
       }
     } else {
