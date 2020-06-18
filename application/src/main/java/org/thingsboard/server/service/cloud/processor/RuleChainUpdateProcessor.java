@@ -1,0 +1,205 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.cloud.processor;
+
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleNodeProto;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Component
+@Slf4j
+public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    public void onRuleChainUpdate(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
+        try {
+            RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
+            switch (ruleChainUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                    boolean created = false;
+                    if (ruleChain == null) {
+                        created = true;
+                        ruleChain = new RuleChain();
+                        ruleChain.setId(ruleChainId);
+                        ruleChain.setTenantId(tenantId);
+                    }
+                    ruleChain.setName(ruleChainUpdateMsg.getName());
+                    if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
+                        ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                    }
+                    ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
+                    ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
+                    ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
+                    ruleChainService.saveRuleChain(ruleChain);
+
+                    eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
+
+                    tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(),
+                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    ListenableFuture<RuleChain> ruleChainByIdAsyncFuture = ruleChainService.findRuleChainByIdAsync(tenantId, ruleChainId);
+                    Futures.transform(ruleChainByIdAsyncFuture, ruleChainByIdAsync -> {
+                        if (ruleChainByIdAsync != null) {
+                            List<RuleNode> referencingRuleNodes = ruleChainService.getReferencingRuleChainNodes(tenantId, ruleChainId);
+
+                            Set<RuleChainId> referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());
+
+                            ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+
+                            referencingRuleChainIds.remove(ruleChainId);
+
+                            referencingRuleChainIds.forEach(referencingRuleChainId ->
+                                    tbClusterService.onEntityStateChange(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
+
+                            tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
+                        }
+                        return null;
+                    }, dbCallbackExecutor);
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (Exception e) {
+            log.error("Can't process RuleChainUpdateMsg [{}]", ruleChainUpdateMsg, e);
+        }
+    }
+
+    public void onRuleChainMetadataUpdate(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
+        try {
+            switch (ruleChainMetadataUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
+                    RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB()));
+                    ruleChainMetadata.setRuleChainId(ruleChainId);
+                    ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
+                    ruleChainMetadata.setNodes(parseNodeProtos(ruleChainId, ruleChainMetadataUpdateMsg.getNodesList()));
+                    ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
+                    ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
+                    if (ruleChainMetadata.getNodes().size() > 0) {
+                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
+                        tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
+                    }
+                    break;
+                case UNRECOGNIZED:
+                    log.error("Unsupported msg type");
+            }
+        } catch (Exception e) {
+            log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
+        }
+    }
+
+
+    private UplinkMsg constructRuleChainMetadataRequestMsg(RuleChain ruleChain) {
+        RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
+                .setRuleChainIdMSB(ruleChain.getId().getId().getMostSignificantBits())
+                .setRuleChainIdLSB(ruleChain.getId().getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
+        return builder.build();
+    }
+
+
+    private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
+        List<RuleChainConnectionInfo> result = new ArrayList<>();
+        for (org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto proto : ruleChainConnectionsList) {
+            RuleChainConnectionInfo info = new RuleChainConnectionInfo();
+            info.setFromIndex(proto.getFromIndex());
+            info.setTargetRuleChainId(new RuleChainId(new UUID(proto.getTargetRuleChainIdMSB(), proto.getTargetRuleChainIdLSB())));
+            info.setType(proto.getType());
+            info.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            result.add(info);
+        }
+        return result;
+    }
+
+    private List<NodeConnectionInfo> parseConnectionProtos(List<org.thingsboard.server.gen.edge.NodeConnectionInfoProto> connectionsList) {
+        List<NodeConnectionInfo> result = new ArrayList<>();
+        for (org.thingsboard.server.gen.edge.NodeConnectionInfoProto proto : connectionsList) {
+            NodeConnectionInfo info = new NodeConnectionInfo();
+            info.setFromIndex(proto.getFromIndex());
+            info.setToIndex(proto.getToIndex());
+            info.setType(proto.getType());
+            result.add(info);
+        }
+        return result;
+    }
+
+    private List<RuleNode> parseNodeProtos(RuleChainId ruleChainId, List<RuleNodeProto> nodesList) throws IOException {
+        List<RuleNode> result = new ArrayList<>();
+        for (RuleNodeProto proto : nodesList) {
+            RuleNode ruleNode = new RuleNode();
+            RuleNodeId ruleNodeId = new RuleNodeId(new UUID(proto.getIdMSB(), proto.getIdLSB()));
+            ruleNode.setId(ruleNodeId);
+            ruleNode.setRuleChainId(ruleChainId);
+            ruleNode.setType(proto.getType());
+            ruleNode.setName(proto.getName());
+            ruleNode.setDebugMode(proto.getDebugMode());
+            ruleNode.setConfiguration(mapper.readTree(proto.getConfiguration()));
+            ruleNode.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            result.add(ruleNode);
+        }
+        return result;
+    }
+
+}
