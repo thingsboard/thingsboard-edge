@@ -35,12 +35,17 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
@@ -105,7 +110,12 @@ import org.thingsboard.server.common.data.wl.Palette;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -150,6 +160,14 @@ import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.integration.DefaultPlatformIntegrationService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.user.UserLoaderService;
@@ -178,6 +196,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CloudManagerService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private final Gson gson = new Gson();
 
     private final Lock deviceCreationLock = new ReentrantLock();
     private final Lock assetCreationLock = new ReentrantLock();
@@ -254,9 +274,6 @@ public class CloudManagerService {
     private UserService userService;
 
     @Autowired
-    private RuleEngineTelemetryService telemetryService;
-
-    @Autowired
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
@@ -266,7 +283,7 @@ public class CloudManagerService {
     private SchedulerEventService schedulerEventService;
 
     @Autowired
-    private ActorService actorService;
+    private DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
@@ -848,7 +865,6 @@ public class CloudManagerService {
         } catch (Exception e) {
             log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
         }
-
     }
 
     private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
@@ -1170,58 +1186,99 @@ public class CloudManagerService {
             log.debug("onDownlink {}", downlinkMsg);
             if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    TbMsg tbMsg = null;
-                    TbMsg tmp = TbMsg.fromBytes(entityData.getTbMsg().toByteArray(), TbMsgCallback.EMPTY);
-                    switch (tmp.getOriginator().getEntityType()) {
-                        case DEVICE:
-                            String deviceName = entityData.getEntityName();
-                            Device device = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
-                            if (device != null) {
-                                tbMsg = TbMsg.newMsg(tmp.getType(), device.getId(), tmp.getMetaData().copy(),
-                                        tmp.getDataType(), tmp.getData(), null, null);
-                            }
-                            break;
-                        case ASSET:
-                            String assetName = entityData.getEntityName();
-                            Asset asset = assetService.findAssetByTenantIdAndName(tenantId, assetName);
-                            if (asset != null) {
-                                tbMsg = TbMsg.newMsg(tmp.getType(), asset.getId(), tmp.getMetaData().copy(),
-                                        tmp.getDataType(), tmp.getData(), null, null);
-                            }
-                            break;
-                        case ENTITY_VIEW:
-                            String entityViewName = entityData.getEntityName();
-                            EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(tenantId, entityViewName);
-                            if (entityView != null) {
-                                tbMsg = TbMsg.newMsg(tmp.getType(), entityView.getId(), tmp.getMetaData().copy(),
-                                        tmp.getDataType(), tmp.getData(), null, null);
-                            }
-                            break;
-                    }
-
-                    if (tbMsg != null) {
-                        if (DataConstants.ATTRIBUTES_UPDATED.equals(tbMsg.getType())) {
-                            String scope = tbMsg.getMetaData().getValue("scope");
-                            Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(tbMsg.getData()));
-                            telemetryService.saveAndNotify(tenantId, tbMsg.getOriginator(), scope, new ArrayList<>(attributes), new FutureCallback<Void>() {
-                                @Override
-                                public void onSuccess(@Nullable Void result) {
+                    EntityId entityId = constructEntityId(entityData);
+                    if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg()) && entityId != null) {
+                        ListenableFuture<TbMsgMetaData> metaDataFuture = constructBaseMsgMetadata(entityId);
+                        Futures.transform(metaDataFuture, metaData -> {
+                            if (metaData != null) {
+                                metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
+                                if (entityData.hasPostAttributesMsg()) {
+                                    processPostAttributes(entityId, entityData.getPostAttributesMsg(), metaData);
                                 }
-
-                                @Override
-                                public void onFailure(Throwable t) {
+                                if (entityData.hasPostTelemetryMsg()) {
+                                    processPostTelemetry(entityId, entityData.getPostTelemetryMsg(), metaData);
                                 }
-                            });
-                        }
-
-                        // TODO: voba - fix
-                        // actorService.onMsg(new SendToClusterMsg(tbMsg.getOriginator(), new ServiceToRuleEngineMsg(tenantId, tbMsg)));
+                            }
+                            return null;
+                        }, dbCallbackExecutor);
                     }
                 }
             }
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
         }
+    }
+
+    private ListenableFuture<TbMsgMetaData> constructBaseMsgMetadata(EntityId entityId) {
+        switch (entityId.getEntityType()) {
+            case DEVICE:
+                ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, new DeviceId(entityId.getId()));
+                return Futures.transform(deviceFuture, device -> {
+                    TbMsgMetaData metaData = new TbMsgMetaData();
+                    if (device != null) {
+                        metaData.putValue("deviceName", device.getName());
+                        metaData.putValue("deviceType", device.getType());
+                    }
+                    return metaData;
+                }, dbCallbackExecutor);
+            case ASSET:
+                ListenableFuture<Asset> assetFuture = assetService.findAssetByIdAsync(tenantId, new AssetId(entityId.getId()));
+                return Futures.transform(assetFuture, asset -> {
+                    TbMsgMetaData metaData = new TbMsgMetaData();
+                    if (asset != null) {
+                        metaData.putValue("assetName", asset.getName());
+                        metaData.putValue("assetType", asset.getType());
+                    }
+                    return metaData;
+                }, dbCallbackExecutor);
+            case ENTITY_VIEW:
+                ListenableFuture<EntityView> entityViewFuture = entityViewService.findEntityViewByIdAsync(tenantId, new EntityViewId(entityId.getId()));
+                return Futures.transform(entityViewFuture, entityView -> {
+                    TbMsgMetaData metaData = new TbMsgMetaData();
+                    if (entityView != null) {
+                        metaData.putValue("entityViewName", entityView.getName());
+                        metaData.putValue("entityViewType", entityView.getType());
+                    }
+                    return metaData;
+                }, dbCallbackExecutor);
+            default:
+                log.debug("Constructing empty metadata for entityId [{}]", entityId);
+                return Futures.immediateFuture(new TbMsgMetaData());
+        }
+    }
+
+    private EntityId constructEntityId(EntityDataProto entityData) {
+        EntityType entityType = EntityType.valueOf(entityData.getEntityType());
+        switch (entityType) {
+            case DEVICE:
+                return new DeviceId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case ASSET:
+                return new AssetId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case ENTITY_VIEW:
+                return new EntityViewId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case DASHBOARD:
+                return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            default:
+                log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
+                return null;
+        }
+    }
+
+    private void processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+            metaData.putValue("ts", tsKv.getTs() + "");
+            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
+            // TODO: voba - verify that null callback is OK
+            tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+        }
+    }
+
+    private void processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+        TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
+        // TODO: voba - verify that null callback is OK
+        tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
     }
 
     private void scheduleReconnect(Exception e) {

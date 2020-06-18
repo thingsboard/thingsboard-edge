@@ -137,7 +137,7 @@
         <module>netty-mqtt</module>
         <module>common</module>
         <module>rule-engine</module>
-        <module>rule-engine-pe</module>
+<!--        <module>rule-engine-pe</module>-->
         <module>dao</module>
 <!--        <module>integration</module>-->
         <module>ui</module>

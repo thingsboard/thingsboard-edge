@@ -87,4 +87,7 @@ public class DataConstants {
     public static final String SECRET_KEY_FIELD_NAME = "secretKey";
     public static final String DURATION_MS_FIELD_NAME = "durationMs";
 
+    public static final String CLOUD_MSG_SOURCE = "cloud";
+    public static final String MSG_SOURCE_KEY = "source";
+
 }
