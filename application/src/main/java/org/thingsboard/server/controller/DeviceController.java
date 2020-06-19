@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -71,7 +72,6 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
@@ -121,6 +121,9 @@ public class DeviceController extends BaseController {
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
 
+            sendNotificationMsgToEdgeService(savedDevice.getTenantId(), null, savedDevice.getId(),
+                    EdgeEventType.DEVICE, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
             } else {
@@ -145,6 +148,8 @@ public class DeviceController extends BaseController {
             logEntityAction(deviceId, device,
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
+
+            sendNotificationMsgToEdgeService(getTenantId(), null, deviceId, EdgeEventType.DEVICE, ActionType.DELETED);
 
             deviceStateService.onDeviceDeleted(device);
         } catch (Exception e) {
@@ -187,6 +192,8 @@ public class DeviceController extends BaseController {
             DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
 
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId()), null);
+
+            sendNotificationMsgToEdgeService(getTenantId(), null, device.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
 
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),

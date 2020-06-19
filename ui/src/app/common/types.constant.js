@@ -1260,7 +1260,7 @@ export default angular.module('thingsboard.types', [])
                     clientSide: false
                 }
             },
-            systemRuleChainType: "SYSTEM",
+            coreRuleChainType: "CORE",
             edgeRuleChainType: "EDGE",
             edgeGroupTypes: ["ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
             ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],

@@ -114,6 +114,7 @@ public class AssetController extends BaseController {
                     asset.getCustomerId(),
                     ActionType.DELETED, null, strAssetId);
 
+            sendNotificationMsgToEdgeService(getTenantId(), null, assetId, EdgeEventType.ASSET, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ASSET),
                     null,

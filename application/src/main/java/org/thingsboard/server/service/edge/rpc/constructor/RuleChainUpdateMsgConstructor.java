@@ -141,7 +141,6 @@ public class RuleChainUpdateMsgConstructor {
                 .build();
     }
 
-
     private RuleNodeProto constructNode(RuleNode node) throws JsonProcessingException {
         return RuleNodeProto.newBuilder()
                 .setIdMSB(node.getId().getId().getMostSignificantBits())
@@ -152,6 +151,13 @@ public class RuleChainUpdateMsgConstructor {
                 .setConfiguration(objectMapper.writeValueAsString(node.getConfiguration()))
                 .setAdditionalInfo(objectMapper.writeValueAsString(node.getAdditionalInfo()))
                 .build();
+    }
+
+    public RuleChainUpdateMsg constructRuleChainDeleteMsg(RuleChainId ruleChainId) {
+        return RuleChainUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(ruleChainId.getId().getMostSignificantBits())
+                .setIdLSB(ruleChainId.getId().getLeastSignificantBits()).build();
     }
 
 }

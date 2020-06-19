@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
@@ -68,4 +69,10 @@ public class EntityViewUpdateMsgConstructor {
         return builder.build();
     }
 
+    public EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId) {
+        return EntityViewUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(entityViewId.getId().getMostSignificantBits())
+                .setIdLSB(entityViewId.getId().getLeastSignificantBits()).build();
+    }
 }

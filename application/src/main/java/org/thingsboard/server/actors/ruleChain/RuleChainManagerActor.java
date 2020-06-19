@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.rule.RuleChainService;
 
 import java.util.function.Function;
@@ -70,7 +71,7 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
     }
 
     protected void initRuleChains() {
-        for (RuleChain ruleChain : new PageDataIterable<>(link -> ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.SYSTEM, link), ContextAwareActor.ENTITY_PACK_LIMIT)) {
+        for (RuleChain ruleChain : new PageDataIterable<>(link -> ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, link), ContextAwareActor.ENTITY_PACK_LIMIT)) {
             RuleChainId ruleChainId = ruleChain.getId();
             log.debug("[{}|{}] Creating rule chain actor", ruleChainId.getEntityType(), ruleChain.getId());
             TbActorRef actorRef = getOrCreateActor(ruleChainId, id -> ruleChain);
@@ -80,7 +81,7 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
     }
 
     protected void visit(RuleChain entity, TbActorRef actorRef) {
-        if (entity != null && entity.isRoot() && entity.getType().equals(RuleChainType.SYSTEM)) {
+        if (entity != null && entity.isRoot() && entity.getType().equals(RuleChainType.CORE)) {
             rootChain = entity;
             rootChainActor = actorRef;
         }

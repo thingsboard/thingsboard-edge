@@ -28,3 +28,4 @@ DROP TABLE IF EXISTS blob_entity;
 DROP TABLE IF EXISTS role;
 DROP TABLE IF EXISTS group_permission;
 DROP TABLE IF EXISTS edge;
+DROP TABLE IF EXISTS edge_event;

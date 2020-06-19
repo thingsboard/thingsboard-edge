@@ -28,29 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.edge;
+package org.thingsboard.server.dao.service.sql;
 
-import com.google.common.util.concurrent.FutureCallback;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.dao.service.BaseEdgeEventServiceTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import javax.annotation.Nullable;
-
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
-@Data
-class PushToEdgeNodeCallback implements FutureCallback<Void> {
-    private final TbContext ctx;
-    private final TbMsg msg;
-
-    @Override
-    public void onSuccess(@Nullable Void result) {
-        ctx.tellNext(msg, SUCCESS);
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-        ctx.tellFailure(msg, t);
-    }
+@DaoSqlTest
+public class EdgeEventServiceSqlTest extends BaseEdgeEventServiceTest {
 }

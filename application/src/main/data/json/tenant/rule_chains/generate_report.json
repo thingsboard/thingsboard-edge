@@ -2,7 +2,7 @@
   "ruleChain": {
     "additionalInfo": null,
     "name": "Generate Report",
-    "type": "SYSTEM",
+    "type": "CORE",
     "firstRuleNodeId": null,
     "root": false,
     "debugMode": false,

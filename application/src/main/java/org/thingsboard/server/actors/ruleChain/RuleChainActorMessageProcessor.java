@@ -112,7 +112,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
         if (!started) {
             RuleChain ruleChain = service.findRuleChainById(tenantId, entityId);
             if (ruleChain != null) {
-                if (ruleChain.getType().equals(RuleChainType.SYSTEM)) {
+                if (ruleChain.getType().equals(RuleChainType.CORE)) {
                     List<RuleNode> ruleNodeList = service.getRuleChainNodes(tenantId, entityId);
                     log.trace("[{}][{}] Starting rule chain with {} nodes", tenantId, entityId, ruleNodeList.size());
                     // Creating and starting the actors;
@@ -133,34 +133,36 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
     @Override
     public void onUpdate(TbActorCtx context) {
         RuleChain ruleChain = service.findRuleChainById(tenantId, entityId);
-        if (ruleChain.getType().equals(RuleChainType.SYSTEM)) {
-            ruleChainName = ruleChain.getName();
-            List<RuleNode> ruleNodeList = service.getRuleChainNodes(tenantId, entityId);
-            log.trace("[{}][{}] Updating rule chain with {} nodes", tenantId, entityId, ruleNodeList.size());
-            for (RuleNode ruleNode : ruleNodeList) {
-                RuleNodeCtx existing = nodeActors.get(ruleNode.getId());
-                if (existing == null) {
-                    log.trace("[{}][{}] Creating rule node [{}]: {}", entityId, ruleNode.getId(), ruleNode.getName(), ruleNode);
-                    TbActorRef ruleNodeActor = createRuleNodeActor(context, ruleNode);
-                    nodeActors.put(ruleNode.getId(), new RuleNodeCtx(tenantId, self, ruleNodeActor, ruleNode));
-                } else {
-                    log.trace("[{}][{}] Updating rule node [{}]: {}", entityId, ruleNode.getId(), ruleNode.getName(), ruleNode);
-                    existing.setSelf(ruleNode);
-                    existing.getSelfActor().tellWithHighPriority(new ComponentLifecycleMsg(tenantId, existing.getSelf().getId(), ComponentLifecycleEvent.UPDATED));
+        if (ruleChain != null) {
+            if (ruleChain.getType().equals(RuleChainType.CORE)) {
+                ruleChainName = ruleChain.getName();
+                List<RuleNode> ruleNodeList = service.getRuleChainNodes(tenantId, entityId);
+                log.trace("[{}][{}] Updating rule chain with {} nodes", tenantId, entityId, ruleNodeList.size());
+                for (RuleNode ruleNode : ruleNodeList) {
+                    RuleNodeCtx existing = nodeActors.get(ruleNode.getId());
+                    if (existing == null) {
+                        log.trace("[{}][{}] Creating rule node [{}]: {}", entityId, ruleNode.getId(), ruleNode.getName(), ruleNode);
+                        TbActorRef ruleNodeActor = createRuleNodeActor(context, ruleNode);
+                        nodeActors.put(ruleNode.getId(), new RuleNodeCtx(tenantId, self, ruleNodeActor, ruleNode));
+                    } else {
+                        log.trace("[{}][{}] Updating rule node [{}]: {}", entityId, ruleNode.getId(), ruleNode.getName(), ruleNode);
+                        existing.setSelf(ruleNode);
+                        existing.getSelfActor().tellWithHighPriority(new ComponentLifecycleMsg(tenantId, existing.getSelf().getId(), ComponentLifecycleEvent.UPDATED));
+                    }
                 }
+
+                Set<RuleNodeId> existingNodes = ruleNodeList.stream().map(RuleNode::getId).collect(Collectors.toSet());
+                List<RuleNodeId> removedRules = nodeActors.keySet().stream().filter(node -> !existingNodes.contains(node)).collect(Collectors.toList());
+                removedRules.forEach(ruleNodeId -> {
+                    log.trace("[{}][{}] Removing rule node [{}]", tenantId, entityId, ruleNodeId);
+                    RuleNodeCtx removed = nodeActors.remove(ruleNodeId);
+                    removed.getSelfActor().tellWithHighPriority(new ComponentLifecycleMsg(tenantId, removed.getSelf().getId(), ComponentLifecycleEvent.DELETED));
+                });
+
+                initRoutes(ruleChain, ruleNodeList);
+            } else if (ruleChain.getType().equals(RuleChainType.EDGE)) {
+                stop(context);
             }
-
-            Set<RuleNodeId> existingNodes = ruleNodeList.stream().map(RuleNode::getId).collect(Collectors.toSet());
-            List<RuleNodeId> removedRules = nodeActors.keySet().stream().filter(node -> !existingNodes.contains(node)).collect(Collectors.toList());
-            removedRules.forEach(ruleNodeId -> {
-                log.trace("[{}][{}] Removing rule node [{}]", tenantId, entityId, ruleNodeId);
-                RuleNodeCtx removed = nodeActors.remove(ruleNodeId);
-                removed.getSelfActor().tellWithHighPriority(new ComponentLifecycleMsg(tenantId, removed.getSelf().getId(), ComponentLifecycleEvent.DELETED));
-            });
-
-            initRoutes(ruleChain, ruleNodeList);
-        } else if (ruleChain.getType().equals(RuleChainType.EDGE)) {
-            stop(context);
         }
     }
 

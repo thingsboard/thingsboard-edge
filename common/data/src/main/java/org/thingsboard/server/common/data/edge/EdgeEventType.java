@@ -30,11 +30,6 @@
  */
 package org.thingsboard.server.common.data.edge;
 
-import lombok.Data;
-
-@Data
-public class EdgeQueueEntry {
-    private String type;
-    private EdgeQueueEntityType entityType;
-    private String data;
+public enum EdgeEventType {
+    DASHBOARD, ASSET, DEVICE, ENTITY_VIEW, ALARM, RULE_CHAIN, RULE_CHAIN_METADATA, EDGE, USER, CUSTOMER, RELATION, ENTITY_GROUP, SCHEDULER_EVENT
 }

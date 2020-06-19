@@ -402,9 +402,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             icon: 'settings_ethernet',
                             pages: [
                                 {
-                                    name: 'rulechain.system-rulechains',
+                                    name: 'rulechain.core-rulechains',
                                     type: 'link',
-                                    state: 'home.ruleChains.system',
+                                    state: 'home.ruleChains.core',
                                     icon: 'settings_ethernet',
                                     disabled: disabledItems.indexOf('rule_chains') > -1
                                 },
@@ -594,9 +594,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'rulechain.management',
                             places: [
                                 {
-                                    name: 'rulechain.system-rulechains',
+                                    name: 'rulechain.core-rulechains',
                                     icon: 'settings_ethernet',
-                                    state: 'home.ruleChains.system',
+                                    state: 'home.ruleChains.core',
                                     disabled: disabledItems.indexOf('rule_chains') > -1
                                 },
                                 {
@@ -1204,7 +1204,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                
+
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.auditLog)) {
                     homeSections.push(
                         {

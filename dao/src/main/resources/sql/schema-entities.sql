@@ -333,23 +333,6 @@ CREATE TABLE IF NOT EXISTS entity_view (
     additional_info varchar
 );
 
-CREATE TABLE IF NOT EXISTS edge (
-    id varchar(31) NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
-    additional_info varchar,
-    customer_id varchar(31),
-    root_rule_chain_id varchar(31),
-    configuration varchar(10000000),
-    type varchar(255),
-    name varchar(255),
-    label varchar(255),
-    routing_key varchar(255),
-    secret varchar(255),
-    search_text varchar(255),
-    tenant_id varchar(31),
-    CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
-    CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
-);
-
 CREATE TABLE IF NOT EXISTS role (
     id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
     tenant_id varchar(31),
@@ -370,6 +353,35 @@ CREATE TABLE IF NOT EXISTS group_permission (
     entity_group_type varchar(255),
     is_public boolean
 );
+
+CREATE TABLE IF NOT EXISTS edge (
+    id varchar(31) NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id varchar(31),
+    root_rule_chain_id varchar(31),
+    configuration varchar(10000000),
+    type varchar(255),
+    name varchar(255),
+    label varchar(255),
+    routing_key varchar(255),
+    secret varchar(255),
+    search_text varchar(255),
+    tenant_id varchar(31),
+    CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
+    CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
+);
+
+CREATE TABLE IF NOT EXISTS edge_event (
+    id varchar(31) NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
+    edge_id varchar(31),
+    edge_event_type varchar(255),
+    entity_id varchar(31),
+    edge_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id varchar(31),
+    ts bigint NOT NULL
+);
+
 
 CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
