@@ -55,6 +55,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.List;
@@ -244,19 +245,19 @@ public class TbSimpleAggMsgNode implements TbNode {
     }
 
     private void scheduleReportTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(TB_REPORT_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_REPORT_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
 
     private void scheduleStatePersistTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(TB_PERSIST_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_PERSIST_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
     private void scheduleEntitiesTickMsg(TbContext ctx) {
-        TbMsg tickMsg = ctx.newMsg(TB_ENTITIES_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(ServiceQueue.MAIN, TB_ENTITIES_TICK_MSG, ctx.getSelfId(), new TbMsgMetaData(), "");
         nextEntitiesTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, entitiesCheckPeriod);
     }

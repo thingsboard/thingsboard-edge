@@ -314,7 +314,7 @@ public final class EdgeGrpcSession implements Closeable {
 
     private void processCustomDownlinkMessage(EdgeQueueEntry entry) throws IOException {
         log.trace("Executing processCustomDownlinkMessage, entry [{}]", entry);
-        TbMsg tbMsg = TbMsg.fromBytes(Base64.decodeBase64(entry.getData()), TbMsgCallback.EMPTY);
+        TbMsg tbMsg = TbMsg.fromBytes(null, Base64.decodeBase64(entry.getData()), TbMsgCallback.EMPTY);
         String entityName = null;
         EntityId entityId = null;
         switch (entry.getEntityType()) {
@@ -574,7 +574,7 @@ public final class EdgeGrpcSession implements Closeable {
             if (uplinkMsg.getEntityDataList() != null && !uplinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : uplinkMsg.getEntityDataList()) {
                     TbMsg tbMsg = null;
-                    TbMsg originalTbMsg = TbMsg.fromBytes(entityData.getTbMsg().toByteArray(), TbMsgCallback.EMPTY);
+                    TbMsg originalTbMsg = TbMsg.fromBytes(null, entityData.getTbMsg().toByteArray(), TbMsgCallback.EMPTY);
                     if (originalTbMsg.getOriginator().getEntityType() == EntityType.DEVICE) {
                         String deviceName = entityData.getEntityName();
                         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(edge.getTenantId(), deviceName);

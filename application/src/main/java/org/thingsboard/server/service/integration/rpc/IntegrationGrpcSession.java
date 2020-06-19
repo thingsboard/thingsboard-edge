@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
@@ -303,7 +304,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getTbMsgCount() > 0) {
                 for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                    TbMsg tbMsg = TbMsg.fromBytes(tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    TbMsg tbMsg = TbMsg.fromBytes(ServiceQueue.MAIN, tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
                     ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
                 }
             }

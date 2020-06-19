@@ -1085,10 +1085,13 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
     }
 
     function processCSVCell(cellData){
-        var result = cellData.replace(/"/g, '""');
-        if (result.search(/([",\n])/g) >= 0)
-            result = '"' + result + '"';
-        return result;
+        if(cellData){
+            var result = cellData.replace(/"/g, '""');
+            if (result.search(/([",\n])/g) >= 0)
+                result = '"' + result + '"';
+            return result;
+        }
+        return cellData;
     }
 
     function exportCsv(data, filename) {
