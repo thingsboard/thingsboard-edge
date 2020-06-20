@@ -41,7 +41,7 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class AssetUpdateMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, String groupName) {
+    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset) {
         AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(asset.getId().getId().getMostSignificantBits())
@@ -50,9 +50,6 @@ public class AssetUpdateMsgConstructor {
                 .setType(asset.getType());
         if (asset.getLabel() != null) {
             builder.setLabel(asset.getLabel());
-        }
-        if (groupName != null) {
-            builder.setGroupName(groupName);
         }
         return builder.build();
     }

@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.UserCredentials;
 
 import java.util.List;

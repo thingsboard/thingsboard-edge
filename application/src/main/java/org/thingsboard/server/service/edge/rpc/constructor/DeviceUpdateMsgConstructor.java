@@ -47,7 +47,7 @@ public class DeviceUpdateMsgConstructor {
     @Autowired
     private DeviceCredentialsService deviceCredentialsService;
 
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, String groupName) {
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(device.getId().getId().getMostSignificantBits())
@@ -56,9 +56,6 @@ public class DeviceUpdateMsgConstructor {
                 .setType(device.getType());
         if (device.getLabel() != null) {
             builder.setLabel(device.getLabel());
-        }
-        if (groupName != null) {
-            builder.setGroupName(groupName);
         }
         if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
                 msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) ||

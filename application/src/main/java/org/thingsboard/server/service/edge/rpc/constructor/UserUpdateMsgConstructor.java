@@ -48,7 +48,7 @@ public class UserUpdateMsgConstructor {
     @Autowired
     private UserService userService;
 
-    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, String groupName) {
+    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(user.getId().getId().getMostSignificantBits())
@@ -67,9 +67,6 @@ public class UserUpdateMsgConstructor {
         }
         if (user.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
-        }
-        if (groupName != null) {
-            builder.setGroupName(groupName);
         }
         if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
                 msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {

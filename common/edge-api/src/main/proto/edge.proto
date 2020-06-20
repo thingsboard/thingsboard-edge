@@ -179,7 +179,6 @@ message DashboardUpdateMsg {
   int64 idLSB = 3;
   string title = 4;
   string configuration = 5;
-  string groupName = 6;
 }
 
 message DeviceUpdateMsg {
@@ -192,7 +191,6 @@ message DeviceUpdateMsg {
   string credentialsType = 7;
   string credentialsId = 8;
   string credentialsValue = 9;
-  string groupName = 10;
 }
 
 message AssetUpdateMsg {
@@ -202,7 +200,6 @@ message AssetUpdateMsg {
   string name = 4;
   string type = 5;
   string label = 6;
-  string groupName = 7;
 }
 
 message EntityViewUpdateMsg {
@@ -214,7 +211,6 @@ message EntityViewUpdateMsg {
   int64 entityIdMSB = 6;
   int64 entityIdLSB = 7;
   EdgeEntityType entityType = 8;
-  string groupName = 9;
 }
 
 message AlarmUpdateMsg {
@@ -273,7 +269,6 @@ message UserUpdateMsg {
   string additionalInfo = 8;
   bool enabled = 9;
   string password = 10;
-  string groupName = 11;
 }
 
 message RuleChainMetadataRequestMsg {

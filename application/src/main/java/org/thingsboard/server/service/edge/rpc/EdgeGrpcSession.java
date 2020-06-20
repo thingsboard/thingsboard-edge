@@ -373,8 +373,9 @@ public final class EdgeGrpcSession implements Closeable {
                 processRelationCRUD(edgeEvent, msgType);
                 break;
             case SCHEDULER_EVENT:
-                SchedulerEvent schedulerEvent = objectMapper.readValue(data, SchedulerEvent.class);
-                onSchedulerEventUpdated(msgType, schedulerEvent);
+//                SchedulerEvent schedulerEvent = objectMapper.readValue(data, SchedulerEvent.class);
+//                onSchedulerEventUpdated(msgType, schedulerEvent);
+//                processSchedulerCRUD(edgeEvent, msgType);
                 break;
         }
     }

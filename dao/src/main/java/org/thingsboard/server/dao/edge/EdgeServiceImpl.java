@@ -381,14 +381,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(TenantId tenantId, DashboardId dashboardId) {
-        log.trace("Executing findEdgesByTenantIdAndDashboardId, tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
-        return edgeDao.findEdgesByTenantIdAndDashboardId(tenantId.getId(), dashboardId.getId());
-    }
-
-    @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findEdgesByTenantIdAndSchedulerEventId, tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);

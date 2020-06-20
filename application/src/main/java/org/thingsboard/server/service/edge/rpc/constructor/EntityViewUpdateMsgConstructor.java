@@ -42,7 +42,7 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class EntityViewUpdateMsgConstructor {
 
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, String groupName) {
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView) {
         EdgeEntityType entityType;
         switch (entityView.getEntityId().getEntityType()) {
             case DEVICE:
@@ -63,9 +63,6 @@ public class EntityViewUpdateMsgConstructor {
                 .setIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
                 .setIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
                 .setEntityType(entityType);
-        if (groupName != null) {
-            builder.setGroupName(groupName);
-        }
         return builder.build();
     }
 

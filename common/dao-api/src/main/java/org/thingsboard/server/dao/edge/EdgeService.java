@@ -1,5 +1,7 @@
 /**
- * Copyright © 2016-2020 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +36,6 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -94,8 +95,6 @@ public interface EdgeService {
     void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId);
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(TenantId tenantId, RuleChainId ruleChainId);
-
-    ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(TenantId tenantId, DashboardId dashboardId);
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(TenantId tenantId, SchedulerEventId schedulerEventId);
 }
