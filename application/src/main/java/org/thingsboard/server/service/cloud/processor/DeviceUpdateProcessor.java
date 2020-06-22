@@ -223,7 +223,6 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
             if (created) {
                 deviceStateService.onDeviceAdded(device);
             }
-            addEntityToGroup(tenantId, deviceUpdateMsg.getGroupName(), device.getId(), EntityType.DEVICE);
             updateDeviceCredentials(tenantId, deviceUpdateMsg, device);
         } finally {
             deviceCreationLock.unlock();

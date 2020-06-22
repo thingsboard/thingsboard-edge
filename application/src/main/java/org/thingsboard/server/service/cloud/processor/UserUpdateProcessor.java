@@ -88,8 +88,6 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     userCredentials.setResetToken(null);
                     userService.saveUserCredentials(tenantId, userCredentials);
 
-                    addEntityToGroup(tenantId, userUpdateMsg.getGroupName(), savedUser.getId(), EntityType.USER);
-
                     addEntityToGroup(tenantId, "Tenant Users", savedUser.getId(), EntityType.USER);
                 } finally {
                     userCreationLock.unlock();

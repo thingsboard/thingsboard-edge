@@ -78,7 +78,6 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor{
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
                     }
-                    addEntityToGroup(tenantId, dashboardUpdateMsg.getGroupName(), savedDashboard.getId(), EntityType.DASHBOARD);
                 } finally {
                     dashboardCreationLock.unlock();
                 }

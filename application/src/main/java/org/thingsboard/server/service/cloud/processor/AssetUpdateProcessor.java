@@ -72,7 +72,6 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                     asset.setType(assetUpdateMsg.getType());
                     asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset, created);
-                    addEntityToGroup(tenantId, assetUpdateMsg.getGroupName(), asset.getId(), EntityType.ASSET);
                 } finally {
                     assetCreationLock.unlock();
                 }

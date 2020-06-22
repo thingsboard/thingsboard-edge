@@ -82,7 +82,6 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
                     entityViewService.saveEntityView(entityView, created);
-                    addEntityToGroup(tenantId, entityViewUpdateMsg.getGroupName(), entityView.getId(), EntityType.ENTITY_VIEW);
                 } finally {
                     entityViewCreationLock.unlock();
                 }
