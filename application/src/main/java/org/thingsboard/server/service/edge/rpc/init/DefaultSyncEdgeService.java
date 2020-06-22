@@ -30,14 +30,17 @@
  */
 package org.thingsboard.server.service.edge.rpc.init;
 
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
@@ -46,6 +49,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -123,10 +127,12 @@ import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -202,18 +208,24 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         syncCustomTranslation(edge, outputStream);
 
         Set<EntityId> pushedEntityIds = new HashSet<>();
-        syncUsers(ctx, edge, pushedEntityIds, outputStream);
         List<ListenableFuture<Void>> futures = new ArrayList<>();
+        futures.add(syncUsers(ctx, edge, pushedEntityIds, outputStream));
         futures.add(syncRuleChains(ctx, edge, pushedEntityIds, outputStream));
-//        futures.add(syncDevices(ctx, edge, pushedEntityIds, outputStream));
+        futures.add(syncDevices(ctx, edge, pushedEntityIds, outputStream));
         futures.add(syncAssets(ctx, edge, pushedEntityIds, outputStream));
         futures.add(syncEntityViews(ctx, edge, pushedEntityIds, outputStream));
         futures.add(syncDashboards(ctx, edge, pushedEntityIds, outputStream));
-        syncSchedulerEvents(ctx, edge, pushedEntityIds, outputStream);
-        ListenableFuture<List<Void>> joinFuture = Futures.allAsList(futures);
-        Futures.transform(joinFuture, result -> {
-            syncRelations(ctx, edge, pushedEntityIds, outputStream);
-            return null;
+        futures.add(syncSchedulerEvents(ctx, edge, pushedEntityIds, outputStream));
+        Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<Void>>() {
+            @Override
+            public void onSuccess(@Nullable List<Void> result) {
+                syncRelations(ctx, edge, pushedEntityIds, outputStream);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("Exception during sync entities", t);
+            }
         }, MoreExecutors.directExecutor());
     }
 
@@ -250,253 +262,238 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-//    private ListenableFuture<Void> syncDevices(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-//        try {
-//            ListenableFuture<TimePageData<Device>> future = deviceService.findDevicesByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-//            return Futures.transform(future, pageData -> {
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] device(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (Device device : pageData.getData()) {
-//                        DeviceUpdateMsg deviceUpdateMsg =
-//                                deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(
-//                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-//                                        device);
-//                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-//                                .setDeviceUpdateMsg(deviceUpdateMsg)
-//                                .build();
-//                        outputStream.onNext(ResponseMsg.newBuilder()
-//                                .setEntityUpdateMsg(entityUpdateMsg)
-//                                .build());
-//                        pushedEntityIds.add(device.getId());
-//                    }
-//                }
-//                return null;
-//            }, ctx.getDbCallbackExecutor());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge device(s) on sync!", e);
-//            return Futures.immediateFuture(null);
-//        }
-//    }
+    private ListenableFuture<Set<EntityId>> findRelatedEdgeEntityIdsByEntityType(EdgeContextComponent ctx, Edge edge, EntityType entityType) {
+        ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), entityType);
 
-    private void syncDevices(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+        ListenableFuture<List<List<EntityId>>> findEntityIdsFuture = Futures.transformAsync(entityGroupsFuture, entityGroups -> {
+            List<ListenableFuture<List<EntityId>>> futures = new ArrayList<>();
+            if (entityGroups != null && !entityGroups.isEmpty()) {
+                for (EntityGroup entityGroup : entityGroups) {
+                    futures.add(entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroup.getId(), new TimePageLink(Integer.MAX_VALUE)));
+                }
+            }
+            return Futures.successfulAsList(futures);
+        }, ctx.getDbCallbackExecutor());
+
+        return Futures.transform(findEntityIdsFuture, listOfEntityIds -> {
+            Set<EntityId> result = new HashSet<>();
+            if (listOfEntityIds != null && !listOfEntityIds.isEmpty()) {
+                for (List<EntityId> entityIds : listOfEntityIds) {
+                    if (entityIds != null && !entityIds.isEmpty()) {
+                        result.addAll(entityIds);
+                    }
+                }
+            }
+            return result;
+        }, MoreExecutors.directExecutor());
+    }
+
+    private ListenableFuture<Void> syncDevices(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
-            ListenableFuture<List<EntityGroup>> deviceGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DEVICE);
-            Futures.transform(deviceGroupsFuture, deviceGroups -> {
-                if (deviceGroups != null && !deviceGroups.isEmpty()) {
-                    try {
-                        Set<EntityId> entityIds = new HashSet<>();
-                        for (EntityGroup deviceGroup : deviceGroups) {
-                            entityIds.addAll(entityGroupService.findAllEntityIds(edge.getTenantId(), deviceGroup.getId(), new TimePageLink(Integer.MAX_VALUE)).get());
-                        }
-                        if (!entityIds.isEmpty()) {
-                            for (EntityId deviceId : entityIds) {
-                                ListenableFuture<Device> deviceByIdFuture = deviceService.findDeviceByIdAsync(edge.getTenantId(), new DeviceId(deviceId.getId()));
-                                Futures.transform(deviceByIdFuture, deviceById -> {
-                                    if (deviceById != null) {
-                                        DeviceUpdateMsg deviceUpdateMsg =
-                                                deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(
-                                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                                        deviceById);
-                                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                                .setDeviceUpdateMsg(deviceUpdateMsg)
-                                                .build();
-                                        outputStream.onNext(ResponseMsg.newBuilder()
-                                                .setEntityUpdateMsg(entityUpdateMsg)
-                                                .build());
-                                        pushedEntityIds.add(deviceById.getId());
-                                    }
-                                    return null;
-                                }, ctx.getDbCallbackExecutor());
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.error("Exception during loading edge device(s) on sync!", e);
+            ListenableFuture<Set<EntityId>> entityIdsFuture = findRelatedEdgeEntityIdsByEntityType(ctx, edge, EntityType.DEVICE);
+
+            ListenableFuture<List<Device>> devicesFuture = Futures.transformAsync(entityIdsFuture, entityIds -> {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    List<DeviceId> deviceIds = entityIds.stream().map(e -> new DeviceId(e.getId())).collect(Collectors.toList());
+                    return deviceService.findDevicesByTenantIdAndIdsAsync(edge.getTenantId(), deviceIds);
+                } else {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+            }, MoreExecutors.directExecutor());
+
+            return Futures.transform(devicesFuture, devices -> {
+                if (devices != null && !devices.isEmpty()) {
+                    log.trace("[{}] [{}] device(s) are going to be pushed to edge.", edge.getId(), devices.size());
+                    for (Device device : devices) {
+                        DeviceUpdateMsg deviceUpdateMsg =
+                                deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(
+                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                        device);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setDeviceUpdateMsg(deviceUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                        pushedEntityIds.add(device.getId());
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Exception during loading edge device(s) on sync!", e);
+            return Futures.immediateFuture(null);
         }
     }
 
     private ListenableFuture<Void> syncAssets(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-//        try {
-//            ListenableFuture<TimePageData<Asset>> future = assetService.findAssetsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-//            return Futures.transform(future, pageData -> {
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] asset(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (Asset asset : pageData.getData()) {
-//                        AssetUpdateMsg assetUpdateMsg =
-//                                assetUpdateMsgConstructor.constructAssetUpdatedMsg(
-//                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-//                                        asset);
-//                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-//                                .setAssetUpdateMsg(assetUpdateMsg)
-//                                .build();
-//                        outputStream.onNext(ResponseMsg.newBuilder()
-//                                .setEntityUpdateMsg(entityUpdateMsg)
-//                                .build());
-//                        pushedEntityIds.add(asset.getId());
-//                    }
-//                }
-//                return null;
-//            }, ctx.getDbCallbackExecutor());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge asset(s) on sync!", e);
-//            return Futures.immediateFuture(null);
-//        }
-        return null;
-    }
+        try {
+            ListenableFuture<Set<EntityId>> entityIdsFuture = findRelatedEdgeEntityIdsByEntityType(ctx, edge, EntityType.ASSET);
 
-    private ListenableFuture<Void> syncEntityViews(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-//        try {
-//            ListenableFuture<TimePageData<EntityView>> future = entityViewService.findEntityViewsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-//            return Futures.transform(future, pageData -> {
-//                try {
-//                    if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                        log.trace("[{}] [{}] entity view(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                        for (EntityView entityView : pageData.getData()) {
-//                            EntityViewUpdateMsg entityViewUpdateMsg =
-//                                    entityViewUpdateMsgConstructor.constructEntityViewUpdatedMsg(
-//                                            UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-//                                            entityView);
-//                            EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-//                                    .setEntityViewUpdateMsg(entityViewUpdateMsg)
-//                                    .build();
-//                            outputStream.onNext(ResponseMsg.newBuilder()
-//                                    .setEntityUpdateMsg(entityUpdateMsg)
-//                                    .build());
-//                            pushedEntityIds.add(entityView.getId());
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    log.error("Exception during loading edge entity view(s) on sync!", e);
-//                }
-//                return null;
-//            }, ctx.getDbCallbackExecutor());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge entity view(s) on sync!", e);
-//            return Futures.immediateFuture(null);
-//        }
-        return null;
-    }
+            ListenableFuture<List<Asset>> assetsFuture = Futures.transformAsync(entityIdsFuture, entityIds -> {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    List<AssetId> assetIds = entityIds.stream().map(e -> new AssetId(e.getId())).collect(Collectors.toList());
+                    return assetService.findAssetsByTenantIdAndIdsAsync(edge.getTenantId(), assetIds);
+                } else {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+            }, MoreExecutors.directExecutor());
 
-    private ListenableFuture<Void> syncDashboards(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-//        try {
-//            ListenableFuture<TimePageData<DashboardInfo>> future = dashboardService.findDashboardsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-//            return Futures.transform(future, pageData -> {
-//                try {
-//                    if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                        log.trace("[{}] [{}] dashboard(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                        for (DashboardInfo dashboardInfo : pageData.getData()) {
-//                            Dashboard dashboard = dashboardService.findDashboardById(edge.getTenantId(), dashboardInfo.getId());
-//                            DashboardUpdateMsg dashboardUpdateMsg =
-//                                    dashboardUpdateMsgConstructor.constructDashboardUpdatedMsg(
-//                                            UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-//                                            dashboard);
-//                            EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-//                                    .setDashboardUpdateMsg(dashboardUpdateMsg)
-//                                    .build();
-//                            outputStream.onNext(ResponseMsg.newBuilder()
-//                                    .setEntityUpdateMsg(entityUpdateMsg)
-//                                    .build());
-//                            pushedEntityIds.add(dashboard.getId());
-//                        }
-//                    }
-//                } catch (Exception e) {
-//                    log.error("Exception during loading edge dashboard(s) on sync!", e);
-//                }
-//                return null;
-//            }, ctx.getDbCallbackExecutor());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge dashboard(s) on sync!", e);
-//            return Futures.immediateFuture(null);
-//        }
-        return null;
-    }
-
-//    private void syncUsers(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-//        try {
-//            TextPageData<User> pageData = userService.findTenantAdmins(edge.getTenantId(), new TextPageLink(Integer.MAX_VALUE));
-//            pushUsersToEdge(pageData, edge, pushedEntityIds, outputStream);
-//            if (edge.getCustomerId() != null && !EntityId.NULL_UUID.equals(edge.getCustomerId().getId())) {
-//                pageData = userService.findCustomerUsers(edge.getTenantId(), edge.getCustomerId(), new TextPageLink(Integer.MAX_VALUE));
-//                pushUsersToEdge(pageData, edge, pushedEntityIds, outputStream);
-//            }
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge user(s) on sync!", e);
-//        }
-//    }
-
-
-
-    private void pushUsersToEdge(TextPageData<User> pageData, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
-        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-            log.trace("[{}] [{}] user(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-            for (User user : pageData.getData()) {
-                UserUpdateMsg userUpdateMsg =
-                        userUpdateMsgConstructor.constructUserUpdatedMsg(
-                                UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                user);
-                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                        .setUserUpdateMsg(userUpdateMsg)
-                        .build();
-                outputStream.onNext(ResponseMsg.newBuilder()
-                        .setEntityUpdateMsg(entityUpdateMsg)
-                        .build());
-                pushedEntityIds.add(user.getId());
-            }
+            return Futures.transform(assetsFuture, assets -> {
+                if (assets != null && !assets.isEmpty()) {
+                    log.trace("[{}] [{}] asset(s) are going to be pushed to edge.", edge.getId(), assets.size());
+                    for (Asset asset : assets) {
+                        AssetUpdateMsg assetUpdateMsg =
+                                assetUpdateMsgConstructor.constructAssetUpdatedMsg(
+                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                        asset);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setAssetUpdateMsg(assetUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                        pushedEntityIds.add(asset.getId());
+                    }
+                }
+                return null;
+            }, ctx.getDbCallbackExecutor());
+        } catch (Exception e) {
+            log.error("Exception during loading edge asset(s) on sync!", e);
+            return Futures.immediateFuture(null);
         }
     }
 
-    private void syncUsers(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+    private ListenableFuture<Void> syncEntityViews(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
-            ListenableFuture<List<EntityGroup>> userGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.USER);
-            Futures.transform(userGroupsFuture, userGroups -> {
-                if (userGroups != null && !userGroups.isEmpty()) {
-                    try {
-                        Set<EntityId> entityIds = new HashSet<>();
-                        for (EntityGroup userGroup : userGroups) {
-                            entityIds.addAll(entityGroupService.findAllEntityIds(edge.getTenantId(), userGroup.getId(), new TimePageLink(Integer.MAX_VALUE)).get());
-                        }
-                        if (!entityIds.isEmpty()) {
-                            for (EntityId userId : entityIds) {
-                                ListenableFuture<User> userByIdFuture = userService.findUserByIdAsync(edge.getTenantId(), new UserId(userId.getId()));
-                                Futures.transform(userByIdFuture, userById -> {
-                                    if (userById != null) {
-                                        UserUpdateMsg userUpdateMsg =
-                                                userUpdateMsgConstructor.constructUserUpdatedMsg(
-                                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
-                                                        userById);
-                                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                                .setUserUpdateMsg(userUpdateMsg)
-                                                .build();
-                                        outputStream.onNext(ResponseMsg.newBuilder()
-                                                .setEntityUpdateMsg(entityUpdateMsg)
-                                                .build());
-                                        pushedEntityIds.add(userById.getId());
-                                    }
-                                    return null;
-                                }, ctx.getDbCallbackExecutor());
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.error("Exception during loading edge user(s) on sync!", e);
+            ListenableFuture<Set<EntityId>> entityIdsFuture = findRelatedEdgeEntityIdsByEntityType(ctx, edge, EntityType.ENTITY_VIEW);
+
+            ListenableFuture<List<EntityView>> entityViewsFuture = Futures.transformAsync(entityIdsFuture, entityIds -> {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    List<EntityViewId> entityViewIds = entityIds.stream().map(e -> new EntityViewId(e.getId())).collect(Collectors.toList());
+                    return entityViewService.findEntityViewsByTenantIdAndIdsAsync(edge.getTenantId(), entityViewIds);
+                } else {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+            }, MoreExecutors.directExecutor());
+
+            return Futures.transform(entityViewsFuture, entityViews -> {
+                if (entityViews != null && !entityViews.isEmpty()) {
+                    log.trace("[{}] [{}] entity view(s) are going to be pushed to edge.", edge.getId(), entityViews.size());
+                    for (EntityView entityView : entityViews) {
+                        EntityViewUpdateMsg entityViewUpdateMsg =
+                                entityViewUpdateMsgConstructor.constructEntityViewUpdatedMsg(
+                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                        entityView);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setEntityViewUpdateMsg(entityViewUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                        pushedEntityIds.add(entityView.getId());
+                    }
+                }
+                return null;
+            }, ctx.getDbCallbackExecutor());
+        } catch (Exception e) {
+            log.error("Exception during loading edge entity view(s) on sync!", e);
+            return Futures.immediateFuture(null);
+        }
+    }
+
+    private ListenableFuture<Void> syncDashboards(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            ListenableFuture<Set<EntityId>> entityIdsFuture = findRelatedEdgeEntityIdsByEntityType(ctx, edge, EntityType.DASHBOARD);
+
+            ListenableFuture<List<DashboardInfo>> dashboardInfosFuture = Futures.transformAsync(entityIdsFuture, entityIds -> {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    List<DashboardId> dashboardIds = entityIds.stream().map(e -> new DashboardId(e.getId())).collect(Collectors.toList());
+                    return dashboardService.findDashboardInfoByIdsAsync(edge.getTenantId(), dashboardIds);
+                } else {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+            }, MoreExecutors.directExecutor());
+
+            ListenableFuture<List<Dashboard>> dashboardsFuture = Futures.transformAsync(dashboardInfosFuture, dashboardInfos -> {
+                List<ListenableFuture<Dashboard>> futures = new ArrayList<>();
+                if (dashboardInfos != null && !dashboardInfos.isEmpty()) {
+                    for (DashboardInfo dashboardInfo : dashboardInfos) {
+                        futures.add(dashboardService.findDashboardByIdAsync(edge.getTenantId(), dashboardInfo.getId()));
+                    }
+                }
+
+                return Futures.successfulAsList(futures);
+            }, ctx.getDbCallbackExecutor());
+
+            return Futures.transform(dashboardsFuture, dashboards -> {
+                if (dashboards != null && !dashboards.isEmpty()) {
+                    log.trace("[{}] [{}] dashboard(s) are going to be pushed to edge.", edge.getId(), dashboards.size());
+                    for (Dashboard dashboard : dashboards) {
+                        DashboardUpdateMsg dashboardUpdateMsg =
+                                dashboardUpdateMsgConstructor.constructDashboardUpdatedMsg(
+                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                        dashboard);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setDashboardUpdateMsg(dashboardUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                        pushedEntityIds.add(dashboard.getId());
+                    }
+                }
+                return null;
+            }, ctx.getDbCallbackExecutor());
+        } catch (Exception e) {
+            log.error("Exception during loading edge dashboard(s) on sync!", e);
+            return Futures.immediateFuture(null);
+        }
+    }
+
+    private ListenableFuture<Void> syncUsers(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+        try {
+            ListenableFuture<Set<EntityId>> entityIdsFuture = findRelatedEdgeEntityIdsByEntityType(ctx, edge, EntityType.ASSET);
+
+            ListenableFuture<List<User>> usersFuture = Futures.transformAsync(entityIdsFuture, entityIds -> {
+                if (entityIds != null && !entityIds.isEmpty()) {
+                    List<UserId> userIds = entityIds.stream().map(e -> new UserId(e.getId())).collect(Collectors.toList());
+                    return userService.findUsersByTenantIdAndIdsAsync(edge.getTenantId(), userIds);
+                } else {
+                    return Futures.immediateFuture(Collections.emptyList());
+                }
+            }, MoreExecutors.directExecutor());
+
+            return Futures.transform(usersFuture, users -> {
+                if (users != null && !users.isEmpty()) {
+                    log.trace("[{}] [{}] user(s) are going to be pushed to edge.", edge.getId(), users.size());
+                    for (User user : users) {
+                        UserUpdateMsg userUpdateMsg =
+                                userUpdateMsgConstructor.constructUserUpdatedMsg(
+                                        UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE,
+                                        user);
+                        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                .setUserUpdateMsg(userUpdateMsg)
+                                .build();
+                        outputStream.onNext(ResponseMsg.newBuilder()
+                                .setEntityUpdateMsg(entityUpdateMsg)
+                                .build());
+                        pushedEntityIds.add(user.getId());
                     }
                 }
                 return null;
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Exception during loading edge user(s) on sync!", e);
+            return Futures.immediateFuture(null);
         }
     }
 
-    private void syncSchedulerEvents(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
+    private ListenableFuture<Void> syncSchedulerEvents(EdgeContextComponent ctx, Edge edge, Set<EntityId> pushedEntityIds, StreamObserver<ResponseMsg> outputStream) {
         try {
             ListenableFuture<List<SchedulerEvent>> schedulerEventsFuture =
                     schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId());
-            Futures.transform(schedulerEventsFuture, schedulerEvents -> {
+            return Futures.transform(schedulerEventsFuture, schedulerEvents -> {
                 if (schedulerEvents != null && !schedulerEvents.isEmpty()) {
                     log.trace("[{}] [{}] scheduler events(s) are going to be pushed to edge.", edge.getId(), schedulerEvents.size());
                     for (SchedulerEvent schedulerEvent : schedulerEvents) {
@@ -517,6 +514,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Exception during loading edge scheduler event(s) on sync!");
+            return Futures.immediateFuture(null);
         }
     }
 
