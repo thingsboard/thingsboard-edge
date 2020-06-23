@@ -69,6 +69,7 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
@@ -441,7 +442,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
             case DataConstants.ALARM_CLEAR:
                 return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
             default:
-                log.debug("Unsupported tbMsgType [{}]",  tbMsgType);
+                log.debug("Unsupported tbMsgType [{}]", tbMsgType);
                 return null;
         }
     }
@@ -455,20 +456,6 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
                 .setType(device.getType());
         if (device.getLabel() != null) {
             builder.setLabel(device.getLabel());
-        }
-        if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
-                msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {
-            DeviceCredentials deviceCredentials
-                    = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), device.getId());
-            if (deviceCredentials != null) {
-                if (deviceCredentials.getCredentialsType() != null) {
-                    builder.setCredentialsType(deviceCredentials.getCredentialsType().name())
-                            .setCredentialsId(deviceCredentials.getCredentialsId());
-                }
-                if (deviceCredentials.getCredentialsValue() != null) {
-                    builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
-                }
-            }
         }
         return builder.build();
     }
@@ -492,7 +479,7 @@ public class RuleChainActorMessageProcessor extends ComponentMsgProcessor<RuleCh
                 entityName = systemContext.getEntityViewService().findEntityViewById(alarm.getTenantId(), new EntityViewId(alarm.getOriginator().getId())).getName();
                 break;
             default:
-                log.debug("Unsupported tbMsgType [{}]",  alarm.getOriginator().getEntityType());
+                log.debug("Unsupported tbMsgType [{}]", alarm.getOriginator().getEntityType());
                 return null;
         }
         AlarmUpdateMsg.Builder builder = AlarmUpdateMsg.newBuilder()

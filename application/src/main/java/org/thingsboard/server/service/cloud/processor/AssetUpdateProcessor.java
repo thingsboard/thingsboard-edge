@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
@@ -72,6 +73,10 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                     asset.setType(assetUpdateMsg.getType());
                     asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset, created);
+
+                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
+                    addEntityToGroup(tenantId, entityGroupId, asset.getId());
+
                 } finally {
                     assetCreationLock.unlock();
                 }
@@ -88,6 +93,7 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+        requestForAdditionalData(assetUpdateMsg.getMsgType(), assetId);
     }
 
 }

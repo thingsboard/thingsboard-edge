@@ -30,19 +30,18 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -50,52 +49,56 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardUpdateProcessor extends BaseUpdateProcessor{
+public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
 
-    private final Lock dashboardCreationLock = new ReentrantLock();
+    private final Lock entityGroupCreationLock = new ReentrantLock();
 
-    @Autowired
-    private DashboardService dashboardService;
-
-    public void onDashboardUpdate(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) {
-        log.info("DashboardUpdateMsg {}", dashboardUpdateMsg);
-        DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
-        switch (dashboardUpdateMsg.getMsgType()) {
+    public void onEntityGroupUpdate(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
+        log.info("onEntityGroupUpdate {}", entityGroupUpdateMsg);
+        EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
+        switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
-                    dashboardCreationLock.lock();
+                    entityGroupCreationLock.lock();
+                    EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
                     boolean created = false;
-                    Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
-                    if (dashboard == null) {
+                    if (entityGroup == null) {
+                        entityGroup = new EntityGroup();
+                        entityGroup.setId(entityGroupId);
                         created = true;
-                        dashboard = new Dashboard();
-                        dashboard.setId(dashboardId);
-                        dashboard.setTenantId(tenantId);
                     }
-                    dashboard.setTitle(dashboardUpdateMsg.getTitle());
-                    dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, created);
+                    entityGroup.setName(entityGroupUpdateMsg.getName());
+                    entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
+                    entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
+                    entityGroup.setAdditionalInfo(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()));
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, savedDashboard.getId());
+                    // TODO: voba - parent ID is hardcoded. Should be updated in next releases
+                    entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup, created);
 
                 } finally {
-                    dashboardCreationLock.unlock();
+                    entityGroupCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<Dashboard> dashboardByIdAsyncFuture = dashboardService.findDashboardByIdAsync(tenantId, dashboardId);
-                Futures.transform(dashboardByIdAsyncFuture, dashboardByIdAsync -> {
-                    if (dashboardByIdAsync != null) {
-                        dashboardService.deleteDashboard(tenantId, dashboardId);
+                ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+                Futures.addCallback(entityGroupByIdAsyncFuture, new FutureCallback<EntityGroup>() {
+                    @Override
+                    public void onSuccess(@Nullable EntityGroup entityGroup) {
+                        if (entityGroup != null) {
+                            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+                        }
                     }
-                    return null;
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Can't delete entity group by id, entityGroupUpdateMsg [{}]", entityGroupUpdateMsg, t);
+                    }
                 }, dbCallbackExecutor);
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
-        requestForAdditionalData(dashboardUpdateMsg.getMsgType(), dashboardId);
     }
+
 }

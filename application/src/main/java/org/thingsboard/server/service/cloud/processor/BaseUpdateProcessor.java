@@ -31,6 +31,9 @@
 package org.thingsboard.server.service.cloud.processor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,9 +42,9 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -56,14 +59,18 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.gen.edge.AttributesRequestMsg;
+import org.thingsboard.server.gen.edge.RelationRequestMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 
 @Slf4j
 public abstract class BaseUpdateProcessor {
@@ -124,6 +131,13 @@ public abstract class BaseUpdateProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
+    protected void requestForAdditionalData(UpdateMsgType updateMsgType, EntityId entityId) {
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
+                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(updateMsgType)) {
+            eventStorage.write(constructAttributesRequestMsg(entityId), edgeEventSaveCallback);
+            eventStorage.write(constructRelationRequestMsg(entityId), edgeEventSaveCallback);
+        }
+    }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
         TimePageData<Event> events = eventService.findEvents(tenantId, origin.getId(), new TimePageLink(Integer.MAX_VALUE));
@@ -140,9 +154,50 @@ public abstract class BaseUpdateProcessor {
         if (!StringUtils.isEmpty(groupName)) {
             EntityGroup orCreateEntityGroup = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, entityType, groupName, null, null);
             if (orCreateEntityGroup != null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, orCreateEntityGroup.getId(), entityId);
+                addEntityToGroup(tenantId, orCreateEntityGroup.getId(), entityId);
             }
         }
+    }
+
+    protected void addEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        if (entityGroupId != null && !ModelConstants.NULL_UUID.equals(entityGroupId.getId())) {
+            ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+            Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
+                @Override
+                public void onSuccess(@org.checkerframework.checker.nullness.qual.Nullable EntityGroup EntityGroup) {
+                    if (EntityGroup != null) {
+                        entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+
+                }
+            }, dbCallbackExecutor);
+        }
+    }
+
+    private UplinkMsg constructAttributesRequestMsg(EntityId entityId) {
+        AttributesRequestMsg attributesRequestMsg = AttributesRequestMsg.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllAttributesRequestMsg(Collections.singletonList(attributesRequestMsg));
+        return builder.build();
+    }
+
+    private UplinkMsg constructRelationRequestMsg(EntityId entityId) {
+        RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
+        return builder.build();
     }
 
     protected IntegrationCallback<Void> edgeEventSaveCallback = new IntegrationCallback<Void>() {

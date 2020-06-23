@@ -30,21 +30,27 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -54,10 +60,16 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.gen.edge.AttributesRequestMsg;
+import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
+import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -112,6 +124,54 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+
+        requestForAdditionalData(deviceUpdateMsg.getMsgType(), deviceId);
+
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+            eventStorage.write(constructDeviceCredentialsRequestMsg(deviceId), edgeEventSaveCallback);
+        }
+    }
+
+    public void onDeviceCredentialsUpdate(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsUpdateMsg.getDeviceIdMSB(), deviceCredentialsUpdateMsg.getDeviceIdLSB()));
+        ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, deviceId);
+
+        Futures.addCallback(deviceFuture, new FutureCallback<Device>() {
+            @Override
+            public void onSuccess(@Nullable Device device) {
+                if (device != null) {
+                    log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                            device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
+                    try {
+                        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
+                        deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
+                        deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
+                        deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.getCredentialsValue());
+                        deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
+                    } catch (Exception e) {
+                        log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]", device.getName(), deviceCredentialsUpdateMsg, e);
+                    }
+                    log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                            device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Can't update device credentials for deviceCredentialsUpdateMsg [{}]", deviceCredentialsUpdateMsg, t);
+            }
+        }, dbCallbackExecutor);
+    }
+
+    private UplinkMsg constructDeviceCredentialsRequestMsg(DeviceId deviceId) {
+        DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = DeviceCredentialsRequestMsg.newBuilder()
+                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg));
+        return builder.build();
     }
 
     private ListenableFuture<List<Void>> updateOrCopyDeviceRelatedEntities(TenantId tenantId, Device origin, Device destination) {
@@ -185,24 +245,6 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
         }, MoreExecutors.directExecutor());
     }
 
-    private void updateDeviceCredentials(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg, Device device) {
-        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
-                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
-
-        try {
-            DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
-            deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceUpdateMsg.getCredentialsType()));
-            deviceCredentials.setCredentialsId(deviceUpdateMsg.getCredentialsId());
-            deviceCredentials.setCredentialsValue(deviceUpdateMsg.getCredentialsValue());
-            deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
-        } catch (Exception e) {
-            log.error("Can't update device credentials for device [{}], deviceUpdateMsg [{}]", device.getName(), deviceUpdateMsg, e);
-        }
-        log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
-                device.getName(), deviceUpdateMsg.getCredentialsId(), deviceUpdateMsg.getCredentialsValue());
-
-    }
-
     private Device saveOrUpdateDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         Device device;
         try {
@@ -223,7 +265,9 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
             if (created) {
                 deviceStateService.onDeviceAdded(device);
             }
-            updateDeviceCredentials(tenantId, deviceUpdateMsg, device);
+
+            EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+            addEntityToGroup(tenantId, entityGroupId, device.getId());
         } finally {
             deviceCreationLock.unlock();
         }

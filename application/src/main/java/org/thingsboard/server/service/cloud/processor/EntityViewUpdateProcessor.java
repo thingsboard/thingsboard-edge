@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -82,6 +83,9 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
                     entityViewService.saveEntityView(entityView, created);
+
+                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
+                    addEntityToGroup(tenantId, entityGroupId, entityView.getId());
                 } finally {
                     entityViewCreationLock.unlock();
                 }
@@ -98,5 +102,6 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+        requestForAdditionalData(entityViewUpdateMsg.getMsgType(), entityViewId);
     }
 }

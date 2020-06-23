@@ -30,19 +30,31 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
+import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -81,12 +93,8 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     User savedUser = userService.saveUser(user, created);
 
-                    UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
-                    userCredentials.setEnabled(userUpdateMsg.getEnabled());
-                    userCredentials.setPassword(userUpdateMsg.getPassword());
-                    userCredentials.setActivateToken(null);
-                    userCredentials.setResetToken(null);
-                    userService.saveUserCredentials(tenantId, userCredentials);
+                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                    addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
 
                     addEntityToGroup(tenantId, "Tenant Users", savedUser.getId(), EntityType.USER);
                 } finally {
@@ -102,6 +110,44 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+        requestForAdditionalData(userUpdateMsg.getMsgType(), userId);
+
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
+                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
+            eventStorage.write(constructDeviceCredentialsRequestMsg(userId), edgeEventSaveCallback);
+        }
     }
 
+    public void onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
+        UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
+        ListenableFuture<User> userFuture = userService.findUserByIdAsync(tenantId, userId);
+        Futures.addCallback(userFuture, new FutureCallback<User>() {
+            @Override
+            public void onSuccess(@Nullable User result) {
+                if (result != null) {
+                    UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, result.getId());
+                    userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
+                    userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
+                    userCredentials.setActivateToken(null);
+                    userCredentials.setResetToken(null);
+                    userService.saveUserCredentials(tenantId, userCredentials);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Can't update user credentials for userCredentialsUpdateMsg [{}]", userCredentialsUpdateMsg, t);
+            }
+        }, dbCallbackExecutor);
+    }
+
+    private UplinkMsg constructDeviceCredentialsRequestMsg(UserId userId) {
+        UserCredentialsRequestMsg userCredentialsRequestMsg = UserCredentialsRequestMsg.newBuilder()
+                .setUserIdMSB(userId.getId().getMostSignificantBits())
+                .setUserIdLSB(userId.getId().getLeastSignificantBits())
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllUserCredentialsRequestMsg(Collections.singletonList(userCredentialsRequestMsg));
+        return builder.build();
+    }
 }

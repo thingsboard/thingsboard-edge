@@ -30,11 +30,13 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +44,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -58,6 +61,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -68,6 +72,7 @@ import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -75,6 +80,8 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
+import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
@@ -87,6 +94,7 @@ import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.CustomerUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
@@ -99,6 +107,7 @@ import org.thingsboard.server.service.user.UserLoaderService;
 import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.PreDestroy;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -144,6 +153,9 @@ public class CloudManagerService {
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private DeviceCredentialsService deviceCredentialsService;
 
     @Autowired
     private AssetService assetService;
@@ -192,6 +204,9 @@ public class CloudManagerService {
 
     @Autowired
     private UserUpdateProcessor userUpdateProcessor;
+
+    @Autowired
+    private EntityGroupUpdateProcessor entityGroupUpdateProcessor;
 
     @Autowired
     private SchedulerEventUpdateProcessor schedulerEventUpdateProcessor;
@@ -335,6 +350,9 @@ public class CloudManagerService {
             if (entityUpdateMsg.hasDeviceUpdateMsg()) {
                 log.debug("Device update message received [{}]", entityUpdateMsg.getDeviceUpdateMsg());
                 deviceUpdateProcessor.onDeviceUpdate(tenantId, entityUpdateMsg.getDeviceUpdateMsg());
+            } else if (entityUpdateMsg.hasDeviceCredentialsUpdateMsg()) {
+                log.debug("Device credentials update message received [{}]", entityUpdateMsg.getDeviceCredentialsUpdateMsg());
+                deviceUpdateProcessor.onDeviceCredentialsUpdate(tenantId, entityUpdateMsg.getDeviceCredentialsUpdateMsg());
             } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
                 log.debug("Asset update message received [{}]", entityUpdateMsg.getAssetUpdateMsg());
                 assetUpdateProcessor.onAssetUpdate(tenantId, entityUpdateMsg.getAssetUpdateMsg());
@@ -362,6 +380,12 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 userUpdateProcessor.onUserUpdate(tenantId, entityUpdateMsg.getUserUpdateMsg());
+            } else if (entityUpdateMsg.hasUserCredentialsUpdateMsg()) {
+                log.debug("User credentials message received [{}]", entityUpdateMsg.getUserCredentialsUpdateMsg());
+                userUpdateProcessor.onUserCredentialsUpdate(tenantId, entityUpdateMsg.getUserCredentialsUpdateMsg());
+            } else if (entityUpdateMsg.hasEntityGroupUpdateMsg()) {
+                log.debug("Entity group message received [{}]", entityUpdateMsg.getEntityGroupUpdateMsg());
+                entityGroupUpdateProcessor.onEntityGroupUpdate(tenantId, entityUpdateMsg.getEntityGroupUpdateMsg());
             } else if (entityUpdateMsg.hasCustomTranslation()) {
                 log.debug("Custom translation received [{}]", entityUpdateMsg.getCustomTranslation());
                 whiteLabelingUpdateProcessor.onCustomTranslationUpdate(tenantId, entityUpdateMsg.getCustomTranslation());
@@ -403,9 +427,64 @@ public class CloudManagerService {
                     }
                 }
             }
+            if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
+                for (DeviceCredentialsRequestMsg deviceCredentialsRequestMsg : downlinkMsg.getDeviceCredentialsRequestMsgList()) {
+                    ListenableFuture<DeviceCredentialsUpdateMsg> deviceCredentialsUpdateMsgFuture = constructDeviceCredentialsUpdateMsg(deviceCredentialsRequestMsg);
+                    Futures.addCallback(deviceCredentialsUpdateMsgFuture, new FutureCallback<DeviceCredentialsUpdateMsg>() {
+                        @Override
+                        public void onSuccess(@Nullable DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+                            if (deviceCredentialsUpdateMsg != null) {
+                                UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                                        .addAllDeviceCredentialsUpdateMsg(Collections.singletonList(deviceCredentialsUpdateMsg));
+                                eventStorage.write(builder.build(), new IntegrationCallback<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable throwable) {
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+
+                        }
+                    }, dbCallbackExecutor);
+                }
+            }
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
         }
+    }
+
+    private ListenableFuture<DeviceCredentialsUpdateMsg> constructDeviceCredentialsUpdateMsg(DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
+        ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, deviceId);
+        return Futures.transform(deviceFuture, device -> {
+            DeviceCredentialsUpdateMsg result = null;
+            if (device != null) {
+                DeviceCredentials deviceCredentials
+                        = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), device.getId());
+                if (deviceCredentials != null) {
+                    DeviceCredentialsUpdateMsg.Builder builder = DeviceCredentialsUpdateMsg.newBuilder()
+                            .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                            .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits());
+                    if (deviceCredentials.getCredentialsType() != null) {
+                        builder.setCredentialsType(deviceCredentials.getCredentialsType().name())
+                                .setCredentialsId(deviceCredentials.getCredentialsId());
+                    }
+                    if (deviceCredentials.getCredentialsValue() != null) {
+                        builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
+                    }
+                    result = builder.build();
+                }
+            }
+            return result;
+
+        }, dbCallbackExecutor);
     }
 
     private ListenableFuture<TbMsgMetaData> constructBaseMsgMetadata(EntityId entityId) {
