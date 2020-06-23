@@ -76,6 +76,7 @@ message EntityUpdateMsg {
   LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 12;
   CustomTranslationProto customTranslation = 13;
   SchedulerEventUpdateMsg schedulerEventUpdateMsg = 14;
+  EntityGroupUpdateMsg entityGroupUpdateMsg = 15;
 }
 
 enum RequestMsgType {
@@ -179,6 +180,8 @@ message DashboardUpdateMsg {
   int64 idLSB = 3;
   string title = 4;
   string configuration = 5;
+  int64 entityGroupIdMSB = 6;
+  int64 entityGroupIdLSB = 7;
 }
 
 message DeviceUpdateMsg {
@@ -191,6 +194,8 @@ message DeviceUpdateMsg {
   string credentialsType = 7;
   string credentialsId = 8;
   string credentialsValue = 9;
+  int64 entityGroupIdMSB = 10;
+  int64 entityGroupIdLSB = 11;
 }
 
 message AssetUpdateMsg {
@@ -200,6 +205,9 @@ message AssetUpdateMsg {
   string name = 4;
   string type = 5;
   string label = 6;
+  int64 entityGroupIdMSB = 7;
+  int64 entityGroupIdLSB = 8;
+
 }
 
 message EntityViewUpdateMsg {
@@ -211,6 +219,8 @@ message EntityViewUpdateMsg {
   int64 entityIdMSB = 6;
   int64 entityIdLSB = 7;
   EdgeEntityType entityType = 8;
+  int64 entityGroupIdMSB = 9;
+  int64 entityGroupIdLSB = 10;
 }
 
 message AlarmUpdateMsg {
@@ -269,11 +279,19 @@ message UserUpdateMsg {
   string additionalInfo = 8;
   bool enabled = 9;
   string password = 10;
+  int64 entityGroupIdMSB = 11;
+  int64 entityGroupIdLSB = 12;
 }
 
 message RuleChainMetadataRequestMsg {
   int64 ruleChainIdMSB = 1;
   int64 ruleChainIdLSB = 2;
+}
+
+message EntityGroupEntitiesRequestMsg {
+  int64 entityGroupIdMSB = 1;
+  int64 entityGroupIdLSB = 2;
+  string type = 3;
 }
 
 message SchedulerEventUpdateMsg {
@@ -284,6 +302,18 @@ message SchedulerEventUpdateMsg {
   string type = 5;
   string schedule = 6;
   string configuration = 7;
+}
+
+message EntityGroupUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  int64 ownerIdMSB = 6;
+  int64 ownerIdLSB = 7;
+  string additionalInfo = 8;
+  string configuration = 9;
 }
 
 enum EdgeEntityType {
@@ -356,6 +386,7 @@ message UplinkMsg {
   repeated DeviceUpdateMsg deviceUpdateMsg = 3;
   repeated AlarmUpdateMsg alarmUpdateMsg = 4;
   repeated RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = 5;
+  repeated EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = 6;
 }
 
 message UplinkResponseMsg {

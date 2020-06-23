@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,6 +55,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.edge.EdgeDao;
+import org.thingsboard.server.dao.group.BaseEntityGroupService;
 import org.thingsboard.server.dao.model.sql.EdgeEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
@@ -167,19 +169,25 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndRuleChainId(UUID tenantId, UUID ruleChainId) {
         log.debug("Try to find edges by tenantId [{}], ruleChainId [{}]", tenantId, ruleChainId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new RuleChainId(ruleChainId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                edgeFutures.add(findByIdAsync(new TenantId(tenantId), relation.getFrom().getId()));
-            }
-            return Futures.successfulAsList(edgeFutures);
-        }, MoreExecutors.directExecutor());
+        return transformFromRelationToEdge(tenantId, relations);
     }
 
     @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId) {
         log.debug("Try to find edges by tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByTo(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), RelationTypeGroup.EDGE);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
+        return transformFromRelationToEdge(tenantId, relations);
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, EntityType groupType) {
+        log.debug("Try to find edges by tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new EntityGroupId(entityGroupId), relationType, RelationTypeGroup.EDGE);
+        return transformFromRelationToEdge(tenantId, relations);
+    }
+
+    private ListenableFuture<List<Edge>> transformFromRelationToEdge(UUID tenantId, ListenableFuture<List<EntityRelation>> relations) {
         return Futures.transformAsync(relations, input -> {
             List<ListenableFuture<Edge>> edgeFutures = new ArrayList<>(input.size());
             for (EntityRelation relation : input) {

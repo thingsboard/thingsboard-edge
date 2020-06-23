@@ -58,14 +58,17 @@ import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -93,6 +96,7 @@ import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
+import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.RequestMsg;
 import org.thingsboard.server.gen.edge.RequestMsgType;
@@ -373,9 +377,10 @@ public final class EdgeGrpcSession implements Closeable {
                 processRelationCRUD(edgeEvent, msgType);
                 break;
             case SCHEDULER_EVENT:
-//                SchedulerEvent schedulerEvent = objectMapper.readValue(data, SchedulerEvent.class);
-//                onSchedulerEventUpdated(msgType, schedulerEvent);
-//                processSchedulerCRUD(edgeEvent, msgType);
+                processSchedulerEventCRUD(edgeEvent, msgType);
+                break;
+            case ENTITY_GROUP:
+                processEntityGroupCRUD(edgeEvent, msgType);
                 break;
         }
     }
@@ -393,7 +398,7 @@ public final class EdgeGrpcSession implements Closeable {
                             public void onSuccess(@Nullable Device device) {
                                 if (device != null) {
                                     EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                            .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device))
+                                            .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, null))
                                             .build();
                                     outputStream.onNext(ResponseMsg.newBuilder()
                                             .setEntityUpdateMsg(entityUpdateMsg)
@@ -424,7 +429,6 @@ public final class EdgeGrpcSession implements Closeable {
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-            case DEVICE_CONFLICT_RPC_MESSAGE:
                 ListenableFuture<Asset> assetFuture = ctx.getAssetService().findAssetByIdAsync(edgeEvent.getTenantId(), assetId);
                 Futures.addCallback(assetFuture,
                         new FutureCallback<Asset>() {
@@ -432,7 +436,7 @@ public final class EdgeGrpcSession implements Closeable {
                             public void onSuccess(@Nullable Asset asset) {
                                 if (asset != null) {
                                     EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                            .setAssetUpdateMsg(ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset))
+                                            .setAssetUpdateMsg(ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, null))
                                             .build();
                                     outputStream.onNext(ResponseMsg.newBuilder()
                                             .setEntityUpdateMsg(entityUpdateMsg)
@@ -462,7 +466,6 @@ public final class EdgeGrpcSession implements Closeable {
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-            case DEVICE_CONFLICT_RPC_MESSAGE:
                 ListenableFuture<EntityView> entityViewFuture = ctx.getEntityViewService().findEntityViewByIdAsync(edgeEvent.getTenantId(), entityViewId);
                 Futures.addCallback(entityViewFuture,
                         new FutureCallback<EntityView>() {
@@ -470,7 +473,7 @@ public final class EdgeGrpcSession implements Closeable {
                             public void onSuccess(@Nullable EntityView entityView) {
                                 if (entityView != null) {
                                     EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                            .setEntityViewUpdateMsg(ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView))
+                                            .setEntityViewUpdateMsg(ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, null))
                                             .build();
                                     outputStream.onNext(ResponseMsg.newBuilder()
                                             .setEntityUpdateMsg(entityUpdateMsg)
@@ -500,7 +503,6 @@ public final class EdgeGrpcSession implements Closeable {
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-            case DEVICE_CONFLICT_RPC_MESSAGE:
                 ListenableFuture<Dashboard> dashboardFuture = ctx.getDashboardService().findDashboardByIdAsync(edgeEvent.getTenantId(), dashboardId);
                 Futures.addCallback(dashboardFuture,
                         new FutureCallback<Dashboard>() {
@@ -508,7 +510,7 @@ public final class EdgeGrpcSession implements Closeable {
                             public void onSuccess(@Nullable Dashboard dashboard) {
                                 if (dashboard != null) {
                                     EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                            .setDashboardUpdateMsg(ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard))
+                                            .setDashboardUpdateMsg(ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, null))
                                             .build();
                                     outputStream.onNext(ResponseMsg.newBuilder()
                                             .setEntityUpdateMsg(entityUpdateMsg)
@@ -571,15 +573,6 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-    private void onSchedulerEventUpdated(UpdateMsgType msgType, SchedulerEvent schedulerEvent) {
-        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setSchedulerEventUpdateMsg(ctx.getSchedulerEventUpdateMsgConstructor().constructSchedulerEventUpdatedMsg(msgType, schedulerEvent))
-                .build();
-        outputStream.onNext(ResponseMsg.newBuilder()
-                .setEntityUpdateMsg(entityUpdateMsg)
-                .build());
-    }
-
     private void processRuleChainMetadataCRUD(EdgeEvent edgeEvent, UpdateMsgType msgType) {
         RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
         ListenableFuture<RuleChain> ruleChainFuture = ctx.getRuleChainService().findRuleChainByIdAsync(edgeEvent.getTenantId(), ruleChainId);
@@ -622,7 +615,7 @@ public final class EdgeGrpcSession implements Closeable {
                             public void onSuccess(@Nullable User user) {
                                 if (user != null) {
                                     EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user))
+                                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, null))
                                             .build();
                                     outputStream.onNext(ResponseMsg.newBuilder()
                                             .setEntityUpdateMsg(entityUpdateMsg)
@@ -679,6 +672,71 @@ public final class EdgeGrpcSession implements Closeable {
                         log.warn("Can't processAlarmCRUD, edgeEvent [{}]", edgeEvent, t);
                     }
                 }, ctx.getDbCallbackExecutor());
+    }
+
+
+    private void processSchedulerEventCRUD(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+            case DEVICE_CONFLICT_RPC_MESSAGE:
+                SchedulerEvent schedulerEvent = ctx.getSchedulerEventService().findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
+                if (schedulerEvent != null) {
+                    EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                            .setSchedulerEventUpdateMsg(ctx.getSchedulerEventUpdateMsgConstructor().constructSchedulerEventUpdatedMsg(msgType, schedulerEvent))
+                            .build();
+                    outputStream.onNext(ResponseMsg.newBuilder()
+                            .setEntityUpdateMsg(entityUpdateMsg)
+                            .build());
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setSchedulerEventUpdateMsg(ctx.getSchedulerEventUpdateMsgConstructor().constructEventDeleteMsg(schedulerEventId))
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+                break;
+        }
+    }
+
+    private void processEntityGroupCRUD(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+            case DEVICE_CONFLICT_RPC_MESSAGE:
+                ListenableFuture<EntityGroup> entityGroupFuture = ctx.getEntityGroupService().findEntityGroupByIdAsync(edgeEvent.getTenantId(), entityGroupId);
+                Futures.addCallback(entityGroupFuture,
+                        new FutureCallback<EntityGroup>() {
+                            @Override
+                            public void onSuccess(@Nullable EntityGroup entityGroup) {
+                                if (entityGroup != null) {
+                                    EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                            .setEntityGroupUpdateMsg(ctx.getEntityGroupUpdateMsgConstructor().constructEntityGroupUpdatedMsg(msgType, entityGroup))
+                                            .build();
+                                    outputStream.onNext(ResponseMsg.newBuilder()
+                                            .setEntityUpdateMsg(entityUpdateMsg)
+                                            .build());
+                                }
+                            }
+                            @Override
+                            public void onFailure(Throwable t) {
+                                log.warn("Can't processUserCRUD, edgeEvent [{}]", edgeEvent, t);
+                            }
+                        }, ctx.getDbCallbackExecutor());
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setEntityGroupUpdateMsg(ctx.getEntityGroupUpdateMsgConstructor().constructEntityGroupDeleteMsg(entityGroupId))
+                        .build();
+                outputStream.onNext(ResponseMsg.newBuilder()
+                        .setEntityUpdateMsg(entityUpdateMsg)
+                        .build());
+                break;
+        }
     }
 
     private UpdateMsgType getResponseMsgType(ActionType actionType) {
@@ -746,6 +804,11 @@ public final class EdgeGrpcSession implements Closeable {
             if (uplinkMsg.getRuleChainMetadataRequestMsgList() != null && !uplinkMsg.getRuleChainMetadataRequestMsgList().isEmpty()) {
                 for (RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg : uplinkMsg.getRuleChainMetadataRequestMsgList()) {
                     ctx.getSyncEdgeService().syncRuleChainMetadata(edge, ruleChainMetadataRequestMsg, outputStream);
+                }
+            }
+            if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
+                for (EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
+                    ctx.getSyncEdgeService().syncEntityGroupEntities(edge, entityGroupEntitiesRequestMsg, outputStream);
                 }
             }
         } catch (Exception e) {
@@ -838,7 +901,7 @@ public final class EdgeGrpcSession implements Closeable {
                     // device with this name already exists on the cloud - update ID on the edge
                     if (!device.getId().equals(edgeDeviceId)) {
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, device))
+                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, device, null))
                                 .build();
                         outputStream.onNext(ResponseMsg.newBuilder()
                                 .setEntityUpdateMsg(entityUpdateMsg)
@@ -850,7 +913,7 @@ public final class EdgeGrpcSession implements Closeable {
                         // this ID already used by other device - create new device and update ID on the edge
                         Device savedDevice = createDevice(deviceUpdateMsg);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, savedDevice))
+                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, savedDevice, null))
                                 .build();
                         outputStream.onNext(ResponseMsg.newBuilder()
                                 .setEntityUpdateMsg(entityUpdateMsg)

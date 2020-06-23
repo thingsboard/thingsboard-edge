@@ -433,6 +433,7 @@ message EdgeNotificationMsgProto {
   string entityBody = 10;
   PostTelemetryMsg postTelemetryMsg = 11;
   PostAttributeMsg postAttributesMsg = 12;
+  string groupType = 13;
 }
 
 /**

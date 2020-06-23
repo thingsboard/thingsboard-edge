@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
@@ -48,7 +49,7 @@ public class UserUpdateMsgConstructor {
     @Autowired
     private UserService userService;
 
-    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user) {
+    public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, EntityGroupId entityGroupId) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(user.getId().getId().getMostSignificantBits())
@@ -77,6 +78,10 @@ public class UserUpdateMsgConstructor {
                     builder.setPassword(userCredentials.getPassword());
                 }
             }
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }

@@ -31,43 +31,35 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class DashboardUpdateMsgConstructor {
+public class EntityGroupUpdateMsgConstructor {
 
-    @Autowired
-    private DashboardService dashboardService;
-
-    public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId) {
-        dashboard = dashboardService.findDashboardById(dashboard.getTenantId(), dashboard.getId());
-        DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
+    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
+        EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(dashboard.getId().getId().getMostSignificantBits())
-                .setIdLSB(dashboard.getId().getId().getLeastSignificantBits())
-                .setTitle(dashboard.getTitle())
-                .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
-        if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
-        }
+                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits())
+                .setName(entityGroup.getName())
+                .setType(entityGroup.getType().name())
+                .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
+                .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
+                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
+                .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
         return builder.build();
     }
 
-    public DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId) {
-        return DashboardUpdateMsg.newBuilder()
+    public EntityGroupUpdateMsg constructEntityGroupDeleteMsg(EntityGroupId entityGroupId) {
+        return EntityGroupUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(dashboardId.getId().getMostSignificantBits())
-                .setIdLSB(dashboardId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(entityGroupId.getId().getMostSignificantBits())
+                .setIdLSB(entityGroupId.getId().getLeastSignificantBits()).build();
     }
-
 }

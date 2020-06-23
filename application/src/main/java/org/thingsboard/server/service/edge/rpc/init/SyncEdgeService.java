@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.init;
 
 import io.grpc.stub.StreamObserver;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
 import org.thingsboard.server.gen.edge.ResponseMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
@@ -41,4 +42,6 @@ public interface SyncEdgeService {
     void sync(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream);
 
     void syncRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream);
+
+    void syncEntityGroupEntities(Edge edge, EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg, StreamObserver<ResponseMsg> outputStream);
 }

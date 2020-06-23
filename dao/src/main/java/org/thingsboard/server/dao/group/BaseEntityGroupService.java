@@ -742,12 +742,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
-        entityGroup = saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
         return entityGroup;
     }
 
     @Override
-    public EntityGroup unassignEntityGroupFromEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, boolean remove, EntityType groupType) {
+    public EntityGroup unassignEntityGroupFromEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType) {
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {
@@ -760,7 +759,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
-        return saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+        return entityGroup;
     }
 
     @Override

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
@@ -42,7 +43,7 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class EntityViewUpdateMsgConstructor {
 
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView) {
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EntityGroupId entityGroupId) {
         EdgeEntityType entityType;
         switch (entityView.getEntityId().getEntityType()) {
             case DEVICE:
@@ -63,6 +64,10 @@ public class EntityViewUpdateMsgConstructor {
                 .setIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
                 .setIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
                 .setEntityType(entityType);
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
         return builder.build();
     }
 

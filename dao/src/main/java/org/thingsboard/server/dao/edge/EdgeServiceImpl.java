@@ -388,6 +388,14 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findEdgesByTenantIdAndSchedulerEventId(tenantId.getId(), schedulerEventId.getId());
     }
 
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing findEdgesByTenantIdAndEntityGroupId, tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(entityGroupId, "Incorrect schedulerEventId " + entityGroupId);
+        return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType);
+    }
+
     private DataValidator<Edge> edgeValidator =
             new DataValidator<Edge>() {
 

@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.edge;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -158,4 +159,15 @@ public interface EdgeDao extends Dao<Edge> {
      * @return the list of rule chain objects
      */
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId);
+
+    /**
+     * Find edges by tenantId, entityGroupId and groupType.
+     *
+     * @param tenantId the tenantId
+     * @param entityGroupId the entityGroupId
+     * @param groupType the groupType
+     * @return the list of rule chain objects
+     */
+    ListenableFuture<List<Edge>> findEdgesByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, EntityType groupType);
+
 }

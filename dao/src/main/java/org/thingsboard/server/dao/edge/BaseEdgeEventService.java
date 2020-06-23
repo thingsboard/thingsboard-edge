@@ -69,6 +69,10 @@ public class BaseEdgeEventService implements EdgeEventService {
                 return EdgeEventType.USER;
             case ALARM:
                 return EdgeEventType.ALARM;
+            case ENTITY_GROUP:
+                return EdgeEventType.ENTITY_GROUP;
+            case SCHEDULER_EVENT:
+                return EdgeEventType.SCHEDULER_EVENT;
             default:
                 log.warn("Failed to push notification to edge service. Unsupported entity type [{}]", entityType);
                 return null;
