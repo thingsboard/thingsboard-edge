@@ -152,7 +152,6 @@ export const templates = {
     ignoreNonPrimitiveFields: ['headersFilter'],
     fieldValidators: {
       baseUrl: [Validators.required],
-      headersFilter: [Validators.required],
       asId: [Validators.required],
       asIdNew: [Validators.required],
       asKey: [Validators.required],

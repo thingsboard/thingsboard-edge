@@ -56,9 +56,6 @@
                     </mat-expansion-panel-header>
                     <tb-key-val-map noDataText="integration.no-headers-filter" keyPlaceholderText="integration.header"
                         formControlName="headersFilter"></tb-key-val-map>
-                    <mat-error translate *ngIf="form.get('headersFilter').hasError('required')">
-                        integration.header-required
-                    </mat-error>
                 </mat-expansion-panel>
             </mat-accordion>
         </section>
