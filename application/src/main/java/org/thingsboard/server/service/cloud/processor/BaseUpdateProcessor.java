@@ -133,6 +133,7 @@ public abstract class BaseUpdateProcessor {
 
     protected void requestForAdditionalData(UpdateMsgType updateMsgType, EntityId entityId) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(updateMsgType)) {
             eventStorage.write(constructAttributesRequestMsg(entityId), edgeEventSaveCallback);
             eventStorage.write(constructRelationRequestMsg(entityId), edgeEventSaveCallback);

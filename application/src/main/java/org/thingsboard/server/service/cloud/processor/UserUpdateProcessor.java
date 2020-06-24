@@ -113,7 +113,7 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
         requestForAdditionalData(userUpdateMsg.getMsgType(), userId);
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
-                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
             eventStorage.write(constructDeviceCredentialsRequestMsg(userId), edgeEventSaveCallback);
         }
     }

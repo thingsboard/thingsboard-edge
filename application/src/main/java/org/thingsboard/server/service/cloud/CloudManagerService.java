@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -75,6 +76,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -111,6 +113,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -168,6 +171,9 @@ public class CloudManagerService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
@@ -258,6 +264,17 @@ public class CloudManagerService {
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
         customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());
+
+        ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findAllEntityGroups(tenantId, tenantId);
+        try {
+            List<EntityGroup> entityGroups = entityGroupsFuture.get();
+            entityGroups.stream()
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_TENANT_USERS_NAME))
+                    .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId()));
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Unable to delete entity groups", e);
+        }
     }
 
     private void setTenantId() {

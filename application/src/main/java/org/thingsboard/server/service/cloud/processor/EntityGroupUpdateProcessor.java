@@ -40,9 +40,15 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UplinkMsg;
+import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,6 +80,7 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                     entityGroup.setAdditionalInfo(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()));
 
                     // TODO: voba - parent ID is hardcoded. Should be updated in next releases
+                    entityGroup.setOwnerId(tenantId);
                     entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup, created);
 
                 } finally {
@@ -99,6 +106,22 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+
+        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
+            eventStorage.write(constructEntityGroupEntitiesRequestMsg(entityGroupId, entityGroupUpdateMsg.getType()), edgeEventSaveCallback);
+        }
+    }
+
+    private UplinkMsg constructEntityGroupEntitiesRequestMsg(EntityGroupId entityGroupId, String type) {
+        EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = EntityGroupEntitiesRequestMsg.newBuilder()
+                .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
+                .setType(type)
+                .build();
+        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                .addAllEntityGroupEntitiesRequestMsg(Collections.singletonList(entityGroupEntitiesRequestMsg));
+        return builder.build();
     }
 
 }
