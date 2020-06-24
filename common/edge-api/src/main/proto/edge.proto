@@ -356,58 +356,58 @@ enum EdgeEntityType {
 }
 
 message LoginWhiteLabelingParamsProto {
-    string logoImageUrl = 1;
-    string logoImageChecksum = 2;
-    int64 logoImageHeight = 3;
-    string appTitle = 4;
-    FaviconProto favicon = 5;
-    string faviconChecksum = 6;
-    PaletteSettingsProto paletteSettings = 7;
-    string helpLinkBaseUrl = 8;
-    bool enableHelpLinks = 9;
-    bool showNameVersion = 10;
-    string platformName = 11;
-    string platformVersion = 12;
-    string pageBackgroundColor = 13;
-    bool darkForeground = 14;
-    string domainName = 15;
-    string adminSettingsId = 16;
-    bool showNameBottom = 17;
+  string logoImageUrl = 1;
+  string logoImageChecksum = 2;
+  int64 logoImageHeight = 3;
+  string appTitle = 4;
+  FaviconProto favicon = 5;
+  string faviconChecksum = 6;
+  PaletteSettingsProto paletteSettings = 7;
+  string helpLinkBaseUrl = 8;
+  bool enableHelpLinks = 9;
+  bool showNameVersion = 10;
+  string platformName = 11;
+  string platformVersion = 12;
+  string pageBackgroundColor = 13;
+  bool darkForeground = 14;
+  string domainName = 15;
+  string adminSettingsId = 16;
+  bool showNameBottom = 17;
 }
 
 message WhiteLabelingParamsProto {
-    string logoImageUrl = 1;
-    string logoImageChecksum = 2;
-    int64 logoImageHeight = 3;
-    string appTitle = 4;
-    FaviconProto favicon = 5;
-    string faviconChecksum = 6;
-    PaletteSettingsProto paletteSettings = 7;
-    string helpLinkBaseUrl = 8;
-    bool enableHelpLinks = 9;
-    bool showNameVersion = 10;
-    string platformName = 11;
-    string platformVersion = 12;
+  string logoImageUrl = 1;
+  string logoImageChecksum = 2;
+  int64 logoImageHeight = 3;
+  string appTitle = 4;
+  FaviconProto favicon = 5;
+  string faviconChecksum = 6;
+  PaletteSettingsProto paletteSettings = 7;
+  string helpLinkBaseUrl = 8;
+  bool enableHelpLinks = 9;
+  bool showNameVersion = 10;
+  string platformName = 11;
+  string platformVersion = 12;
 }
 
 message FaviconProto {
-    string url = 1;
-    string type = 2;
+  string url = 1;
+  string type = 2;
 }
 
 message PaletteSettingsProto {
-    PaletteProto primaryPalette = 1;
-    PaletteProto accentPalette = 2;
+  PaletteProto primaryPalette = 1;
+  PaletteProto accentPalette = 2;
 }
 
 message PaletteProto {
-    string type = 1;
-    string extendsPalette = 2;
-    map<string, string> colors = 3;
+  string type = 1;
+  string extendsPalette = 2;
+  map<string, string> colors = 3;
 }
 
 message CustomTranslationProto {
-    map<string, string> translationMap = 1;
+  map<string, string> translationMap = 1;
 }
 
 /**

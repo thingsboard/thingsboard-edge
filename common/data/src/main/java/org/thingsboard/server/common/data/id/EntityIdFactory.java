@@ -122,6 +122,10 @@ public class EntityIdFactory {
                 return new EntityViewId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
+            case SCHEDULER_EVENT:
+                return new SchedulerEventId(uuid);
+            case ENTITY_GROUP:
+                return new EntityGroupId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

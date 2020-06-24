@@ -134,6 +134,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
@@ -267,22 +268,34 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private void syncEntityGroups(Edge edge, StreamObserver<ResponseMsg> outputStream) {
         try {
-            ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DEVICE);
-            Futures.addCallback(entityGroupsFuture, new FutureCallback<List<EntityGroup>>() {
+            List<ListenableFuture<List<EntityGroup>>> futures = new ArrayList<>();
+            futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DEVICE));
+            futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.ASSET));
+            futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.ENTITY_VIEW));
+            futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.DASHBOARD));
+            futures.add(entityGroupService.findEdgeEntityGroupsByType(edge.getTenantId(), edge.getId(), EntityType.USER));
+
+            ListenableFuture<List<List<EntityGroup>>> listFuture = Futures.allAsList(futures);
+
+            Futures.addCallback(listFuture, new FutureCallback<List<List<EntityGroup>>>() {
                 @Override
-                public void onSuccess(@Nullable List<EntityGroup> result) {
+                public void onSuccess(@Nullable List<List<EntityGroup>> result) {
                     if (result != null && !result.isEmpty()) {
-                        for (EntityGroup entityGroup : result) {
-                            EntityGroupUpdateMsg entityGroupUpdateMsg =
-                                    entityGroupUpdateMsgConstructor.constructEntityGroupUpdatedMsg(
-                                            UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
-                                            entityGroup);
-                            EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                    .setEntityGroupUpdateMsg(entityGroupUpdateMsg)
-                                    .build();
-                            outputStream.onNext(ResponseMsg.newBuilder()
-                                    .setEntityUpdateMsg(entityUpdateMsg)
-                                    .build());
+                        for (List<EntityGroup> entityGroups : result) {
+                            if (entityGroups != null && !entityGroups.isEmpty()) {
+                                for (EntityGroup entityGroup : entityGroups) {
+                                    EntityGroupUpdateMsg entityGroupUpdateMsg =
+                                            entityGroupUpdateMsgConstructor.constructEntityGroupUpdatedMsg(
+                                                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE,
+                                                    entityGroup);
+                                    EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                                            .setEntityGroupUpdateMsg(entityGroupUpdateMsg)
+                                            .build();
+                                    outputStream.onNext(ResponseMsg.newBuilder()
+                                            .setEntityUpdateMsg(entityUpdateMsg)
+                                            .build());
+                                }
+                            }
                         }
                     }
                 }

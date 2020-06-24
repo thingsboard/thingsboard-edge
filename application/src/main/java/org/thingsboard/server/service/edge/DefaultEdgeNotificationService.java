@@ -43,7 +43,6 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -51,20 +50,19 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -169,6 +167,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
+                case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
                     processEntity(tenantId, edgeNotificationMsg);
                     break;
@@ -325,6 +324,8 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 }, dbCallbackExecutorService);
             case RULE_CHAIN:
                 return convertToEdgeIds(edgeService.findEdgesByTenantIdAndRuleChainId(tenantId, new RuleChainId(entityId.getId())));
+            case SCHEDULER_EVENT:
+                return convertToEdgeIds(edgeService.findEdgesByTenantIdAndSchedulerEventId(tenantId, new SchedulerEventId(entityId.getId())));
             case ENTITY_GROUP:
                 EntityType groupType = EntityType.valueOf(groupTypeStr);
                 return convertToEdgeIds(edgeService.findEdgesByTenantIdAndEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), groupType));
