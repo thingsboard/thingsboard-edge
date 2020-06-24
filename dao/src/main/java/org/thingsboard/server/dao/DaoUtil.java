@@ -99,7 +99,9 @@ public abstract class DaoUtil {
         return ids;
     }
 
-    public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds, Function<List<String>, Collection<? extends ToData<T>>> daoConsumer, JpaExecutorService service) {
+    public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds,
+                                                                             Function<List<String>, Collection<? extends ToData<T>>> daoConsumer,
+                                                                             JpaExecutorService service) {
         int size = entityIds.size();
         List<ListenableFuture<List<T>>> resultList = new ArrayList<>();
         if (size > MAX_IN_VALUE) {
