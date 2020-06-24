@@ -31,23 +31,19 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
 @Component
 @Slf4j
 public class UserUpdateMsgConstructor {
-
-    @Autowired
-    private UserService userService;
 
     public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, EntityGroupId entityGroupId) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
@@ -55,8 +51,7 @@ public class UserUpdateMsgConstructor {
                 .setIdMSB(user.getId().getId().getMostSignificantBits())
                 .setIdLSB(user.getId().getId().getLeastSignificantBits())
                 .setEmail(user.getEmail())
-                .setAuthority(user.getAuthority().name())
-                .setEnabled(false);
+                .setAuthority(user.getAuthority().name());
         if (user.getFirstName() != null) {
             builder.setFirstName(user.getFirstName());
         }
@@ -68,16 +63,6 @@ public class UserUpdateMsgConstructor {
         }
         if (user.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(user.getAdditionalInfo()));
-        }
-        if (msgType.equals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE) ||
-                msgType.equals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE)) {
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-            if (userCredentials != null) {
-                builder.setEnabled(userCredentials.isEnabled());
-                if (userCredentials.getPassword() != null) {
-                    builder.setPassword(userCredentials.getPassword());
-                }
-            }
         }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
@@ -91,5 +76,14 @@ public class UserUpdateMsgConstructor {
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(userId.getId().getMostSignificantBits())
                 .setIdLSB(userId.getId().getLeastSignificantBits()).build();
+    }
+
+    public UserCredentialsUpdateMsg constructUserCredentialsUpdatedMsg(UserCredentials userCredentials) {
+        UserCredentialsUpdateMsg.Builder builder = UserCredentialsUpdateMsg.newBuilder()
+                .setUserIdMSB(userCredentials.getUserId().getId().getMostSignificantBits())
+                .setUserIdLSB(userCredentials.getUserId().getId().getLeastSignificantBits())
+                .setEnabled(userCredentials.isEnabled())
+                .setPassword(userCredentials.getPassword());
+        return builder.build();
     }
 }

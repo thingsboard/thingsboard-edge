@@ -97,7 +97,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
                 ruleNodeComponents:
                 /*@ngInject*/
                     function($stateParams, ruleChainService) {
-                        return ruleChainService.getRuleNodeComponents(types.systemRuleChainType);
+                        return ruleChainService.getRuleNodeComponents(types.coreRuleChainType);
                     }
             },
             data: {
