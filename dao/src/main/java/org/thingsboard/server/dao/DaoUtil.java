@@ -30,12 +30,21 @@
  */
 package org.thingsboard.server.dao;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.dao.model.ToData;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 public abstract class DaoUtil {
+    private static final int MAX_IN_VALUE = Short.MAX_VALUE - 1;
 
     private DaoUtil() {
     }
@@ -85,4 +94,29 @@ public abstract class DaoUtil {
         return ids;
     }
 
+    public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds, Function<List<String>, Collection<? extends ToData<T>>> daoConsumer, JpaExecutorService service) {
+        int size = entityIds.size();
+        List<ListenableFuture<List<T>>> resultList = new ArrayList<>();
+        if (size > MAX_IN_VALUE) {
+            int startIndex = 0;
+            int currentSize = 0;
+            while (startIndex + currentSize < size) {
+                startIndex += currentSize;
+                currentSize = Math.min(size - startIndex, MAX_IN_VALUE);
+
+                List<UUID> currentEntityIds = entityIds.subList(startIndex, startIndex + currentSize);
+                resultList.add(service.submit(() -> convertDataList(daoConsumer.apply(fromTimeUUIDs(currentEntityIds)))));
+            }
+            return Futures.transform(Futures.allAsList(resultList), list -> {
+                if (!CollectionUtils.isEmpty(list)) {
+                    return list.stream().flatMap(List::stream).collect(Collectors.toList());
+                }
+
+                return Collections.emptyList();
+            }, service);
+
+        } else {
+            return service.submit(() -> convertDataList(daoConsumer.apply(fromTimeUUIDs(entityIds))));
+        }
+    }
 }

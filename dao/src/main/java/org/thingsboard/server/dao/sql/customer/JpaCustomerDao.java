@@ -49,7 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
+import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
@@ -89,6 +89,7 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
 
     @Override
     public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> customerIds) {
-        return service.submit(() -> DaoUtil.convertDataList(customerRepository.findCustomersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(customerIds))));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(customerIds, ids ->
+                customerRepository.findCustomersByTenantIdAndIdIn(fromTimeUUID(tenantId), ids), service);
     }
 }
