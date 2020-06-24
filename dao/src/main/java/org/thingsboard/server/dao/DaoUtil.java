@@ -37,14 +37,19 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.dao.model.ToData;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 public abstract class DaoUtil {
-    private static final int MAX_IN_VALUE = Short.MAX_VALUE - 1;
+    private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
 
     private DaoUtil() {
     }
