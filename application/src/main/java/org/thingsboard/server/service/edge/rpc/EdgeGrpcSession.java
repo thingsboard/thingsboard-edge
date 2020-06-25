@@ -961,8 +961,6 @@ public final class EdgeGrpcSession implements Closeable {
                     } catch (Exception e) {
                         log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]", device.getName(), deviceCredentialsUpdateMsg, e);
                     }
-                    log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
-                            device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
                 }
             }
 
