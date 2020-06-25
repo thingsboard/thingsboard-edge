@@ -57,13 +57,11 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -90,9 +88,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private EdgeService edgeService;
-
-    @Autowired
-    private RuleChainService ruleChainService;
 
     @Autowired
     private AlarmService alarmService;
@@ -204,10 +199,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         for (EdgeId edgeId : edgeIds) {
                             try {
                                 saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null);
-                                if (edgeEventType.equals(EdgeEventType.RULE_CHAIN)) {
-                                    RuleChainMetaData ruleChainMetaData = ruleChainService.loadRuleChainMetaData(tenantId, new RuleChainId(entityId.getId()));
-                                    saveEdgeEvent(tenantId, edgeId, EdgeEventType.RULE_CHAIN_METADATA, edgeEventActionType, ruleChainMetaData.getRuleChainId(), null);
-                                }
                             } catch (Exception e) {
                                 log.error("[{}] Failed to push event to edge, edgeId [{}], edgeEventType [{}], edgeEventActionType [{}], entityId [{}]",
                                         tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, e);
@@ -353,7 +344,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case ENTITY_VIEW:
                 return EdgeEventType.ENTITY_VIEW;
             default:
-                log.info("Unsupported entity type: [{}]", entityType);
+                log.debug("Unsupported entity type: [{}]", entityType);
                 return null;
         }
     }

@@ -48,6 +48,7 @@ public class EdgeEvent extends BaseData<EdgeEventId> {
     private UUID entityId;
     private EdgeEventType edgeEventType;
     private transient JsonNode entityBody;
+    private UUID entityGroupId;
 
     public EdgeEvent() {
         super();

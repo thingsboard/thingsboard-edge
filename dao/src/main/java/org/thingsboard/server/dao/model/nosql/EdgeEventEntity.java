@@ -58,6 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_ACTION_
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_EDGE_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_ENTITY_BODY_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_ENTITY_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_EVENT_TYPE_PROPERTY;
@@ -102,6 +103,10 @@ public class EdgeEventEntity implements BaseEntity<EdgeEvent> {
     @ClusteringColumn(value = 1)
     @Column(name = EVENT_UID_PROPERTY)
     private String eventUid;
+
+    @ClusteringColumn()
+    @Column(name = EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY)
+    private UUID entityGroupId;
 
     @Column(name = EDGE_EVENT_ENTITY_BODY_PROPERTY, codec = JsonCodec.class)
     private JsonNode entityBody;

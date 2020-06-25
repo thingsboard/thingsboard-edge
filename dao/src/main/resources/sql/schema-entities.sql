@@ -379,6 +379,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     edge_event_action varchar(255),
     entity_body varchar(10000000),
     tenant_id varchar(31),
+    entity_group_id varchar(31),
     ts bigint NOT NULL
 );
 
