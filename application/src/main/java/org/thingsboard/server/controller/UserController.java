@@ -53,6 +53,7 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -84,8 +85,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
-
-import static org.thingsboard.server.controller.EdgeController.EDGE_ID;
 
 @RestController
 @TbCoreComponent
@@ -235,6 +234,8 @@ public class UserController extends BaseController {
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            sendNotificationMsgToEdgeService(getTenantId(), null, user.getId(), EdgeEventType.USER, user.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+
             return savedUser;
         } catch (Exception e) {
 
@@ -311,6 +312,8 @@ public class UserController extends BaseController {
             logEntityAction(userId, user,
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
+
+            sendNotificationMsgToEdgeService(getTenantId(), null, user.getId(), EdgeEventType.USER, ActionType.DELETED);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),

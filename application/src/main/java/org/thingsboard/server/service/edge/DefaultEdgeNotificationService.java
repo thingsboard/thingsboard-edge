@@ -193,6 +193,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
             case REMOVED_FROM_ENTITY_GROUP:
+            case CREDENTIALS_UPDATED:
                 ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getGroupType());
                 Futures.transform(edgeIdsFuture, edgeIds -> {
                     if (edgeIds != null && !edgeIds.isEmpty()) {

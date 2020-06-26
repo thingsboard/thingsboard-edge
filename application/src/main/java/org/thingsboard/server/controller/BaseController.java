@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -128,7 +129,6 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -294,9 +294,6 @@ public abstract class BaseController {
 
     @Autowired
     protected EdgeNotificationService edgeNotificationService;
-
-    @Autowired
-    protected EdgeEventService edgeEventService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -1113,7 +1110,7 @@ public abstract class BaseController {
     }
 
     protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, ActionType edgeEventAction) {
-        EdgeEventType edgeEventType = edgeEventService.getEdgeEventTypeByEntityType(entityId.getEntityType());
+        EdgeEventType edgeEventType = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
         if (edgeEventType != null) {
             sendNotificationMsgToEdgeService(tenantId, null, entityId, null, edgeEventType, edgeEventAction, null);
         }

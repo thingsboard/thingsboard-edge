@@ -52,9 +52,9 @@ public class TbCoreConsumerStats {
 
     private final AtomicInteger deviceStateMsgCounter = new AtomicInteger(0);
     private final AtomicInteger schedulerMsgCounter = new AtomicInteger(0);
-    private final AtomicInteger edgeNotificationMsgCounter = new AtomicInteger(0);
     private final AtomicInteger subscriptionMsgCounter = new AtomicInteger(0);
     private final AtomicInteger toCoreNotificationsCounter = new AtomicInteger(0);
+    private final AtomicInteger edgeNotificationMsgCounter = new AtomicInteger(0);
 
     public void log(TransportToDeviceActorMsg msg) {
         totalCounter.incrementAndGet();
