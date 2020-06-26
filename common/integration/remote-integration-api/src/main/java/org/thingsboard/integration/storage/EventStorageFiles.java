@@ -28,20 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.integration.storage;
 
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.gen.integration.UplinkMsg;
+import lombok.Data;
 
-import java.util.List;
+import java.io.File;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public interface EventStorage<T> {
-
-    void write(T msg, IntegrationCallback<Void> callback);
-
-    List<T> readCurrentBatch();
-
-    void discardCurrentBatch();
-
-    void sleep();
+@Data
+public class EventStorageFiles {
+    private final File stateFile;
+    private final CopyOnWriteArrayList<File> dataFiles;
 }

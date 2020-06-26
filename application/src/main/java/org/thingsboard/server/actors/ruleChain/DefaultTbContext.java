@@ -74,6 +74,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -94,7 +95,6 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.storage.EventStorage;
 import scala.concurrent.duration.Duration;
 
 import java.util.Collections;
@@ -437,8 +437,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public EventStorage<UplinkMsg> getEdgeEventStorage() {
-        return mainCtx.getEdgeEventStorage();
+    public CloudEventService getCloudEventService() {
+        return mainCtx.getCloudEventService();
     }
 
     @Override

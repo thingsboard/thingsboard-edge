@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -102,6 +101,7 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
-        requestForAdditionalData(entityViewUpdateMsg.getMsgType(), entityViewId);
+
+        requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId);
     }
 }

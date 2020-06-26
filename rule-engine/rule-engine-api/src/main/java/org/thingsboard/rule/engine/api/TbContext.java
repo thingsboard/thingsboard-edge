@@ -46,6 +46,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -57,7 +58,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.storage.EventStorage;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -203,7 +203,7 @@ public interface TbContext {
 
     EntityViewService getEntityViewService();
 
-    EventStorage<UplinkMsg> getEdgeEventStorage();
+    CloudEventService getCloudEventService();
 
     ListeningExecutor getJsExecutor();
 

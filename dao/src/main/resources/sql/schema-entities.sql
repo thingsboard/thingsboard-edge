@@ -354,6 +354,17 @@ CREATE TABLE IF NOT EXISTS group_permission (
     is_public boolean
 );
 
+CREATE TABLE IF NOT EXISTS cloud_event (
+    id varchar(31) NOT NULL CONSTRAINT cloud_event_pkey PRIMARY KEY,
+    cloud_event_type varchar(255),
+    entity_id varchar(31),
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id varchar(31),
+    entity_group_id varchar(31),
+    ts bigint NOT NULL
+);
+
 CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$

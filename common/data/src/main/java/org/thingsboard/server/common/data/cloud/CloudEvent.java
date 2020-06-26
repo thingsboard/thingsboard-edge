@@ -28,55 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.remote;
+package org.thingsboard.server.common.data.cloud;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.gen.integration.TbEventProto;
-import org.thingsboard.server.gen.integration.TbEventSource;
-import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.id.CloudEventId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.UUID;
 
 @Data
-@Slf4j
-public class RemoteConverterContext implements ConverterContext {
+public class CloudEvent extends BaseData<CloudEventId> {
 
-    private final EventStorage eventStorage;
-    private final boolean isUplink;
-    private final ObjectMapper mapper;
-    private final String clientId;
-    private final int port;
+    private TenantId tenantId;
+    private String cloudEventAction;
+    private UUID entityId;
+    private CloudEventType cloudEventType;
+    private transient JsonNode entityBody;
+    private UUID entityGroupId;
 
-    @Override
-    public String getServiceId() {
-        return "[" + clientId + ":" + port + "]";
+    public CloudEvent() {
+        super();
     }
 
-    @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        TbEventSource source;
-        if (isUplink) {
-            source = TbEventSource.UPLINK_CONVERTER;
-        } else {
-            source = TbEventSource.DOWNLINK_CONVERTER;
-        }
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
-        }
-        eventStorage.write(UplinkMsg.newBuilder()
-                .addEventsData(TbEventProto.newBuilder()
-                        .setSource(source)
-                        .setType(type)
-                        .setData(eventData)
-                        .build()
-                ).build(), callback);
+    public CloudEvent(CloudEventId id) {
+        super(id);
     }
+
+    public CloudEvent(CloudEvent event) {
+        super(event);
+    }
+
 }

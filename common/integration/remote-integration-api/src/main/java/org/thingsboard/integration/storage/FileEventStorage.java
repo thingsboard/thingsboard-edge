@@ -28,13 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.integration.storage;
 
-import com.google.protobuf.AbstractMessageLite;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -48,10 +49,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
-
+@Component
 @Slf4j
 @Data
-public abstract class FileEventStorage<T extends AbstractMessageLite> implements EventStorage<T> {
+public class FileEventStorage implements EventStorage {
 
     @Autowired
     private FileEventStorageSettings settings;
@@ -62,10 +63,8 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
     private List<File> dataFiles;
     private File stateFile;
 
-    private EventStorageWriter<T> storageWriter;
-    private EventStorageReader<T> storageReader;
-
-    protected abstract EventStorageReader<T> getEventStorageReader(EventStorageFiles eventStorageFiles, FileEventStorageSettings settings);
+    private EventStorageWriter storageWriter;
+    private EventStorageReader storageReader;
 
     @PostConstruct
     public void init() {
@@ -73,8 +72,8 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
         EventStorageFiles eventStorageFiles = initDataFiles();
         dataFiles = eventStorageFiles.getDataFiles();
         stateFile = eventStorageFiles.getStateFile();
-        storageWriter = new EventStorageWriter<>(eventStorageFiles, settings);
-        storageReader = getEventStorageReader(eventStorageFiles, settings);
+        storageWriter = new EventStorageWriter(eventStorageFiles, settings);
+        storageReader = new EventStorageReader(eventStorageFiles, settings);
     }
 
     @PreDestroy
@@ -84,7 +83,7 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
     }
 
     @Override
-    public void write(T msg, IntegrationCallback<Void> callback) {
+    public void write(UplinkMsg msg, IntegrationCallback<Void> callback) {
         writeLock.lock();
         try {
             storageWriter.write(msg, callback);
@@ -94,7 +93,7 @@ public abstract class FileEventStorage<T extends AbstractMessageLite> implements
     }
 
     @Override
-    public List<T> readCurrentBatch() {
+    public List<UplinkMsg> readCurrentBatch() {
         writeLock.lock();
         try {
             storageWriter.flushIfNeeded();

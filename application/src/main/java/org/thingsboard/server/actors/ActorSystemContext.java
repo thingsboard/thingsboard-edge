@@ -73,6 +73,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -112,7 +113,6 @@ import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.TbCoreToTransportService;
-import org.thingsboard.storage.EventStorage;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -223,16 +223,15 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private CloudEventService cloudEventService;
+
+    @Autowired
+    @Getter
     private TelemetrySubscriptionService tsSubService;
 
     @Autowired
     @Getter
     private JsInvokeService jsSandbox;
-
-    @Autowired
-    @Qualifier("edgeFileEventStorage")
-    @Getter
-    private EventStorage<UplinkMsg> edgeEventStorage;
 
     @Autowired
     @Getter

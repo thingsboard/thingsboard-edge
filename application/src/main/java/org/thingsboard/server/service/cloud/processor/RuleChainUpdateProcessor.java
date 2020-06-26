@@ -35,6 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -46,15 +48,12 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleNodeProto;
-import org.thingsboard.server.gen.edge.UplinkMsg;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -90,7 +89,7 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
 
-                    eventStorage.write(constructRuleChainMetadataRequestMsg(ruleChain), edgeEventSaveCallback);
+                    saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, ActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
 
                     tbClusterService.onEntityStateChange(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -147,18 +146,6 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
             log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
         }
     }
-
-
-    private UplinkMsg constructRuleChainMetadataRequestMsg(RuleChain ruleChain) {
-        RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
-                .setRuleChainIdMSB(ruleChain.getId().getId().getMostSignificantBits())
-                .setRuleChainIdLSB(ruleChain.getId().getId().getLeastSignificantBits())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
-        return builder.build();
-    }
-
 
     private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {
         List<RuleChainConnectionInfo> result = new ArrayList<>();

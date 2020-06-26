@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,7 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardUpdateProcessor extends BaseUpdateProcessor{
+public class DashboardUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock dashboardCreationLock = new ReentrantLock();
 
@@ -96,6 +95,7 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor{
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
-        requestForAdditionalData(dashboardUpdateMsg.getMsgType(), dashboardId);
+
+        requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId);
     }
 }

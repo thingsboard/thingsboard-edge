@@ -28,55 +28,48 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.remote;
+package org.thingsboard.server.dao.cloud;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.gen.integration.TbEventProto;
-import org.thingsboard.server.gen.integration.TbEventSource;
-import org.thingsboard.server.gen.integration.UplinkMsg;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.service.DataValidator;
 
-@Data
+import java.util.List;
+
+@Service
 @Slf4j
-public class RemoteConverterContext implements ConverterContext {
+public class BaseCloudEventService implements CloudEventService {
 
-    private final EventStorage eventStorage;
-    private final boolean isUplink;
-    private final ObjectMapper mapper;
-    private final String clientId;
-    private final int port;
+    @Autowired
+    public CloudEventDao cloudEventDao;
 
     @Override
-    public String getServiceId() {
-        return "[" + clientId + ":" + port + "]";
+    public ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent) {
+        cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
+        return cloudEventDao.saveAsync(cloudEvent);
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        TbEventSource source;
-        if (isUplink) {
-            source = TbEventSource.UPLINK_CONVERTER;
-        } else {
-            source = TbEventSource.DOWNLINK_CONVERTER;
-        }
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
-        }
-        eventStorage.write(UplinkMsg.newBuilder()
-                .addEventsData(TbEventProto.newBuilder()
-                        .setSource(source)
-                        .setType(type)
-                        .setData(eventData)
-                        .build()
-                ).build(), callback);
+    public TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
+        List<CloudEvent> events = cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
+        return new TimePageData<>(events, pageLink);
     }
+
+    private DataValidator<CloudEvent> cloudEventValidator =
+            new DataValidator<CloudEvent>() {
+                @Override
+                protected void validateDataImpl(TenantId tenantId, CloudEvent cloudEvent) {
+                    if (StringUtils.isEmpty(cloudEvent.getCloudEventAction())) {
+                        throw new DataValidationException("Cloud Event action should be specified!");
+                    }
+                }
+            };
 }

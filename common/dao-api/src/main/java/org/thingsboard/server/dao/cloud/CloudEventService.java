@@ -28,15 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.server.dao.cloud;
 
-import lombok.Data;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
+public interface CloudEventService {
 
-@Data
-public class EventStorageFiles {
-    private final File stateFile;
-    private final CopyOnWriteArrayList<File> dataFiles;
+    ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
+
+    TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
+
 }

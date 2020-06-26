@@ -33,14 +33,11 @@ package org.thingsboard.server.service.cloud.processor;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 
 import java.util.UUID;
@@ -93,7 +90,8 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
-        requestForAdditionalData(assetUpdateMsg.getMsgType(), assetId);
+
+        requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId);
     }
 
 }

@@ -28,29 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.edge;
+package org.thingsboard.server.dao.sql.cloud;
 
-import lombok.Data;
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
-import javax.annotation.Nullable;
+public interface CloudEventRepository extends CrudRepository<CloudEventEntity, String>, JpaSpecificationExecutor<CloudEventEntity> {
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
-@Data
-class PushToCloudNodeCallback implements IntegrationCallback<Void> {
-    private final TbContext ctx;
-    private final TbMsg msg;
-
-    @Override
-    public void onSuccess(@Nullable Void result) {
-        ctx.tellNext(msg, SUCCESS);
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        ctx.tellFailure(msg, t);
-    }
 }

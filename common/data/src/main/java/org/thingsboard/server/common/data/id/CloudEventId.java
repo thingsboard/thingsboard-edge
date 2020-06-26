@@ -28,40 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.server.common.data.id;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.File;
-import java.util.Objects;
+import java.util.UUID;
 
-@ToString
-@AllArgsConstructor
-class EventStorageReaderPointer {
+public class CloudEventId extends UUIDBased {
 
-    @Getter @Setter
-    private File file;
-    @Getter @Setter
-    private int line;
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        EventStorageReaderPointer that = (EventStorageReaderPointer) o;
-        return line == that.line &&
-                Objects.equals(file.getName(), that.file.getName());
+    @JsonCreator
+    public CloudEventId(@JsonProperty("id") UUID id) {
+        super(id);
     }
 
-    public EventStorageReaderPointer copy(){
-        return new EventStorageReaderPointer(file, line);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(file.getName(), line);
+    public static CloudEventId fromString(String cloudEventId) {
+        return new CloudEventId(UUID.fromString(cloudEventId));
     }
 }

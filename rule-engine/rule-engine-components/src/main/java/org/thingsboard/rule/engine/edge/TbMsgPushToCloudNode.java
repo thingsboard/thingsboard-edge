@@ -30,7 +30,11 @@
  */
 package org.thingsboard.rule.engine.edge;
 
-import com.google.protobuf.ByteString;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -39,24 +43,19 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.common.transport.util.JsonUtils;
-import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.UplinkMsg;
 
-import java.util.Collections;
+import javax.annotation.Nullable;
+
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -73,6 +72,8 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     private EmptyNodeConfiguration config;
 
+    private static final ObjectMapper json = new ObjectMapper();
+
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
@@ -86,7 +87,30 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
         if (isSupportedOriginator(msg.getOriginator().getEntityType())) {
             if (isSupportedMsgType(msg.getType())) {
-                ctx.getEdgeEventStorage().write(constructUplinkMsg(msg), new PushToCloudNodeCallback(ctx, msg));
+                CloudEventType cloudEventTypeByEntityType = CloudUtils.getCloudEventTypeByEntityType(msg.getOriginator().getEntityType());
+                if (cloudEventTypeByEntityType == null) {
+                    log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
+                    ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
+                }
+                CloudEvent cloudEvent = null;
+                try {
+                    cloudEvent = buildCloudEvent(ctx, msg, cloudEventTypeByEntityType);
+                } catch (JsonProcessingException e) {
+                    log.error("Failed to build cloud event", e);
+                }
+                ListenableFuture<CloudEvent> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
+                Futures.addCallback(saveFuture, new FutureCallback<CloudEvent>() {
+                    @Override
+                    public void onSuccess(@Nullable CloudEvent event) {
+                        ctx.tellNext(msg, SUCCESS);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable th) {
+                        log.error("Could not save cloud event", th);
+                        ctx.tellFailure(msg, th);
+                    }
+                }, ctx.getDbCallbackExecutor());
             } else {
                 log.debug("Unsupported msg type {}", msg.getType());
                 ctx.tellFailure(msg, new RuntimeException("Unsupported msg type '" + msg.getType() + "'"));
@@ -95,6 +119,29 @@ public class TbMsgPushToCloudNode implements TbNode {
             log.debug("Unsupported originator type {}", msg.getOriginator().getEntityType());
             ctx.tellFailure(msg, new RuntimeException("Unsupported originator type '" + msg.getOriginator().getEntityType() + "'"));
         }
+    }
+
+    private CloudEvent buildCloudEvent(TbContext ctx, TbMsg msg, CloudEventType cloudEventTypeByEntityType) throws JsonProcessingException {
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setTenantId(ctx.getTenantId());
+        cloudEvent.setCloudEventAction(getActionTypeByMsgType(msg.getType()).name());
+        cloudEvent.setEntityId(msg.getOriginator().getId());
+        cloudEvent.setCloudEventType(cloudEventTypeByEntityType);
+        cloudEvent.setEntityBody(json.readTree(msg.getData()));
+        return cloudEvent;
+    }
+
+    private ActionType getActionTypeByMsgType(String msgType) {
+        ActionType actionType;
+        if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)) {
+            actionType = ActionType.TIMESERIES_UPDATED;
+        } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)
+                || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)) {
+            actionType = ActionType.ATTRIBUTES_UPDATED;
+        } else {
+            actionType = ActionType.ATTRIBUTES_DELETED;
+        }
+        return actionType;
     }
 
     private boolean isSupportedMsgType(String msgType) {
@@ -118,26 +165,6 @@ public class TbMsgPushToCloudNode implements TbNode {
             default:
                 return false;
         }
-    }
-
-    private UplinkMsg constructUplinkMsg(TbMsg tbMsg) {
-        EntityDataProto.Builder entityDataBuilder = EntityDataProto.newBuilder()
-                .setEntityIdMSB(tbMsg.getOriginator().getId().getMostSignificantBits())
-                .setEntityIdLSB(tbMsg.getOriginator().getId().getLeastSignificantBits())
-                .setEntityType(tbMsg.getOriginator().getEntityType().name());
-        if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(tbMsg.getType())) {
-            entityDataBuilder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(JsonUtils.parse(tbMsg.getData())));
-        }
-        if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(tbMsg.getType())
-                || DataConstants.ATTRIBUTES_UPDATED.equals(tbMsg.getType())) {
-            entityDataBuilder.setPostAttributesMsg(JsonConverter.convertToAttributesProto(JsonUtils.parse(tbMsg.getData())));
-            // TODO: voba - add support for attribute delete
-            // || DataConstants.ATTRIBUTES_DELETED.equals(tbMsg.getType())
-        }
-
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllEntityData(Collections.singletonList(entityDataBuilder.build()));
-        return builder.build();
     }
 
     @Override

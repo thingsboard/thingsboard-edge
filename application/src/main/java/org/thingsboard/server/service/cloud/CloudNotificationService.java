@@ -28,20 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.integration;
+package org.thingsboard.server.service.cloud;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.integration.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorage;
-import org.thingsboard.storage.FileEventStorageSettings;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-@Component("integrationFileEventStorage")
-public class IntegrationFileEventStorage extends FileEventStorage<UplinkMsg> {
+public interface CloudNotificationService {
 
-    @Override
-    protected EventStorageReader<UplinkMsg> getEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        return new IntegrationEventStorageReader(files, settings);
-    }
+    TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
+
+    void pushNotificationToCloud(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback);
 }

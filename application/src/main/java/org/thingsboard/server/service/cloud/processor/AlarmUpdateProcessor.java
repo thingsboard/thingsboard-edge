@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.cloud.processor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -39,13 +38,11 @@ import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 
 @Component
 @Slf4j
 public class AlarmUpdateProcessor extends BaseUpdateProcessor {
-
 
     public void onAlarmUpdate(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         EntityId originatorId = getAlarmOriginator(tenantId,

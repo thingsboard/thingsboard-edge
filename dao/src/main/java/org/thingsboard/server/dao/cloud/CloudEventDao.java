@@ -28,24 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.edge;
+package org.thingsboard.server.dao.cloud;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorageSettings;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.Dao;
 
-import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 
-public class EdgeEventStorageReader extends EventStorageReader<UplinkMsg> {
+/**
+ * The Interface CloudEventDao.
+ */
+public interface CloudEventDao extends Dao<CloudEvent> {
 
-    EdgeEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        super(files, settings);
-    }
+    /**
+     * Save or update cloud event object async
+     *
+     * @param cloudEvent the event object
+     * @return saved cloud event object future
+     */
+    ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
 
-    @Override
-    protected UplinkMsg parseFromLine(String line) throws InvalidProtocolBufferException {
-        return UplinkMsg.parser().parseFrom(Base64.getDecoder().decode(line));
-    }
+
+    /**
+     * Find cloud events by tenantId and pageLink.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the pageLink
+     * @return the event list
+     */
+    List<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink);
+
 }

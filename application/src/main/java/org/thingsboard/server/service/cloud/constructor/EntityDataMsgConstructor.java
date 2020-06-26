@@ -28,27 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.server.service.cloud.constructor;
 
-import lombok.Data;
+import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.gen.edge.EntityDataProto;
 
 @Component
 @Slf4j
-@Data
-public class FileEventStorageSettings {
-    @Value("${storage.data_folder_path}")
-    private String dataFolderPath;
-    @Value("${storage.max_file_count}")
-    private int maxFileCount;
-    @Value("${storage.max_records_per_file}")
-    private int maxRecordsPerFile;
-    @Value("${storage.max_records_between_fsync}")
-    private int maxRecordsBetweenFsync;
-    @Value("${storage.max_read_records_count}")
-    private int maxReadRecordsCount;
-    @Value("${storage.no_read_records_sleep}")
-    private long noRecordsSleepInterval;
+public class EntityDataMsgConstructor {
+
+    public EntityDataProto constructEntityDataMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
+        EntityDataProto.Builder builder = EntityDataProto.newBuilder()
+                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name());
+        switch (actionType) {
+            case TIMESERIES_UPDATED:
+                try {
+                    builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(entityData));
+                } catch (Exception e) {
+                    log.warn("Can't convert to telemetry proto, entityData [{}]", entityData, e);
+                }
+                break;
+            case ATTRIBUTES_UPDATED:
+                try {
+                    builder.setPostAttributesMsg(JsonConverter.convertToAttributesProto(entityData));
+                } catch (Exception e) {
+                    log.warn("Can't convert to attributes proto, entityData [{}]", entityData, e);
+                }
+                break;
+            // TODO: voba - add support for attribute delete
+            // case ATTRIBUTES_DELETED:
+        }
+        return builder.build();
+    }
+
 }

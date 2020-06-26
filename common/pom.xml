@@ -58,7 +58,6 @@
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
-        <module>storage</module>
     </modules>
 
 </project>

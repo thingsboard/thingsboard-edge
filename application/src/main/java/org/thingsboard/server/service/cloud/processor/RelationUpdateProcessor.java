@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.cloud.processor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -39,7 +38,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 
 import java.util.UUID;
@@ -47,8 +45,6 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class RelationUpdateProcessor extends BaseUpdateProcessor {
-
-
 
     public void onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         log.info("onRelationUpdate {}", relationUpdateMsg);

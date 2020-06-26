@@ -41,6 +41,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.exception.IntegrationConnectionException;
+import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -53,7 +54,6 @@ import org.thingsboard.server.gen.integration.RequestMsg;
 import org.thingsboard.server.gen.integration.ResponseMsg;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 import org.thingsboard.server.gen.integration.UplinkResponseMsg;
-import org.thingsboard.storage.EventStorage;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
@@ -79,8 +79,7 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
     private String certResource;
 
     @Autowired
-    @Qualifier("integrationFileEventStorage")
-    private EventStorage<UplinkMsg> eventStorage;
+    private EventStorage eventStorage;
 
     private ManagedChannel channel;
     private StreamObserver<RequestMsg> inputStream;

@@ -28,15 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage;
+package org.thingsboard.integration.storage;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,12 +44,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Data
 @Slf4j
-@NoArgsConstructor
-public abstract class EventStorageReader<T> {
+class EventStorageReader {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private EventStorageFiles files;
@@ -60,18 +59,16 @@ public abstract class EventStorageReader<T> {
 
     private volatile EventStorageReaderPointer currentPos;
     private volatile EventStorageReaderPointer newPos;
-    private List<T> currentBatch;
+    private List<UplinkMsg> currentBatch;
 
-    protected abstract T parseFromLine(String line) throws InvalidProtocolBufferException;
-
-    protected EventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
+    EventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
         this.files = files;
         this.settings = settings;
         this.currentPos = readStateFile();
         this.newPos = currentPos.copy();
     }
 
-    List<T> read() {
+    List<UplinkMsg> read() {
         log.debug("[{}:{}] Check for new messages in storage", newPos.getFile(), newPos.getLine());
         if (currentBatch != null && !currentPos.equals(newPos)) {
             log.debug("The previous batch was not discarded!");
@@ -86,8 +83,7 @@ public abstract class EventStorageReader<T> {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     try {
-//                        currentBatch.add(UplinkMsg.parser().parseFrom(Base64.getDecoder().decode(line)));
-                        currentBatch.add(parseFromLine(line));
+                        currentBatch.add(UplinkMsg.parseFrom(Base64.getDecoder().decode(line)));
                         recordsToRead--;
                     } catch (Exception e) {
                         log.warn("Could not parse line [{}] to uplink message!", line, e);

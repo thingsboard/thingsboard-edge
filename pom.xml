@@ -139,7 +139,7 @@
         <module>rule-engine</module>
 <!--        <module>rule-engine-pe</module>-->
         <module>dao</module>
-<!--        <module>integration</module>-->
+        <module>integration</module>
         <module>ui</module>
         <module>tools</module>
         <module>application</module>
@@ -886,11 +886,6 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>message</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.common</groupId>
-                <artifactId>storage</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

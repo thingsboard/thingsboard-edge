@@ -28,20 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.edge;
+package org.thingsboard.server.common.data;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorage;
-import org.thingsboard.storage.FileEventStorageSettings;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 
-@Component("edgeFileEventStorage")
-public class EdgeFileEventStorage extends FileEventStorage<UplinkMsg> {
+public final class CloudUtils {
 
-    @Override
-    protected EventStorageReader<UplinkMsg> getEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        return new EdgeEventStorageReader(files, settings);
+    private CloudUtils() {
+    }
+
+    public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
+        switch (entityType) {
+            case DEVICE:
+                return CloudEventType.DEVICE;
+            case ASSET:
+                return CloudEventType.ASSET;
+            case ENTITY_VIEW:
+                return CloudEventType.ENTITY_VIEW;
+            case DASHBOARD:
+                return CloudEventType.DASHBOARD;
+            case USER:
+                return CloudEventType.USER;
+            case ALARM:
+                return CloudEventType.ALARM;
+            default:
+                return null;
+        }
     }
 }

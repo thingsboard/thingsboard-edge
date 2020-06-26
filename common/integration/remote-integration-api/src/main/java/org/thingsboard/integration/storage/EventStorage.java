@@ -28,55 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.remote;
+package org.thingsboard.integration.storage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.converter.ConverterContext;
-import org.thingsboard.integration.storage.EventStorage;
-import org.thingsboard.server.gen.integration.TbEventProto;
-import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
-@Data
-@Slf4j
-public class RemoteConverterContext implements ConverterContext {
+import java.util.List;
 
-    private final EventStorage eventStorage;
-    private final boolean isUplink;
-    private final ObjectMapper mapper;
-    private final String clientId;
-    private final int port;
+public interface EventStorage {
 
-    @Override
-    public String getServiceId() {
-        return "[" + clientId + ":" + port + "]";
-    }
+    void write(UplinkMsg msg, IntegrationCallback<Void> callback);
 
-    @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-        TbEventSource source;
-        if (isUplink) {
-            source = TbEventSource.UPLINK_CONVERTER;
-        } else {
-            source = TbEventSource.DOWNLINK_CONVERTER;
-        }
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
-        }
-        eventStorage.write(UplinkMsg.newBuilder()
-                .addEventsData(TbEventProto.newBuilder()
-                        .setSource(source)
-                        .setType(type)
-                        .setData(eventData)
-                        .build()
-                ).build(), callback);
-    }
+    List<UplinkMsg> readCurrentBatch();
+
+    void discardCurrentBatch();
+
+    void sleep();
 }

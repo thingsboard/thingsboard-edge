@@ -39,7 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -47,14 +48,10 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UplinkMsg;
-import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
-import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -110,11 +107,11 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
-        requestForAdditionalData(userUpdateMsg.getMsgType(), userId);
+        requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId);
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-            eventStorage.write(constructDeviceCredentialsRequestMsg(userId), edgeEventSaveCallback);
+            saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
         }
     }
 
@@ -139,15 +136,5 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                 log.error("Can't update user credentials for userCredentialsUpdateMsg [{}]", userCredentialsUpdateMsg, t);
             }
         }, dbCallbackExecutor);
-    }
-
-    private UplinkMsg constructDeviceCredentialsRequestMsg(UserId userId) {
-        UserCredentialsRequestMsg userCredentialsRequestMsg = UserCredentialsRequestMsg.newBuilder()
-                .setUserIdMSB(userId.getId().getMostSignificantBits())
-                .setUserIdLSB(userId.getId().getLeastSignificantBits())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllUserCredentialsRequestMsg(Collections.singletonList(userCredentialsRequestMsg));
-        return builder.build();
     }
 }

@@ -64,10 +64,6 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
-            <artifactId>storage</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common</groupId>
             <artifactId>edge-api</artifactId>
             <scope>provided</scope>
         </dependency>

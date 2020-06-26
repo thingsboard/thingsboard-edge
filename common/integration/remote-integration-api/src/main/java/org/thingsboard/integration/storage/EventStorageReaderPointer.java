@@ -28,24 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.storage.integration;
+package org.thingsboard.integration.storage;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.thingsboard.server.gen.integration.UplinkMsg;
-import org.thingsboard.storage.EventStorageFiles;
-import org.thingsboard.storage.EventStorageReader;
-import org.thingsboard.storage.FileEventStorageSettings;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.Base64;
+import java.io.File;
+import java.util.Objects;
 
-public class IntegrationEventStorageReader extends EventStorageReader<UplinkMsg> {
+@ToString
+@AllArgsConstructor
+class EventStorageReaderPointer {
 
-    IntegrationEventStorageReader(EventStorageFiles files, FileEventStorageSettings settings) {
-        super(files, settings);
+    @Getter @Setter
+    private File file;
+    @Getter @Setter
+    private int line;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EventStorageReaderPointer that = (EventStorageReaderPointer) o;
+        return line == that.line &&
+                Objects.equals(file.getName(), that.file.getName());
+    }
+
+    public EventStorageReaderPointer copy(){
+        return new EventStorageReaderPointer(file, line);
     }
 
     @Override
-    protected UplinkMsg parseFromLine(String line) throws InvalidProtocolBufferException {
-        return UplinkMsg.parser().parseFrom(Base64.getDecoder().decode(line));
+    public int hashCode() {
+        return Objects.hash(file.getName(), line);
     }
 }

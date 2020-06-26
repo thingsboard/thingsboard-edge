@@ -30,19 +30,22 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StringUtils;
-import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,6 +56,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -61,16 +65,9 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.gen.edge.AttributesRequestMsg;
-import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
-import org.thingsboard.storage.EventStorage;
-
-import javax.annotation.Nullable;
-import java.util.Collections;
 
 @Slf4j
 public abstract class BaseUpdateProcessor {
@@ -105,14 +102,13 @@ public abstract class BaseUpdateProcessor {
     protected EntityGroupService entityGroupService;
 
     @Autowired
-    protected  RelationService relationService;
+    private CloudEventService cloudEventService;
+
+    @Autowired
+    protected RelationService relationService;
 
     @Autowired
     private EventService eventService;
-
-    @Autowired
-    @Qualifier("edgeFileEventStorage")
-    protected EventStorage<UplinkMsg> eventStorage;
 
     @Autowired
     protected TbClusterService tbClusterService;
@@ -131,12 +127,14 @@ public abstract class BaseUpdateProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected void requestForAdditionalData(UpdateMsgType updateMsgType, EntityId entityId) {
+    protected void requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(updateMsgType)) {
-            eventStorage.write(constructAttributesRequestMsg(entityId), edgeEventSaveCallback);
-            eventStorage.write(constructRelationRequestMsg(entityId), edgeEventSaveCallback);
+            saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+                    ActionType.ATTRIBUTES_REQUEST, entityId, null);
+            saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+                    ActionType.RELATION_REQUEST, entityId, null);
         }
     }
 
@@ -179,38 +177,22 @@ public abstract class BaseUpdateProcessor {
         }
     }
 
-    private UplinkMsg constructAttributesRequestMsg(EntityId entityId) {
-        AttributesRequestMsg attributesRequestMsg = AttributesRequestMsg.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllAttributesRequestMsg(Collections.singletonList(attributesRequestMsg));
-        return builder.build();
-    }
+    protected void saveCloudEvent(TenantId tenantId,
+                                  CloudEventType cloudEventType,
+                                  ActionType cloudEventAction,
+                                  EntityId entityId,
+                                  JsonNode entityBody) {
+        log.debug("Pushing edge event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
-    private UplinkMsg constructRelationRequestMsg(EntityId entityId) {
-        RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
-        return builder.build();
-    }
-
-    protected IntegrationCallback<Void> edgeEventSaveCallback = new IntegrationCallback<Void>() {
-        @Override
-        public void onSuccess(@Nullable Void aVoid) {
-            log.debug("Event saved successfully!");
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setCloudEventType(cloudEventType);
+        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        if (entityId != null) {
+            cloudEvent.setEntityId(entityId.getId());
         }
-
-        @Override
-        public void onError(Throwable t) {
-            log.warn("Failure during event save", t);
-        }
-    };
-
+        cloudEvent.setEntityBody(entityBody);
+        cloudEventService.saveAsync(cloudEvent);
+    }
 }

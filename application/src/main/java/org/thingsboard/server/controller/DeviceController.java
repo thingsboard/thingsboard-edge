@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -126,6 +127,7 @@ public class DeviceController extends BaseController {
             } else {
                 deviceStateService.onDeviceUpdated(savedDevice);
             }
+
             return savedDevice;
         } catch (Exception e) {
             throw handleException(e);
@@ -147,6 +149,8 @@ public class DeviceController extends BaseController {
                     ActionType.DELETED, null, strDeviceId);
 
             deviceStateService.onDeviceDeleted(device);
+
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE),
                     null,
@@ -191,6 +195,9 @@ public class DeviceController extends BaseController {
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
+
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
+
             return result;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE), null,

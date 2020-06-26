@@ -88,14 +88,10 @@ cloud:
     ssl:
       enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
       cert: "${CLOUD_RPC_SSL_CERT:roots.pem}"
-
-storage:
-  data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
-  max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"
-  max_records_per_file: "${INTEGRATION_STORAGE_MAX_RECORDS_PER_FILE:30}"
-  max_records_between_fsync: "${INTEGRATION_STORAGE_MAX_RECORDS_BETWEEN_FSYNC:10}"
-  max_read_records_count: "${INTEGRATION_STORAGE_MAX_READ_RECORDS_COUNT:50}"
-  no_read_records_sleep: "${INTEGRATION_STORAGE_NO_READ_RECORDS_SLEEP:1000}"
+    storage:
+      max_read_records_count: "${CLOUD_RPC_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+      no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
+      sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
 
 # Zookeeper connection parameters. Used for service discovery.
 zk:
