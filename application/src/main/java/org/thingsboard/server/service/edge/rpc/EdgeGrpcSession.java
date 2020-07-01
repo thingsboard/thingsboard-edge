@@ -923,20 +923,54 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                 }
                 // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
+                addDeviceToDeviceGroup(device.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
                 updateDevice(deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                // TODO: voba proper handle unassign
-                //Device deviceToDelete = ctx.getDeviceService().findDeviceById(edge.getTenantId(), edgeDeviceId);
-                //if (deviceToDelete != null) {
-                //    ctx.getDeviceService().unassignDeviceFromEdge(edge.getTenantId(), edgeDeviceId, edge.getId());
-                //}
+                removeDeviceFromDeviceGroup(edgeDeviceId);
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
         }
+    }
+
+    private void removeDeviceFromDeviceGroup(DeviceId deviceId) {
+        Device deviceToDelete = ctx.getDeviceService().findDeviceById(edge.getTenantId(), deviceId);
+        if (deviceToDelete != null) {
+            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+            Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
+                @Override
+                public void onSuccess(@Nullable EntityGroup entityGroup) {
+                    if (entityGroup != null) {
+                        ctx.getEntityGroupService().removeEntityFromEntityGroup(edge.getTenantId(), entityGroup.getId(), deviceToDelete.getId());
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.warn("Can't remove from edge device group, device id [{}]", deviceId, t);
+                }
+            }, ctx.getDbCallbackExecutor());
+        }
+    }
+
+    private void addDeviceToDeviceGroup(DeviceId deviceId) {
+        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+        Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
+            @Override
+            public void onSuccess(@Nullable EntityGroup entityGroup) {
+                if (entityGroup != null) {
+                    ctx.getEntityGroupService().addEntityToEntityGroup(edge.getTenantId(), entityGroup.getId(), deviceId);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("Can't add device to edge device group, device id [{}]", deviceId, t);
+            }
+        }, ctx.getDbCallbackExecutor());
     }
 
     private void updateDevice(DeviceUpdateMsg deviceUpdateMsg) {
@@ -1013,8 +1047,6 @@ public final class EdgeGrpcSession implements Closeable {
             device.setLabel(deviceUpdateMsg.getLabel());
             device = ctx.getDeviceService().saveDevice(device);
             createDeviceCredentials(device);
-            // TODO: voba - properly hanlde assing device functionality
-            // device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
             createRelationFromEdge(device.getId());
             ctx.getDeviceStateService().onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(device);
@@ -1074,6 +1106,33 @@ public final class EdgeGrpcSession implements Closeable {
         metaData.putValue("edgeId", edge.getId().toString());
         metaData.putValue("edgeName", edge.getName());
         return metaData;
+    }
+
+    private ListenableFuture<EntityGroup> findEdgeDeviceGroup() {
+        TenantId tenantId = edge.getTenantId();
+        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_DEVICES_NAME_PATTERN, edge.getName());
+        ListenableFuture<Optional<EntityGroup>> futureEntityGroup = ctx.getEntityGroupService()
+                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), EntityType.DEVICE, deviceGroupName);
+
+        return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
+            EntityGroup result = null;
+            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
+                result =
+                        optionalEntityGroup.orElseGet(() -> {
+                            EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
+                            ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
+                            return entityGroup;
+                        });
+            }
+            return result;
+        }, ctx.getDbCallbackExecutor());
+    }
+
+    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(entityGroupName);
+        entityGroup.setType(EntityType.DEVICE);
+        return ctx.getEntityGroupService().saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
     private EntityId getAlarmOriginator(String entityName, org.thingsboard.server.common.data.EntityType entityType) {
