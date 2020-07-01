@@ -345,9 +345,7 @@ public class CloudManagerService {
     private Tenant createTenant() {
         Tenant tenant = new Tenant();
         tenant.setTitle("Tenant");
-        Tenant savedTenant = tenantService.saveTenant(tenant);
-        userLoaderService.createUser(Authority.TENANT_ADMIN, savedTenant.getId(), null, "tenant@thingsboard.org", "tenant");
-        return savedTenant;
+        return tenantService.saveTenant(tenant);
     }
 
     @PreDestroy
@@ -696,6 +694,7 @@ public class CloudManagerService {
     private UpdateMsgType getResponseMsgType(ActionType actionType) {
         switch (actionType) {
             case UPDATED:
+            case CREDENTIALS_UPDATED:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
                 return ENTITY_CREATED_RPC_MESSAGE;
@@ -846,7 +845,7 @@ public class CloudManagerService {
                                 ActionType cloudEventAction,
                                 EntityId entityId,
                                 JsonNode entityBody) {
-        log.debug("Pushing edge event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+        log.debug("Pushing cloud event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
         CloudEvent cloudEvent = new CloudEvent();

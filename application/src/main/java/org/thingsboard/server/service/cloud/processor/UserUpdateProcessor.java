@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -93,7 +94,7 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
                     addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
 
-                    addEntityToGroup(tenantId, "Tenant Users", savedUser.getId(), EntityType.USER);
+                    addEntityToGroup(tenantId, EntityGroup.GROUP_TENANT_USERS_NAME, savedUser.getId(), EntityType.USER);
                 } finally {
                     userCreationLock.unlock();
                 }

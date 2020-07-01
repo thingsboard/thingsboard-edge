@@ -182,7 +182,7 @@ public abstract class BaseUpdateProcessor {
                                   ActionType cloudEventAction,
                                   EntityId entityId,
                                   JsonNode entityBody) {
-        log.debug("Pushing edge event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+        log.debug("Pushing cloud event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
         CloudEvent cloudEvent = new CloudEvent();
