@@ -162,7 +162,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
 
         if (vm.ruleChainsScope === 'tenant') {
             fetchRuleChainsFunction = function (pageLink) {
-                return fetchRuleChains(pageLink, types.systemRuleChainType);
+                return fetchRuleChains(pageLink, types.coreRuleChainType);
             };
             deleteRuleChainFunction = function (ruleChainId) {
                 return deleteRuleChain(ruleChainId);
@@ -216,9 +216,9 @@ export default function RuleChainsController(ruleChainService, userService, edge
             });
             vm.ruleChainGridConfig.addItemActions.push({
                 onAction: function ($event) {
-                    importExport.importRuleChain($event, types.systemRuleChainType).then(
+                    importExport.importRuleChain($event, types.coreRuleChainType).then(
                         function(ruleChainImport) {
-                            $state.go('home.ruleChains.importRuleChain', {ruleChainImport:ruleChainImport, ruleChainType: types.systemRuleChainType});
+                            $state.go('home.ruleChains.importRuleChain', {ruleChainImport:ruleChainImport, ruleChainType: types.coreRuleChainType});
                         }
                     );
                 },
@@ -440,7 +440,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
             if (vm.ruleChainsScope === 'edges') {
                 ruleChain.type = types.edgeRuleChainType;
             } else {
-                ruleChain.type = types.systemRuleChainType;
+                ruleChain.type = types.coreRuleChainType;
             }
         }
         return ruleChainService.saveRuleChain(ruleChain);
@@ -456,7 +456,7 @@ export default function RuleChainsController(ruleChainService, userService, edge
         } else if (vm.ruleChainsScope === 'edges') {
             $state.go('home.ruleChains.edge.ruleChain', {ruleChainId: ruleChain.id.id});
         } else {
-            $state.go('home.ruleChains.system.ruleChain', {ruleChainId: ruleChain.id.id});
+            $state.go('home.ruleChains.core.ruleChain', {ruleChainId: ruleChain.id.id});
         }
     }
 

@@ -62,8 +62,7 @@ import java.util.HashSet;
                 "Alarm Originator found only in case original Originator is <code>Alarm</code> entity.",
         uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
         configDirective = "tbTransformationNodeChangeOriginatorConfig",
-        icon = "find_replace",
-        ruleChainTypes = {RuleChainType.SYSTEM, RuleChainType.EDGE}
+        icon = "find_replace"
 )
 public class TbChangeOriginatorNode extends TbAbstractTransformNode {
 

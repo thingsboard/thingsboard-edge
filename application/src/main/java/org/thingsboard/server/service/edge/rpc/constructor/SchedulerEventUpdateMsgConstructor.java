@@ -30,28 +30,13 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.NodeConnectionInfoProto;
-import org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto;
-import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
-import org.thingsboard.server.gen.edge.RuleNodeProto;
 import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 @Slf4j
@@ -67,5 +52,12 @@ public class SchedulerEventUpdateMsgConstructor {
         builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
         builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
         return builder.build();
+    }
+
+    public SchedulerEventUpdateMsg constructEventDeleteMsg(SchedulerEventId schedulerEventId) {
+        return SchedulerEventUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(schedulerEventId.getId().getMostSignificantBits())
+                .setIdLSB(schedulerEventId.getId().getLeastSignificantBits()).build();
     }
 }

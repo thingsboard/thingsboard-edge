@@ -114,6 +114,8 @@ public class SchedulerEventController extends BaseController {
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(), schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
             } else {
@@ -142,6 +144,8 @@ public class SchedulerEventController extends BaseController {
             logEntityAction(schedulerEventId, schedulerEvent,
                     schedulerEvent.getCustomerId(),
                     ActionType.DELETED, null, strSchedulerEventId);
+
+            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, ActionType.DELETED);
 
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
@@ -235,6 +239,8 @@ public class SchedulerEventController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
+            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, ActionType.ASSIGNED_TO_EDGE);
+
             return savedSchedulerEvent;
         } catch (Exception e) {
 
@@ -264,6 +270,8 @@ public class SchedulerEventController extends BaseController {
             logEntityAction(schedulerEventId, schedulerEvent,
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
+
+            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, ActionType.UNASSIGNED_FROM_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {

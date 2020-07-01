@@ -28,13 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.actors;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
-@Data
-public class EdgeQueueEntry {
-    private String type;
-    private EdgeQueueEntityType entityType;
-    private String data;
+@ToString
+public class ProcessFailureStrategy {
+
+    @Getter
+    private boolean stop;
+
+    private ProcessFailureStrategy(boolean stop) {
+        this.stop = stop;
+    }
+
+    public static ProcessFailureStrategy stop() {
+        return new ProcessFailureStrategy(true);
+    }
+
+    public static ProcessFailureStrategy resume() {
+        return new ProcessFailureStrategy(false);
+    }
 }

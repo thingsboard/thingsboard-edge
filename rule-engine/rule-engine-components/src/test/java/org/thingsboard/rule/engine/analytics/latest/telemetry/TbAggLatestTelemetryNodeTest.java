@@ -125,9 +125,6 @@ public class TbAggLatestTelemetryNodeTest {
     private TbAggLatestTelemetryNode node;
     private TbNodeConfiguration nodeConfiguration;
 
-    private RuleChainId ruleChainId = new RuleChainId(UUIDs.timeBased());
-    private RuleNodeId ruleNodeId = new RuleNodeId(UUIDs.timeBased());
-
     private RelationsQuery relationsQuery;
     private EntityId rootEntityId;
 
@@ -143,12 +140,13 @@ public class TbAggLatestTelemetryNodeTest {
         node = new TbAggLatestTelemetryNode();
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
-            String type = (String) (invocationOnMock.getArguments())[0];
-            EntityId originator = (EntityId) (invocationOnMock.getArguments())[1];
-            TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[2];
-            String data = (String) (invocationOnMock.getArguments())[3];
+            String queueName = (String) (invocationOnMock.getArguments())[0];
+            String type = (String) (invocationOnMock.getArguments())[1];
+            EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
+            TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
+            String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(EntityId.class),
+        }).when(ctx).newMsg(Matchers.any(String.class), Matchers.any(String.class), Matchers.any(EntityId.class),
                 Matchers.any(TbMsgMetaData.class), Matchers.any(String.class));
 
         scheduleCount = 0;

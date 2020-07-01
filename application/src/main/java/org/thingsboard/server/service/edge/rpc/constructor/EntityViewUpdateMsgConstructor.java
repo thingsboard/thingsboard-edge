@@ -31,16 +31,10 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
@@ -49,38 +43,38 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class EntityViewUpdateMsgConstructor {
 
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private AssetService assetService;
-
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, String groupName) {
-        String relatedName;
-        String relatedType;
-        EdgeEntityType relatedEntityType;
-        if (entityView.getEntityId().getEntityType().equals(EntityType.DEVICE)) {
-            Device device = deviceService.findDeviceById(entityView.getTenantId(), new DeviceId(entityView.getEntityId().getId()));
-            relatedName = device.getName();
-            relatedType = device.getType();
-            relatedEntityType = EdgeEntityType.DEVICE;
-        } else {
-            Asset asset = assetService.findAssetById(entityView.getTenantId(), new AssetId(entityView.getEntityId().getId()));
-            relatedName = asset.getName();
-            relatedType = asset.getType();
-            relatedEntityType = EdgeEntityType.ASSET;
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EntityGroupId entityGroupId) {
+        EdgeEntityType entityType;
+        switch (entityView.getEntityId().getEntityType()) {
+            case DEVICE:
+                entityType = EdgeEntityType.DEVICE;
+                break;
+            case ASSET:
+                entityType = EdgeEntityType.ASSET;
+                break;
+            default:
+                throw new RuntimeException("Unsupported entity type [" + entityView.getEntityId().getEntityType() + "]");
         }
         EntityViewUpdateMsg.Builder builder = EntityViewUpdateMsg.newBuilder()
                 .setMsgType(msgType)
+                .setIdMSB(entityView.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityView.getId().getId().getLeastSignificantBits())
                 .setName(entityView.getName())
                 .setType(entityView.getType())
-                .setRelatedName(relatedName)
-                .setRelatedType(relatedType)
-                .setRelatedEntityType(relatedEntityType);
-        if (groupName != null) {
-            builder.setGroupName(groupName);
+                .setIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
+                .setIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
+                .setEntityType(entityType);
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
+    public EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId) {
+        return EntityViewUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(entityViewId.getId().getMostSignificantBits())
+                .setIdLSB(entityViewId.getId().getLeastSignificantBits()).build();
+    }
 }

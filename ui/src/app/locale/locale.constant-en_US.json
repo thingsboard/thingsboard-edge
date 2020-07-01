@@ -2215,7 +2215,7 @@
     "rulechain": {
         "rulechain": "Rule chain",
         "rulechains": "Rule chains",
-        "system-rulechains": "System Rule chains",
+        "core-rulechains": "Core Rule chains",
         "edge-rulechains": "Edge Rule chains",
         "root": "Root",
         "delete": "Delete rule chain",
@@ -2281,7 +2281,7 @@
         "set-default-edge-text": "After the confirmation the edge rule chain will be added to default list and assigned to newly created edge(s).",
         "remove-default-edge": "Remove edge rule chain from defaults",
         "remove-default-edge-title": "Are you sure you want to remove the edge rule chain '{{ruleChainName}}' from default list?",
-        "remove-default-edge-text": "After the confirmation the edge rule chain will stop handling all incoming transport messages."
+        "remove-default-edge-text": "After the confirmation the edge rule chain will not be assigned for a newly created edges."
     },
     "rulenode": {
         "details": "Details",

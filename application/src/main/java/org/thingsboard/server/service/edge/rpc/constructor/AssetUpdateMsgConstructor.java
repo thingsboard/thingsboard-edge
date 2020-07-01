@@ -33,6 +33,8 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
@@ -40,18 +42,27 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 @Slf4j
 public class AssetUpdateMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, String groupName) {
+    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
         AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
+                .setIdMSB(asset.getId().getId().getMostSignificantBits())
+                .setIdLSB(asset.getId().getId().getLeastSignificantBits())
                 .setName(asset.getName())
                 .setType(asset.getType());
         if (asset.getLabel() != null) {
             builder.setLabel(asset.getLabel());
         }
-        if (groupName != null) {
-            builder.setGroupName(groupName);
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
+    public AssetUpdateMsg constructAssetDeleteMsg(AssetId assetId) {
+        return AssetUpdateMsg.newBuilder()
+                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
+                .setIdMSB(assetId.getId().getMostSignificantBits())
+                .setIdLSB(assetId.getId().getLeastSignificantBits()).build();
+    }
 }

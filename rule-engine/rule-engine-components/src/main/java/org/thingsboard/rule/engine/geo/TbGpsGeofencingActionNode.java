@@ -67,8 +67,7 @@ import java.util.concurrent.TimeoutException;
         nodeDescription = "Produces incoming messages using GPS based geofencing",
         nodeDetails = "Extracts latitude and longitude parameters from incoming message and returns different events based on configuration parameters",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbActionNodeGpsGeofencingConfig",
-        ruleChainTypes = {RuleChainType.SYSTEM, RuleChainType.EDGE}
+        configDirective = "tbActionNodeGpsGeofencingConfig"
 )
 public class TbGpsGeofencingActionNode extends AbstractGeofencingNode<TbGpsGeofencingActionNodeConfiguration> {
 

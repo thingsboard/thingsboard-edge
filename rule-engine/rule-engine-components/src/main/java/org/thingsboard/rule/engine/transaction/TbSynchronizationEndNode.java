@@ -54,8 +54,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         nodeDescription = "This Node is now deprecated. Use \"Checkpoint\" instead.",
         nodeDetails = "",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = ("tbNodeEmptyConfig"),
-        ruleChainTypes = {RuleChainType.SYSTEM, RuleChainType.EDGE}
+        configDirective = ("tbNodeEmptyConfig")
 )
 @Deprecated
 public class TbSynchronizationEndNode implements TbNode {

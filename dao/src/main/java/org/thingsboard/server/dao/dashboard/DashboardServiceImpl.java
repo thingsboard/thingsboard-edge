@@ -197,7 +197,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public TextPageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, TextPageLink pageLink) {
         log.trace("Executing findDashboardsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
+        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
         List<DashboardInfo> dashboards = dashboardInfoDao.findDashboardsByTenantId(tenantId.getId(), pageLink);
         return new TextPageData<>(dashboards, pageLink);
     }

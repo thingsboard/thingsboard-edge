@@ -28,17 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.init;
+package org.thingsboard.server.actors;
 
-import io.grpc.stub.StreamObserver;
-import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.gen.edge.ResponseMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
-import org.thingsboard.server.service.edge.EdgeContextComponent;
+import lombok.Data;
 
-public interface InitEdgeService {
+@Data
+public class TbActorSystemSettings {
 
-    void init(EdgeContextComponent ctx, Edge edge, StreamObserver<ResponseMsg> outputStream);
+    private final int actorThroughput;
+    private final int schedulerPoolSize;
+    private final int maxActorInitAttempts;
 
-    void initRuleChainMetadata(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg, StreamObserver<ResponseMsg> outputStream);
 }

@@ -150,7 +150,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"24\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
-        doPostAsync("/api/plugins/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
+        doPostAsync("/api/plugins/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().is(409),
                 asyncContextTimeoutToUseRpcPlugin);
     }
 
@@ -207,7 +207,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractC
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"27\",\"value\": 1},\"timeout\": 6000}";
         String deviceId = savedDevice.getId().getId().toString();
 
-        doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().isRequestTimeout(),
+        doPostAsync("/api/plugins/rpc/twoway/" + deviceId, setGpioRequest, String.class, status().is(409),
                 asyncContextTimeoutToUseRpcPlugin);
     }
 

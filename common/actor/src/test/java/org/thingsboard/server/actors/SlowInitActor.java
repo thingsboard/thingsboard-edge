@@ -28,8 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.actors;
 
-public enum EdgeQueueEntityType {
-    DASHBOARD, ASSET, DEVICE, ENTITY_VIEW, ALARM, RULE_CHAIN, RULE_CHAIN_METADATA, EDGE, USER, CUSTOMER, ENTITY_GROUP, SCHEDULER_EVENT
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class SlowInitActor extends TestRootActor {
+
+    public SlowInitActor(TbActorId actorId, ActorTestCtx testCtx) {
+        super(actorId, testCtx);
+    }
+
+    @Override
+    public void init(TbActorCtx ctx) throws TbActorException {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        super.init(ctx);
+    }
+
+    public static class SlowInitActorCreator implements TbActorCreator {
+
+        private final TbActorId actorId;
+        private final ActorTestCtx testCtx;
+
+        public SlowInitActorCreator(TbActorId actorId, ActorTestCtx testCtx) {
+            this.actorId = actorId;
+            this.testCtx = testCtx;
+        }
+
+        @Override
+        public TbActorId createActorId() {
+            return actorId;
+        }
+
+        @Override
+        public TbActor createActor() {
+            return new SlowInitActor(actorId, testCtx);
+        }
+    }
 }

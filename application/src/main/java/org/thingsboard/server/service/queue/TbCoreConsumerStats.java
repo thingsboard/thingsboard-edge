@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +54,7 @@ public class TbCoreConsumerStats {
     private final AtomicInteger schedulerMsgCounter = new AtomicInteger(0);
     private final AtomicInteger subscriptionMsgCounter = new AtomicInteger(0);
     private final AtomicInteger toCoreNotificationsCounter = new AtomicInteger(0);
+    private final AtomicInteger edgeNotificationMsgCounter = new AtomicInteger(0);
 
     public void log(TransportToDeviceActorMsg msg) {
         totalCounter.incrementAndGet();
@@ -96,6 +96,11 @@ public class TbCoreConsumerStats {
         schedulerMsgCounter.incrementAndGet();
     }
 
+    public void log(TransportProtos.EdgeNotificationMsgProto msg) {
+        totalCounter.incrementAndGet();
+        edgeNotificationMsgCounter.incrementAndGet();
+    }
+
     public void logToCoreNotification() {
         totalCounter.incrementAndGet();
         toCoreNotificationsCounter.incrementAndGet();
@@ -104,14 +109,15 @@ public class TbCoreConsumerStats {
     public void printStats() {
         int total = totalCounter.getAndSet(0);
         if (total > 0) {
-            log.info("Transport total [{}] sessionEvents [{}] getAttr [{}] subToAttr [{}] subToRpc [{}] toDevRpc [{}] subInfo [{}] claimDevice [{}]" +
-                            " deviceState [{}] scheduler [{}], subMgr [{}] coreNfs [{}]",
+            log.info("Total [{}] sessionEvents [{}] getAttr [{}] subToAttr [{}] subToRpc [{}] toDevRpc [{}] subInfo [{}] claimDevice [{}]" +
+                            " deviceState [{}] scheduler [{}], subMgr [{}] coreNfs [{}] edgeNfs [{}]",
                     total, sessionEventCounter.getAndSet(0),
                     getAttributesCounter.getAndSet(0), subscribeToAttributesCounter.getAndSet(0),
                     subscribeToRPCCounter.getAndSet(0), toDeviceRPCCallResponseCounter.getAndSet(0),
                     subscriptionInfoCounter.getAndSet(0), claimDeviceCounter.getAndSet(0),
                     deviceStateMsgCounter.getAndSet(0), schedulerMsgCounter.getAndSet(0),
-                    subscriptionMsgCounter.getAndSet(0), toCoreNotificationsCounter.getAndSet(0));
+                    subscriptionMsgCounter.getAndSet(0), toCoreNotificationsCounter.getAndSet(0),
+                    edgeNotificationMsgCounter.getAndSet(0));
         }
     }
 

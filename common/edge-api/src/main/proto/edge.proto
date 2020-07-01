@@ -34,6 +34,8 @@ option java_package = "org.thingsboard.server.gen.edge";
 option java_multiple_files = true;
 option java_outer_classname = "EdgeProtos";
 
+import "queue.proto";
+
 package edge;
 
 // Interface exported by the ThingsBoard Edge Transport.
@@ -61,18 +63,22 @@ message ResponseMsg {
 
 message EntityUpdateMsg {
   DeviceUpdateMsg deviceUpdateMsg = 1;
-  RuleChainUpdateMsg ruleChainUpdateMsg = 2;
-  RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = 3;
-  DashboardUpdateMsg dashboardUpdateMsg = 4;
-  AssetUpdateMsg assetUpdateMsg = 5;
-  EntityViewUpdateMsg entityViewUpdateMsg = 6;
-  AlarmUpdateMsg alarmUpdateMsg = 7;
-  UserUpdateMsg userUpdateMsg = 8;
-  CustomerUpdateMsg customerUpdateMsg = 9;
-  WhiteLabelingParamsProto whiteLabelingParams = 10;
-  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 11;
-  CustomTranslationProto customTranslation = 12;
-  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 13;
+  DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = 2;
+  RuleChainUpdateMsg ruleChainUpdateMsg = 3;
+  RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = 4;
+  DashboardUpdateMsg dashboardUpdateMsg = 5;
+  AssetUpdateMsg assetUpdateMsg = 6;
+  EntityViewUpdateMsg entityViewUpdateMsg = 7;
+  AlarmUpdateMsg alarmUpdateMsg = 8;
+  UserUpdateMsg userUpdateMsg = 9;
+  UserCredentialsUpdateMsg userCredentialsUpdateMsg = 10;
+  CustomerUpdateMsg customerUpdateMsg = 11;
+  RelationUpdateMsg relationUpdateMsg = 12;
+  WhiteLabelingParamsProto whiteLabelingParams = 13;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 14;
+  CustomTranslationProto customTranslation = 15;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 16;
+  EntityGroupUpdateMsg entityGroupUpdateMsg = 17;
 }
 
 enum RequestMsgType {
@@ -112,13 +118,16 @@ enum UpdateMsgType {
   ENTITY_DELETED_RPC_MESSAGE = 2;
   ALARM_ACK_RPC_MESSAGE = 3;
   ALARM_CLEAR_RPC_MESSAGE = 4;
-  RULE_CHAIN_CUSTOM_MESSAGE = 5;
+  DEVICE_CONFLICT_RPC_MESSAGE = 5;
 }
 
 message EntityDataProto {
-  string entityName = 1;
-  string entityType = 2;
-  bytes tbMsg = 3;
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+  transport.PostTelemetryMsg postTelemetryMsg = 4;
+  transport.PostAttributeMsg postAttributesMsg = 5;
+  // transport.ToDeviceRpcRequestMsg ???
 }
 
 message RuleChainUpdateMsg {
@@ -138,9 +147,9 @@ message RuleChainMetadataUpdateMsg {
   int64 ruleChainIdMSB = 2;
   int64 ruleChainIdLSB = 3;
   int32 firstNodeIndex = 4;
-  repeated RuleNodeProto nodes =  5;
-  repeated NodeConnectionInfoProto connections =  6;
-  repeated RuleChainConnectionInfoProto ruleChainConnections =  7;
+  repeated RuleNodeProto nodes = 5;
+  repeated NodeConnectionInfoProto connections = 6;
+  repeated RuleChainConnectionInfoProto ruleChainConnections = 7;
 }
 
 message RuleNodeProto {
@@ -173,36 +182,52 @@ message DashboardUpdateMsg {
   int64 idLSB = 3;
   string title = 4;
   string configuration = 5;
-  string groupName = 6;
+  int64 entityGroupIdMSB = 6;
+  int64 entityGroupIdLSB = 7;
 }
 
 message DeviceUpdateMsg {
   UpdateMsgType msgType = 1;
-  string name = 2;
-  string type = 3;
-  string label = 4;
-  string credentialsType = 5;
-  string credentialsId = 6;
-  string credentialsValue = 7;
-  string groupName = 8;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  string label = 6;
+  int64 entityGroupIdMSB = 7;
+  int64 entityGroupIdLSB = 8;
+}
+
+message DeviceCredentialsUpdateMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+  string credentialsType = 3;
+  string credentialsId = 4;
+  string credentialsValue = 5;
 }
 
 message AssetUpdateMsg {
   UpdateMsgType msgType = 1;
-  string name = 2;
-  string type = 3;
-  string label = 4;
-  string groupName = 5;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  string label = 6;
+  int64 entityGroupIdMSB = 7;
+  int64 entityGroupIdLSB = 8;
+
 }
 
 message EntityViewUpdateMsg {
   UpdateMsgType msgType = 1;
-  string name = 2;
-  string type = 3;
-  string relatedName = 4;
-  string relatedType = 5;
-  EdgeEntityType relatedEntityType = 6;
-  string groupName = 7;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  int64 entityIdMSB = 6;
+  int64 entityIdLSB = 7;
+  EdgeEntityType entityType = 8;
+  int64 entityGroupIdMSB = 9;
+  int64 entityGroupIdLSB = 10;
 }
 
 message AlarmUpdateMsg {
@@ -237,21 +262,70 @@ message CustomerUpdateMsg {
   string additionalInfo = 13;
 }
 
+message RelationUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 fromIdMSB = 2;
+  int64 fromIdLSB = 3;
+  string fromEntityType = 4;
+  int64 toIdMSB = 5;
+  int64 toIdLSB = 6;
+  string toEntityType = 7;
+  string type = 8;
+  string typeGroup = 9;
+  string additionalInfo = 10;
+}
+
 message UserUpdateMsg {
   UpdateMsgType msgType = 1;
-  string email = 2;
-  string authority = 3;
-  string firstName = 4;
-  string lastName = 5;
-  string additionalInfo = 6;
-  bool enabled = 7;
-  string password = 8;
-  string groupName = 9;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string email = 4;
+  string authority = 5;
+  string firstName = 6;
+  string lastName = 7;
+  string additionalInfo = 8;
+  int64 entityGroupIdMSB = 9;
+  int64 entityGroupIdLSB = 10;
+}
+
+message UserCredentialsUpdateMsg {
+  int64 userIdMSB = 1;
+  int64 userIdLSB = 2;
+  bool enabled = 3;
+  string password = 4;
 }
 
 message RuleChainMetadataRequestMsg {
   int64 ruleChainIdMSB = 1;
   int64 ruleChainIdLSB = 2;
+}
+
+message AttributesRequestMsg {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+}
+
+message RelationRequestMsg {
+  int64 entityIdMSB = 1;
+  int64 entityIdLSB = 2;
+  string entityType = 3;
+}
+
+message UserCredentialsRequestMsg {
+  int64 userIdMSB = 1;
+  int64 userIdLSB = 2;
+}
+
+message DeviceCredentialsRequestMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+}
+
+message EntityGroupEntitiesRequestMsg {
+  int64 entityGroupIdMSB = 1;
+  int64 entityGroupIdLSB = 2;
+  string type = 3;
 }
 
 message SchedulerEventUpdateMsg {
@@ -264,64 +338,76 @@ message SchedulerEventUpdateMsg {
   string configuration = 7;
 }
 
+message EntityGroupUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  string type = 5;
+  int64 ownerIdMSB = 6;
+  int64 ownerIdLSB = 7;
+  string additionalInfo = 8;
+  string configuration = 9;
+}
+
 enum EdgeEntityType {
   DEVICE = 0;
   ASSET = 1;
 }
 
 message LoginWhiteLabelingParamsProto {
-    string logoImageUrl = 1;
-    string logoImageChecksum = 2;
-    int64 logoImageHeight = 3;
-    string appTitle = 4;
-    FaviconProto favicon = 5;
-    string faviconChecksum = 6;
-    PaletteSettingsProto paletteSettings = 7;
-    string helpLinkBaseUrl = 8;
-    bool enableHelpLinks = 9;
-    bool showNameVersion = 10;
-    string platformName = 11;
-    string platformVersion = 12;
-    string pageBackgroundColor = 13;
-    bool darkForeground = 14;
-    string domainName = 15;
-    string adminSettingsId = 16;
-    bool showNameBottom = 17;
+  string logoImageUrl = 1;
+  string logoImageChecksum = 2;
+  int64 logoImageHeight = 3;
+  string appTitle = 4;
+  FaviconProto favicon = 5;
+  string faviconChecksum = 6;
+  PaletteSettingsProto paletteSettings = 7;
+  string helpLinkBaseUrl = 8;
+  bool enableHelpLinks = 9;
+  bool showNameVersion = 10;
+  string platformName = 11;
+  string platformVersion = 12;
+  string pageBackgroundColor = 13;
+  bool darkForeground = 14;
+  string domainName = 15;
+  string adminSettingsId = 16;
+  bool showNameBottom = 17;
 }
 
 message WhiteLabelingParamsProto {
-    string logoImageUrl = 1;
-    string logoImageChecksum = 2;
-    int64 logoImageHeight = 3;
-    string appTitle = 4;
-    FaviconProto favicon = 5;
-    string faviconChecksum = 6;
-    PaletteSettingsProto paletteSettings = 7;
-    string helpLinkBaseUrl = 8;
-    bool enableHelpLinks = 9;
-    bool showNameVersion = 10;
-    string platformName = 11;
-    string platformVersion = 12;
+  string logoImageUrl = 1;
+  string logoImageChecksum = 2;
+  int64 logoImageHeight = 3;
+  string appTitle = 4;
+  FaviconProto favicon = 5;
+  string faviconChecksum = 6;
+  PaletteSettingsProto paletteSettings = 7;
+  string helpLinkBaseUrl = 8;
+  bool enableHelpLinks = 9;
+  bool showNameVersion = 10;
+  string platformName = 11;
+  string platformVersion = 12;
 }
 
 message FaviconProto {
-    string url = 1;
-    string type = 2;
+  string url = 1;
+  string type = 2;
 }
 
 message PaletteSettingsProto {
-    PaletteProto primaryPalette = 1;
-    PaletteProto accentPalette = 2;
+  PaletteProto primaryPalette = 1;
+  PaletteProto accentPalette = 2;
 }
 
 message PaletteProto {
-    string type = 1;
-    string extendsPalette = 2;
-    map<string, string> colors = 3;
+  string type = 1;
+  string extendsPalette = 2;
+  map<string, string> colors = 3;
 }
 
 message CustomTranslationProto {
-    map<string, string> translationMap = 1;
+  map<string, string> translationMap = 1;
 }
 
 /**
@@ -332,8 +418,14 @@ message UplinkMsg {
   int32 uplinkMsgId = 1;
   repeated EntityDataProto entityData = 2;
   repeated DeviceUpdateMsg deviceUpdateMsg = 3;
-  repeated AlarmUpdateMsg alarmUpdateMsg = 4;
-  repeated RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = 5;
+  repeated DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = 4;
+  repeated AlarmUpdateMsg alarmUpdateMsg = 5;
+  repeated RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = 6;
+  repeated AttributesRequestMsg attributesRequestMsg = 7;
+  repeated RelationRequestMsg relationRequestMsg = 8;
+  repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 9;
+  repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 10;
+  repeated EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = 11;
 }
 
 message UplinkResponseMsg {
@@ -344,4 +436,5 @@ message UplinkResponseMsg {
 message DownlinkMsg {
   int32 downlinkMsgId = 1;
   repeated EntityDataProto entityData = 2;
+  repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 3;
 }

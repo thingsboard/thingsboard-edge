@@ -41,31 +41,56 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.init.InitEdgeService;
-import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 @Component
+@TbCoreComponent
 @Data
 public class EdgeContextComponent {
 
     @Lazy
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private PartitionService partitionService;
+
+    @Autowired
+    @Lazy
+    private TbQueueProducerProvider producerProvider;
+
+    @Lazy
+    @Autowired
+    private EdgeNotificationService edgeNotificationService;
 
     @Lazy
     @Autowired
@@ -74,6 +99,10 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private DeviceService deviceService;
+
+    @Lazy
+    @Autowired
+    private DeviceCredentialsService deviceCredentialsService;
 
     @Lazy
     @Autowired
@@ -101,6 +130,22 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private RuleChainService ruleChainService;
+
+    @Lazy
+    @Autowired
+    private UserService userService;
+
+    @Lazy
+    @Autowired
+    private SchedulerEventService schedulerEventService;
+
+    @Lazy
+    @Autowired
+    private EntityGroupService entityGroupService;
+
+    @Lazy
+    @Autowired
     private ActorService actorService;
 
     @Lazy
@@ -113,15 +158,11 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
-    private InitEdgeService initEdgeService;
+    private SyncEdgeService syncEdgeService;
 
     @Lazy
     @Autowired
     private RuleChainUpdateMsgConstructor ruleChainUpdateMsgConstructor;
-
-    @Lazy
-    @Autowired
-    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
 
     @Lazy
     @Autowired
@@ -146,6 +187,28 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private UserUpdateMsgConstructor userUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private RelationUpdateMsgConstructor relationUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private EntityDataMsgConstructor entityDataMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private SchedulerEventUpdateMsgConstructor schedulerEventUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private EntityGroupUpdateMsgConstructor entityGroupUpdateMsgConstructor;
+
+    @Autowired
+    private WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
+
+    @Autowired
+    private CustomTranslationProtoConstructor customTranslationProtoConstructor;
 
     @Lazy
     @Autowired

@@ -28,29 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.edge;
+package org.thingsboard.server.dao.sql.edge;
 
-import com.google.common.util.concurrent.FutureCallback;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.CrudRepository;
+import org.thingsboard.server.dao.model.sql.EdgeEventEntity;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.annotation.Nullable;
+@SqlDao
+public interface EdgeEventRepository extends CrudRepository<EdgeEventEntity, String>, JpaSpecificationExecutor<EdgeEventEntity> {
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
-
-@Data
-class PushToEdgeNodeCallback implements FutureCallback<Void> {
-    private final TbContext ctx;
-    private final TbMsg msg;
-
-    @Override
-    public void onSuccess(@Nullable Void result) {
-        ctx.tellNext(msg, SUCCESS);
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-        ctx.tellFailure(msg, t);
-    }
 }
