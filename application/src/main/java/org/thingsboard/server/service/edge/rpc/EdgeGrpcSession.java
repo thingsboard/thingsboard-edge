@@ -923,7 +923,6 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                 }
                 // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
-                ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
                 updateDevice(deviceUpdateMsg);
