@@ -62,6 +62,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -91,6 +92,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private AlarmService alarmService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -157,6 +161,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             switch (edgeEventType) {
                 // TODO: voba - handle edge updates
                 // case EDGE:
+                case USER:
                 case ASSET:
                 case DEVICE:
                 case ENTITY_VIEW:

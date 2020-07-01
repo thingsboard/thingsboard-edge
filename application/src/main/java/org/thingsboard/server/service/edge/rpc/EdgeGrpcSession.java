@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc;
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,6 +43,7 @@ import com.google.gson.JsonObject;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
@@ -59,6 +61,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -87,6 +90,8 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
@@ -121,6 +126,10 @@ import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
 import java.io.Closeable;
@@ -157,6 +166,8 @@ public final class EdgeGrpcSession implements Closeable {
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
 
+    private TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
+
     EdgeGrpcSession(EdgeContextComponent ctx, StreamObserver<ResponseMsg> outputStream, BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener,
                     Consumer<EdgeId> sessionCloseListener, ObjectMapper mapper) {
         this.sessionId = UUID.randomUUID();
@@ -165,6 +176,7 @@ public final class EdgeGrpcSession implements Closeable {
         this.sessionOpenListener = sessionOpenListener;
         this.sessionCloseListener = sessionCloseListener;
         this.mapper = mapper;
+        this.ruleEngineMsgProducer = ctx.getProducerProvider().getRuleEngineMsgProducer();
         initInputStream();
     }
 
@@ -899,17 +911,19 @@ public final class EdgeGrpcSession implements Closeable {
                     Device deviceById = ctx.getDeviceService().findDeviceById(edge.getTenantId(), edgeDeviceId);
                     if (deviceById != null) {
                         // this ID already used by other device - create new device and update ID on the edge
-                        Device savedDevice = createDevice(deviceUpdateMsg);
+                        device = createDevice(deviceUpdateMsg);
                         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, savedDevice, null))
+                                .setDeviceUpdateMsg(ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, device, null))
                                 .build();
                         outputStream.onNext(ResponseMsg.newBuilder()
                                 .setEntityUpdateMsg(entityUpdateMsg)
                                 .build());
                     } else {
-                        createDevice(deviceUpdateMsg);
+                        device = createDevice(deviceUpdateMsg);
                     }
                 }
+                // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
+                ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
                 updateDevice(deviceUpdateMsg);
@@ -999,17 +1013,68 @@ public final class EdgeGrpcSession implements Closeable {
             device.setType(deviceUpdateMsg.getType());
             device.setLabel(deviceUpdateMsg.getLabel());
             device = ctx.getDeviceService().saveDevice(device);
+            createDeviceCredentials(device);
             // TODO: voba - properly hanlde assing device functionality
             // device = ctx.getDeviceService().assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
             createRelationFromEdge(device.getId());
-            ctx.getRelationService().saveRelationAsync(TenantId.SYS_TENANT_ID, new EntityRelation(edge.getId(), device.getId(), "Created"));
             ctx.getDeviceStateService().onDeviceAdded(device);
-
+            pushDeviceCreatedEventToRuleEngine(device);
             requestDeviceCredentialsFromEdge(device);
         } finally {
             deviceCreationLock.unlock();
         }
         return device;
+    }
+
+    private void createDeviceCredentials(Device device) {
+        DeviceCredentials deviceCredentials = new DeviceCredentials();
+        deviceCredentials.setDeviceId(device.getId());
+        deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
+        deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
+        ctx.getDeviceCredentialsService().createDeviceCredentials(device.getTenantId(), deviceCredentials);
+    }
+
+    private void pushDeviceCreatedEventToRuleEngine(Device device) {
+        try {
+            ObjectNode entityNode = mapper.valueToTree(device);
+            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, device.getId(), getActionTbMsgMetaData(device.getCustomerId()), mapper.writeValueAsString(entityNode));
+            sendToRuleEngine(edge.getTenantId(), tbMsg, new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    // TODO: voba - handle success
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    // TODO: voba - handle failure
+                }
+            });
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            log.warn("[{}] Failed to push device action to rule engine: {}", device.getId(), DataConstants.ENTITY_CREATED, e);
+        }
+    }
+
+    protected void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = ctx.getPartitionService().resolve(ServiceType.TB_RULE_ENGINE, tenantId, tbMsg.getOriginator());
+        TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();
+        ruleEngineMsgProducer.send(tpi, new TbProtoQueueMsg<>(tbMsg.getId(), msg), callback);
+    }
+
+    private TbMsgMetaData getActionTbMsgMetaData(CustomerId customerId) {
+        TbMsgMetaData metaData = getTbMsgMetaData(edge);
+        if (customerId != null && !customerId.isNullUid()) {
+            metaData.putValue("customerId", customerId.toString());
+        }
+        return metaData;
+    }
+
+    private TbMsgMetaData getTbMsgMetaData(Edge edge) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("edgeId", edge.getId().toString());
+        metaData.putValue("edgeName", edge.getName());
+        return metaData;
     }
 
     private EntityId getAlarmOriginator(String entityName, org.thingsboard.server.common.data.EntityType entityType) {
