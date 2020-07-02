@@ -388,7 +388,7 @@ public final class EdgeGrpcSession implements Closeable {
                 Device device = ctx.getDeviceService().findDeviceById(edgeEvent.getTenantId(), deviceId);
                 if (device != null) {
                     DeviceUpdateMsg deviceUpdateMsg =
-                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, null);
+                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, new EntityGroupId(edgeEvent.getEntityGroupId()));
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDeviceUpdateMsg(deviceUpdateMsg)
                             .build();
@@ -430,7 +430,7 @@ public final class EdgeGrpcSession implements Closeable {
                 Asset asset = ctx.getAssetService().findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
                     AssetUpdateMsg assetUpdateMsg =
-                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, null);
+                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, new EntityGroupId(edgeEvent.getEntityGroupId()));
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setAssetUpdateMsg(assetUpdateMsg)
                             .build();
@@ -462,7 +462,7 @@ public final class EdgeGrpcSession implements Closeable {
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     EntityViewUpdateMsg entityViewUpdateMsg =
-                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, null);
+                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, new EntityGroupId(edgeEvent.getEntityGroupId()));
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setEntityViewUpdateMsg(entityViewUpdateMsg)
                             .build();
@@ -494,7 +494,7 @@ public final class EdgeGrpcSession implements Closeable {
                 Dashboard dashboard = ctx.getDashboardService().findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     DashboardUpdateMsg dashboardUpdateMsg =
-                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, null);
+                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, new EntityGroupId(edgeEvent.getEntityGroupId()));
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDashboardUpdateMsg(dashboardUpdateMsg)
                             .build();
@@ -574,7 +574,7 @@ public final class EdgeGrpcSession implements Closeable {
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, null))
+                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, new EntityGroupId(edgeEvent.getEntityGroupId())))
                             .build();
                 }
                 break;
@@ -923,6 +923,7 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                 }
                 // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
+                ctx.getEntityGroupService().addEntityToEntityGroupAll(device.getTenantId(), device.getOwnerId(), device.getId());
                 addDeviceToDeviceGroup(device.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -1115,15 +1116,12 @@ public final class EdgeGrpcSession implements Closeable {
                 .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), EntityType.DEVICE, deviceGroupName);
 
         return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
-            EntityGroup result = null;
-            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
-                result =
-                        optionalEntityGroup.orElseGet(() -> {
-                            EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
-                            ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
-                            return entityGroup;
-                        });
-            }
+            EntityGroup result =
+                    optionalEntityGroup.orElseGet(() -> {
+                        EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
+                        ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
+                        return entityGroup;
+                    });
             return result;
         }, ctx.getDbCallbackExecutor());
     }
