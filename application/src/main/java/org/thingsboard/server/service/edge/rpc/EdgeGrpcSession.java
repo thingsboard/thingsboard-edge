@@ -387,8 +387,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Device device = ctx.getDeviceService().findDeviceById(edgeEvent.getTenantId(), deviceId);
                 if (device != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
-                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, new EntityGroupId(edgeEvent.getEntityGroupId()));
+                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDeviceUpdateMsg(deviceUpdateMsg)
                             .build();
@@ -429,8 +430,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Asset asset = ctx.getAssetService().findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     AssetUpdateMsg assetUpdateMsg =
-                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, new EntityGroupId(edgeEvent.getEntityGroupId()));
+                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setAssetUpdateMsg(assetUpdateMsg)
                             .build();
@@ -461,8 +463,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     EntityViewUpdateMsg entityViewUpdateMsg =
-                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, new EntityGroupId(edgeEvent.getEntityGroupId()));
+                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setEntityViewUpdateMsg(entityViewUpdateMsg)
                             .build();
@@ -493,8 +496,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Dashboard dashboard = ctx.getDashboardService().findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     DashboardUpdateMsg dashboardUpdateMsg =
-                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, new EntityGroupId(edgeEvent.getEntityGroupId()));
+                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDashboardUpdateMsg(dashboardUpdateMsg)
                             .build();
@@ -573,8 +577,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, new EntityGroupId(edgeEvent.getEntityGroupId())))
+                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
                 }
                 break;
