@@ -697,7 +697,7 @@ public class CloudManagerService {
             case CREDENTIALS_UPDATED:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
-                return ENTITY_CREATED_RPC_MESSAGE;
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
