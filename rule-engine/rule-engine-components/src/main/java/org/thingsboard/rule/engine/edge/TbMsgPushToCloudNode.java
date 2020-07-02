@@ -31,11 +31,14 @@
 package org.thingsboard.rule.engine.edge;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -121,13 +124,31 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
     }
 
+    private long getTs(TbMsg msg) {
+        long ts = -1;
+        String tsStr = msg.getMetaData().getValue("ts");
+        if (!StringUtils.isEmpty(tsStr)) {
+            try {
+                ts = Long.parseLong(tsStr);
+            } catch (NumberFormatException e) {
+            }
+        } else {
+            ts = msg.getTs();
+        }
+        return ts;
+    }
+
     private CloudEvent buildCloudEvent(TbContext ctx, TbMsg msg, CloudEventType cloudEventTypeByEntityType) throws JsonProcessingException {
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(ctx.getTenantId());
         cloudEvent.setCloudEventAction(getActionTypeByMsgType(msg.getType()).name());
         cloudEvent.setEntityId(msg.getOriginator().getId());
         cloudEvent.setCloudEventType(cloudEventTypeByEntityType);
-        cloudEvent.setEntityBody(json.readTree(msg.getData()));
+        long ts = getTs(msg);
+        ObjectNode entityBody = json.createObjectNode();
+        entityBody.put("ts", ts);
+        entityBody.set("data", json.readTree(msg.getData()));
+        cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
     }
 

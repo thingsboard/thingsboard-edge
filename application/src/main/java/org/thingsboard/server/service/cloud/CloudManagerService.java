@@ -489,7 +489,9 @@ public class CloudManagerService {
             log.debug("Sending telemetry data msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
             try {
                 ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
-                UplinkMsg msg = constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
+                JsonNode data = cloudEvent.getEntityBody().get("data");
+                long ts = cloudEvent.getEntityBody().get("ts").asLong();
+                UplinkMsg msg = constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(data)), ts);
                 edgeRpcClient.sendUplinkMsg(msg);
             } catch (Exception e) {
                 log.warn("Can't send telemetry data msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
@@ -709,8 +711,8 @@ public class CloudManagerService {
         }
     }
 
-    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
-        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
+    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData, long ts) {
+        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData, ts);
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .addAllEntityData(Collections.singletonList(entityDataProto));
         return builder.build();

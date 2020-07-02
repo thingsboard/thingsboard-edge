@@ -42,7 +42,7 @@ import org.thingsboard.server.gen.edge.EntityDataProto;
 @Slf4j
 public class EntityDataMsgConstructor {
 
-    public EntityDataProto constructEntityDataMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
+    public EntityDataProto constructEntityDataMsg(EntityId entityId, ActionType actionType, JsonElement entityData, long ts) {
         EntityDataProto.Builder builder = EntityDataProto.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
@@ -50,7 +50,7 @@ public class EntityDataMsgConstructor {
         switch (actionType) {
             case TIMESERIES_UPDATED:
                 try {
-                    builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(entityData));
+                    builder.setPostTelemetryMsg(JsonConverter.convertToTelemetryProto(entityData, ts));
                 } catch (Exception e) {
                     log.warn("Can't convert to telemetry proto, entityData [{}]", entityData, e);
                 }
