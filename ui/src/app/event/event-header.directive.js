@@ -37,6 +37,7 @@ import eventHeaderErrorTemplate from './event-header-error.tpl.html';
 import eventHeaderDebugConverterTemplate from './event-header-debug-converter.tpl.html';
 import eventHeaderDebugIntegrationTemplate from './event-header-debug-integration.tpl.html';
 import eventHeaderDebugRuleNodeTemplate from './event-header-debug-rulenode.tpl.html';
+import eventHeaderEdgeEventTemplate from './event-header-edge-event.tpl.html'
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -71,6 +72,9 @@ export default function EventHeaderDirective($compile, $templateCache, types) {
                     break;
                 case types.eventType.rawData.value:
                     template = eventHeaderRawDataTemplate;
+                    break;
+                case types.eventType.edgeEvent.value:
+                    template = eventHeaderEdgeEventTemplate;
                     break;
             }
             return $templateCache.get(template);

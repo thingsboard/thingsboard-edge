@@ -37,7 +37,7 @@ import eventTableTemplate from './event-table.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EventTableDirective($compile, $templateCache, $rootScope, types, eventService) {
+export default function EventTableDirective($compile, $templateCache, $rootScope, types, eventService, edgeService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -115,8 +115,13 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
             fetchMoreItems_: function () {
                 if (scope.events.hasNext && !scope.events.pending) {
                     if (scope.entityType && scope.entityId && scope.eventType && scope.tenantId) {
-                        var promise = eventService.getEvents(scope.entityType, scope.entityId,
-                            scope.eventType, scope.tenantId, scope.events.nextPageLink);
+                        var promise = '';
+                        if (scope.eventType !== types.eventType.edgeEvent.value) {
+                            promise = eventService.getEvents(scope.entityType, scope.entityId,
+                                scope.eventType, scope.tenantId, scope.events.nextPageLink);
+                        } else {
+                            promise = edgeService.getEdgeEvents(scope.entityId, scope.events.nextPageLink);
+                        }
                         if (promise) {
                             scope.events.pending = true;
                             promise.then(

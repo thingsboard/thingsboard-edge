@@ -387,8 +387,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Device device = ctx.getDeviceService().findDeviceById(edgeEvent.getTenantId(), deviceId);
                 if (device != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
-                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, null);
+                            ctx.getDeviceUpdateMsgConstructor().constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDeviceUpdateMsg(deviceUpdateMsg)
                             .build();
@@ -429,8 +430,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Asset asset = ctx.getAssetService().findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     AssetUpdateMsg assetUpdateMsg =
-                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, null);
+                            ctx.getAssetUpdateMsgConstructor().constructAssetUpdatedMsg(msgType, asset, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setAssetUpdateMsg(assetUpdateMsg)
                             .build();
@@ -461,8 +463,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     EntityViewUpdateMsg entityViewUpdateMsg =
-                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, null);
+                            ctx.getEntityViewUpdateMsgConstructor().constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setEntityViewUpdateMsg(entityViewUpdateMsg)
                             .build();
@@ -493,8 +496,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 Dashboard dashboard = ctx.getDashboardService().findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     DashboardUpdateMsg dashboardUpdateMsg =
-                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, null);
+                            ctx.getDashboardUpdateMsgConstructor().constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setDashboardUpdateMsg(dashboardUpdateMsg)
                             .build();
@@ -573,8 +577,9 @@ public final class EdgeGrpcSession implements Closeable {
             case ASSIGNED_TO_EDGE:
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, null))
+                            .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
                 }
                 break;
@@ -923,6 +928,7 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                 }
                 // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
+                ctx.getEntityGroupService().addEntityToEntityGroupAll(device.getTenantId(), device.getOwnerId(), device.getId());
                 addDeviceToDeviceGroup(device.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
@@ -1115,15 +1121,12 @@ public final class EdgeGrpcSession implements Closeable {
                 .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), EntityType.DEVICE, deviceGroupName);
 
         return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
-            EntityGroup result = null;
-            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
-                result =
-                        optionalEntityGroup.orElseGet(() -> {
-                            EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
-                            ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
-                            return entityGroup;
-                        });
-            }
+            EntityGroup result =
+                    optionalEntityGroup.orElseGet(() -> {
+                        EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
+                        ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
+                        return entityGroup;
+                    });
             return result;
         }, ctx.getDbCallbackExecutor());
     }
@@ -1236,11 +1239,14 @@ public final class EdgeGrpcSession implements Closeable {
 
     private EdgeConfiguration constructEdgeConfigProto(Edge edge) throws JsonProcessingException {
         return EdgeConfiguration.newBuilder()
+                .setEdgeIdMSB(edge.getId().getId().getMostSignificantBits())
+                .setEdgeIdLSB(edge.getId().getId().getLeastSignificantBits())
                 .setTenantIdMSB(edge.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(edge.getTenantId().getId().getLeastSignificantBits())
                 .setName(edge.getName())
                 .setRoutingKey(edge.getRoutingKey())
                 .setType(edge.getType())
+                .setCloudType("PE")
                 .build();
     }
 
