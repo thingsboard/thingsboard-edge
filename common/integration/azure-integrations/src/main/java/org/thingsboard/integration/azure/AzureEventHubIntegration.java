@@ -33,13 +33,13 @@ package org.thingsboard.integration.azure;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.microsoft.azure.eventhubs.ClientEntity;
 import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
 import com.microsoft.azure.eventhubs.EventData;
 import com.microsoft.azure.eventhubs.EventHubClient;
 import com.microsoft.azure.eventhubs.EventHubException;
 import com.microsoft.azure.eventhubs.EventHubRuntimeInformation;
 import com.microsoft.azure.eventhubs.PartitionReceiver;
+import com.microsoft.azure.eventhubs.impl.EventPositionImpl;
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement;
 import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
@@ -70,6 +70,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -83,6 +84,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private List<PartitionReceiver> receivers;
     private volatile boolean started = false;
     private ExecutorService executorService;
+    private ScheduledExecutorService clientExecutor;
     private List<Future> receiverFutures;
 
     @Override
@@ -102,8 +104,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             PartitionReceiver receiver = ehClient.createReceiverSync(
                     EventHubClient.DEFAULT_CONSUMER_GROUP_NAME,
                     partitionId,
-                    PartitionReceiver.END_OF_STREAM,
-                    false);
+                    EventPositionImpl.fromEndOfStream());
             receiver.setReceiveTimeout(Duration.ofSeconds(20));
             receivers.add(receiver);
         }
@@ -112,6 +113,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
         started = true;
         executorService = Executors.newFixedThreadPool(receivers.size());
+        clientExecutor = Executors.newSingleThreadScheduledExecutor();
         receiverFutures = new ArrayList<>();
         receiverFutures.addAll(receivers.stream().map(receiver -> executorService.submit(new ReceiverRunnable(receiver))).collect(Collectors.toList()));
     }
@@ -134,13 +136,16 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             executorService.shutdownNow();
         }
         if (receivers != null) {
-            receivers.forEach(ClientEntity::close);
+            receivers.forEach(PartitionReceiver::close);
         }
         if (ehClient != null) {
             ehClient.close();
         }
         if (serviceClient != null) {
             serviceClient.closeAsync();
+        }
+        if (clientExecutor != null) {
+            clientExecutor.shutdownNow();
         }
     }
 
@@ -194,7 +199,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
+    public void onDownlinkMsg(IntegrationDownlinkMsg downlink) {
         TbMsg msg = downlink.getTbMsg();
         logDownlink(context, "Downlink: " + msg.getType(), msg);
         if (downlinkConverter != null) {
@@ -272,12 +277,13 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     private EventHubClient initClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {
-        ConnectionStringBuilder connStr = new ConnectionStringBuilder(clientConfiguration.getNamespaceName(),
-                clientConfiguration.getEventHubName(),
-                clientConfiguration.getSasKeyName(),
-                clientConfiguration.getSasKey());
+        ConnectionStringBuilder connStr = new ConnectionStringBuilder();
+        connStr.setNamespaceName(clientConfiguration.getNamespaceName());
+        connStr.setEventHubName(clientConfiguration.getEventHubName());
+        connStr.setSasKeyName(clientConfiguration.getSasKeyName());
+        connStr.setSasKey(clientConfiguration.getSasKey());
 
-        CompletableFuture<EventHubClient> ehClientFuture = EventHubClient.createFromConnectionString(connStr.toString());
+        CompletableFuture<EventHubClient> ehClientFuture = EventHubClient.createFromConnectionString(connStr.toString(), clientExecutor);
         EventHubClient ehClient;
         try {
             ehClient = ehClientFuture.get(clientConfiguration.getConnectTimeoutSec(), TimeUnit.SECONDS);
