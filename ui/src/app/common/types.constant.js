@@ -699,6 +699,24 @@ export default angular.module('thingsboard.types', [])
                     helpId: 'edges'
                 }
             },
+            edgeEventType:{
+                dashboard: "DASHBOARD",
+                asset: "ASSET",
+                device: "DEVICE",
+                entityView: "ENTITY_VIEW",
+                alarm: "ALARM",
+                rulechain: "RULE_CHAIN",
+                ruleChainMetaData: "RULE_CHAIN_METADATA",
+                edge: "EDGE",
+                user: "USER",
+                customer: "CUSTOMER",
+                relation: "RELATION",
+                entityGroup: "ENTITY_GROUP",
+                schedulerEvent: "SCHEDULER_EVENT",
+                whiteLabeling: "WHITE_LABELING",
+                loginWhiteLabeling: "LOGIN_WHITE_LABELING",
+                customTranslation: "CUSTOM_TRANSLATION"
+            },
             importEntityColumnType: {
                 name: {
                     name: 'import.column-type.name',

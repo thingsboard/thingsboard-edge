@@ -127,10 +127,13 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
             }
             var content = '';
             switch(scope.event.edgeEventType) {
-                case 'RELATION':
+                case types.edgeEventType.relation:
+                case types.edgeEventType.whiteLabeling:
+                case types.edgeEventType.loginWhiteLabeling:
+                case types.edgeEventType.customTranslation:
                     content = angular.toJson(scope.event.entityBody);
                     break;
-                case 'RULE_CHAIN_METADATA':
+                case types.edgeEventType.ruleChainMetaData:
                     content = ruleChainService.getRuleChainMetaData(scope.event.entityId, {}).then(
                         function success(info) {
                             return angular.toJson(info);
