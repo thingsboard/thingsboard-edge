@@ -39,11 +39,13 @@ import eventRowErrorTemplate from './event-row-error.tpl.html';
 import eventRowDebugConverterTemplate from './event-row-debug-converter.tpl.html';
 import eventRowDebugIntegrationTemplate from './event-row-debug-integration.tpl.html';
 import eventRowDebugRuleNodeTemplate from './event-row-debug-rulenode.tpl.html';
+import eventRowEdgeEventTemplate from './event-row-edge-event.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EventRowDirective($compile, $templateCache, $mdDialog, $document, types) {
+export default function EventRowDirective($compile, $templateCache, $mdDialog, $document, $translate,
+                                          types, toast, entityService, ruleChainService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -74,6 +76,9 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
                 case types.eventType.rawData.value:
                     template = eventRowRawDataTemplate;
                     break;
+                case types.eventType.edgeEvent.value:
+                    template = eventRowEdgeEventTemplate;
+                    break;
             }
             return $templateCache.get(template);
         }
@@ -97,6 +102,50 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
             }
             if (!contentType) {
                 contentType = null;
+            }
+            $mdDialog.show({
+                controller: 'EventContentDialogController',
+                controllerAs: 'vm',
+                templateUrl: eventErrorDialogTemplate,
+                locals: {content: content, title: title, contentType: contentType, showingCallback: onShowingCallback},
+                parent: angular.element($document[0].body),
+                fullscreen: true,
+                targetEvent: $event,
+                multiple: true,
+                onShowing: function(scope, element) {
+                    onShowingCallback.onShowing(scope, element);
+                }
+            });
+        }
+
+        scope.showEdgeEntityContent = function($event, title, contentType) {
+            var onShowingCallback = {
+                onShowing: function(){}
+            }
+            if (!contentType) {
+                contentType = null;
+            }
+            var content = '';
+            switch(scope.event.edgeEventType) {
+                case 'RELATION':
+                    content = angular.toJson(scope.event.entityBody);
+                    break;
+                case 'RULE_CHAIN_METADATA':
+                    content = ruleChainService.getRuleChainMetaData(scope.event.entityId, {}).then(
+                        function success(info) {
+                            return angular.toJson(info);
+                        }, function fail() {
+                            toast.showError($translate.instant('edge.load-entity-error'));
+                        });
+                    break;
+                default:
+                    content = entityService.getEntity(scope.event.edgeEventType, scope.event.entityId, {}).then(
+                        function success(info) {
+                            return angular.toJson(info);
+                        }, function fail() {
+                            toast.showError($translate.instant('edge.load-entity-error'));
+                        });
+                    break;
             }
             $mdDialog.show({
                 controller: 'EventContentDialogController',

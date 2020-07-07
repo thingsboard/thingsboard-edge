@@ -1051,6 +1051,10 @@ export default angular.module('thingsboard.types', [])
                 rawData: {
                     value: "RAW_DATA",
                     name: "event.type-rw-event"
+                },
+                edgeEvent: {
+                    value: "EDGE_EVENT",
+                    name: "event.type-edge-event"
                 }
             },
             debugEventType: {
