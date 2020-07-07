@@ -41,7 +41,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -71,7 +70,6 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -136,6 +134,7 @@ import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcess
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.user.UserLoaderService;
 
@@ -164,7 +163,6 @@ public class CloudManagerService {
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
     private static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
-    private static final String EDGE_CONNECTED_TO_CLOUD_ATTR_KEY = "connectedToCloud";
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -748,39 +746,11 @@ public class CloudManagerService {
                 scheduledFuture = null;
             }
             initialized = true;
-            saveCloudConnectionStatus(initialized);
+            save(DefaultDeviceStateService.ACTIVITY_STATE, true);
+            save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
             saveEdgeSettings(edgeConfiguration);
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
-        }
-    }
-
-    private void saveCloudConnectionStatus(Boolean connectionStatus) {
-        BaseAttributeKvEntry edgeSettingAttr =
-                new BaseAttributeKvEntry(new BooleanDataEntry(EDGE_CONNECTED_TO_CLOUD_ATTR_KEY, connectionStatus), System.currentTimeMillis());
-        List<AttributeKvEntry> attributes =
-                Collections.singletonList(edgeSettingAttr);
-        tsSubService.saveAndNotify(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes,
-                new AttributeSaveCallback(EDGE_CONNECTED_TO_CLOUD_ATTR_KEY, connectionStatus));
-    }
-
-    private static class AttributeSaveCallback implements FutureCallback<Void> {
-        private final String key;
-        private final Object value;
-
-        AttributeSaveCallback(String key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        @Override
-        public void onSuccess(@javax.annotation.Nullable Void result) {
-            log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
-        }
-
-        @Override
-        public void onFailure(Throwable t) {
-            log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
     }
 
@@ -993,7 +963,8 @@ public class CloudManagerService {
 
     private void scheduleReconnect(Exception e) {
         initialized = false;
-        saveCloudConnectionStatus(initialized);
+        save(DefaultDeviceStateService.ACTIVITY_STATE, false);
+        save(DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
@@ -1004,6 +975,34 @@ public class CloudManagerService {
                         this::onDownlink,
                         this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void save(String key, long value) {
+        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+    }
+
+    private void save(String key, boolean value) {
+        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+    }
+
+    private static class AttributeSaveCallback implements FutureCallback<Void> {
+        private final String key;
+        private final Object value;
+
+        AttributeSaveCallback(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public void onSuccess(@javax.annotation.Nullable Void result) {
+            log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+            log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
     }
 }
