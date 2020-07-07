@@ -31,14 +31,17 @@
 package org.thingsboard.server.service.cloud;
 
 import com.datastax.driver.core.utils.UUIDs;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -56,6 +59,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -67,12 +71,13 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -131,6 +136,7 @@ import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcess
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.user.UserLoaderService;
 
 import javax.annotation.PreDestroy;
@@ -147,8 +153,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-
 @Service
 @Slf4j
 public class CloudManagerService {
@@ -158,6 +162,9 @@ public class CloudManagerService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+
+    private static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
+    private static final String EDGE_CONNECTED_TO_CLOUD_ATTR_KEY = "connectedToCloud";
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -176,6 +183,9 @@ public class CloudManagerService {
 
     @Autowired
     private AttributesService attributesService;
+
+    @Autowired
+    protected TelemetrySubscriptionService tsSubService;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -738,9 +748,57 @@ public class CloudManagerService {
                 scheduledFuture = null;
             }
             initialized = true;
+            saveCloudConnectionStatus(initialized);
+            saveEdgeSettings(edgeConfiguration);
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
+    }
+
+    private void saveCloudConnectionStatus(Boolean connectionStatus) {
+        BaseAttributeKvEntry edgeSettingAttr =
+                new BaseAttributeKvEntry(new BooleanDataEntry(EDGE_CONNECTED_TO_CLOUD_ATTR_KEY, connectionStatus), System.currentTimeMillis());
+        List<AttributeKvEntry> attributes =
+                Collections.singletonList(edgeSettingAttr);
+        tsSubService.saveAndNotify(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes,
+                new AttributeSaveCallback(EDGE_CONNECTED_TO_CLOUD_ATTR_KEY, connectionStatus));
+    }
+
+    private static class AttributeSaveCallback implements FutureCallback<Void> {
+        private final String key;
+        private final Object value;
+
+        AttributeSaveCallback(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public void onSuccess(@javax.annotation.Nullable Void result) {
+            log.trace("Successfully updated attribute [{}] with value [{}]", key, value);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+            log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
+        }
+    }
+
+    private void saveEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
+        EdgeSettings edgeSettings = new EdgeSettings();
+        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
+        edgeSettings.setEdgeId(edgeUUID.toString());
+        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
+        edgeSettings.setTenantId(tenantUUID.toString());
+        edgeSettings.setName(edgeConfiguration.getName());
+        edgeSettings.setType(edgeConfiguration.getType());
+        edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
+        edgeSettings.setCloudType(edgeConfiguration.getCloudType());
+        BaseAttributeKvEntry edgeSettingAttr =
+                new BaseAttributeKvEntry(new StringDataEntry(EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
+        List<AttributeKvEntry> attributes =
+                Collections.singletonList(edgeSettingAttr);
+        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
@@ -935,6 +993,7 @@ public class CloudManagerService {
 
     private void scheduleReconnect(Exception e) {
         initialized = false;
+        saveCloudConnectionStatus(initialized);
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
