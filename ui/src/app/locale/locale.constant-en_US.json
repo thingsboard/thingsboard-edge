@@ -898,6 +898,9 @@
         "unhandled-error-code": "Unhandled error code: {{errorCode}}",
         "unknown-error": "Unknown error"
     },
+    "edge": {
+        "configuration": "Edge Info"
+    },
     "entity": {
         "entity": "Entity",
         "entities": "Entities",

@@ -373,6 +373,13 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             } else if (authority === 'TENANT_ADMIN') {
                 sections.push(
                     {
+                        name: 'edge.configuration',
+                        type: 'link',
+                        state: 'home.edge',
+                        icon: 'router',
+                        disabled: disabledItems.indexOf('home') > -1
+                    },
+                    {
                         name: 'home.home',
                         type: 'link',
                         state: 'home.links',
