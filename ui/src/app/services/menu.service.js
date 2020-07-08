@@ -377,7 +377,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         type: 'link',
                         state: 'home.edge',
                         icon: 'router',
-                        disabled: disabledItems.indexOf('home') > -1
+                        disabled: false
                     },
                     {
                         name: 'home.home',
@@ -570,7 +570,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'edge.info',
                                     icon: 'router',
                                     state: 'home.edge',
-                                    disabled: disabledItems.indexOf('customer_groups') > -1
+                                    disabled: false
                                 }
                             ]
                         }
