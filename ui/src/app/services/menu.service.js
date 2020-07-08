@@ -373,7 +373,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             } else if (authority === 'TENANT_ADMIN') {
                 sections.push(
                     {
-                        name: 'edge.configuration',
+                        name: 'edge.info',
                         type: 'link',
                         state: 'home.edge',
                         icon: 'router',

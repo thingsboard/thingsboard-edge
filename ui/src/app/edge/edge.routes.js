@@ -49,10 +49,10 @@ export default function EdgeRoutes($stateProvider) {
                 }
             },
             data: {
-                pageTitle: 'edge.configuration'
+                pageTitle: 'edge.info'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.configuration"}'
+                label: '{"icon": "router", "label": "edge.info"}'
             }
         });
 }

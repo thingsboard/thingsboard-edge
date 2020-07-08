@@ -899,9 +899,9 @@
         "unknown-error": "Unknown error"
     },
     "edge": {
-        "name": "Edge Name",
+        "name": "Edge name",
         "id": "ID",
-        "configuration": "Edge Info",
+        "info": "Edge info",
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
         "type": "Type",
