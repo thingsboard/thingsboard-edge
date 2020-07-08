@@ -681,6 +681,12 @@ export default angular.module('thingsboard.types', [])
                     helpId: 'entityViews'
                 }
             },
+            edgeAttributeKeys: {
+                active: "active",
+                lastConnectTime: "lastConnectTime",
+                lastDisconnectTime: "lastDisconnectTime",
+                edgeSettings: "edgeSettings"
+            },
             importEntityColumnType: {
                 name: {
                     name: 'import.column-type.name',

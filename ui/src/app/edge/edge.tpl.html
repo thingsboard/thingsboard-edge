@@ -35,40 +35,40 @@
         <md-card-title>
             <md-card-title-text>
                 <span translate class="md-headline">edge.name</span>
-                <span style='opacity: 0.7;'>{{ vm.edge.name }}</span>
+                <span style='opacity: 0.7;'>{{ vm.edgeSettings.name }}</span>
             </md-card-title-text>
             <md-card-title-text>
-                <span translate class="md-subhead" ng-if="vm.isConnected" style="color:forestgreen">edge.connected</span>
-                <span translate class="md-subhead" ng-if="!vm.isConnected" style="color:darkred;">edge.disconnected</span>
-                <md-icon class="material-icons" style="margin-top: 2px; margin-left: 0;" ng-if="vm.isConnected">cloud_queue</md-icon>
-                <md-icon class="material-icons" style="margin-top: 2px; margin-left: 0;" ng-if="!vm.isConnected">cloud_off</md-icon>
+                <span translate class="md-subhead" ng-if="vm.active" style="color:forestgreen">edge.connected</span>
+                <span translate class="md-subhead" ng-if="!vm.active" style="color:darkred;">edge.disconnected</span>
+                <md-icon class="material-icons" style="margin-top: 2px; margin-left: 0;" ng-if="vm.active">cloud_queue</md-icon>
+                <md-icon class="material-icons" style="margin-top: 2px; margin-left: 0;" ng-if="!vm.active">cloud_off</md-icon>
             </md-card-title-text>
         </md-card-title>
         <md-card-content>
-            <form name="theForm">
+            <form name="theForm" disabled>
                 <md-input-container class="md-block" ng-class="edge-label">
                     <label translate>edge.id</label>
-                    <input ng-model="vm.edge.edgeId" disabled>
+                    <input ng-model="vm.edgeSettings.edgeId">
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label translate>edge.type</label>
-                    <input ng-model="vm.edge.type" disabled>
+                    <input ng-model="vm.edgeSettings.type">
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label translate>edge.routing-key</label>
-                    <input ng-model="vm.edge.routingKey" disabled>
+                    <input ng-model="vm.edgeSettings.routingKey" >
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label translate>edge.cloud-type</label>
-                    <input ng-model="vm.edge.cloudType" disabled>
+                    <input ng-model="vm.edgeSettings.cloudType">
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label translate>edge.last-connect-time</label>
-                    <input ng-model="vm.edge.lastConnectTime | date :  'yyyy-MM-dd HH:mm:ss'" disabled>
+                    <input ng-model="vm.lastConnectTime">
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label translate>edge.last-disconnect-time</label>
-                    <input ng-model="vm.edge.lastDisconnectTime | date :  'yyyy-MM-dd HH:mm:ss'" disabled>
+                    <input ng-model="vm.lastDisconnectTime">
                 </md-input-container>
             </form>
         </md-card-content>

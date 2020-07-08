@@ -29,34 +29,32 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController(attributeService, types) {
+export default function EdgeController($filter, attributeService, userService, types) {
 
     var vm = this;
 
-    vm.edge = {};
-    vm.edgeTemp = {};
-    vm.isConnected = false;
+    vm.active = '';
+    vm.lastConnectTime = '';
+    vm.lastDisconnectTime = '';
+    vm.edgeSettings = {};
 
     loadEdgeInfo();
 
     function loadEdgeInfo() {
+        let keys = Object.values(types.edgeAttributeKeys).join(",");
+        let currentTenantId = userService.getCurrentUser().tenantId;
 
-        vm.edge = {
-            "edgeId":"99018220-aaef-11ea-977d-6bf0a17b0574",
-            "tenantId":"a32f8c10-a00e-11ea-a2fe-c1b6e3e565a5",
-            "name":"Edge 1",
-            "type":"default",
-            "routingKey":"ce66247e-9eee-5ccb-27ce-1f992fb613f6",
-            "cloudType":"CE",
-            "lastDisconnectTime": "1593592840037",
-            "lastConnectTime": "1593592840037"
-        };
+        attributeService.getEntityAttributesValues(types.entityType.tenant, currentTenantId, types.attributesScope.server.value, keys, {}).then(
+            function success(attributes) {
+                let edge = attributes.reduce(function (map, attribute) {
+                    map[attribute.key] = attribute.value;
+                    return map;
+                }, {});
+                vm.active = edge.active;
+                vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
+                vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
+                vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+            });
     }
 
-    attributeService.getEntityAttributesValues(types.entityType.tenant,
-        vm.edge.tenantId, types.attributesScope.server.value,
-        ["active", "lastConnectTime", "lastDisconnectTime"] ).then(
-        function success(edgeInfo) {
-            vm.edgeTemp = edgeInfo;
-        });
 }
