@@ -56,5 +56,4 @@ export default function EdgeController($filter, attributeService, userService, t
                 vm.edgeSettings = angular.fromJson(edge.edgeSettings);
             });
     }
-
 }

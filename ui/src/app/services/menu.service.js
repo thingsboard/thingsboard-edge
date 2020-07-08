@@ -562,7 +562,19 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-
+                    homeSections.push(
+                        {
+                            name: 'edge.info',
+                            places: [
+                                {
+                                    name: 'edge.info',
+                                    icon: 'router',
+                                    state: 'home.edge',
+                                    disabled: disabledItems.indexOf('customer_groups') > -1
+                                }
+                            ]
+                        }
+                    );
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.ruleChain)) {
                     homeSections.push(
                         {
