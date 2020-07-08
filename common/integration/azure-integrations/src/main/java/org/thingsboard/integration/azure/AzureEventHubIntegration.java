@@ -93,6 +93,8 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (!this.configuration.isEnabled()) {
             return;
         }
+        clientExecutor = Executors.newSingleThreadScheduledExecutor();
+
         this.context = params.getContext();
         AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
@@ -113,7 +115,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
         started = true;
         executorService = Executors.newFixedThreadPool(receivers.size());
-        clientExecutor = Executors.newSingleThreadScheduledExecutor();
         receiverFutures = new ArrayList<>();
         receiverFutures.addAll(receivers.stream().map(receiver -> executorService.submit(new ReceiverRunnable(receiver))).collect(Collectors.toList()));
     }
@@ -145,7 +146,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             serviceClient.closeAsync();
         }
         if (clientExecutor != null) {
-            clientExecutor.shutdownNow();
+            try {
+                clientExecutor.awaitTermination(3, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Failed to stop Event Hub Client!!!");
+            }
         }
     }
 
