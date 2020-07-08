@@ -29,10 +29,34 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController() {
+export default function EdgeController(attributeService, types) {
 
-    // var vm = this;
-    //
-    // vm.types = types;
+    var vm = this;
 
+    vm.edge = {};
+    vm.edgeTemp = {};
+    vm.isConnected = false;
+
+    loadEdgeInfo();
+
+    function loadEdgeInfo() {
+
+        vm.edge = {
+            "edgeId":"99018220-aaef-11ea-977d-6bf0a17b0574",
+            "tenantId":"a32f8c10-a00e-11ea-a2fe-c1b6e3e565a5",
+            "name":"Edge 1",
+            "type":"default",
+            "routingKey":"ce66247e-9eee-5ccb-27ce-1f992fb613f6",
+            "cloudType":"CE",
+            "lastDisconnectTime": "1593592840037",
+            "lastConnectTime": "1593592840037"
+        };
+    }
+
+    attributeService.getEntityAttributesValues(types.entityType.tenant,
+        vm.edge.tenantId, types.attributesScope.server.value,
+        ["active", "lastConnectTime", "lastDisconnectTime"] ).then(
+        function success(edgeInfo) {
+            vm.edgeTemp = edgeInfo;
+        });
 }
