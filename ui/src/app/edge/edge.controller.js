@@ -33,18 +33,23 @@ export default function EdgeController($filter, attributeService, userService, t
 
     var vm = this;
 
-    vm.active = '';
+    vm.active = Boolean;
     vm.lastConnectTime = '';
     vm.lastDisconnectTime = '';
     vm.edgeSettings = {};
 
+    var params = {
+        entityType: types.entityType.tenant,
+        entityId: userService.getCurrentUser().tenantId,
+        attributeScope: types.attributesScope.server.value,
+        keys: Object.values(types.edgeAttributeKeys).join(","),
+        config: {}
+    }
+
     loadEdgeInfo();
 
     function loadEdgeInfo() {
-        let keys = Object.values(types.edgeAttributeKeys).join(",");
-        let currentTenantId = userService.getCurrentUser().tenantId;
-
-        attributeService.getEntityAttributesValues(types.entityType.tenant, currentTenantId, types.attributesScope.server.value, keys, {}).then(
+        attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config).then(
             function success(attributes) {
                 let edge = attributes.reduce(function (map, attribute) {
                     map[attribute.key] = attribute.value;
