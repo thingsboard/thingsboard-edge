@@ -60,12 +60,12 @@ public class AlarmUpdateProcessor extends BaseUpdateProcessor {
                             existingAlarm.setType(alarmUpdateMsg.getName());
                             existingAlarm.setOriginator(originatorId);
                             existingAlarm.setSeverity(AlarmSeverity.valueOf(alarmUpdateMsg.getSeverity()));
-                            existingAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
                             existingAlarm.setStartTs(alarmUpdateMsg.getStartTs());
-                            existingAlarm.setAckTs(alarmUpdateMsg.getAckTs());
                             existingAlarm.setClearTs(alarmUpdateMsg.getClearTs());
                             existingAlarm.setPropagate(alarmUpdateMsg.getPropagate());
                         }
+                        existingAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
+                        existingAlarm.setAckTs(alarmUpdateMsg.getAckTs());
                         existingAlarm.setEndTs(alarmUpdateMsg.getEndTs());
                         existingAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
                         alarmService.createOrUpdateAlarm(existingAlarm);
