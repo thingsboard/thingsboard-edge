@@ -898,6 +898,18 @@
         "unhandled-error-code": "Unhandled error code: {{errorCode}}",
         "unknown-error": "Unknown error"
     },
+    "edge": {
+        "name": "Edge name",
+        "id": "ID",
+        "info": "Edge info",
+        "last-connect-time": "Last time connected to Cloud",
+        "last-disconnect-time": "Last time disconnected from Cloud",
+        "type": "Type",
+        "routing-key": "Routing Key",
+        "cloud-type": "Cloud type",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
+    },
     "entity": {
         "entity": "Entity",
         "entities": "Entities",

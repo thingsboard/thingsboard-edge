@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,17 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+/* eslint-disable import/no-unresolved, import/default */
 
-import lombok.Data;
+import edgeTemplate from './edge.tpl.html';
 
-@Data
-public class EdgeSettings {
+/* eslint-enable import/no-unresolved, import/default */
 
-    private String edgeId;
-    private String tenantId;
-    private String name;
-    private String type;
-    private String routingKey;
-    private String cloudType;
+/*@ngInject*/
+export default function EdgeRoutes($stateProvider) {
+    $stateProvider
+        .state('home.edge', {
+            url: '/edge',
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: edgeTemplate,
+                    controller: 'EdgeController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                pageTitle: 'edge.info'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "edge.info"}'
+            }
+        });
 }

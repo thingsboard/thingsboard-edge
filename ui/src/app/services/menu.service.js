@@ -373,6 +373,13 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             } else if (authority === 'TENANT_ADMIN') {
                 sections.push(
                     {
+                        name: 'edge.info',
+                        type: 'link',
+                        state: 'home.edge',
+                        icon: 'router',
+                        disabled: false
+                    },
+                    {
                         name: 'home.home',
                         type: 'link',
                         state: 'home.links',
@@ -555,7 +562,19 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-
+                    homeSections.push(
+                        {
+                            name: 'edge.info',
+                            places: [
+                                {
+                                    name: 'edge.info',
+                                    icon: 'router',
+                                    state: 'home.edge',
+                                    disabled: false
+                                }
+                            ]
+                        }
+                    );
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.ruleChain)) {
                     homeSections.push(
                         {

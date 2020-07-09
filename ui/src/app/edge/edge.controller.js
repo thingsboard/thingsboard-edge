@@ -1,4 +1,4 @@
-/**
+/*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,17 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+/*@ngInject*/
+export default function EdgeController($filter, attributeService, userService, types) {
 
-import lombok.Data;
+    var vm = this;
 
-@Data
-public class EdgeSettings {
+    vm.active = '';
+    vm.lastConnectTime = '';
+    vm.lastDisconnectTime = '';
+    vm.edgeSettings = {};
 
-    private String edgeId;
-    private String tenantId;
-    private String name;
-    private String type;
-    private String routingKey;
-    private String cloudType;
+    loadEdgeInfo();
+
+    function loadEdgeInfo() {
+        let keys = Object.values(types.edgeAttributeKeys).join(",");
+        let currentTenantId = userService.getCurrentUser().tenantId;
+
+        attributeService.getEntityAttributesValues(types.entityType.tenant, currentTenantId, types.attributesScope.server.value, keys, {}).then(
+            function success(attributes) {
+                let edge = attributes.reduce(function (map, attribute) {
+                    map[attribute.key] = attribute.value;
+                    return map;
+                }, {});
+                vm.active = edge.active;
+                vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
+                vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
+                vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+            });
+    }
 }

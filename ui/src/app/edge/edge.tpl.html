@@ -1,0 +1,71 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div layout="row" width="100%" layout-wrap>
+    <md-card flex-gt-sm="60" flex="100" style="height: 100%;">
+        <md-card-title>
+            <md-card-title-text>
+                <span translate class="md-headline">{{ vm.edgeSettings.name }}</span>
+                    <span translate class="md-subhead" ng-if="vm.active" style="color:#008000">edge.connected</span>
+                    <span translate class="md-subhead" ng-if="!vm.active" style="color:#f00">edge.disconnected</span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-card-content>
+            <form name="theForm" disabled>
+                <md-input-container class="md-block" ng-class="edge-label">
+                    <label translate>edge.id</label>
+                    <input ng-model="vm.edgeSettings.edgeId">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label translate>edge.type</label>
+                    <input ng-model="vm.edgeSettings.type">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label translate>edge.routing-key</label>
+                    <input ng-model="vm.edgeSettings.routingKey" >
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label translate>edge.cloud-type</label>
+                    <input ng-model="vm.edgeSettings.cloudType">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label translate>edge.last-connect-time</label>
+                    <input ng-model="vm.lastConnectTime">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label translate>edge.last-disconnect-time</label>
+                    <input ng-model="vm.lastDisconnectTime">
+                </md-input-container>
+            </form>
+        </md-card-content>
+    </md-card>
+</div>
