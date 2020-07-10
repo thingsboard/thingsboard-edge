@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($filter, $translate,attributeService, userService, types) {
+export default function EdgeController($scope, $filter, $translate,attributeService, userService, types) {
 
     var vm = this;
 
@@ -46,8 +46,9 @@ export default function EdgeController($filter, $translate,attributeService, use
             search: null
         }
     };
+    var subscriptionId = null;
 
-    vm.active;
+    vm.active = '';
     vm.lastConnectTime = '';
     vm.lastDisconnectTime = '';
     vm.edgeSettings = {};
@@ -61,7 +62,7 @@ export default function EdgeController($filter, $translate,attributeService, use
                 onUpdate(attributes);
             });
 
-        attributeService.subscribeForEntityAttributes(params.entityType, params.entityId, params.attributeScope);
+        checkSubscription();
 
         attributeService.getEntityAttributes(params.entityType, params.entityId, params.attributeScope, params.query,
             function (attributes) {
@@ -82,5 +83,20 @@ export default function EdgeController($filter, $translate,attributeService, use
         vm.edgeSettings = angular.fromJson(edge.edgeSettings);
         vm.activeStatus = vm.active === 'true' ? $translate.instant('edge.connected') : $translate.instant('edge.disconnected');
     }
+
+    function checkSubscription() {
+        var newSubscriptionId = null;
+        if (params.entityId && params.entityType && params.attributeScope) {
+            newSubscriptionId = attributeService.subscribeForEntityAttributes(params.entityType, params.entityId, params.attributeScope);
+        }
+        if (subscriptionId && subscriptionId != newSubscriptionId) {
+            attributeService.unsubscribeForEntityAttributes(subscriptionId);
+        }
+        subscriptionId = newSubscriptionId;
+    }
+
+    $scope.$on('$destroy', function() {
+        attributeService.unsubscribeForEntityAttributes(subscriptionId);
+    });
 
 }
