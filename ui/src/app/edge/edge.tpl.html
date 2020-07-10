@@ -35,8 +35,7 @@
         <md-card-title>
             <md-card-title-text>
                 <span translate class="md-headline">{{ vm.edgeSettings.name }}</span>
-                    <span translate class="md-subhead" ng-if="vm.active" style="color:#008000">edge.connected</span>
-                    <span translate class="md-subhead" ng-if="!vm.active" style="color:#f00">edge.disconnected</span>
+                <span translate ng-style="vm.active == 'true' ? {'color': '#008000'} : {'color': '#f00'}" class="md-subhead">{{vm.activeStatus}}</span>
             </md-card-title-text>
         </md-card-title>
         <md-card-content>

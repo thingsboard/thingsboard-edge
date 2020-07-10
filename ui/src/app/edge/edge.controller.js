@@ -29,36 +29,58 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($filter, attributeService, userService, types) {
+export default function EdgeController($filter, $translate,attributeService, userService, types) {
 
     var vm = this;
-
-    vm.active = Boolean;
-    vm.lastConnectTime = '';
-    vm.lastDisconnectTime = '';
-    vm.edgeSettings = {};
 
     var params = {
         entityType: types.entityType.tenant,
         entityId: userService.getCurrentUser().tenantId,
         attributeScope: types.attributesScope.server.value,
         keys: Object.values(types.edgeAttributeKeys).join(","),
-        config: {}
-    }
+        config: {},
+        query: {
+            order: '',
+            limit: 5,
+            page: 1,
+            search: null
+        }
+    };
+
+    vm.active;
+    vm.lastConnectTime = '';
+    vm.lastDisconnectTime = '';
+    vm.edgeSettings = {};
+    vm.activeStatus = '';
 
     loadEdgeInfo();
 
     function loadEdgeInfo() {
-        attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config).then(
-            function success(attributes) {
-                let edge = attributes.reduce(function (map, attribute) {
-                    map[attribute.key] = attribute.value;
-                    return map;
-                }, {});
-                vm.active = edge.active;
-                vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
-                vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
-                vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+        attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config)
+            .then(function success(attributes) {
+                onUpdate(attributes);
             });
+
+        attributeService.subscribeForEntityAttributes(params.entityType, params.entityId, params.attributeScope);
+
+        attributeService.getEntityAttributes(params.entityType, params.entityId, params.attributeScope, params.query,
+            function (attributes) {
+            if (attributes && attributes.data) {
+                onUpdate(attributes.data);
+            }
+        });
     }
+    
+    function onUpdate(attributes) {
+        let edge = attributes.reduce(function (map, attribute) {
+            map[attribute.key] = attribute.value;
+            return map;
+        }, {});
+        vm.active = edge.active.toString();
+        vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
+        vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
+        vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+        vm.activeStatus = vm.active === 'true' ? $translate.instant('edge.connected') : $translate.instant('edge.disconnected');
+    }
+
 }
