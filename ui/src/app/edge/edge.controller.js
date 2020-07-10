@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($scope, $filter, $translate,attributeService, userService, types) {
+export default function EdgeController($scope, $filter, $translate, attributeService, userService, types) {
 
     var vm = this;
 
