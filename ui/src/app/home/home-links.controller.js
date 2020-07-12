@@ -31,13 +31,26 @@
 import './home-links.scss';
 
 /*@ngInject*/
-export default function HomeLinksController($scope, $mdMedia, menu) {
+export default function HomeLinksController($scope, $mdMedia, menu, entityService, $translate) {
 
     var vm = this;
 
     vm.sectionColspan = sectionColspan;
     vm.sectionPlaces = sectionPlaces;
     vm.showSection = showSection;
+    vm.edgeName = $translate.instant('home.home');
+
+    loadEdgeName();
+
+    function loadEdgeName() {
+        entityService.getEdgeName().then(
+            function success(entity) {
+                vm.edgeName = angular.fromJson(entity.value).name;
+            },
+            function fail() {
+            }
+        );
+    }
 
     $scope.$watch(function() { return $mdMedia('lg'); }, function() {
         updateColumnCount();

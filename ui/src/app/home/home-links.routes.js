@@ -53,8 +53,9 @@ export default function HomeLinksRoutes($stateProvider) {
                 pageTitle: 'home.home'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "home", "label": "home.home"}',
+                label: '{"icon": "home", "label": "{{vm.edgeName}}"}',
                 icon: 'home'
             }
         });
+
 }

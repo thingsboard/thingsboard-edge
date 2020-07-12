@@ -63,7 +63,8 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         deleteRelatedEntity: deleteRelatedEntity,
         moveEntity: moveEntity,
         copyEntity: copyEntity,
-        getEntityGroupEntities: getEntityGroupEntities
+        getEntityGroupEntities: getEntityGroupEntities,
+        getEdgeName: getEdgeName
     };
 
     return service;
@@ -2024,5 +2025,37 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             return null;
         }
     }
+
+    function getEdgeName() {
+        var deferred = $q.defer();
+        var params = {
+            entityType: types.entityType.tenant,
+            entityId: userService.getCurrentUser().tenantId,
+            attributeScope: types.attributesScope.server.value,
+            keys: ['edgeSettings'],
+            config: {},
+            query: { order: '', limit: 5, page: 1, search: null }
+        };
+        var promise = attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config);
+        if (promise) {
+            promise.then(
+                function success(result) {
+                    deferred.resolve(result[0]);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.reject();
+        }
+        return deferred.promise;
+    }
+
+
+
+
+
+
 
 }
