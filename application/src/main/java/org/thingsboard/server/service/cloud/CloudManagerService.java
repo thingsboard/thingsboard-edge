@@ -842,6 +842,7 @@ public class CloudManagerService {
                             if (metaData != null) {
                                 metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
                                 if (entityData.hasPostAttributesMsg()) {
+                                    metaData.putValue("scope", entityData.getPostAttributeScope());
                                     processPostAttributes(entityId, entityData.getPostAttributesMsg(), metaData);
                                 }
                                 if (entityData.hasPostTelemetryMsg()) {
@@ -956,7 +957,6 @@ public class CloudManagerService {
 
     private void processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-        metaData.putValue("scope", msg.getScope());
         TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
         // TODO: voba - verify that null callback is OK
         tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
