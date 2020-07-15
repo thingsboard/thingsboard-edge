@@ -30,10 +30,11 @@
 ///
 
 import { FormGroup } from '@angular/forms';
-import { mqttCredentialType } from '@home/pages/integration/integration-forms-templates';
+import {azureIotHubCredentialsType, mqttCredentialType} from '@home/pages/integration/integration-forms-templates';
 
 const basic = ['username', 'password'];
 const pem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey', 'privateKeyPassword'];
+const sas = ['sasKey', 'caCertFileName', 'caCert'];
 
 export function changeRequiredCredentialsFields(form: FormGroup, credentialType: mqttCredentialType) {
     let disabled = [];
@@ -54,6 +55,24 @@ export function changeRequiredCredentialsFields(form: FormGroup, credentialType:
 
     disableFields(form, disabled);
     enableFields(form, enabled);
+}
+
+export function changeRequiredAzureCredentialsFields(form: FormGroup, credentialType: azureIotHubCredentialsType) {
+  let disabled = [];
+  let enabled = [];
+  switch (credentialType) {
+    case 'sas':
+      disabled = pem;
+      enabled = sas;
+      break;
+    case 'cert.PEM':
+      disabled = basic;
+      enabled = pem;
+      break;
+  }
+
+  disableFields(form, disabled);
+  enableFields(form, enabled);
 }
 
 export function disableFields(form: FormGroup, fields: string[], clear = true) {

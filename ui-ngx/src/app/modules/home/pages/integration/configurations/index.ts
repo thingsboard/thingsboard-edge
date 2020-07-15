@@ -45,6 +45,7 @@ import { UdpIntegrationFormComponent } from './udp-integration-form/udp-integrat
 import { MqttTopicFiltersComponent } from './mqtt-topic-filters/mqtt-topic-filters.component';
 import { OpcUaSubscriptionTagsComponent } from './opc-ua-subscription-tags/opc-ua-subscription-tags.component';
 import { CustomIntegrationFormComponent } from './custom-integration-form/custom-integration-form.component';
+import {AzureIotHubIntegrationFormComponent} from "@home/pages/integration/configurations/azure-iot-hub-integration-form/azure-iot-hub-integration-form.component";
 
 export const integrations = [
     CertUploadComponent,
@@ -58,6 +59,7 @@ export const integrations = [
     AwsIotIntegrationFormComponent,
     AwsSqsIntegrationFormComponent,
     AzureEventHubIntegrationFormComponent,
+    AzureIotHubIntegrationFormComponent,
     IbmWatsonIotIntegrationFormComponent,
     KafkaIntegrationFormComponent,
     TcpIntegrationFormComponent,

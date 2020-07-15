@@ -49,6 +49,7 @@ export enum IntegrationType {
   TTN = 'TTN',
   TTI = 'TTI',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
+  AZURE_IOT_HUB = 'AZURE_IOT_HUB',
   OPC_UA = 'OPC_UA',
   UDP = 'UDP',
   TCP = 'TCP',
@@ -120,6 +121,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
     [
       IntegrationType.AZURE_EVENT_HUB,
       { name: 'integration.type-azure-event-hub' }
+    ],
+    [
+      IntegrationType.AZURE_IOT_HUB,
+      { name: 'integration.type-azure-iot-hub' }
     ],
     [
       IntegrationType.OPC_UA,
