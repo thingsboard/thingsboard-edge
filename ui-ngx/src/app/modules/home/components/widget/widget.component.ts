@@ -84,7 +84,7 @@ import {
   StateObject,
   StateParams,
   SubscriptionEntityInfo,
-  SubscriptionInfo,
+  SubscriptionInfo, SubscriptionMessage,
   WidgetSubscriptionContext,
   WidgetSubscriptionOptions
 } from '@core/api/widget-api.models';
@@ -103,13 +103,16 @@ import { Timewindow } from '@shared/models/time/time.models';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
 import { DashboardService } from '@core/http/dashboard.service';
-import { DatasourceService } from '@core/api/datasource.service';
 import { WidgetSubscription } from '@core/api/widget-subscription';
 import { EntityService } from '@core/http/entity.service';
 import { DatePipe } from '@angular/common';
 import { ServicesMap } from '@home/models/services.map';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { EntityDataService } from '@core/api/entity-data.service';
+import { TranslateService } from '@ngx-translate/core';
+import { NotificationType } from '@core/notification/notification.models';
+import { AlarmDataService } from '@core/api/alarm-data.service';
 
 @Component({
   selector: 'tb-widget',
@@ -157,8 +160,13 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   subscriptionInited = false;
   destroyed = false;
   widgetSizeDetected = false;
+  widgetInstanceInited = false;
+  dataUpdatePending = false;
+  pendingMessage: SubscriptionMessage;
 
   cafs: {[cafId: string]: CancelAnimationFrame} = {};
+
+  toastTargetId = 'widget-messages-' + this.utils.guid();
 
   private widgetResize$: ResizeObserver;
 
@@ -178,10 +186,11 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
               private timeService: TimeService,
               private deviceService: DeviceService,
               private entityService: EntityService,
-              private alarmService: AlarmService,
               private dashboardService: DashboardService,
-              private datasourceService: DatasourceService,
               private importExport: ImportExportService,
+              private entityDataService: EntityDataService,
+              private alarmDataService: AlarmDataService,
+              private translate: TranslateService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private raf: RafService,
@@ -314,9 +323,10 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     this.subscriptionContext = new WidgetSubscriptionContext(this.widgetContext.dashboard);
     this.subscriptionContext.timeService = this.timeService;
     this.subscriptionContext.deviceService = this.deviceService;
-    this.subscriptionContext.alarmService = this.alarmService;
-    this.subscriptionContext.datasourceService = this.datasourceService;
     this.subscriptionContext.datePipe = this.datePipe;
+    this.subscriptionContext.translate = this.translate;
+    this.subscriptionContext.entityDataService = this.entityDataService;
+    this.subscriptionContext.alarmDataService = this.alarmDataService;
     this.subscriptionContext.utils = this.utils;
     this.subscriptionContext.raf = this.raf;
     this.subscriptionContext.widgetUtils = this.widgetContext.utils;
@@ -385,6 +395,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         subscription.destroy();
       }
       this.subscriptionInited = false;
+      this.dataUpdatePending = false;
+      this.pendingMessage = null;
       this.widgetContext.subscriptions = {};
       if (this.widgetContext.inited) {
         this.widgetContext.inited = false;
@@ -397,6 +409,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         try {
           if (shouldDestroyWidgetInstance) {
             this.widgetTypeInstance.onDestroy();
+            this.widgetInstanceInited = false;
           }
         } catch (e) {
           this.handleWidgetException(e);
@@ -501,6 +514,15 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         try {
           if (this.displayWidgetInstance()) {
             this.widgetTypeInstance.onInit();
+            this.widgetInstanceInited = true;
+            if (this.dataUpdatePending) {
+              this.widgetTypeInstance.onDataUpdated();
+              this.dataUpdatePending = false;
+            }
+            if (this.pendingMessage) {
+              this.displayMessage(this.pendingMessage.severity, this.pendingMessage.message);
+              this.pendingMessage = null;
+            }
           } else {
             this.loadingData = false;
             this.displayNoData = true;
@@ -642,6 +664,20 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       }
     ));
 
+    this.rxSubscriptions.push(this.widgetContext.aliasController.filtersChanged.subscribe(
+      (filterIds) => {
+        let subscriptionChanged = false;
+        for (const id of Object.keys(this.widgetContext.subscriptions)) {
+          const subscription = this.widgetContext.subscriptions[id];
+          subscriptionChanged = subscriptionChanged || subscription.onFiltersChanged(filterIds);
+        }
+        if (subscriptionChanged && !this.typeParameters.useCustomDatasources) {
+          this.displayNoData = false;
+          this.reInit();
+        }
+      }
+    ));
+
     this.rxSubscriptions.push(this.widgetContext.dashboard.dashboardTimewindowChanged.subscribe(
       (dashboardTimewindow) => {
         for (const id of Object.keys(this.widgetContext.subscriptions)) {
@@ -687,6 +723,14 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     console.error(e);
     this.widgetErrorData = this.utils.processWidgetException(e);
     this.detectChanges();
+  }
+
+  private displayMessage(type: NotificationType, message: string, duration?: number) {
+    this.widgetContext.showToast(type, message, duration, 'bottom', 'right', this.toastTargetId);
+  }
+
+  private clearMessage() {
+    this.widgetContext.hideToast(this.toastTargetId);
   }
 
   private configureDynamicWidgetComponent() {
@@ -773,31 +817,24 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         options.useDashboardTimewindow = true;
       }
     }
-    let createDatasourcesObservable: Observable<Array<Datasource> | Datasource>;
+    let datasource: Datasource;
     if (options.type === widgetType.alarm) {
-      createDatasourcesObservable = this.entityService.createAlarmSourceFromSubscriptionInfo(subscriptionsInfo[0]);
+      datasource = this.entityService.createAlarmSourceFromSubscriptionInfo(subscriptionsInfo[0]);
     } else {
-      createDatasourcesObservable = this.entityService.createDatasourcesFromSubscriptionsInfo(subscriptionsInfo);
+      datasource = this.entityService.createDatasourcesFromSubscriptionsInfo(subscriptionsInfo);
     }
-    createDatasourcesObservable.subscribe(
-      (result) => {
-        if (options.type === widgetType.alarm) {
-          options.alarmSource = result as Datasource;
-        } else {
-          options.datasources = result as Array<Datasource>;
+    if (options.type === widgetType.alarm) {
+      options.alarmSource = datasource;
+    } else {
+      options.datasources = [datasource];
+    }
+    this.createSubscription(options, subscribe).subscribe(
+      (subscription) => {
+        if (useDefaultComponents) {
+          this.defaultSubscriptionOptions(subscription, options);
         }
-        this.createSubscription(options, subscribe).subscribe(
-          (subscription) => {
-            if (useDefaultComponents) {
-              this.defaultSubscriptionOptions(subscription, options);
-            }
-            createSubscriptionSubject.next(subscription);
-            createSubscriptionSubject.complete();
-          },
-          (err) => {
-            createSubscriptionSubject.error(err);
-          }
-        );
+        createSubscriptionSubject.next(subscription);
+        createSubscriptionSubject.complete();
       },
       (err) => {
         createSubscriptionSubject.error(err);
@@ -822,12 +859,28 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       onDataUpdated: () => {
         try {
           if (this.displayWidgetInstance()) {
-            this.widgetTypeInstance.onDataUpdated();
+            if (this.widgetInstanceInited) {
+              this.widgetTypeInstance.onDataUpdated();
+            } else {
+              this.dataUpdatePending = true;
+            }
           }
         } catch (e){}
       },
       onDataUpdateError: (subscription, e) => {
         this.handleWidgetException(e);
+      },
+      onSubscriptionMessage: (subscription, message) => {
+        if (this.displayWidgetInstance()) {
+          if (this.widgetInstanceInited) {
+            this.displayMessage(message.severity, message.message);
+          } else {
+            this.pendingMessage = message;
+          }
+        }
+      },
+      onInitialPageDataChanged: (subscription, nextPageData) => {
+        this.reInit();
       },
       dataLoading: (subscription) => {
         if (this.loadingData !== subscription.loadingData) {
@@ -864,19 +917,14 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       options = {
         type: this.widget.type,
         stateData: this.typeParameters.stateData,
+        hasDataPageLink: this.typeParameters.hasDataPageLink,
+        singleEntity: this.typeParameters.singleEntity,
+        warnOnPageDataOverflow: this.typeParameters.warnOnPageDataOverflow,
         comparisonEnabled: comparisonSettings.comparisonEnabled,
         timeForComparison: comparisonSettings.timeForComparison
       };
       if (this.widget.type === widgetType.alarm) {
         options.alarmSource = deepClone(this.widget.config.alarmSource);
-        options.alarmSearchStatus = isDefined(this.widget.config.alarmSearchStatus) ?
-          this.widget.config.alarmSearchStatus : AlarmSearchStatus.ANY;
-        options.alarmsPollingInterval = isDefined(this.widget.config.alarmsPollingInterval) ?
-          this.widget.config.alarmsPollingInterval * 1000 : 5000;
-        options.alarmsMaxCountLoad = isDefined(this.widget.config.alarmsMaxCountLoad) ?
-          this.widget.config.alarmsMaxCountLoad : 0;
-        options.alarmsFetchSize = isDefined(this.widget.config.alarmsFetchSize) ?
-          this.widget.config.alarmsFetchSize : 100;
       } else {
         options.datasources = deepClone(this.widget.config.datasources);
       }
@@ -919,6 +967,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
             this.dynamicWidgetComponent.executingRpcRequest = subscription.executingRpcRequest;
             this.dynamicWidgetComponent.rpcErrorText = subscription.rpcErrorText;
             this.dynamicWidgetComponent.rpcRejection = subscription.rpcRejection;
+            this.clearMessage();
             this.detectChanges();
           }
         },
@@ -927,6 +976,9 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
             this.dynamicWidgetComponent.executingRpcRequest = subscription.executingRpcRequest;
             this.dynamicWidgetComponent.rpcErrorText = subscription.rpcErrorText;
             this.dynamicWidgetComponent.rpcRejection = subscription.rpcRejection;
+            if (subscription.rpcErrorText) {
+              this.displayMessage('error', subscription.rpcErrorText);
+            }
             this.detectChanges();
           }
         },
@@ -934,6 +986,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
           if (this.dynamicWidgetComponent) {
             this.dynamicWidgetComponent.rpcErrorText = null;
             this.dynamicWidgetComponent.rpcRejection = null;
+            this.clearMessage();
             this.detectChanges();
           }
         }

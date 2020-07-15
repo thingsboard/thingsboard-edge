@@ -451,7 +451,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         result.add(entityId);
         Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
         if (entityGroup.isPresent()) {
-            List<EntityId> childOwnerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+            List<EntityId> childOwnerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             for (EntityId ownerId : childOwnerIds) {
                 fetchChildOwners(tenantId, ownerId, result);
             }

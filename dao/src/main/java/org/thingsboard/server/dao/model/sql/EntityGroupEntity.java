@@ -47,6 +47,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.*;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
@@ -67,7 +69,7 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     private String name;
 
     @Column(name = ENTITY_GROUP_OWNER_ID_PROPERTY)
-    private String ownerId;
+    private UUID ownerId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = ENTITY_GROUP_OWNER_TYPE_PROPERTY)
@@ -89,10 +91,11 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         if (entityGroup.getId() != null) {
             this.setUuid(entityGroup.getId().getId());
         }
+        this.createdTime = entityGroup.getCreatedTime();
         this.name = entityGroup.getName();
         this.type = entityGroup.getType();
         if (entityGroup.getOwnerId() != null) {
-            this.ownerId = toString(entityGroup.getOwnerId().getId());
+            this.ownerId = entityGroup.getOwnerId().getId();
             this.ownerType = entityGroup.getOwnerId().getEntityType();
         }
         this.additionalInfo = entityGroup.getAdditionalInfo();
@@ -102,11 +105,11 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Override
     public EntityGroup toData() {
         EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getUuid()));
-        entityGroup.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        entityGroup.setCreatedTime(createdTime);
         entityGroup.setName(name);
         entityGroup.setType(type);
         if (ownerId != null) {
-            entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, toUUID(ownerId)));
+            entityGroup.setOwnerId(EntityIdFactory.getByTypeAndUuid(ownerType, ownerId));
         }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);

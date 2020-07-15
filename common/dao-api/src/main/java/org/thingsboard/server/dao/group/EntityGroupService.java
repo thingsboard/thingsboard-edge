@@ -114,7 +114,7 @@ public interface EntityGroupService {
 
     PageData<ShortEntityView> findGroupEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
-    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 

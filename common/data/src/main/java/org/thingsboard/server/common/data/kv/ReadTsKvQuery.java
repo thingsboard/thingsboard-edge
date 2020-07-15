@@ -38,6 +38,6 @@ public interface ReadTsKvQuery extends TsKvQuery {
 
     Aggregation getAggregation();
 
-    String getOrderBy();
+    String getOrder();
 
 }

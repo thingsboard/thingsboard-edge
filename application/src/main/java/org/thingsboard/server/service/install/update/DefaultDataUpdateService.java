@@ -173,8 +173,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
-            case "3.0.0":
-                log.info("Updating data from version 3.0.0 to 3.0.0PE ...");
+            case "3.1.0":
+                log.info("Updating data from version 3.1.0 to 3.1.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -337,7 +337,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<UserId> userIds = entityIds.stream().map(entityId -> new UserId(entityId.getId())).collect(Collectors.toList());
                 List<User> users;
                 if (!userIds.isEmpty()) {
@@ -459,7 +459,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
             } else {
                 try {
-                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                    List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                     List<DashboardId> dashboardIds = entityIds.stream().map(entityId -> new DashboardId(entityId.getId())).collect(Collectors.toList());
                     List<DashboardInfo> dashboards;
                     if (!dashboardIds.isEmpty()) {

@@ -40,29 +40,30 @@ import org.thingsboard.server.dao.model.sql.RoleEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface RoleRepository extends CrudRepository<RoleEntity, String> {
+public interface RoleRepository extends CrudRepository<RoleEntity, UUID> {
 
-    RoleEntity findByTenantIdAndCustomerIdAndName(String tenantId, String customerId, String name);
+    RoleEntity findByTenantIdAndCustomerIdAndName(UUID tenantId, UUID customerId, String name);
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId " +
             "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
-                                                 @Param("customerId") String customerId,
+    Page<RoleEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                 @Param("customerId") UUID customerId,
                                                  @Param("searchText") String searchText,
                                                  Pageable pageable);
 
     @Query("SELECT r FROM RoleEntity r WHERE r.tenantId = :tenantId " +
             "AND r.customerId = :customerId AND r.type = :type " +
             "AND LOWER(r.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
-                                                        @Param("customerId") String customerId,
+    Page<RoleEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
+                                                        @Param("customerId") UUID customerId,
                                                         @Param("type") RoleType type,
                                                         @Param("searchText") String searchText,
                                                         Pageable pageable);
 
-    List<RoleEntity> findRolesByTenantIdAndIdIn(String tenantId, List<String> roleIds);
+    List<RoleEntity> findRolesByTenantIdAndIdIn(UUID tenantId, List<UUID> roleIds);
 
 }

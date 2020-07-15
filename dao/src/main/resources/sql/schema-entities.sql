@@ -31,42 +31,46 @@
 
 
 CREATE TABLE IF NOT EXISTS admin_settings (
-    id varchar(31) NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     json_value varchar(10000000),
     key varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS alarm (
-    id varchar(31) NOT NULL CONSTRAINT alarm_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT alarm_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     ack_ts bigint,
     clear_ts bigint,
     additional_info varchar,
     end_ts bigint,
-    originator_id varchar(31),
+    originator_id uuid,
     originator_type integer,
     propagate boolean,
     severity varchar(255),
     start_ts bigint,
     status varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     propagate_relation_types varchar,
     type varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS asset (
-    id varchar(31) NOT NULL CONSTRAINT asset_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT asset_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
-    customer_id varchar(31),
+    customer_id uuid,
     name varchar(255),
     label varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     type varchar(255),
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS integration (
-    id varchar(31) NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
@@ -74,33 +78,35 @@ CREATE TABLE IF NOT EXISTS integration (
     is_remote boolean,
     name varchar(255),
     secret varchar(255),
-    converter_id varchar(31),
-    downlink_converter_id varchar(31),
+    converter_id uuid,
+    downlink_converter_id uuid,
     routing_key varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     type varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS converter (
-    id varchar(31) NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     configuration varchar(10000000),
     debug_mode boolean,
     name varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     type varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
-    id varchar(31) NOT NULL CONSTRAINT audit_log_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    customer_id varchar(31),
-    entity_id varchar(31),
+    id uuid NOT NULL CONSTRAINT audit_log_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    customer_id uuid,
+    entity_id uuid,
     entity_type varchar(255),
     entity_name varchar(255),
-    user_id varchar(31),
+    user_id uuid,
     user_name varchar(255),
     action_type varchar(255),
     action_data varchar(1000000),
@@ -110,7 +116,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 
 CREATE TABLE IF NOT EXISTS attribute_kv (
   entity_type varchar(255),
-  entity_id varchar(31),
+  entity_id uuid,
   attribute_type varchar(255),
   attribute_key varchar(255),
   bool_v boolean,
@@ -123,7 +129,8 @@ CREATE TABLE IF NOT EXISTS attribute_kv (
 );
 
 CREATE TABLE IF NOT EXISTS component_descriptor (
-    id varchar(31) NOT NULL CONSTRAINT component_descriptor_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT component_descriptor_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     actions varchar(255),
     clazz varchar UNIQUE,
     configuration_descriptor varchar,
@@ -134,7 +141,8 @@ CREATE TABLE IF NOT EXISTS component_descriptor (
 );
 
 CREATE TABLE IF NOT EXISTS customer (
-    id varchar(31) NOT NULL CONSTRAINT customer_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT customer_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     address varchar,
     address2 varchar,
@@ -144,80 +152,92 @@ CREATE TABLE IF NOT EXISTS customer (
     phone varchar(255),
     search_text varchar(255),
     state varchar(255),
-    tenant_id varchar(31),
-    parent_customer_id varchar(31),
+    tenant_id uuid,
+    parent_customer_id uuid,
     title varchar(255),
     zip varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS dashboard (
-    id varchar(31) NOT NULL CONSTRAINT dashboard_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT dashboard_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     configuration varchar(10000000),
     assigned_customers varchar(1000000),
     search_text varchar(255),
-    tenant_id varchar(31),
-    customer_id varchar(31),
+    tenant_id uuid,
+    customer_id uuid,
     title varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS device (
-    id varchar(31) NOT NULL CONSTRAINT device_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT device_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
-    customer_id varchar(31),
+    customer_id uuid,
     type varchar(255),
     name varchar(255),
     label varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     CONSTRAINT device_name_unq_key UNIQUE (tenant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS device_credentials (
-    id varchar(31) NOT NULL CONSTRAINT device_credentials_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT device_credentials_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     credentials_id varchar,
     credentials_type varchar(255),
     credentials_value varchar,
-    device_id varchar(31),
+    device_id uuid,
     CONSTRAINT device_credentials_id_unq_key UNIQUE (credentials_id)
 );
 
 CREATE TABLE IF NOT EXISTS event (
-    id varchar(31) NOT NULL CONSTRAINT event_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     body varchar(10000000),
-    entity_id varchar(31),
+    entity_id uuid,
     entity_type varchar(255),
     event_type varchar(255),
     event_uid varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     ts bigint NOT NULL,
     CONSTRAINT event_unq_key UNIQUE (tenant_id, entity_type, entity_id, event_type, event_uid)
 );
 
 CREATE TABLE IF NOT EXISTS relation (
-    from_id varchar(31),
+    from_id uuid,
     from_type varchar(255),
-    to_id varchar(31),
+    to_id uuid,
     to_type varchar(255),
     relation_type_group varchar(255),
     relation_type varchar(255),
     additional_info varchar,
     CONSTRAINT relation_pkey PRIMARY KEY (from_id, from_type, relation_type_group, relation_type, to_id, to_type)
-);
+) PARTITION BY LIST (relation_type_group);
+
+CREATE TABLE other_relations PARTITION OF relation DEFAULT;
+CREATE TABLE common_relations PARTITION OF relation FOR VALUES IN ('COMMON');
+CREATE TABLE alarm_relations PARTITION OF relation FOR VALUES IN ('ALARM');
+CREATE TABLE dashboard_relations PARTITION OF relation FOR VALUES IN ('DASHBOARD');
+CREATE TABLE rule_relations PARTITION OF relation FOR VALUES IN ('RULE_CHAIN', 'RULE_NODE');
 
 CREATE TABLE IF NOT EXISTS tb_user (
-    id varchar(31) NOT NULL CONSTRAINT tb_user_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT tb_user_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     authority varchar(255),
-    customer_id varchar(31),
+    customer_id uuid,
     email varchar(255) UNIQUE,
     first_name varchar(255),
     last_name varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31)
+    tenant_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS tenant (
-    id varchar(31) NOT NULL CONSTRAINT tenant_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT tenant_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     address varchar,
     address2 varchar,
@@ -235,56 +255,62 @@ CREATE TABLE IF NOT EXISTS tenant (
 );
 
 CREATE TABLE IF NOT EXISTS user_credentials (
-    id varchar(31) NOT NULL CONSTRAINT user_credentials_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT user_credentials_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     activate_token varchar(255) UNIQUE,
     enabled boolean,
     password varchar(255),
     reset_token varchar(255) UNIQUE,
-    user_id varchar(31) UNIQUE
+    user_id uuid UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS widget_type (
-    id varchar(31) NOT NULL CONSTRAINT widget_type_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT widget_type_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     alias varchar(255),
     bundle_alias varchar(255),
     descriptor varchar(1000000),
     name varchar(255),
-    tenant_id varchar(31)
+    tenant_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS widgets_bundle (
-    id varchar(31) NOT NULL CONSTRAINT widgets_bundle_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT widgets_bundle_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     alias varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     title varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS entity_group (
-    id varchar(31) NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT entity_group_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     type varchar(255) NOT NULL,
     name varchar(255),
-    owner_id varchar(31),
+    owner_id uuid,
     owner_type varchar(255),
     additional_info varchar,
     configuration varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS rule_chain (
-    id varchar(31) NOT NULL CONSTRAINT rule_chain_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT rule_chain_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     configuration varchar(10000000),
     name varchar(255),
-    first_rule_node_id varchar(31),
+    first_rule_node_id uuid,
     root boolean,
     debug_mode boolean,
     search_text varchar(255),
-    tenant_id varchar(31)
+    tenant_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS rule_node (
-    id varchar(31) NOT NULL CONSTRAINT rule_node_pkey PRIMARY KEY,
-    rule_chain_id varchar(31),
+    id uuid NOT NULL CONSTRAINT rule_node_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    rule_chain_id uuid,
     additional_info varchar,
     configuration varchar(10000000),
     type varchar(255),
@@ -294,21 +320,23 @@ CREATE TABLE IF NOT EXISTS rule_node (
 );
 
 CREATE TABLE IF NOT EXISTS scheduler_event (
-    id varchar(31) NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    id uuid NOT NULL CONSTRAINT scheduler_event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
-    customer_id varchar(31),
+    customer_id uuid,
     name varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     type varchar(255),
     schedule varchar,
     configuration varchar(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
-    id varchar(31) NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    customer_id varchar(31),
+    id uuid NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    customer_id uuid,
     name varchar(255),
     type varchar(255),
     content_type varchar(255),
@@ -318,11 +346,12 @@ CREATE TABLE IF NOT EXISTS blob_entity (
 );
 
 CREATE TABLE IF NOT EXISTS entity_view (
-    id varchar(31) NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,
-    entity_id varchar(31),
+    id uuid NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    entity_id uuid,
     entity_type varchar(255),
-    tenant_id varchar(31),
-    customer_id varchar(31),
+    tenant_id uuid,
+    customer_id uuid,
     type varchar(255),
     name varchar(255),
     keys varchar(10000000),
@@ -332,11 +361,11 @@ CREATE TABLE IF NOT EXISTS entity_view (
     additional_info varchar
 );
 
-
 CREATE TABLE IF NOT EXISTS role (
-    id varchar(31) NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    customer_id varchar(31),
+    id uuid NOT NULL CONSTRAINT role_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    customer_id uuid,
     name varchar(255),
     type varchar(255),
     search_text varchar(255),
@@ -345,13 +374,34 @@ CREATE TABLE IF NOT EXISTS role (
 );
 
 CREATE TABLE IF NOT EXISTS group_permission (
-    id varchar(31) NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
-    tenant_id varchar(31),
-    role_id varchar(31),
-    user_group_id varchar(31),
-    entity_group_id varchar(31),
+    id uuid NOT NULL CONSTRAINT group_permission_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    role_id uuid,
+    user_group_id uuid,
+    entity_group_id uuid,
     entity_group_type varchar(255),
     is_public boolean
+);
+
+CREATE TABLE IF NOT EXISTS ts_kv_latest
+(
+    entity_id uuid   NOT NULL,
+    key       int    NOT NULL,
+    ts        bigint NOT NULL,
+    bool_v    boolean,
+    str_v     varchar(10000000),
+    long_v    bigint,
+    dbl_v     double precision,
+    json_v    json,
+    CONSTRAINT ts_kv_latest_pkey PRIMARY KEY (entity_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS ts_kv_dictionary
+(
+    key    varchar(255) NOT NULL,
+    key_id serial UNIQUE,
+    CONSTRAINT ts_key_id_pkey PRIMARY KEY (key)
 );
 
 CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(IN ttl bigint, IN debug_ttl bigint, INOUT deleted bigint)
@@ -378,3 +428,11 @@ BEGIN
     deleted := ttl_deleted_count + debug_ttl_deleted_count;
 END
 $$;
+
+CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
+$$
+BEGIN
+    uuid_id := substring(entity_id, 8, 8) || '-' || substring(entity_id, 4, 4) || '-1' || substring(entity_id, 1, 3) ||
+               '-' || substring(entity_id, 16, 4) || '-' || substring(entity_id, 20, 12);
+END;
+$$ LANGUAGE plpgsql;

@@ -175,12 +175,15 @@ public class ThingsboardInstallService {
                             }
                         case "2.5.1":
                             log.info("Upgrading ThingsBoard from version 2.5.1 to 3.0.0 ...");
-                        case "3.0.0": // to 3.0.0PE
-                            log.info("Upgrading ThingsBoard from version 3.0.0 to 3.0.0PE ...");
+                        case "3.0.1":
+                            log.info("Upgrading ThingsBoard from version 3.0.1 to 3.1.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.0.1");
+                        case "3.1.0": // to 3.1.0PE
+                            log.info("Upgrading ThingsBoard from version 3.1.0 to 3.1.0PE ...");
 
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.0.0");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.1.0");
 
-                            dataUpdateService.updateData("3.0.0");
+                            dataUpdateService.updateData("3.1.0");
 
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();

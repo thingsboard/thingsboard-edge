@@ -41,6 +41,7 @@ import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
 public interface AttributeKvRepository extends CrudRepository<AttributeKvEntity, AttributeKvCompositeKey> {
@@ -49,7 +50,7 @@ public interface AttributeKvRepository extends CrudRepository<AttributeKvEntity,
             "AND a.id.entityId = :entityId " +
             "AND a.id.attributeType = :attributeType")
     List<AttributeKvEntity> findAllByEntityTypeAndEntityIdAndAttributeType(@Param("entityType") EntityType entityType,
-                                                                           @Param("entityId") String entityId,
+                                                                           @Param("entityId") UUID entityId,
                                                                            @Param("attributeType") String attributeType);
 
     @Transactional
@@ -59,7 +60,7 @@ public interface AttributeKvRepository extends CrudRepository<AttributeKvEntity,
             "AND a.id.attributeType = :attributeType " +
             "AND a.id.attributeKey = :attributeKey")
     void delete(@Param("entityType") EntityType entityType,
-                @Param("entityId") String entityId,
+                @Param("entityId") UUID entityId,
                 @Param("attributeType") String attributeType,
                 @Param("attributeKey") String attributeKey);
 }

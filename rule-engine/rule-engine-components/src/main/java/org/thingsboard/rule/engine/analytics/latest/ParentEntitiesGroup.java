@@ -36,6 +36,7 @@ import lombok.Data;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class ParentEntitiesGroup implements ParentEntitiesQuery {
     @Override
     public ListenableFuture<List<EntityId>> getChildEntitiesAsync(TbContext ctx, EntityId parentEntityId) {
         return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), new EntityGroupId(parentEntityId.getId()),
-                new TimePageLink(Integer.MAX_VALUE));
+                new PageLink(Integer.MAX_VALUE));
     }
 
     @Override

@@ -1203,7 +1203,7 @@
     },
     "extension": {
         "extensions": "Extensiones",
-        "selected-extensions": "{ count, plural, 1 {1 extension} de {# extensions} } seleccionadas",
+        "selected-extensions": "{ count, plural, 1 {1 extension} other {# extensions} } seleccionadas",
         "type": "Tipo",
         "key": "Clave",
         "value": "Valor",

@@ -39,18 +39,19 @@ import org.thingsboard.server.dao.model.sql.ConverterEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface ConverterRepository extends CrudRepository<ConverterEntity, String> {
+public interface ConverterRepository extends CrudRepository<ConverterEntity, UUID> {
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<ConverterEntity> findByTenantId(@Param("tenantId") String tenantId,
+    Page<ConverterEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                          @Param("searchText") String searchText,
                                          Pageable pageable);
 
-    ConverterEntity findByTenantIdAndName(String tenantId, String name);
+    ConverterEntity findByTenantIdAndName(UUID tenantId, String name);
 
-    List<ConverterEntity> findConvertersByTenantIdAndIdIn(String tenantId, List<String> converterIds);
+    List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
 }

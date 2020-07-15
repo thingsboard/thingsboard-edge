@@ -97,7 +97,7 @@ import {
 import { deepClone } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-
+import { Filters } from '@shared/models/query/query.models';
 
 @Component({
   selector: 'tb-attribute-table',
@@ -429,9 +429,11 @@ export class AttributeTableComponent extends PageComponent implements AfterViewI
       }
     };
 
+    const filters: Filters = {};
+
     this.aliasController = new AliasController(this.utils,
       this.entityService,
-      () => stateController, entitiAliases);
+      () => stateController, entitiAliases, filters);
 
     const dataKeyType: DataKeyType = this.attributeScope === LatestTelemetry.LATEST_TELEMETRY ?
       DataKeyType.timeseries : DataKeyType.attribute;

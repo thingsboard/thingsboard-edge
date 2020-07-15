@@ -608,7 +608,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
@@ -631,7 +631,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
+    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
         ListenableFuture<PageData<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
         return Futures.transform(relations, input -> {

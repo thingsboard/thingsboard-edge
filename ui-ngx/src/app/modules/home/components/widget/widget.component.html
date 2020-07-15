@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-absolute-fill" [fxLayout]="legendContainerLayoutType">
+<div class="tb-absolute-fill" [fxLayout]="legendContainerLayoutType" tb-toast
+     toastTarget="{{ toastTargetId }}">
   <tb-legend *ngIf="displayLegend && isLegendFirst"
              [ngStyle]="legendStyle"
              [legendConfig]="legendConfig"

@@ -94,7 +94,7 @@ public class TbAlarmsCountNodeTest {
     private RelationService relationService;
 
     @Mock
-    private AlarmService alarmService;
+    private RuleEngineAlarmService alarmService;
 
     private TbAlarmsCountNode node;
     private TbNodeConfiguration nodeConfiguration;
@@ -420,7 +420,7 @@ public class TbAlarmsCountNodeTest {
         return query;
     }
 
-    private static List<Long> findAlarmCounts(AlarmService service, AlarmQuery query, List<AlarmFilter> filters) {
+    private static List<Long> findAlarmCounts(RuleEngineAlarmService service, AlarmQuery query, List<AlarmFilter> filters) {
         List<Long> alarmCounts = new ArrayList<>();
         for (AlarmFilter filter : filters) {
             alarmCounts.add(0l);

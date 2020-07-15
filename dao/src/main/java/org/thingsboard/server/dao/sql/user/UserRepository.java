@@ -40,20 +40,21 @@ import org.thingsboard.server.dao.model.sql.UserEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Valerii Sosliuk
  */
 @SqlDao
-public interface UserRepository extends PagingAndSortingRepository<UserEntity, String> {
+public interface UserRepository extends PagingAndSortingRepository<UserEntity, UUID> {
 
     UserEntity findByEmail(String email);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.customerId = :customerId AND u.authority = :authority " +
             "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<UserEntity> findUsersByAuthority(@Param("tenantId") String tenantId,
-                                          @Param("customerId") String customerId,
+    Page<UserEntity> findUsersByAuthority(@Param("tenantId") UUID tenantId,
+                                          @Param("customerId") UUID customerId,
                                           @Param("searchText") String searchText,
                                           @Param("authority") Authority authority,
                                           Pageable pageable);
@@ -61,7 +62,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, S
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.authority = :authority " +
             "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") String tenantId,
+    Page<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    @Param("authority") Authority authority,
                                                    Pageable pageable);
@@ -73,7 +74,7 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, S
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<UserEntity> findByEntityGroupId(@Param("groupId") String groupId,
+    Page<UserEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                          @Param("textSearch") String textSearch,
                                          Pageable pageable);
 
@@ -84,12 +85,16 @@ public interface UserRepository extends PagingAndSortingRepository<UserEntity, S
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
             "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+    Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                           @Param("textSearch") String textSearch,
                                           Pageable pageable);
 
-    List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
+    List<UserEntity> findUsersByTenantIdAndIdIn(UUID tenantId, List<UUID> userIds);
 
-    Page<UserEntity> findUsersByTenantId(String tenantId, Pageable pageable);
+    @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<UserEntity> findByTenantId(@Param("tenantId") UUID tenantId,
+                                    @Param("searchText") String searchText,
+                                    Pageable pageable);
 
 }

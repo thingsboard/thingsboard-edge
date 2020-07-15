@@ -39,16 +39,17 @@ import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @SqlDao
-public interface DashboardInfoRepository extends PagingAndSortingRepository<DashboardInfoEntity, String> {
+public interface DashboardInfoRepository extends PagingAndSortingRepository<DashboardInfoEntity, UUID> {
 
     @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId " +
             "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") String tenantId,
+    Page<DashboardInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
 
@@ -59,7 +60,7 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<DashboardInfoEntity> findByEntityGroupId(@Param("groupId") String groupId,
+    Page<DashboardInfoEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                                   @Param("textSearch") String textSearch,
                                                   Pageable pageable);
 
@@ -70,10 +71,10 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
             "AND re.relationType = 'Contains' " +
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
             "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<DashboardInfoEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
+    Page<DashboardInfoEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
                                                    @Param("textSearch") String textSearch,
                                                    Pageable pageable);
 
-    List<DashboardInfoEntity> findByIdIn(List<String> dashboardIds);
+    List<DashboardInfoEntity> findByIdIn(List<UUID> dashboardIds);
 
 }

@@ -31,7 +31,7 @@
 
 import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { NavTreeNode } from '@shared/components/nav-tree.component';
+import { NavTreeNode, NodesCallback } from '@shared/components/nav-tree.component';
 import { Datasource } from '@shared/models/widget.models';
 import { isDefined, isUndefined } from '@core/utils';
 import {
@@ -56,6 +56,7 @@ export interface EntitiesHierarchyWidgetSettings {
 export interface HierarchyNodeContext {
   parentNodeCtx?: HierarchyNodeContext;
   entity: BaseData<EntityId>;
+  childrenNodesLoaded?: boolean;
   level?: number;
   data: {[key: string]: any};
 }

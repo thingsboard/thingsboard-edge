@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -48,6 +47,7 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -57,7 +57,7 @@ import javax.persistence.Table;
 public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTextEntity<RuleNode> {
 
     @Column(name = ModelConstants.RULE_NODE_CHAIN_ID_PROPERTY)
-    private String ruleChainId;
+    private UUID ruleChainId;
 
     @Column(name = ModelConstants.RULE_NODE_TYPE_PROPERTY)
     private String type;
@@ -86,8 +86,9 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
         if (ruleNode.getId() != null) {
             this.setUuid(ruleNode.getUuidId());
         }
+        this.setCreatedTime(ruleNode.getCreatedTime());
         if (ruleNode.getRuleChainId() != null) {
-            this.ruleChainId = toString(DaoUtil.getId(ruleNode.getRuleChainId()));
+            this.ruleChainId = DaoUtil.getId(ruleNode.getRuleChainId());
         }
         this.type = ruleNode.getType();
         this.name = ruleNode.getName();
@@ -110,9 +111,9 @@ public class RuleNodeEntity extends BaseSqlEntity<RuleNode> implements SearchTex
     @Override
     public RuleNode toData() {
         RuleNode ruleNode = new RuleNode(new RuleNodeId(this.getUuid()));
-        ruleNode.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
+        ruleNode.setCreatedTime(createdTime);
         if (ruleChainId != null) {
-            ruleNode.setRuleChainId(new RuleChainId(toUUID(ruleChainId)));
+            ruleNode.setRuleChainId(new RuleChainId(ruleChainId));
         }
         ruleNode.setType(type);
         ruleNode.setName(name);

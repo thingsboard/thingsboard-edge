@@ -38,30 +38,31 @@ import org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEventInfoEntity, String> {
+public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEventInfoEntity, UUID> {
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +
             "LEFT JOIN CustomerEntity c on c.id = s.customerId " +
             "WHERE s.id = :schedulerEventId")
-    SchedulerEventWithCustomerInfoEntity findSchedulerEventWithCustomerInfoById(@Param("schedulerEventId") String schedulerEventId);
+    SchedulerEventWithCustomerInfoEntity findSchedulerEventWithCustomerInfoById(@Param("schedulerEventId") UUID schedulerEventId);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +
             "LEFT JOIN CustomerEntity c on c.id = s.customerId " +
             "WHERE s.tenantId = :tenantId")
-    List<SchedulerEventWithCustomerInfoEntity> findSchedulerEventsWithCustomerInfoByTenantId(@Param("tenantId") String tenantId);
+    List<SchedulerEventWithCustomerInfoEntity> findSchedulerEventsWithCustomerInfoByTenantId(@Param("tenantId") UUID tenantId);
 
-    List<SchedulerEventInfoEntity> findSchedulerEventInfoEntitiesByTenantId(String tenantId);
+    List<SchedulerEventInfoEntity> findSchedulerEventInfoEntitiesByTenantId(UUID tenantId);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +
             "LEFT JOIN CustomerEntity c on c.id = s.customerId " +
             "WHERE s.tenantId = :tenantId " +
             "AND s.type = :type")
-    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndType(@Param("tenantId") String tenantId,
+    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                                                      @Param("type") String type);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
@@ -69,8 +70,8 @@ public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEv
             "LEFT JOIN CustomerEntity c on c.id = s.customerId " +
             "WHERE s.tenantId = :tenantId " +
             "AND s.customerId = :customerId")
-    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
-                                                                           @Param("customerId") String customerId);
+    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                                           @Param("customerId") UUID customerId);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +
@@ -78,10 +79,10 @@ public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEv
             "WHERE s.tenantId = :tenantId " +
             "AND s.customerId = :customerId " +
             "AND s.type = :type")
-    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
-                                                                                  @Param("customerId") String customerId,
+    List<SchedulerEventWithCustomerInfoEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
+                                                                                  @Param("customerId") UUID customerId,
                                                                                   @Param("type") String type);
 
-    List<SchedulerEventInfoEntity> findSchedulerEventsByTenantIdAndIdIn(String tenantId, List<String> schedulerEventIds);
+    List<SchedulerEventInfoEntity> findSchedulerEventsByTenantIdAndIdIn(UUID tenantId, List<UUID> schedulerEventIds);
 
 }

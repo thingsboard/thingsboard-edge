@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -49,7 +48,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 /**
@@ -68,34 +66,34 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
     }
 
     @Override
-    protected CrudRepository<CustomerEntity, String> getCrudRepository() {
+    protected CrudRepository<CustomerEntity, UUID> getCrudRepository() {
         return customerRepository;
     }
 
     @Override
     public PageData<Customer> findCustomersByTenantId(UUID tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(customerRepository.findByTenantId(
-                UUIDConverter.fromTimeUUID(tenantId),
+                tenantId,
                 Objects.toString(pageLink.getTextSearch(), ""),
                 DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
     @Override
     public Optional<Customer> findCustomersByTenantIdAndTitle(UUID tenantId, String title) {
-        Customer customer = DaoUtil.getData(customerRepository.findByTenantIdAndTitle(UUIDConverter.fromTimeUUID(tenantId), title));
+        Customer customer = DaoUtil.getData(customerRepository.findByTenantIdAndTitle(tenantId, title));
         return Optional.ofNullable(customer);
     }
 
     @Override
     public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> customerIds) {
-        return service.submit(() -> DaoUtil.convertDataList(customerRepository.findCustomersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(customerIds))));
+        return service.submit(() -> DaoUtil.convertDataList(customerRepository.findCustomersByTenantIdAndIdIn(tenantId, customerIds)));
     }
 
     @Override
     public PageData<Customer> findCustomersByEntityGroupId(UUID groupId, PageLink pageLink) {
         return DaoUtil.toPageData(customerRepository
                 .findByEntityGroupId(
-                        fromTimeUUID(groupId),
+                        groupId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
@@ -104,8 +102,8 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
     public PageData<Customer> findCustomersByEntityGroupIds(List<UUID> groupIds, List<UUID> additionalCustomerIds, PageLink pageLink) {
         return DaoUtil.toPageData(customerRepository
                 .findByEntityGroupIds(
-                        fromTimeUUIDs(groupIds),
-                        additionalCustomerIds != null && !additionalCustomerIds.isEmpty() ? fromTimeUUIDs(additionalCustomerIds) : null,
+                        groupIds,
+                        additionalCustomerIds != null && !additionalCustomerIds.isEmpty() ? additionalCustomerIds : null,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }

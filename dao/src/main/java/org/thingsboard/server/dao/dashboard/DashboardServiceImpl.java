@@ -226,7 +226,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         List<DashboardId> dashboardIds = new ArrayList<>();
         Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get();
         if (entityGroup.isPresent()) {
-            List<EntityId> childDashboardIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+            List<EntityId> childDashboardIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             childDashboardIds.forEach(entityId -> dashboardIds.add(new DashboardId(entityId.getId())));
         }
         return dashboardIds;

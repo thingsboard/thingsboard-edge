@@ -44,6 +44,10 @@ import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestM
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.stats.DefaultQueueStats;
+import org.thingsboard.server.service.stats.StatsCounter;
+import org.thingsboard.server.service.stats.StatsCounterFactory;
+import org.thingsboard.server.service.stats.StatsType;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -56,9 +60,13 @@ import java.util.concurrent.*;
 @Service
 @TbCoreComponent
 public class TbCoreTransportApiService {
+    private static final String TOTAL_MSGS = "totalMsgs";
+    private static final String SUCCESSFUL_MSGS = "successfulMsgs";
+    private static final String FAILED_MSGS = "failedMsgs";
 
     private final TbCoreQueueFactory tbCoreQueueFactory;
     private final TransportApiService transportApiService;
+    private final StatsCounterFactory counterFactory;
 
     @Value("${queue.transport_api.max_pending_requests:10000}")
     private int maxPendingRequests;
@@ -73,9 +81,10 @@ public class TbCoreTransportApiService {
     private TbQueueResponseTemplate<TbProtoQueueMsg<TransportApiRequestMsg>,
             TbProtoQueueMsg<TransportApiResponseMsg>> transportApiTemplate;
 
-    public TbCoreTransportApiService(TbCoreQueueFactory tbCoreQueueFactory, TransportApiService transportApiService) {
+    public TbCoreTransportApiService(TbCoreQueueFactory tbCoreQueueFactory, TransportApiService transportApiService, StatsCounterFactory counterFactory) {
         this.tbCoreQueueFactory = tbCoreQueueFactory;
         this.transportApiService = transportApiService;
+        this.counterFactory = counterFactory;
     }
 
     @PostConstruct
@@ -83,6 +92,12 @@ public class TbCoreTransportApiService {
         this.transportCallbackExecutor = Executors.newWorkStealingPool(maxCallbackThreads);
         TbQueueProducer<TbProtoQueueMsg<TransportApiResponseMsg>> producer = tbCoreQueueFactory.createTransportApiResponseProducer();
         TbQueueConsumer<TbProtoQueueMsg<TransportApiRequestMsg>> consumer = tbCoreQueueFactory.createTransportApiRequestConsumer();
+
+        String key = StatsType.TRANSPORT.getName();
+        StatsCounter totalCounter = counterFactory.createStatsCounter(key, TOTAL_MSGS);
+        StatsCounter successfulCounter = counterFactory.createStatsCounter(key, SUCCESSFUL_MSGS);
+        StatsCounter failedCounter = counterFactory.createStatsCounter(key, FAILED_MSGS);
+        DefaultQueueStats queueStats = new DefaultQueueStats(totalCounter, successfulCounter, failedCounter);
 
         DefaultTbQueueResponseTemplate.DefaultTbQueueResponseTemplateBuilder
                 <TbProtoQueueMsg<TransportApiRequestMsg>, TbProtoQueueMsg<TransportApiResponseMsg>> builder = DefaultTbQueueResponseTemplate.builder();
@@ -93,6 +108,7 @@ public class TbCoreTransportApiService {
         builder.pollInterval(responsePollDuration);
         builder.executor(transportCallbackExecutor);
         builder.handler(transportApiService);
+        builder.stats(queueStats);
         transportApiTemplate = builder.build();
     }
 

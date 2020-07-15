@@ -382,6 +382,9 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   }
 
   public save(dataToSave?: MultipleInputWidgetSource) {
+    if (document && document.activeElement) {
+      (document.activeElement as HTMLElement).blur();
+    }
     const config: RequestConfig = {
       ignoreLoading: !this.settings.showActionButtons
     };

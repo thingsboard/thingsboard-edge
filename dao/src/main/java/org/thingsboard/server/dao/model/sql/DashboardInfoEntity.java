@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +53,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Slf4j
@@ -62,7 +62,8 @@ import java.util.Map;
 @Table(name = ModelConstants.DASHBOARD_COLUMN_FAMILY_NAME)
 public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements SearchTextEntity<DashboardInfo> {
 
-    public static final Map<String,String> dashboardColumnMap = new HashMap<>();
+    public static final Map<String, String> dashboardColumnMap = new HashMap<>();
+
     static {
         dashboardColumnMap.put("name", "title");
     }
@@ -72,10 +73,10 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
             objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
     private String title;
@@ -94,8 +95,12 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
         if (dashboardInfo.getId() != null) {
             this.setUuid(dashboardInfo.getId().getId());
         }
+        this.setCreatedTime(dashboardInfo.getCreatedTime());
         if (dashboardInfo.getTenantId() != null) {
-            this.tenantId = toString(dashboardInfo.getTenantId().getId());
+            this.tenantId = dashboardInfo.getTenantId().getId();
+        }
+        if (dashboardInfo.getCustomerId() != null) {
+            this.customerId = dashboardInfo.getCustomerId().getId();
         }
         this.title = dashboardInfo.getTitle();
         if (dashboardInfo.getAssignedCustomers() != null) {
@@ -124,12 +129,12 @@ public class DashboardInfoEntity extends BaseSqlEntity<DashboardInfo> implements
     @Override
     public DashboardInfo toData() {
         DashboardInfo dashboardInfo = new DashboardInfo(new DashboardId(this.getUuid()));
-        dashboardInfo.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
+        dashboardInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            dashboardInfo.setTenantId(new TenantId(toUUID(tenantId)));
+            dashboardInfo.setTenantId(new TenantId(tenantId));
         }
-        if (customerId != null){
-            dashboardInfo.setCustomerId(new CustomerId(toUUID(customerId)));
+        if (customerId != null) {
+            dashboardInfo.setCustomerId(new CustomerId(customerId));
         }
         dashboardInfo.setTitle(title);
         if (!StringUtils.isEmpty(assignedCustomers)) {

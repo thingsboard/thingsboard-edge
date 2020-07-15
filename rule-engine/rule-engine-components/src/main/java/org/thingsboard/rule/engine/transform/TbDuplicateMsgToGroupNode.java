@@ -40,6 +40,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 
@@ -70,7 +71,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
 
     @Override
     protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new TimePageLink(Integer.MAX_VALUE));
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIds(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {

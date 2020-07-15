@@ -39,20 +39,21 @@ import org.thingsboard.server.dao.model.sql.CustomerEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @SqlDao
-public interface CustomerRepository extends PagingAndSortingRepository<CustomerEntity, String> {
+public interface CustomerRepository extends PagingAndSortingRepository<CustomerEntity, UUID> {
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.tenantId = :tenantId " +
             "AND LOWER(c.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<CustomerEntity> findByTenantId(@Param("tenantId") String tenantId,
+    Page<CustomerEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                         @Param("searchText") String searchText,
                                         Pageable pageable);
 
-    CustomerEntity findByTenantIdAndTitle(String tenantId, String title);
+    CustomerEntity findByTenantIdAndTitle(UUID tenantId, String title);
 
     @Query("SELECT c FROM CustomerEntity c, " +
             "RelationEntity re " +
@@ -61,7 +62,7 @@ public interface CustomerRepository extends PagingAndSortingRepository<CustomerE
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND LOWER(c.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<CustomerEntity> findByEntityGroupId(@Param("groupId") String groupId,
+    Page<CustomerEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
                                              @Param("textSearch") String textSearch,
                                              Pageable pageable);
 
@@ -73,11 +74,11 @@ public interface CustomerRepository extends PagingAndSortingRepository<CustomerE
             "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP') " +
             "OR (:additionalCustomerIds IS NOT NULL AND c.id in :additionalCustomerIds)) " +
             "AND LOWER(c.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<CustomerEntity> findByEntityGroupIds(@Param("groupIds") List<String> groupIds,
-                                              @Param("additionalCustomerIds") List<String> additionalCustomerIds,
+    Page<CustomerEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                              @Param("additionalCustomerIds") List<UUID> additionalCustomerIds,
                                               @Param("textSearch") String textSearch,
                                               Pageable pageable);
 
-    List<CustomerEntity> findCustomersByTenantIdAndIdIn(String tenantId, List<String> customerIds);
+    List<CustomerEntity> findCustomersByTenantIdAndIdIn(UUID tenantId, List<UUID> customerIds);
 
 }

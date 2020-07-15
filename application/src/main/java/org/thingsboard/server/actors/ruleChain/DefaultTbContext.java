@@ -42,6 +42,7 @@ import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RpcError;
+import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -332,21 +333,21 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void logJsEvalRequest() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeRequestsCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementRequests();
         }
     }
 
     @Override
     public void logJsEvalResponse() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeResponsesCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementResponses();
         }
     }
 
     @Override
     public void logJsEvalFailure() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeFailuresCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementFailures();
         }
     }
 
@@ -391,7 +392,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public AlarmService getAlarmService() {
+    public RuleEngineAlarmService getAlarmService() {
         return mainCtx.getAlarmService();
     }
 

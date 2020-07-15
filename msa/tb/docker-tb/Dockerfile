@@ -97,6 +97,13 @@ ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/thingsboard
 ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
 
+RUN mkdir -p /data
+RUN chown -R ${pkg.user}:${pkg.user} /data
+
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+
+USER ${pkg.user}
+
 EXPOSE 9090
 EXPOSE 1883
 EXPOSE 5683/udp

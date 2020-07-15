@@ -50,6 +50,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
@@ -61,10 +62,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements SearchTextEntity<BlobEntity> {
 
     @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = BLOB_ENTITY_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = BLOB_ENTITY_NAME_PROPERTY)
     private String name;
@@ -90,14 +91,15 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
     }
 
     public BlobEntityEntity(BlobEntity blobEntity) {
+        this.createdTime = blobEntity.getCreatedTime();
         if (blobEntity.getId() != null) {
             this.setUuid(blobEntity.getId().getId());
         }
         if (blobEntity.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(blobEntity.getTenantId().getId());
+            this.tenantId = blobEntity.getTenantId().getId();
         }
         if (blobEntity.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(blobEntity.getCustomerId().getId());
+            this.customerId = blobEntity.getCustomerId().getId();
         }
         this.name = blobEntity.getName();
         this.type = blobEntity.getType();
@@ -122,13 +124,13 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
 
     @Override
     public BlobEntity toData() {
-        BlobEntity blobEntity = new BlobEntity(new BlobEntityId(UUIDConverter.fromString(id)));
-        blobEntity.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
+        BlobEntity blobEntity = new BlobEntity(new BlobEntityId(id));
+        blobEntity.setCreatedTime(createdTime);
         if (tenantId != null) {
-            blobEntity.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            blobEntity.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            blobEntity.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
+            blobEntity.setCustomerId(new CustomerId(customerId));
         }
         blobEntity.setName(name);
         blobEntity.setType(type);

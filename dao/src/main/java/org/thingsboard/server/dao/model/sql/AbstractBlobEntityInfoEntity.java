@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CONTENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CUSTOMER_ID_PROPERTY;
@@ -63,10 +65,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
 
     @Column(name = BLOB_ENTITY_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = BLOB_ENTITY_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = BLOB_ENTITY_NAME_PROPERTY)
     private String name;
@@ -89,14 +91,15 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
     }
 
     public AbstractBlobEntityInfoEntity(BlobEntityInfo blobEntityInfo) {
+        this.createdTime = blobEntityInfo.getCreatedTime();
         if (blobEntityInfo.getId() != null) {
             this.setUuid(blobEntityInfo.getId().getId());
         }
         if (blobEntityInfo.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(blobEntityInfo.getTenantId().getId());
+            this.tenantId = blobEntityInfo.getTenantId().getId();
         }
         if (blobEntityInfo.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(blobEntityInfo.getCustomerId().getId());
+            this.customerId = blobEntityInfo.getCustomerId().getId();
         }
         this.name = blobEntityInfo.getName();
         this.type = blobEntityInfo.getType();
@@ -130,13 +133,13 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
     }
 
     protected BlobEntityInfo toBlobEntityInfo() {
-        BlobEntityInfo blobEntityInfo = new BlobEntityInfo(new BlobEntityId(UUIDConverter.fromString(id)));
-        blobEntityInfo.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
+        BlobEntityInfo blobEntityInfo = new BlobEntityInfo(new BlobEntityId(id));
+        blobEntityInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            blobEntityInfo.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            blobEntityInfo.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            blobEntityInfo.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
+            blobEntityInfo.setCustomerId(new CustomerId(customerId));
         }
         blobEntityInfo.setName(name);
         blobEntityInfo.setType(type);
