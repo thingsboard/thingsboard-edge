@@ -129,6 +129,7 @@ export const widgetTypesData = new Map<widgetType, WidgetTypeData>(
 
 export interface WidgetResource {
   url: string;
+  isModule?: boolean;
 }
 
 export interface WidgetActionSource {
