@@ -35,8 +35,10 @@ import { BaseData } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
-import { isEqual } from '@core/utils';
+import { isEqual, isUndefinedOrNull } from '@core/utils';
 import { Customer } from '@shared/models/customer.model';
+import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
+import { PageLink } from '@shared/models/page/page-link';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -212,6 +214,13 @@ export const entityGroupEntityFields: {[fieldName: string]: EntityGroupEntityFie
   }
 };
 
+export const entityGroupEntityFieldsToKeysMap: {[keyName: string]: string} = {
+  created_time: 'createdTime',
+  assigned_customer: 'assignedCustomer',
+  first_name: 'firstName',
+  last_name: 'lastName'
+};
+
 export interface EntityGroupColumn {
   type: EntityGroupColumnType;
   key: string;
@@ -247,8 +256,116 @@ export interface EntityGroupInfo extends EntityGroup {
 
 export interface ShortEntityView {
   id: EntityId;
-  readonly name: string;
+  name: string;
   [key: string]: any;
+}
+
+export function groupColumnTypeToEntityKeyType(groupColumnType: EntityGroupColumnType): EntityKeyType {
+  switch (groupColumnType) {
+    case EntityGroupColumnType.CLIENT_ATTRIBUTE:
+      return EntityKeyType.CLIENT_ATTRIBUTE;
+    case EntityGroupColumnType.SHARED_ATTRIBUTE:
+      return EntityKeyType.SHARED_ATTRIBUTE;
+    case EntityGroupColumnType.SERVER_ATTRIBUTE:
+      return EntityKeyType.SERVER_ATTRIBUTE;
+    case EntityGroupColumnType.TIMESERIES:
+      return EntityKeyType.TIME_SERIES;
+    case EntityGroupColumnType.ENTITY_FIELD:
+      return EntityKeyType.ENTITY_FIELD;
+  }
+}
+
+export function entityGroupColumnKeyToEntityKey(column: EntityGroupColumn): string {
+  if (column.type === EntityGroupColumnType.ENTITY_FIELD) {
+    const mappedKey = entityGroupEntityFieldsToKeysMap[column.key];
+    return mappedKey ? mappedKey : column.key;
+  } else {
+    return column.key;
+  }
+}
+
+export function entityGroupColumnToEntityKey(column: EntityGroupColumn): EntityKey {
+  return {
+    type: groupColumnTypeToEntityKeyType(column.type),
+    key: entityGroupColumnKeyToEntityKey(column)
+  };
+}
+
+export function prepareEntityDataColumnMap(columns: EntityGroupColumn[]): {[entityKeyType: string]: EntityGroupColumn[]} {
+  const result: {[entityKeyType: string]: EntityGroupColumn[]} = {};
+  for (const typeKey of Object.keys(EntityGroupColumnType)) {
+    const type: EntityGroupColumnType = EntityGroupColumnType[typeKey];
+    let typeColumns = columns.filter(c => c.type === type);
+    if (typeColumns.length) {
+      typeColumns = typeColumns.filter((c, pos, columnsArray) => {
+        return columnsArray.map(mapCol => mapCol.property).indexOf(c.property) === pos;
+      });
+      const entityKeyType = groupColumnTypeToEntityKeyType(type);
+      result[entityKeyType] = typeColumns;
+    }
+  }
+  return result;
+}
+
+export function entityDataToShortEntityView(entityData: EntityData,
+                                            columnsMap: {[entityKeyType: string]: EntityGroupColumn[]},
+                                            isUpdate = false): ShortEntityView {
+  const entityView: ShortEntityView = {
+    id: entityData.entityId,
+    name: ''
+  };
+  if (entityData.latest) {
+    if (entityData.latest[EntityKeyType.ENTITY_FIELD]) {
+      const fields = entityData.latest[EntityKeyType.ENTITY_FIELD];
+      if (fields.name) {
+        entityView.name = fields.name.value;
+      } else {
+        entityView.name = '';
+      }
+    }
+    for (const entityKeyType of Object.keys(columnsMap)) {
+      const latestByType = entityData.latest[entityKeyType];
+      const typeColumns = columnsMap[entityKeyType];
+      if (latestByType) {
+        for (const column of typeColumns) {
+          const key = entityGroupColumnKeyToEntityKey(column);
+          const tsValue = latestByType[key];
+          if (tsValue) {
+            entityView[column.property] = tsValue.value;
+          }
+        }
+      }
+      if (!isUpdate) {
+        for (const column of typeColumns) {
+          if (isUndefinedOrNull(entityView[column.property])) {
+            entityView[column.property] = '';
+          }
+        }
+      }
+    }
+  }
+  return entityView;
+}
+
+export function groupEntitiesPageLinkToEntityDataPageLink(pageLink: PageLink,
+                                                          columnKeyToEntityKeyMap: {[columnKey: string]: EntityKey}): EntityDataPageLink {
+  const entityDataPageLink: EntityDataPageLink = {
+    dynamic: false,
+    pageSize: pageLink.pageSize,
+    page: pageLink.page,
+    textSearch: pageLink.textSearch,
+    sortOrder: null
+  };
+  if (pageLink.sortOrder && pageLink.sortOrder.property) {
+    const entityKey = columnKeyToEntityKeyMap[pageLink.sortOrder.property];
+    if (entityKey) {
+      entityDataPageLink.sortOrder = {
+        key: entityKey,
+        direction: pageLink.sortOrder.direction
+      };
+    }
+  }
+  return entityDataPageLink;
 }
 
 export function groupSettingsDefaults(entityType: EntityType, settings: EntityGroupSettings): EntityGroupSettings {
