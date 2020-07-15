@@ -30,26 +30,17 @@
  */
 package org.thingsboard.server.common.data.query;
 
-public enum EntityFilterType {
-    SINGLE_ENTITY("singleEntity"),
-    ENTITY_GROUP("entityGroup"),
-    ENTITY_LIST("entityList"),
-    ENTITY_NAME("entityName"),
-    ENTITY_GROUP_LIST("entityGroupList"),
-    ENTITY_GROUP_NAME("entityGroupName"),
-    ENTITIES_BY_GROUP_NAME("entitiesByGroupName"),
-    STATE_ENTITY_OWNER("stateEntityOwner"),
-    ASSET_TYPE("assetType"),
-    DEVICE_TYPE("deviceType"),
-    ENTITY_VIEW_TYPE("entityViewType"),
-    RELATIONS_QUERY("relationsQuery"),
-    ASSET_SEARCH_QUERY("assetSearchQuery"),
-    DEVICE_SEARCH_QUERY("deviceSearchQuery"),
-    ENTITY_VIEW_SEARCH_QUERY("entityViewSearchQuery");
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
-    private final String label;
+@Data
+public class StateEntityOwnerFilter implements EntityFilter {
 
-    EntityFilterType(String label) {
-        this.label = label;
+    @Override
+    public EntityFilterType getType() {
+        return EntityFilterType.STATE_ENTITY_OWNER;
     }
+
+    private EntityId singleEntity;
+
 }

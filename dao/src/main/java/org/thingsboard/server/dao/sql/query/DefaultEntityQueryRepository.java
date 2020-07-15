@@ -39,6 +39,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,6 +48,7 @@ import org.thingsboard.server.common.data.query.AssetSearchQueryFilter;
 import org.thingsboard.server.common.data.query.AssetTypeFilter;
 import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
+import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -54,9 +56,13 @@ import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityDataSortOrder;
 import org.thingsboard.server.common.data.query.EntityFilter;
 import org.thingsboard.server.common.data.query.EntityFilterType;
+import org.thingsboard.server.common.data.query.EntityGroupFilter;
+import org.thingsboard.server.common.data.query.EntityGroupListFilter;
+import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntitySearchQueryFilter;
+import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
 import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
@@ -204,6 +210,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " END as label";
 
     static {
+        entityTableMap.put(EntityType.ENTITY_GROUP, "entity_group");
         entityTableMap.put(EntityType.ASSET, "asset");
         entityTableMap.put(EntityType.DEVICE, "device");
         entityTableMap.put(EntityType.ENTITY_VIEW, "entity_view");
@@ -356,6 +363,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case RELATIONS_QUERY:
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
+            case ENTITY_VIEW_SEARCH_QUERY:
                 return this.defaultPermissionQuery(ctx, tenantId, customerId, entityType);
             default:
                 if (entityType == EntityType.TENANT) {
@@ -389,13 +397,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return this.entityListQuery(ctx, (EntityListFilter) entityFilter);
             case ENTITY_NAME:
                 return this.entityNameQuery(ctx, (EntityNameFilter) entityFilter);
+            case ENTITY_GROUP_LIST:
+                return this.entityGroupListQuery(ctx, (EntityGroupListFilter) entityFilter);
+            case ENTITY_GROUP_NAME:
+                return this.entityGroupNameQuery(ctx, (EntityGroupNameFilter) entityFilter);
             case ASSET_TYPE:
             case DEVICE_TYPE:
             case ENTITY_VIEW_TYPE:
                 return this.typeQuery(ctx, entityFilter);
+            case ENTITY_GROUP:
+            case ENTITIES_BY_GROUP_NAME:
+            case STATE_ENTITY_OWNER:
             case RELATIONS_QUERY:
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
+            case ENTITY_VIEW_SEARCH_QUERY:
                 return "";
             default:
                 throw new RuntimeException("Not implemented!");
@@ -404,6 +420,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private String addEntityTableQuery(QueryContext ctx, EntityFilter entityFilter, EntityType entityType) {
         switch (entityFilter.getType()) {
+            case ENTITY_GROUP:
+                throw new RuntimeException("TODO: Not implemented!");
+            case ENTITIES_BY_GROUP_NAME:
+                throw new RuntimeException("TODO: Not implemented!");
+            case STATE_ENTITY_OWNER:
+                throw new RuntimeException("TODO: Not implemented!");
             case RELATIONS_QUERY:
                 return relationQuery(ctx, (RelationsQueryFilter) entityFilter);
             case DEVICE_SEARCH_QUERY:
@@ -412,6 +434,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ASSET_SEARCH_QUERY:
                 AssetSearchQueryFilter assetQuery = (AssetSearchQueryFilter) entityFilter;
                 return entitySearchQuery(ctx, assetQuery, EntityType.ASSET, assetQuery.getAssetTypes());
+            case ENTITY_VIEW_SEARCH_QUERY:
+                EntityViewSearchQueryFilter entityViewQuery = (EntityViewSearchQueryFilter) entityFilter;
+                return entitySearchQuery(ctx, entityViewQuery, EntityType.ENTITY_VIEW, entityViewQuery.getEntityViewTypes());
             default:
                 return entityTableMap.get(entityType);
         }
@@ -548,6 +573,16 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return "lower(e.search_text) like lower(concat(:entity_filter_name_filter, '%%'))";
     }
 
+    private String entityGroupListQuery(QueryContext ctx, EntityGroupListFilter filter) {
+        ctx.addUuidListParameter("entity_filter_entity_group_ids", filter.getEntityGroupList().stream().map(UUID::fromString).collect(Collectors.toList()));
+        return "e.id in (:entity_filter_entity_group_ids)";
+    }
+
+    private String entityGroupNameQuery(QueryContext ctx, EntityGroupNameFilter filter) {
+        ctx.addStringParameter("entity_filter_group_name_filter", filter.getEntityGroupNameFilter());
+        return "lower(e.name) like lower(concat(:entity_filter_group_name_filter, '%%'))";
+    }
+
     private String typeQuery(QueryContext ctx, EntityFilter filter) {
         String type;
         String name;
@@ -576,10 +611,19 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         switch (entityFilter.getType()) {
             case SINGLE_ENTITY:
                 return ((SingleEntityFilter) entityFilter).getSingleEntity().getEntityType();
+            case ENTITY_GROUP:
+                return ((EntityGroupFilter) entityFilter).getGroupType();
             case ENTITY_LIST:
                 return ((EntityListFilter) entityFilter).getEntityType();
             case ENTITY_NAME:
                 return ((EntityNameFilter) entityFilter).getEntityType();
+            case ENTITY_GROUP_LIST:
+            case ENTITY_GROUP_NAME:
+                return EntityType.ENTITY_GROUP;
+            case ENTITIES_BY_GROUP_NAME:
+                return ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
+            case STATE_ENTITY_OWNER:
+                throw new RuntimeException("TODO: Not implemented!");
             case ASSET_TYPE:
             case ASSET_SEARCH_QUERY:
                 return EntityType.ASSET;
