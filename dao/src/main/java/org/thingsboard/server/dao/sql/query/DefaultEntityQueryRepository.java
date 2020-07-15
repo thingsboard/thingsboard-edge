@@ -41,6 +41,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -66,8 +67,10 @@ import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
 import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Arrays;
@@ -253,8 +256,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         ctx.append(addEntityTableQuery(ctx, query.getEntityFilter(), entityType));
         ctx.append(" e where ");
         ctx.append(buildEntityWhere(ctx, tenantId, customerId, query.getEntityFilter(), Collections.emptyList(), entityType));
-//        log.error("QUERY: {}", ctx.getQuery());
-//        Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+        //TODO 3.1: remove this before release
+        log.error("QUERY: {}", ctx.getQuery());
+        Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
         return transactionTemplate.execute(status -> jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class));
     }
 
@@ -337,8 +341,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (pageLink.getPageSize() > 0) {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
-//            log.error("QUERY: {}", dataQuery);
-//            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            //TODO 3.1: remove this before release
+            log.error("QUERY: {}", dataQuery);
+            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
@@ -369,6 +374,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case ENTITY_GROUP:
+            case ENTITY_GROUP_NAME:
                 return this.defaultPermissionQuery(ctx, tenantId, customerId, entityType);
             default:
                 if (entityType == EntityType.TENANT) {
@@ -426,9 +433,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private String addEntityTableQuery(QueryContext ctx, EntityFilter entityFilter, EntityType entityType) {
         switch (entityFilter.getType()) {
             case ENTITY_GROUP:
-                throw new RuntimeException("TODO: Not implemented!");
+                return entityGroupQuery(ctx, (EntityGroupFilter) entityFilter);
             case ENTITIES_BY_GROUP_NAME:
-                throw new RuntimeException("TODO: Not implemented!");
+                return entityByGroupNameQuery(ctx, (EntitiesByGroupNameFilter) entityFilter);
             case STATE_ENTITY_OWNER:
                 throw new RuntimeException("TODO: Not implemented!");
             case RELATIONS_QUERY:
@@ -445,6 +452,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             default:
                 return entityTableMap.get(entityType);
         }
+    }
+
+    private String entityGroupQuery(QueryContext ctx, EntityGroupFilter entityFilter) {
+        EntityType entityType = entityFilter.getGroupType();
+        EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString(entityFilter.getEntityGroup()));
+        String selectFields = "SELECT * FROM " + entityTableMap.get(entityType);
+        String from = " WHERE id in (SELECT to_id from relation where from_id = :where_group_id and from_type = '" + EntityType.ENTITY_GROUP.name() + "'" +
+                "and relation_type_group='" + RelationTypeGroup.FROM_ENTITY_GROUP + "' and relation_type='" + EntityRelation.CONTAINS_TYPE + "')";
+        ctx.addUuidParameter("where_group_id", entityGroupId.getId());
+        return "( " + selectFields + from + ")";
+    }
+
+    private String entityByGroupNameQuery(QueryContext ctx, EntitiesByGroupNameFilter entityFilter) {
+        //TODO: 3.1 Need to check that user has access to this group before running query.
+        throw new RuntimeException("Not implemented!");
     }
 
     private String entitySearchQuery(QueryContext ctx, EntitySearchQueryFilter entityFilter, EntityType entityType, List<String> types) {
