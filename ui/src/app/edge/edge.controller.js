@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($filter, attributeService, userService, types) {
+export default function EdgeController($log, $filter, attributeService, userService, types) {
 
     var vm = this;
 
@@ -46,14 +46,34 @@ export default function EdgeController($filter, attributeService, userService, t
 
         attributeService.getEntityAttributesValues(types.entityType.tenant, currentTenantId, types.attributesScope.server.value, keys, {}).then(
             function success(attributes) {
-                let edge = attributes.reduce(function (map, attribute) {
-                    map[attribute.key] = attribute.value;
-                    return map;
-                }, {});
-                vm.active = edge.active;
-                vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
-                vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
-                vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+                onUpdate(attributes);
             });
+
+        attributeService.subscribeForEntityAttributes(types.entityType.tenant, currentTenantId, types.attributesScope.server.value);
+
+        var query = {
+            order: '',
+            limit: 10,
+            page: 1,
+            search: null
+        };
+
+        attributeService.getEntityAttributes(types.entityType.tenant, currentTenantId, types.attributesScope.server.value,
+            query, function (attributes) {
+            if (attributes && attributes.data)
+                onUpdate(attributes.data);
+            }
+        );
+    }
+
+    function onUpdate(attributes) {
+        let edge = attributes.reduce(function (map, attribute) {
+            map[attribute.key] = attribute.value;
+            return map;
+        }, {});
+        vm.active = edge.active;
+        vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
+        vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
+        vm.edgeSettings = angular.fromJson(edge.edgeSettings);
     }
 }
