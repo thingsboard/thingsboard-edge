@@ -100,6 +100,7 @@ import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
@@ -852,6 +853,9 @@ public class CloudManagerService {
                             return null;
                         }, dbCallbackExecutor);
                     }
+                    if (entityData.hasAttributeDeleteMsg()) {
+                        processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg());
+                    }
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
@@ -960,6 +964,10 @@ public class CloudManagerService {
         TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
         // TODO: voba - verify that null callback is OK
         tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+    }
+
+    private void processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg) {
+        attributesService.removeAll(tenantId, entityId, attributeDeleteMsg.getScope(), attributeDeleteMsg.getAttributeNamesList());
     }
 
     private void scheduleReconnect(Exception e) {
