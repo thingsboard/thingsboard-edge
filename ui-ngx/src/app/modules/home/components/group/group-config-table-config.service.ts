@@ -140,7 +140,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       return new GroupEntitiesDataSource(
         columns,
         config.entityGroup.id.id,
-        this.entityGroupService,
+        config.entityGroup.type,
         this.telemetryWsService,
         this.zone,
         config.entitySelectionEnabled,

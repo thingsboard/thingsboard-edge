@@ -412,8 +412,6 @@ export class TelemetrySubscriber {
   private alarmDataSubject = new ReplaySubject<AlarmDataUpdate>(1);
   private reconnectSubject = new Subject();
 
-  private zone: NgZone;
-
   public subscriptionCommands: Array<WebsocketCmd>;
 
   public data$ = this.dataSubject.asObservable();
@@ -436,13 +434,12 @@ export class TelemetrySubscriber {
     if (keys) {
       subscriptionCommand.keys = keys.join(',');
     }
-    const subscriber = new TelemetrySubscriber(telemetryService);
-    subscriber.zone = zone;
+    const subscriber = new TelemetrySubscriber(telemetryService, zone);
     subscriber.subscriptionCommands.push(subscriptionCommand);
     return subscriber;
   }
 
-  constructor(private telemetryService: TelemetryService) {
+  constructor(private telemetryService: TelemetryService, private zone?: NgZone) {
     this.subscriptionCommands = [];
   }
 
