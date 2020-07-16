@@ -47,6 +47,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -68,10 +69,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -141,10 +139,7 @@ import org.thingsboard.server.service.user.UserLoaderService;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -854,7 +849,7 @@ public class CloudManagerService {
                         }, dbCallbackExecutor);
                     }
                     if (entityData.hasAttributeDeleteMsg()) {
-                        processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg());
+                        processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType());
                     }
                 }
             }
@@ -966,8 +961,18 @@ public class CloudManagerService {
         tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
     }
 
-    private void processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg) {
-        attributesService.removeAll(tenantId, entityId, attributeDeleteMsg.getScope(), attributeDeleteMsg.getAttributeNamesList());
+    private void processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
+        String scope = attributeDeleteMsg.getScope();
+        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
+        attributesService.removeAll(tenantId, entityId, scope, attributeNames);
+        if (entityType.equals("DEVICE")) {
+            Set<AttributeKey> attributeKeys = new HashSet<>();
+            for (String attributeName: attributeNames) {
+                attributeKeys.add(new AttributeKey(scope, attributeName));
+            }
+            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
+                    tenantId, (DeviceId)entityId, attributeKeys), null);
+        }
     }
 
     private void scheduleReconnect(Exception e) {
