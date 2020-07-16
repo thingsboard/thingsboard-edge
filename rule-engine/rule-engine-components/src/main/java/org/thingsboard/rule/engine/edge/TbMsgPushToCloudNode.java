@@ -52,11 +52,14 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import javax.annotation.Nullable;
+
+import java.util.UUID;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
@@ -90,30 +93,30 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
         if (isSupportedOriginator(msg.getOriginator().getEntityType())) {
             if (isSupportedMsgType(msg.getType())) {
-                CloudEventType cloudEventTypeByEntityType = CloudUtils.getCloudEventTypeByEntityType(msg.getOriginator().getEntityType());
-                if (cloudEventTypeByEntityType == null) {
-                    log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
-                    ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
-                }
-                CloudEvent cloudEvent = null;
                 try {
-                    cloudEvent = buildCloudEvent(ctx, msg, cloudEventTypeByEntityType);
+                    CloudEvent cloudEvent = buildCloudEvent(msg, ctx);
+                    if (cloudEvent == null) {
+                        log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
+                        ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
+                    } else {
+                        ListenableFuture<CloudEvent> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
+                        Futures.addCallback(saveFuture, new FutureCallback<CloudEvent>() {
+                            @Override
+                            public void onSuccess(@Nullable CloudEvent event) {
+                                ctx.tellNext(msg, SUCCESS);
+                            }
+
+                            @Override
+                            public void onFailure(Throwable th) {
+                                log.error("Could not save cloud event", th);
+                                ctx.tellFailure(msg, th);
+                            }
+                        }, ctx.getDbCallbackExecutor());
+                    }
                 } catch (JsonProcessingException e) {
                     log.error("Failed to build cloud event", e);
+                    ctx.tellFailure(msg, e);
                 }
-                ListenableFuture<CloudEvent> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
-                Futures.addCallback(saveFuture, new FutureCallback<CloudEvent>() {
-                    @Override
-                    public void onSuccess(@Nullable CloudEvent event) {
-                        ctx.tellNext(msg, SUCCESS);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable th) {
-                        log.error("Could not save cloud event", th);
-                        ctx.tellFailure(msg, th);
-                    }
-                }, ctx.getDbCallbackExecutor());
             } else {
                 log.debug("Unsupported msg type {}", msg.getType());
                 ctx.tellFailure(msg, new RuntimeException("Unsupported msg type '" + msg.getType() + "'"));
@@ -130,7 +133,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         if (!StringUtils.isEmpty(tsStr)) {
             try {
                 ts = Long.parseLong(tsStr);
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException ignore) {
             }
         } else {
             ts = msg.getTs();
@@ -138,16 +141,38 @@ public class TbMsgPushToCloudNode implements TbNode {
         return ts;
     }
 
-    private CloudEvent buildCloudEvent(TbContext ctx, TbMsg msg, CloudEventType cloudEventTypeByEntityType) throws JsonProcessingException {
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(ctx.getTenantId());
-        cloudEvent.setCloudEventAction(getActionTypeByMsgType(msg.getType()).name());
-        cloudEvent.setEntityId(msg.getOriginator().getId());
-        cloudEvent.setCloudEventType(cloudEventTypeByEntityType);
+    private ObjectNode getTelemetryEntityBody(TbMsg msg) throws JsonProcessingException {
         long ts = getTs(msg);
         ObjectNode entityBody = json.createObjectNode();
         entityBody.put("ts", ts);
         entityBody.set("data", json.readTree(msg.getData()));
+        return entityBody;
+    }
+
+    private UUID getUUIDFromMsgData(TbMsg msg) throws JsonProcessingException {
+        JsonNode data = json.readTree(msg.getData()).get("id");
+        String id = json.treeToValue(data.get("id"), String.class);
+        return UUID.fromString(id);
+    }
+
+    private CloudEvent buildCloudEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
+        if (DataConstants.ALARM.equals(msg.getType())) {
+            return buildCloudEvent(ctx.getTenantId(), ActionType.ADDED, getUUIDFromMsgData(msg), CloudEventType.ALARM, null);
+        } else {
+            CloudEventType cloudEventTypeByEntityType = CloudUtils.getCloudEventTypeByEntityType(msg.getOriginator().getEntityType());
+            if (cloudEventTypeByEntityType == null) {
+                return null;
+            }
+            return buildCloudEvent(ctx.getTenantId(), getActionTypeByMsgType(msg.getType()), msg.getOriginator().getId(), cloudEventTypeByEntityType, getTelemetryEntityBody(msg));
+        }
+    }
+
+    private CloudEvent buildCloudEvent(TenantId tenantId, ActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, ObjectNode entityBody) {
+        CloudEvent cloudEvent = new CloudEvent();
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        cloudEvent.setEntityId(entityId);
+        cloudEvent.setCloudEventType(cloudEventType);
         cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
     }
@@ -166,14 +191,11 @@ public class TbMsgPushToCloudNode implements TbNode {
     }
 
     private boolean isSupportedMsgType(String msgType) {
-        if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
+        return SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
                 || SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)
                 || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)
-                || DataConstants.ATTRIBUTES_DELETED.equals(msgType)) {
-            return true;
-        } else {
-            return false;
-        }
+                || DataConstants.ATTRIBUTES_DELETED.equals(msgType)
+                || DataConstants.ALARM.equals(msgType);
     }
 
     private boolean isSupportedOriginator(EntityType entityType) {

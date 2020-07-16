@@ -33,16 +33,15 @@ version: '2.2'
 services:
   mytbedge:
     restart: always
-    image: "volodymyrbabak/tb-edge:latest"
+    image: "volodymyrbabak/tb-edge:1.0.0-SNAPSHOT"
     ports:
-      - "19090:8080"
-      - "11883:1883"
-      - "15683:5683/udp"
+      - "8081:8080"
+      - "1884:1883"
     environment:
-      CLOUD_ROUTING_KEY: 3b16bfba73b47782490aaa9792fe9b13
-      CLOUD_ROUTING_SECRET: bh3mid4pi2yren2c4noa
-      CLOUD_PRC_HOST: 192.168.1.124
-      CLOUD_RPC_PORT: 60110
+      CLOUD_ROUTING_KEY: 6a1565030465563f58a3770f7ae939e8
+      CLOUD_ROUTING_SECRET: ef05o7vsepi4jn7w3epj
+      CLOUD_PRC_HOST: mytbpe
+      CLOUD_RPC_PORT: 60100
     volumes:
       - ~/.mytbedge-data:/data
       - ~/.mytbedge-logs:/var/log/tb-edge
