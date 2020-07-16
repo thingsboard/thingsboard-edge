@@ -32,6 +32,9 @@ package org.thingsboard.server.dao.sql.query;
 
 import org.hibernate.type.PostgresUUIDType;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 
 import java.sql.Types;
 import java.util.HashMap;
@@ -42,10 +45,12 @@ import java.util.UUID;
 public class QueryContext implements SqlParameterSource {
     private static final PostgresUUIDType UUID_TYPE = new PostgresUUIDType();
 
+    private final QuerySecurityContext securityCtx;
     private final StringBuilder query;
     private final Map<String, Parameter> params;
 
-    public QueryContext() {
+    public QueryContext(QuerySecurityContext securityCtx) {
+        this.securityCtx = securityCtx;
         query = new StringBuilder();
         params = new HashMap<>();
     }
@@ -137,5 +142,17 @@ public class QueryContext implements SqlParameterSource {
             this.type = type;
             this.name = name;
         }
+    }
+
+    public TenantId getTenantId() {
+        return securityCtx.getTenantId();
+    }
+
+    public CustomerId getCustomerId() {
+        return securityCtx.getCustomerId();
+    }
+
+    public EntityType getEntityType() {
+        return securityCtx.getEntityType();
     }
 }
