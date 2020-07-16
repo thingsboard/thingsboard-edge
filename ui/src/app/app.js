@@ -134,6 +134,7 @@ import thingsboardApiEntityRelation from './api/entity-relation.service';
 import thingsboardApiAsset from './api/asset.service';
 import thingsboardApiAttribute from './api/attribute.service';
 import thingsboardApiEntity from './api/entity.service';
+import thingsboardApiEdge from './api/edge.service';
 import thingsboardApiAlarm from './api/alarm.service';
 import thingsboardApiEntityGroup from './api/entity-group.service';
 import thingsboardApiWhiteLabeling from './api/white-labeling.service';
@@ -211,6 +212,7 @@ angular.module('thingsboard', [
     thingsboardApiAsset,
     thingsboardApiAttribute,
     thingsboardApiEntity,
+    thingsboardApiEdge,
     thingsboardApiAlarm,
     thingsboardApiEntityGroup,
     thingsboardApiWhiteLabeling,

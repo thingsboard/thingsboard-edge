@@ -31,7 +31,7 @@
 import './home-links.scss';
 
 /*@ngInject*/
-export default function HomeLinksController($scope, $mdMedia, menu, entityService) {
+export default function HomeLinksController($scope, $mdMedia, menu, entityService, edgeService) {
 
     var vm = this;
 
@@ -39,8 +39,10 @@ export default function HomeLinksController($scope, $mdMedia, menu, entityServic
     vm.sectionPlaces = sectionPlaces;
     vm.showSection = showSection;
 
-    (function() {
-        entityService.getEdgeName().then(
+    loadEdgeName()
+
+    function loadEdgeName() {
+        edgeService.getEdgeInfo().then(
             function success(entity) {
                 let edgeSettings = angular.fromJson(entity.value);
                 vm.edgeName = edgeSettings.name;
@@ -48,7 +50,7 @@ export default function HomeLinksController($scope, $mdMedia, menu, entityServic
             function fail() {
             }
         );
-    })();
+    }
 
     $scope.$watch(function() { return $mdMedia('lg'); }, function() {
         updateColumnCount();

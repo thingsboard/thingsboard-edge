@@ -29,9 +29,16 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($scope, $filter, $translate, attributeService, userService, types) {
+export default function EdgeController($scope, $filter, $translate, attributeService, edgeService, types, userService) {
 
     var vm = this;
+
+    vm.subscriptionId = null;
+    vm.active = '';
+    vm.lastConnectTime = '';
+    vm.lastDisconnectTime = '';
+    vm.edgeSettings = {};
+    vm.activeStatus = '';
 
     var params = {
         entityType: types.entityType.tenant,
@@ -46,13 +53,6 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
             search: null
         }
     };
-    var subscriptionId = null;
-
-    vm.active = '';
-    vm.lastConnectTime = '';
-    vm.lastDisconnectTime = '';
-    vm.edgeSettings = {};
-    vm.activeStatus = '';
 
     loadEdgeInfo();
 
@@ -71,7 +71,7 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
             }
         });
     }
-    
+
     function onUpdate(attributes) {
         let edge = attributes.reduce(function (map, attribute) {
             map[attribute.key] = attribute.value;
@@ -89,14 +89,14 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
         if (params.entityId && params.entityType && params.attributeScope) {
             newSubscriptionId = attributeService.subscribeForEntityAttributes(params.entityType, params.entityId, params.attributeScope);
         }
-        if (subscriptionId && subscriptionId != newSubscriptionId) {
-            attributeService.unsubscribeForEntityAttributes(subscriptionId);
+        if (vm.subscriptionId && vm.subscriptionId != newSubscriptionId) {
+            attributeService.unsubscribeForEntityAttributes(vm.subscriptionId);
         }
-        subscriptionId = newSubscriptionId;
+        vm.subscriptionId = newSubscriptionId;
     }
 
     $scope.$on('$destroy', function() {
-        attributeService.unsubscribeForEntityAttributes(subscriptionId);
+        attributeService.unsubscribeForEntityAttributes(vm.edgeSettings);
     });
 
 }

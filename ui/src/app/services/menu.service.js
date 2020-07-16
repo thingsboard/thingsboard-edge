@@ -35,7 +35,7 @@ export default angular.module('thingsboard.menu', [thingsboardApiUser])
     .name;
 
 /*@ngInject*/
-function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService, customMenuService) {
+function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService, customMenuService, edgeService) {
 
     var authority = '';
     var sections = [];
@@ -47,7 +47,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     var currentCustomSection = null;
     var currentCustomChildSection = null;
-
     var customerGroups = {
         name: 'entity-group.customer-groups',
         type: 'toggle',
@@ -152,7 +151,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     service.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
         updateCurrentCustomSection(params);
     });
-
     return service;
 
     function getSections() {
@@ -201,6 +199,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             authority = user.authority;
             var customMenu = customMenuService.getCustomMenu();
             var disabledItems = [];
+
             if (customMenu && angular.isArray(customMenu.disabledMenuItems)) {
                 disabledItems = customMenu.disabledMenuItems;
             }
@@ -477,7 +476,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(dashboardGroups);
                     entityGroupSections.push(dashboardGroups);
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent) && edgeService.isCloudPE()) {
                     sections.push(
                         {
                             name: 'scheduler.scheduler',
@@ -488,7 +487,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling) && edgeService.isCloudPE()) {
                     sections.push(
                         {
                             name: 'white-labeling.white-labeling',
@@ -1190,7 +1189,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             }
         }
     }
-
 
     function onMenuReady() {
         isMenuReady = true;
