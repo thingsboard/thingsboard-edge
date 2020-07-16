@@ -259,12 +259,12 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "3.0.1":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
-                    //TODO: 3.1 - add PE tables
                     if (isOldSchema(conn, 3000001)) {
                         String[] tables = new String[]{"admin_settings", "alarm", "asset", "audit_log", "attribute_kv",
                                 "component_descriptor", "customer", "dashboard", "device", "device_credentials", "event",
                                 "relation", "tb_user", "tenant", "user_credentials", "widget_type", "widgets_bundle",
-                                "rule_chain", "rule_node", "entity_view"};
+                                "rule_chain", "rule_node", "entity_view", "integration", "converter", "entity_group",
+                                "scheduler_event", "blob_entity", "role", "group_permission"};
                         schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.0.1", "schema_update_to_uuid.sql");
                         loadSql(schemaUpdateFile, conn);
 
