@@ -46,16 +46,19 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 @TbCoreComponent
 public class DefaultEntityQueryService implements EntityQueryService {
 
-    @Autowired
-    private EntityService entityService;
+    private final EntityService entityService;
+
+    public DefaultEntityQueryService(EntityService entityService) {
+        this.entityService = entityService;
+    }
 
     @Override
     public long countEntitiesByQuery(SecurityUser securityUser, EntityCountQuery query) {
-        return entityService.countEntitiesByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);
+        return entityService.countEntitiesByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getUserPermissions(), query);
     }
 
     @Override
     public PageData<EntityData> findEntityDataByQuery(SecurityUser securityUser, EntityDataQuery query) {
-        return entityService.findEntityDataByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);
+        return entityService.findEntityDataByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getUserPermissions(), query);
     }
 }
