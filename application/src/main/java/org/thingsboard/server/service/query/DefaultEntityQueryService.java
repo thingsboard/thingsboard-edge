@@ -84,14 +84,14 @@ public class DefaultEntityQueryService implements EntityQueryService {
     public PageData<AlarmData> findAlarmDataByQuery(SecurityUser securityUser, AlarmDataQuery query) {
         EntityDataQuery entityDataQuery = this.buildEntityDataQuery(query);
         PageData<EntityData> entities = entityService.findEntityDataByQuery(securityUser.getTenantId(),
-                securityUser.getCustomerId(), entityDataQuery);
+                securityUser.getCustomerId(), securityUser.getUserPermissions(), entityDataQuery);
         if (entities.getTotalElements() > 0) {
             LinkedHashMap<EntityId, EntityData> entitiesMap = new LinkedHashMap<>();
             for (EntityData entityData : entities.getData()) {
                 entitiesMap.put(entityData.getEntityId(), entityData);
             }
             PageData<AlarmData> alarms = alarmService.findAlarmDataByQueryForEntities(securityUser.getTenantId(),
-                    securityUser.getCustomerId(), query, entitiesMap.keySet());
+                    securityUser.getCustomerId(), securityUser.getUserPermissions(), query, entitiesMap.keySet());
             for (AlarmData alarmData : alarms.getData()) {
                 EntityId entityId = alarmData.getEntityId();
                 if (entityId != null) {
