@@ -214,15 +214,16 @@ CREATE TABLE IF NOT EXISTS relation (
     relation_type varchar(255),
     additional_info varchar,
     CONSTRAINT relation_pkey PRIMARY KEY (from_id, from_type, relation_type_group, relation_type, to_id, to_type)
-) PARTITION BY LIST (relation_type_group);
+);
+-- ) PARTITION BY LIST (relation_type_group);
 
-CREATE TABLE other_relations PARTITION OF relation DEFAULT;
-CREATE TABLE common_relations PARTITION OF relation FOR VALUES IN ('COMMON');
-CREATE TABLE alarm_relations PARTITION OF relation FOR VALUES IN ('ALARM');
-CREATE TABLE dashboard_relations PARTITION OF relation FOR VALUES IN ('DASHBOARD');
-CREATE TABLE rule_relations PARTITION OF relation FOR VALUES IN ('RULE_CHAIN', 'RULE_NODE');
-CREATE TABLE from_group_relations PARTITION OF relation FOR VALUES IN ('FROM_ENTITY_GROUP');
-CREATE TABLE to_group_relations PARTITION OF relation FOR VALUES IN ('TO_ENTITY_GROUP');
+-- CREATE TABLE other_relations PARTITION OF relation DEFAULT;
+-- CREATE TABLE common_relations PARTITION OF relation FOR VALUES IN ('COMMON');
+-- CREATE TABLE alarm_relations PARTITION OF relation FOR VALUES IN ('ALARM');
+-- CREATE TABLE dashboard_relations PARTITION OF relation FOR VALUES IN ('DASHBOARD');
+-- CREATE TABLE rule_relations PARTITION OF relation FOR VALUES IN ('RULE_CHAIN', 'RULE_NODE');
+-- CREATE TABLE from_group_relations PARTITION OF relation FOR VALUES IN ('FROM_ENTITY_GROUP');
+-- CREATE TABLE to_group_relations PARTITION OF relation FOR VALUES IN ('TO_ENTITY_GROUP');
 
 CREATE TABLE IF NOT EXISTS tb_user (
     id uuid NOT NULL CONSTRAINT tb_user_pkey PRIMARY KEY,
