@@ -131,11 +131,11 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                 //Setting new values
                 latestUpdate.forEach(latestCtxValues::put);
             }
-        }
-        if (!latestUpdate.isEmpty()) {
-            Map<EntityKeyType, Map<String, TsValue>> latestMap = Collections.singletonMap(keyType, latestUpdate);
-            entityData = new EntityData(entityId, latestMap, null);
-            wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+            if (!latestUpdate.isEmpty()) {
+                Map<EntityKeyType, Map<String, TsValue>> latestMap = Collections.singletonMap(keyType, latestUpdate);
+                entityData = new EntityData(entityId, entityData.isReadAttrs(), entityData.isReadTs(), latestMap, null);
+                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+            }
         }
     }
 
@@ -173,12 +173,12 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                     maxValue.ifPresent(max -> latestCtxValues.put(k, max));
                 });
             }
-        }
-        if (!tsUpdate.isEmpty()) {
-            Map<String, TsValue[]> tsMap = new HashMap<>();
-            tsUpdate.forEach((key, tsValue) -> tsMap.put(key, tsValue.toArray(new TsValue[tsValue.size()])));
-            entityData = new EntityData(entityId, null, tsMap);
-            wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+            if (!tsUpdate.isEmpty()) {
+                Map<String, TsValue[]> tsMap = new HashMap<>();
+                tsUpdate.forEach((key, tsValue) -> tsMap.put(key, tsValue.toArray(new TsValue[tsValue.size()])));
+                entityData = new EntityData(entityId, entityData.isReadAttrs(), entityData.isReadTs(), null, tsMap);
+                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+            }
         }
     }
 

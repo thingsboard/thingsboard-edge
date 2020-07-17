@@ -49,19 +49,49 @@ public final class MergedUserPermissions {
     @Getter
     private final Map<EntityType, MergedGroupTypePermissionInfo> readGroupPermissions;
 
+    @Getter
+    private final Map<EntityType, MergedGroupTypePermissionInfo> readEntityPermissions;
+    @Getter
+    private final Map<EntityType, MergedGroupTypePermissionInfo> readAttrPermissions;
+    @Getter
+    private final Map<EntityType, MergedGroupTypePermissionInfo> readTsPermissions;
+
+
     public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
         this.groupPermissions = groupPermissions;
         this.readGroupPermissions = new HashMap<>();
+        this.readEntityPermissions = new HashMap<>();
+        this.readAttrPermissions = new HashMap<>();
+        this.readTsPermissions = new HashMap<>();
         for (EntityType groupType : EntityGroup.groupTypes) {
             Resource resource = Resource.groupResourceFromGroupType(groupType);
             boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
-            MergedGroupTypePermissionInfo groupTypePermissionInfo = new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead);
-            this.readGroupPermissions.put(groupType, groupTypePermissionInfo);
+            this.readGroupPermissions.put(groupType, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead));
         }
+        for (EntityType entityType : EntityType.values()) {
+            Resource resource = Resource.resourceFromEntityType(entityType);
+
+            boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
+            this.readEntityPermissions.put(entityType, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericRead));
+
+            boolean hasGenericReadAttributes = hasGenericPermission(resource, Operation.READ_ATTRIBUTES);
+            this.readAttrPermissions.put(entityType, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericReadAttributes));
+
+            boolean hasGenericReadTelemetry = hasGenericPermission(resource, Operation.READ_TELEMETRY);
+            this.readTsPermissions.put(entityType, new MergedGroupTypePermissionInfo(new ArrayList<>(), hasGenericReadTelemetry));
+        }
+
         this.groupPermissions.forEach((id, info) -> {
             if (checkOperation(info.getOperations(), Operation.READ)) {
                 this.readGroupPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
+                this.readEntityPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
+            }
+            if (checkOperation(info.getOperations(), Operation.READ_ATTRIBUTES)) {
+                this.readAttrPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
+            }
+            if (checkOperation(info.getOperations(), Operation.READ_TELEMETRY)) {
+                this.readTsPermissions.get(info.getEntityType()).getEntityGroupIds().add(id);
             }
         });
     }

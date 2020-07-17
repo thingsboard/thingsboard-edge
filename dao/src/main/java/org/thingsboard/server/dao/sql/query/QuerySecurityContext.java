@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /**
-<<<<<<< HEAD
+ <<<<<<< HEAD
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -66,6 +66,7 @@ import lombok.Getter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -88,6 +89,18 @@ public class QuerySecurityContext {
 
     public boolean hasGeneric(Operation operation) {
         return userPermissions.hasGenericPermission(Resource.resourceFromEntityType(entityType), operation);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadPermissions() {
+        return userPermissions.getReadEntityPermissions().get(entityType);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadAttrPermissions() {
+        return userPermissions.getReadAttrPermissions().get(entityType);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadTsPermissions() {
+        return userPermissions.getReadTsPermissions().get(entityType);
     }
 
 }

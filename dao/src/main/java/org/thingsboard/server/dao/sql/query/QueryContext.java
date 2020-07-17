@@ -58,8 +58,9 @@ public class QueryContext implements SqlParameterSource {
     }
 
     void addParameter(String name, Object value, int type, String typeName) {
-        Parameter existing = params.put(name, new Parameter(value, type, typeName));
-        if (existing != null) {
+        Parameter newParam = new Parameter(value, type, typeName);
+        Parameter oldParam = params.put(name, newParam);
+        if (oldParam != null && !oldParam.equals(newParam)) {
             throw new RuntimeException("Parameter with name: " + name + " was already registered!");
         }
     }
