@@ -98,7 +98,8 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
         'lengthFieldOffset',
         'lengthFieldLength',
         'lengthAdjustment',
-        'initialBytesToStrip'
+        'initialBytesToStrip',
+        'failFast'
       ],
       TEXT: [
         'maxFrameLength',
