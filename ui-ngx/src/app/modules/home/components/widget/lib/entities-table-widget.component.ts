@@ -47,6 +47,7 @@ import {
   DataKey,
   Datasource,
   DatasourceData,
+  DatasourceType,
   WidgetActionDescriptor,
   WidgetConfig
 } from '@shared/models/widget.models';
@@ -57,11 +58,11 @@ import { createLabelFromDatasource, deepClone, hashCode, isDefined, isNumber } f
 import cssjs from '@core/css/css';
 import { CollectionViewer, DataSource } from '@angular/cdk/collections';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
-import { BehaviorSubject, fromEvent, merge, Observable } from 'rxjs';
+import { BehaviorSubject, EMPTY, fromEvent, merge, Observable } from 'rxjs';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { debounceTime, distinctUntilChanged, map, tap } from 'rxjs/operators';
+import { concatMap, debounceTime, distinctUntilChanged, expand, map, tap, toArray } from 'rxjs/operators';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -94,15 +95,18 @@ import {
 import {
   dataKeyToEntityKey,
   Direction,
+  EntityData as QueryEntityData,
   EntityDataPageLink,
   entityDataPageLinkSortDirection,
+  EntityDataQuery,
   EntityKeyType,
+  getLatestDataValue,
   KeyFilter
 } from '@shared/models/query/query.models';
 import { sortItems } from '@shared/models/page/page-link';
 import { entityFields } from '@shared/models/entity.models';
 import { DatePipe } from '@angular/common';
-import { alarmFields } from '@shared/models/alarm.models';
+import { EntityService } from '@core/http/entity.service';
 
 interface EntitiesTableWidgetSettings extends TableWidgetSettings {
   entitiesTitle: string;
@@ -171,6 +175,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
               private ngZone: NgZone,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
+              private entityService: EntityService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private translate: TranslateService,
@@ -594,22 +599,81 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     this.ctx.actionsApi.handleWidgetAction($event, actionDescriptor, entityId, entityName, null, entityLabel);
   }
 
-  customDataExport(): {[key: string]: any}[] {
-    const exportedData: {[key: string]: any}[] = [];
-    // TODO: export all entities
-    // const pageLink = new PageLink(Number.POSITIVE_INFINITY, 0, this.pageLink.textSearch, this.pageLink.sortOrder);
-    // const entitiesToExport = pageLink.filterData(this.entityDatasource.allEntities).data;
-    const entitiesToExport = this.entityDatasource.entities;
-    entitiesToExport.forEach((entity) => {
-      const dataObj: {[key: string]: any} = {};
-      this.columns.forEach((column) => {
-        if (this.displayedColumns.indexOf(column.def) > -1) {
-          dataObj[column.title] = this.cellContent(entity, column, false);
-        }
+  customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
+    const datasource = this.subscription.datasources[0];
+    if (datasource && datasource.type === DatasourceType.entity && datasource.entityFilter) {
+      const pageLink = deepClone(this.pageLink);
+      pageLink.dynamic = false;
+      pageLink.page = 0;
+      pageLink.pageSize = 1000;
+      const query: EntityDataQuery = {
+        entityFilter: datasource.entityFilter,
+        keyFilters: datasource.keyFilters,
+        pageLink
+      };
+      const exportedColumns = this.columns.filter(
+        c => this.displayedColumns.indexOf(c.def) > -1 && c.entityKey);
+
+      query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
+                                                       entityFields[c.entityKey.key]).map(c => c.entityKey);
+      query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
+                                                       c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey)
+
+      return this.entityService.findEntityDataByQuery(query).pipe(
+        expand(data => {
+            if (data.hasNext) {
+              pageLink.page += 1;
+              return this.entityService.findEntityDataByQuery(query);
+            } else {
+              return EMPTY;
+            }
+        }),
+        map(data => data.data.map(e => this.queryEntityDataToExportedData(e, exportedColumns))),
+        concatMap((data) => data),
+        toArray()
+      );
+    } else {
+      const exportedData: {[key: string]: any}[] = [];
+      const entitiesToExport = this.entityDatasource.entities;
+      entitiesToExport.forEach((entity) => {
+        const dataObj: {[key: string]: any} = {};
+        this.columns.forEach((column) => {
+          if (this.displayedColumns.indexOf(column.def) > -1) {
+            dataObj[column.title] = this.cellContent(entity, column, false);
+          }
+        });
+        exportedData.push(dataObj);
       });
-      exportedData.push(dataObj);
+      return exportedData;
+    }
+  }
+
+  private queryEntityDataToExportedData(queryEntityData: QueryEntityData,
+                                        columns: EntityColumn[]): {[key: string]: any} {
+    const entity: EntityData = {
+      entityName: '',
+      id: queryEntityData.entityId,
+      entityType: this.translate.instant(entityTypeTranslations.get(queryEntityData.entityId.entityType).type)
+    };
+    const latest = queryEntityData.latest;
+    if (latest) {
+      entity.entityName = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'name', '');
+      entity.entityLabel = getLatestDataValue(latest, EntityKeyType.ENTITY_FIELD, 'label', entity.entityName);
+    }
+    columns.forEach(column => {
+      if (!['entityName', 'entityLabel', 'entityType'].includes(column.label)) {
+        if (latest) {
+          entity[column.label] = getLatestDataValue(latest, column.entityKey.type, column.entityKey.key, '');
+        } else {
+          entity[column.label] = '';
+        }
+      }
     });
-    return exportedData;
+    const dataObj: {[key: string]: any} = {};
+    columns.forEach(column => {
+      dataObj[column.title] = this.cellContent(entity, column, false);
+    });
+    return dataObj;
   }
 
 }

@@ -70,7 +70,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
 import { UtilsService } from '@core/services/utils.service';
-import { forkJoin, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
+import { forkJoin, isObservable, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
 import { deepClone, isDefined, isFunction, objToBase64 } from '@core/utils';
 import {
   IDynamicWidgetComponent,
@@ -1195,6 +1195,16 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
     }
     const data = this.prepareWidgetExportData();
+    if (isObservable(data)) {
+      data.subscribe((d) => {
+        this.doExportWidgetData(filename, d, widgetExportType);
+      });
+    } else {
+      this.doExportWidgetData(filename, data, widgetExportType);
+    }
+  }
+
+  private doExportWidgetData(filename: string, data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
     if (widgetExportType === WidgetExportType.csv) {
       this.importExport.exportCsv(data, filename);
     } else if (widgetExportType === WidgetExportType.xls) {
@@ -1204,7 +1214,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     }
   }
 
-  private prepareWidgetExportData(): {[key: string]: any}[] {
+  private prepareWidgetExportData(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
     if (isFunction(this.widgetContext.customDataExport)) {
       return this.widgetContext.customDataExport();
     } else if (this.widgetContext.defaultSubscription){

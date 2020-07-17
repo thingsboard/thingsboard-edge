@@ -84,6 +84,8 @@ import { Operation, resourceByEntityType, RoleType } from '@shared/models/securi
 import { EntityGroup } from '@shared/models/entity-group.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
+  AlarmData,
+  AlarmDataQuery,
   createDefaultEntityDataPageLink,
   defaultEntityDataPageLink,
   EntityData,
@@ -647,6 +649,10 @@ export class EntityService {
 
   public findEntityDataByQuery(query: EntityDataQuery, config?: RequestConfig): Observable<PageData<EntityData>> {
     return this.http.post<PageData<EntityData>>('/api/entitiesQuery/find', query, defaultHttpOptionsFromConfig(config));
+  }
+
+  public findAlarmDataByQuery(query: AlarmDataQuery, config?: RequestConfig): Observable<PageData<AlarmData>> {
+    return this.http.post<PageData<AlarmData>>('/api/alarmsQuery/find', query, defaultHttpOptionsFromConfig(config));
   }
 
   public findEntityInfosByFilterAndName(filter: EntityFilter,

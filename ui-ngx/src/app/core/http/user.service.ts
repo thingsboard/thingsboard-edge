@@ -103,7 +103,8 @@ export class UserService {
   }
 
   public sendActivationEmail(email: string, config?: RequestConfig) {
-    return this.http.post(`/api/user/sendActivationMail?email=${email}`, null, defaultHttpOptionsFromConfig(config));
+    const encodeEmail = encodeURIComponent(email);
+    return this.http.post(`/api/user/sendActivationMail?email=${encodeEmail}`, null, defaultHttpOptionsFromConfig(config));
   }
 
   public setUserCredentialsEnabled(userId: string, userCredentialsEnabled?: boolean, config?: RequestConfig): Observable<any> {

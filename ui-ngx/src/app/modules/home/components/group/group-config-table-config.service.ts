@@ -618,8 +618,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       title,
       '0px',
       cellContentFunction,
-      cellStyleFunction,
-      entityGroupColumn.type !== EntityGroupColumnType.TIMESERIES // TODO: Timeseries sort
+      cellStyleFunction
     );
     column.ignoreTranslate = true;
     column.mobileHide = entityGroupColumn.mobileHide;

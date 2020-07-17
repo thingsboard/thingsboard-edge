@@ -37,7 +37,7 @@ import { EntityInfo } from '@shared/models/entity.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DataKey, Datasource, DatasourceType } from '@shared/models/widget.models';
 import { PageData } from '@shared/models/page/page-data';
-import { isDefined, isEqual } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isEqual } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { AlarmInfo, AlarmSearchStatus, AlarmSeverity } from '../alarm.models';
 
@@ -588,6 +588,19 @@ export interface EntityData {
 export interface AlarmData extends AlarmInfo {
   entityId: string;
   latest: {[entityKeyType: string]: {[key: string]: TsValue}};
+}
+
+export function getLatestDataValue(latest: {[entityKeyType: string]: {[key: string]: TsValue}},
+                                   entityKeyType: EntityKeyType, key: string, defaultValue?: string): string {
+  let value = defaultValue;
+  const fields = latest[entityKeyType];
+  if (fields) {
+    const tsValue = fields[key];
+    if (tsValue && isDefinedAndNotNull(tsValue.value)) {
+      value = tsValue.value;
+    }
+  }
+  return value;
 }
 
 export function entityPageDataChanged(prevPageData: PageData<EntityData>, nextPageData: PageData<EntityData>): boolean {

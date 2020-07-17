@@ -65,7 +65,7 @@ import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetLayout } from '@shared/models/dashboard.models';
 import { formatValue, isDefined } from '@core/utils';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -231,7 +231,7 @@ export class WidgetContext {
   activeEntityInfo?: SubscriptionEntityInfo;
 
   exportWidgetData: (widgetExportType: WidgetExportType) => void;
-  customDataExport?: () => {[key: string]: any}[];
+  customDataExport?: () => {[key: string]: any}[] | Observable<{[key: string]: any}[]>;
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;
