@@ -28,49 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.events;
+package org.thingsboard.server.dao.sql;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-@PsqlDao
-@SqlDao
 @Slf4j
-@Service
-public class EventsCleanUpService extends AbstractCleanUpService {
+@Data
+public class TbSqlBlockingQueueWrapper<E> {
+    private final CopyOnWriteArrayList<TbSqlBlockingQueue<E>> queues = new CopyOnWriteArrayList<>();
+    private final TbSqlBlockingQueueParams params;
+    private ScheduledLogExecutorComponent logExecutor;
+    private final Function<E, Integer> hashCodeFunction;
+    private final int maxThreads;
 
-    @Value("${sql.ttl.events.events_ttl}")
-    private long ttl;
-
-    @Value("${sql.ttl.events.debug_events_ttl}")
-    private long debugTtl;
-
-    @Value("${sql.ttl.events.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
+    public void init(ScheduledLogExecutorComponent logExecutor, Consumer<List<E>> saveFunction) {
+        for (int i = 0; i < maxThreads; i++) {
+            TbSqlBlockingQueue<E> queue = new TbSqlBlockingQueue<>(params);
+            queues.add(queue);
+            queue.init(logExecutor, saveFunction, i);
         }
     }
 
-    @Override
-    protected void doCleanUp(Connection connection) {
-        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
-        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
+    public ListenableFuture<Void> add(E element) {
+        int queueIndex = element != null ? (hashCodeFunction.apply(element) & 0x7FFFFFFF) % maxThreads : 0;
+        return queues.get(queueIndex).add(element);
+    }
+
+    public void destroy() {
+        queues.forEach(TbSqlBlockingQueue::destroy);
     }
 }

@@ -28,49 +28,69 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.events;
+package org.thingsboard.server.service.stats;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
+import org.thingsboard.server.actors.JsInvokeStats;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import javax.annotation.PostConstruct;
 
-@PsqlDao
-@SqlDao
-@Slf4j
 @Service
-public class EventsCleanUpService extends AbstractCleanUpService {
+public class DefaultJsInvokeStats implements JsInvokeStats {
+    private static final String REQUESTS = "requests";
+    private static final String RESPONSES = "responses";
+    private static final String FAILURES = "failures";
 
-    @Value("${sql.ttl.events.events_ttl}")
-    private long ttl;
+    private StatsCounter requestsCounter;
+    private StatsCounter responsesCounter;
+    private StatsCounter failuresCounter;
 
-    @Value("${sql.ttl.events.debug_events_ttl}")
-    private long debugTtl;
+    @Autowired
+    private StatsCounterFactory counterFactory;
 
-    @Value("${sql.ttl.events.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
+    @PostConstruct
+    public void init() {
+        String key = StatsType.JS_INVOKE.getName();
+        this.requestsCounter = counterFactory.createStatsCounter(key, REQUESTS);
+        this.responsesCounter = counterFactory.createStatsCounter(key, RESPONSES);
+        this.failuresCounter = counterFactory.createStatsCounter(key, FAILURES);
     }
 
     @Override
-    protected void doCleanUp(Connection connection) {
-        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
-        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
+    public void incrementRequests(int amount) {
+        requestsCounter.add(amount);
+    }
+
+    @Override
+    public void incrementResponses(int amount) {
+        responsesCounter.add(amount);
+    }
+
+    @Override
+    public void incrementFailures(int amount) {
+        failuresCounter.add(amount);
+    }
+
+    @Override
+    public int getRequests() {
+        return requestsCounter.get();
+    }
+
+    @Override
+    public int getResponses() {
+        return responsesCounter.get();
+    }
+
+    @Override
+    public int getFailures() {
+        return failuresCounter.get();
+    }
+
+    @Override
+    public void reset() {
+        requestsCounter.clear();
+        responsesCounter.clear();
+        failuresCounter.clear();
     }
 }

@@ -28,49 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.events;
+package org.thingsboard.server.service.stats;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
+import io.micrometer.core.instrument.Counter;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 
-@PsqlDao
-@SqlDao
-@Slf4j
-@Service
-public class EventsCleanUpService extends AbstractCleanUpService {
+public class StatsCounter {
+    private final AtomicInteger aiCounter;
+    private final Counter micrometerCounter;
+    private final String name;
 
-    @Value("${sql.ttl.events.events_ttl}")
-    private long ttl;
-
-    @Value("${sql.ttl.events.debug_events_ttl}")
-    private long debugTtl;
-
-    @Value("${sql.ttl.events.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
+    public StatsCounter(AtomicInteger aiCounter, Counter micrometerCounter, String name) {
+        this.aiCounter = aiCounter;
+        this.micrometerCounter = micrometerCounter;
+        this.name = name;
     }
 
-    @Override
-    protected void doCleanUp(Connection connection) {
-        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
-        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
+    public void increment() {
+        aiCounter.incrementAndGet();
+        micrometerCounter.increment();
+    }
+
+    public void clear() {
+        aiCounter.set(0);
+    }
+
+    public int get() {
+        return aiCounter.get();
+    }
+
+    public void add(int delta){
+        aiCounter.addAndGet(delta);
+        micrometerCounter.increment(delta);
+    }
+
+    public String getName() {
+        return name;
     }
 }

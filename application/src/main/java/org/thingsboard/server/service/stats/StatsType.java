@@ -28,49 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl.events;
+package org.thingsboard.server.service.stats;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
-import org.thingsboard.server.service.ttl.AbstractCleanUpService;
+public enum StatsType {
+    RULE_ENGINE("ruleEngine"), CORE("core"), TRANSPORT("transport"), JS_INVOKE("jsInvoke");
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+    private String name;
 
-@PsqlDao
-@SqlDao
-@Slf4j
-@Service
-public class EventsCleanUpService extends AbstractCleanUpService {
-
-    @Value("${sql.ttl.events.events_ttl}")
-    private long ttl;
-
-    @Value("${sql.ttl.events.debug_events_ttl}")
-    private long debugTtl;
-
-    @Value("${sql.ttl.events.enabled}")
-    private boolean ttlTaskExecutionEnabled;
-
-    @Scheduled(initialDelayString = "${sql.ttl.events.execution_interval_ms}", fixedDelayString = "${sql.ttl.events.execution_interval_ms}")
-    public void cleanUp() {
-        if (ttlTaskExecutionEnabled) {
-            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                doCleanUp(conn);
-            } catch (SQLException e) {
-                log.error("SQLException occurred during TTL task execution ", e);
-            }
-        }
+    StatsType(String name) {
+        this.name = name;
     }
 
-    @Override
-    protected void doCleanUp(Connection connection) {
-        long totalEventsRemoved = executeQuery(connection, "call cleanup_events_by_ttl(" + ttl + ", " + debugTtl + ", 0);");
-        log.info("Total events removed by TTL: [{}]", totalEventsRemoved);
+    public String getName() {
+        return name;
     }
 }
