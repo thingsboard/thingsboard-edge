@@ -165,11 +165,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
 
-    const resource = resourceByEntityType.get(this.entityType);
-    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.CREATE)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericPermission(resource, Operation.DELETE)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType)) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {

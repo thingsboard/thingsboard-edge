@@ -346,6 +346,7 @@ DECLARE
     table_name varchar := 'customer';
     column_id  varchar := 'id';
     column_tenant_id  varchar := 'tenant_id';
+    column_parent_customer_id  varchar := 'parent_customer_id';
 BEGIN
     data_type := get_column_type(table_name, column_id);
     IF data_type = 'character varying' THEN
@@ -366,6 +367,14 @@ BEGIN
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
     END IF;
+
+    data_type := get_column_type(table_name, column_parent_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_parent_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_parent_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_parent_customer_id;
+    END IF;
 END;
 $$;
 
@@ -379,6 +388,7 @@ DECLARE
     table_name varchar := 'dashboard';
     column_id  varchar := 'id';
     column_tenant_id  varchar := 'tenant_id';
+    column_customer_id  varchar := 'customer_id';
 BEGIN
     data_type := get_column_type(table_name, column_id);
     IF data_type = 'character varying' THEN
@@ -398,6 +408,14 @@ BEGIN
         RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_customer_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_customer_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_customer_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_customer_id;
     END IF;
 END;
 $$;
@@ -1105,6 +1123,7 @@ DECLARE
     table_name varchar := 'group_permission';
     column_id  varchar := 'id';
     column_tenant_id varchar := 'tenant_id';
+    column_role_id varchar := 'role_id';
     column_user_group_id varchar := 'user_group_id';
     column_entity_group_id varchar := 'entity_group_id';
 BEGIN
@@ -1126,6 +1145,14 @@ BEGIN
         RAISE NOTICE 'Table % column % updated!', table_name, column_tenant_id;
     ELSE
         RAISE NOTICE 'Table % column % already updated!', table_name, column_tenant_id;
+    END IF;
+
+    data_type := get_column_type(table_name, column_role_id);
+    IF data_type = 'character varying' THEN
+        PERFORM column_type_to_uuid(table_name, column_role_id);
+        RAISE NOTICE 'Table % column % updated!', table_name, column_role_id;
+    ELSE
+        RAISE NOTICE 'Table % column % already updated!', table_name, column_role_id;
     END IF;
 
     data_type := get_column_type(table_name, column_user_group_id);
