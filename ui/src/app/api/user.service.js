@@ -37,7 +37,7 @@ export default angular.module('thingsboard.api.user', [thingsboardApiLogin,
     .name;
 
 /*@ngInject*/
-function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, customMenuService,
+function UserService($http, $q, $rootScope, adminService, dashboardService, timeService, loginService, whiteLabelingService, customMenuService, edgeService, types,
                      customTranslationService, userPermissionsService, toast, store, reportService, jwtHelper, $translate, $state, $location, $mdDialog) {
     var currentUser = null,
         currentUserDetails = null,
@@ -47,7 +47,8 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         userTokenAccessEnabled = false,
         userLoaded = false,
         whiteLabelingAllowed = false,
-        customerWhiteLabelingAllowed = false;
+        customerWhiteLabelingAllowed = false,
+        peMenuAllowed = false;
 
     var refreshTokenQueue = [];
 
@@ -88,6 +89,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         loginAsUser: loginAsUser,
         isWhiteLabelingAllowed: isWhiteLabelingAllowed,
         isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed,
+        isPEMenuAllowed: isPEMenuAllowed,
         setUserCredentialsEnabled: setUserCredentialsEnabled
     }
 
@@ -275,6 +277,10 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
     function isWhiteLabelingAllowed() {
         return whiteLabelingAllowed;
+    }
+
+    function isPEMenuAllowed() {
+        return peMenuAllowed;
     }
 
     function isCustomerWhiteLabelingAllowed() {
@@ -507,6 +513,22 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         return deferred.promise;
     }
 
+    function checkIsPEMenuAllowed() {
+        var deferred = $q.defer();
+        edgeService.getEdgeInfo(currentUser.tenantId).then(
+            (response) => {
+                let cloudType = angular.fromJson(response.value).cloudType;
+                peMenuAllowed = cloudType === types.cloudType.pe;
+                deferred.resolve();
+            },
+            () => {
+                peMenuAllowed = false;
+                deferred.reject();
+            }
+        )
+        return deferred.promise;
+    }
+
     function loadSystemParams() {
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
@@ -515,6 +537,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         promises.push(timeService.loadMaxDatapointsLimit());
         if (currentUser && (currentUser.authority === 'TENANT_ADMIN' || currentUser.authority === 'CUSTOMER_USER')) {
             promises.push(checkIsWhiteLabelingAllowed());
+            promises.push(checkIsPEMenuAllowed());
         }
         promises.push(userPermissionsService.loadPermissionsInfo());
         promises.push(customTranslationService.updateCustomTranslations());

@@ -31,7 +31,7 @@
 import './home-links.scss';
 
 /*@ngInject*/
-export default function HomeLinksController($scope, $mdMedia, menu, entityService, edgeService) {
+export default function HomeLinksController($scope, $mdMedia, menu, entityService, edgeService, userService) {
 
     var vm = this;
 
@@ -39,10 +39,11 @@ export default function HomeLinksController($scope, $mdMedia, menu, entityServic
     vm.sectionPlaces = sectionPlaces;
     vm.showSection = showSection;
 
-    loadEdgeName()
+    loadEdgeName();
 
     function loadEdgeName() {
-        edgeService.getEdgeInfo().then(
+        let tenantId = userService.getCurrentUser().tenantId;
+        edgeService.getEdgeInfo(tenantId).then(
             function success(entity) {
                 let edgeSettings = angular.fromJson(entity.value);
                 vm.edgeName = edgeSettings.name;

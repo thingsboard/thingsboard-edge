@@ -35,7 +35,7 @@ export default angular.module('thingsboard.menu', [thingsboardApiUser])
     .name;
 
 /*@ngInject*/
-function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService, customMenuService, edgeService) {
+function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPermissionsService, entityGroupService, customMenuService) {
 
     var authority = '';
     var sections = [];
@@ -476,7 +476,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(dashboardGroups);
                     entityGroupSections.push(dashboardGroups);
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent) && edgeService.isCloudPE()) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     sections.push(
                         {
                             name: 'scheduler.scheduler',
@@ -487,7 +487,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling) && edgeService.isCloudPE()) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     sections.push(
                         {
                             name: 'white-labeling.white-labeling',
