@@ -202,6 +202,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
             new PaginatedUpdater<String, Tenant>() {
 
                 @Override
+                protected String getName() {
+                    return "Tenants default rule chain updater";
+                }
+
+                @Override
                 protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
                     return tenantService.findTenants(pageLink);
                 }
@@ -221,6 +226,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantsCustomersGroupAllUpdater =
             new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants customers group all updater";
+                }
 
                 @Override
                 protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
@@ -252,6 +262,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantEntitiesGroupAllUpdater =
             new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenant entities group all updater";
+                }
 
                 @Override
                 protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
@@ -315,6 +330,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
+        protected String getName() {
+            return "Tenant admins group all updater";
+        }
+
+        @Override
         protected PageData<User> findEntities(TenantId id, PageLink pageLink) {
             return userService.findTenantAdmins(id, pageLink);
         }
@@ -332,6 +352,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         public CustomerUsersTenantGroupAllRemover(EntityGroup groupAll) {
             this.groupAll = groupAll;
+        }
+
+        @Override
+        protected String getName() {
+            return "Customer users tenant group all remover";
         }
 
         @Override
@@ -372,6 +397,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
+        protected String getName() {
+            return "Customer users group all updater";
+        }
+
+        @Override
         protected PageData<User> findEntities(CustomerId id, PageLink pageLink) {
             return userService.findCustomerUsers(this.tenantId, id, pageLink);
         }
@@ -387,6 +417,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
         public CustomersGroupAllUpdater(EntityGroup groupAll) {
             super(groupAll);
+        }
+
+        @Override
+        protected String getName() {
+            return "Customers group all updater";
         }
 
         @Override
@@ -454,6 +489,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
 
         @Override
+        protected String getName() {
+            return "Dashboards group all updater";
+        }
+
+        @Override
         protected PageData<DashboardInfo> findEntities(TenantId id, PageLink pageLink) {
             if (fetchAllTenantEntities) {
                 return dashboardService.findDashboardsByTenantId(id, pageLink);
@@ -505,6 +545,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     }
 
     private WhiteLabelingPaginatedUpdater<String, Tenant> tenantsWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<String, Tenant>() {
+
+        @Override
+        protected String getName() {
+            return "Tenants white-labeling updater";
+        }
+
         @Override
         protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
             return tenantService.findTenants(pageLink);
@@ -523,6 +569,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     };
 
     private WhiteLabelingPaginatedUpdater<TenantId, Customer> customersWhiteLabelingUpdater = new WhiteLabelingPaginatedUpdater<TenantId, Customer>() {
+
+        @Override
+        protected String getName() {
+            return "Customers white-labeling updater";
+        }
+
         @Override
         protected PageData<Customer> findEntities(TenantId id, PageLink pageLink) {
             return customerService.findCustomersByTenantId(id, pageLink);
@@ -538,6 +590,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         @Override
         protected PageData<Tenant> findEntities(String id, PageLink pageLink) {
             return tenantService.findTenants(pageLink);
+        }
+
+        @Override
+        protected String getName() {
+            return "Tenant integration updater";
         }
 
         @Override
@@ -761,8 +818,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private abstract static class WhiteLabelingPaginatedUpdater<I, D extends SearchTextBased<? extends UUIDBased>> {
 
         private static final int DEFAULT_LIMIT = 100;
+        private int updated = 0;
 
         public List<ListenableFuture<WhiteLabelingParams>> updateEntities(I id) throws Exception {
+            updated = 0;
             PageLink pageLink = new PageLink(DEFAULT_LIMIT);
             boolean hasNext = true;
             List<ListenableFuture<WhiteLabelingParams>> result = new ArrayList<>();
@@ -771,13 +830,21 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (D entity : entities.getData()) {
                     result.add(updateEntity(entity));
                 }
+                updated += entities.getData().size();
                 hasNext = entities.hasNext();
                 if (hasNext) {
+                    log.info("{}: {} entities updated so far...", getName(), updated);
                     pageLink = pageLink.nextPageLink();
+                } else {
+                    if (updated > DEFAULT_LIMIT) {
+                        log.info("{}: {} total entities updated.", getName(), updated);
+                    }
                 }
             }
             return result;
         }
+
+        protected abstract String getName();
 
         protected abstract PageData<D> findEntities(I id, PageLink pageLink);
 

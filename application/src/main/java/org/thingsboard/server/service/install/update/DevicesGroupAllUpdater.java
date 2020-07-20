@@ -60,4 +60,9 @@ class DevicesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<DeviceId, De
         entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
         deviceService.saveDevice(entity);
     }
+
+    @Override
+    protected String getName() {
+        return "Devices group all updater";
+    }
 }
