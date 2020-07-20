@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AbstractDataQuery;
 import org.thingsboard.server.common.data.query.ComplexFilterPredicate;
 import org.thingsboard.server.common.data.query.DynamicValue;
@@ -207,7 +208,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
     }
 
     protected PageData<EntityData> findEntityData() {
-        PageData<EntityData> result = entityService.findEntityDataByQuery(getTenantId(), getCustomerId(), buildEntityDataQuery());
+        PageData<EntityData> result = entityService.findEntityDataByQuery(getTenantId(), getCustomerId(), getMergedUserPermissions(), buildEntityDataQuery());
         if (log.isTraceEnabled()) {
             result.getData().forEach(ed -> {
                 log.trace("[{}][{}] EntityData: {}", getSessionId(), getCmdId(), ed);
@@ -228,7 +229,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         } else {
             oldDataMap = Collections.emptyMap();
         }
-        Map<EntityId, EntityData> newDataMap = newData.getData().stream().collect(Collectors.toMap(EntityData::getEntityId, Function.identity(), (a,b)-> a));
+        Map<EntityId, EntityData> newDataMap = newData.getData().stream().collect(Collectors.toMap(EntityData::getEntityId, Function.identity(), (a, b) -> a));
         if (oldDataMap.size() == newDataMap.size() && oldDataMap.keySet().equals(newDataMap.keySet())) {
             log.trace("[{}][{}] No updates to entity data found", sessionRef.getSessionId(), cmdId);
         } else {
@@ -339,6 +340,10 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         return sessionRef.getSecurityCtx().getCustomerId();
     }
 
+    public MergedUserPermissions getMergedUserPermissions() {
+        return sessionRef.getSecurityCtx().getUserPermissions();
+    }
+
     public UserId getUserId() {
         return sessionRef.getSecurityCtx().getId();
     }
@@ -393,19 +398,29 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
             subToEntityIdMap.put(subIdx, entityData.getEntityId());
             switch (keysType) {
                 case TIME_SERIES:
-                    subscriptionList.add(createTsSub(entityData, subIdx, keysList, resultToLatestValues));
+                    if (entityData.isReadTs()) {
+                        subscriptionList.add(createTsSub(entityData, subIdx, keysList, resultToLatestValues));
+                    }
                     break;
                 case CLIENT_ATTRIBUTE:
-                    subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.CLIENT_SCOPE, keysList));
+                    if (entityData.isReadAttrs()) {
+                        subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.CLIENT_SCOPE, keysList));
+                    }
                     break;
                 case SHARED_ATTRIBUTE:
-                    subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.SHARED_SCOPE, keysList));
+                    if (entityData.isReadAttrs()) {
+                        subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.SHARED_SCOPE, keysList));
+                    }
                     break;
                 case SERVER_ATTRIBUTE:
-                    subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.SERVER_SCOPE, keysList));
+                    if (entityData.isReadAttrs()) {
+                        subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.SERVER_SCOPE, keysList));
+                    }
                     break;
                 case ATTRIBUTE:
-                    subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.ANY_SCOPE, keysList));
+                    if (entityData.isReadAttrs()) {
+                        subscriptionList.add(createAttrSub(entityData, subIdx, keysType, TbAttributeSubscriptionScope.ANY_SCOPE, keysList));
+                    }
                     break;
             }
         });

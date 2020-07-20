@@ -58,8 +58,11 @@ import java.util.LinkedHashMap;
 @TbCoreComponent
 public class DefaultEntityQueryService implements EntityQueryService {
 
-    @Autowired
-    private EntityService entityService;
+    private final EntityService entityService;
+
+    public DefaultEntityQueryService(EntityService entityService) {
+        this.entityService = entityService;
+    }
 
     @Autowired
     private AlarmService alarmService;
@@ -69,26 +72,26 @@ public class DefaultEntityQueryService implements EntityQueryService {
 
     @Override
     public long countEntitiesByQuery(SecurityUser securityUser, EntityCountQuery query) {
-        return entityService.countEntitiesByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);
+        return entityService.countEntitiesByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getUserPermissions(), query);
     }
 
     @Override
     public PageData<EntityData> findEntityDataByQuery(SecurityUser securityUser, EntityDataQuery query) {
-        return entityService.findEntityDataByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), query);
+        return entityService.findEntityDataByQuery(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getUserPermissions(), query);
     }
 
     @Override
     public PageData<AlarmData> findAlarmDataByQuery(SecurityUser securityUser, AlarmDataQuery query) {
         EntityDataQuery entityDataQuery = this.buildEntityDataQuery(query);
         PageData<EntityData> entities = entityService.findEntityDataByQuery(securityUser.getTenantId(),
-                securityUser.getCustomerId(), entityDataQuery);
+                securityUser.getCustomerId(), securityUser.getUserPermissions(), entityDataQuery);
         if (entities.getTotalElements() > 0) {
             LinkedHashMap<EntityId, EntityData> entitiesMap = new LinkedHashMap<>();
             for (EntityData entityData : entities.getData()) {
                 entitiesMap.put(entityData.getEntityId(), entityData);
             }
             PageData<AlarmData> alarms = alarmService.findAlarmDataByQueryForEntities(securityUser.getTenantId(),
-                    securityUser.getCustomerId(), query, entitiesMap.keySet());
+                    securityUser.getCustomerId(), securityUser.getUserPermissions(), query, entitiesMap.keySet());
             for (AlarmData alarmData : alarms.getData()) {
                 EntityId entityId = alarmData.getEntityId();
                 if (entityId != null) {

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.query;
 
+import lombok.Getter;
 import org.hibernate.type.PostgresUUIDType;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.thingsboard.server.common.data.EntityType;
@@ -45,6 +46,7 @@ import java.util.UUID;
 public class QueryContext implements SqlParameterSource {
     private static final PostgresUUIDType UUID_TYPE = new PostgresUUIDType();
 
+    @Getter
     private final QuerySecurityContext securityCtx;
     private final StringBuilder query;
     private final Map<String, Parameter> params;
@@ -56,8 +58,9 @@ public class QueryContext implements SqlParameterSource {
     }
 
     void addParameter(String name, Object value, int type, String typeName) {
-        Parameter existing = params.put(name, new Parameter(value, type, typeName));
-        if (existing != null) {
+        Parameter newParam = new Parameter(value, type, typeName);
+        Parameter oldParam = params.put(name, newParam);
+        if (oldParam != null && !oldParam.equals(newParam)) {
             throw new RuntimeException("Parameter with name: " + name + " was already registered!");
         }
     }
@@ -129,6 +132,10 @@ public class QueryContext implements SqlParameterSource {
 
     public String getQuery() {
         return query.toString();
+    }
+
+    public boolean isTenantUser() {
+        return securityCtx.isTenantUser();
     }
 
 

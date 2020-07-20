@@ -251,15 +251,29 @@ public class EntityKeyMapping {
         }
         ctx.addStringParameter(alias + "_key_id", entityKey.getKey());
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
+            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissions().isHasGenericRead();
+            String genericReadFilter;
+            if (genericRead) {
+                genericReadFilter = "";
+            } else {
+                genericReadFilter = "entities." + DefaultEntityQueryRepository.TS_READ_FLAG + " = true AND ";
+            }
             String join = hasFilter() ? "left join" : "left outer join";
-            return String.format("%s ts_kv_latest %s ON %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id)",
-                    join, alias, alias, alias, alias);
+            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id)",
+                    join, alias, genericReadFilter, alias, alias, alias);
         } else {
             String query;
+            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissions().isHasGenericRead();
+            String genericReadFilter;
+            if (genericRead) {
+                genericReadFilter = "";
+            } else {
+                genericReadFilter = "entities." + DefaultEntityQueryRepository.ATTR_READ_FLAG + " = true AND ";
+            }
             if (!entityKey.getType().equals(EntityKeyType.ATTRIBUTE)) {
                 String join = hasFilter() ? "left join" : "left outer join";
-                query = String.format("%s attribute_kv %s ON %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id",
-                        join, alias, alias, alias, entityTypeStr, alias, alias);
+                query = String.format("%s attribute_kv %s ON %s %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id",
+                        join, alias, genericReadFilter, alias, alias, entityTypeStr, alias, alias);
                 String scope;
                 if (entityKey.getType().equals(EntityKeyType.CLIENT_ATTRIBUTE)) {
                     scope = DataConstants.CLIENT_SCOPE;
@@ -271,9 +285,9 @@ public class EntityKeyMapping {
                 query = String.format("%s AND %s.attribute_type='%s'", query, alias, scope);
             } else {
                 String join = hasFilter() ? "join LATERAL" : "left join LATERAL";
-                query = String.format("%s (select * from attribute_kv %s WHERE %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id " +
+                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id " +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
-                        join, alias, alias, alias, entityTypeStr, alias, alias, alias, alias);
+                        join, alias, genericReadFilter, alias, alias, entityTypeStr, alias, alias, alias, alias);
             }
             return query;
         }

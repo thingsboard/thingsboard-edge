@@ -76,10 +76,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.ALARM_TYPE_PROPERT
 @MappedSuperclass
 public abstract class AbstractAlarmEntity<T extends Alarm> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
-    @Column(name = ALARM_TENANT_ID_PROPERTY)
+    @Column(name = ALARM_TENANT_ID_PROPERTY, columnDefinition = "uuid")
     private UUID tenantId;
 
-    @Column(name = ALARM_ORIGINATOR_ID_PROPERTY)
+    @Column(name = ALARM_ORIGINATOR_ID_PROPERTY, columnDefinition = "uuid")
     private UUID originatorId;
 
     @Column(name = ALARM_ORIGINATOR_TYPE_PROPERTY)

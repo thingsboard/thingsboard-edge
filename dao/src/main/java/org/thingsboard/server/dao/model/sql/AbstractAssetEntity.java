@@ -61,10 +61,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 @MappedSuperclass
 public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
 
-    @Column(name = ASSET_TENANT_ID_PROPERTY)
+    @Column(name = ASSET_TENANT_ID_PROPERTY, columnDefinition = "uuid")
     private UUID tenantId;
 
-    @Column(name = ASSET_CUSTOMER_ID_PROPERTY)
+    @Column(name = ASSET_CUSTOMER_ID_PROPERTY, columnDefinition = "uuid")
     private UUID customerId;
 
     @Column(name = ASSET_NAME_PROPERTY)

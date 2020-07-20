@@ -66,12 +66,16 @@ public class EntityDataAdapter {
     }
 
     private static EntityData toEntityData(Map<String, Object> row, List<EntityKeyMapping> selectionMapping) {
-        UUID id = (UUID)row.get("id");
+        UUID id = (UUID) row.get("id");
         EntityType entityType = EntityType.valueOf((String) row.get("entity_type"));
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, id);
         Map<EntityKeyType, Map<String, TsValue>> latest = new HashMap<>();
         Map<String, TsValue[]> timeseries = new HashMap<>();
-        EntityData entityData = new EntityData(entityId, latest, timeseries);
+        ;
+        EntityData entityData = new EntityData(entityId,
+                (boolean) row.getOrDefault(DefaultEntityQueryRepository.ATTR_READ_FLAG, true),
+                (boolean) row.getOrDefault(DefaultEntityQueryRepository.TS_READ_FLAG, true),
+                latest, timeseries);
         for (EntityKeyMapping mapping : selectionMapping) {
             if (!mapping.isIgnore()) {
                 EntityKey entityKey = mapping.getEntityKey();

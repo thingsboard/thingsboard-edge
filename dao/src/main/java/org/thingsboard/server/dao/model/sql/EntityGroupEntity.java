@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,11 +44,20 @@ import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.*;
-
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_ADDITIONAL_INFO_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_CONFIGURATION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_TYPE_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -68,7 +76,7 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Column(name = ENTITY_GROUP_NAME_PROPERTY)
     private String name;
 
-    @Column(name = ENTITY_GROUP_OWNER_ID_PROPERTY)
+    @Column(name = ENTITY_GROUP_OWNER_ID_PROPERTY, columnDefinition = "uuid")
     private UUID ownerId;
 
     @Enumerated(EnumType.STRING)

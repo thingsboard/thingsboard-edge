@@ -28,21 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hibernate.type.PostgresUUIDType;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-
-import java.sql.Types;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 
 @AllArgsConstructor
 public class QuerySecurityContext {
@@ -53,5 +50,27 @@ public class QuerySecurityContext {
     private final CustomerId customerId;
     @Getter
     private final EntityType entityType;
+
+    private final MergedUserPermissions userPermissions;
+
+    public boolean isTenantUser() {
+        return customerId == null || customerId.isNullUid();
+    }
+
+    public boolean hasGeneric(Operation operation) {
+        return userPermissions.hasGenericPermission(Resource.resourceFromEntityType(entityType), operation);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadPermissions() {
+        return userPermissions.getReadEntityPermissions().get(entityType);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadAttrPermissions() {
+        return userPermissions.getReadAttrPermissions().get(entityType);
+    }
+
+    public MergedGroupTypePermissionInfo getMergedReadTsPermissions() {
+        return userPermissions.getReadTsPermissions().get(entityType);
+    }
 
 }

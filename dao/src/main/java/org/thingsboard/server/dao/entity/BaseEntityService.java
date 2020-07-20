@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -138,21 +139,21 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     }
 
     @Override
-    public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, EntityCountQuery query) {
+    public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         log.trace("Executing countEntitiesByQuery, tenantId [{}], customerId [{}], query [{}]", tenantId, customerId, query);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateEntityCountQuery(query);
-        return this.entityQueryDao.countEntitiesByQuery(tenantId, customerId, query);
+        return this.entityQueryDao.countEntitiesByQuery(tenantId, customerId, userPermissions, query);
     }
 
     @Override
-    public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query) {
+    public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query) {
         log.trace("Executing findEntityDataByQuery, tenantId [{}], customerId [{}], query [{}]", tenantId, customerId, query);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateEntityDataQuery(query);
-        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, query);
+        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
     }
 
     //TODO: 3.1 Remove this from project.

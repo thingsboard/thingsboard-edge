@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataPageLink;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
@@ -166,8 +167,9 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     }
 
     @Override
-    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
-        return alarmService.findAlarmDataByQueryForEntities(tenantId, customerId, query, orderedEntityIds);
+    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,
+                                                               AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
+        return alarmService.findAlarmDataByQueryForEntities(tenantId, customerId, mergedUserPermissions, query, orderedEntityIds);
     }
 
     @Override

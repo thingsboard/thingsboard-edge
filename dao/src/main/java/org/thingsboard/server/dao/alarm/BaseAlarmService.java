@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -147,11 +148,11 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
     }
 
     @Override
-    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId,
+    public PageData<AlarmData> findAlarmDataByQueryForEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions,
                                                                AlarmDataQuery query, Collection<EntityId> orderedEntityIds) {
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        return alarmDao.findAlarmDataByQueryForEntities(tenantId, customerId, query, orderedEntityIds);
+        return alarmDao.findAlarmDataByQueryForEntities(tenantId, customerId, mergedUserPermissions, query, orderedEntityIds);
     }
 
     @Override
