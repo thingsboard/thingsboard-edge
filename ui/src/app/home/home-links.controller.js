@@ -31,7 +31,7 @@
 import './home-links.scss';
 
 /*@ngInject*/
-export default function HomeLinksController($scope, $mdMedia, menu, entityService, edgeService, userService) {
+export default function HomeLinksController($scope, $mdMedia, menu, edgeService, userService) {
 
     var vm = this;
 
