@@ -974,7 +974,7 @@ public class CloudManagerService {
         String scope = attributeDeleteMsg.getScope();
         List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
         attributesService.removeAll(tenantId, entityId, scope, attributeNames);
-        if (entityType.equals("DEVICE")) {
+        if (EntityType.DEVICE.name().equals(entityType)) {
             Set<AttributeKey> attributeKeys = new HashSet<>();
             for (String attributeName: attributeNames) {
                 attributeKeys.add(new AttributeKey(scope, attributeName));
