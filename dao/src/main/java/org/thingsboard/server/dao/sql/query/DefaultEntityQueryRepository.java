@@ -338,8 +338,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             ctx.append(entityWhereClause);
         }
         //TODO 3.1: remove this before release
-        log.error("QUERY: {}", ctx.getQuery());
-        Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+        if (log.isTraceEnabled()) {
+            log.trace("QUERY: {}", ctx.getQuery());
+        }
+        if (log.isTraceEnabled()) {
+            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.trace("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+        }
         return transactionTemplate.execute(status -> jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class));
     }
 
@@ -436,8 +440,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
             //TODO 3.1: remove this before release
-            log.error("QUERY: {}", dataQuery);
-            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            if (log.isTraceEnabled()) {
+                log.trace("QUERY: {}", dataQuery);
+            }
+            if (log.isTraceEnabled()) {
+                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.trace("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            }
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
@@ -510,8 +518,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
             //TODO 3.1: remove this before release
-            log.error("QUERY: {}", dataQuery);
-            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            if (log.isTraceEnabled()) {
+                log.trace("QUERY: {}", dataQuery);
+            }
+            if (log.isTraceEnabled()) {
+                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.trace("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            }
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
 
             int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
