@@ -285,7 +285,8 @@ public class DeviceController extends BaseController {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             SecurityUser currentUser = getCurrentUser();
             MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
-            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.DEVICE, type, pageLink);
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.DEVICE,
+                    Operation.READ, type, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

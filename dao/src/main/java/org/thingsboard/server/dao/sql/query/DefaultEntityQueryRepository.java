@@ -331,8 +331,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, userPermissions));
         ctx.append("select count(e.id) from ");
         ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
-        ctx.append(" e where ");
-        ctx.append(buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList()));
+        ctx.append(" e");
+        String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
+        if (!entityWhereClause.isEmpty()) {
+            ctx.append(" where ");
+            ctx.append(entityWhereClause);
+        }
         //TODO 3.1: remove this before release
         log.error("QUERY: {}", ctx.getQuery());
         Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));

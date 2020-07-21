@@ -37,8 +37,10 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class MergedUserPermissions {
 
@@ -114,6 +116,15 @@ public final class MergedUserPermissions {
                 }
             }
         });
+    }
+
+    public MergedGroupTypePermissionInfo getGroupPermissionsByEntityTypeAndOperation(EntityType entityType, Operation operation) {
+        Resource resource = Resource.resourceFromEntityType(entityType);
+        boolean hasGenericPermission = hasGenericPermission(resource, operation);
+        List<EntityGroupId> groupIds = this.groupPermissions.entrySet().stream().filter((entry) ->
+                entry.getValue().getEntityType().equals(entityType) && checkOperation(entry.getValue().getOperations(), operation)
+        ).map(Map.Entry::getKey).collect(Collectors.toList());
+        return new MergedGroupTypePermissionInfo(groupIds, hasGenericPermission);
     }
 
     public boolean hasGenericPermission(Resource resource, Operation operation) {

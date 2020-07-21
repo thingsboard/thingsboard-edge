@@ -30,20 +30,23 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import java.util.UUID;
-import java.util.function.Function;
-
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -54,6 +57,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -61,15 +65,17 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
@@ -77,10 +83,10 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -88,8 +94,11 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -102,6 +111,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
+
+    private static final JavaType assignedCustomersType =
+            JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Autowired
     private AssetService assetService;
@@ -155,8 +167,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     @Override
     public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
-                                                                                    MergedUserPermissions userPermissions, EntityType entityType, String type, PageLink pageLink) {
-        MergedGroupTypePermissionInfo groupPermissions = userPermissions.getReadEntityPermissions().get(Resource.resourceFromEntityType(entityType));
+                                                                                    MergedUserPermissions userPermissions,
+                                                                                    EntityType entityType, Operation operation, String type, PageLink pageLink) {
+        MergedGroupTypePermissionInfo groupPermissions = userPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, operation);
         if (customerId == null || customerId.isNullUid()) {
             if (groupPermissions.isHasGenericRead()) {
                 return getEntityPageDataByTenantId(entityType, type, tenantId, pageLink);
@@ -190,6 +203,18 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 } else {
                     return (PageData<T>) assetService.findAssetsByTenantId(tenantId, pageLink);
                 }
+            case ENTITY_VIEW:
+                if (type != null && type.trim().length() > 0) {
+                    return (PageData<T>) entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type);
+                } else {
+                    return (PageData<T>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+                }
+            case DASHBOARD:
+                return (PageData<T>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
+            case CUSTOMER:
+                return (PageData<T>) customerService.findCustomersByTenantId(tenantId, pageLink);
+            case USER:
+                return (PageData<T>) userService.findUsersByTenantId(tenantId, pageLink);
             default:
                 return new PageData<>();
         }
@@ -212,15 +237,23 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case ASSET:
                 mappingFunction = getAssetMapping();
                 break;
+            case ENTITY_VIEW:
+                mappingFunction = getEntityViewMapping();
+                break;
+            case DASHBOARD:
+                mappingFunction = getDashboardMapping();
+                break;
+            case CUSTOMER:
+                mappingFunction = getCustomerMapping();
+                break;
+            case USER:
+                mappingFunction = getUserMapping();
+                break;
             default:
                 mappingFunction = null;
         }
         return (PageData<T>) entityQueryDao.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
                 tenantId, customerId, entityType, type, groupIds, pageLink, mappingFunction);
-    }
-
-    private Function<Map<String, Object>, Asset> getAssetMapping() {
-        throw new RuntimeException("Not implemented!");
     }
 
     private Function<Map<String, Object>, Device> getDeviceMapping() {
@@ -247,7 +280,164 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         };
     }
 
-    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type, List<EntityGroupId> groupIds, PageLink pageLink) {
+    private Function<Map<String, Object>, Asset> getAssetMapping() {
+        return row -> {
+            Asset asset = new Asset();
+            asset.setId(new AssetId((UUID) row.get("id")));
+            asset.setCreatedTime((Long) row.get("created_time"));
+            asset.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            asset.setName(row.get("name").toString());
+            asset.setType(row.get("type").toString());
+            Object label = row.get("label");
+            if (label != null) {
+                asset.setLabel(label.toString());
+            }
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                asset.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                asset.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return asset;
+        };
+    }
+
+    private Function<Map<String, Object>, EntityView> getEntityViewMapping() {
+        return row -> {
+            EntityView entityView = new EntityView();
+            entityView.setId(new EntityViewId((UUID) row.get("id")));
+            entityView.setCreatedTime((Long) row.get("created_time"));
+            entityView.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            entityView.setName(row.get("name").toString());
+            entityView.setType(row.get("type").toString());
+            EntityType entityType = EntityType.valueOf(row.get("entity_type").toString());
+            UUID entityId = (UUID) row.get("entity_id");
+            entityView.setEntityId(EntityIdFactory.getByTypeAndUuid(entityType, entityId));
+            try {
+                entityView.setKeys(JacksonUtil.fromString(row.get("keys").toString(), TelemetryEntityView.class));
+            } catch (IllegalArgumentException e) {
+                log.error("Unable to read entity view keys!", e);
+            }
+            entityView.setStartTimeMs((Long) row.get("start_ts"));
+            entityView.setEndTimeMs((Long) row.get("end_ts"));
+
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                entityView.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                entityView.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return entityView;
+        };
+    }
+
+    private Function<Map<String, Object>, DashboardInfo> getDashboardMapping() {
+        return row -> {
+            DashboardInfo dashboard = new DashboardInfo();
+            dashboard.setId(new DashboardId((UUID) row.get("id")));
+            dashboard.setCreatedTime((Long) row.get("created_time"));
+            dashboard.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            dashboard.setTitle(row.get("title").toString());
+            Object assignedCustomers = row.get("assigned_customers");
+            if (assignedCustomers != null) {
+                String assignedCustomersStr = assignedCustomers.toString();
+                if (!StringUtils.isEmpty(assignedCustomersStr)) {
+                    try {
+                        dashboard.setAssignedCustomers(JacksonUtil.fromString(assignedCustomersStr, assignedCustomersType));
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Unable to parse assigned customers!", e);
+                    }
+                }
+            }
+            return dashboard;
+        };
+    }
+
+    private Function<Map<String, Object>, Customer> getCustomerMapping() {
+        return row -> {
+            Customer customer = new Customer();
+            customer.setId(new CustomerId((UUID) row.get("id")));
+            customer.setCreatedTime((Long) row.get("created_time"));
+            customer.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            customer.setTitle(row.get("title").toString());
+            Object parentCustomerId = row.get("parent_customer_id");
+            if (parentCustomerId != null) {
+                customer.setParentCustomerId(new CustomerId((UUID) parentCustomerId));
+            }
+            Object country = row.get("country");
+            if (country != null) {
+                customer.setCountry(country.toString());
+            }
+            Object state = row.get("state");
+            if (state != null) {
+                customer.setState(state.toString());
+            }
+            Object city = row.get("city");
+            if (city != null) {
+                customer.setCity(city.toString());
+            }
+            Object address = row.get("address");
+            if (address != null) {
+                customer.setAddress(address.toString());
+            }
+            Object address2 = row.get("address2");
+            if (address2 != null) {
+                customer.setAddress2(address2.toString());
+            }
+            Object zip = row.get("zip");
+            if (zip != null) {
+                customer.setZip(zip.toString());
+            }
+            Object phone = row.get("phone");
+            if (phone != null) {
+                customer.setPhone(phone.toString());
+            }
+            Object email = row.get("email");
+            if (email != null) {
+                customer.setEmail(email.toString());
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                customer.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return customer;
+        };
+    }
+
+    private Function<Map<String, Object>, User> getUserMapping() {
+        return row -> {
+            User user = new User();
+            user.setId(new UserId((UUID) row.get("id")));
+            user.setCreatedTime((Long) row.get("created_time"));
+            user.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            user.setEmail(row.get("email").toString());
+            user.setAuthority(Authority.valueOf(row.get("email").toString()));
+            Object firstName = row.get("first_name");
+            if (firstName != null) {
+                user.setFirstName(firstName.toString());
+            }
+            Object lastName = row.get("last_name");
+            if (lastName != null) {
+                user.setLastName(lastName.toString());
+            }
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                user.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                user.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return user;
+        };
+    }
+
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type,
+                                                                                                List<EntityGroupId> groupIds, PageLink pageLink) {
         if (!groupIds.isEmpty()) {
             switch (entityType) {
                 case DEVICE:
@@ -256,6 +446,24 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                     } else {
                         return (PageData<T>) deviceService.findDevicesByEntityGroupIds(groupIds, pageLink);
                     }
+                case ASSET:
+                    if (type != null && type.trim().length() > 0) {
+                        return (PageData<T>) assetService.findAssetsByEntityGroupIdsAndType(groupIds, type, pageLink);
+                    } else {
+                        return (PageData<T>) assetService.findAssetsByEntityGroupIds(groupIds, pageLink);
+                    }
+                case ENTITY_VIEW:
+                    if (type != null && type.trim().length() > 0) {
+                        return (PageData<T>) entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
+                    } else {
+                        return (PageData<T>) entityViewService.findEntityViewsByEntityGroupIds(groupIds, pageLink);
+                    }
+                case DASHBOARD:
+                    return (PageData<T>) dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink);
+                case CUSTOMER:
+                    return (PageData<T>) customerService.findCustomersByEntityGroupIds(groupIds, Collections.emptyList(), pageLink);
+                case USER:
+                    return (PageData<T>) userService.findUsersByEntityGroupIds(groupIds, pageLink);
             }
         }
         return new PageData<>();

@@ -391,9 +391,10 @@ public class UserController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.USER, Operation.READ, pageLink,
-                    (groupIds) -> userService.findUsersByEntityGroupIds(groupIds, pageLink)
-            );
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.USER,
+                    Operation.READ, null, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

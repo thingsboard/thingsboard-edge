@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -275,15 +276,10 @@ public class EntityViewController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, pageLink,
-                    (groupIds) -> {
-                        if (type != null && type.trim().length() > 0) {
-                            return entityViewService.findEntityViewsByEntityGroupIdsAndType(groupIds, type, pageLink);
-                        } else {
-                            return entityViewService.findEntityViewsByEntityGroupIds(groupIds, pageLink);
-                        }
-                    }
-            );
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ENTITY_VIEW,
+                    Operation.READ, type, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

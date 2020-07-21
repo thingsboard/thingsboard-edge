@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -220,9 +221,9 @@ public class DashboardController extends BaseController {
                 }
             }
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return ownersCacheService.getGroupEntities(getTenantId(), securityUser, EntityType.DASHBOARD, operationType, pageLink,
-                    (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink)
-            );
+            MergedUserPermissions mergedUserPermissions = securityUser.getUserPermissions();
+            return entityService.findUserEntities(securityUser.getTenantId(), securityUser.getCustomerId(), mergedUserPermissions, EntityType.DASHBOARD,
+                    operationType, null, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }
