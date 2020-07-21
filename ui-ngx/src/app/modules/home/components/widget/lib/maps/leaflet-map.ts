@@ -29,25 +29,32 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import L, { FeatureGroup, LatLngBounds, LatLngTuple, markerClusterGroup, MarkerClusterGroupOptions, MarkerClusterGroup } from 'leaflet';
+import L, {
+  FeatureGroup,
+  LatLngBounds,
+  LatLngTuple,
+  markerClusterGroup,
+  MarkerClusterGroup,
+  MarkerClusterGroupOptions
+} from 'leaflet';
 
 import 'leaflet-providers';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 
 import {
-    FormattedData,
-    MapSettings,
-    MarkerSettings,
-    PolygonSettings,
-    PolylineSettings,
-    UnitedMapSettings
+  FormattedData,
+  MapSettings,
+  MarkerSettings,
+  PolygonSettings,
+  PolylineSettings,
+  UnitedMapSettings
 } from './map-models';
 import { Marker } from './markers';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Polyline } from './polyline';
 import { Polygon } from './polygon';
-import { createTooltip, parseArray, parseData, safeExecute } from '@home/components/widget/lib/maps/maps-utils';
+import { createTooltip, parseArray, safeExecute } from '@home/components/widget/lib/maps/maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { DatasourceData } from '@shared/models/widget.models';
 
@@ -259,6 +266,12 @@ export default abstract class LeafletMap {
             return null;
         else
             return L.latLng(lat, lng) as L.LatLng;
+    }
+
+    convertPositionPolygon(expression: Array<[number, number]>): L.LatLngExpression[] {
+      return expression.map((el) => {
+        return el.length === 2 && !el.some(isNaN) ? el : null
+      }).filter(el => !!el)
     }
 
     convertToCustomFormat(position: L.LatLng): object {
@@ -480,31 +493,33 @@ export default abstract class LeafletMap {
 
     // Polygon
 
-    updatePolygons(polyData: FormattedData[], updateBounds = true) {
-        const keys: string[] = [];
-        polyData.forEach((data: FormattedData) => {
-            if (data && data.hasOwnProperty(this.options.polygonKeyName)) {
-                if (typeof (data[this.options.polygonKeyName]) === 'string') {
-                    data[this.options.polygonKeyName] = JSON.parse(data[this.options.polygonKeyName]) as LatLngTuple[];
-                }
-                if (this.polygons.get(data.entityName)) {
-                    this.updatePolygon(data, polyData, this.options, updateBounds);
-                } else {
-                    this.createPolygon(data, polyData, this.options, updateBounds);
-                }
-                keys.push(data.entityName);
-            }
-        });
-        const toDelete: string[] = [];
-        this.polygons.forEach((v, mKey) => {
-          if (!keys.includes(mKey)) {
-            toDelete.push(mKey);
-          }
-        });
-        toDelete.forEach((key) => {
-          this.removePolygon(key);
-        });
-    }
+  updatePolygons(polyData: FormattedData[], updateBounds = true) {
+    const keys: string[] = [];
+    polyData.forEach((data: FormattedData) => {
+      if (data && data.hasOwnProperty(this.options.polygonKeyName) && data[this.options.polygonKeyName] !== null) {
+        if (typeof (data[this.options.polygonKeyName]) === 'string') {
+          data[this.options.polygonKeyName] = JSON.parse(data[this.options.polygonKeyName]);
+        }
+        data[this.options.polygonKeyName] = this.convertPositionPolygon(data[this.options.polygonKeyName]);
+
+        if (this.polygons.get(data.entityName)) {
+          this.updatePolygon(data, polyData, this.options, updateBounds);
+        } else {
+          this.createPolygon(data, polyData, this.options, updateBounds);
+        }
+        keys.push(data.entityName);
+      }
+    });
+    const toDelete: string[] = [];
+    this.polygons.forEach((v, mKey) => {
+      if (!keys.includes(mKey)) {
+        toDelete.push(mKey);
+      }
+    });
+    toDelete.forEach((key) => {
+      this.removePolygon(key);
+    });
+  }
 
     createPolygon(polyData: FormattedData, dataSources: FormattedData[], settings: PolygonSettings, updateBounds = true) {
         this.ready$.subscribe(() => {
