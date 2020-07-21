@@ -58,7 +58,7 @@
         </div>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.client-id</mat-label>
-            <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="/^[a-zA-Z0-9]*$/"
+            <input matInput formControlName="clientId" autocomplete="new-clientId" pattern="[a-zA-Z0-9]*"
                 maxlength="23">
             <mat-error translate *ngIf="form.get('clientId').hasError('pattern')">integration.client-id-pattern
             </mat-error>
