@@ -199,6 +199,7 @@ export class ImageMap extends LeafletMap {
                     this.updateBounds(updateImage, lastCenterPos);
                     this.map.invalidateSize(true);
                     this.updateMarkers(this.markersData);
+                    this.updatePolygons(this.polygonsData);
                 }
             }
         }

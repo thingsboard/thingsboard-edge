@@ -57,6 +57,7 @@ import { Polygon } from './polygon';
 import { createTooltip, parseArray, safeExecute } from '@home/components/widget/lib/maps/maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { DatasourceData } from '@shared/models/widget.models';
+import { deepClone } from '@core/utils';
 
 export default abstract class LeafletMap {
 
@@ -72,6 +73,7 @@ export default abstract class LeafletMap {
     markersCluster: MarkerClusterGroup;
     points: FeatureGroup;
     markersData: FormattedData[] = [];
+    polygonsData: FormattedData[] = [];
 
     protected constructor(public ctx: WidgetContext,
                           public $container: HTMLElement,
@@ -495,6 +497,7 @@ export default abstract class LeafletMap {
 
   updatePolygons(polyData: FormattedData[], updateBounds = true) {
     const keys: string[] = [];
+    this.polygonsData = deepClone(polyData);
     polyData.forEach((data: FormattedData) => {
       if (data && data.hasOwnProperty(this.options.polygonKeyName) && data[this.options.polygonKeyName] !== null) {
         if (typeof (data[this.options.polygonKeyName]) === 'string') {
