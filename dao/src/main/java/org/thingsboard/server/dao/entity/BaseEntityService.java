@@ -226,7 +226,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
 
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
             EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink) {
-        if (type == null && type.trim().length() == 0) {
+        if (type != null && type.trim().length() == 0) {
             type = null;
         }
         Function<Map<String, Object>, ?> mappingFunction;
