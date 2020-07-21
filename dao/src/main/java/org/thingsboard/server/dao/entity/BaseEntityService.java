@@ -30,14 +30,21 @@
  */
 package org.thingsboard.server.dao.entity;
 
-import com.google.common.base.Function;
+import java.util.UUID;
+import java.util.function.Function;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -55,7 +62,10 @@ import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -75,6 +85,11 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -136,6 +151,114 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         super.deleteEntityRelations(tenantId, entityId);
+    }
+
+    @Override
+    public <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId,
+                                                                                    MergedUserPermissions userPermissions, EntityType entityType, String type, PageLink pageLink) {
+        MergedGroupTypePermissionInfo groupPermissions = userPermissions.getReadEntityPermissions().get(Resource.resourceFromEntityType(entityType));
+        if (customerId == null || customerId.isNullUid()) {
+            if (groupPermissions.isHasGenericRead()) {
+                return getEntityPageDataByTenantId(entityType, type, tenantId, pageLink);
+            } else {
+                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink);
+            }
+        } else {
+            if (groupPermissions.isHasGenericRead()) {
+                if (groupPermissions.getEntityGroupIds().isEmpty()) {
+                    return getEntityPageDataByCustomerId(entityType, type, tenantId, customerId, pageLink);
+                } else {
+                    return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, groupPermissions.getEntityGroupIds(), pageLink);
+                }
+            } else {
+                return getEntityPageDataByGroupIds(entityType, type, groupPermissions.getEntityGroupIds(), pageLink);
+            }
+        }
+    }
+
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByTenantId(EntityType entityType, String type, TenantId tenantId, PageLink pageLink) {
+        switch (entityType) {
+            case DEVICE:
+                if (type != null && type.trim().length() > 0) {
+                    return (PageData<T>) deviceService.findDevicesByTenantIdAndType(tenantId, type, pageLink);
+                } else {
+                    return (PageData<T>) deviceService.findDevicesByTenantId(tenantId, pageLink);
+                }
+            case ASSET:
+                if (type != null && type.trim().length() > 0) {
+                    return (PageData<T>) assetService.findAssetsByTenantIdAndType(tenantId, type, pageLink);
+                } else {
+                    return (PageData<T>) assetService.findAssetsByTenantId(tenantId, pageLink);
+                }
+            default:
+                return new PageData<>();
+        }
+    }
+
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerId(EntityType entityType, String type, TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink);
+    }
+
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
+            EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink) {
+        if (type == null && type.trim().length() == 0) {
+            type = null;
+        }
+        Function<Map<String, Object>, ?> mappingFunction;
+        switch (entityType) {
+            case DEVICE:
+                mappingFunction = getDeviceMapping();
+                break;
+            case ASSET:
+                mappingFunction = getAssetMapping();
+                break;
+            default:
+                mappingFunction = null;
+        }
+        return (PageData<T>) entityQueryDao.findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
+                tenantId, customerId, entityType, type, groupIds, pageLink, mappingFunction);
+    }
+
+    private Function<Map<String, Object>, Asset> getAssetMapping() {
+        throw new RuntimeException("Not implemented!");
+    }
+
+    private Function<Map<String, Object>, Device> getDeviceMapping() {
+        return row -> {
+            Device device = new Device();
+            device.setId(new DeviceId((UUID) row.get("id")));
+            device.setCreatedTime((Long) row.get("created_time"));
+            device.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            device.setName(row.get("name").toString());
+            device.setType(row.get("type").toString());
+            Object label = row.get("label");
+            if (label != null) {
+                device.setLabel(label.toString());
+            }
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                device.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                device.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return device;
+        };
+    }
+
+    private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type, List<EntityGroupId> groupIds, PageLink pageLink) {
+        if (!groupIds.isEmpty()) {
+            switch (entityType) {
+                case DEVICE:
+                    if (type != null && type.trim().length() > 0) {
+                        return (PageData<T>) deviceService.findDevicesByEntityGroupIdsAndType(groupIds, type, pageLink);
+                    } else {
+                        return (PageData<T>) deviceService.findDevicesByEntityGroupIds(groupIds, pageLink);
+                    }
+            }
+        }
+        return new PageData<>();
     }
 
     @Override
@@ -211,7 +334,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             default:
                 throw new IllegalStateException("Not Implemented!");
         }
-        entityName = Futures.transform(hasName, (Function<HasName, String>) hasName1 -> hasName1 != null ? hasName1.getName() : null, MoreExecutors.directExecutor());
+        entityName = Futures.transform(hasName, (com.google.common.base.Function<HasName, String>) hasName1 -> hasName1 != null ? hasName1.getName() : null, MoreExecutors.directExecutor());
         return entityName;
     }
 
@@ -234,9 +357,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         if (pageLink == null) {
             throw new IncorrectParameterException("Entity Data Page link must be specified.");
         } else if (pageLink.getPageSize() < 1) {
-            throw new IncorrectParameterException("Incorrect entity data page link page size '"+pageLink.getPageSize()+"'. Page size must be greater than zero.");
+            throw new IncorrectParameterException("Incorrect entity data page link page size '" + pageLink.getPageSize() + "'. Page size must be greater than zero.");
         } else if (pageLink.getPage() < 0) {
-            throw new IncorrectParameterException("Incorrect entity data page link page '"+pageLink.getPage()+"'. Page must be positive integer.");
+            throw new IncorrectParameterException("Incorrect entity data page link page '" + pageLink.getPage() + "'. Page must be positive integer.");
         }
     }
 

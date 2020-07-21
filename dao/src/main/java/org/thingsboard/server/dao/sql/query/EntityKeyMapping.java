@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -180,13 +181,17 @@ public class EntityKeyMapping {
 
     public String toSelection(EntityFilterType filterType, EntityType entityType) {
         if (entityKey.getType().equals(EntityKeyType.ENTITY_FIELD)) {
-            Set<String> existingEntityFields = getExistingEntityFields(filterType, entityType);
-            String alias = getEntityFieldAlias(filterType, entityType);
-            if (existingEntityFields.contains(alias)) {
-                String column = entityFieldColumnMap.get(alias);
-                return String.format("e.%s as %s", column, getValueAlias());
+            if (entityKey.getKey().equals("entityType") && !filterType.equals(EntityFilterType.RELATIONS_QUERY)) {
+                return String.format("'%s' as %s", entityType.name(), getValueAlias());
             } else {
-                return String.format("'' as %s", getValueAlias());
+                Set<String> existingEntityFields = getExistingEntityFields(filterType, entityType);
+                String alias = getEntityFieldAlias(filterType, entityType);
+                if (existingEntityFields.contains(alias)) {
+                    String column = entityFieldColumnMap.get(alias);
+                    return String.format("e.%s as %s", column, getValueAlias());
+                } else {
+                    return String.format("'' as %s", getValueAlias());
+                }
             }
         } else if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
             return buildTimeSeriesSelection();
@@ -251,7 +256,7 @@ public class EntityKeyMapping {
         }
         ctx.addStringParameter(alias + "_key_id", entityKey.getKey());
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
-            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissions().isHasGenericRead();
+            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissionsByEntityType().isHasGenericRead();
             String genericReadFilter;
             if (genericRead) {
                 genericReadFilter = "";
@@ -263,7 +268,7 @@ public class EntityKeyMapping {
                     join, alias, genericReadFilter, alias, alias, alias);
         } else {
             String query;
-            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissions().isHasGenericRead();
+            boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissionsByEntityType().isHasGenericRead();
             String genericReadFilter;
             if (genericRead) {
                 genericReadFilter = "";

@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 
+import java.util.Map;
+
 @AllArgsConstructor
 public class QuerySecurityContext {
 
@@ -61,16 +63,28 @@ public class QuerySecurityContext {
         return userPermissions.hasGenericPermission(Resource.resourceFromEntityType(entityType), operation);
     }
 
-    public MergedGroupTypePermissionInfo getMergedReadPermissions() {
-        return userPermissions.getReadEntityPermissions().get(entityType);
+    public MergedGroupTypePermissionInfo getMergedReadPermissionsByEntityType() {
+        return userPermissions.getReadEntityPermissions().get(Resource.resourceFromEntityType(entityType));
     }
 
-    public MergedGroupTypePermissionInfo getMergedReadAttrPermissions() {
-        return userPermissions.getReadAttrPermissions().get(entityType);
+    public MergedGroupTypePermissionInfo getMergedReadAttrPermissionsByEntityType() {
+        return userPermissions.getReadAttrPermissions().get(Resource.resourceFromEntityType(entityType));
     }
 
-    public MergedGroupTypePermissionInfo getMergedReadTsPermissions() {
-        return userPermissions.getReadTsPermissions().get(entityType);
+    public MergedGroupTypePermissionInfo getMergedReadTsPermissionsByEntityType() {
+        return userPermissions.getReadTsPermissions().get(Resource.resourceFromEntityType(entityType));
+    }
+
+    public Map<Resource, MergedGroupTypePermissionInfo> getMergedReadEntityPermissionsMap() {
+        return userPermissions.getReadEntityPermissions();
+    }
+
+    public Map<Resource, MergedGroupTypePermissionInfo> getMergedReadAttrPermissionsMap() {
+        return userPermissions.getReadAttrPermissions();
+    }
+
+    public Map<Resource, MergedGroupTypePermissionInfo> getMergedReadTsPermissionsMap() {
+        return userPermissions.getReadTsPermissions();
     }
 
 }
