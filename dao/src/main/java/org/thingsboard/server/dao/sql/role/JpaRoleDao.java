@@ -34,7 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -50,9 +50,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
 @SqlDao
@@ -67,7 +64,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    protected CrudRepository<RoleEntity, String> getCrudRepository() {
+    protected CrudRepository<RoleEntity, UUID> getCrudRepository() {
         return roleRepository;
     }
 
@@ -75,8 +72,8 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     public PageData<Role> findRolesByTenantId(UUID tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(
                 roleRepository.findByTenantIdAndCustomerId(
-                        fromTimeUUID(tenantId),
-                        NULL_UUID_STR,
+                        tenantId,
+                        EntityId.NULL_UUID,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
@@ -85,8 +82,8 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     public PageData<Role> findRolesByTenantIdAndType(UUID tenantId, RoleType type, PageLink pageLink) {
         return DaoUtil.toPageData(
                 roleRepository.findByTenantIdAndCustomerIdAndType(
-                        fromTimeUUID(tenantId),
-                        NULL_UUID_STR,
+                        tenantId,
+                        EntityId.NULL_UUID,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
@@ -95,21 +92,21 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     @Override
     public Optional<Role> findRoleByTenantIdAndName(UUID tenantId, String name) {
         return Optional.ofNullable(
-                DaoUtil.getData(roleRepository.findByTenantIdAndCustomerIdAndName(fromTimeUUID(tenantId), NULL_UUID_STR, name)));
+                DaoUtil.getData(roleRepository.findByTenantIdAndCustomerIdAndName(tenantId, EntityId.NULL_UUID, name)));
     }
 
     @Override
     public Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(UUID tenantId, UUID customerId, String name) {
         return Optional.ofNullable(
-                DaoUtil.getData(roleRepository.findByTenantIdAndCustomerIdAndName(fromTimeUUID(tenantId), fromTimeUUID(customerId), name)));
+                DaoUtil.getData(roleRepository.findByTenantIdAndCustomerIdAndName(tenantId, customerId, name)));
     }
 
     @Override
     public PageData<Role> findRolesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         return DaoUtil.toPageData(
                 roleRepository.findByTenantIdAndCustomerId(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
@@ -118,8 +115,8 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     public PageData<Role> findRolesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, RoleType type, PageLink pageLink) {
         return DaoUtil.toPageData(
                 roleRepository.findByTenantIdAndCustomerIdAndType(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
@@ -127,7 +124,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
 
     @Override
     public ListenableFuture<List<Role>> findRolesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> roleIds) {
-        return service.submit(() -> DaoUtil.convertDataList(roleRepository.findRolesByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(roleIds))));
+        return service.submit(() -> DaoUtil.convertDataList(roleRepository.findRolesByTenantIdAndIdIn(tenantId, roleIds)));
     }
 
 }

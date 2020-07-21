@@ -188,7 +188,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                 if (isPublic) {
                     entityIds = Collections.singletonList(new UserId(EntityId.NULL_UUID));
                 } else {
-                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new PageLink(Integer.MAX_VALUE)).get();
                 }
                 usersByOwnerMap.computeIfAbsent(userGroup.getOwnerId(), ownerId -> new HashSet<>()).addAll(entityIds);
             } catch (InterruptedException | ExecutionException e) {

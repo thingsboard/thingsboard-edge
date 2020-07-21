@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.List;
 import java.util.UUID;
 
 /**

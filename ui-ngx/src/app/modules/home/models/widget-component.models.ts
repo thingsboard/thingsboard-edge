@@ -65,7 +65,7 @@ import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetLayout } from '@shared/models/dashboard.models';
 import { formatValue, isDefined } from '@core/utils';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -73,7 +73,7 @@ import {
   NotificationType,
   NotificationVerticalPosition
 } from '@core/notification/notification.models';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { DeviceService } from '@core/http/device.service';
@@ -231,7 +231,7 @@ export class WidgetContext {
   activeEntityInfo?: SubscriptionEntityInfo;
 
   exportWidgetData: (widgetExportType: WidgetExportType) => void;
-  customDataExport?: () => {[key: string]: any}[];
+  customDataExport?: () => {[key: string]: any}[] | Observable<{[key: string]: any}[]>;
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;
@@ -265,6 +265,20 @@ export class WidgetContext {
     this.showToast('success', message, duration, verticalPosition, horizontalPosition, target);
   }
 
+  showInfoToast(message: string,
+                  verticalPosition: NotificationVerticalPosition = 'bottom',
+                  horizontalPosition: NotificationHorizontalPosition = 'left',
+                  target?: string) {
+    this.showToast('info', message, undefined, verticalPosition, horizontalPosition, target);
+  }
+
+  showWarnToast(message: string,
+                verticalPosition: NotificationVerticalPosition = 'bottom',
+                horizontalPosition: NotificationHorizontalPosition = 'left',
+                target?: string) {
+    this.showToast('warn', message, undefined, verticalPosition, horizontalPosition, target);
+  }
+
   showErrorToast(message: string,
                  verticalPosition: NotificationVerticalPosition = 'bottom',
                  horizontalPosition: NotificationHorizontalPosition = 'left',
@@ -286,6 +300,13 @@ export class WidgetContext {
         target,
         panelClass: this.widgetNamespace,
         forceDismiss: true
+      }));
+  }
+
+  hideToast(target?: string) {
+    this.store.dispatch(new ActionNotificationHide(
+      {
+        target,
       }));
   }
 

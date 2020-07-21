@@ -95,7 +95,7 @@ public abstract class EntityGroupAllPaginatedUpdater<I extends UUIDBased, D exte
             return this.findAllTenantEntitiesFunction.apply(id, pageLink);
         } else {
             try {
-                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+                List<EntityId> entityIds = entityGroupService.findAllEntityIds(TenantId.SYS_TENANT_ID, groupAll.getId(), new PageLink(Integer.MAX_VALUE)).get();
                 List<I> ids = entityIds.stream().map(entityId -> toIdFunction.apply(entityId)).collect(Collectors.toList());
                 List<D> entities;
                 if (!ids.isEmpty()) {

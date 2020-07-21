@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
@@ -196,14 +197,10 @@ public class CustomerController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            List<CustomerId> additionalCustomerIds = new ArrayList<>();
-            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority()) &&
-                    accessControlService.hasPermission(getCurrentUser(), Resource.CUSTOMER, Operation.READ)) {
-                additionalCustomerIds.add(getCurrentUser().getCustomerId());
-            }
-            return ownersCacheService.getGroupEntities(getTenantId(), getCurrentUser(), EntityType.CUSTOMER, Operation.READ, pageLink,
-                    (groupIds) -> customerService.findCustomersByEntityGroupIds(groupIds, additionalCustomerIds, pageLink)
-            );
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.CUSTOMER,
+                    Operation.READ, null, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

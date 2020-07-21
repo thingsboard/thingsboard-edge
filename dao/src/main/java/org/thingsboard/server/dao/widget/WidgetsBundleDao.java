@@ -36,7 +36,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.List;
 import java.util.UUID;
 
 /**

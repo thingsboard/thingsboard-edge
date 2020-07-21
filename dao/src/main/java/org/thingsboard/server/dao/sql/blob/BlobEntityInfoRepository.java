@@ -40,31 +40,32 @@ import org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, String> {
+public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, UUID> {
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +
             "FROM BlobEntityInfoEntity b " +
             "LEFT JOIN CustomerEntity c on c.id = b.customerId " +
             "WHERE b.id = :blobEntityId")
-    BlobEntityWithCustomerInfoEntity findBlobEntityWithCustomerInfoById(@Param("blobEntityId") String blobEntityId);
+    BlobEntityWithCustomerInfoEntity findBlobEntityWithCustomerInfoById(@Param("blobEntityId") UUID blobEntityId);
 
-    List<BlobEntityInfoEntity> findBlobEntitiesByTenantIdAndIdIn(String tenantId, List<String> blobEntityIds);
+    List<BlobEntityInfoEntity> findBlobEntitiesByTenantIdAndIdIn(UUID tenantId, List<UUID> blobEntityIds);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +
             "FROM BlobEntityInfoEntity b " +
             "LEFT JOIN CustomerEntity c on c.id = b.customerId " +
             "WHERE b.tenantId = :tenantId " +
-            "AND (:startId IS NULL OR b.id >= :startId) " +
-            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
             "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantId(
-            @Param("tenantId") String tenantId,
+            @Param("tenantId") UUID tenantId,
             @Param("textSearch") String textSearch,
-            @Param("startId") String startId,
-            @Param("endId") String endId,
+            @Param("startTime") Long startTime,
+            @Param("endTime") Long endTime,
             Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +
@@ -72,16 +73,16 @@ public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoE
             "LEFT JOIN CustomerEntity c on c.id = b.customerId " +
             "WHERE b.tenantId = :tenantId " +
             "AND b.type = :type " +
-            "AND (:startId IS NULL OR b.id >= :startId) " +
-            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
             "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndType(
-            @Param("tenantId") String tenantId,
+            @Param("tenantId") UUID tenantId,
             @Param("type") String type,
             @Param("textSearch") String textSearch,
-            @Param("startId") String startId,
-            @Param("endId") String endId,
+            @Param("startTime") Long startTime,
+            @Param("endTime") Long endTime,
             Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +
@@ -89,16 +90,16 @@ public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoE
             "LEFT JOIN CustomerEntity c on c.id = b.customerId " +
             "WHERE b.tenantId = :tenantId " +
             "AND b.customerId = :customerId " +
-            "AND (:startId IS NULL OR b.id >= :startId) " +
-            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
             "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndCustomerId(
-            @Param("tenantId") String tenantId,
-            @Param("customerId") String customerId,
+            @Param("tenantId") UUID tenantId,
+            @Param("customerId") UUID customerId,
             @Param("textSearch") String textSearch,
-            @Param("startId") String startId,
-            @Param("endId") String endId,
+            @Param("startTime") Long startTime,
+            @Param("endTime") Long endTime,
             Pageable pageable);
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +
@@ -107,17 +108,17 @@ public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoE
             "WHERE b.tenantId = :tenantId " +
             "AND b.customerId = :customerId " +
             "AND b.type = :type " +
-            "AND (:startId IS NULL OR b.id >= :startId) " +
-            "AND (:endId IS NULL OR b.id <= :endId) " +
+            "AND (:startTime IS NULL OR b.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR b.createdTime <= :endTime) " +
             "AND (LOWER(b.searchText) LIKE LOWER(CONCAT(:textSearch, '%')))"
     )
     Page<BlobEntityWithCustomerInfoEntity> findByTenantIdAndCustomerIdAndType(
-            @Param("tenantId") String tenantId,
-            @Param("customerId") String customerId,
+            @Param("tenantId") UUID tenantId,
+            @Param("customerId") UUID customerId,
             @Param("type") String type,
             @Param("textSearch") String textSearch,
-            @Param("startId") String startId,
-            @Param("endId") String endId,
+            @Param("startTime") Long startTime,
+            @Param("endTime") Long endTime,
             Pageable pageable);
 
 }

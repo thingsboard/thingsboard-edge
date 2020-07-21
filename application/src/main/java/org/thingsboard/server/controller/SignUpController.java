@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -67,6 +66,7 @@ import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParam
 import org.thingsboard.server.config.SignUpConfig;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
+import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
@@ -95,8 +95,6 @@ public class SignUpController extends BaseController {
     private static final String PRIVACY_POLICY_ACCEPTED = "privacyPolicyAccepted";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
-    private static EmailValidator emailValidator = EmailValidator.getInstance();
 
     private RestTemplate restTemplate;
 
@@ -152,9 +150,7 @@ public class SignUpController extends BaseController {
             }
 
             //Verify email
-            if (!emailValidator.isValid(signUpRequest.getEmail())) {
-                throw new DataValidationException("Invalid email address format '" + signUpRequest.getEmail() + "'!");
-            }
+            DataValidator.validateEmail(signUpRequest.getEmail());
             User existingUser = userService.findUserByEmail(tenantId, signUpRequest.getEmail());
             if (existingUser != null) {
                 UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, existingUser.getId());

@@ -29,13 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeData } from './telemetry/telemetry.models';
 
 export interface EntityInfo {
-  origEntity?: BaseData<EntityId>;
   name?: string;
   label?: string;
   entityType?: EntityType;

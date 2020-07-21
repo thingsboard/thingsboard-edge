@@ -49,8 +49,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
 @SqlDao
@@ -63,7 +61,7 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     public PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(
                 integrationRepository.findByTenantId(
-                        fromTimeUUID(tenantId),
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
@@ -76,12 +74,12 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
 
     @Override
     public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
-        return DaoUtil.convertDataList(integrationRepository.findByConverterId(fromTimeUUID(converterId)));
+        return DaoUtil.convertDataList(integrationRepository.findByConverterId(converterId));
     }
 
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
-        return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(integrationIds))));
+        return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(tenantId, integrationIds)));
     }
 
     @Override
@@ -90,7 +88,7 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
-    protected CrudRepository<IntegrationEntity, String> getCrudRepository() {
+    protected CrudRepository<IntegrationEntity, UUID> getCrudRepository() {
         return integrationRepository;
     }
 

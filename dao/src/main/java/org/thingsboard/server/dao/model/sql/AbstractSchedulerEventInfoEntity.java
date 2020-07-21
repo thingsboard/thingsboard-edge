@@ -49,6 +49,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
@@ -62,10 +64,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventInfo> extends BaseSqlEntity<T> implements SearchTextEntity<T> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = SCHEDULER_EVENT_NAME_PROPERTY)
     private String name;
@@ -93,10 +95,10 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
             this.setUuid(schedulerEventInfo.getId().getId());
         }
         if (schedulerEventInfo.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getTenantId().getId());
+            this.tenantId = schedulerEventInfo.getTenantId().getId();
         }
         if (schedulerEventInfo.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(schedulerEventInfo.getCustomerId().getId());
+            this.customerId = schedulerEventInfo.getCustomerId().getId();
         }
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
@@ -130,13 +132,13 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
     }
 
     protected SchedulerEventInfo toSchedulerEventInfo() {
-        SchedulerEventInfo schedulerEventInfo = new SchedulerEventInfo(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEventInfo.setCreatedTime(Uuids.unixTimestamp(UUIDConverter.fromString(id)));
+        SchedulerEventInfo schedulerEventInfo = new SchedulerEventInfo(new SchedulerEventId(id));
+        schedulerEventInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            schedulerEventInfo.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            schedulerEventInfo.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            schedulerEventInfo.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
+            schedulerEventInfo.setCustomerId(new CustomerId(customerId));
         }
         schedulerEventInfo.setName(name);
         schedulerEventInfo.setType(type);

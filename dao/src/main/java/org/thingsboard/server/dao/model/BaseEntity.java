@@ -38,4 +38,8 @@ public interface BaseEntity<D> extends ToData<D> {
 
     void setUuid(UUID id);
 
+    long getCreatedTime();
+
+    void setCreatedTime(long createdTime);
+
 }

@@ -87,8 +87,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_OWNER_ID = "Incorrect ownerId ";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     @Autowired
     private CustomerDao customerDao;
 
@@ -151,7 +149,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         log.trace("Executing findCustomersByTenantIdAndIdsAsync, tenantId [{}], customerIds [{}]", tenantId, customerIds);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateIds(customerIds, "Incorrect customerIds " + customerIds);
-        return customerDao.findCustomersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(customerIds));
+        return customerDao.findCustomersByTenantIdAndIdsAsync(tenantId.getId(), customerIds.stream().map(CustomerId::getId).collect(Collectors.toList()));
     }
 
     @Override
@@ -223,7 +221,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         List<CustomerId> customerIds = new ArrayList<>();
         Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
         if (entityGroup.isPresent()) {
-            List<EntityId> childCustomerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new TimePageLink(Integer.MAX_VALUE)).get();
+            List<EntityId> childCustomerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             childCustomerIds.forEach(entityId -> customerIds.add(new CustomerId(entityId.getId())));
         }
         return customerIds;
@@ -243,7 +241,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                 PageData<Customer> customers;
                 do {
                     customers = findCustomersByEntityGroupId(entityGroup.get().getId(), pageLink);
-                    List<Customer> result = customers.getData().stream().filter(customer -> customer.isPublic()).collect(Collectors.toList());
+                    List<Customer> result = customers.getData().stream().filter(Customer::isPublic).collect(Collectors.toList());
                     if (!result.isEmpty()) {
                         publicCustomer = result.get(0);
                     } else if (customers.hasNext()) {

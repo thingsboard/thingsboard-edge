@@ -93,7 +93,7 @@ public class GatewaySessionHandler {
     private final TransportService transportService;
     private final DeviceInfoProto gateway;
     private final UUID sessionId;
-    private final Lock deviceCreationLock = new ReentrantLock();
+    private final ConcurrentMap<String, Lock> deviceCreationLockMap;
     private final ConcurrentMap<String, GatewayDeviceSessionCtx> devices;
     private final ConcurrentMap<String, SettableFuture<GatewayDeviceSessionCtx>> deviceFutures;
     private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
@@ -108,6 +108,7 @@ public class GatewaySessionHandler {
         this.sessionId = sessionId;
         this.devices = new ConcurrentHashMap<>();
         this.deviceFutures = new ConcurrentHashMap<>();
+        this.deviceCreationLockMap = new ConcurrentHashMap<>();
         this.mqttQoSMap = deviceSessionCtx.getMqttQoSMap();
         this.channel = deviceSessionCtx.getChannel();
     }
@@ -135,6 +136,7 @@ public class GatewaySessionHandler {
     private ListenableFuture<GatewayDeviceSessionCtx> onDeviceConnect(String deviceName, String deviceType) {
         GatewayDeviceSessionCtx result = devices.get(deviceName);
         if (result == null) {
+            Lock deviceCreationLock = deviceCreationLockMap.computeIfAbsent(deviceName, s -> new ReentrantLock());
             deviceCreationLock.lock();
             try {
                 result = devices.get(deviceName);
@@ -167,6 +169,7 @@ public class GatewaySessionHandler {
                             public void onSuccess(GetOrCreateDeviceFromGatewayResponseMsg msg) {
                                 GatewayDeviceSessionCtx deviceSessionCtx = new GatewayDeviceSessionCtx(GatewaySessionHandler.this, msg.getDeviceInfo(), mqttQoSMap);
                                 if (devices.putIfAbsent(deviceName, deviceSessionCtx) == null) {
+                                    log.trace("[{}] First got or created device [{}], type [{}] for the gateway session", sessionId, deviceName, deviceType);
                                     SessionInfoProto deviceSessionInfo = deviceSessionCtx.getSessionInfo();
                                     transportService.registerAsyncSession(deviceSessionInfo, deviceSessionCtx);
                                     transportService.process(deviceSessionInfo, DefaultTransportService.getSessionEventMsg(SessionEvent.OPEN), null);

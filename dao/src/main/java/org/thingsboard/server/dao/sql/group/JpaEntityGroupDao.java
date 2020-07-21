@@ -52,8 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
 
 @Component
 @SqlDao
@@ -71,19 +69,19 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    protected CrudRepository<EntityGroupEntity, String> getCrudRepository() {
+    protected CrudRepository<EntityGroupEntity, UUID> getCrudRepository() {
         return entityGroupRepository;
     }
 
     @Override
     public ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds) {
-        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByIdIn(fromTimeUUIDs(entityGroupIds))));
+        return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByIdIn(entityGroupIds)));
     }
 
     @Override
     public ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType) {
         return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findEntityGroupsByType(
-                fromTimeUUID(parentEntityId),
+                parentEntityId,
                 parentEntityType.name(),
                 relationType)));
     }
@@ -93,7 +91,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
                                                                                      EntityType parentEntityType, String relationType, PageLink pageLink) {
         return service.submit(() -> DaoUtil.toPageData(entityGroupRepository
                 .findEntityGroupsByTypeAndPageLink(
-                        fromTimeUUID(parentEntityId),
+                        parentEntityId,
                         parentEntityType.name(),
                         relationType,
                         Objects.toString(pageLink.getTextSearch(), ""),
@@ -103,7 +101,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     @Override
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType) {
         return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findAllEntityGroups(
-                fromTimeUUID(parentEntityId),
+                parentEntityId,
                 parentEntityType.name())));
     }
 
@@ -112,7 +110,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
                                                                                 String relationType, String name) {
         return service.submit(() ->
             Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
-                    fromTimeUUID(parentEntityId),
+                    parentEntityId,
                     parentEntityType.name(),
                     relationType,
                     name))));

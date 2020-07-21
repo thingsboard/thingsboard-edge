@@ -59,4 +59,7 @@ public interface RuleEngineTelemetryService {
 
     void saveAttrAndNotify(TenantId tenantId, EntityId entityId, String scope, String key, boolean value, FutureCallback<Void> callback);
 
+    void deleteAndNotify(TenantId tenantId, EntityId entityId, String scope, List<String> keys, FutureCallback<Void> callback);
+
+
 }

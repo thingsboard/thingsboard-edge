@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -47,8 +46,8 @@ import org.thingsboard.server.dao.model.sql.AttributeKvCompositeKey;
 import org.thingsboard.server.dao.model.sql.AttributeKvEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
-import org.thingsboard.server.dao.sql.TbSqlBlockingQueue;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
+import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.annotation.PostConstruct;
@@ -56,9 +55,8 @@ import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
 
 @Component
 @Slf4j
@@ -83,7 +81,10 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     @Value("${sql.attributes.stats_print_interval_ms:1000}")
     private long statsPrintIntervalMs;
 
-    private TbSqlBlockingQueue<AttributeKvEntity> queue;
+    @Value("${sql.attributes.batch_threads:4}")
+    private int batchThreads;
+
+    private TbSqlBlockingQueueWrapper<AttributeKvEntity> queue;
 
     @PostConstruct
     private void init() {
@@ -93,7 +94,9 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
                 .maxDelay(maxDelay)
                 .statsPrintIntervalMs(statsPrintIntervalMs)
                 .build();
-        queue = new TbSqlBlockingQueue<>(params);
+
+        Function<AttributeKvEntity, Integer> hashcodeFunction = entity -> entity.getId().getEntityId().hashCode();
+        queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, batchThreads);
         queue.init(logExecutor, v -> attributeKvInsertRepository.saveOrUpdate(v));
     }
 
@@ -130,14 +133,14 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
                 DaoUtil.convertDataList(Lists.newArrayList(
                         attributeKvRepository.findAllByEntityTypeAndEntityIdAndAttributeType(
                                 entityId.getEntityType(),
-                                UUIDConverter.fromTimeUUID(entityId.getId()),
+                                entityId.getId(),
                                 attributeType))));
     }
 
     @Override
     public ListenableFuture<Void> save(TenantId tenantId, EntityId entityId, String attributeType, AttributeKvEntry attribute) {
         AttributeKvEntity entity = new AttributeKvEntity();
-        entity.setId(new AttributeKvCompositeKey(entityId.getEntityType(), fromTimeUUID(entityId.getId()), attributeType, attribute.getKey()));
+        entity.setId(new AttributeKvCompositeKey(entityId.getEntityType(), entityId.getId(), attributeType, attribute.getKey()));
         entity.setLastUpdateTs(attribute.getLastUpdateTs());
         entity.setStrValue(attribute.getStrValue().orElse(null));
         entity.setDoubleValue(attribute.getDoubleValue().orElse(null));
@@ -155,7 +158,7 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     public ListenableFuture<List<Void>> removeAll(TenantId tenantId, EntityId entityId, String attributeType, List<String> keys) {
         return service.submit(() -> {
             keys.forEach(key ->
-                    attributeKvRepository.delete(entityId.getEntityType(), UUIDConverter.fromTimeUUID(entityId.getId()), attributeType, key)
+                    attributeKvRepository.delete(entityId.getEntityType(), entityId.getId(), attributeType, key)
             );
             return null;
         });
@@ -164,7 +167,7 @@ public class JpaAttributeDao extends JpaAbstractDaoListeningExecutorService impl
     private AttributeKvCompositeKey getAttributeKvCompositeKey(EntityId entityId, String attributeType, String attributeKey) {
         return new AttributeKvCompositeKey(
                 entityId.getEntityType(),
-                fromTimeUUID(entityId.getId()),
+                entityId.getId(),
                 attributeType,
                 attributeKey);
     }

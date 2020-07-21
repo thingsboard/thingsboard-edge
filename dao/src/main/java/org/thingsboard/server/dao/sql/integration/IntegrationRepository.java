@@ -39,20 +39,21 @@ import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface IntegrationRepository extends CrudRepository<IntegrationEntity, String> {
+public interface IntegrationRepository extends CrudRepository<IntegrationEntity, UUID> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
-    Page<IntegrationEntity> findByTenantId(@Param("tenantId") String tenantId,
+    Page<IntegrationEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                                       @Param("searchText") String searchText,
                                                       Pageable pageable);
 
     IntegrationEntity findByRoutingKey(String routingKey);
 
-    List<IntegrationEntity> findByConverterId(String converterId);
+    List<IntegrationEntity> findByConverterId(UUID converterId);
 
-    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(String tenantId, List<String> integrationIds);
+    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);
 
 }

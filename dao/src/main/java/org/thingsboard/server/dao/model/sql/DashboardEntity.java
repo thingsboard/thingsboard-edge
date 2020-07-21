@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,6 +55,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.UUID;
 
 @Data
 @Slf4j
@@ -70,10 +70,10 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
             objectMapper.getTypeFactory().constructCollectionType(HashSet.class, ShortCustomerInfo.class);
 
     @Column(name = ModelConstants.DASHBOARD_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = ModelConstants.DASHBOARD_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = ModelConstants.DASHBOARD_TITLE_PROPERTY)
     private String title;
@@ -96,11 +96,12 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
         if (dashboard.getId() != null) {
             this.setUuid(dashboard.getId().getId());
         }
+        this.setCreatedTime(dashboard.getCreatedTime());
         if (dashboard.getTenantId() != null) {
-            this.tenantId = toString(dashboard.getTenantId().getId());
+            this.tenantId = dashboard.getTenantId().getId();
         }
         if (dashboard.getCustomerId() != null) {
-            this.customerId = toString(dashboard.getCustomerId().getId());
+            this.customerId = dashboard.getCustomerId().getId();
         }
         this.title = dashboard.getTitle();
         if (dashboard.getAssignedCustomers() != null) {
@@ -126,12 +127,12 @@ public final class DashboardEntity extends BaseSqlEntity<Dashboard> implements S
     @Override
     public Dashboard toData() {
         Dashboard dashboard = new Dashboard(new DashboardId(this.getUuid()));
-        dashboard.setCreatedTime(Uuids.unixTimestamp(this.getUuid()));
+        dashboard.setCreatedTime(this.getCreatedTime());
         if (tenantId != null) {
-            dashboard.setTenantId(new TenantId(toUUID(tenantId)));
+            dashboard.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            dashboard.setCustomerId(new CustomerId(toUUID(customerId)));
+            dashboard.setCustomerId(new CustomerId(customerId));
         }
         dashboard.setTitle(title);
         if (!StringUtils.isEmpty(assignedCustomers)) {

@@ -140,7 +140,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       return new GroupEntitiesDataSource(
         columns,
         config.entityGroup.id.id,
-        this.entityGroupService,
+        config.entityGroup.type,
         this.telemetryWsService,
         this.zone,
         config.entitySelectionEnabled,
@@ -618,8 +618,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       title,
       '0px',
       cellContentFunction,
-      cellStyleFunction,
-      entityGroupColumn.type !== EntityGroupColumnType.TIMESERIES // TODO: Timeseries sort
+      cellStyleFunction
     );
     column.ignoreTranslate = true;
     column.mobileHide = entityGroupColumn.mobileHide;

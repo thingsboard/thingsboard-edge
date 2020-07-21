@@ -40,11 +40,12 @@ import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 @SqlDao
-public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, String> {
+public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, UUID> {
 
-    List<EntityGroupEntity> findEntityGroupsByIdIn(List<String> entityGroupIds);
+    List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);
 
     @Query("SELECT e FROM EntityGroupEntity e, " +
             "RelationEntity re " +
@@ -52,7 +53,7 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.relationType = :relationType " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
-    List<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") String parentEntityId,
+    List<EntityGroupEntity> findEntityGroupsByType(@Param("parentEntityId") UUID parentEntityId,
                                                    @Param("parentEntityType") String parentEntityType,
                                                    @Param("relationType") String relationType);
 
@@ -63,7 +64,7 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "AND re.relationType = :relationType " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType " +
             "AND LOWER(e.name) LIKE LOWER(CONCAT(:textSearch, '%'))")
-    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(@Param("parentEntityId") String parentEntityId,
+    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(@Param("parentEntityId") UUID parentEntityId,
                                                               @Param("parentEntityType") String parentEntityType,
                                                               @Param("relationType") String relationType,
                                                               @Param("textSearch") String textSearch,
@@ -76,7 +77,7 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.relationType = :relationType " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
-    EntityGroupEntity findEntityGroupByTypeAndName(@Param("parentEntityId") String parentEntityId,
+    EntityGroupEntity findEntityGroupByTypeAndName(@Param("parentEntityId") UUID parentEntityId,
                                                    @Param("parentEntityType") String parentEntityType,
                                                    @Param("relationType") String relationType,
                                                    @Param("name") String name);
@@ -86,7 +87,7 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
-    List<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") String parentEntityId,
+    List<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") UUID parentEntityId,
                                                 @Param("parentEntityType") String parentEntityType);
 
 }

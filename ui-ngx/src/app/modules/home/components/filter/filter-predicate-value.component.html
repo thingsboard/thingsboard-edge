@@ -1,0 +1,97 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px" [formGroup]="filterPredicateValueFormGroup">
+  <div fxFlex fxLayout="column" [fxShow]="!dynamicMode">
+    <div fxFlex fxLayout="column" [ngSwitch]="valueType">
+      <ng-template [ngSwitchCase]="valueTypeEnum.STRING">
+        <mat-form-field floatLabel="always" hideRequiredMarker fxFlex class="mat-block">
+          <mat-label></mat-label>
+          <input matInput formControlName="defaultValue" placeholder="{{'filter.value' | translate}}">
+        </mat-form-field>
+      </ng-template>
+      <ng-template [ngSwitchCase]="valueTypeEnum.NUMERIC">
+        <mat-form-field floatLabel="always" hideRequiredMarker fxFlex class="mat-block">
+          <mat-label></mat-label>
+          <input required type="number" matInput formControlName="defaultValue"
+                 placeholder="{{'filter.value' | translate}}">
+        </mat-form-field>
+      </ng-template>
+      <ng-template [ngSwitchCase]="valueTypeEnum.DATE_TIME">
+        <tb-datetime fxFlex formControlName="defaultValue"
+                     dateText="filter.date"
+                     timeText="filter.time"
+                     required [showLabel]="false"></tb-datetime>
+      </ng-template>
+      <ng-template [ngSwitchCase]="valueTypeEnum.BOOLEAN">
+        <mat-checkbox fxFlex formControlName="defaultValue">
+          {{ (filterPredicateValueFormGroup.get('defaultValue').value ? 'value.true' : 'value.false') | translate }}
+        </mat-checkbox>
+      </ng-template>
+    </div>
+    <div class="tb-hint" translate>filter.default-value</div>
+  </div>
+  <div fxFlex fxLayout="column" [fxShow]="dynamicMode">
+    <div fxFlex formGroupName="dynamicValue" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+      <div fxFlex fxLayout="column">
+        <mat-form-field floatLabel="always" hideRequiredMarker fxFlex class="mat-block">
+          <mat-label></mat-label>
+          <mat-select formControlName="sourceType" placeholder="{{'filter.dynamic-source-type' | translate}}">
+            <mat-option [value]="null">
+              {{'filter.no-dynamic-value' | translate}}
+            </mat-option>
+            <mat-option *ngFor="let sourceType of dynamicValueSourceTypes" [value]="sourceType">
+              {{dynamicValueSourceTypeTranslations.get(dynamicValueSourceTypeEnum[sourceType]) | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <div class="tb-hint" translate>filter.dynamic-source-type</div>
+      </div>
+      <div fxFlex fxLayout="column">
+        <mat-form-field floatLabel="always" hideRequiredMarker fxFlex class="mat-block">
+          <mat-label></mat-label>
+          <input matInput formControlName="sourceAttribute" placeholder="{{'filter.source-attribute' | translate}}">
+        </mat-form-field>
+        <div class="tb-hint" translate>filter.source-attribute</div>
+      </div>
+    </div>
+  </div>
+  <button mat-icon-button
+          class="mat-elevation-z1 tb-mat-32"
+          color="primary"
+          type="button"
+          matTooltip="{{ (dynamicMode ? 'filter.switch-to-default-value' : 'filter.switch-to-dynamic-value') | translate }}"
+          matTooltipPosition="above"
+          (click)="dynamicMode = !dynamicMode">
+    <mat-icon class="tb-mat-20" [svgIcon]="dynamicMode ? 'mdi:numeric' : 'mdi:variable'"></mat-icon>
+  </button>
+</div>

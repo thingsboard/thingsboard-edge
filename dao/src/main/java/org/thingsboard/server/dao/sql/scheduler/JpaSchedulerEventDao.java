@@ -39,6 +39,8 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import java.util.UUID;
+
 @Component
 @SqlDao
 public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
@@ -52,7 +54,7 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
     }
 
     @Override
-    protected CrudRepository<SchedulerEventEntity, String> getCrudRepository() {
+    protected CrudRepository<SchedulerEventEntity, UUID> getCrudRepository() {
         return schedulerEventRepository;
     }
 }

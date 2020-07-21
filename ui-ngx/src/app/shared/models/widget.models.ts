@@ -34,10 +34,11 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { AlarmSearchStatus } from '@shared/models/alarm.models';
+import { AlarmSearchStatus, AlarmSeverity } from '@shared/models/alarm.models';
 import { DataKeyType } from './telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import * as moment_ from 'moment';
+import { EntityDataPageLink, EntityFilter, KeyFilter } from '@shared/models/query/query.models';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -128,6 +129,7 @@ export const widgetTypesData = new Map<widgetType, WidgetTypeData>(
 
 export interface WidgetResource {
   url: string;
+  isModule?: boolean;
 }
 
 export interface WidgetActionSource {
@@ -164,6 +166,9 @@ export interface WidgetTypeParameters {
   maxDataKeys?: number;
   dataKeysOptional?: boolean;
   stateData?: boolean;
+  hasDataPageLink?: boolean;
+  singleEntity?: boolean;
+  warnOnPageDataOverflow?: boolean;
 }
 
 export interface WidgetControllerDescriptor {
@@ -248,6 +253,8 @@ export interface DataKey extends KeyInfo {
   usePostProcessing?: boolean;
   hidden?: boolean;
   inLegend?: boolean;
+  isAdditional?: boolean;
+  origDataKeyIndex?: number;
   _hash?: number;
 }
 
@@ -272,6 +279,7 @@ export interface Datasource {
   entityId?: string;
   entityName?: string;
   entityAliasId?: string;
+  filterId?: string;
   unresolvedStateEntity?: boolean;
   dataReceived?: boolean;
   entity?: BaseData<EntityId>;
@@ -279,6 +287,11 @@ export interface Datasource {
   entityDescription?: string;
   generated?: boolean;
   isAdditional?: boolean;
+  origDatasourceIndex?: number;
+  pageLink?: EntityDataPageLink;
+  keyFilters?: Array<KeyFilter>;
+  entityFilter?: EntityFilter;
+  dataKeyStartIndex?: number;
   [key: string]: any;
 }
 
@@ -405,10 +418,10 @@ export interface WidgetConfig {
   actions?: {[actionSourceId: string]: Array<WidgetActionDescriptor>};
   settings?: any;
   alarmSource?: Datasource;
-  alarmSearchStatus?: AlarmSearchStatus;
-  alarmsPollingInterval?: number;
-  alarmsMaxCountLoad?: number;
-  alarmsFetchSize?: number;
+  alarmStatusList?: AlarmSearchStatus[];
+  alarmSeverityList?: AlarmSeverity[];
+  alarmTypeList?: string[];
+  searchPropagatedAlarms?: boolean;
   datasources?: Array<Datasource>;
   targetDeviceAliasIds?: Array<string>;
   [key: string]: any;

@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.page.PageData;
@@ -43,21 +42,17 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.blob.BlobEntityInfoDao;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.DaoUtil.endTimeToId;
-import static org.thingsboard.server.dao.DaoUtil.startTimeToId;
 
 @Component
 @SqlDao
-public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInfoEntity, BlobEntityInfo> implements BlobEntityInfoDao {
+public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, BlobEntityInfo> implements BlobEntityInfoDao {
 
     @Autowired
     BlobEntityInfoRepository blobEntityInfoRepository;
@@ -68,25 +63,23 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
     }
 
     @Override
-    protected CrudRepository<BlobEntityInfoEntity, String> getCrudRepository() {
+    protected CrudRepository<BlobEntityInfoEntity, UUID> getCrudRepository() {
         return blobEntityInfoRepository;
     }
 
     @Override
     public BlobEntityWithCustomerInfo findBlobEntityWithCustomerInfoById(UUID tenantId, UUID blobEntityId) {
-        return DaoUtil.getData(blobEntityInfoRepository.findBlobEntityWithCustomerInfoById(
-                fromTimeUUID(blobEntityId)
-        ));
+        return DaoUtil.getData(blobEntityInfoRepository.findBlobEntityWithCustomerInfoById(blobEntityId));
     }
 
     @Override
     public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantId(UUID tenantId, TimePageLink pageLink) {
         return DaoUtil.toPageData(
                 blobEntityInfoRepository.findByTenantId(
-                        fromTimeUUID(tenantId),
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        startTimeToId(pageLink.getStartTime()),
-                        endTimeToId(pageLink.getEndTime()),
+                        pageLink.getStartTime(),
+                        pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
     }
 
@@ -94,11 +87,11 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
     public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndType(UUID tenantId, String type, TimePageLink pageLink) {
         return DaoUtil.toPageData(
                 blobEntityInfoRepository.findByTenantIdAndType(
-                        fromTimeUUID(tenantId),
+                        tenantId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        startTimeToId(pageLink.getStartTime()),
-                        endTimeToId(pageLink.getEndTime()),
+                        pageLink.getStartTime(),
+                        pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
     }
 
@@ -106,11 +99,11 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
     public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TimePageLink pageLink) {
         return DaoUtil.toPageData(
                 blobEntityInfoRepository.findByTenantIdAndCustomerId(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        startTimeToId(pageLink.getStartTime()),
-                        endTimeToId(pageLink.getEndTime()),
+                        pageLink.getStartTime(),
+                        pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
     }
 
@@ -118,17 +111,18 @@ public class JpaBlobEntityInfoDao extends JpaAbstractSearchTimeDao<BlobEntityInf
     public PageData<BlobEntityWithCustomerInfo> findBlobEntitiesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TimePageLink pageLink) {
         return DaoUtil.toPageData(
                 blobEntityInfoRepository.findByTenantIdAndCustomerIdAndType(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        startTimeToId(pageLink.getStartTime()),
-                        endTimeToId(pageLink.getEndTime()),
+                        pageLink.getStartTime(),
+                        pageLink.getEndTime(),
                         DaoUtil.toPageable(pageLink, BlobEntityWithCustomerInfoEntity.blobEntityWithCustomerInfoColumnMap)));
     }
 
     @Override
     public ListenableFuture<List<BlobEntityInfo>> findBlobEntitiesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> blobEntityIds) {
-        return service.submit(() -> DaoUtil.convertDataList(blobEntityInfoRepository.findBlobEntitiesByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(blobEntityIds))));
+        return service.submit(() -> DaoUtil.convertDataList(blobEntityInfoRepository.findBlobEntitiesByTenantIdAndIdIn(
+                tenantId, blobEntityIds)));
     }
 }

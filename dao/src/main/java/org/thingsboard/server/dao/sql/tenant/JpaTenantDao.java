@@ -49,7 +49,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
  * Created by Valerii Sosliuk on 4/30/2017.
@@ -67,7 +66,7 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     }
 
     @Override
-    protected CrudRepository<TenantEntity, String> getCrudRepository() {
+    protected CrudRepository<TenantEntity, UUID> getCrudRepository() {
         return tenantRepository;
     }
 
