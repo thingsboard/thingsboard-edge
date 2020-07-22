@@ -48,8 +48,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */

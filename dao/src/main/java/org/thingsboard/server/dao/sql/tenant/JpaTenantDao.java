@@ -48,8 +48,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-
 /**
  * Created by Valerii Sosliuk on 4/30/2017.
  */
@@ -81,6 +79,6 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
 
     @Override
     public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds) {
-        return service.submit(() -> DaoUtil.convertDataList(tenantRepository.findTenantsByIdIn(fromTimeUUIDs(tenantIds))));
+        return service.submit(() -> DaoUtil.convertDataList(tenantRepository.findTenantsByIdIn(tenantIds)));
     }
 }

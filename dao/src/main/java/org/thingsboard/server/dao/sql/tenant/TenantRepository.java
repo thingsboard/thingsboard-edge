@@ -53,5 +53,5 @@ public interface TenantRepository extends PagingAndSortingRepository<TenantEntit
                                             @Param("textSearch") String textSearch,
                                             Pageable pageable);
 
-    List<TenantEntity> findTenantsByIdIn(List<String> tenantIds);
+    List<TenantEntity> findTenantsByIdIn(List<UUID> tenantIds);
 }
