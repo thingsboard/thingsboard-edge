@@ -445,7 +445,9 @@ export class WidgetSubscription implements IWidgetSubscription {
     return forkJoin(resolveResultObservables).pipe(
       map((resolveResults) => {
         resolveResults.forEach((resolveResult) => {
-          this.dataLoaded(resolveResult.pageData, resolveResult.data, resolveResult.datasourceIndex, resolveResult.pageLink, false);
+          if (resolveResult) {
+            this.dataLoaded(resolveResult.pageData, resolveResult.data, resolveResult.datasourceIndex, resolveResult.pageLink, false);
+          }
         });
         this.configureLoadedData();
         this.hasResolvedData = this.datasources.length > 0;
