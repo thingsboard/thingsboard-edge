@@ -36,7 +36,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, isDefined, isNumber, isObject, isUndefined } from '@core/utils';
+import { deepClone, isDefined, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -488,8 +488,8 @@ export class ImportExportService {
     );
   }
 
-  private processCSVCell(cellData: string | null): string {
-    if (cellData) {
+  private processCSVCell(cellData: any): any {
+    if (isString(cellData)) {
       let result = cellData.replace(/"/g, '""');
       if (result.search(/([",\n])/g) >= 0)
         result = `"${result}"`;
