@@ -114,6 +114,7 @@ export const HelpLinks = {
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node',
     ruleNodeDuplicateToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-group-node',
     ruleNodeDuplicateToRelated: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/transformation-nodes/#duplicate-to-related-node',
+    ruleNodeChangeOwner: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#change-owner-node',
     ruleNodeGenerateReport: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#generate-report-node',
     ruleNodeRestCallReply: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#rest-call-reply-node',
     ruleNodeAggregateLatest: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-latest-node',
