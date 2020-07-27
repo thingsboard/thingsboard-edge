@@ -753,7 +753,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         );
                     }
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     homeSections.push(
                         {
                             name: 'scheduler.management',
@@ -769,7 +769,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isPEMenuAllowed() && userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     homeSections.push(
                         {
                             name: 'white-labeling.white-labeling',

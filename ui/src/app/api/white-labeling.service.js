@@ -52,7 +52,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
 
     const defaultWLParams = {
         logoImageUrl: defaultImageUrl,
-        logoImageChecksum: 'f4ef3e3d6f868a30946388f299bd8f4a36a89d45',
+        logoImageChecksum: '0d68816a79f753a69bde6818c73b6e50',
         logoImageHeight: 36,
         appTitle: 'ThingsBoard Edge',
         favicon: {
