@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.query.EntityFilterType;
 import org.thingsboard.server.common.data.query.EntityGroupFilter;
 import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
+import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.EntityNameFilter;
 import org.thingsboard.server.common.data.query.EntitySearchQueryFilter;
@@ -444,11 +445,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 Optional<EntityKeyMapping> sortOrderMappingOpt = mappings.stream().filter(EntityKeyMapping::isSortOrder).findFirst();
                 if (sortOrderMappingOpt.isPresent()) {
                     EntityKeyMapping sortOrderMapping = sortOrderMappingOpt.get();
-                    dataQuery = String.format("%s order by %s", dataQuery, sortOrderMapping.getValueAlias());
-                    if (sortOrder.getDirection() == EntityDataSortOrder.Direction.ASC) {
-                        dataQuery += " asc";
+                    String direction = sortOrder.getDirection() == EntityDataSortOrder.Direction.ASC ? "asc" : "desc";
+                    if (sortOrderMapping.getEntityKey().getType() == EntityKeyType.ENTITY_FIELD) {
+                        dataQuery = String.format("%s order by %s %s", dataQuery, sortOrderMapping.getValueAlias(), direction);
                     } else {
-                        dataQuery += " desc";
+                        dataQuery = String.format("%s order by %s %s, %s %s", dataQuery,
+                                sortOrderMapping.getSortOrderNumAlias(), direction, sortOrderMapping.getSortOrderStrAlias(), direction);
                     }
                 }
             }
@@ -696,7 +698,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                             "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains') THEN true ELSE false END)");
                 }
             }
-            entitiesQuery.append("END as ").append(selectionName);
+            entitiesQuery.append(" END as ").append(selectionName);
         }
     }
 
@@ -821,16 +823,16 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         String result = permissionQuery;
         if (!entityFilterQuery.isEmpty()) {
             if (!result.isEmpty()) {
-                result += " and " + entityFilterQuery;
+                result += " and (" + entityFilterQuery + ")";
             } else {
-                result = entityFilterQuery;
+                result = "(" + entityFilterQuery + ")";
             }
         }
         if (!entityFieldsQuery.isEmpty()) {
             if (!result.isEmpty()) {
-                result += " and " + entityFieldsQuery;
+                result += " and (" + entityFieldsQuery + ")";
             } else {
-                result = entityFieldsQuery;
+                result = "(" + entityFieldsQuery + ")";
             }
         }
         return result;

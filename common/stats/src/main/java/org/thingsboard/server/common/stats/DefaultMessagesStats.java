@@ -28,18 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.server.common.stats;
 
-public enum StatsType {
-    RULE_ENGINE("ruleEngine"), CORE("core"), TRANSPORT("transport"), JS_INVOKE("jsInvoke");
+public class DefaultMessagesStats implements MessagesStats {
+    private final StatsCounter totalCounter;
+    private final StatsCounter successfulCounter;
+    private final StatsCounter failedCounter;
 
-    private String name;
-
-    StatsType(String name) {
-        this.name = name;
+    public DefaultMessagesStats(StatsCounter totalCounter, StatsCounter successfulCounter, StatsCounter failedCounter) {
+        this.totalCounter = totalCounter;
+        this.successfulCounter = successfulCounter;
+        this.failedCounter = failedCounter;
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public void incrementTotal(int amount) {
+        totalCounter.add(amount);
+    }
+
+    @Override
+    public void incrementSuccessful(int amount) {
+        successfulCounter.add(amount);
+    }
+
+    @Override
+    public void incrementFailed(int amount) {
+        failedCounter.add(amount);
+    }
+
+    @Override
+    public int getTotal() {
+        return totalCounter.get();
+    }
+
+    @Override
+    public int getSuccessful() {
+        return successfulCounter.get();
+    }
+
+    @Override
+    public int getFailed() {
+        return failedCounter.get();
+    }
+
+    @Override
+    public void reset() {
+        totalCounter.clear();
+        successfulCounter.clear();
+        failedCounter.clear();
     }
 }

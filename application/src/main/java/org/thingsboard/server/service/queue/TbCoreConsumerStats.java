@@ -31,12 +31,12 @@
 package org.thingsboard.server.service.queue;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.stats.StatsCounter;
+import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
-import org.thingsboard.server.service.stats.StatsCounter;
-import org.thingsboard.server.service.stats.StatsCounterFactory;
-import org.thingsboard.server.service.stats.StatsType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,21 +72,21 @@ public class TbCoreConsumerStats {
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
-    public TbCoreConsumerStats(StatsCounterFactory counterFactory) {
+    public TbCoreConsumerStats(StatsFactory statsFactory) {
         String statsKey = StatsType.CORE.getName();
 
-        this.totalCounter = counterFactory.createStatsCounter(statsKey, TOTAL_MSGS);
-        this.sessionEventCounter = counterFactory.createStatsCounter(statsKey, SESSION_EVENTS);
-        this.getAttributesCounter = counterFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
-        this.subscribeToAttributesCounter = counterFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
-        this.subscribeToRPCCounter = counterFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
-        this.toDeviceRPCCallResponseCounter = counterFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
-        this.subscriptionInfoCounter = counterFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
-        this.claimDeviceCounter = counterFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
-        this.deviceStateCounter = counterFactory.createStatsCounter(statsKey, DEVICE_STATES);
-        this.subscriptionMsgCounter = counterFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
-        this.toCoreNotificationsCounter = counterFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
-        this.schedulerMsgCounter = counterFactory.createStatsCounter(statsKey, SCHEDULER);
+        this.totalCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
+        this.sessionEventCounter = statsFactory.createStatsCounter(statsKey, SESSION_EVENTS);
+        this.getAttributesCounter = statsFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
+        this.subscribeToAttributesCounter = statsFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
+        this.subscribeToRPCCounter = statsFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
+        this.toDeviceRPCCallResponseCounter = statsFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
+        this.subscriptionInfoCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
+        this.claimDeviceCounter = statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
+        this.deviceStateCounter = statsFactory.createStatsCounter(statsKey, DEVICE_STATES);
+        this.subscriptionMsgCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
+        this.toCoreNotificationsCounter = statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
+        this.schedulerMsgCounter = statsFactory.createStatsCounter(statsKey, SCHEDULER);
 
         counters.add(totalCounter);
         counters.add(sessionEventCounter);

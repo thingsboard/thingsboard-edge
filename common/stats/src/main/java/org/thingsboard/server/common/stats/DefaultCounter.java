@@ -28,33 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.server.common.stats;
 
-import org.thingsboard.server.queue.stats.QueueStats;
+import io.micrometer.core.instrument.Counter;
 
-public class DefaultQueueStats implements QueueStats {
-    private final StatsCounter totalCounter;
-    private final StatsCounter successfulCounter;
-    private final StatsCounter failedCounter;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    public DefaultQueueStats(StatsCounter totalCounter, StatsCounter successfulCounter, StatsCounter failedCounter) {
-        this.totalCounter = totalCounter;
-        this.successfulCounter = successfulCounter;
-        this.failedCounter = failedCounter;
+public class DefaultCounter {
+    private final AtomicInteger aiCounter;
+    private final Counter micrometerCounter;
+
+    public DefaultCounter(AtomicInteger aiCounter, Counter micrometerCounter) {
+        this.aiCounter = aiCounter;
+        this.micrometerCounter = micrometerCounter;
     }
 
-    @Override
-    public void incrementTotal(int amount) {
-        totalCounter.add(amount);
+    public void increment() {
+        aiCounter.incrementAndGet();
+        micrometerCounter.increment();
     }
 
-    @Override
-    public void incrementSuccessful(int amount) {
-        successfulCounter.add(amount);
+    public void clear() {
+        aiCounter.set(0);
     }
 
-    @Override
-    public void incrementFailed(int amount) {
-        failedCounter.add(amount);
+    public int get() {
+        return aiCounter.get();
+    }
+
+    public void add(int delta){
+        aiCounter.addAndGet(delta);
+        micrometerCounter.increment(delta);
     }
 }

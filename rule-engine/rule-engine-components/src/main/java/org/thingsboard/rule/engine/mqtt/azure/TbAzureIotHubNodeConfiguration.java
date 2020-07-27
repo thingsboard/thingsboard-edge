@@ -28,18 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.rule.engine.mqtt.azure;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.stats.MessagesStats;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.mqtt.TbMqttNodeConfiguration;
+import org.thingsboard.rule.engine.mqtt.credentials.AnonymousCredentials;
+import org.thingsboard.rule.engine.mqtt.credentials.MqttClientCredentials;
 
-public interface TbQueueRequestTemplate<Request extends TbQueueMsg, Response extends TbQueueMsg> {
+@Data
+public class TbAzureIotHubNodeConfiguration extends TbMqttNodeConfiguration {
 
-    void init();
+    @Override
+    public TbAzureIotHubNodeConfiguration defaultConfiguration() {
+        TbAzureIotHubNodeConfiguration configuration = new TbAzureIotHubNodeConfiguration();
+        configuration.setTopicPattern("devices/<device_id>/messages/events/");
+        configuration.setHost("<iot-hub-name>.azure-devices.net");
+        configuration.setPort(8883);
+        configuration.setConnectTimeoutSec(10);
+        configuration.setCleanSession(true);
+        configuration.setSsl(true);
+        configuration.setCredentials(new AzureIotHubSasCredentials());
+        return configuration;
+    }
 
-    ListenableFuture<Response> send(Request request);
-
-    void stop();
-
-    void setMessagesStats(MessagesStats messagesStats);
 }

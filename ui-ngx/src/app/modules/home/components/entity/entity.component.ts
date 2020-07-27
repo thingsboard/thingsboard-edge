@@ -144,7 +144,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>,
         acc[curr] = obj[curr];
       }
       return acc;
-    }, {});
+    }, Array.isArray(obj) ? [] : {});
   }
 
   protected setEntitiesTableConfig(entitiesTableConfig: C) {
