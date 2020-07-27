@@ -383,7 +383,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
 
             String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
-            String latestJoins = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings);
+            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings, true);
+            String latestJoinsData = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), entityType, allLatestMappings, false);
             String whereClause = DefaultEntityQueryRepository.this.buildWhere(ctx, latestFiltersMapping, query.getEntityFilter().getType());
             String textSearchQuery = DefaultEntityQueryRepository.this.buildTextSearchQuery(ctx, selectionMapping, pageLink.getTextSearch());
             String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), entityType);
@@ -411,16 +412,32 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
             }
 
-            String fromClause = String.format("from (select %s from (%s) entities %s %s) result %s",
-                    topSelection,
+            String fromClauseCount = String.format("from (select %s from (%s) entities %s %s) result %s",
+                    "entities.*",
                     entitiesQuery,
-                    latestJoins,
+                    latestJoinsCnt,
                     whereClause,
                     textSearchQuery);
 
-            int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
+            String fromClauseData = String.format("from (select %s from (%s) entities %s %s) result %s",
+                    topSelection,
+                    entitiesQuery,
+                    latestJoinsData,
+                    whereClause,
+                    textSearchQuery);
 
-            String dataQuery = String.format("select * %s", fromClause);
+            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
+                //Unfortunately, we need to sacrifice performance in case of full text search, because it is applied to all joined records.
+                fromClauseCount = fromClauseData;
+            }
+
+            String countQuery = String.format("select count(*) %s", fromClauseCount);
+            if (log.isInfoEnabled()) {
+                log.info("COUNT QUERY: {}", countQuery);
+            }
+            int totalElements = jdbcTemplate.queryForObject(countQuery, ctx, Integer.class);
+
+            String dataQuery = String.format("select * %s", fromClauseData);
 
             EntityDataSortOrder sortOrder = pageLink.getSortOrder();
             if (sortOrder != null) {
@@ -439,14 +456,16 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (pageLink.getPageSize() > 0) {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
-            //TODO 3.1: remove this before release
-            if (log.isTraceEnabled()) {
-                log.trace("QUERY: {}", dataQuery);
+            if (log.isInfoEnabled()) {
+                log.info("QUERY: {}", dataQuery);
             }
-            if (log.isTraceEnabled()) {
-                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.trace("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            if (log.isInfoEnabled()) {
+                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.info("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
             }
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
+            if (log.isInfoEnabled()) {
+                log.info("QUERY COMPLETED");
+            }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
     }
@@ -1088,9 +1107,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             default:
                 throw new RuntimeException("Not supported!");
         }
+        String typeFilter = "e.type = :entity_filter_type_query_type";
         ctx.addStringParameter("entity_filter_type_query_type", type);
-        ctx.addStringParameter("entity_filter_type_query_name", name);
-        return "e.type = :entity_filter_type_query_type and lower(e.search_text) like lower(concat(:entity_filter_type_query_name, '%%'))";
+        if (!StringUtils.isEmpty(name)) {
+            ctx.addStringParameter("entity_filter_type_query_name", name);
+            return typeFilter + " and lower(e.search_text) like lower(concat(:entity_filter_type_query_name, '%%'))";
+        } else {
+            return typeFilter;
+        }
     }
 
     private EntityType resolveEntityType(EntityFilter entityFilter) {

@@ -128,6 +128,8 @@ CREATE TABLE IF NOT EXISTS attribute_kv (
   CONSTRAINT attribute_kv_pkey PRIMARY KEY (entity_type, entity_id, attribute_type, attribute_key)
 );
 
+CREATE INDEX IF NOT EXISTS attribute_kv_last_key ON attribute_kv(entity_id, attribute_key, last_update_ts desc);
+
 CREATE TABLE IF NOT EXISTS component_descriptor (
     id uuid NOT NULL CONSTRAINT component_descriptor_pkey PRIMARY KEY,
     created_time bigint NOT NULL,

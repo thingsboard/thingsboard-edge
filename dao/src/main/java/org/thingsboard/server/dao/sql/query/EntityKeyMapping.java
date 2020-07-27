@@ -290,9 +290,9 @@ public class EntityKeyMapping {
                 query = String.format("%s AND %s.attribute_type='%s'", query, alias, scope);
             } else {
                 String join = hasFilter() ? "join LATERAL" : "left join LATERAL";
-                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id " +
+                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=:%s_key_id " +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
-                        join, alias, genericReadFilter, alias, alias, entityTypeStr, alias, alias, alias, alias);
+                        join, alias, genericReadFilter, alias, alias, alias, alias, alias, alias);
             }
             return query;
         }
@@ -303,8 +303,9 @@ public class EntityKeyMapping {
                 Collectors.joining(", "));
     }
 
-    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, EntityType entityType, List<EntityKeyMapping> latestMappings) {
-        return latestMappings.stream().map(mapping -> mapping.toLatestJoin(ctx, entityFilter, entityType)).collect(
+    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, EntityType entityType, List<EntityKeyMapping> latestMappings, boolean countQuery) {
+        return latestMappings.stream().filter(mapping -> !countQuery || mapping.hasFilter())
+                .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, entityType)).collect(
                 Collectors.joining(" "));
     }
 
