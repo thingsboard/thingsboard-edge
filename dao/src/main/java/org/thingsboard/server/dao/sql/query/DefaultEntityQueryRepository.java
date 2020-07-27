@@ -947,7 +947,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         String lvlFilter = getLvlFilter(entityFilter.getMaxLevel());
         String selectFields = "SELECT tenant_id, customer_id, id, created_time, type, name, label FROM " + entityType.name() + " WHERE id in ( SELECT entity_id";
         String from = getQueryTemplate(entityFilter.getDirection());
-        String whereFilter = " WHERE re.relation_type = :where_relation_type AND re.to_type = :where_entity_type";
+        String whereFilter = " WHERE";
+        if (!StringUtils.isEmpty(entityFilter.getRelationType())) {
+            ctx.addStringParameter("where_relation_type", entityFilter.getRelationType());
+            whereFilter += " re.relation_type = :where_relation_type AND";
+        }
+        whereFilter += " re.to_type = :where_entity_type";
 
         from = String.format(from, lvlFilter, whereFilter);
         String query = "( " + selectFields + from + ")";
@@ -958,7 +963,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         query += " )";
         ctx.addUuidParameter("relation_root_id", rootId.getId());
         ctx.addStringParameter("relation_root_type", rootId.getEntityType().name());
-        ctx.addStringParameter("where_relation_type", entityFilter.getRelationType());
         ctx.addStringParameter("where_entity_type", entityType.name());
         return query;
     }
@@ -978,49 +982,66 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         ctx.addUuidParameter("relation_root_id", rootId.getId());
         ctx.addStringParameter("relation_root_type", rootId.getEntityType().name());
 
-        StringBuilder whereFilter;
+        StringBuilder whereFilter = new StringBuilder();
+        boolean noConditions = true;
         if (entityFilter.getFilters() != null && !entityFilter.getFilters().isEmpty()) {
-            whereFilter = new StringBuilder(" WHERE ");
-            boolean first = true;
             boolean single = entityFilter.getFilters().size() == 1;
             int entityTypeFilterIdx = 0;
             for (EntityTypeFilter etf : entityFilter.getFilters()) {
-                if (first) {
-                    first = false;
-                } else {
-                    whereFilter.append(" OR ");
+                String etfCondition = buildEtfCondition(ctx, etf, entityFilter.getDirection(), entityTypeFilterIdx++);
+                if (!etfCondition.isEmpty()) {
+                    if (noConditions) {
+                        whereFilter.append(" WHERE ");
+                        noConditions = false;
+                    } else {
+                        whereFilter.append(" OR ");
+                    }
+                    if (!single) {
+                        whereFilter.append(" (");
+                    }
+                    whereFilter.append(etfCondition);
+                    if (!single) {
+                        whereFilter.append(" )");
+                    }
                 }
-                String relationType = etf.getRelationType();
-                if (!single) {
-                    whereFilter.append(" (");
-                }
-                List<String> whereEntityTypes = etf.getEntityTypes().stream().map(EntityType::name).collect(Collectors.toList());
-                whereFilter
-                        .append(" re.relation_type = :where_relation_type").append(entityTypeFilterIdx);
-                whereFilter.append(" and re.")
-                        .append(entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? "to" : "from")
-                        .append("_type in (:where_entity_types").append(entityTypeFilterIdx).append(")");
-                if (!single) {
-                    whereFilter.append(" )");
-                }
-                ctx.addStringParameter("where_relation_type" + entityTypeFilterIdx, relationType);
-                if (!whereEntityTypes.isEmpty()) {
-                    ctx.addStringListParameter("where_entity_types" + entityTypeFilterIdx, whereEntityTypes);
-                } else {
-                    ctx.addStringListParameter("where_entity_types" + entityTypeFilterIdx, Arrays.stream(RELATION_QUERY_ENTITY_TYPES).map(EntityType::name).collect(Collectors.toList()));
-                }
-                entityTypeFilterIdx++;
             }
-        } else {
-            whereFilter = new StringBuilder(" WHERE ");
-            whereFilter.append("re.")
+        }
+        if (noConditions) {
+            whereFilter.append(" WHERE re.")
                     .append(entityFilter.getDirection().equals(EntitySearchDirection.FROM) ? "to" : "from")
                     .append("_type in (:where_entity_types").append(")");
             ctx.addStringListParameter("where_entity_types", Arrays.stream(RELATION_QUERY_ENTITY_TYPES).map(EntityType::name).collect(Collectors.toList()));
-
         }
         from = String.format(from, lvlFilter, whereFilter);
         return "( " + selectFields + from + ")";
+    }
+
+    private String buildEtfCondition(QueryContext ctx, EntityTypeFilter etf, EntitySearchDirection direction, int entityTypeFilterIdx) {
+        StringBuilder whereFilter = new StringBuilder();
+        String relationType = etf.getRelationType();
+        List<EntityType> entityTypes = etf.getEntityTypes();
+        List<String> whereEntityTypes;
+        if (entityTypes == null || entityTypes.isEmpty()) {
+            whereEntityTypes = Collections.emptyList();
+        } else {
+            whereEntityTypes = etf.getEntityTypes().stream().map(EntityType::name).collect(Collectors.toList());
+        }
+        boolean hasRelationType = !StringUtils.isEmpty(relationType);
+        if (hasRelationType) {
+            ctx.addStringParameter("where_relation_type" + entityTypeFilterIdx, relationType);
+            whereFilter.append("re.relation_type = :where_relation_type").append(entityTypeFilterIdx).append(" and ");
+        }
+
+        whereFilter.append("re.")
+                .append(direction.equals(EntitySearchDirection.FROM) ? "to" : "from")
+                .append("_type in (:where_entity_types").append(entityTypeFilterIdx).append(")");
+        if (!whereEntityTypes.isEmpty()) {
+            ctx.addStringListParameter("where_entity_types" + entityTypeFilterIdx, whereEntityTypes);
+        } else {
+            ctx.addStringListParameter("where_entity_types" + entityTypeFilterIdx,
+                    Arrays.stream(RELATION_QUERY_ENTITY_TYPES).map(EntityType::name).collect(Collectors.toList()));
+        }
+        return whereFilter.toString();
     }
 
     private String getLvlFilter(int maxLevel) {
