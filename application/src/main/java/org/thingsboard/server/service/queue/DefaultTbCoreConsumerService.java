@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.queue;
 
-import akka.actor.ActorRef;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -68,6 +67,7 @@ import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.stats.StatsCounterFactory;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
@@ -106,14 +106,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final PlatformIntegrationService platformIntegrationService;
     private final RuleEngineCallService ruleEngineCallService;
     private final CloudNotificationService cloudNotificationService;
-    private final TbCoreConsumerStats stats = new TbCoreConsumerStats();
+    private final TbCoreConsumerStats stats;
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
                                         DeviceStateService stateService, SchedulerService schedulerService,
                                         TbLocalSubscriptionService localSubscriptionService, SubscriptionManagerService subscriptionManagerService,
                                         DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService,
                                         PlatformIntegrationService platformIntegrationService, RuleEngineCallService ruleEngineCallService,
-                                        CloudNotificationService cloudNotificationService) {
+                                        CloudNotificationService cloudNotificationService,
+                                        StatsCounterFactory counterFactory) {
         super(actorContext, encodingService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.stateService = stateService;
@@ -124,6 +125,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.platformIntegrationService = platformIntegrationService;
         this.ruleEngineCallService = ruleEngineCallService;
         this.cloudNotificationService = cloudNotificationService;
+        this.stats = new TbCoreConsumerStats(counterFactory);
     }
 
     @PostConstruct
@@ -189,7 +191,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         tbCoreDeviceRpcService.forwardRpcRequestToDeviceActor((ToDeviceRpcRequestActorMsg) tbActorMsg);
                                     } else {
                                         log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                                        actorContext.tell(actorMsg.get(), ActorRef.noSender());
+                                        actorContext.tell(actorMsg.get());
                                     }
                                 }
                                 callback.onSuccess();
@@ -200,7 +202,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                         }
                     });
                     if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {
-                        ctx.getAckMap().forEach((id, msg) -> log.warn("[{}] Timeout to process message: {}", id, msg.getValue()));
+                        ctx.getAckMap().forEach((id, msg) -> log.debug("[{}] Timeout to process message: {}", id, msg.getValue()));
                         ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
                     }
                     mainConsumer.commit();
@@ -253,12 +255,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getComponentLifecycleMsg().toByteArray());
             if (actorMsg.isPresent()) {
                 log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                actorContext.tell(actorMsg.get(), ActorRef.noSender());
+                actorContext.tellWithHighPriority(actorMsg.get());
             }
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log(toCoreNotification);
         }
     }
 
@@ -274,6 +276,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     public void printStats() {
         if (statsEnabled) {
             stats.printStats();
+            stats.reset();
         }
     }
 
@@ -329,14 +332,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
     }
 
     private void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
@@ -345,7 +348,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         if (statsEnabled) {
             stats.log(toDeviceActorMsg);
         }
-        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback), ActorRef.noSender());
+        actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
     }
 
     private void forwardToCloudNotificationService(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {

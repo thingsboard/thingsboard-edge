@@ -131,13 +131,14 @@
         <ua-parser.version>1.4.3</ua-parser.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
+        <micrometer.version>1.5.2</micrometer.version>
     </properties>
 
     <modules>
         <module>netty-mqtt</module>
         <module>common</module>
         <module>rule-engine</module>
-<!--        <module>rule-engine-pe</module>-->
+        <module>rule-engine-pe</module>
         <module>dao</module>
         <module>integration</module>
         <module>ui</module>
@@ -757,8 +758,6 @@
                             <exclude>**/public/static/rulenode/**</exclude>
                             <exclude>**/*.proto.js</exclude>
                             <exclude>docker/**</exclude>
-                            <exclude>ce_storage/**</exclude>
-                            <exclude>pe_storage/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
@@ -815,6 +814,11 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>proto</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common</groupId>
+                <artifactId>actor</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1524,6 +1528,21 @@
                 <groupId>org.apache.struts</groupId>
                 <artifactId>struts-tiles</artifactId>
                 <version>${struts.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-actuator</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>${micrometer.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

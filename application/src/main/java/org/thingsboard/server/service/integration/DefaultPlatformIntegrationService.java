@@ -102,6 +102,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
@@ -423,7 +424,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         try {
             TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
             IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(msgProto.getData().toByteArray(), TbMsgCallback.EMPTY));
+            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY));
             Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
             if (integration == null) {
                 boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
@@ -1023,14 +1024,16 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
         @Override
         public void onSuccess(TbQueueMsgMetadata metadata) {
-            if (msgCount.decrementAndGet() <= 0) {
+            if (msgCount.decrementAndGet() <= 0 && callback != null) {
                 DefaultPlatformIntegrationService.this.callbackExecutor.submit(() -> callback.onSuccess(null));
             }
         }
 
         @Override
         public void onFailure(Throwable t) {
-            callback.onError(t);
+            if (callback != null) {
+                callback.onError(t);
+            }
         }
     }
 

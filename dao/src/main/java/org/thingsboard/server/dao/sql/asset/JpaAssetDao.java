@@ -87,8 +87,8 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
 
     @Override
     public ListenableFuture<List<Asset>> findAssetsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> assetIds) {
-        return service.submit(() ->
-                DaoUtil.convertDataList(assetRepository.findByTenantIdAndIdIn(fromTimeUUID(tenantId), fromTimeUUIDs(assetIds))));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(assetIds, ids ->
+                assetRepository.findByTenantIdAndIdIn(fromTimeUUID(tenantId), ids), service);
     }
 
     @Override
@@ -104,8 +104,8 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
 
     @Override
     public ListenableFuture<List<Asset>> findAssetsByTenantIdAndCustomerIdAndIdsAsync(UUID tenantId, UUID customerId, List<UUID> assetIds) {
-        return service.submit(() ->
-                DaoUtil.convertDataList(assetRepository.findByTenantIdAndCustomerIdAndIdIn(fromTimeUUID(tenantId), fromTimeUUID(customerId), fromTimeUUIDs(assetIds))));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(assetIds, ids ->
+                assetRepository.findByTenantIdAndCustomerIdAndIdIn(fromTimeUUID(tenantId), fromTimeUUID(customerId), ids), service);
     }
 
     @Override

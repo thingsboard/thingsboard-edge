@@ -145,8 +145,12 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
         for (Map.Entry<IntegrationId, IntegrationGrpcSession> entry : sessions.entrySet()) {
             Integration configuration = entry.getValue().getConfiguration();
             if (entry.getValue().isConnected()
-                    && (configuration.getDefaultConverterId().equals(converter.getId()) || configuration.getDownlinkConverterId().equals(converter.getId()))) {
-                entry.getValue().onConverterUpdate(converter);
+                    && (configuration.getDefaultConverterId().equals(converter.getId()) || converter.getId().equals(configuration.getDownlinkConverterId()))) {
+                try {
+                    entry.getValue().onConverterUpdate(converter);
+                } catch (Exception e) {
+                    log.error("Failed to update integration [{}] with converter [{}]", entry.getKey().getId(), converter, e);
+                }
             }
         }
     }

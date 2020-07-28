@@ -11,8 +11,6 @@
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.boot.test" level="WARN"/>
 
-    <logger name="akka" level="INFO" />
-
     <root level="WARN">
         <appender-ref ref="console"/>
     </root>

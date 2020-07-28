@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.rpc;
 
-import akka.actor.ActorRef;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -137,7 +136,7 @@ public class DefaultTbCoreDeviceRpcService implements TbCoreDeviceRpcService {
         log.trace("[{}][{}] Processing local rpc call to device actor [{}]", request.getTenantId(), request.getId(), request.getDeviceId());
         UUID requestId = request.getId();
         localToDeviceRpcRequests.put(requestId, rpcMsg);
-        actorContext.tell(rpcMsg, ActorRef.noSender());
+        actorContext.tellWithHighPriority(rpcMsg);
         scheduleToDeviceTimeout(request, requestId);
     }
 
@@ -191,7 +190,7 @@ public class DefaultTbCoreDeviceRpcService implements TbCoreDeviceRpcService {
     }
 
     private void scheduleToRuleEngineTimeout(ToDeviceRpcRequest request, UUID requestId) {
-        long timeout = Math.max(0, request.getExpirationTime() - System.currentTimeMillis());
+        long timeout = Math.max(0, request.getExpirationTime() - System.currentTimeMillis()) + TimeUnit.SECONDS.toMillis(1);
         log.trace("[{}] processing to rule engine request.", requestId);
         scheduler.schedule(() -> {
             log.trace("[{}] timeout for processing to rule engine request.", requestId);
@@ -203,7 +202,7 @@ public class DefaultTbCoreDeviceRpcService implements TbCoreDeviceRpcService {
     }
 
     private void scheduleToDeviceTimeout(ToDeviceRpcRequest request, UUID requestId) {
-        long timeout = Math.max(0, request.getExpirationTime() - System.currentTimeMillis());
+        long timeout = Math.max(0, request.getExpirationTime() - System.currentTimeMillis()) + TimeUnit.SECONDS.toMillis(1);
         log.trace("[{}] processing to device request.", requestId);
         scheduler.schedule(() -> {
             log.trace("[{}] timeout for to device request.", requestId);

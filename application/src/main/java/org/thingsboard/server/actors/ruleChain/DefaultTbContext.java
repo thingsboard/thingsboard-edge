@@ -30,13 +30,12 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
-import akka.actor.ActorRef;
+import com.datastax.driver.core.ResultSetFuture;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.js.api.JsScriptType;
@@ -70,6 +69,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -95,12 +95,10 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import scala.concurrent.duration.Duration;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -138,17 +136,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (nodeCtx.getSelf().isDebugMode()) {
             relationTypes.forEach(relationType -> mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, relationType, th));
         }
-        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), relationTypes, msg, th != null ? th.getMessage() : null), nodeCtx.getSelfActor());
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), relationTypes, msg, th != null ? th.getMessage() : null));
     }
 
     @Override
     public void tellSelf(TbMsg msg, long delayMs) {
         //TODO: add persistence layer
-        scheduleMsgWithDelay(new RuleNodeToSelfMsg(msg), delayMs, nodeCtx.getSelfActor());
-    }
-
-    private void scheduleMsgWithDelay(Object msg, long delayInMs, ActorRef target) {
-        mainCtx.getScheduler().scheduleOnce(Duration.create(delayInMs, TimeUnit.MILLISECONDS), target, msg, mainCtx.getActorSystem().dispatcher(), nodeCtx.getSelfActor());
+        mainCtx.scheduleMsgWithDelay(nodeCtx.getSelfActor(), new RuleNodeToSelfMsg(msg), delayMs);
     }
 
     @Override
@@ -168,6 +162,9 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setTbMsg(TbMsg.toByteString(tbMsg)).build();
+        if (nodeCtx.getSelf().isDebugMode()) {
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), tbMsg, "To Root Rule Chain");
+        }
         mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
@@ -213,10 +210,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
         enqueueForTellNext(tpi, tbMsg, relationTypes, null, onSuccess, onFailure);
     }
 
-    private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg tbMsg, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
+    private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
         RuleChainId ruleChainId = nodeCtx.getSelf().getRuleChainId();
         RuleNodeId ruleNodeId = nodeCtx.getSelf().getId();
-        tbMsg = TbMsg.newMsg(tbMsg, ruleChainId, ruleNodeId);
+        TbMsg tbMsg = TbMsg.newMsg(source, ruleChainId, ruleNodeId);
         TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
@@ -224,6 +221,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .addAllRelationTypes(relationTypes);
         if (failureMessage != null) {
             msg.setFailureMessage(failureMessage);
+        }
+        if (nodeCtx.getSelf().isDebugMode()) {
+            relationTypes.forEach(relationType ->
+                    mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), tbMsg, relationType));
         }
         mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
     }
@@ -252,7 +253,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
         }
         nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), Collections.singleton(TbRelationTypes.FAILURE),
-                msg, th != null ? th.getMessage() : null), nodeCtx.getSelfActor());
+                msg, th != null ? th.getMessage() : null));
     }
 
     public void updateSelf(RuleNode self) {
@@ -260,8 +261,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public TbMsg newMsg(String type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return TbMsg.newMsg(type, originator, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
+    public TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data) {
+        return TbMsg.newMsg(queueName, type, originator, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
     }
 
     @Override
@@ -348,21 +349,21 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void logJsEvalRequest() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeRequestsCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementRequests();
         }
     }
 
     @Override
     public void logJsEvalResponse() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeResponsesCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementResponses();
         }
     }
 
     @Override
     public void logJsEvalFailure() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeFailuresCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementFailures();
         }
     }
 
