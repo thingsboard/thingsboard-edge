@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 

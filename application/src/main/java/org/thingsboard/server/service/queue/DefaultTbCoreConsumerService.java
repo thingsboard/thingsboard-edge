@@ -41,12 +41,21 @@ import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.gen.transport.TransportProtos.*;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
+import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.TbAttributeUpdateProto;
+import org.thingsboard.server.gen.transport.TransportProtos.TbSubscriptionCloseProto;
+import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesUpdateProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
-import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
@@ -58,6 +67,7 @@ import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.stats.StatsCounterFactory;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
@@ -93,9 +103,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
-    private final TbCoreConsumerStats stats;
     private final PlatformIntegrationService platformIntegrationService;
     private final RuleEngineCallService ruleEngineCallService;
+    private final TbCoreConsumerStats stats;
     private final EdgeNotificationService edgeNotificationService;
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
@@ -103,7 +113,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbLocalSubscriptionService localSubscriptionService, SubscriptionManagerService subscriptionManagerService,
                                         DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService,
                                         PlatformIntegrationService platformIntegrationService, RuleEngineCallService ruleEngineCallService,
-                                        StatsFactory statsFactory, EdgeNotificationService edgeNotificationService) {
+                                        StatsCounterFactory counterFactory, EdgeNotificationService edgeNotificationService) {
         super(actorContext, encodingService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.stateService = stateService;
@@ -111,10 +121,10 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
-        this.stats = new TbCoreConsumerStats(statsFactory);
         this.platformIntegrationService = platformIntegrationService;
         this.ruleEngineCallService = ruleEngineCallService;
         this.edgeNotificationService = edgeNotificationService;
+        this.stats = new TbCoreConsumerStats(counterFactory);
     }
 
     @PostConstruct
@@ -249,7 +259,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log(toCoreNotification);
         }
     }
 
@@ -321,19 +331,19 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
     }
 
     private void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
-    private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
+    private void forwardToEdgeNotificationService(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(edgeNotificationMsg);
         }

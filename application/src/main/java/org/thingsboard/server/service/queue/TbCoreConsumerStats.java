@@ -31,12 +31,13 @@
 package org.thingsboard.server.service.queue;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.common.stats.StatsCounter;
-import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.service.stats.StatsCounterFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class TbCoreConsumerStats {
@@ -51,7 +52,7 @@ public class TbCoreConsumerStats {
     public static final String DEVICE_STATES = "deviceState";
     public static final String SUBSCRIPTION_MSGS = "subMsgs";
     public static final String TO_CORE_NOTIFICATIONS = "coreNfs";
-    public static final String SCHEDULER_MSGS = "scheduler";
+    public static final String SCHEDULER_NOTIFICATIONS = "scheduler";
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
 
     private final StatsCounter totalCounter;
@@ -63,31 +64,30 @@ public class TbCoreConsumerStats {
     private final StatsCounter subscriptionInfoCounter;
     private final StatsCounter claimDeviceCounter;
 
+    private final StatsCounter schedulerMsgCounter;
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter toCoreNotificationsCounter;
-    private final StatsCounter schedulerMsgCounter;
     private final StatsCounter edgeNotificationMsgCounter;
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
-    public TbCoreConsumerStats(StatsFactory statsFactory) {
+    public TbCoreConsumerStats(StatsCounterFactory counterFactory) {
         String statsKey = StatsType.CORE.getName();
 
-        this.totalCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
-        this.sessionEventCounter = statsFactory.createStatsCounter(statsKey, SESSION_EVENTS);
-        this.getAttributesCounter = statsFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
-        this.subscribeToAttributesCounter = statsFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
-        this.subscribeToRPCCounter = statsFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
-        this.toDeviceRPCCallResponseCounter = statsFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
-        this.subscriptionInfoCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
-        this.claimDeviceCounter = statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
-        this.deviceStateCounter = statsFactory.createStatsCounter(statsKey, DEVICE_STATES);
-        this.subscriptionMsgCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
-        this.toCoreNotificationsCounter = statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
-        this.schedulerMsgCounter = statsFactory.createStatsCounter(statsKey, SCHEDULER_MSGS);
-        this.edgeNotificationMsgCounter = statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS);
-
+        this.totalCounter = counterFactory.createStatsCounter(statsKey, TOTAL_MSGS);
+        this.sessionEventCounter = counterFactory.createStatsCounter(statsKey, SESSION_EVENTS);
+        this.getAttributesCounter = counterFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
+        this.subscribeToAttributesCounter = counterFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
+        this.subscribeToRPCCounter = counterFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
+        this.toDeviceRPCCallResponseCounter = counterFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
+        this.subscriptionInfoCounter = counterFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
+        this.claimDeviceCounter = counterFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
+        this.deviceStateCounter = counterFactory.createStatsCounter(statsKey, DEVICE_STATES);
+        this.subscriptionMsgCounter = counterFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
+        this.toCoreNotificationsCounter = counterFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
+        this.schedulerMsgCounter = counterFactory.createStatsCounter(statsKey, SCHEDULER_NOTIFICATIONS);
+        this.edgeNotificationMsgCounter = counterFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS);
 
         counters.add(totalCounter);
         counters.add(sessionEventCounter);
@@ -101,7 +101,6 @@ public class TbCoreConsumerStats {
         counters.add(deviceStateCounter);
         counters.add(subscriptionMsgCounter);
         counters.add(toCoreNotificationsCounter);
-        counters.add(schedulerMsgCounter);
         counters.add(edgeNotificationMsgCounter);
     }
 
@@ -140,11 +139,6 @@ public class TbCoreConsumerStats {
         edgeNotificationMsgCounter.increment();
     }
 
-    public void log(TransportProtos.SchedulerServiceMsgProto msg) {
-        totalCounter.increment();
-        schedulerMsgCounter.increment();
-    }
-
     public void log(TransportProtos.SubscriptionMgrMsgProto msg) {
         totalCounter.increment();
         subscriptionMsgCounter.increment();
@@ -155,13 +149,16 @@ public class TbCoreConsumerStats {
         toCoreNotificationsCounter.increment();
     }
 
+    public void log(TransportProtos.SchedulerServiceMsgProto msg) {
+        totalCounter.increment();
+        schedulerMsgCounter.increment();
+    }
+
     public void printStats() {
         int total = totalCounter.get();
         if (total > 0) {
             StringBuilder stats = new StringBuilder();
-            counters.forEach(counter -> {
-                stats.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
-            });
+            counters.forEach(counter -> stats.append(counter.getName()).append(" = [").append(counter.get()).append("] "));
             log.info("Core Stats: {}", stats);
         }
     }

@@ -28,18 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.stats;
+package org.thingsboard.server.service.metrics;
 
-public enum StatsType {
-    RULE_ENGINE("ruleEngine"), CORE("core"), TRANSPORT("transport"), JS_INVOKE("jsInvoke"), RATE_EXECUTOR("rateExecutor");
+import io.micrometer.core.instrument.Counter;
 
-    private String name;
+public class StubCounter implements Counter {
+    @Override
+    public void increment(double amount) {}
 
-    StatsType(String name) {
-        this.name = name;
+    @Override
+    public double count() {
+        return 0;
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public Id getId() {
+        return null;
     }
 }

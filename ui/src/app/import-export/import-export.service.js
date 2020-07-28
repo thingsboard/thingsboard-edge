@@ -1084,8 +1084,8 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
         downloadFile(data, filename, JSON_TYPE);
     }
 
-    function processCSVCell(cellData){
-        if(cellData){
+    function processCSVCell(cellData) {
+        if (isString(cellData)) {
             var result = cellData.replace(/"/g, '""');
             if (result.search(/([",\n])/g) >= 0)
                 result = '"' + result + '"';
