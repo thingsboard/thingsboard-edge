@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -321,6 +322,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
 
+    @Value("${sql.log_entity_queries:false}")
+    private boolean logSqlQueries;
+
     public DefaultEntityQueryRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
@@ -338,12 +342,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             ctx.append(" where ");
             ctx.append(entityWhereClause);
         }
-        //TODO 3.1: remove this before release
-        if (log.isTraceEnabled()) {
-            log.trace("QUERY: {}", ctx.getQuery());
-        }
-        if (log.isTraceEnabled()) {
-            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.trace("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+        if (logSqlQueries) {
+            log.info("QUERY: {}", ctx.getQuery());
+            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.info("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
         }
         return transactionTemplate.execute(status -> jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class));
     }
@@ -410,13 +411,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
             }
 
-            String fromClauseCount = String.format("from (select %s from (%s) entities %s %s) result %s",
+            String fromClauseCount = String.format("from (select %s from (%s) entities %s) result %s",
                     "entities.*",
                     entitiesQuery,
                     latestJoinsCnt,
                     textSearchQuery);
 
-            String fromClauseData = String.format("from (select %s from (%s) entities %s %s) result %s",
+            String fromClauseData = String.format("from (select %s from (%s) entities %s) result %s",
                     topSelection,
                     entitiesQuery,
                     latestJoinsData,
@@ -453,11 +454,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (pageLink.getPageSize() > 0) {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
-            if (log.isInfoEnabled()) {
-                log.info("QUERY: {}", dataQuery);
-            }
-            if (log.isInfoEnabled()) {
-                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.info("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
+            if (logSqlQueries) {
+                log.error("QUERY: {}", dataQuery);
+                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.error("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
             }
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
             if (log.isInfoEnabled()) {
