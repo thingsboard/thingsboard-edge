@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -243,7 +243,7 @@ public class EntityKeyMapping {
             return keyFilters.stream().map(keyFilter ->
                     this.buildKeyQuery(ctx, keyAlias, keyFilter, filterType));
         } else {
-            return null;
+            return Stream.empty();
         }
     }
 
@@ -255,6 +255,13 @@ public class EntityKeyMapping {
             entityTypeStr = "'" + entityType.name() + "'";
         }
         ctx.addStringParameter(alias + "_key_id", entityKey.getKey());
+        String filterQuery = toQueries(ctx, entityFilter.getType()).filter(Objects::nonNull).collect(
+                Collectors.joining(" and "));
+        if (StringUtils.isEmpty(filterQuery)) {
+            filterQuery = "";
+        } else {
+            filterQuery = " AND (" + filterQuery + ")";
+        }
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
             boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissionsByEntityType().isHasGenericRead();
             String genericReadFilter;
@@ -264,8 +271,8 @@ public class EntityKeyMapping {
                 genericReadFilter = "entities." + DefaultEntityQueryRepository.TS_READ_FLAG + " = true AND ";
             }
             String join = hasFilter() ? "left join" : "left outer join";
-            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id)",
-                    join, alias, genericReadFilter, alias, alias, alias);
+            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id) %s",
+                    join, alias, genericReadFilter, alias, alias, alias, filterQuery);
         } else {
             String query;
             boolean genericRead = ctx.getSecurityCtx().getMergedReadTsPermissionsByEntityType().isHasGenericRead();
@@ -287,12 +294,12 @@ public class EntityKeyMapping {
                 } else {
                     scope = DataConstants.SERVER_SCOPE;
                 }
-                query = String.format("%s AND %s.attribute_type='%s'", query, alias, scope);
+                query = String.format("%s AND %s.attribute_type='%s' %s", query, alias, scope, filterQuery);
             } else {
                 String join = hasFilter() ? "join LATERAL" : "left join LATERAL";
-                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=:%s_key_id " +
+                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=:%s_key_id %s" +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
-                        join, alias, genericReadFilter, alias, alias, alias, alias, alias, alias);
+                        join, alias, genericReadFilter, alias, alias, alias, alias, filterQuery, alias, alias);
             }
             return query;
         }
