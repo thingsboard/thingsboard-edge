@@ -146,6 +146,10 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common</groupId>
+            <artifactId>stats</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
             <artifactId>edge-api</artifactId>
         </dependency>
         <dependency>

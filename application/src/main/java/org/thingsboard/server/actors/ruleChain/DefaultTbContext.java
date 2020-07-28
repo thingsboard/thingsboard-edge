@@ -166,6 +166,9 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setTbMsg(TbMsg.toByteString(tbMsg)).build();
+        if (nodeCtx.getSelf().isDebugMode()) {
+            mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), tbMsg, "To Root Rule Chain");
+        }
         mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg, new SimpleTbQueueCallback(onSuccess, onFailure));
     }
 
@@ -211,10 +214,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
         enqueueForTellNext(tpi, tbMsg, relationTypes, null, onSuccess, onFailure);
     }
 
-    private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg tbMsg, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
+    private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
         RuleChainId ruleChainId = nodeCtx.getSelf().getRuleChainId();
         RuleNodeId ruleNodeId = nodeCtx.getSelf().getId();
-        tbMsg = TbMsg.newMsg(tbMsg, ruleChainId, ruleNodeId);
+        TbMsg tbMsg = TbMsg.newMsg(source, ruleChainId, ruleNodeId);
         TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
@@ -222,6 +225,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .addAllRelationTypes(relationTypes);
         if (failureMessage != null) {
             msg.setFailureMessage(failureMessage);
+        }
+        if (nodeCtx.getSelf().isDebugMode()) {
+            relationTypes.forEach(relationType ->
+                    mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), tbMsg, relationType));
         }
         mainCtx.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), msg.build(), new SimpleTbQueueCallback(onSuccess, onFailure));
     }
@@ -334,21 +341,21 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public void logJsEvalRequest() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeRequestsCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementRequests();
         }
     }
 
     @Override
     public void logJsEvalResponse() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeResponsesCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementResponses();
         }
     }
 
     @Override
     public void logJsEvalFailure() {
         if (mainCtx.isStatisticsEnabled()) {
-            mainCtx.getJsInvokeFailuresCount().incrementAndGet();
+            mainCtx.getJsInvokeStats().incrementFailures();
         }
     }
 

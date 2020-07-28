@@ -45,6 +45,7 @@ import java.util.Arrays;
         "org.thingsboard.server.service.component",
         "org.thingsboard.server.service.install",
         "org.thingsboard.server.dao",
+        "org.thingsboard.server.common.stats",
         "org.thingsboard.js",
         "org.thingsboard.integration"})
 public class ThingsboardInstallApplication {

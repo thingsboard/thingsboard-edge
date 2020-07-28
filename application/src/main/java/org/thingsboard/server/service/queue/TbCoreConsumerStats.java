@@ -32,93 +32,141 @@ package org.thingsboard.server.service.queue;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+import org.thingsboard.server.common.stats.StatsCounter;
+import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.stats.StatsType;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 
 @Slf4j
 public class TbCoreConsumerStats {
+    public static final String TOTAL_MSGS = "totalMsgs";
+    public static final String SESSION_EVENTS = "sessionEvents";
+    public static final String GET_ATTRIBUTE = "getAttr";
+    public static final String ATTRIBUTE_SUBSCRIBES = "subToAttr";
+    public static final String RPC_SUBSCRIBES = "subToRpc";
+    public static final String TO_DEVICE_RPC_CALL_RESPONSES = "toDevRpc";
+    public static final String SUBSCRIPTION_INFO = "subInfo";
+    public static final String DEVICE_CLAIMS = "claimDevice";
+    public static final String DEVICE_STATES = "deviceState";
+    public static final String SUBSCRIPTION_MSGS = "subMsgs";
+    public static final String TO_CORE_NOTIFICATIONS = "coreNfs";
+    public static final String SCHEDULER_MSGS = "scheduler";
+    public static final String EDGE_NOTIFICATIONS = "edgeNfs";
 
-    private final AtomicInteger totalCounter = new AtomicInteger(0);
-    private final AtomicInteger sessionEventCounter = new AtomicInteger(0);
-    private final AtomicInteger getAttributesCounter = new AtomicInteger(0);
-    private final AtomicInteger subscribeToAttributesCounter = new AtomicInteger(0);
-    private final AtomicInteger subscribeToRPCCounter = new AtomicInteger(0);
-    private final AtomicInteger toDeviceRPCCallResponseCounter = new AtomicInteger(0);
-    private final AtomicInteger subscriptionInfoCounter = new AtomicInteger(0);
-    private final AtomicInteger claimDeviceCounter = new AtomicInteger(0);
+    private final StatsCounter totalCounter;
+    private final StatsCounter sessionEventCounter;
+    private final StatsCounter getAttributesCounter;
+    private final StatsCounter subscribeToAttributesCounter;
+    private final StatsCounter subscribeToRPCCounter;
+    private final StatsCounter toDeviceRPCCallResponseCounter;
+    private final StatsCounter subscriptionInfoCounter;
+    private final StatsCounter claimDeviceCounter;
 
-    private final AtomicInteger deviceStateMsgCounter = new AtomicInteger(0);
-    private final AtomicInteger schedulerMsgCounter = new AtomicInteger(0);
-    private final AtomicInteger subscriptionMsgCounter = new AtomicInteger(0);
-    private final AtomicInteger toCoreNotificationsCounter = new AtomicInteger(0);
-    private final AtomicInteger edgeNotificationMsgCounter = new AtomicInteger(0);
+    private final StatsCounter deviceStateCounter;
+    private final StatsCounter subscriptionMsgCounter;
+    private final StatsCounter toCoreNotificationsCounter;
+    private final StatsCounter schedulerMsgCounter;
+    private final StatsCounter edgeNotificationMsgCounter;
 
-    public void log(TransportToDeviceActorMsg msg) {
-        totalCounter.incrementAndGet();
+    private final List<StatsCounter> counters = new ArrayList<>();
+
+    public TbCoreConsumerStats(StatsFactory statsFactory) {
+        String statsKey = StatsType.CORE.getName();
+
+        this.totalCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
+        this.sessionEventCounter = statsFactory.createStatsCounter(statsKey, SESSION_EVENTS);
+        this.getAttributesCounter = statsFactory.createStatsCounter(statsKey, GET_ATTRIBUTE);
+        this.subscribeToAttributesCounter = statsFactory.createStatsCounter(statsKey, ATTRIBUTE_SUBSCRIBES);
+        this.subscribeToRPCCounter = statsFactory.createStatsCounter(statsKey, RPC_SUBSCRIBES);
+        this.toDeviceRPCCallResponseCounter = statsFactory.createStatsCounter(statsKey, TO_DEVICE_RPC_CALL_RESPONSES);
+        this.subscriptionInfoCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_INFO);
+        this.claimDeviceCounter = statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS);
+        this.deviceStateCounter = statsFactory.createStatsCounter(statsKey, DEVICE_STATES);
+        this.subscriptionMsgCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
+        this.toCoreNotificationsCounter = statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
+        this.schedulerMsgCounter = statsFactory.createStatsCounter(statsKey, SCHEDULER_MSGS);
+        this.edgeNotificationMsgCounter = statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS);
+
+
+        counters.add(totalCounter);
+        counters.add(sessionEventCounter);
+        counters.add(getAttributesCounter);
+        counters.add(subscribeToAttributesCounter);
+        counters.add(subscribeToRPCCounter);
+        counters.add(toDeviceRPCCallResponseCounter);
+        counters.add(subscriptionInfoCounter);
+        counters.add(claimDeviceCounter);
+
+        counters.add(deviceStateCounter);
+        counters.add(subscriptionMsgCounter);
+        counters.add(toCoreNotificationsCounter);
+        counters.add(schedulerMsgCounter);
+        counters.add(edgeNotificationMsgCounter);
+    }
+
+    public void log(TransportProtos.TransportToDeviceActorMsg msg) {
+        totalCounter.increment();
         if (msg.hasSessionEvent()) {
-            sessionEventCounter.incrementAndGet();
+            sessionEventCounter.increment();
         }
         if (msg.hasGetAttributes()) {
-            getAttributesCounter.incrementAndGet();
+            getAttributesCounter.increment();
         }
         if (msg.hasSubscribeToAttributes()) {
-            subscribeToAttributesCounter.incrementAndGet();
+            subscribeToAttributesCounter.increment();
         }
         if (msg.hasSubscribeToRPC()) {
-            subscribeToRPCCounter.incrementAndGet();
+            subscribeToRPCCounter.increment();
         }
         if (msg.hasToDeviceRPCCallResponse()) {
-            toDeviceRPCCallResponseCounter.incrementAndGet();
+            toDeviceRPCCallResponseCounter.increment();
         }
         if (msg.hasSubscriptionInfo()) {
-            subscriptionInfoCounter.incrementAndGet();
+            subscriptionInfoCounter.increment();
         }
         if (msg.hasClaimDevice()) {
-            claimDeviceCounter.incrementAndGet();
+            claimDeviceCounter.increment();
         }
     }
 
-    public void log(DeviceStateServiceMsgProto msg) {
-        totalCounter.incrementAndGet();
-        deviceStateMsgCounter.incrementAndGet();
-    }
-
-    public void log(SubscriptionMgrMsgProto msg) {
-        totalCounter.incrementAndGet();
-        subscriptionMsgCounter.incrementAndGet();
-    }
-
-    public void log(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg) {
-        totalCounter.incrementAndGet();
-        schedulerMsgCounter.incrementAndGet();
+    public void log(TransportProtos.DeviceStateServiceMsgProto msg) {
+        totalCounter.increment();
+        deviceStateCounter.increment();
     }
 
     public void log(TransportProtos.EdgeNotificationMsgProto msg) {
-        totalCounter.incrementAndGet();
-        edgeNotificationMsgCounter.incrementAndGet();
+        totalCounter.increment();
+        edgeNotificationMsgCounter.increment();
     }
 
-    public void logToCoreNotification() {
-        totalCounter.incrementAndGet();
-        toCoreNotificationsCounter.incrementAndGet();
+    public void log(TransportProtos.SchedulerServiceMsgProto msg) {
+        totalCounter.increment();
+        schedulerMsgCounter.increment();
+    }
+
+    public void log(TransportProtos.SubscriptionMgrMsgProto msg) {
+        totalCounter.increment();
+        subscriptionMsgCounter.increment();
+    }
+
+    public void log(TransportProtos.ToCoreNotificationMsg msg) {
+        totalCounter.increment();
+        toCoreNotificationsCounter.increment();
     }
 
     public void printStats() {
-        int total = totalCounter.getAndSet(0);
+        int total = totalCounter.get();
         if (total > 0) {
-            log.info("Total [{}] sessionEvents [{}] getAttr [{}] subToAttr [{}] subToRpc [{}] toDevRpc [{}] subInfo [{}] claimDevice [{}]" +
-                            " deviceState [{}] scheduler [{}], subMgr [{}] coreNfs [{}] edgeNfs [{}]",
-                    total, sessionEventCounter.getAndSet(0),
-                    getAttributesCounter.getAndSet(0), subscribeToAttributesCounter.getAndSet(0),
-                    subscribeToRPCCounter.getAndSet(0), toDeviceRPCCallResponseCounter.getAndSet(0),
-                    subscriptionInfoCounter.getAndSet(0), claimDeviceCounter.getAndSet(0),
-                    deviceStateMsgCounter.getAndSet(0), schedulerMsgCounter.getAndSet(0),
-                    subscriptionMsgCounter.getAndSet(0), toCoreNotificationsCounter.getAndSet(0),
-                    edgeNotificationMsgCounter.getAndSet(0));
+            StringBuilder stats = new StringBuilder();
+            counters.forEach(counter -> {
+                stats.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
+            });
+            log.info("Core Stats: {}", stats);
         }
     }
 
+    public void reset() {
+        counters.forEach(StatsCounter::clear);
+    }
 }
