@@ -62,9 +62,9 @@ import { AliasFilterType, EntityAlias, EntityAliasFilter, EntityAliasFilterResul
 import { entityFields, EntityInfo, ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entity.models';
 import { EntityRelationService } from '@core/http/entity-relation.service';
 import { deepClone, isDefined, isDefinedAndNotNull } from '@core/utils';
-import { Asset, AssetSearchQuery } from '@shared/models/asset.models';
-import { Device, DeviceCredentialsType, DeviceSearchQuery } from '@shared/models/device.models';
-import { EntityView, EntityViewSearchQuery } from '@shared/models/entity-view.models';
+import { Asset } from '@shared/models/asset.models';
+import { Device, DeviceCredentialsType } from '@shared/models/device.models';
+import { EntityView } from '@shared/models/entity-view.models';
 import { AttributeService } from '@core/http/attribute.service';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
@@ -581,7 +581,7 @@ export class EntityService {
       direction: Direction.ASC
     });
     if (pageSize === -1) { // all
-      pageLink.pageSize = 100;
+      pageLink.pageSize = entityGroupType === EntityType.CUSTOMER ? 1024 : 100;
       return this.getEntityGroupEntitiesByPageLink(entityGroupId, pageLink, entityGroupType, config).pipe(
         map((data) => data && data.length ? data : null)
       );
