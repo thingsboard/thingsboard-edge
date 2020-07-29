@@ -30,14 +30,17 @@
  */
 package org.thingsboard.integration.http.controller.http;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -47,14 +50,20 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/api/v1/integrations/http")
@@ -64,7 +73,36 @@ public class HttpIntegrationController extends BaseIntegrationController {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @ResponseStatus(value = HttpStatus.OK)
+    public DeferredResult<ResponseEntity> processRequest(
+            @PathVariable("routingKey") String routingKey,
+            @PathVariable("suffix") Optional<String> suffix,
+            MultipartHttpServletRequest request
+    ) {
+        log.debug("[{}] Received multipart form request: {}", routingKey, request.getMultiFileMap().keySet());
+
+        Map<String, String> requestHeaders = request.getRequestHeaders().toSingleValueMap();
+
+        return processRequest(routingKey, suffix, requestHeaders,
+                request,
+                val -> {
+                    ObjectNode msg = mapper.createObjectNode();
+                    request.getMultiFileMap().forEach((fieldName, multipartFiles) -> {
+                        ArrayNode fileArrayNode = convertFilesToJsonFormat(multipartFiles);
+                        if (fileArrayNode.size() == 1){
+                            msg.set(fieldName, fileArrayNode.get(0));
+                        } else {
+                            msg.set(fieldName, fileArrayNode);
+                        }
+                    });
+                    return msg;
+                }
+        );
+    }
+
+    @SuppressWarnings("rawtypes")
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
@@ -73,23 +111,10 @@ public class HttpIntegrationController extends BaseIntegrationController {
             @RequestHeader Map<String, String> requestHeaders
     ) {
         log.debug("[{}] Received request: {}", routingKey, msg);
-        DeferredResult<ResponseEntity> result = new DeferredResult<>();
-
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
-                return;
-            }
-            suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
-
-            api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
-
-        return result;
+        return processRequest(routingKey, suffix, requestHeaders,
+                msg,
+                val -> val
+        );
     }
 
     @SuppressWarnings("rawtypes")
@@ -102,6 +127,17 @@ public class HttpIntegrationController extends BaseIntegrationController {
             @RequestHeader Map<String, String> requestHeaders
     ) {
         log.debug("[{}] Received status check request", routingKey);
+        return processRequest(routingKey, suffix, requestHeaders,
+                requestParams,
+                val -> mapper.convertValue(val, JsonNode.class)
+        );
+    }
+
+    private <T> DeferredResult<ResponseEntity> processRequest(String routingKey,
+                                                              Optional<String> suffix,
+                                                              Map<String, String> requestHeaders,
+                                                              T customMessage,
+                                                              Function<T, JsonNode> messageConverter){
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
         ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
@@ -111,8 +147,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
                 return;
             }
             suffix.ifPresent(suffixStr -> requestHeaders.put("suffix", suffixStr));
-
-            JsonNode msg = mapper.convertValue(requestParams, JsonNode.class);
+            JsonNode msg = messageConverter.apply(customMessage);
             api.process(integration, new HttpIntegrationMsg(requestHeaders, msg, result));
         }, failure -> {
             log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
@@ -120,6 +155,26 @@ public class HttpIntegrationController extends BaseIntegrationController {
         }, api.getCallbackExecutor());
 
         return result;
+    }
+
+    private ArrayNode convertFilesToJsonFormat(List<MultipartFile> multipartFiles) {
+        ArrayNode fileArrayNode = mapper.createArrayNode();
+        for (MultipartFile multipartFile : multipartFiles) {
+            try (InputStream fileIS = multipartFile.getInputStream();) {
+                byte[] fileBytes = new byte[(int) multipartFile.getSize()];
+                fileIS.read(fileBytes, 0, fileBytes.length);
+                try {
+                    JsonNode jsonInterpretation = mapper.readTree(fileBytes);
+                    fileArrayNode.add(jsonInterpretation);
+                } catch (JsonParseException e) {
+                    String stringInterpretation = Base64Utils.encodeToString(fileBytes);
+                    fileArrayNode.add(stringInterpretation);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read file " + multipartFile.getName() + ".");
+            }
+        }
+        return fileArrayNode;
     }
 
     @SuppressWarnings("rawtypes")
