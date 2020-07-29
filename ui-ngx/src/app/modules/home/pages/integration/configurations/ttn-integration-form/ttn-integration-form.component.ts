@@ -32,8 +32,8 @@
 import { Component, Input } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { IntegrationType } from '@shared/models/integration.models';
 
-const hostRegionSuffix = '.thethings.network';
 
 @Component({
   selector: 'tb-ttn-integration-form',
@@ -44,11 +44,13 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
 
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
+  @Input() integrationType: IntegrationType;
 
   hostTypes = ['Region', 'Custom'];
   hostRegion: FormControl;
   hostCustom: FormControl;
   currentHostType: FormControl;
+  hostRegionSuffix: string;
 
   constructor(private fb: FormBuilder) {
     super();
@@ -70,6 +72,7 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
   }
 
   onIntegrationFormSet() {
+    this.hostRegionSuffix = this.integrationType === "TTN" ? '.thethings.network' : '.thethings.industries';
     const hostType: string = this.form.get('customHost').value ? 'Custom' : 'Region';
     this.currentHostType.patchValue(hostType, {emitEvent: false});
     const host: string = this.form.get('host').value;
@@ -77,8 +80,8 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       this.hostCustom.patchValue(host, {emitEvent: false});
       this.hostRegion.patchValue('', {emitEvent: false});
     } else if (hostType === 'Region') {
-      if (host && host.endsWith(hostRegionSuffix)) {
-        this.hostRegion.patchValue(host.slice(0, -hostRegionSuffix.length), {emitEvent: false});
+      if (host && host.endsWith(this.hostRegionSuffix)) {
+        this.hostRegion.patchValue(host.slice(0, -this.hostRegionSuffix.length), {emitEvent: false});
       } else {
         this.hostRegion.patchValue(host, {emitEvent: false});
       }
@@ -121,7 +124,7 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
     let host = '';
     if (this.currentHostType.value === 'Region') {
       if (this.hostRegion.value) {
-        host = this.hostRegion.value + hostRegionSuffix;
+        host = this.hostRegion.value + this.hostRegionSuffix;
       }
       this.form.get('customHost').patchValue(false);
     } else {

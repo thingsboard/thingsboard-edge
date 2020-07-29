@@ -321,6 +321,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
+    public void checkIntegrationConnection(Integration integration) throws Exception {
+        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
+    }
+
+    @Override
     public ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration) {
         return createIntegration(configuration, false);
     }
@@ -969,6 +975,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:
+            case TTI:
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();

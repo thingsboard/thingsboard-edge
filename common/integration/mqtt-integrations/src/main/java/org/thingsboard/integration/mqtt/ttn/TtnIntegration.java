@@ -54,6 +54,7 @@ import java.util.Optional;
 public class TtnIntegration extends BasicMqttIntegration {
 
     private static final String TTN_ENDPOINT = "thethings.network";
+    private static final String TTI_ENDPOINT = "thethings.industries";
     private static final String TTN_DOWNLINK_TOPIC = "/devices/${devId}/down";
 
     private String appId;
@@ -65,6 +66,7 @@ public class TtnIntegration extends BasicMqttIntegration {
 
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
+        String integrationType = this.configuration.getType().name();
         mqttClientConfiguration.setCleanSession(true);
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
@@ -80,8 +82,10 @@ public class TtnIntegration extends BasicMqttIntegration {
 
         if (!mqttClientConfiguration.isCustomHost()) {
             String region = mqttClientConfiguration.getHost();
-            if (!region.endsWith(TTN_ENDPOINT)) {
+            if (integrationType.equals("TTN") && !region.endsWith(TTN_ENDPOINT)){
                 mqttClientConfiguration.setHost(region + "." + TTN_ENDPOINT);
+            } else if (integrationType.equals("TTI") && !region.endsWith(TTI_ENDPOINT)) {
+                mqttClientConfiguration.setHost(region + "." + TTI_ENDPOINT);
             }
         }
         mqttClientConfiguration.setPort(8883);

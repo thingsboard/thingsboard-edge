@@ -1700,6 +1700,7 @@
         "type-thingpark-enterprise": "ThingParkEnterprise",
         "type-tmobile-iot-cdp": "T-Mobile IoT CDP",
         "type-ttn": "TheThingsNetwork",
+        "type-tti": "TheThingsIndustries",
         "uplink-converter": "Convertisseur de données en liaison montante",
         "uplink-converter-required": "Un convertisseur de données en liaison montante est requis.",
         "username": "Nom d'utilisateur",

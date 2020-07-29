@@ -324,6 +324,33 @@ export const templates = {
       topicFilters: [Validators.required]
     }
   },
+    [IntegrationType.TTI]: {
+  clientConfiguration: {
+    host: '',
+      customHost: false,
+      port: 8883,
+      ssl: true,
+      connectTimeoutSec: 10,
+      credentials: {
+      type: 'basic',
+        username: '',
+        password: ''
+    },
+  },
+  topicFilters: [{
+    filter: '+/devices/+/up',
+    qos: 0
+  }],
+    downlinkTopicPattern: '',
+    fieldValidators: {
+    'clientConfiguration.host': [Validators.required],
+      'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
+      'clientConfiguration.credentials.username': [Validators.required],
+      'clientConfiguration.credentials.password': [Validators.required],
+      downlinkTopicPattern: [Validators.required],
+      topicFilters: [Validators.required]
+  }
+},
   [IntegrationType.AZURE_EVENT_HUB]: {
     clientConfiguration: {
       connectTimeoutSec: 10,

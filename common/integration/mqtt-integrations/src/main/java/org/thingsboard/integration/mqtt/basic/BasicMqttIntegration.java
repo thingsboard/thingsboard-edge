@@ -44,8 +44,12 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.mqtt.AbstractMqttIntegration;
 import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
+import org.thingsboard.integration.mqtt.MqttClientConfiguration;
 import org.thingsboard.integration.mqtt.MqttTopicFilter;
 import org.thingsboard.mqtt.MqttClientCallback;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
@@ -90,6 +94,25 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
                 }
             }
         });
+    }
+
+    @Override
+    public void doCheckConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
+        context = ctx;
+        this.configuration = integration;
+        try {
+            mqttClientConfiguration = mapper.readValue(
+                    mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
+                    MqttClientConfiguration.class);
+            mqttClient = initClient(mqttClientConfiguration, (topic, data) -> process(new BasicMqttIntegrationMsg(topic, data)));
+        } catch (RuntimeException e) {
+            throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        } finally {
+            if (mqttClient != null)
+                mqttClient.disconnect();
+        }
     }
 
     private void subscribeToTopics() throws java.io.IOException {

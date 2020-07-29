@@ -160,6 +160,7 @@ export const HelpLinks = {
     integrationAwsKinesis:  helpBaseUrl +  '/docs/user-guide/integrations/aws-kinesis',
     integrationIbmWatsonIoT: helpBaseUrl +  '/docs/user-guide/integrations/ibm-watson-iot',
     integrationTheThingsNetwork: helpBaseUrl +  '/docs/user-guide/integrations/ttn',
+    integrationTheThingsIndustries: helpBaseUrl +  '/docs/user-guide/integrations/tti',
     integrationAzureEventHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-event-hub',
     integrationOpcUa:  helpBaseUrl +  '/docs/user-guide/integrations/opc-ua',
     whiteLabeling: helpBaseUrl +  '/docs/user-guide/white-labeling',

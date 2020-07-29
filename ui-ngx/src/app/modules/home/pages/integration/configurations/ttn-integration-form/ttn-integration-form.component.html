@@ -52,7 +52,7 @@
                     </mat-error>
                 </mat-form-field>
                 <div *ngIf="currentHostType.value === 'Region'" fxFlex="40" fxLayout="column" fxLayoutAlign="center start">
-                    <mat-label>.thethings.network</mat-label>
+                    <mat-label>{{hostRegionSuffix}}</mat-label>
                 </div>
                 <mat-form-field *ngIf="currentHostType.value === 'Custom'" fxFlex="100" class="mat-block">
                     <mat-label translate>integration.custom-host</mat-label>

@@ -79,4 +79,9 @@ export class IntegrationService {
     url += `/api/v1/integrations/${type}/${key}`;
     return url;
   }
+
+  public checkIntegrationConnection(value: Integration, config?: RequestConfig) : Observable<string>{
+    return this.http.post<string>('/api/integration/check', value, defaultHttpOptionsFromConfig(config));
+  }
+
 }

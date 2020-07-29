@@ -118,6 +118,9 @@
           [topicFilters]="integrationForm.get('topicFilters')"
           [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
+        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+          {{ 'integration.check-connection' | translate }}
+        </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.OPC_UA">
         <tb-opc-ua-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
@@ -143,11 +146,15 @@
           [topicFilters]="integrationForm.get('topicFilters')">
         </tb-ibm-watson-iot-integration-form>
       </section>
-      <section *ngIf="integrationType === integrationTypes.TTN">
+      <section *ngIf="integrationType === integrationTypes.TTN || integrationType === integrationTypes.TTI">
         <tb-ttn-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
-          [topicFilters]="integrationForm.get('topicFilters')">
+                                 [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
+                                 [topicFilters]="integrationForm.get('topicFilters')"
+                                 [integrationType]="integrationType">
         </tb-ttn-integration-form>
+        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+          {{ 'integration.check-connection' | translate }}
+        </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.AZURE_EVENT_HUB">
         <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"

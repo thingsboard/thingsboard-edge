@@ -144,6 +144,19 @@ public class IntegrationController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/integration/check", method = RequestMethod.POST)
+    @ResponseBody
+    public void checkIntegrationConnection(@RequestBody Integration integration) throws ThingsboardException {
+        try {
+            checkNotNull(integration);
+            integration.setTenantId(getCurrentUser().getTenantId());
+            platformIntegrationService.checkIntegrationConnection(integration);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteIntegration(@PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {

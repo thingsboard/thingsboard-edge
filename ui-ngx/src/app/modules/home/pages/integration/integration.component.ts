@@ -53,6 +53,7 @@ import {
 } from './integration-forms-templates';
 import _ from 'lodash';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { IntegrationService } from "@core/http/integration.service";
 
 @Component({
   selector: 'tb-integration',
@@ -81,7 +82,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration>,
-              protected fb: FormBuilder) {
+              protected fb: FormBuilder,
+              protected integrationService: IntegrationService) {
     super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
@@ -266,5 +268,30 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  onIntegrationCheck(){
+    this.integrationService.checkIntegrationConnection(this.entityFormValue(), {ignoreErrors: true}).subscribe(() =>
+    {
+      this.store.dispatch(new ActionNotificationShow(
+      {
+        message: this.translate.instant('integration.check-success'),
+        type: 'success',
+        duration: 5000,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'right'
+      }));
+    },
+    error => {
+      this.store.dispatch(new ActionNotificationShow(
+        {
+          message: error.error.message,
+          type: 'error',
+          duration: 5000,
+          verticalPosition: 'bottom',
+          horizontalPosition: 'right'
+        }));
+      return;
+    });
   }
 }
