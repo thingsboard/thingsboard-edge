@@ -687,6 +687,10 @@ export default angular.module('thingsboard.types', [])
                 lastDisconnectTime: "lastDisconnectTime",
                 edgeSettings: "edgeSettings"
             },
+            cloudType: {
+              pe: 'PE',
+              ce: 'CE'
+            },
             importEntityColumnType: {
                 name: {
                     name: 'import.column-type.name',

@@ -29,41 +29,47 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($log, $filter, attributeService, userService, types) {
+export default function EdgeController($scope, $filter, $translate, attributeService, edgeService, types, userService) {
 
     var vm = this;
 
+    vm.subscriptionId = null;
     vm.active = '';
     vm.lastConnectTime = '';
     vm.lastDisconnectTime = '';
     vm.edgeSettings = {};
+    vm.activeStatus = '';
+
+    var params = {
+        entityType: types.entityType.tenant,
+        entityId: userService.getCurrentUser().tenantId,
+        attributeScope: types.attributesScope.server.value,
+        keys: Object.values(types.edgeAttributeKeys).join(","),
+        config: {},
+        query: {
+            order: '',
+            limit: 5,
+            page: 1,
+            search: null
+        }
+    };
 
     loadEdgeInfo();
 
     function loadEdgeInfo() {
-        let keys = Object.values(types.edgeAttributeKeys).join(",");
-        let currentTenantId = userService.getCurrentUser().tenantId;
-
-        attributeService.getEntityAttributesValues(types.entityType.tenant, currentTenantId, types.attributesScope.server.value, keys, {}).then(
-            function success(attributes) {
+        attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config)
+            .then(function success(attributes) {
                 onUpdate(attributes);
             });
 
-        attributeService.subscribeForEntityAttributes(types.entityType.tenant, currentTenantId, types.attributesScope.server.value);
+        checkSubscription();
 
-        var query = {
-            order: '',
-            limit: 10,
-            page: 1,
-            search: null
-        };
-
-        attributeService.getEntityAttributes(types.entityType.tenant, currentTenantId, types.attributesScope.server.value,
-            query, function (attributes) {
-            if (attributes && attributes.data)
+        attributeService.getEntityAttributes(params.entityType, params.entityId, params.attributeScope, params.query,
+            function (attributes) {
+            if (attributes && attributes.data) {
                 onUpdate(attributes.data);
             }
-        );
+        });
     }
 
     function onUpdate(attributes) {
@@ -71,9 +77,26 @@ export default function EdgeController($log, $filter, attributeService, userServ
             map[attribute.key] = attribute.value;
             return map;
         }, {});
-        vm.active = edge.active;
+        vm.active = edge.active.toString();
         vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
         vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
         vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+        vm.activeStatus = vm.active === 'true' ? $translate.instant('edge.connected') : $translate.instant('edge.disconnected');
     }
+
+    function checkSubscription() {
+        var newSubscriptionId = null;
+        if (params.entityId && params.entityType && params.attributeScope) {
+            newSubscriptionId = attributeService.subscribeForEntityAttributes(params.entityType, params.entityId, params.attributeScope);
+        }
+        if (vm.subscriptionId && vm.subscriptionId != newSubscriptionId) {
+            attributeService.unsubscribeForEntityAttributes(vm.subscriptionId);
+        }
+        vm.subscriptionId = newSubscriptionId;
+    }
+
+    $scope.$on('$destroy', function() {
+        attributeService.unsubscribeForEntityAttributes(vm.edgeSettings);
+    });
+
 }

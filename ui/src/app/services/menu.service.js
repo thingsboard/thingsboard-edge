@@ -47,7 +47,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     var currentCustomSection = null;
     var currentCustomChildSection = null;
-
     var customerGroups = {
         name: 'entity-group.customer-groups',
         type: 'toggle',
@@ -152,7 +151,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     service.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
         updateCurrentCustomSection(params);
     });
-
     return service;
 
     function getSections() {
@@ -201,6 +199,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             authority = user.authority;
             var customMenu = customMenuService.getCustomMenu();
             var disabledItems = [];
+
             if (customMenu && angular.isArray(customMenu.disabledMenuItems)) {
                 disabledItems = customMenu.disabledMenuItems;
             }
@@ -477,7 +476,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(dashboardGroups);
                     entityGroupSections.push(dashboardGroups);
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     sections.push(
                         {
                             name: 'scheduler.scheduler',
@@ -488,7 +487,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     sections.push(
                         {
                             name: 'white-labeling.white-labeling',
@@ -754,7 +753,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         );
                     }
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     homeSections.push(
                         {
                             name: 'scheduler.management',
@@ -770,7 +769,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isPEMenuAllowed() && userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     homeSections.push(
                         {
                             name: 'white-labeling.white-labeling',
@@ -1190,7 +1189,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             }
         }
     }
-
 
     function onMenuReady() {
         isMenuReady = true;

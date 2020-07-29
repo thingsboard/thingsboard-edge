@@ -92,7 +92,6 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
         });
 
         $rootScope.stateChangeStartHandle = $rootScope.$on('$stateChangeStart', function (evt, to, params) {
-
             if (skipStateChange) {
                 skipStateChange = false;
                 return;
