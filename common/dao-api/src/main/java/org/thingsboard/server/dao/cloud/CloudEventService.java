@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -41,5 +42,7 @@ public interface CloudEventService {
     ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent);
 
     TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
+
+    EdgeSettings findEdgeSettings(TenantId tenantId);
 
 }

@@ -30,26 +30,37 @@
  */
 package org.thingsboard.server.dao.cloud;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
 public class BaseCloudEventService implements CloudEventService {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
     @Autowired
     public CloudEventDao cloudEventDao;
+
+    @Autowired
+    public AttributesService attributesService;
 
     @Override
     public ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent) {
@@ -61,6 +72,22 @@ public class BaseCloudEventService implements CloudEventService {
     public TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
         List<CloudEvent> events = cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
         return new TimePageData<>(events, pageLink);
+    }
+
+    @Override
+    public EdgeSettings findEdgeSettings(TenantId tenantId) {
+        try {
+            Optional<AttributeKvEntry> attr =
+                    attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
+            if (attr.isPresent()) {
+                return mapper.readValue(attr.get().getValueAsString(), EdgeSettings.class);
+            } else {
+                throw new RuntimeException("Edge settings are not available");
+            }
+        } catch (Exception e) {
+            log.error("Exception while fetching edge settings", e);
+            throw new RuntimeException("Exception while fetching edge settings", e);
+        }
     }
 
     private DataValidator<CloudEvent> cloudEventValidator =

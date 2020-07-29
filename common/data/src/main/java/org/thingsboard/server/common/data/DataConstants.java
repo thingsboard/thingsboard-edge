@@ -90,4 +90,5 @@ public class DataConstants {
     public static final String CLOUD_MSG_SOURCE = "cloud";
     public static final String MSG_SOURCE_KEY = "source";
 
+    public static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
 }

@@ -30,23 +30,18 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -56,11 +51,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 @RequestMapping("/api")
 public class EdgeController extends BaseController {
 
-    @Autowired
-    private CloudEventService cloudEventService;
-
-    private static final ObjectMapper mapper = new ObjectMapper();
-
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
     @ResponseBody
@@ -68,9 +58,7 @@ public class EdgeController extends BaseController {
         try {
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            AttributeKvEntry attr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, "edgeSettings").get().get();
-            EdgeSettings edgeSettings = mapper.readValue(attr.getValueAsString(), EdgeSettings.class);
-            return checkNotNull(edgeSettings);
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
         } catch (Exception e) {
             throw handleException(e);
         }

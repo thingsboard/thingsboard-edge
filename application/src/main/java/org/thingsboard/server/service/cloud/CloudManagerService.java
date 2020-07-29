@@ -167,8 +167,6 @@ public class CloudManagerService {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
-    private static final String EDGE_SETTINGS_ATTR_KEY = "edgeSettings";
-
     @Value("${cloud.routingKey}")
     private String routingKey;
 
@@ -770,7 +768,7 @@ public class CloudManagerService {
         edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
         edgeSettings.setCloudType(edgeConfiguration.getCloudType());
         BaseAttributeKvEntry edgeSettingAttr =
-                new BaseAttributeKvEntry(new StringDataEntry(EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
+                new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
         List<AttributeKvEntry> attributes =
                 Collections.singletonList(edgeSettingAttr);
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
