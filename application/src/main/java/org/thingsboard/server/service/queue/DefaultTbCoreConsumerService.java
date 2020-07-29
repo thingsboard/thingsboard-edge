@@ -43,7 +43,6 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
@@ -68,6 +67,7 @@ import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.stats.StatsCounterFactory;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
@@ -105,15 +105,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
     private final PlatformIntegrationService platformIntegrationService;
     private final RuleEngineCallService ruleEngineCallService;
+    private final TbCoreConsumerStats stats;
     private final EdgeNotificationService edgeNotificationService;
-    private final TbCoreConsumerStats stats = new TbCoreConsumerStats();
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
                                         DeviceStateService stateService, SchedulerService schedulerService,
                                         TbLocalSubscriptionService localSubscriptionService, SubscriptionManagerService subscriptionManagerService,
                                         DataDecodingEncodingService encodingService, TbCoreDeviceRpcService tbCoreDeviceRpcService,
                                         PlatformIntegrationService platformIntegrationService, RuleEngineCallService ruleEngineCallService,
-                                        EdgeNotificationService edgeNotificationService) {
+                                        StatsCounterFactory counterFactory, EdgeNotificationService edgeNotificationService) {
         super(actorContext, encodingService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.stateService = stateService;
@@ -124,6 +124,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.platformIntegrationService = platformIntegrationService;
         this.ruleEngineCallService = ruleEngineCallService;
         this.edgeNotificationService = edgeNotificationService;
+        this.stats = new TbCoreConsumerStats(counterFactory);
     }
 
     @PostConstruct
@@ -258,7 +259,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         }
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log(toCoreNotification);
         }
     }
 
@@ -274,6 +275,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     public void printStats() {
         if (statsEnabled) {
             stats.printStats();
+            stats.reset();
         }
     }
 
@@ -329,19 +331,19 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
     }
 
     private void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
         if (statsEnabled) {
-            stats.logToCoreNotification();
+            stats.log((ToCoreNotificationMsg) null);
         }
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
-    private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
+    private void forwardToEdgeNotificationService(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(edgeNotificationMsg);
         }
