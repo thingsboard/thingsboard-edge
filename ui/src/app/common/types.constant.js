@@ -685,6 +685,7 @@ export default angular.module('thingsboard.types', [])
                 active: "active",
                 lastConnectTime: "lastConnectTime",
                 lastDisconnectTime: "lastDisconnectTime",
+                queueStartTs: "queueStartTs",
                 edgeSettings: "edgeSettings"
             },
             cloudType: {

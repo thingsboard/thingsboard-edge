@@ -515,9 +515,9 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
 
     function checkIsPEMenuAllowed() {
         var deferred = $q.defer();
-        edgeService.getEdgeInfo(currentUser.tenantId).then(
-            (response) => {
-                let cloudType = angular.fromJson(response.value).cloudType;
+        edgeService.getEdgeSetting().then(
+            (edgeSettings) => {
+                let cloudType = edgeSettings.data.cloudType;
                 peMenuAllowed = cloudType === types.cloudType.pe;
                 deferred.resolve();
             },
