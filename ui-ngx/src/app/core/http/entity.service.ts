@@ -852,7 +852,6 @@ export class EntityService {
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
-        entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.CONVERTER);
@@ -870,7 +869,6 @@ export class EntityService {
         entityTypes.push(EntityType.ASSET);
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.CUSTOMER);
-        entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.DASHBOARD);
         entityTypes.push(EntityType.USER);
         entityTypes.push(EntityType.SCHEDULER_EVENT);
