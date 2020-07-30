@@ -83,6 +83,20 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
+    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean created) {
+        if (created) {
+            log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
+            WidgetsBundleId reservedId = widgetsBundle.getId();
+            widgetsBundle.setId(null);
+            widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
+            widgetsBundle.setId(reservedId);
+            return widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
+        } else {
+            return saveWidgetsBundle(widgetsBundle);
+        }
+    }
+
+    @Override
     public void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
         log.trace("Executing deleteWidgetsBundle [{}]", widgetsBundleId);
         Validator.validateId(widgetsBundleId, "Incorrect widgetsBundleId " + widgetsBundleId);

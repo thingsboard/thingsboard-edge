@@ -134,6 +134,7 @@ import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.UserUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetsBundleUpdateProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -271,6 +272,9 @@ public class CloudManagerService {
 
     @Autowired
     private WhiteLabelingUpdateProcessor whiteLabelingUpdateProcessor;
+
+    @Autowired
+    private WidgetsBundleUpdateProcessor widgetsBundleUpdateProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -806,6 +810,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasRelationUpdateMsg()) {
                 log.debug("Relation update message received [{}]", entityUpdateMsg.getRelationUpdateMsg());
                 relationUpdateProcessor.onRelationUpdate(tenantId, entityUpdateMsg.getRelationUpdateMsg());
+            } else if (entityUpdateMsg.hasWidgetsBundleUpdateMsg()) {
+                log.debug("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
+                widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, entityUpdateMsg.getWidgetsBundleUpdateMsg());
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 userUpdateProcessor.onUserUpdate(tenantId, entityUpdateMsg.getUserUpdateMsg());
