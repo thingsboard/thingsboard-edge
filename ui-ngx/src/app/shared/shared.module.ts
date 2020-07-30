@@ -165,6 +165,8 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
 import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 import { ContactComponent } from '@shared/components/contact.component';
+import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
+import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 
 @NgModule({
   providers: [
@@ -268,7 +270,9 @@ import { ContactComponent } from '@shared/components/contact.component';
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
-    ContactComponent
+    ContactComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -447,7 +451,9 @@ import { ContactComponent } from '@shared/components/contact.component';
     JsonObjectEditDialogComponent,
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
-    ContactComponent
+    ContactComponent,
+    GroupPermissionsComponent,
+    GroupPermissionDialogComponent,
   ]
 })
 export class SharedModule { }

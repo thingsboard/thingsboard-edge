@@ -84,8 +84,6 @@ import { ConverterAutocompleteComponent } from '@home/components/converter/conve
 import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
-import { GroupPermissionsComponent } from '@home/components/role/group-permissions.component';
-import { GroupPermissionDialogComponent } from '@home/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent } from '@home/components/role/view-role-dialog.component';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { GroupEntityTabsComponent } from '@home/components/group/group-entity-tabs.component';
@@ -174,8 +172,6 @@ import { FilterPredicateValueComponent } from './filter/filter-predicate-value.c
       OperationTypeListComponent,
       ResourceTypeAutocompleteComponent,
       PermissionListComponent,
-      GroupPermissionsComponent,
-      GroupPermissionDialogComponent,
       ViewRoleDialogComponent,
       GroupEntitiesTableComponent,
       GroupEntityTabsComponent,
@@ -254,8 +250,6 @@ import { FilterPredicateValueComponent } from './filter/filter-predicate-value.c
     OperationTypeListComponent,
     ResourceTypeAutocompleteComponent,
     PermissionListComponent,
-    GroupPermissionsComponent,
-    GroupPermissionDialogComponent,
     ViewRoleDialogComponent,
     GroupEntitiesTableComponent,
     GroupEntityTabsComponent,

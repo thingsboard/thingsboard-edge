@@ -54,7 +54,7 @@ import { deepClone } from '@core/utils';
 import {
   GroupPermissionDialogComponent,
   GroupPermissionDialogData
-} from '@home/components/role/group-permission-dialog.component';
+} from '@shared/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent, ViewRoleDialogData } from '@home/components/role/view-role-dialog.component';
 
 @Component({
