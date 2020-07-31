@@ -36,6 +36,7 @@ import org.hibernate.type.PostgresUUIDType;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.sql.Types;
@@ -65,7 +66,7 @@ public class QueryContext implements SqlParameterSource {
         if (oldParam != null && oldParam.value != null && !oldParam.value.equals(newParam.value)) {
             throw new RuntimeException("Parameter with name: " + name + " was already registered!");
         }
-        if(value == null){
+        if (value == null) {
             log.warn("[{}][{}][{}] Trying to set null value", getTenantId(), getCustomerId(), name);
         }
     }
@@ -143,6 +144,17 @@ public class QueryContext implements SqlParameterSource {
         return securityCtx.isTenantUser();
     }
 
+    public UUID getOwnerId() {
+        if (isTenantUser()) {
+            return securityCtx.getTenantId().getId();
+        } else {
+            return securityCtx.getCustomerId().getId();
+        }
+    }
+
+    public EntityId getStateEntityOwnerId() {
+        return securityCtx.getOwnerId();
+    }
 
     public static class Parameter {
         private final Object value;

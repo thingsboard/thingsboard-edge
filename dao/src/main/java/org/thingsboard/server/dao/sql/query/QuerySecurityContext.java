@@ -31,19 +31,26 @@
 
 package org.thingsboard.server.dao.sql.query;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
+import org.thingsboard.server.common.data.query.EntityFilter;
+import org.thingsboard.server.common.data.query.EntityGroupFilter;
+import org.thingsboard.server.common.data.query.EntityGroupListFilter;
+import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 
 import java.util.Map;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class QuerySecurityContext {
 
     @Getter
@@ -55,6 +62,12 @@ public class QuerySecurityContext {
 
     private final MergedUserPermissions userPermissions;
 
+    private final EntityFilter entityFilter;
+
+    @Getter
+    @Setter
+    private final EntityId ownerId;
+
     public boolean isTenantUser() {
         return customerId == null || customerId.isNullUid();
     }
@@ -64,15 +77,49 @@ public class QuerySecurityContext {
     }
 
     public MergedGroupTypePermissionInfo getMergedReadPermissionsByEntityType() {
-        return userPermissions.getReadEntityPermissions().get(Resource.resourceFromEntityType(entityType));
+        return userPermissions.getReadEntityPermissions().get(getResource());
+    }
+
+    public EntityType getEntityType() {
+        EntityType entityType;
+        if (entityFilter != null) {
+            switch (entityFilter.getType()) {
+                case ENTITY_GROUP_NAME:
+                    entityType = ((EntityGroupNameFilter) entityFilter).getGroupType();
+                    break;
+                case ENTITIES_BY_GROUP_NAME:
+                    entityType = ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
+                    break;
+                case ENTITY_GROUP:
+                    entityType = ((EntityGroupFilter) entityFilter).getGroupType();
+                    break;
+                default:
+                    entityType = this.entityType;
+            }
+        } else {
+            entityType = this.entityType;
+        }
+        return entityType;
+    }
+
+    private Resource getResource() {
+        if (entityFilter != null) {
+            switch (entityFilter.getType()) {
+                case ENTITY_GROUP_NAME:
+                    return Resource.groupResourceFromGroupType(((EntityGroupNameFilter) entityFilter).getGroupType());
+                case ENTITY_GROUP_LIST:
+                    return Resource.groupResourceFromGroupType(((EntityGroupListFilter) entityFilter).getGroupType());
+            }
+        }
+        return Resource.resourceFromEntityType(getEntityType());
     }
 
     public MergedGroupTypePermissionInfo getMergedReadAttrPermissionsByEntityType() {
-        return userPermissions.getReadAttrPermissions().get(Resource.resourceFromEntityType(entityType));
+        return userPermissions.getReadAttrPermissions().get(getResource());
     }
 
     public MergedGroupTypePermissionInfo getMergedReadTsPermissionsByEntityType() {
-        return userPermissions.getReadTsPermissions().get(Resource.resourceFromEntityType(entityType));
+        return userPermissions.getReadTsPermissions().get(getResource());
     }
 
     public Map<Resource, MergedGroupTypePermissionInfo> getMergedReadEntityPermissionsMap() {

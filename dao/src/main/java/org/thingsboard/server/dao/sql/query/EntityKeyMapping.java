@@ -310,9 +310,9 @@ public class EntityKeyMapping {
                 Collectors.joining(", "));
     }
 
-    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, EntityType entityType, List<EntityKeyMapping> latestMappings, boolean countQuery) {
+    public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> latestMappings, boolean countQuery) {
         return latestMappings.stream().filter(mapping -> !countQuery || mapping.hasFilter())
-                .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, entityType)).collect(
+                .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, ctx.getEntityType())).collect(
                 Collectors.joining(" "));
     }
 
