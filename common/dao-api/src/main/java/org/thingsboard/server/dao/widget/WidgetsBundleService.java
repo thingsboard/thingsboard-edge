@@ -44,8 +44,6 @@ public interface WidgetsBundleService {
 
     WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle);
 
-    WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean created);
-
     void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId);
 
     WidgetsBundle findWidgetsBundleByTenantIdAndAlias(TenantId tenantId, String alias);

@@ -57,18 +57,16 @@ public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
                 try {
                     widgetTypeCreationLock.lock();
                     WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
-                    boolean created = false;
                     if (widgetType == null) {
                         widgetType = new WidgetType();
                         widgetType.setTenantId(tenantId);
                         widgetType.setId(widgetTypeId);
-                        created = true;
                     }
                     widgetType.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
                     widgetType.setAlias(widgetTypeUpdateMsg.getAlias());
                     widgetType.setName(widgetTypeUpdateMsg.getName());
                     widgetType.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
-                    widgetTypeService.saveWidgetType(widgetType, created);
+                    widgetTypeService.saveWidgetType(widgetType);
                 } finally {
                     widgetTypeCreationLock.unlock();
                 }

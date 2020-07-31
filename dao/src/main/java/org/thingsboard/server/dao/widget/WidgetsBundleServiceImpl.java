@@ -83,20 +83,6 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     }
 
     @Override
-    public WidgetsBundle saveWidgetsBundle(WidgetsBundle widgetsBundle, boolean created) {
-        if (created) {
-            log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
-            WidgetsBundleId reservedId = widgetsBundle.getId();
-            widgetsBundle.setId(null);
-            widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
-            widgetsBundle.setId(reservedId);
-            return widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
-        } else {
-            return saveWidgetsBundle(widgetsBundle);
-        }
-    }
-
-    @Override
     public void deleteWidgetsBundle(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
         log.trace("Executing deleteWidgetsBundle [{}]", widgetsBundleId);
         Validator.validateId(widgetsBundleId, "Incorrect widgetsBundleId " + widgetsBundleId);
@@ -219,11 +205,15 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
                 @Override
                 protected void validateUpdate(TenantId tenantId, WidgetsBundle widgetsBundle) {
                     WidgetsBundle storedWidgetsBundle = widgetsBundleDao.findById(tenantId, widgetsBundle.getId().getId());
-                    if (!storedWidgetsBundle.getTenantId().getId().equals(widgetsBundle.getTenantId().getId())) {
-                        throw new DataValidationException("Can't move existing widgets bundle to different tenant!");
-                    }
-                    if (!storedWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
-                        throw new DataValidationException("Update of widgets bundle alias is prohibited!");
+                    if (storedWidgetsBundle != null) {
+                        if (!storedWidgetsBundle.getTenantId().getId().equals(widgetsBundle.getTenantId().getId())) {
+                            throw new DataValidationException("Can't move existing widgets bundle to different tenant!");
+                        }
+                        if (!storedWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            throw new DataValidationException("Update of widgets bundle alias is prohibited!");
+                        }
+                    } else {
+                        validateCreate(tenantId, widgetsBundle);
                     }
                 }
 

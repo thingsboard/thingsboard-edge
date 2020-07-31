@@ -56,17 +56,15 @@ public class WidgetsBundleUpdateProcessor extends BaseUpdateProcessor {
                 try {
                     widgetBundleCreationLock.lock();
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
-                    boolean created = false;
                     if (widgetsBundle == null) {
                         widgetsBundle = new WidgetsBundle();
                         widgetsBundle.setTenantId(tenantId);
                         widgetsBundle.setId(widgetsBundleId);
-                        created = true;
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());
                     widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toByteArray());
-                    widgetsBundleService.saveWidgetsBundle(widgetsBundle, created);
+                    widgetsBundleService.saveWidgetsBundle(widgetsBundle);
                 } finally {
                     widgetBundleCreationLock.unlock();
                 }

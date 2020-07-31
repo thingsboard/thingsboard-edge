@@ -42,8 +42,6 @@ public interface WidgetTypeService {
 
     WidgetType saveWidgetType(WidgetType widgetType);
 
-    WidgetType saveWidgetType(WidgetType widgetType, boolean created);
-
     void deleteWidgetType(TenantId tenantId, WidgetTypeId widgetTypeId);
 
     List<WidgetType> findWidgetTypesByTenantIdAndBundleAlias(TenantId tenantId, String bundleAlias);
