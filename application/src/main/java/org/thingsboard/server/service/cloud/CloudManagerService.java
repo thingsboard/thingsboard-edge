@@ -321,9 +321,9 @@ public class CloudManagerService {
             }
         }
         ruleChainService.deleteRuleChainsByTenantId(tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
