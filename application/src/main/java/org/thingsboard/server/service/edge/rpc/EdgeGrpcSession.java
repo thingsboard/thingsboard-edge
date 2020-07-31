@@ -234,6 +234,8 @@ public final class EdgeGrpcSession implements Closeable {
                         switch (edgeEventAction) {
                             case UPDATED:
                             case ADDED:
+                            case ADDED_TO_ENTITY_GROUP:
+                            case REMOVED_FROM_ENTITY_GROUP:
                             case ASSIGNED_TO_EDGE:
                             case DELETED:
                             case UNASSIGNED_FROM_EDGE:
@@ -383,6 +385,7 @@ public final class EdgeGrpcSession implements Closeable {
         EntityUpdateMsg entityUpdateMsg = null;
         switch (edgeActionType) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Device device = ctx.getDeviceService().findDeviceById(edgeEvent.getTenantId(), deviceId);
@@ -396,6 +399,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 DeviceUpdateMsg deviceUpdateMsg =
                         ctx.getDeviceUpdateMsgConstructor().constructDeviceDeleteMsg(deviceId);
@@ -426,6 +430,7 @@ public final class EdgeGrpcSession implements Closeable {
         EntityUpdateMsg entityUpdateMsg = null;
         switch (edgeEventAction) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Asset asset = ctx.getAssetService().findAssetById(edgeEvent.getTenantId(), assetId);
@@ -439,6 +444,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 AssetUpdateMsg assetUpdateMsg =
                         ctx.getAssetUpdateMsgConstructor().constructAssetDeleteMsg(assetId);
@@ -459,6 +465,7 @@ public final class EdgeGrpcSession implements Closeable {
         EntityUpdateMsg entityUpdateMsg = null;
         switch (edgeEventAction) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 EntityView entityView = ctx.getEntityViewService().findEntityViewById(edgeEvent.getTenantId(), entityViewId);
@@ -472,6 +479,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 EntityViewUpdateMsg entityViewUpdateMsg =
                         ctx.getEntityViewUpdateMsgConstructor().constructEntityViewDeleteMsg(entityViewId);
@@ -492,6 +500,7 @@ public final class EdgeGrpcSession implements Closeable {
         EntityUpdateMsg entityUpdateMsg = null;
         switch (edgeEventAction) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Dashboard dashboard = ctx.getDashboardService().findDashboardById(edgeEvent.getTenantId(), dashboardId);
@@ -505,6 +514,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 DashboardUpdateMsg dashboardUpdateMsg =
                         ctx.getDashboardUpdateMsgConstructor().constructDashboardDeleteMsg(dashboardId);
@@ -573,6 +583,7 @@ public final class EdgeGrpcSession implements Closeable {
         EntityUpdateMsg entityUpdateMsg = null;
         switch (edgeActionType) {
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
@@ -584,6 +595,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
             case UNASSIGNED_FROM_EDGE:
                 entityUpdateMsg = EntityUpdateMsg.newBuilder()
                         .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserDeleteMsg(userId))
@@ -727,10 +739,12 @@ public final class EdgeGrpcSession implements Closeable {
             case CREDENTIALS_UPDATED:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
                 return ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
+            case REMOVED_FROM_ENTITY_GROUP:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
