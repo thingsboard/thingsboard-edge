@@ -44,12 +44,14 @@ import org.thingsboard.server.actors.device.DeviceActorCreator;
 import org.thingsboard.server.actors.ruleChain.RuleChainManagerActor;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,6 +72,7 @@ import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 
 import java.util.List;
 import java.util.Optional;
@@ -250,6 +253,17 @@ public class TenantActor extends RuleChainManagerActor {
                     dataConverterService.createConverter(converter);
                 } else {
                     dataConverterService.updateConverter(converter);
+                }
+            }
+        } else if (msg.getEntityId().getEntityType() == EntityType.EDGE) {
+            EdgeId edgeId = new EdgeId(msg.getEntityId().getId());
+            EdgeRpcService edgeRpcService = systemContext.getEdgeRpcService();
+            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+                edgeRpcService.deleteEdge(edgeId);
+            } else {
+                Edge edge = systemContext.getEdgeService().findEdgeById(tenantId, edgeId);
+                if (msg.getEvent() == ComponentLifecycleEvent.UPDATED) {
+                    edgeRpcService.updateEdge(edge);
                 }
             }
         } else {

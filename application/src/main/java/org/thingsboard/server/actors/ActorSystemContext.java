@@ -90,6 +90,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
@@ -298,10 +299,6 @@ public class ActorSystemContext {
     @Getter
     private OwnersCacheService ownersCacheService;
 
-    @Autowired
-    @Getter
-    private EdgeService edgeService;
-
     /**
      * The following Service will be null if we operate in tb-core mode
      */
@@ -324,10 +321,14 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter private DataConverterService dataConverterService;
 
-    @Lazy
-    @Autowired
-    @Getter
-    private EdgeEventService edgeEventService;
+    @Autowired(required = false)
+    @Getter private EdgeService edgeService;
+
+    @Autowired(required = false)
+    @Getter private EdgeEventService edgeEventService;
+
+    @Autowired(required = false)
+    @Getter private EdgeRpcService edgeRpcService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
