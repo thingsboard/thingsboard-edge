@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /* eslint-disable import/no-unresolved, import/default */
-
+/* USED FOR THE PURPOSE OF MERGING CE-PE
 import edgesTemplate from './edges.tpl.html';
 import entityViewsTemplate from "../entity-view/entity-views.tpl.html";
 import devicesTemplate from "../device/devices.tpl.html";
@@ -40,7 +40,7 @@ import dashboardTemplate from "../dashboard/dashboard.tpl.html";
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EdgeRoutes($stateProvider, types) {
+/*export default function EdgeRoutes($stateProvider, types) {
     $stateProvider
         .state('home.edges', {
             url: '/edges',
@@ -178,3 +178,4 @@ export default function EdgeRoutes($stateProvider, types) {
             }
         });
 }
+*/

@@ -904,7 +904,7 @@
         "manage-edge-dashboards": "Administrar paneles de borde",
         "unassign-from-edge": "Anular asignación de borde",
         "dashboards": "Paneles de borde",
-        "manage-edge-rulechains": "Administrar cadenas de reglas de borde",
+        "manage-edge-rule-chains": "Administrar cadenas de reglas de borde",
         "rulechains": "Cadenas de regla de borde",
         "rulechain": "Cadena de regla de borde",
         "edge-key": "Clave de borde",

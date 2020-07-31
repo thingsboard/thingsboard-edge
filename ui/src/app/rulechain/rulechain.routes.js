@@ -215,8 +215,16 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             "content@home": {
                 templateUrl: ruleChainsTemplate,
                 controllerAs: 'vm',
-                controller: 'RuleChainsController'
+                controller: /*@ngInject*/
+                    function($scope, $stateParams, $controller, entityGroup) {
+                        var ctrl = $controller('RuleChainsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                        ctrl.entityGroup = entityGroup;
+                        return ctrl;
+                    }
             }
+        },
+        resolve: {
+            entityGroup: EntityGroupResolver
         },
         data: {
             searchEnabled: true,
@@ -264,5 +272,9 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
     });
+
+    function EntityGroupResolver($stateParams, entityGroupService) {
+        return entityGroupService.constructGroupConfigByStateParams($stateParams);
+    }
 
 }

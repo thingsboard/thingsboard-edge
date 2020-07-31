@@ -993,7 +993,7 @@
         "manage-edge-dashboards": "Gérer les tableaux de bord",
         "unassign-from-edge": "Retirer de la bordure",
         "dashboards": "Tableau de bord de la bordure",
-        "manage-edge-rulechains": "Gérer les chaînes de règles",
+        "manage-edge-rule-chains": "Gérer les chaînes de règles",
         "rulechains": "Chaînes de règles de la bordure",
         "rulechain": "Chaîne de règles de la bordure",
         "edge-key": "Clé de la bordure",
