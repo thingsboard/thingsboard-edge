@@ -57,24 +57,4 @@ export default function SchedulerRoutes($stateProvider) {
                 label: '{"icon": "schedule", "label": "scheduler.scheduler"}'
             }
         })
-        .state('home.edgeGroups.edgeGroup.schedulerEvents', {
-            url: '/:edgeId/schedulerEvents',
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: schedulerTemplate,
-                    controller: 'SchedulerController',
-                    controllerAs: 'vm'
-                }
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'scheduler.scheduler-events',
-                schedulerScope: 'edge'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "schedule", "label": "{{ vm.edge.name }}", "translate": "false"}'
-            }
-        });
 }
