@@ -122,19 +122,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
-import org.thingsboard.server.service.cloud.processor.AlarmUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.CustomerUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.UserUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetsBundleUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.*;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -275,6 +263,9 @@ public class CloudManagerService {
 
     @Autowired
     private WidgetsBundleUpdateProcessor widgetsBundleUpdateProcessor;
+
+    @Autowired
+    private WidgetTypeUpdateProcessor widgetTypeUpdateProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -813,6 +804,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasWidgetsBundleUpdateMsg()) {
                 log.debug("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
                 widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, entityUpdateMsg.getWidgetsBundleUpdateMsg());
+            } else if (entityUpdateMsg.hasWidgetTypeUpdateMsg()) {
+                log.debug("WidgetType update message received [{}]", entityUpdateMsg.getWidgetTypeUpdateMsg());
+                widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, entityUpdateMsg.getWidgetTypeUpdateMsg());
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 userUpdateProcessor.onUserUpdate(tenantId, entityUpdateMsg.getUserUpdateMsg());

@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -110,6 +111,9 @@ public abstract class BaseUpdateProcessor {
 
     @Autowired
     protected WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    protected WidgetTypeService widgetTypeService;
 
     @Autowired
     private EventService eventService;

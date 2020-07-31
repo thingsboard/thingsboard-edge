@@ -77,6 +77,20 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     }
 
     @Override
+    public WidgetType saveWidgetType(WidgetType widgetType, boolean created) {
+        if (created) {
+            log.trace("Executing saveWidgetType [{}]", widgetType);
+            WidgetTypeId reservedId = widgetType.getId();
+            widgetType.setId(null);
+            widgetTypeValidator.validate(widgetType, WidgetType::getTenantId);
+            widgetType.setId(reservedId);
+            return widgetTypeDao.save(widgetType.getTenantId(), widgetType);
+        } else {
+            return saveWidgetType(widgetType);
+        }
+    }
+
+    @Override
     public void deleteWidgetType(TenantId tenantId, WidgetTypeId widgetTypeId) {
         log.trace("Executing deleteWidgetType [{}]", widgetTypeId);
         Validator.validateId(widgetTypeId, "Incorrect widgetTypeId " + widgetTypeId);
