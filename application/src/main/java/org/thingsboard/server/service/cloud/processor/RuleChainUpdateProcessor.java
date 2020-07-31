@@ -85,9 +85,13 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                         ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
                     }
                     ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
-                    ruleChain.setRoot(ruleChainUpdateMsg.getRoot());
+                    ruleChain.setRoot(false);
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
+
+                    if (ruleChainUpdateMsg.getRoot()) {
+                        ruleChainService.setRootRuleChain(tenantId, ruleChainId);
+                    }
 
                     saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, ActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
 
