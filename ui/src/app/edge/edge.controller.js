@@ -296,7 +296,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                     },
                     name: function() { return $translate.instant('rulechain.rulechains') },
                     details: function() {
-                        return $translate.instant('edge.manage-edge-rulechains');
+                        return $translate.instant('edge.manage-edge-rule-chains');
                     },
                     icon: "settings_ethernet"
                 }

@@ -34,7 +34,7 @@ import thingsboardApiUser from '../api/user.service';
 import thingsboardApiEdge from '../api/edge.service';
 import thingsboardApiCustomer from '../api/customer.service';
 
-import EdgeRoutes from './edge.routes';
+// import EdgeRoutes from './edge.routes';
 import {EdgeController, EdgeCardController} from './edge.controller';
 import AssignEdgeToCustomerController from './assign-to-customer.controller';
 import AddEdgesToCustomerController from './add-edges-to-customer.controller';
@@ -49,7 +49,7 @@ export default angular.module('thingsboard.edge', [
     thingsboardApiEdge,
     thingsboardApiCustomer
 ])
-    .config(EdgeRoutes)
+    // .config(EdgeRoutes)
     .controller('EdgeController', EdgeController)
     .controller('EdgeCardController', EdgeCardController)
     .controller('AssignEdgeToCustomerController', AssignEdgeToCustomerController)
