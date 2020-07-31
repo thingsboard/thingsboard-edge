@@ -30,10 +30,6 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<md-button ng-click="onDeleteEdge({event: $event})"
-           ng-show="!isEdit && edgeScope === 'tenant'"
-           class="md-raised md-primary">{{ 'edge.delete' | translate }}</md-button>
-<!--TODO voba - verify  this ng-show "...&& edgeScope === 'tenant'" -->
 <md-button ng-click="onManageUsers({event: $event})"
            ng-if="'userGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageUsers && !isEdit"
@@ -62,7 +58,10 @@
            ng-if="'schedulerEvent' | hasGenericPermission:'read'"
            ng-show="!hideManageSchedulerEvents && !isEdit"
            class="md-raised md-primary">{{ 'edge.manage-edge-scheduler-events' | translate }}</md-button>
-
+<md-button ng-click="onDeleteEdge({event: $event})"
+           ng-show="!isEdit"
+           class="md-raised md-primary">{{ 'edge.delete' | translate }}
+</md-button>
 <div layout="row">
     <md-button ngclipboard data-clipboard-action="copy"
                ngclipboard-success="onEdgeIdCopied()"
