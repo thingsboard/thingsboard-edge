@@ -308,7 +308,6 @@ public class CloudManagerService {
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
         setTenantId();
-        cleanUp();
         processHandleMessages();
     }
 
@@ -748,16 +747,20 @@ public class CloudManagerService {
                 scheduledFuture.cancel(true);
                 scheduledFuture = null;
             }
-            initialized = true;
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
-            saveEdgeSettings(edgeConfiguration);
+            EdgeSettings currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
+            EdgeSettings newEdgeSetting = saveEdgeSettings(edgeConfiguration);
+            if (!currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
+                cleanUp();
+            }
+            initialized = true;
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
     }
 
-    private void saveEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
+    private EdgeSettings saveEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
         EdgeSettings edgeSettings = new EdgeSettings();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         edgeSettings.setEdgeId(edgeUUID.toString());
@@ -772,6 +775,7 @@ public class CloudManagerService {
         List<AttributeKvEntry> attributes =
                 Collections.singletonList(edgeSettingAttr);
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        return edgeSettings;
     }
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {

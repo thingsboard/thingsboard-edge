@@ -83,14 +83,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
 
     @Override
     public RuleChain saveRuleChain(RuleChain ruleChain) {
-        boolean setNewRuleChain = false;
-        if (ruleChain.isRoot()) {
-            RuleChain currentRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
-            if (currentRuleChain != null && !currentRuleChain.getId().equals(ruleChain.getId())) {
-                ruleChain.setRoot(false);
-                setNewRuleChain = true;
-            }
-        }
         ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
         RuleChain savedRuleChain = ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
         if (ruleChain.isRoot() && ruleChain.getId() == null) {
@@ -104,10 +96,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             }
         }
 
-        if (setNewRuleChain) {
-            log.debug("Setting root rule chain [{}]", ruleChain);
-            setRootRuleChain(ruleChain.getTenantId(), ruleChain.getId());
-        }
         return savedRuleChain;
     }
 
@@ -117,7 +105,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         if (!ruleChain.isRoot()) {
             RuleChain previousRootRuleChain = getRootTenantRuleChain(ruleChain.getTenantId());
             try {
-                if (previousRootRuleChain == null) {
+                if (previousRootRuleChain == null || previousRootRuleChain.getId().equals(ruleChain.getId())) {
                     setRootAndSave(tenantId, ruleChain);
                     return true;
                 } else if (!previousRootRuleChain.getId().equals(ruleChain.getId())) {
