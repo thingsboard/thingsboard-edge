@@ -286,7 +286,8 @@ CREATE TABLE IF NOT EXISTS entity_group (
     owner_id uuid,
     owner_type varchar(255),
     additional_info varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
 );
 
 CREATE TABLE IF NOT EXISTS rule_chain (
