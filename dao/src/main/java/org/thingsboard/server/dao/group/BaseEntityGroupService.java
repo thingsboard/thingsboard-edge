@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -170,7 +171,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             jsonConfiguration.putObject("actions");
             entityGroup.setConfiguration(jsonConfiguration);
         }
-        EntityGroup savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
+        EntityGroup savedEntityGroup;
+        try {
+            savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
+        } catch (Exception t) {
+            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            if (e != null && "group_name_per_owner_unq_key".equalsIgnoreCase(e.getConstraintName())) {
+                throw new DataValidationException("Entity Group with such name, type and owner already exists!");
+            } else {
+                throw t;
+            }
+        }
         if (entityGroup.getId() == null) {
             EntityRelation entityRelation = new EntityRelation();
             entityRelation.setFrom(parentEntityId);
