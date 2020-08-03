@@ -37,8 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -146,12 +144,21 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     }
 
     @Override
-    public Tenant saveTenant(Tenant tenant) {
+    public Tenant saveTenant(Tenant tenant)  {
+        return doSaveTenant(tenant, false);
+    }
+
+    @Override
+    public Tenant saveTenant(Tenant tenant, boolean forceCreate) {
+        return doSaveTenant(tenant, forceCreate);
+    }
+
+    private Tenant doSaveTenant(Tenant tenant, boolean forceCreate) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         tenantValidator.validate(tenant, Tenant::getId);
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        if (tenant.getId() == null) {
+        if (tenant.getId() == null || forceCreate) {
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
@@ -213,14 +220,14 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
                 @Override
                 protected void validateUpdate(TenantId tenantId, Tenant tenant) {
-                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
-                    if (old == null) {
-                        throw new DataValidationException("Can't update non existing tenant!");
-                    } else if (old.isIsolatedTbRuleEngine() != tenant.isIsolatedTbRuleEngine()) {
-                        throw new DataValidationException("Can't update isolatedTbRuleEngine property!");
-                    } else if (old.isIsolatedTbCore() != tenant.isIsolatedTbCore()) {
-                        throw new DataValidationException("Can't update isolatedTbCore property!");
-                    }
+//                    Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
+//                    if (old == null) {
+//                        throw new DataValidationException("Can't update non existing tenant!");
+//                    } else if (old.isIsolatedTbRuleEngine() != tenant.isIsolatedTbRuleEngine()) {
+//                        throw new DataValidationException("Can't update isolatedTbRuleEngine property!");
+//                    } else if (old.isIsolatedTbCore() != tenant.isIsolatedTbCore()) {
+//                        throw new DataValidationException("Can't update isolatedTbCore property!");
+//                    }
                 }
             };
 }

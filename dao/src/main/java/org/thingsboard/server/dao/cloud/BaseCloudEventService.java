@@ -41,12 +41,15 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,11 +85,25 @@ public class BaseCloudEventService implements CloudEventService {
             if (attr.isPresent()) {
                 return mapper.readValue(attr.get().getValueAsString(), EdgeSettings.class);
             } else {
-                throw new RuntimeException("Edge settings are not available");
+                return null;
             }
         } catch (Exception e) {
             log.error("Exception while fetching edge settings", e);
             throw new RuntimeException("Exception while fetching edge settings", e);
+        }
+    }
+
+    @Override
+    public void saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
+        try {
+            BaseAttributeKvEntry edgeSettingAttr =
+                    new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
+            List<AttributeKvEntry> attributes =
+                    Collections.singletonList(edgeSettingAttr);
+            attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        } catch (Exception e) {
+            log.error("Exception while saving edge settings", e);
+            throw new RuntimeException("Exception while saving edge settings", e);
         }
     }
 
