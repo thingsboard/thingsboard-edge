@@ -43,7 +43,6 @@ import org.thingsboard.server.dao.blob.BlobEntityInfoDao;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -51,7 +50,6 @@ import java.util.UUID;
 
 
 @Component
-@SqlDao
 public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, BlobEntityInfo> implements BlobEntityInfoDao {
 
     @Autowired

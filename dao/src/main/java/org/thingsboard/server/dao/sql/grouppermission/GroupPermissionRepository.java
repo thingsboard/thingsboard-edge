@@ -37,11 +37,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.GroupPermissionEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.UUID;
 
-@SqlDao
 public interface GroupPermissionRepository extends CrudRepository<GroupPermissionEntity, UUID>, JpaSpecificationExecutor<GroupPermissionEntity> {
 
     @Query("SELECT g FROM GroupPermissionEntity g WHERE " +

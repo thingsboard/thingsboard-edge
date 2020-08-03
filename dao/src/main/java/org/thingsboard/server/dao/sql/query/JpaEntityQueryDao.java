@@ -43,14 +43,12 @@ import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 @Component
-@SqlDao
 public class JpaEntityQueryDao implements EntityQueryDao {
 
     @Autowired

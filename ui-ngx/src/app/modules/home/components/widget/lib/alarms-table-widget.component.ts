@@ -403,6 +403,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         }
         this.stylesInfo[dataKey.def] = getCellStyleInfo(keySettings);
         this.contentsInfo[dataKey.def] = getCellContentInfo(keySettings, 'value, alarm, ctx');
+        this.contentsInfo[dataKey.def].units = dataKey.units;
+        this.contentsInfo[dataKey.def].decimals = dataKey.decimals;
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columns.push(dataKey);
 
@@ -1016,7 +1018,7 @@ class AlarmsDatasource implements DataSource<AlarmDataInfo> {
           }
         }
       }
-      alarm[dataKey.label] = value;
+      alarm[dataKey.name] = value;
     });
     return alarm;
   }

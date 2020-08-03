@@ -37,12 +37,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
 
-@SqlDao
 public interface RoleRepository extends CrudRepository<RoleEntity, UUID> {
 
     RoleEntity findByTenantIdAndCustomerIdAndName(UUID tenantId, UUID customerId, String name);

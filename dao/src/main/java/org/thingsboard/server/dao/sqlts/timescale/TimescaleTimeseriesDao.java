@@ -88,7 +88,6 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     @PostConstruct
     protected void init() {
-        super.init();
         TbSqlBlockingQueueParams tsParams = TbSqlBlockingQueueParams.builder()
                 .logName("TS Timescale")
                 .batchSize(tsBatchSize)
@@ -105,14 +104,60 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
 
     @PreDestroy
     protected void destroy() {
-        super.destroy();
         if (tsQueue != null) {
             tsQueue.destroy();
         }
     }
 
     @Override
-    protected ListenableFuture<List<TsKvEntry>> findAllAsync(EntityId entityId, ReadTsKvQuery query) {
+    public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
+        return processFindAllAsync(tenantId, entityId, queries);
+    }
+
+    @Override
+    public ListenableFuture<Void> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
+        String strKey = tsKvEntry.getKey();
+        Integer keyId = getOrSaveKeyId(strKey);
+        TimescaleTsKvEntity entity = new TimescaleTsKvEntity();
+        entity.setEntityId(entityId.getId());
+        entity.setTs(tsKvEntry.getTs());
+        entity.setKey(keyId);
+        entity.setStrValue(tsKvEntry.getStrValue().orElse(null));
+        entity.setDoubleValue(tsKvEntry.getDoubleValue().orElse(null));
+        entity.setLongValue(tsKvEntry.getLongValue().orElse(null));
+        entity.setBooleanValue(tsKvEntry.getBooleanValue().orElse(null));
+        entity.setJsonValue(tsKvEntry.getJsonValue().orElse(null));
+
+        log.trace("Saving entity to timescale db: {}", entity);
+        return tsQueue.add(entity);
+    }
+
+    @Override
+    public ListenableFuture<Void> savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key, long ttl) {
+        return Futures.immediateFuture(null);
+    }
+
+    @Override
+    public ListenableFuture<Void> remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+        String strKey = query.getKey();
+        Integer keyId = getOrSaveKeyId(strKey);
+        return service.submit(() -> {
+            tsKvRepository.delete(
+                    entityId.getId(),
+                    keyId,
+                    query.getStartTs(),
+                    query.getEndTs());
+            return null;
+        });
+    }
+
+    @Override
+    public ListenableFuture<Void> removePartition(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
+        return service.submit(() -> null);
+    }
+
+    @Override
+    public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, ReadTsKvQuery query) {
         if (query.getAggregation() == Aggregation.NONE) {
             return findAllAsyncWithLimit(entityId, query);
         } else {
@@ -124,8 +169,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
         }
     }
 
-    @Override
-    protected ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
+    private ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
         String strKey = query.getKey();
         Integer keyId = getOrSaveKeyId(strKey);
         List<TimescaleTsKvEntity> timescaleTsKvEntities = tsKvRepository.findAllWithLimit(
@@ -169,76 +213,10 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
         }, MoreExecutors.directExecutor());
     }
 
-    @Override
-    public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
-        return processFindAllAsync(tenantId, entityId, queries);
-    }
-
-    @Override
-    public ListenableFuture<TsKvEntry> findLatest(TenantId tenantId, EntityId entityId, String key) {
-        return getFindLatestFuture(entityId, key);
-    }
-
-    @Override
-    public ListenableFuture<List<TsKvEntry>> findAllLatest(TenantId tenantId, EntityId entityId) {
-        return getFindAllLatestFuture(entityId);
-    }
-
-    @Override
-    public ListenableFuture<Void> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
-        String strKey = tsKvEntry.getKey();
-        Integer keyId = getOrSaveKeyId(strKey);
-        TimescaleTsKvEntity entity = new TimescaleTsKvEntity();
-        entity.setEntityId(entityId.getId());
-        entity.setTs(tsKvEntry.getTs());
-        entity.setKey(keyId);
-        entity.setStrValue(tsKvEntry.getStrValue().orElse(null));
-        entity.setDoubleValue(tsKvEntry.getDoubleValue().orElse(null));
-        entity.setLongValue(tsKvEntry.getLongValue().orElse(null));
-        entity.setBooleanValue(tsKvEntry.getBooleanValue().orElse(null));
-        entity.setJsonValue(tsKvEntry.getJsonValue().orElse(null));
-
-        log.trace("Saving entity to timescale db: {}", entity);
-        return tsQueue.add(entity);
-    }
-
-    @Override
-    public ListenableFuture<Void> savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key, long ttl) {
-        return Futures.immediateFuture(null);
-    }
-
-    @Override
-    public ListenableFuture<Void> saveLatest(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
-        return getSaveLatestFuture(entityId, tsKvEntry);
-    }
 
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
         return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TimescaleTsKvCompositeKey(entityId.getId(), getOrSaveKeyId(key), ts))));
-    }
-
-    @Override
-    public ListenableFuture<Void> remove(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
-        String strKey = query.getKey();
-        Integer keyId = getOrSaveKeyId(strKey);
-        return service.submit(() -> {
-            tsKvRepository.delete(
-                    entityId.getId(),
-                    keyId,
-                    query.getStartTs(),
-                    query.getEndTs());
-            return null;
-        });
-    }
-
-    @Override
-    public ListenableFuture<Void> removeLatest(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
-        return getRemoveLatestFuture(entityId, query);
-    }
-
-    @Override
-    public ListenableFuture<Void> removePartition(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
-        return service.submit(() -> null);
     }
 
     private CompletableFuture<List<TimescaleTsKvEntity>> switchAggregation(String key, long startTs, long endTs, long timeBucket, Aggregation aggregation, UUID entityId) {

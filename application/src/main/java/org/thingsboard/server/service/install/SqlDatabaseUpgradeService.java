@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
 
 import java.nio.charset.Charset;
@@ -73,7 +72,6 @@ import static org.thingsboard.server.service.install.DatabaseHelper.TYPE;
 @Service
 @Profile("install")
 @Slf4j
-@SqlDao
 public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService {
 
     private static final String SCHEMA_UPDATE_SQL = "schema_update.sql";

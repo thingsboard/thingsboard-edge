@@ -398,6 +398,9 @@ export class TbFlot {
     if (this.settings.customLegendEnabled) {
       this.labelPatternsSourcesData = [];
       const labelPatternsDatasources: Datasource[] = [];
+      this.settings.dataKeysListForLabels.forEach((item) => {
+        item.settings = {};
+      });
       subscription.datasources.forEach((item) => {
         let datasource: Datasource = {
           type: item.type,

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
 import java.sql.Connection;
@@ -43,7 +42,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 @PsqlDao
-@SqlDao
 @Slf4j
 @Service
 public class EventsCleanUpService extends AbstractCleanUpService {

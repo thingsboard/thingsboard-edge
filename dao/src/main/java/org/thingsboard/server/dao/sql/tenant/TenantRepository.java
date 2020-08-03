@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.TenantEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +43,6 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 4/30/2017.
  */
-@SqlDao
 public interface TenantRepository extends PagingAndSortingRepository<TenantEntity, UUID> {
 
     @Query("SELECT t FROM TenantEntity t WHERE t.region = :region " +

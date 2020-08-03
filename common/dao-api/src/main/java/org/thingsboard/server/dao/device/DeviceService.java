@@ -83,4 +83,6 @@ public interface DeviceService {
 
     PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 
+    Device assignDeviceToTenant(TenantId tenantId, Device device);
+
 }

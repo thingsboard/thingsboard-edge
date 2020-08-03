@@ -44,7 +44,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +56,6 @@ import java.util.UUID;
  * Created by Valerii Sosliuk on 5/19/2017.
  */
 @Component
-@SqlDao
 public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> implements AssetDao {
 
     @Autowired

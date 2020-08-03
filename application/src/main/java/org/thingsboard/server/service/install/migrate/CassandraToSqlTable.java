@@ -143,7 +143,7 @@ public class CassandraToSqlTable {
         return this.validateColumnData(data);
     }
 
-    private CassandraToSqlColumnData[] validateColumnData(CassandraToSqlColumnData[] data) {
+    protected CassandraToSqlColumnData[] validateColumnData(CassandraToSqlColumnData[] data) {
         for (int i=0;i<data.length;i++) {
             CassandraToSqlColumn column = this.columns.get(i);
             if (column.getType() == CassandraToSqlColumnType.STRING) {
@@ -163,7 +163,7 @@ public class CassandraToSqlTable {
         return data;
     }
 
-    private void batchInsert(List<CassandraToSqlColumnData[]> batchData, Connection conn) throws SQLException {
+    protected void batchInsert(List<CassandraToSqlColumnData[]> batchData, Connection conn) throws SQLException {
         boolean retry = false;
         for (CassandraToSqlColumnData[] data : batchData) {
             for (CassandraToSqlColumn column: this.columns) {
@@ -284,7 +284,7 @@ public class CassandraToSqlTable {
         return Optional.empty();
     }
 
-    private Statement createCassandraSelectStatement() {
+    protected Statement createCassandraSelectStatement() {
         StringBuilder selectStatementBuilder = new StringBuilder();
         selectStatementBuilder.append("SELECT ");
         for (CassandraToSqlColumn column : columns) {

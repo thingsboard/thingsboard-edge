@@ -36,12 +36,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
 
-@SqlDao
 public interface IntegrationRepository extends CrudRepository<IntegrationEntity, UUID> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +

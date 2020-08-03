@@ -37,12 +37,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.BlobEntityInfoEntity;
 import org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
 
-@SqlDao
 public interface BlobEntityInfoRepository extends CrudRepository<BlobEntityInfoEntity, UUID> {
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.BlobEntityWithCustomerInfoEntity(b, c.title, c.additionalInfo) " +

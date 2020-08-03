@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +43,6 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-@SqlDao
 public interface AssetRepository extends PagingAndSortingRepository<AssetEntity, UUID> {
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +

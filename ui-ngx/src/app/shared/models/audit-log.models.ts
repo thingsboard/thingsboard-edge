@@ -69,7 +69,9 @@ export enum ActionType {
   MADE_PRIVATE = 'MADE_PRIVATE',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
-  LOCKOUT = 'LOCKOUT'
+  LOCKOUT = 'LOCKOUT',
+  ASSIGNED_FROM_TENANT = 'ASSIGNED_FROM_TENANT',
+  ASSIGNED_TO_TENANT = 'ASSIGNED_TO_TENANT'
 }
 
 export enum ActionStatus {
@@ -104,7 +106,9 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.MADE_PRIVATE, 'audit-log.type-made-private'],
     [ActionType.LOGIN, 'audit-log.type-login'],
     [ActionType.LOGOUT, 'audit-log.type-logout'],
-    [ActionType.LOCKOUT, 'audit-log.type-lockout']
+    [ActionType.LOCKOUT, 'audit-log.type-lockout'],
+    [ActionType.ASSIGNED_FROM_TENANT, 'audit-log.type-assigned-from-tenant'],
+    [ActionType.ASSIGNED_TO_TENANT, 'audit-log.type-assigned-to-tenant']
   ]
 );
 

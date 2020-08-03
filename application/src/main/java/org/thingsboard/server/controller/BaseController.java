@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -50,16 +51,13 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
-import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -69,6 +67,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -118,7 +117,6 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -952,6 +950,12 @@ public abstract class BaseController {
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
                 break;
+            case ASSIGNED_FROM_TENANT:
+                msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;
+                break;
+            case ASSIGNED_TO_TENANT:
+                msgType = DataConstants.ENTITY_ASSIGNED_TO_TENANT;
+                break;
         }
         if (!StringUtils.isEmpty(msgType)) {
             try {
@@ -981,6 +985,16 @@ public abstract class BaseController {
                     String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("removedFromEntityGroupId", strEntityGroupId);
                     metaData.putValue("removedFromEntityGroupName", strEntityGroupName);
+                } else if (actionType == ActionType.ASSIGNED_FROM_TENANT) {
+                    String strTenantId = extractParameter(String.class, 0, additionalInfo);
+                    String strTenantName = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("assignedFromTenantId", strTenantId);
+                    metaData.putValue("assignedFromTenantName", strTenantName);
+                } else if (actionType == ActionType.ASSIGNED_TO_TENANT) {
+                    String strTenantId = extractParameter(String.class, 0, additionalInfo);
+                    String strTenantName = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("assignedToTenantId", strTenantId);
+                    metaData.putValue("assignedToTenantName", strTenantName);
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -1100,5 +1114,14 @@ public abstract class BaseController {
                 return true;
             }
         }
+    }
+
+    protected <E extends HasName> String entityToStr(E entity) {
+        try {
+            return json.writeValueAsString(json.valueToTree(entity));
+        } catch (JsonProcessingException e) {
+            log.warn("[{}] Failed to convert entity to string!", entity, e);
+        }
+        return null;
     }
 }

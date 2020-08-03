@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +43,6 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-@SqlDao
 public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntity, UUID> {
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
@@ -129,5 +127,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     List<DeviceEntity> findDevicesByTenantIdAndCustomerIdAndIdIn(UUID tenantId, UUID customerId, List<UUID> deviceIds);
 
     List<DeviceEntity> findDevicesByTenantIdAndIdIn(UUID tenantId, List<UUID> deviceIds);
+
+    DeviceEntity findByTenantIdAndId(UUID tenantId, UUID id);
 
 }

@@ -46,7 +46,6 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.component.ComponentDescriptorDao;
 import org.thingsboard.server.dao.model.sql.ComponentDescriptorEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -56,7 +55,6 @@ import java.util.UUID;
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 @Component
-@SqlDao
 public class JpaBaseComponentDescriptorDao extends JpaAbstractSearchTextDao<ComponentDescriptorEntity, ComponentDescriptor>
         implements ComponentDescriptorDao {
 

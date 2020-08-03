@@ -28,13 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+package org.thingsboard.server.service.install;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.NoSqlTsLatestDao;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-@Retention(RetentionPolicy.RUNTIME)
-@ConditionalOnExpression("'${database.ts.type}'=='sql' && '${spring.jpa.database-platform}'=='org.hibernate.dialect.PostgreSQLDialect'")
-public @interface PsqlTsDao { }
+@Service
+@NoSqlTsLatestDao
+@Profile("install")
+public class CassandraTsLatestDatabaseSchemaService extends CassandraAbstractDatabaseSchemaService
+        implements TsLatestDatabaseSchemaService {
+    public CassandraTsLatestDatabaseSchemaService() {
+        super("schema-ts-latest.cql");
+    }
+}

@@ -35,14 +35,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
 
-@SqlDao
 public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity, UUID> {
 
     List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);

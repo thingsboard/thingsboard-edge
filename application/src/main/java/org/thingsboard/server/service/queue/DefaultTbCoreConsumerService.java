@@ -43,7 +43,6 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
@@ -57,6 +56,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.TbTimeSeriesUpdatePr
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.RestApiCallResponseMsgProto;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
@@ -79,7 +81,6 @@ import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWra
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -345,21 +346,21 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         stateService.onQueueMsg(deviceStateServiceMsg, callback);
     }
 
-    private void forwardToSchedulerService(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg, TbCallback callback) {
+    private void forwardToSchedulerService(SchedulerServiceMsgProto schedulerServiceMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(schedulerServiceMsg);
         }
         schedulerService.onQueueMsg(schedulerServiceMsg, callback);
     }
 
-    private void forwardToIntegrationService(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
+    private void forwardToIntegrationService(IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.logToCoreNotification();
         }
         platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
     }
 
-    private void forwardToRuleEngineCallService(TransportProtos.RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+    private void forwardToRuleEngineCallService(RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.logToCoreNotification();
         }

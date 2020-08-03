@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.sqlts;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +48,6 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
-import org.thingsboard.server.dao.sql.TbSqlBlockingQueue;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import org.thingsboard.server.dao.sqlts.insert.InsertTsRepository;
@@ -80,7 +78,6 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
 
     @PostConstruct
     protected void init() {
-        super.init();
         TbSqlBlockingQueueParams tsParams = TbSqlBlockingQueueParams.builder()
                 .logName("TS")
                 .batchSize(tsBatchSize)
@@ -96,7 +93,6 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
 
     @PreDestroy
     protected void destroy() {
-        super.destroy();
         if (tsQueue != null) {
             tsQueue.destroy();
         }
@@ -115,28 +111,8 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     @Override
-    public ListenableFuture<Void> saveLatest(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry) {
-        return getSaveLatestFuture(entityId, tsKvEntry);
-    }
-
-    @Override
-    public ListenableFuture<Void> removeLatest(TenantId tenantId, EntityId entityId, DeleteTsKvQuery query) {
-        return getRemoveLatestFuture(entityId, query);
-    }
-
-    @Override
-    public ListenableFuture<TsKvEntry> findLatest(TenantId tenantId, EntityId entityId, String key) {
-        return getFindLatestFuture(entityId, key);
-    }
-
-    @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
         return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TsKvCompositeKey(entityId.getId(), getOrSaveKeyId(key), ts))));
-    }
-
-    @Override
-    public ListenableFuture<List<TsKvEntry>> findAllLatest(TenantId tenantId, EntityId entityId) {
-        return getFindAllLatestFuture(entityId);
     }
 
     @Override
@@ -155,7 +131,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     @Override
-    protected ListenableFuture<List<TsKvEntry>> findAllAsync(EntityId entityId, ReadTsKvQuery query) {
+    public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, ReadTsKvQuery query) {
         if (query.getAggregation() == Aggregation.NONE) {
             return findAllAsyncWithLimit(entityId, query);
         } else {
@@ -172,8 +148,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
         }
     }
 
-    @Override
-    protected ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
+    private ListenableFuture<List<TsKvEntry>> findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
         Integer keyId = getOrSaveKeyId(query.getKey());
         List<TsKvEntity> tsKvEntities = tsKvRepository.findAllWithLimit(
                 entityId.getId(),

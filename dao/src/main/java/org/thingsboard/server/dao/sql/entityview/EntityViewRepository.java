@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +43,6 @@ import java.util.UUID;
 /**
  * Created by Victor Basanets on 8/31/2017.
  */
-@SqlDao
 public interface EntityViewRepository extends PagingAndSortingRepository<EntityViewEntity, UUID> {
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +

@@ -102,7 +102,6 @@ import org.thingsboard.server.dao.sql.group.EntityGroupRepository;
 import org.thingsboard.server.dao.sql.role.RoleRepository;
 import org.thingsboard.server.dao.sql.scheduler.SchedulerEventRepository;
 import org.thingsboard.server.dao.sql.user.UserRepository;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -114,7 +113,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@SqlDao
 @Repository
 @Slf4j
 public class DefaultEntityQueryRepository implements EntityQueryRepository {

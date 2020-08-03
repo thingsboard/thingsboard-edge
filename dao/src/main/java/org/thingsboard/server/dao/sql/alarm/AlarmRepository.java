@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AlarmInfoEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +46,6 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-@SqlDao
 public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
 
     @Query("SELECT a FROM AlarmEntity a WHERE a.originatorId = :originatorId AND a.type = :alarmType ORDER BY a.startTs DESC")
