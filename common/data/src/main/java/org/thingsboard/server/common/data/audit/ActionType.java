@@ -61,7 +61,9 @@ public enum ActionType {
     MADE_PRIVATE(false), // log entity group name
     LOGIN(false),
     LOGOUT(false),
-    LOCKOUT(false);
+    LOCKOUT(false),
+    ASSIGNED_FROM_TENANT(false),
+    ASSIGNED_TO_TENANT(false);
 
     private final boolean isRead;
 

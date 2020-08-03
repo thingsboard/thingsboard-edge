@@ -38,7 +38,7 @@ import org.thingsboard.server.queue.TbQueueHandler;
 import org.thingsboard.server.queue.TbQueueMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueResponseTemplate;
-import org.thingsboard.server.queue.stats.QueueStats;
+import org.thingsboard.server.common.stats.MessagesStats;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,7 +60,7 @@ public class DefaultTbQueueResponseTemplate<Request extends TbQueueMsg, Response
     private final ExecutorService loopExecutor;
     private final ScheduledExecutorService timeoutExecutor;
     private final ExecutorService callbackExecutor;
-    private final QueueStats stats;
+    private final MessagesStats stats;
     private final int maxPendingRequests;
     private final long requestTimeout;
 
@@ -76,7 +76,7 @@ public class DefaultTbQueueResponseTemplate<Request extends TbQueueMsg, Response
                                           long requestTimeout,
                                           int maxPendingRequests,
                                           ExecutorService executor,
-                                          QueueStats stats) {
+                                          MessagesStats stats) {
         this.requestTemplate = requestTemplate;
         this.responseTemplate = responseTemplate;
         this.pendingRequests = new ConcurrentHashMap<>();
