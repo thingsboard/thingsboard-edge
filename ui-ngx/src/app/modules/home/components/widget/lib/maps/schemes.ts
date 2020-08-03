@@ -29,8 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { DEFAULT_MAP_PAGE_SIZE } from '@home/components/widget/lib/maps/map-models';
-
 export const googleMapSettingsSchema =
 {
     schema: {
@@ -262,7 +260,7 @@ export const commonMapSettingsSchema =
             mapPageSize: {
                 title: 'Map page size load entities',
                 type: 'number',
-                default: DEFAULT_MAP_PAGE_SIZE
+                default: 16384
             },
             defaultCenterPosition: {
                 title: 'Default map center position (0,0)',

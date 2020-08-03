@@ -28,25 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.http;
+package org.thingsboard.server.dao.util;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.transport.TransportContext;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * Created by ashvayka on 04.10.18.
- */
-@Slf4j
-@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true' && '${transport.http.enabled}'=='true')")
-@Component
-public class HttpTransportContext extends TransportContext {
+import java.sql.DriverManager;
 
-    @Getter
-    @Value("${transport.http.request_timeout}")
-    private long defaultTimeout;
+public class DaoTestUtil {
+    private static final String POSTGRES_DRIVER_CLASS = "org.postgresql.Driver";
+    private static final String H2_DRIVER_CLASS = "org.hsqldb.jdbc.JDBCDriver";
 
+
+    public static SqlDbType getSqlDbType(JdbcTemplate template){
+        try {
+            String driverName = DriverManager.getDriver(template.getDataSource().getConnection().getMetaData().getURL()).getClass().getName();
+            if (POSTGRES_DRIVER_CLASS.equals(driverName)) {
+                return SqlDbType.POSTGRES;
+            } else if (H2_DRIVER_CLASS.equals(driverName)) {
+                return SqlDbType.H2;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
