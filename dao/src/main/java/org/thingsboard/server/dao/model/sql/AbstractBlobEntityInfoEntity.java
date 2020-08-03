@@ -109,6 +109,7 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
 
     public AbstractBlobEntityInfoEntity(BlobEntityInfoEntity blobEntityInfoEntity) {
         this.setId(blobEntityInfoEntity.getId());
+        this.setCreatedTime(blobEntityInfoEntity.getCreatedTime());
         this.tenantId = blobEntityInfoEntity.getTenantId();
         this.customerId = blobEntityInfoEntity.getCustomerId();
         this.type = blobEntityInfoEntity.getType();
