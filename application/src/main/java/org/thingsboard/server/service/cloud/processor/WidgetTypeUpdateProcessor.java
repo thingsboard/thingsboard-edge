@@ -59,7 +59,11 @@ public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
                     WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
                     if (widgetType == null) {
                         widgetType = new WidgetType();
-                        widgetType.setTenantId(tenantId);
+                        if (widgetTypeUpdateMsg.getIsSystem()) {
+                            widgetType.setTenantId(TenantId.SYS_TENANT_ID);
+                        } else {
+                            widgetType.setTenantId(tenantId);
+                        }
                         widgetType.setId(widgetTypeId);
                     }
                     widgetType.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());

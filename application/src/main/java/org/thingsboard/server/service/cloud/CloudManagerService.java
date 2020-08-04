@@ -100,6 +100,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
@@ -230,6 +231,9 @@ public class CloudManagerService {
     private EntityGroupService entityGroupService;
 
     @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
@@ -333,6 +337,8 @@ public class CloudManagerService {
         assetService.deleteAssetsByTenantId(tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
         customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());

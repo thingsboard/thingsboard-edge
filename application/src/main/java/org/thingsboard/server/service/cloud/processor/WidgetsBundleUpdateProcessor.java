@@ -58,7 +58,11 @@ public class WidgetsBundleUpdateProcessor extends BaseUpdateProcessor {
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                     if (widgetsBundle == null) {
                         widgetsBundle = new WidgetsBundle();
-                        widgetsBundle.setTenantId(tenantId);
+                        if (widgetsBundleUpdateMsg.getIsSystem()) {
+                            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+                        } else {
+                            widgetsBundle.setTenantId(tenantId);
+                        }
                         widgetsBundle.setId(widgetsBundleId);
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
