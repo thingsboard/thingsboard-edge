@@ -2285,7 +2285,8 @@
                 "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group",
-                "SHARE_GROUP": "Share Group"
+                "SHARE_GROUP": "Share Group",
+                "ASSIGN_TO_TENANT": "Assign to Tenant"
             }
         }
     },
