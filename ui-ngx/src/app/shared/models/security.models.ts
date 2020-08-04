@@ -63,7 +63,8 @@ export enum Operation {
   CHANGE_OWNER = 'CHANGE_OWNER',
   IMPERSONATE = 'IMPERSONATE',
   CLAIM_DEVICES = 'CLAIM_DEVICES',
-  SHARE_GROUP = 'SHARE_GROUP'
+  SHARE_GROUP = 'SHARE_GROUP',
+  ASSIGN_TO_TENANT = 'ASSIGN_TO_TENANT'
 }
 
 const operationTypeTranslations = new Map<Operation, string>();
