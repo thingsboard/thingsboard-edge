@@ -1114,46 +1114,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return true;
     }
 
-    private void buildPermissionsSelectForSpecificEntityGroups(QueryContext ctx, StringBuilder entitiesQuery, List<EntityGroupId> groupIds,
-                                                               String groupIdParamName, String selectionName) {
-        entitiesQuery.append(",");
-        ctx.addUuidListParameter(groupIdParamName,
-                groupIds.stream().map(EntityGroupId::getId).collect(Collectors.toList()));
-        String fromIdCondition;
-        if (!groupIds.isEmpty()) {
-            fromIdCondition = String.format("rattr.from_id in (:%s) or ", groupIdParamName);
-        } else {
-            fromIdCondition = "";
-        }
-        entitiesQuery.append(String.format("CASE WHEN EXISTS (SELECT rattr.to_id FROM relation rattr " +
-                "WHERE rattr.to_id = e.id AND (%s" +
-                "rattr.from_id in ((select id from entity_group where owner_id in " +
-                "((WITH RECURSIVE customers_ids(id) AS (SELECT id id FROM customer WHERE " +
-                "tenant_id = :permissions_tenant_id and id = :permissions_customer_id " +
-                "UNION SELECT c.id id FROM customer c, customers_ids parent WHERE " +
-                "c.tenant_id = :permissions_tenant_id and c.parent_customer_id = parent.id) " +
-                "SELECT id FROM customers_ids)) and name = 'All' and type = '%s'))) AND rattr.from_type = 'ENTITY_GROUP' " +
-                "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains') " +
-                "THEN true ELSE false END as %s", fromIdCondition, ctx.getEntityType(), selectionName));
-    }
-
-
-    private void buildPermissionsSelect(QueryContext ctx, StringBuilder entitiesQuery, List<EntityGroupId> groupIds, String groupIdParamName, String selectionName) {
-        entitiesQuery.append(",");
-        if (!groupIds.isEmpty()) {
-            ctx.addUuidListParameter(groupIdParamName,
-                    groupIds.stream().map(EntityGroupId::getId).collect(Collectors.toList()));
-            entitiesQuery.append(idBelongsToGroupsSelection(groupIdParamName, selectionName));
-        } else {
-            entitiesQuery.append("false as ").append(selectionName);
-        }
-    }
-
-    private String idBelongsToGroupsSelection(String groupIdParamName, String selectionName) {
-        return String.format("CASE WHEN EXISTS (SELECT rattr.to_id FROM relation rattr WHERE rattr.to_id = e.id AND rattr.from_id in (:%s) AND rattr.from_type = 'ENTITY_GROUP' " +
-                "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains') THEN true ELSE false END as %s", groupIdParamName, selectionName);
-    }
-
     private String buildEntityWhere(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> entityFieldsFilters) {
         String permissionQuery = this.buildPermissionQuery(ctx, entityFilter);
         String entityFilterQuery = this.buildEntityFilterQuery(ctx, entityFilter);

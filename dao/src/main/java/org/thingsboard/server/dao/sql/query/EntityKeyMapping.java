@@ -202,23 +202,35 @@ public class EntityKeyMapping {
 
     private String getEntityFieldAlias(EntityFilterType filterType, EntityType entityType) {
         String alias;
-        if (filterType.equals(EntityFilterType.RELATIONS_QUERY)) {
-            alias = entityKey.getKey();
-        } else {
-            alias = getAliasByEntityKeyAndType(entityKey.getKey(), entityType);
+        switch (filterType) {
+            case RELATIONS_QUERY:
+                alias = entityKey.getKey();
+                break;
+            case ENTITY_GROUP_LIST:
+            case ENTITY_GROUP_NAME:
+                alias = getAliasByEntityKeyAndType(entityKey.getKey(), EntityType.ENTITY_GROUP);
+                break;
+            default:
+                alias = getAliasByEntityKeyAndType(entityKey.getKey(), entityType);
         }
         return alias;
     }
 
     private Set<String> getExistingEntityFields(EntityFilterType filterType, EntityType entityType) {
         Set<String> existingEntityFields;
-        if (filterType.equals(EntityFilterType.RELATIONS_QUERY)) {
-            existingEntityFields = relationQueryEntityFieldsSet;
-        } else {
-            existingEntityFields = allowedEntityFieldMap.get(entityType);
-            if (existingEntityFields == null) {
-                existingEntityFields = commonEntityFieldsSet;
-            }
+        switch (filterType){
+            case RELATIONS_QUERY:
+                existingEntityFields = relationQueryEntityFieldsSet;
+                break;
+            case ENTITY_GROUP_LIST:
+            case ENTITY_GROUP_NAME:
+                existingEntityFields = allowedEntityFieldMap.get(EntityType.ENTITY_GROUP);
+                break;
+            default:
+                existingEntityFields = allowedEntityFieldMap.get(entityType);
+                if (existingEntityFields == null) {
+                    existingEntityFields = commonEntityFieldsSet;
+                }
         }
         return existingEntityFields;
     }
@@ -301,7 +313,7 @@ public class EntityKeyMapping {
     public static String buildLatestJoins(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> latestMappings, boolean countQuery) {
         return latestMappings.stream().filter(mapping -> !countQuery || mapping.hasFilter())
                 .map(mapping -> mapping.toLatestJoin(ctx, entityFilter, ctx.getEntityType())).collect(
-                Collectors.joining(" "));
+                        Collectors.joining(" "));
     }
 
     public static String buildQuery(QueryContext ctx, List<EntityKeyMapping> mappings, EntityFilterType filterType) {
