@@ -37,8 +37,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -836,19 +834,19 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                                         Map<Resource, MergedGroupTypePermissionInfo> permissionsMap,
                                         String groupIdParamNamePrefix, String selectionName) {
         if (hasGenericForAllRelationQueryResources(permissionsMap)) {
-            entitiesQuery.append(", true as ").append(selectionName);
+            entitiesQuery.append(", 1 as ").append(selectionName);
         } else if (hasNoPermissionsForAllRelationQueryResources(permissionsMap)) {
-            entitiesQuery.append(", false as ").append(selectionName);
+            entitiesQuery.append(", 0 as ").append(selectionName);
         } else {
             entitiesQuery.append(", CASE");
-            entitiesQuery.append(" WHEN e.entity_type = 'TENANT' THEN ").append(permissionsMap.get(Resource.resourceFromEntityType(EntityType.TENANT)).isHasGenericRead() ? "true" : "false");
+            entitiesQuery.append(" WHEN e.entity_type = 'TENANT' THEN ").append(permissionsMap.get(Resource.resourceFromEntityType(EntityType.TENANT)).isHasGenericRead() ? "1" : "0");
             for (EntityType entityType : EntityGroup.groupTypes) {
                 entitiesQuery.append(" WHEN e.entity_type = '").append(entityType.name()).append("' THEN ");
                 MergedGroupTypePermissionInfo permissions = permissionsMap.get(Resource.resourceFromEntityType(entityType));
                 if (permissions.isHasGenericRead()) {
-                    entitiesQuery.append("true");
+                    entitiesQuery.append("1");
                 } else if (permissions.getEntityGroupIds().isEmpty()) {
-                    entitiesQuery.append("false");
+                    entitiesQuery.append("0");
                 } else {
                     entitiesQuery.append("(CASE WHEN EXISTS ( SELECT rattr.to_id FROM relation rattr WHERE rattr.to_id = e.id AND rattr.to_type = '");
                     entitiesQuery.append(entityType.name());
@@ -856,7 +854,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     ctx.addUuidListParameter(param,
                             permissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
                     entitiesQuery.append("' and rattr.from_id in (:").append(param).append(") AND rattr.from_type = 'ENTITY_GROUP' " +
-                            "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains') THEN true ELSE false END)");
+                            "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains') THEN 1 ELSE 0 END)");
                 }
             }
             entitiesQuery.append(" END as ").append(selectionName);
@@ -878,8 +876,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         boolean tenantUserWithAllReadPermissions = ctx.isTenantUser() && allReadPermissions;
         boolean customerUserWithAllReadPermissionsAndNoGroupPermissions = !ctx.isTenantUser() && allReadPermissions && noGroupPermissions;
         if (tenantUserWithAllReadPermissions || customerUserWithAllReadPermissionsAndNoGroupPermissions) {
-            entitiesQuery.append(", true as ").append(ATTR_READ_FLAG);
-            entitiesQuery.append(", true as ").append(TS_READ_FLAG);
+            entitiesQuery.append(", 1 as ").append(ATTR_READ_FLAG);
+            entitiesQuery.append(", 1 as ").append(TS_READ_FLAG);
             entitiesQuery.append(" from ")
                     .append(addEntityTableQuery(ctx, query.getEntityFilter()))
                     .append(" e where ")
@@ -893,45 +891,45 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (ctx.isTenantUser()) {
                 if (readPermissions.isHasGenericRead()) {
                     innerJoin = false;
-                    hasFilters = addGroupIdFilters(ctx, groupIds, entityFlagsQuery, paramIdx, permKey -> !permKey.isAttr() && !permKey.isTs());
+                    hasFilters = addGroupEntitiesByGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, permKey -> !permKey.isAttr() && !permKey.isTs());
                 } else {
-                    hasFilters = addGroupIdFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
+                    hasFilters = addGroupEntitiesByGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
                 }
             } else {
                 ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
-                hasFilters = addGroupIdFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
+                hasFilters = addGroupEntitiesByGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
                 if (hasFilters) {
                     entityFlagsQuery.append(" UNION ALL ");
                 } else {
                     hasFilters = true;
                 }
                 entityFlagsQuery.append("select re.to_id, ")
-                        .append(readPermissions.isHasGenericRead()).append(" as readFlag").append(",")
-                        .append(readAttrPermissions.isHasGenericRead()).append(" as readAttrFlag").append(",")
-                        .append(readTsPermissions.isHasGenericRead()).append(" as readTsFlag");
+                        .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                        .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                        .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
                 entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
                 entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
                 entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
             }
             if (innerJoin || hasFilters) {
-                entitiesQuery.append(", COALESCE(readAttrFlag, False) as ").append(ATTR_READ_FLAG);
-                entitiesQuery.append(", COALESCE(readTsFlag, False) as ").append(TS_READ_FLAG);
+                entitiesQuery.append(", COALESCE(readAttrFlag, 0) as ").append(ATTR_READ_FLAG);
+                entitiesQuery.append(", COALESCE(readTsFlag, 0) as ").append(TS_READ_FLAG);
                 entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
                 entitiesQuery.append(innerJoin ? "inner" : "left").append(" join ");
                 if (hasFilters) {
-                    entitiesQuery.append(" (select to_id as id, bool_or(readFlag) as readFlag, bool_or(readAttrFlag) as readAttrFlag, bool_or(readTsFlag) as readTsFlag ");
+                    entitiesQuery.append(" (select to_id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, max(readTsFlag) as readTsFlag ");
                     entitiesQuery.append(" from (");
                     entitiesQuery.append(entityFlagsQuery);
                     entitiesQuery.append(" ) ids group by to_id) entity_flags on e.id = entity_flags.id ");
                 } else {
-                    entitiesQuery.append(" (select NULL::uuid as id, False as readFlag, False as readAttrFlag, False as readTsFlag) entity_flags on e.id = entity_flags.id ");
+                    entitiesQuery.append(" (select NULL::uuid as id, 0 as readFlag, 0 as readAttrFlag, 0 as readTsFlag) entity_flags on e.id = entity_flags.id ");
                 }
                 if (innerJoin) {
-                    entitiesQuery.append(" and entity_flags.readFlag = True");
+                    entitiesQuery.append(" and entity_flags.readFlag = 1");
                 }
             } else {
-                entitiesQuery.append(", False as ").append(ATTR_READ_FLAG);
-                entitiesQuery.append(", False as ").append(TS_READ_FLAG);
+                entitiesQuery.append(", 0 as ").append(ATTR_READ_FLAG);
+                entitiesQuery.append(", 0 as ").append(TS_READ_FLAG);
                 entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
             }
             entitiesQuery.append(" where ").append(entityWhereClause);
@@ -939,7 +937,37 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return entitiesQuery;
     }
 
-    private boolean addGroupIdFilters(QueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
+    //Created as a workaround of HSQLDB bug with selecting multiple constants with different names.
+    private static String boolToIntStr(boolean bool) {
+        return bool ? "1" : "0";
+    }
+
+    private boolean addGroupIdsFilters(QueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
+        boolean first = true;
+        for (Map.Entry<GroupIdPermKey, Set<EntityGroupId>> e : groupIds.getGroupIdsMap().entrySet()) {
+            GroupIdPermKey permKey = e.getKey();
+            if (keyFilter != null && keyFilter.test(permKey)) {
+                continue;
+            }
+            if (first) {
+                first = false;
+            } else {
+                entityFlagsQuery.append(" UNION ALL ");
+            }
+            ctx.addUuidListParameter("permissions_read_group_ids_" + paramIdx,
+                    e.getValue().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
+            entityFlagsQuery.append("select ge.id, ")
+                    .append(boolToIntStr(permKey.isRead())).append(" as readFlag").append(",")
+                    .append(boolToIntStr(permKey.isAttr())).append(" as readAttrFlag").append(",")
+                    .append(boolToIntStr(permKey.isTs())).append(" as readTsFlag");
+            entityFlagsQuery.append(" from entity_group ge WHERE ");
+            entityFlagsQuery.append(" ge.id in (:permissions_read_group_ids_").append(paramIdx++).append(")");
+        }
+        return !first;
+    }
+
+
+    private boolean addGroupEntitiesByGroupIdsFilters(QueryContext ctx, GroupIdsWrapper groupIds, StringBuilder entityFlagsQuery, int paramIdx, Predicate<GroupIdPermKey> keyFilter) {
         boolean first = true;
         for (Map.Entry<GroupIdPermKey, Set<EntityGroupId>> e : groupIds.getGroupIdsMap().entrySet()) {
             GroupIdPermKey permKey = e.getKey();
@@ -954,9 +982,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             ctx.addUuidListParameter("permissions_read_group_ids_" + paramIdx,
                     e.getValue().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
             entityFlagsQuery.append("select re.to_id, ")
-                    .append(permKey.isRead()).append(" as readFlag").append(",")
-                    .append(permKey.isAttr()).append(" as readAttrFlag").append(",")
-                    .append(permKey.isTs()).append(" as readTsFlag");
+                    .append(boolToIntStr(permKey.isRead())).append(" as readFlag").append(",")
+                    .append(boolToIntStr(permKey.isAttr())).append(" as readAttrFlag").append(",")
+                    .append(boolToIntStr(permKey.isTs())).append(" as readTsFlag");
             entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
             entityFlagsQuery.append(" AND re.from_id in (:permissions_read_group_ids_").append(paramIdx++).append(")");
             entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
@@ -974,40 +1002,70 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
         MergedGroupTypePermissionInfo readAttrPermissions = ctx.getSecurityCtx().getMergedReadAttrPermissionsByEntityType();
         MergedGroupTypePermissionInfo readTsPermissions = ctx.getSecurityCtx().getMergedReadTsPermissionsByEntityType();
+
         entitiesQuery.append("select ").append(entityFieldsSelection);
 
-        if (!readAttrPermissions.isHasGenericRead()) {
-            buildPermissionsSelect(ctx, entitiesQuery, readAttrPermissions.getEntityGroupIds(),
-                    "permissions_read_attr_group_ids", ATTR_READ_FLAG);
-        }
-        if (!readTsPermissions.isHasGenericRead()) {
-            buildPermissionsSelect(ctx, entitiesQuery, readTsPermissions.getEntityGroupIds(),
-                    "permissions_read_ts_group_ids", TS_READ_FLAG);
-        }
-
-        if (readPermissions.isHasGenericRead()) {
-            if (ctx.isTenantUser() || readPermissions.getEntityGroupIds().isEmpty()) {
-                entitiesQuery.append(" from ")
-                        .append(addEntityTableQuery(ctx, query.getEntityFilter()))
-                        .append(" e where ")
-                        .append(entityWhereClause);
-            } else {
-                entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter()));
-                entitiesQuery.append(" e WHERE ");
-                ctx.addUuidListParameter("permissions_read_group_ids",
-                        readPermissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
-                ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
-                entitiesQuery.append(" (e.id in (:permissions_read_group_ids) OR e.id in (");
-                entitiesQuery.append(HIERARCHICAL_GROUPS_QUERY);
-                entitiesQuery.append(" and type='").append(ctx.getEntityType()).append("'");
-                entitiesQuery.append(")) AND ");
-                entitiesQuery.append(entityWhereClause);
-            }
+        boolean allReadPermissions = readPermissions.isHasGenericRead() && readAttrPermissions.isHasGenericRead() && readTsPermissions.isHasGenericRead();
+        boolean noGroupPermissions = emptyGroups(readPermissions) && emptyGroups(readAttrPermissions) && emptyGroups(readTsPermissions);
+        boolean tenantUserWithAllReadPermissions = ctx.isTenantUser() && allReadPermissions;
+        boolean customerUserWithAllReadPermissionsAndNoGroupPermissions = !ctx.isTenantUser() && allReadPermissions && noGroupPermissions;
+        if (tenantUserWithAllReadPermissions || customerUserWithAllReadPermissionsAndNoGroupPermissions) {
+            entitiesQuery.append(", 1 as ").append(ATTR_READ_FLAG);
+            entitiesQuery.append(", 1 as ").append(TS_READ_FLAG);
+            entitiesQuery.append(" from ")
+                    .append(addEntityTableQuery(ctx, query.getEntityFilter()))
+                    .append(" e where ")
+                    .append(entityWhereClause);
         } else {
-            entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter()));
-            entitiesQuery.append(" e WHERE ");
-            entitiesQuery.append(" e.id in (:permissions_read_group_ids) ");
-            entitiesQuery.append(" AND ").append(entityWhereClause);
+            GroupIdsWrapper groupIds = new GroupIdsWrapper(readPermissions, readAttrPermissions, readTsPermissions);
+            boolean innerJoin = true;
+            boolean hasFilters;
+            StringBuilder entityFlagsQuery = new StringBuilder();
+            int paramIdx = 0;
+            if (ctx.isTenantUser()) {
+                if (readPermissions.isHasGenericRead()) {
+                    innerJoin = false;
+                    hasFilters = addGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, permKey -> !permKey.isAttr() && !permKey.isTs());
+                } else {
+                    hasFilters = addGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
+                }
+            } else {
+                ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
+                hasFilters = addGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
+                if (hasFilters) {
+                    entityFlagsQuery.append(" UNION ALL ");
+                } else {
+                    hasFilters = true;
+                }
+                entityFlagsQuery.append("select ge.id, ")
+                        .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                        .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                        .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
+                entityFlagsQuery.append(" from entity_group ge WHERE");
+                entityFlagsQuery.append(" ge.id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
+            }
+            if (innerJoin || hasFilters) {
+                entitiesQuery.append(", COALESCE(readAttrFlag, 0) as ").append(ATTR_READ_FLAG);
+                entitiesQuery.append(", COALESCE(readTsFlag, 0) as ").append(TS_READ_FLAG);
+                entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+                entitiesQuery.append(innerJoin ? "inner" : "left").append(" join ");
+                if (hasFilters) {
+                    entitiesQuery.append(" (select id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, bool_or(readTsFlag) as readTsFlag ");
+                    entitiesQuery.append(" from (");
+                    entitiesQuery.append(entityFlagsQuery);
+                    entitiesQuery.append(" ) ids group by id) entity_flags on e.id = entity_flags.id ");
+                } else {
+                    entitiesQuery.append(" (select NULL::uuid as id, 0 as readFlag, 0 as readAttrFlag, 0 as readTsFlag) entity_flags on e.id = entity_flags.id ");
+                }
+                if (innerJoin) {
+                    entitiesQuery.append(" and entity_flags.readFlag = 1");
+                }
+            } else {
+                entitiesQuery.append(", 0 as ").append(ATTR_READ_FLAG);
+                entitiesQuery.append(", 0 as ").append(TS_READ_FLAG);
+                entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+            }
+            entitiesQuery.append(" where ").append(entityWhereClause);
         }
         return entitiesQuery;
     }

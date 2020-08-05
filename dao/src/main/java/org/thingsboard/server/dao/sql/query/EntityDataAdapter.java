@@ -74,8 +74,8 @@ public class EntityDataAdapter {
         Map<String, TsValue[]> timeseries = new HashMap<>();
         ;
         EntityData entityData = new EntityData(entityId,
-                (boolean) row.getOrDefault(DefaultEntityQueryRepository.ATTR_READ_FLAG, true),
-                (boolean) row.getOrDefault(DefaultEntityQueryRepository.TS_READ_FLAG, true),
+                ((int) row.getOrDefault(DefaultEntityQueryRepository.ATTR_READ_FLAG, 1)) > 0,
+                ((int) row.getOrDefault(DefaultEntityQueryRepository.TS_READ_FLAG, 1)) > 0,
                 latest, timeseries);
         for (EntityKeyMapping mapping : selectionMapping) {
             if (!mapping.isIgnore()) {
