@@ -74,11 +74,12 @@ message EntityUpdateMsg {
   UserCredentialsUpdateMsg userCredentialsUpdateMsg = 10;
   CustomerUpdateMsg customerUpdateMsg = 11;
   RelationUpdateMsg relationUpdateMsg = 12;
-  WhiteLabelingParamsProto whiteLabelingParams = 13;
-  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 14;
-  CustomTranslationProto customTranslation = 15;
-  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 16;
-  EntityGroupUpdateMsg entityGroupUpdateMsg = 17;
+  MailTemplateSettingsProto mailTemplateSettings = 13;
+  WhiteLabelingParamsProto whiteLabelingParams = 14;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 15;
+  CustomTranslationProto customTranslation = 16;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 17;
+  EntityGroupUpdateMsg entityGroupUpdateMsg = 18;
 }
 
 enum RequestMsgType {
@@ -417,6 +418,12 @@ message PaletteProto {
 
 message CustomTranslationProto {
   map<string, string> translationMap = 1;
+}
+
+message MailTemplateSettingsProto {
+  int64 idMSB = 1;
+  int64 idLSB = 2;
+  string jsonValue = 3;
 }
 
 /**

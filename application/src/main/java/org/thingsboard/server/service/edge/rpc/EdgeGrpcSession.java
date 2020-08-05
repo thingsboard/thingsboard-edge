@@ -45,6 +45,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -390,6 +391,9 @@ public final class EdgeGrpcSession implements Closeable {
                 break;
             case CUSTOM_TRANSLATION:
                 processCustomTranslation(edgeEvent);
+                break;
+            case MAIL_TEMPLATE_SETTINGS:
+                processMailTemplates(edgeEvent);
                 break;
         }
     }
@@ -741,6 +745,16 @@ public final class EdgeGrpcSession implements Closeable {
                 ctx.getCustomTranslationProtoConstructor().constructCustomTranslationProto(customTranslation);
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
                 .setCustomTranslation(customTranslationProto)
+                .build();
+        outputStream.onNext(ResponseMsg.newBuilder()
+                .setEntityUpdateMsg(entityUpdateMsg)
+                .build());
+    }
+
+    private void processMailTemplates(EdgeEvent edgeEvent) {
+        AdminSettings adminSettings = mapper.convertValue(edgeEvent.getEntityBody(), AdminSettings.class);
+        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                .setMailTemplateSettings(ctx.getMailTemplateSettingsProtoConstructor().constructMailTemplateSettings(adminSettings))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)

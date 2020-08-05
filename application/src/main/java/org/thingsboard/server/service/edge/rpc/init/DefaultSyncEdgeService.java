@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -87,6 +88,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -99,6 +101,7 @@ import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -151,6 +154,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     private CustomTranslationService customTranslationService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Override
@@ -162,6 +168,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             syncRuleChains(edge);
             syncEntityGroups(edge);
             syncSchedulerEvents(edge);
+            syncMailTemplateSettings(edge);
         } catch (Exception e) {
             log.error("Exception during sync process", e);
         }
@@ -324,6 +331,32 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             }
         } catch (Exception e) {
             log.error("Can't load custom translation", e);
+        }
+    }
+
+    private void syncMailTemplateSettings(Edge edge) {
+        try {
+            AdminSettings sysAdminMailTemplates = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
+
+            AttributeKvEntry tenantMailTemplateAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, "mailTemplates").get().get();
+            AdminSettings tenantMailTemplates = new AdminSettings();
+            tenantMailTemplates.setKey("mailTemplates");
+            String value = tenantMailTemplateAttr.getValueAsString();
+            tenantMailTemplates.setJsonValue(mapper.readTree(value));
+
+            List<AdminSettings> mailTemplates = new ArrayList<>(Arrays.asList(sysAdminMailTemplates, tenantMailTemplates));
+
+            for (AdminSettings mailTemplateSettings: mailTemplates) {
+                saveEdgeEvent(edge.getTenantId(),
+                        edge.getId(),
+                        EdgeEventType.MAIL_TEMPLATE_SETTINGS,
+                        ActionType.UPDATED,
+                        null,
+                        mapper.valueToTree(mailTemplateSettings),
+                        null);
+            }
+        } catch (Exception e) {
+            log.error("Can't load mail template settings", e);
         }
     }
 
