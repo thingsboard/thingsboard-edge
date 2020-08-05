@@ -419,7 +419,9 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
 
         device.setTenantId(tenantId);
         device.setCustomerId(null);
-        return doSaveDevice(device, null);
+        Device assignedDevice = doSaveDevice(device, null);
+        entityGroupService.addEntityToEntityGroupAll(assignedDevice.getTenantId(), assignedDevice.getOwnerId(), assignedDevice.getId());
+        return assignedDevice;
     }
 
     private DataValidator<Device> deviceValidator =
