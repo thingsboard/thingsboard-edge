@@ -82,7 +82,8 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
 
     @Override
     public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> customerIds) {
-        return service.submit(() -> DaoUtil.convertDataList(customerRepository.findCustomersByTenantIdAndIdIn(tenantId, customerIds)));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(customerIds, ids ->
+                customerRepository.findCustomersByTenantIdAndIdIn(tenantId, ids), service);
     }
 
     @Override

@@ -43,7 +43,7 @@ import java.util.Arrays;
 @ClasspathSuite.ClassnameFilters({
 //        "org.thingsboard.server.controller.sql.WebsocketApiSqlTest",
 //        "org.thingsboard.server.controller.sql.EntityQueryControllerSqlTest",
-        "org.thingsboard.server.controller.sql.*Test",
+        "org.thingsboard.server.controller.sql.DeviceControllerSqlTest",
         })
 public class ControllerSqlTestSuite {
 

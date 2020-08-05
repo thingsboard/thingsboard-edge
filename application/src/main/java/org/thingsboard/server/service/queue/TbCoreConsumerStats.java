@@ -34,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
 
@@ -66,9 +67,9 @@ public class TbCoreConsumerStats {
     private final StatsCounter claimDeviceCounter;
 
     private final StatsCounter schedulerMsgCounter;
+    private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter toCoreNotificationsCounter;
-    private final StatsCounter deviceStateCounter;
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
@@ -102,7 +103,7 @@ public class TbCoreConsumerStats {
         counters.add(schedulerMsgCounter);
     }
 
-    public void log(TransportProtos.TransportToDeviceActorMsg msg) {
+    public void log(TransportToDeviceActorMsg msg) {
         totalCounter.increment();
         if (msg.hasSessionEvent()) {
             sessionEventCounter.increment();
@@ -137,7 +138,7 @@ public class TbCoreConsumerStats {
         subscriptionMsgCounter.increment();
     }
 
-    public void log(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg) {
+    public void log(SchedulerServiceMsgProto schedulerServiceMsg) {
         totalCounter.increment();
         schedulerMsgCounter.increment();
     }
@@ -151,9 +152,7 @@ public class TbCoreConsumerStats {
         int total = totalCounter.get();
         if (total > 0) {
             StringBuilder stats = new StringBuilder();
-            counters.forEach(counter -> {
-                stats.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
-            });
+            counters.forEach(counter -> stats.append(counter.getName()).append(" = [").append(counter.get()).append("] "));
             log.info("Core Stats: {}", stats);
         }
     }

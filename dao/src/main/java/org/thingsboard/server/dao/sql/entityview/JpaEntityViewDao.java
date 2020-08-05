@@ -130,7 +130,8 @@ public class JpaEntityViewDao extends JpaAbstractSearchTextDao<EntityViewEntity,
 
     @Override
     public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> entityViewIds) {
-        return service.submit(() -> DaoUtil.convertDataList(entityViewRepository.findEntityViewsByTenantIdAndIdIn(tenantId, entityViewIds)));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(entityViewIds, ids ->
+                entityViewRepository.findEntityViewsByTenantIdAndIdIn(tenantId, ids), service);
     }
 
     @Override

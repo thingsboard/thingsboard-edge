@@ -1031,14 +1031,16 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
         @Override
         public void onSuccess(TbQueueMsgMetadata metadata) {
-            if (msgCount.decrementAndGet() <= 0) {
+            if (msgCount.decrementAndGet() <= 0 && callback != null) {
                 DefaultPlatformIntegrationService.this.callbackExecutor.submit(() -> callback.onSuccess(null));
             }
         }
 
         @Override
         public void onFailure(Throwable t) {
-            callback.onError(t);
+            if (callback != null) {
+                callback.onError(t);
+            }
         }
     }
 

@@ -90,7 +90,8 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
 
     @Override
     public ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> deviceIds) {
-        return service.submit(() -> DaoUtil.convertDataList(deviceRepository.findDevicesByTenantIdAndIdIn(tenantId, deviceIds)));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(deviceIds, ids ->
+                deviceRepository.findDevicesByTenantIdAndIdIn(tenantId, ids), service);
     }
 
     @Override
@@ -133,8 +134,8 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
 
     @Override
     public ListenableFuture<List<Device>> findDevicesByTenantIdCustomerIdAndIdsAsync(UUID tenantId, UUID customerId, List<UUID> deviceIds) {
-        return service.submit(() -> DaoUtil.convertDataList(
-                deviceRepository.findDevicesByTenantIdAndCustomerIdAndIdIn(tenantId, customerId, deviceIds)));
+        return DaoUtil.getEntitiesByTenantIdAndIdIn(deviceIds, ids ->
+                deviceRepository.findDevicesByTenantIdAndCustomerIdAndIdIn(tenantId, customerId, ids), service);
     }
 
     @Override
