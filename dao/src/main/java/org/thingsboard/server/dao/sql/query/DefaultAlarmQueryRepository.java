@@ -288,20 +288,26 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         permissionsQuery.append(" a.tenant_id = :permissions_tenant_id ");
         if (customerId != null && !customerId.isNullUid()) {
             ctx.addUuidParameter("permissions_customer_id", customerId.getId());
-            ctx.addUuidParameter("permissions_device_customer_id", customerId.getId());
-            ctx.addUuidParameter("permissions_asset_customer_id", customerId.getId());
-            ctx.addUuidParameter("permissions_user_customer_id", customerId.getId());
-            ctx.addUuidParameter("permissions_entity_view_customer_id", customerId.getId());
             permissionsQuery.append(" and (");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.DEVICE.ordinal()).append("' and exists (select 1 from device cd where cd.id = a.originator_id and cd.customer_id = :permissions_device_customer_id))");
+            permissionsQuery.append("(a.originator_type = '").append(EntityType.DEVICE.ordinal())
+                    .append("' and exists (select 1 from device cd where cd.id = a.originator_id and cd.customer_id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
             permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.ASSET.ordinal()).append("' and exists (select 1 from asset ca where ca.id = a.originator_id and ca.customer_id = :permissions_device_customer_id))");
+            permissionsQuery.append("(a.originator_type = '").append(EntityType.ASSET.ordinal())
+                    .append("' and exists (select 1 from asset ca where ca.id = a.originator_id and ca.customer_id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
             permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal()).append("' and exists (select 1 from customer cc where cc.id = a.originator_id and cc.id = :permissions_customer_id))");
+            permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal())
+                    .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and cc.id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
             permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal()).append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and cu.customer_id = :permissions_user_customer_id))");
+            permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal())
+                    .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and cu.customer_id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
             permissionsQuery.append(" or ");
-            permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal()).append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and cv.customer_id = :permissions_entity_view_customer_id))");
+            permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal())
+                    .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and cv.customer_id in")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
             permissionsQuery.append(")");
         }
         return permissionsQuery.toString();

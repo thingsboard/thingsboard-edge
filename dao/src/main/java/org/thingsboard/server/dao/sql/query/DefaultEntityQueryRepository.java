@@ -324,7 +324,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private static final String HIERARCHICAL_GROUPS_ALL_QUERY = HIERARCHICAL_GROUPS_QUERY + " and name = 'All'";
 
-    private static final String HIERARCHICAL_SUB_CUSTOMERS_QUERY = "(WITH RECURSIVE customers_ids(id) AS" +
+    public static final String HIERARCHICAL_SUB_CUSTOMERS_QUERY = "(WITH RECURSIVE customers_ids(id) AS" +
             " (SELECT id id FROM customer WHERE tenant_id = :permissions_tenant_id and id = :permissions_customer_id" +
             " UNION SELECT c.id id FROM customer c, customers_ids parent WHERE c.tenant_id = :permissions_tenant_id" +
             " and c.parent_customer_id = parent.id) SELECT id FROM customers_ids)";
