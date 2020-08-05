@@ -35,6 +35,7 @@ import {
   ElementRef,
   HostBinding,
   Inject,
+  OnDestroy,
   OnInit,
   QueryList,
   SkipSelf,
@@ -79,7 +80,7 @@ import {
 } from '@shared/models/rule-node.models';
 import { FcRuleNodeModel, FcRuleNodeTypeModel, RuleChainMenuContextInfo } from './rulechain-page.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
-import { fromEvent, NEVER, Observable, of } from 'rxjs';
+import { fromEvent, NEVER, Observable, of, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, mergeMap, tap } from 'rxjs/operators';
 import { ISearchableComponent } from '../../models/searchable-component.models';
 import { deepClone } from '@core/utils';
@@ -102,7 +103,7 @@ import Timeout = NodeJS.Timeout;
   encapsulation: ViewEncapsulation.None
 })
 export class RuleChainPageComponent extends PageComponent
-  implements AfterViewInit, OnInit, HasDirtyFlag, ISearchableComponent {
+  implements AfterViewInit, OnInit, OnDestroy, HasDirtyFlag, ISearchableComponent {
 
   get isDirty(): boolean {
     return this.isDirtyValue || this.isImport;
@@ -253,6 +254,8 @@ export class RuleChainPageComponent extends PageComponent
 
   flowchartConstants = FlowchartConstants;
 
+  private rxSubscription: Subscription;
+
   private tooltipTimeout: Timeout;
 
   constructor(protected store: Store<AppState>,
@@ -267,7 +270,13 @@ export class RuleChainPageComponent extends PageComponent
               public dialogService: DialogService,
               public fb: FormBuilder) {
     super(store);
-    this.init();
+
+    this.rxSubscription = this.route.data.subscribe(
+      () => {
+        this.reset();
+        this.init();
+      }
+    );
   }
 
   ngOnInit() {
@@ -294,6 +303,11 @@ export class RuleChainPageComponent extends PageComponent
       connectorElements.attr('draggable', 'false');
     }
     this.ruleChainCanvas.adjustCanvasSize(true);
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.rxSubscription.unsubscribe();
   }
 
   onSearchTextUpdated(searchText: string) {
@@ -329,87 +343,102 @@ export class RuleChainPageComponent extends PageComponent
     this.createRuleChainModel();
   }
 
+  private reset(): void {
+    this.selectedObjects = [];
+    this.ruleChainModel.nodes = [];
+    this.ruleChainModel.edges = [];
+    this.ruleNodeTypesModel = {};
+    if (this.ruleChainCanvas) {
+      this.ruleChainCanvas.adjustCanvasSize(true);
+    }
+    this.isEditingRuleNode = false;
+    this.isEditingRuleNodeLink = false;
+    this.updateRuleNodesHighlight();
+  }
+
   private initHotKeys(): void {
-    this.hotKeys.push(
-      new Hotkey('ctrl+a', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            this.ruleChainCanvas.modelService.selectAll();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('rulenode.select-all-objects'))
-    );
-    this.hotKeys.push(
-      new Hotkey('ctrl+c', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            this.copyRuleNodes();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('rulenode.copy-selected'))
-    );
-    this.hotKeys.push(
-      new Hotkey('ctrl+v', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            if (this.itembuffer.hasRuleNodes()) {
-              this.pasteRuleNodes();
+    if (!this.hotKeys.length) {
+      this.hotKeys.push(
+        new Hotkey('ctrl+a', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              this.ruleChainCanvas.modelService.selectAll();
+              return false;
             }
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('action.paste'))
-    );
-    this.hotKeys.push(
-      new Hotkey('esc', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            event.stopPropagation();
-            this.ruleChainCanvas.modelService.deselectAll();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('rulenode.deselect-all-objects'))
-    );
-    this.hotKeys.push(
-      new Hotkey('ctrl+s', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            this.saveRuleChain();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('action.apply'))
-    );
-    this.hotKeys.push(
-      new Hotkey('ctrl+z', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            this.revertRuleChain();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('action.decline-changes'))
-    );
-    this.hotKeys.push(
-      new Hotkey('del', (event: KeyboardEvent) => {
-          if (this.enableHotKeys) {
-            event.preventDefault();
-            this.ruleChainCanvas.modelService.deleteSelected();
-            return false;
-          }
-          return true;
-        }, ['INPUT', 'SELECT', 'TEXTAREA'],
-        this.translate.instant('rulenode.delete-selected-objects'))
-    );
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('rulenode.select-all-objects'))
+      );
+      this.hotKeys.push(
+        new Hotkey('ctrl+c', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              this.copyRuleNodes();
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('rulenode.copy-selected'))
+      );
+      this.hotKeys.push(
+        new Hotkey('ctrl+v', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              if (this.itembuffer.hasRuleNodes()) {
+                this.pasteRuleNodes();
+              }
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('action.paste'))
+      );
+      this.hotKeys.push(
+        new Hotkey('esc', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              event.stopPropagation();
+              this.ruleChainCanvas.modelService.deselectAll();
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('rulenode.deselect-all-objects'))
+      );
+      this.hotKeys.push(
+        new Hotkey('ctrl+s', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              this.saveRuleChain();
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('action.apply'))
+      );
+      this.hotKeys.push(
+        new Hotkey('ctrl+z', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              this.revertRuleChain();
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('action.decline-changes'))
+      );
+      this.hotKeys.push(
+        new Hotkey('del', (event: KeyboardEvent) => {
+            if (this.enableHotKeys) {
+              event.preventDefault();
+              this.ruleChainCanvas.modelService.deleteSelected();
+              return false;
+            }
+            return true;
+          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          this.translate.instant('rulenode.delete-selected-objects'))
+      );
+    }
   }
 
   updateRuleChainLibrary() {
@@ -1430,6 +1459,7 @@ export class RuleChainPageComponent extends PageComponent
             scroll: true
           },
           side: 'right',
+          distance: 12,
           trackOrigin: true
         }
       );

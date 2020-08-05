@@ -132,7 +132,7 @@ export const HelpLinks = {
     ruleNodeAggregateStream: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#aggregate-stream-node',
     ruleNodeAlarmsCount: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/analytics-nodes/#alarms-count-node',
     tenants: helpBaseUrl + '/docs/user-guide/ui/tenants',
-    customers: helpBaseUrl + '/docs/user-guide/customers',
+    customers: helpBaseUrl + '/docs/user-guide/ui/customers',
     users: helpBaseUrl + '/docs/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/user-guide/ui/devices',
     assets: helpBaseUrl + '/docs/user-guide/ui/assets',

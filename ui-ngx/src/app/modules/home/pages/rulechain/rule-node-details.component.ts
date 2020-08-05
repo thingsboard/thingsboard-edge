@@ -39,6 +39,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { Subscription } from 'rxjs';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleNodeConfigComponent } from './rule-node-config.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'tb-rule-node',
@@ -61,6 +62,9 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
   @Input()
   isReadOnly: boolean;
 
+  @Input()
+  isAdd = false;
+
   ruleNodeType = RuleNodeType;
   entityType = EntityType;
 
@@ -70,7 +74,8 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder,
-              private ruleChainService: RuleChainService) {
+              private ruleChainService: RuleChainService,
+              private router: Router) {
     super(store);
     this.ruleNodeFormGroup = this.fb.group({});
   }
@@ -146,6 +151,15 @@ export class RuleNodeDetailsComponent extends PageComponent implements OnInit, O
   validate() {
     if (this.ruleNode.component.type !== RuleNodeType.RULE_CHAIN) {
       this.ruleNodeConfigComponent.validate();
+    }
+  }
+
+  openRuleChain($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (this.ruleNode.targetRuleChainId) {
+      this.router.navigateByUrl(`/ruleChains/${this.ruleNode.targetRuleChainId}`);
     }
   }
 }

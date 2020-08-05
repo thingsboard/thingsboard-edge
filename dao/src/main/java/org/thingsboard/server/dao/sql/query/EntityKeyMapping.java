@@ -87,6 +87,7 @@ public class EntityKeyMapping {
     private static final String ZIP = "zip";
     private static final String PHONE = "phone";
 
+    public static final List<String> typedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE);
     public static final List<String> commonEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME);
     public static final List<String> entityGroupFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE);
     public static final List<String> dashboardEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, TITLE);
@@ -99,7 +100,7 @@ public class EntityKeyMapping {
     static {
         allowedEntityFieldMap.put(EntityType.DEVICE, new HashSet<>(labeledEntityFields));
         allowedEntityFieldMap.put(EntityType.ASSET, new HashSet<>(labeledEntityFields));
-        allowedEntityFieldMap.put(EntityType.ENTITY_VIEW, new HashSet<>(labeledEntityFields));
+        allowedEntityFieldMap.put(EntityType.ENTITY_VIEW, new HashSet<>(typedEntityFields));
 
         allowedEntityFieldMap.put(EntityType.TENANT, new HashSet<>(contactBasedEntityFields));
         allowedEntityFieldMap.get(EntityType.TENANT).add(REGION);
@@ -457,11 +458,15 @@ public class EntityKeyMapping {
 
     private String buildComplexPredicateQuery(QueryContext ctx, String alias, EntityKey key,
                                               ComplexFilterPredicate predicate, EntityFilterType filterType) {
-        return predicate.getPredicates().stream()
+        String result = predicate.getPredicates().stream()
                 .map(keyFilterPredicate -> this.buildPredicateQuery(ctx, alias, key, keyFilterPredicate, filterType))
                 .filter(Objects::nonNull).collect(Collectors.joining(
                         " " + predicate.getOperation().name() + " "
                 ));
+        if (!result.trim().isEmpty()) {
+            result = "( " + result + " )";
+        }
+        return result;
     }
 
     private String buildSimplePredicateQuery(QueryContext ctx, String alias, EntityKey key,

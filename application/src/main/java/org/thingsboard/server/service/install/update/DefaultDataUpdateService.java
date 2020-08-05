@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.Tenant;
@@ -56,19 +57,21 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
@@ -87,6 +90,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -103,6 +107,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Service
 @Profile("install")
@@ -165,6 +171,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private RelationService relationService;
 
+    @Autowired
+    private TimeseriesService tsService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -172,6 +181,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
             case "1.4.0":
                 log.info("Updating data from version 1.4.0 to 2.0.0 ...");
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
+                break;
+            case "3.0.1":
+                log.info("Updating data from version 3.0.1 to 3.1.0 ...");
+                tenantsEntityViewsUpdater.updateEntities(null);
                 break;
             case "3.1.0":
                 log.info("Updating data from version 3.1.0 to 3.1.0PE ...");
@@ -221,6 +234,25 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }
+                }
+            };
+
+    private PaginatedUpdater<String, Tenant> tenantsEntityViewsUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants entity views updater";
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    updateTenantEntityViews(tenant.getId());
                 }
             };
 
@@ -603,6 +635,61 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     };
 
+    private void updateTenantEntityViews(TenantId tenantId) {
+        PageLink pageLink = new PageLink(100);
+        PageData<EntityView> pageData = entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+        boolean hasNext = true;
+        while (hasNext) {
+            List<ListenableFuture<List<Void>>> updateFutures = new ArrayList<>();
+            for (EntityView entityView : pageData.getData()) {
+                updateFutures.add(updateEntityViewLatestTelemetry(entityView));
+            }
+
+            try {
+                Futures.allAsList(updateFutures).get();
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Failed to copy latest telemetry to entity view", e);
+            }
+
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+                pageData = entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+            } else {
+                hasNext = false;
+            }
+        }
+    }
+
+    private ListenableFuture<List<Void>> updateEntityViewLatestTelemetry(EntityView entityView) {
+        EntityViewId entityId = entityView.getId();
+        List<String> keys = entityView.getKeys() != null && entityView.getKeys().getTimeseries() != null ?
+                entityView.getKeys().getTimeseries() : Collections.emptyList();
+        long startTs = entityView.getStartTimeMs();
+        long endTs = entityView.getEndTimeMs() == 0 ? Long.MAX_VALUE : entityView.getEndTimeMs();
+        ListenableFuture<List<String>> keysFuture;
+        if (keys.isEmpty()) {
+            keysFuture = Futures.transform(tsService.findAllLatest(TenantId.SYS_TENANT_ID,
+                    entityView.getEntityId()), latest -> latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList()), MoreExecutors.directExecutor());
+        } else {
+            keysFuture = Futures.immediateFuture(keys);
+        }
+        ListenableFuture<List<TsKvEntry>> latestFuture = Futures.transformAsync(keysFuture, fetchKeys -> {
+            List<ReadTsKvQuery> queries = fetchKeys.stream().filter(key -> !isBlank(key)).map(key -> new BaseReadTsKvQuery(key, startTs, endTs, 1, "DESC")).collect(Collectors.toList());
+            if (!queries.isEmpty()) {
+                return tsService.findAll(TenantId.SYS_TENANT_ID, entityView.getEntityId(), queries);
+            } else {
+                return Futures.immediateFuture(null);
+            }
+        }, MoreExecutors.directExecutor());
+        return Futures.transformAsync(latestFuture, latestValues -> {
+            if (latestValues != null && !latestValues.isEmpty()) {
+                ListenableFuture<List<Void>> saveFuture = tsService.saveLatest(TenantId.SYS_TENANT_ID, entityId, latestValues);
+                return saveFuture;
+            }
+            return Futures.immediateFuture(null);
+        }, MoreExecutors.directExecutor());
+    }
+
     private void updateSystemWhiteLabelingParameters() {
         AdminSettings whiteLabelParamsSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, WHITE_LABEL_PARAMS);
         JsonNode storedWl = null;
@@ -851,5 +938,4 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
 
     }
-
 }

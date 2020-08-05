@@ -106,10 +106,6 @@ public abstract class BaseTimeseriesServiceTest extends AbstractServiceTest {
         saveEntries(deviceId, TS);
 
         testLatestTsAndVerify(deviceId);
-
-        EntityView entityView = saveAndCreateEntityView(deviceId, Arrays.asList(STRING_KEY, DOUBLE_KEY, LONG_KEY, BOOLEAN_KEY));
-
-        testLatestTsAndVerify(entityView.getId());
     }
 
     private void testLatestTsAndVerify(EntityId entityId) throws ExecutionException, InterruptedException {
@@ -154,12 +150,6 @@ public abstract class BaseTimeseriesServiceTest extends AbstractServiceTest {
         saveEntries(deviceId, TS);
 
         List<TsKvEntry> entries = tsService.findLatest(tenantId, deviceId, Collections.singleton(STRING_KEY)).get();
-        Assert.assertEquals(1, entries.size());
-        Assert.assertEquals(toTsEntry(TS, stringKvEntry), entries.get(0));
-
-        EntityView entityView = saveAndCreateEntityView(deviceId, Arrays.asList(STRING_KEY));
-
-        entries = tsService.findLatest(tenantId, entityView.getId(), Collections.singleton(STRING_KEY)).get();
         Assert.assertEquals(1, entries.size());
         Assert.assertEquals(toTsEntry(TS, stringKvEntry), entries.get(0));
     }

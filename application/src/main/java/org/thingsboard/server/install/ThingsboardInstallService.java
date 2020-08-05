@@ -190,6 +190,7 @@ public class ThingsboardInstallService {
                         case "3.0.1":
                             log.info("Upgrading ThingsBoard from version 3.0.1 to 3.1.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.0.1");
+                            dataUpdateService.updateData("3.0.1");
                         case "3.1.0": // to 3.1.0PE
                             log.info("Upgrading ThingsBoard from version 3.1.0 to 3.1.0PE ...");
 
