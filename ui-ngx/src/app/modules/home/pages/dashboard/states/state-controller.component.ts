@@ -37,7 +37,7 @@ import { NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { StatesControllerService } from '@home/pages/dashboard/states/states-controller.service';
 import { EntityId } from '@app/shared/models/id/entity-id';
-import { StateParams } from '@app/core/api/widget-api.models';
+import { StateObject, StateParams } from '@app/core/api/widget-api.models';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { UtilsService } from '@core/services/utils.service';
 
@@ -203,6 +203,8 @@ export abstract class StateControllerComponent implements IStateControllerCompon
   public abstract navigatePrevState(index: number): void;
 
   public abstract openState(id: string, params?: StateParams, openRightLayout?: boolean): void;
+
+  public abstract pushAndOpenState(states: Array<StateObject>, openRightLayout?: boolean): void;
 
   public abstract resetState(): void;
 
