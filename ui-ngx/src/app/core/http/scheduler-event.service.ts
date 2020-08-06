@@ -40,6 +40,7 @@ import {
   SchedulerEventInfo,
   SchedulerEventWithCustomerInfo
 } from '@shared/models/scheduler-event.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -52,7 +53,11 @@ export class SchedulerEventService {
   }
 
   public getSchedulerEvents(type: string = '', config?: RequestConfig): Observable<Array<SchedulerEventWithCustomerInfo>> {
-    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(`/api/schedulerEvents?type=${type}`,
+    let url = '/api/schedulerEvents';
+    if (isDefinedAndNotNull(type)) {
+      url += `?type=${type}`;
+    }
+    return this.http.get<Array<SchedulerEventWithCustomerInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 
