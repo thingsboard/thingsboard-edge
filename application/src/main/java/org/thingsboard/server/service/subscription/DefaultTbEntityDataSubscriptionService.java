@@ -362,7 +362,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
             finalTsKvQueryList = tsKvQueryList;
         }
         Map<EntityData, ListenableFuture<List<TsKvEntry>>> fetchResultMap = new HashMap<>();
-        ctx.getData().getData().forEach(entityData -> fetchResultMap.put(entityData,
+        ctx.getData().getData().stream().filter(EntityData::isReadTs).forEach(entityData -> fetchResultMap.put(entityData,
                 tsService.findAll(ctx.getTenantId(), entityData.getEntityId(), finalTsKvQueryList)));
         return Futures.transform(Futures.allAsList(fetchResultMap.values()), f -> {
             fetchResultMap.forEach((entityData, future) -> {
