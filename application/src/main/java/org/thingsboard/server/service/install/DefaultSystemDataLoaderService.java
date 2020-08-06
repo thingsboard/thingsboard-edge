@@ -100,7 +100,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         mailSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailSettings);
 
-        loadMailTemplates();
+        //loadMailTemplates();
     }
 
     @Override

@@ -75,7 +75,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
@@ -99,6 +98,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
@@ -132,6 +132,7 @@ import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.MailTemplatesUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
@@ -243,6 +244,9 @@ public class CloudManagerService {
     private CustomTranslationService customTranslationService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
@@ -286,6 +290,9 @@ public class CloudManagerService {
 
     @Autowired
     private WidgetTypeUpdateProcessor widgetTypeUpdateProcessor;
+
+    @Autowired
+    private MailTemplatesUpdateProcessor mailTemplatesUpdateProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -748,6 +755,7 @@ public class CloudManagerService {
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
@@ -853,6 +861,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasSchedulerEventUpdateMsg()) {
                 log.debug("Schedule event received [{}]", entityUpdateMsg.getSchedulerEventUpdateMsg());
                 schedulerEventUpdateProcessor.onScheduleEventUpdate(tenantId, entityUpdateMsg.getSchedulerEventUpdateMsg());
+            } else if (entityUpdateMsg.hasMailTemplateSettings()) {
+                log.debug("Mail template settings received [{}]", entityUpdateMsg.getMailTemplateSettings());
+                mailTemplatesUpdateProcessor.onMailTemplatesUpdate(tenantId, entityUpdateMsg.getMailTemplateSettings());
             }
         } catch (Exception e) {
             log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);

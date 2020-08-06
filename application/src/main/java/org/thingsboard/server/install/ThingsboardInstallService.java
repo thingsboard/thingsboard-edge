@@ -101,7 +101,7 @@ public class ThingsboardInstallService {
                         systemDataLoaderService.deleteSystemWidgetBundle("date");
                         systemDataLoaderService.deleteSystemWidgetBundle("entity_admin_widgets");
 
-                        systemDataLoaderService.loadSystemWidgets();
+                        //systemDataLoaderService.loadSystemWidgets();
                         break;
                     default:
                         throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
@@ -127,7 +127,7 @@ public class ThingsboardInstallService {
 
                 systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createAdminSettings();
-                systemDataLoaderService.loadSystemWidgets();
+                //systemDataLoaderService.loadSystemWidgets();
 
                 log.info("Installation finished successfully!");
             }
