@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -87,6 +88,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -102,6 +104,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -110,6 +113,8 @@ import java.util.stream.Collectors;
 public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+
+    private static final String MAIL_TEMPLATES = "mailTemplates";
 
     @Autowired
     private EdgeEventService edgeEventService;
@@ -151,6 +156,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     private CustomTranslationService customTranslationService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Override
@@ -162,6 +170,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             syncRuleChains(edge);
             syncEntityGroups(edge);
             syncSchedulerEvents(edge);
+            syncMailTemplateSettings(edge);
         } catch (Exception e) {
             log.error("Exception during sync process", e);
         }
@@ -325,6 +334,33 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         } catch (Exception e) {
             log.error("Can't load custom translation", e);
         }
+    }
+
+    private void syncMailTemplateSettings(Edge edge) {
+        try {
+            AdminSettings sysAdminMailTemplates = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, MAIL_TEMPLATES);
+            saveMailTemplateSettingsEdgeEvent(edge, sysAdminMailTemplates);
+            Optional<AttributeKvEntry> tenantMailTemplateAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, MAIL_TEMPLATES).get();
+            if (tenantMailTemplateAttr.isPresent()) {
+                AdminSettings tenantMailTemplates = new AdminSettings();
+                tenantMailTemplates.setKey(MAIL_TEMPLATES);
+                String value = tenantMailTemplateAttr.get().getValueAsString();
+                tenantMailTemplates.setJsonValue(mapper.readTree(value));
+                saveMailTemplateSettingsEdgeEvent(edge, tenantMailTemplates);
+            }
+        } catch (Exception e) {
+            log.error("Can't load mail template settings", e);
+        }
+    }
+
+    private void saveMailTemplateSettingsEdgeEvent(Edge edge, AdminSettings adminSettings) {
+        saveEdgeEvent(edge.getTenantId(),
+                edge.getId(),
+                EdgeEventType.MAIL_TEMPLATE_SETTINGS,
+                ActionType.UPDATED,
+                null,
+                mapper.valueToTree(adminSettings),
+                null);
     }
 
     @Override
