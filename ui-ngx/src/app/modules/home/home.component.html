@@ -46,8 +46,11 @@
     </header>
     <mat-toolbar color="primary" fxFlex="0%" class="tb-side-menu-toolbar" fxLayout="column" role="navigation">
       <tb-side-menu></tb-side-menu>
+    </mat-toolbar>
+    <mat-toolbar *ngIf="wl.isShowVersion$() | async"
+                 color="primary" fxFlex="30px" class="tb-side-menu-toolbar" fxLayout="column" fxLayoutAlign="center end">
       <section class="version"
-               *ngIf="wl.isShowVersion$() | async">{{ platformNameAndVersion$() | async}}</section>
+               [innerHTML]="platformNameAndVersion$() | async"></section>
     </mat-toolbar>
   </mat-sidenav>
   <mat-sidenav-content>

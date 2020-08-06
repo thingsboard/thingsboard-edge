@@ -40,7 +40,7 @@
             <div fxLayout="column" fxLayoutAlign="start center" style="padding: 15px 0;">
               <img [src]="wl.loginLogoSafeUrl$ | async" [ngStyle]="{height: (wl.loginLogoHeight$ | async)+'px'}" aria-label="logo"/>
               <section class="version center"
-                       *ngIf="(wl.loginShowNameVersion$ | async) && !(wl.showNameBottom$ | async)">{{ platformNameAndVersion$() | async}}</section>
+                       *ngIf="(wl.loginShowNameVersion$ | async) && !(wl.showNameBottom$ | async)" [innerHTML]="platformNameAndVersion$() | async"></section>
             </div>
             <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
             </mat-progress-bar>
@@ -91,7 +91,7 @@
               </div>
             </div>
             <section class="version"
-                     *ngIf="(wl.loginShowNameVersion$ | async) && (wl.showNameBottom$ | async)">{{ platformNameAndVersion$() | async}}</section>
+                     *ngIf="(wl.loginShowNameVersion$ | async) && (wl.showNameBottom$ | async)" [innerHTML]="platformNameAndVersion$() | async"></section>
           </div>
         </fieldset>
       </form>
