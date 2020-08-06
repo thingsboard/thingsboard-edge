@@ -65,6 +65,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -109,6 +110,9 @@ public abstract class BaseUpdateProcessor {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    protected AdminSettingsService adminSettingsService;
 
     @Autowired
     protected TbClusterService tbClusterService;
