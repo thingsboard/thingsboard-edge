@@ -168,6 +168,8 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case RULE_CHAIN:
+                case WIDGETS_BUNDLE:
+                case WIDGET_TYPE:
                 case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
                     processEntity(tenantId, edgeNotificationMsg);
@@ -200,20 +202,29 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case ADDED_TO_ENTITY_GROUP:
             case REMOVED_FROM_ENTITY_GROUP:
             case CREDENTIALS_UPDATED:
-                ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getGroupType());
-                Futures.transform(edgeIdsFuture, edgeIds -> {
-                    if (edgeIds != null && !edgeIds.isEmpty()) {
-                        for (EdgeId edgeId : edgeIds) {
-                            try {
-                                saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null);
-                            } catch (Exception e) {
-                                log.error("[{}] Failed to push event to edge, edgeId [{}], edgeEventType [{}], edgeEventActionType [{}], entityId [{}]",
-                                        tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, e);
-                            }
+                if (edgeEventType.equals(EdgeEventType.WIDGETS_BUNDLE) || edgeEventType.equals(EdgeEventType.WIDGET_TYPE)) {
+                    TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
+                    if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
+                        for (Edge edge : edgesByTenantId.getData()) {
+                            saveEdgeEvent(tenantId, edge.getId(), edgeEventType, edgeEventActionType, entityId, null);
                         }
                     }
-                    return null;
-                }, dbCallbackExecutorService);
+                } else {
+                    ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getGroupType());
+                    Futures.transform(edgeIdsFuture, edgeIds -> {
+                        if (edgeIds != null && !edgeIds.isEmpty()) {
+                            for (EdgeId edgeId : edgeIds) {
+                                try {
+                                    saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null);
+                                } catch (Exception e) {
+                                    log.error("[{}] Failed to push event to edge, edgeId [{}], edgeEventType [{}], edgeEventActionType [{}], entityId [{}]",
+                                            tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, e);
+                                }
+                            }
+                        }
+                        return null;
+                    }, dbCallbackExecutorService);
+                }
                 break;
             case DELETED:
                 TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));

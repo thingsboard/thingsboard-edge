@@ -74,6 +74,8 @@ import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -91,6 +93,8 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
@@ -144,6 +148,12 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     private UserService userService;
 
     @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    private WidgetTypeService widgetTypeService;
+
+    @Autowired
     private EntityGroupService entityGroupService;
 
     @Autowired
@@ -164,6 +174,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     @Override
     public void sync(Edge edge) {
         try {
+            syncWidgetsBundleAndWidgetTypes(edge);
             syncLoginWhiteLabeling(edge);
             syncWhiteLabeling(edge);
             syncCustomTranslation(edge);
@@ -361,6 +372,24 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                 null,
                 mapper.valueToTree(adminSettings),
                 null);
+    }
+
+    private void syncWidgetsBundleAndWidgetTypes(Edge edge) {
+        List<WidgetsBundle> widgetsBundlesToPush = new ArrayList<>();
+        List<WidgetType> widgetTypesToPush = new ArrayList<>();
+        widgetsBundlesToPush.addAll(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(edge.getTenantId()));
+        widgetsBundlesToPush.addAll(widgetsBundleService.findSystemWidgetsBundles(edge.getTenantId()));
+        try {
+            for (WidgetsBundle widgetsBundle: widgetsBundlesToPush) {
+                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGETS_BUNDLE, ActionType.ADDED, widgetsBundle.getId(), null, null);
+                widgetTypesToPush.addAll(widgetTypeService.findWidgetTypesByTenantIdAndBundleAlias(widgetsBundle.getTenantId(), widgetsBundle.getAlias()));
+            }
+            for (WidgetType widgetType: widgetTypesToPush) {
+                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGET_TYPE, ActionType.ADDED, widgetType.getId(), null, null);
+            }
+        } catch (Exception e) {
+            log.error("Exception during loading widgets bundle(s) and widget type(s) on sync!", e);
+        }
     }
 
     @Override

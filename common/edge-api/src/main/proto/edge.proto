@@ -74,12 +74,14 @@ message EntityUpdateMsg {
   UserCredentialsUpdateMsg userCredentialsUpdateMsg = 10;
   CustomerUpdateMsg customerUpdateMsg = 11;
   RelationUpdateMsg relationUpdateMsg = 12;
-  MailTemplateSettingsProto mailTemplateSettings = 13;
-  WhiteLabelingParamsProto whiteLabelingParams = 14;
-  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 15;
-  CustomTranslationProto customTranslation = 16;
-  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 17;
-  EntityGroupUpdateMsg entityGroupUpdateMsg = 18;
+  WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = 13;
+  WidgetTypeUpdateMsg widgetTypeUpdateMsg = 14;
+  MailTemplateSettingsProto mailTemplateSettings = 15;
+  WhiteLabelingParamsProto whiteLabelingParams = 16;
+  LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 17;
+  CustomTranslationProto customTranslation = 18;
+  SchedulerEventUpdateMsg schedulerEventUpdateMsg = 19;
+  EntityGroupUpdateMsg entityGroupUpdateMsg = 20;
 }
 
 enum RequestMsgType {
@@ -296,6 +298,27 @@ message UserUpdateMsg {
   string additionalInfo = 8;
   int64 entityGroupIdMSB = 9;
   int64 entityGroupIdLSB = 10;
+}
+
+message WidgetsBundleUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string title = 4;
+  string alias = 5;
+  bytes image = 6;
+  bool isSystem = 7;
+}
+
+message WidgetTypeUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string bundleAlias = 4;
+  string alias = 5;
+  string name = 6;
+  string descriptorJson = 7;
+  bool isSystem = 8;
 }
 
 message UserCredentialsUpdateMsg {
