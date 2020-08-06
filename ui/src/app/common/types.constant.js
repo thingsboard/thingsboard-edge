@@ -474,6 +474,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
                 },
+                "AZURE_IOT_HUB": {
+                    name: "integration.type-azure-iot-hub",
+                    value: "AZURE_IOT_HUB"
+                },
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
@@ -1112,6 +1116,16 @@ export default angular.module('thingsboard.types', [])
                 basic: {
                     value: "basic",
                     name: "extension.basic"
+                },
+                'cert.PEM': {
+                    value: "cert.PEM",
+                    name: "extension.pem"
+                }
+            },
+            azureIotHubCredentialTypes: {
+                sas: {
+                    value: "sas",
+                    name: "integration.sas"
                 },
                 'cert.PEM': {
                     value: "cert.PEM",
