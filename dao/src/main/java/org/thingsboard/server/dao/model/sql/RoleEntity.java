@@ -100,6 +100,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         if (role.getId() != null) {
             this.setUuid(role.getId().getId());
         }
+        this.createdTime = role.getCreatedTime();
         if (role.getTenantId() != null) {
             this.tenantId = role.getTenantId().getId();
         }
@@ -126,7 +127,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Override
     public Role toData() {
         Role role = new Role(new RoleId(getUuid()));
-        role.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        role.setCreatedTime(createdTime);
 
         if (tenantId != null) {
             role.setTenantId(new TenantId(tenantId));

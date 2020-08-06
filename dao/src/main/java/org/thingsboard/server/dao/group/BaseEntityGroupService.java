@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,13 +42,10 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
-import org.thingsboard.server.common.data.group.ColumnType;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -57,16 +53,12 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -76,18 +68,13 @@ import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
@@ -117,12 +104,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private RelationDao relationDao;
-
-    @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private TimeseriesService timeseriesService;
 
     @Autowired
     private RoleService roleService;
@@ -615,6 +596,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
+
         return this.entityGroupDao.findGroupEntities(entityGroup.getType(), entityGroupId.getId(), columns, pageLink);
     }
 
@@ -671,94 +653,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             columns = Collections.emptyList();
         }
         return columns;
-    }
-
-    private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {
-        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
-        EntityGroupColumnsInfo columnsInfo = new EntityGroupColumnsInfo();
-        columns.forEach(column -> {
-            if (column.getType() == ColumnType.ENTITY_FIELD) {
-                processEntityFieldColumnInfo(column, columnsInfo);
-            } else if (column.getType().isAttribute()) {
-                processAttributeColumnInfo(column, columnsInfo);
-            } else if (column.getType() == ColumnType.TIMESERIES) {
-                columnsInfo.timeseriesKeys.add(column.getKey());
-            }
-        });
-        return columnsInfo;
-    }
-
-    private void processEntityFieldColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
-        EntityField entityField = null;
-        try {
-            entityField = EntityField.valueOf(column.getKey().toUpperCase());
-        } catch (Exception e) {
-        }
-        if (entityField != null) {
-            if (entityField == EntityField.CREATED_TIME) {
-                columnsInfo.commonEntityFields.add(entityField);
-            } else {
-                columnsInfo.entityFields.add(entityField);
-            }
-        }
-    }
-
-    private void processAttributeColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
-        String scope = column.getType().getAttributeScope();
-        List<String> keys = columnsInfo.attributeScopeToKeysMap.get(scope);
-        if (keys == null) {
-            keys = new ArrayList<>();
-            columnsInfo.attributeScopeToKeysMap.put(scope, keys);
-        }
-        keys.add(column.getKey());
-    }
-
-    private <E extends BaseData> ShortEntityView toEntityView(TenantId tenantId, E entity, EntityGroupColumnsInfo columnsInfo,
-                                                              BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
-        ShortEntityView entityView = transformFunction.apply(entity, columnsInfo.entityFields);
-        for (EntityField entityField : columnsInfo.commonEntityFields) {
-            if (entityField == EntityField.CREATED_TIME) {
-                long timestamp = Uuids.unixTimestamp(entity.getId().getId());
-                entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
-            }
-        }
-        if (!entityView.isSkipEntity()) {
-            fetchEntityAttributes(tenantId, entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
-        }
-        return entityView;
-    }
-
-    private void fetchEntityAttributes(TenantId tenantId, ShortEntityView entityView,
-                                       Map<String, List<String>> attributeScopeToKeysMap,
-                                       List<String> timeseriesKeys) {
-        EntityId entityId = entityView.getId();
-        attributeScopeToKeysMap.forEach((scope, attributeKeys) -> {
-            try {
-                List<AttributeKvEntry> attributeKvEntries = attributesService.find(tenantId, entityId, scope, attributeKeys).get();
-                attributeKvEntries.forEach(attributeKvEntry -> {
-                    entityView.put(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
-                });
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity attributes", e);
-            }
-        });
-        if (!timeseriesKeys.isEmpty()) {
-            try {
-                List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(tenantId, entityId, timeseriesKeys).get();
-                tsKvEntries.forEach(tsKvEntry -> {
-                    entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
-                });
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity telemetry timeseries", e);
-            }
-        }
-    }
-
-    private class EntityGroupColumnsInfo {
-        List<EntityField> commonEntityFields = new ArrayList<>();
-        List<EntityField> entityFields = new ArrayList<>();
-        Map<String, List<String>> attributeScopeToKeysMap = new HashMap<>();
-        List<String> timeseriesKeys = new ArrayList<>();
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

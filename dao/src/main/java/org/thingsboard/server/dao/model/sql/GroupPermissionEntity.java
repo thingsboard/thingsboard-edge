@@ -90,6 +90,7 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     }
 
     public GroupPermissionEntity(GroupPermission groupPermission) {
+        this.createdTime = groupPermission.getCreatedTime();
         if (groupPermission.getId() != null) {
             this.setUuid(groupPermission.getId().getId());
         }
@@ -112,7 +113,7 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(getUuid()));
-        groupPermission.setCreatedTime(Uuids.unixTimestamp(getUuid()));
+        groupPermission.setCreatedTime(this.createdTime);
         if (tenantId != null) {
             groupPermission.setTenantId(new TenantId(tenantId));
         }
