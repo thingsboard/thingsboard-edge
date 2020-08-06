@@ -936,6 +936,18 @@ export class EntityService {
       case EntityType.DASHBOARD:
         entityFieldKeys.push(entityFields.title.keyName);
         break;
+      case EntityType.CONVERTER:
+      case EntityType.INTEGRATION:
+      case EntityType.SCHEDULER_EVENT:
+      case EntityType.BLOB_ENTITY:
+      case EntityType.ROLE:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        break;
+      case EntityType.ENTITY_GROUP:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;
   }

@@ -113,6 +113,11 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.RULE_NODE, new HashSet<>(commonEntityFields));
         allowedEntityFieldMap.put(EntityType.WIDGET_TYPE, new HashSet<>(commonEntityFields));
         allowedEntityFieldMap.put(EntityType.WIDGETS_BUNDLE, new HashSet<>(commonEntityFields));
+        allowedEntityFieldMap.put(EntityType.CONVERTER, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.INTEGRATION, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.SCHEDULER_EVENT, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.BLOB_ENTITY, new HashSet<>(typedEntityFields));
+        allowedEntityFieldMap.put(EntityType.ROLE, new HashSet<>(typedEntityFields));
         allowedEntityFieldMap.put(EntityType.ENTITY_GROUP, new HashSet<>(entityGroupFields));
 
         entityFieldColumnMap.put(CREATED_TIME, ModelConstants.CREATED_TIME_PROPERTY);

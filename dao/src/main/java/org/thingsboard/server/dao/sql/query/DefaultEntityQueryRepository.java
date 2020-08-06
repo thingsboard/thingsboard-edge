@@ -301,6 +301,11 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.CUSTOMER, "customer");
         entityTableMap.put(EntityType.USER, "tb_user");
         entityTableMap.put(EntityType.TENANT, "tenant");
+        entityTableMap.put(EntityType.CONVERTER, "converter");
+        entityTableMap.put(EntityType.INTEGRATION, "integration");
+        entityTableMap.put(EntityType.SCHEDULER_EVENT, "scheduler_event");
+        entityTableMap.put(EntityType.BLOB_ENTITY, "blob_entity");
+        entityTableMap.put(EntityType.ROLE, "role");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
