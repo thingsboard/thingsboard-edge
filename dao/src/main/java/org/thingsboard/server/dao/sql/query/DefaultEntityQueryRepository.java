@@ -903,13 +903,22 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 } else {
                     hasFilters = true;
                 }
-                entityFlagsQuery.append("select re.to_id, ")
-                        .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
-                        .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
-                        .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
-                entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
-                entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
-                entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
+                if (!ctx.getEntityType().equals(EntityType.CUSTOMER)) {
+                    entityFlagsQuery.append("select re.to_id, ")
+                            .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                            .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                            .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
+                    entityFlagsQuery.append(" from relation re WHERE re.relation_type_group = 'FROM_ENTITY_GROUP' AND re.relation_type = 'Contains'");
+                    entityFlagsQuery.append(" AND re.from_id in (").append(HIERARCHICAL_GROUPS_ALL_QUERY).append(" and type = '").append(ctx.getEntityType()).append("')");
+                    entityFlagsQuery.append(" AND re.from_type = 'ENTITY_GROUP'");
+                } else {
+                    entityFlagsQuery.append("select c.id to_id, ")
+                            .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                            .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                            .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag");
+                    entityFlagsQuery.append(" from customer c WHERE ");
+                    entityFlagsQuery.append(" c.id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+                }
             }
             if (innerJoin || hasFilters) {
                 entitiesQuery.append(", COALESCE(readAttrFlag, 0) as ").append(ATTR_READ_FLAG);
