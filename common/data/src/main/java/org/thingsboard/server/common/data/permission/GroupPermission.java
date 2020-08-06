@@ -69,6 +69,8 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
 
     public static final Map<Resource, List<Operation>> EDGE_USER_PERMISSIONS = new HashMap<>();
     static {
+        EDGE_USER_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
+
         EDGE_USER_PERMISSIONS.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
         EDGE_USER_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
         EDGE_USER_PERMISSIONS.put(Resource.ALARM, Arrays.asList(Operation.ALL));

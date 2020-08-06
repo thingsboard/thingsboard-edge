@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -72,6 +73,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -159,6 +161,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -319,58 +322,7 @@ public class CloudManagerService {
                 this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
-        setTenantId();
-        cleanUp();
         processHandleMessages();
-    }
-
-    private void cleanUp() {
-        userService.deleteTenantAdmins(tenantId);
-        TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
-        if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
-            for (Customer customer : customers.getData()) {
-                userService.deleteCustomerUsers(tenantId, customer.getId());
-            }
-        }
-        ruleChainService.deleteRuleChainsByTenantId(tenantId);
-        deviceService.deleteDevicesByTenantId(tenantId);
-        assetService.deleteAssetsByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
-        dashboardService.deleteDashboardsByTenantId(tenantId);
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
-        whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
-        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
-        customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());
-
-        ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findAllEntityGroups(tenantId, tenantId);
-        try {
-            List<EntityGroup> entityGroups = entityGroupsFuture.get();
-            entityGroups.stream()
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_TENANT_USERS_NAME))
-                    .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId()));
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to delete entity groups", e);
-        }
-    }
-
-    private void setTenantId() {
-        // TODO: voba - refactor for a single tenant approach
-        TextPageData<Tenant> tenants = tenantService.findTenants(new TextPageLink(1));
-        if (tenants.getData() != null && !tenants.getData().isEmpty()) {
-            tenantId = tenants.getData().get(0).getId();
-        }
-        if (tenantId == null) {
-            Tenant savedTenant = createTenant();
-            tenantId = savedTenant.getTenantId();
-        }
-    }
-
-    private Tenant createTenant() {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Tenant");
-        return tenantService.saveTenant(tenant);
     }
 
     @PreDestroy
@@ -762,16 +714,73 @@ public class CloudManagerService {
                 scheduledFuture.cancel(true);
                 scheduledFuture = null;
             }
-            initialized = true;
+
+            UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
+            this.tenantId = getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
+
+            EdgeSettings currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
+            EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
+            if (currentEdgeSettings == null || !currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
+                cleanUp();
+            }
+
+            cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
+
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
-            saveEdgeSettings(edgeConfiguration);
+
+            initialized = true;
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
     }
 
-    private void saveEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
+    private void cleanUp() {
+        userService.deleteTenantAdmins(tenantId);
+        TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
+        if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
+            for (Customer customer : customers.getData()) {
+                userService.deleteCustomerUsers(tenantId, customer.getId());
+            }
+        }
+        ruleChainService.deleteRuleChainsByTenantId(tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
+        deviceService.deleteDevicesByTenantId(tenantId);
+        assetService.deleteAssetsByTenantId(tenantId);
+        dashboardService.deleteDashboardsByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
+        whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
+        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
+        customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());
+
+        try {
+            List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenantId, tenantId, DataConstants.SERVER_SCOPE).get();
+            List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
+            attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys);
+            ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findAllEntityGroups(tenantId, tenantId);
+            List<EntityGroup> entityGroups = entityGroupsFuture.get();
+            entityGroups.stream()
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_TENANT_USERS_NAME))
+                    .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId()));
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Unable to delete entity groups", e);
+        }
+    }
+
+    private Tenant getOrCreateTenant(TenantId tenantId) {
+        Tenant tenant = tenantService.findTenantById(tenantId);
+        if (tenant == null) {
+            tenant = new Tenant();
+            tenant.setTitle("Tenant");
+            tenant.setId(tenantId);
+            tenantService.saveTenant(tenant, true);
+        }
+        return tenant;
+    }
+
+    private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
         EdgeSettings edgeSettings = new EdgeSettings();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         edgeSettings.setEdgeId(edgeUUID.toString());
@@ -781,11 +790,8 @@ public class CloudManagerService {
         edgeSettings.setType(edgeConfiguration.getType());
         edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
         edgeSettings.setCloudType(edgeConfiguration.getCloudType());
-        BaseAttributeKvEntry edgeSettingAttr =
-                new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
-        List<AttributeKvEntry> attributes =
-                Collections.singletonList(edgeSettingAttr);
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+
+        return edgeSettings;
     }
 
     private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
@@ -965,6 +971,10 @@ public class CloudManagerService {
                 return new EntityViewId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case DASHBOARD:
                 return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case TENANT:
+                return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case CUSTOMER:
+                return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;
@@ -1004,8 +1014,10 @@ public class CloudManagerService {
 
     private void scheduleReconnect(Exception e) {
         initialized = false;
-        save(DefaultDeviceStateService.ACTIVITY_STATE, false);
-        save(DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
+        if (tenantId != null) {
+            save(DefaultDeviceStateService.ACTIVITY_STATE, false);
+            save(DefaultDeviceStateService.LAST_DISCONNECT_TIME, System.currentTimeMillis());
+        }
         if (scheduledFuture == null) {
             scheduledFuture = reconnectScheduler.scheduleAtFixedRate(() -> {
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());

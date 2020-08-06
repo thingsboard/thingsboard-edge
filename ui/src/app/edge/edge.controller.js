@@ -77,11 +77,13 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
             map[attribute.key] = attribute.value;
             return map;
         }, {});
-        vm.active = edge.active.toString();
-        vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
-        vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
-        vm.edgeSettings = angular.fromJson(edge.edgeSettings);
-        vm.activeStatus = vm.active === 'true' ? $translate.instant('edge.connected') : $translate.instant('edge.disconnected');
+        $scope.$applyAsync(() => {
+            vm.active = edge.active.toString();
+            vm.lastConnectTime = $filter('date')(edge.lastConnectTime, 'yyyy-MM-dd HH:mm:ss');
+            vm.lastDisconnectTime = $filter('date')(edge.lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss');
+            vm.edgeSettings = angular.fromJson(edge.edgeSettings);
+            vm.activeStatus = vm.active === 'true' ? $translate.instant('edge.connected') : $translate.instant('edge.disconnected');
+        })
     }
 
     function checkSubscription() {

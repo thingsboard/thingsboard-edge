@@ -47,17 +47,17 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     var currentCustomSection = null;
     var currentCustomChildSection = null;
-    var customerGroups = {
-        name: 'entity-group.customer-groups',
-        type: 'toggle',
-        state: 'home.customerGroups',
-        height: '0px',
-        icon: 'supervisor_account',
-        pages: [],
-        loaded: false,
-        childState: 'home.customerGroups.customerGroup',
-        groupType: types.entityType.customer
-    };
+    // var customerGroups = {
+    //     name: 'entity-group.customer-groups',
+    //     type: 'toggle',
+    //     state: 'home.customerGroups',
+    //     height: '0px',
+    //     icon: 'supervisor_account',
+    //     pages: [],
+    //     loaded: false,
+    //     childState: 'home.customerGroups.customerGroup',
+    //     groupType: types.entityType.customer
+    // };
 
     var assetGroups = {
         name: 'entity-group.asset-groups',
@@ -397,58 +397,58 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.converter)) {
-                    sections.push(
-                        {
-                            name: 'converter.converters',
-                            type: 'link',
-                            state: 'home.converters',
-                            icon: 'transform',
-                            disabled: disabledItems.indexOf('converters') > -1
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.integration)) {
-                    sections.push(
-                        {
-                            name: 'integration.integrations',
-                            type: 'link',
-                            state: 'home.integrations',
-                            icon: 'input',
-                            disabled: disabledItems.indexOf('integrations') > -1
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
-                    sections.push(
-                        {
-                            name: 'role.roles',
-                            type: 'link',
-                            state: 'home.roles',
-                            icon: 'security',
-                            disabled: disabledItems.indexOf('roles') > -1
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
-                    sections.push(
-                        {
-                            name: 'customers-hierarchy.customers-hierarchy',
-                            type: 'link',
-                            state: 'home.customers-hierarchy',
-                            icon: 'sort',
-                            disabled: disabledItems.indexOf('customers_hierarchy') > -1
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.converter)) {
+                //     sections.push(
+                //         {
+                //             name: 'converter.converters',
+                //             type: 'link',
+                //             state: 'home.converters',
+                //             icon: 'transform',
+                //             disabled: disabledItems.indexOf('converters') > -1
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.integration)) {
+                //     sections.push(
+                //         {
+                //             name: 'integration.integrations',
+                //             type: 'link',
+                //             state: 'home.integrations',
+                //             icon: 'input',
+                //             disabled: disabledItems.indexOf('integrations') > -1
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                //     sections.push(
+                //         {
+                //             name: 'role.roles',
+                //             type: 'link',
+                //             state: 'home.roles',
+                //             icon: 'security',
+                //             disabled: disabledItems.indexOf('roles') > -1
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                //     sections.push(
+                //         {
+                //             name: 'customers-hierarchy.customers-hierarchy',
+                //             type: 'link',
+                //             state: 'home.customers-hierarchy',
+                //             icon: 'sort',
+                //             disabled: disabledItems.indexOf('customers_hierarchy') > -1
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user) && disabledItems.indexOf('user_groups') === -1) {
                     sections.push(userGroups);
                     entityGroupSections.push(userGroups);
                 }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer) && disabledItems.indexOf('customer_groups') === -1) {
-                    sections.push(customerGroups);
-                    entityGroupSections.push(customerGroups);
-                }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer) && disabledItems.indexOf('customer_groups') === -1) {
+                //     sections.push(customerGroups);
+                //     entityGroupSections.push(customerGroups);
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset) && disabledItems.indexOf('asset_groups') === -1) {
                     sections.push(assetGroups);
                     entityGroupSections.push(assetGroups);
@@ -589,51 +589,51 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.converter)) {
-                    homeSections.push(
-                        {
-                            name: 'converter.management',
-                            places: [
-                                {
-                                    name: 'converter.converters',
-                                    icon: 'transform',
-                                    state: 'home.converters',
-                                    disabled: disabledItems.indexOf('converters') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.integration)) {
-                    homeSections.push(
-                        {
-                            name: 'integration.management',
-                            places: [
-                                {
-                                    name: 'integration.integrations',
-                                    icon: 'input',
-                                    state: 'home.integrations',
-                                    disabled: disabledItems.indexOf('integrations') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
-                    homeSections.push(
-                        {
-                            name: 'role.management',
-                            places: [
-                                {
-                                    name: 'role.roles',
-                                    icon: 'security',
-                                    state: 'home.roles',
-                                    disabled: disabledItems.indexOf('roles') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.converter)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'converter.management',
+                //             places: [
+                //                 {
+                //                     name: 'converter.converters',
+                //                     icon: 'transform',
+                //                     state: 'home.converters',
+                //                     disabled: disabledItems.indexOf('converters') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.integration)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'integration.management',
+                //             places: [
+                //                 {
+                //                     name: 'integration.integrations',
+                //                     icon: 'input',
+                //                     state: 'home.integrations',
+                //                     disabled: disabledItems.indexOf('integrations') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'role.management',
+                //             places: [
+                //                 {
+                //                     name: 'role.roles',
+                //                     icon: 'security',
+                //                     state: 'home.roles',
+                //                     disabled: disabledItems.indexOf('roles') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
                     homeSections.push(
                         {
@@ -650,28 +650,28 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
-                    homeSections.push(
-                        {
-                            name: 'customer.management',
-                            places: [
-                                {
-                                    name: 'customer.customers',
-                                    icon: 'supervisor_account',
-                                    //state: 'home.customers',
-                                    state: 'home.customerGroups',
-                                    disabled: disabledItems.indexOf('customer_groups') > -1
-                                },
-                                {
-                                    name: 'customers-hierarchy.customers-hierarchy',
-                                    icon: 'sort',
-                                    state: 'home.customers-hierarchy',
-                                    disabled: disabledItems.indexOf('customers_hierarchy') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'customer.management',
+                //             places: [
+                //                 {
+                //                     name: 'customer.customers',
+                //                     icon: 'supervisor_account',
+                //                     //state: 'home.customers',
+                //                     state: 'home.customerGroups',
+                //                     disabled: disabledItems.indexOf('customer_groups') > -1
+                //                 },
+                //                 {
+                //                     name: 'customers-hierarchy.customers-hierarchy',
+                //                     icon: 'sort',
+                //                     state: 'home.customers-hierarchy',
+                //                     disabled: disabledItems.indexOf('customers_hierarchy') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
                     homeSections.push(
                         {
@@ -857,36 +857,36 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         disabled: disabledItems.indexOf('home') > -1
                     }
                 );
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
-                    sections.push(
-                        {
-                            name: 'role.roles',
-                            type: 'link',
-                            state: 'home.roles',
-                            icon: 'security',
-                            disabled: disabledItems.indexOf('roles') > -1
-                        }
-                    );
-                }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
-                    sections.push(
-                        {
-                            name: 'customers-hierarchy.customers-hierarchy',
-                            type: 'link',
-                            state: 'home.customers-hierarchy',
-                            icon: 'sort',
-                            disabled: disabledItems.indexOf('customers_hierarchy') > -1
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                //     sections.push(
+                //         {
+                //             name: 'role.roles',
+                //             type: 'link',
+                //             state: 'home.roles',
+                //             icon: 'security',
+                //             disabled: disabledItems.indexOf('roles') > -1
+                //         }
+                //     );
+                // }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                //     sections.push(
+                //         {
+                //             name: 'customers-hierarchy.customers-hierarchy',
+                //             type: 'link',
+                //             state: 'home.customers-hierarchy',
+                //             icon: 'sort',
+                //             disabled: disabledItems.indexOf('customers_hierarchy') > -1
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user) && disabledItems.indexOf('user_groups') === -1) {
                     sections.push(userGroups);
                     entityGroupSections.push(userGroups);
                 }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer) && disabledItems.indexOf('customer_groups') === -1) {
-                    sections.push(customerGroups);
-                    entityGroupSections.push(customerGroups);
-                }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer) && disabledItems.indexOf('customer_groups') === -1) {
+                //     sections.push(customerGroups);
+                //     entityGroupSections.push(customerGroups);
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset) && disabledItems.indexOf('asset_groups') === -1) {
                     sections.push(assetGroups);
                     entityGroupSections.push(assetGroups);
@@ -903,7 +903,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(dashboardGroups);
                     entityGroupSections.push(dashboardGroups);
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     sections.push(
                         {
                             name: 'scheduler.scheduler',
@@ -914,7 +914,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isPEMenuAllowed() && userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     sections.push(
                         {
                             name: 'white-labeling.white-labeling',
@@ -968,21 +968,21 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
-                    homeSections.push(
-                        {
-                            name: 'role.management',
-                            places: [
-                                {
-                                    name: 'role.roles',
-                                    icon: 'security',
-                                    state: 'home.roles',
-                                    disabled: disabledItems.indexOf('roles') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.role)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'role.management',
+                //             places: [
+                //                 {
+                //                     name: 'role.roles',
+                //                     icon: 'security',
+                //                     state: 'home.roles',
+                //                     disabled: disabledItems.indexOf('roles') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.user)) {
                     homeSections.push(
                         {
@@ -999,28 +999,28 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
-                    homeSections.push(
-                        {
-                            name: 'customer.management',
-                            places: [
-                                {
-                                    name: 'customer.customers',
-                                    icon: 'supervisor_account',
-                                    //state: 'home.customers',
-                                    state: 'home.customerGroups',
-                                    disabled: disabledItems.indexOf('customer_groups') > -1
-                                },
-                                {
-                                    name: 'customers-hierarchy.customers-hierarchy',
-                                    icon: 'sort',
-                                    state: 'home.customers-hierarchy',
-                                    disabled: disabledItems.indexOf('customers_hierarchy') > -1
-                                }
-                            ]
-                        }
-                    );
-                }
+                // if (userPermissionsService.hasReadGroupsPermission(types.entityType.customer)) {
+                //     homeSections.push(
+                //         {
+                //             name: 'customer.management',
+                //             places: [
+                //                 {
+                //                     name: 'customer.customers',
+                //                     icon: 'supervisor_account',
+                //                     //state: 'home.customers',
+                //                     state: 'home.customerGroups',
+                //                     disabled: disabledItems.indexOf('customer_groups') > -1
+                //                 },
+                //                 {
+                //                     name: 'customers-hierarchy.customers-hierarchy',
+                //                     icon: 'sort',
+                //                     state: 'home.customers-hierarchy',
+                //                     disabled: disabledItems.indexOf('customers_hierarchy') > -1
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.asset)) {
                     homeSections.push(
                         {
@@ -1085,7 +1085,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
-                if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
+                if (userService.isPEMenuAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.schedulerEvent)) {
                     homeSections.push(
                         {
                             name: 'scheduler.management',
@@ -1101,7 +1101,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     );
                 }
 
-                if (userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
+                if (userService.isPEMenuAllowed() && userService.isWhiteLabelingAllowed() && userPermissionsService.hasReadGenericPermission(securityTypes.resource.whiteLabeling)) {
                     homeSections.push(
                         {
                             name: 'white-labeling.white-labeling',

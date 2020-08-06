@@ -35,55 +35,24 @@ export default angular.module('thingsboard.api.edge', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function EdgeService($q, $http, types) {
+function EdgeService($q, $http) {
 
     var service = {
-        getEdgeInfo: getEdgeInfo
+        getEdgeSetting: getEdgeSetting
     }
 
     return service;
 
-    function getEdgeInfo(tenantId) {
+    function getEdgeSetting() {
         var deferred = $q.defer();
-        var params = {
-            entityType: types.entityType.tenant,
-            entityId: tenantId,
-            attributeScope: types.attributesScope.server.value,
-            keys: ['edgeSettings'],
-            config: {},
-            query: { order: '', limit: 5, page: 1, search: null }
-        };
-        var promise = getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config);
-        if (promise) {
-            promise.then(
-                function success(result) {
-                    deferred.resolve(result[0]);
-                },
-                function fail() {
-                    deferred.reject();
-                }
-            );
-        } else {
-            deferred.reject();
-        }
-        return deferred.promise;
-    }
-
-    //TODO replace backend solution
-    function getEntityAttributesValues(entityType, entityId, attributeScope, keys, config) {
-        var deferred = $q.defer();
-        var url = '/api/plugins/telemetry/' + entityType + '/' + entityId + '/values/attributes/' + attributeScope;
-        if (keys && keys.length) {
-            url += '?keys=' + keys;
-        }
-        $http.get(url, config).then(function success(response) {
-            deferred.resolve(response.data);
+        var url = '/api/edge/settings';
+        $http.get(url).then(function success(response) {
+            deferred.resolve(response);
         }, function fail() {
             deferred.reject();
         });
         return deferred.promise;
     }
-
 }
 
 

@@ -48,6 +48,8 @@ public interface TenantService {
 
     Tenant saveTenant(Tenant tenant);
 
+    Tenant saveTenant(Tenant tenant, boolean forceCreate);
+
     void deleteTenant(TenantId tenantId);
 
     TextPageData<Tenant> findTenants(TextPageLink pageLink);
