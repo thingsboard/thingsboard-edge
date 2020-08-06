@@ -205,11 +205,15 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
                 @Override
                 protected void validateUpdate(TenantId tenantId, WidgetsBundle widgetsBundle) {
                     WidgetsBundle storedWidgetsBundle = widgetsBundleDao.findById(tenantId, widgetsBundle.getId().getId());
-                    if (!storedWidgetsBundle.getTenantId().getId().equals(widgetsBundle.getTenantId().getId())) {
-                        throw new DataValidationException("Can't move existing widgets bundle to different tenant!");
-                    }
-                    if (!storedWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
-                        throw new DataValidationException("Update of widgets bundle alias is prohibited!");
+                    if (storedWidgetsBundle != null) {
+                        if (!storedWidgetsBundle.getTenantId().getId().equals(widgetsBundle.getTenantId().getId())) {
+                            throw new DataValidationException("Can't move existing widgets bundle to different tenant!");
+                        }
+                        if (!storedWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            throw new DataValidationException("Update of widgets bundle alias is prohibited!");
+                        }
+                    } else {
+                        validateCreate(tenantId, widgetsBundle);
                     }
                 }
 

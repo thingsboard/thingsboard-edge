@@ -102,6 +102,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
@@ -136,6 +137,8 @@ import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.UserUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetTypeUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetsBundleUpdateProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
@@ -231,6 +234,9 @@ public class CloudManagerService {
     private EntityGroupService entityGroupService;
 
     @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
@@ -274,6 +280,12 @@ public class CloudManagerService {
 
     @Autowired
     private WhiteLabelingUpdateProcessor whiteLabelingUpdateProcessor;
+
+    @Autowired
+    private WidgetsBundleUpdateProcessor widgetsBundleUpdateProcessor;
+
+    @Autowired
+    private WidgetTypeUpdateProcessor widgetTypeUpdateProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -736,6 +748,8 @@ public class CloudManagerService {
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
+        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
         customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());
@@ -812,6 +826,12 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasRelationUpdateMsg()) {
                 log.debug("Relation update message received [{}]", entityUpdateMsg.getRelationUpdateMsg());
                 relationUpdateProcessor.onRelationUpdate(tenantId, entityUpdateMsg.getRelationUpdateMsg());
+            } else if (entityUpdateMsg.hasWidgetsBundleUpdateMsg()) {
+                log.debug("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
+                widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, entityUpdateMsg.getWidgetsBundleUpdateMsg());
+            } else if (entityUpdateMsg.hasWidgetTypeUpdateMsg()) {
+                log.debug("WidgetType update message received [{}]", entityUpdateMsg.getWidgetTypeUpdateMsg());
+                widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, entityUpdateMsg.getWidgetTypeUpdateMsg());
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
                 userUpdateProcessor.onUserUpdate(tenantId, entityUpdateMsg.getUserUpdateMsg());
