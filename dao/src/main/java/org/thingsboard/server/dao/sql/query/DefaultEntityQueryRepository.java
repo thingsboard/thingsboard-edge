@@ -497,6 +497,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             int totalElements = jdbcTemplate.queryForObject(countQuery, ctx, Integer.class);
 
+            if (totalElements == 0) {
+                return new PageData<>();
+            }
             String dataQuery = String.format("select * %s", fromClauseData);
 
             EntityDataSortOrder sortOrder = pageLink.getSortOrder();
