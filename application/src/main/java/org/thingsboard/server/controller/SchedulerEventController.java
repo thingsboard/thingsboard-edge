@@ -114,7 +114,8 @@ public class SchedulerEventController extends BaseController {
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(), schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(),
+                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
 
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);

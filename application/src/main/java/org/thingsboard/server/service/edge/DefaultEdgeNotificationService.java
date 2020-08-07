@@ -139,8 +139,18 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                                ActionType edgeEventAction,
                                EntityId entityId,
                                JsonNode entityBody) {
-        log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], edgeEventType [{}], edgeEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody);
+        saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody, null);
+    }
+
+    private void saveEdgeEvent(TenantId tenantId,
+                               EdgeId edgeId,
+                               EdgeEventType edgeEventType,
+                               ActionType edgeEventAction,
+                               EntityId entityId,
+                               JsonNode entityBody,
+                               EntityGroupId entityGroupId) {
+        log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], edgeEventType [{}], edgeEventAction[{}], entityId [{}], entityBody [{}], entityGroupId [{}]",
+                tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody, entityGroupId);
 
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setEdgeId(edgeId);
@@ -149,6 +159,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         edgeEvent.setEdgeEventAction(edgeEventAction.name());
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
+        }
+        if (entityGroupId != null) {
+            edgeEvent.setEntityGroupId(entityGroupId.getId());
         }
         edgeEvent.setEntityBody(entityBody);
         edgeEventService.saveAsync(edgeEvent);
@@ -210,12 +223,13 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         }
                     }
                 } else {
-                    ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getGroupType());
+                    ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getEntityGroupType());
                     Futures.transform(edgeIdsFuture, edgeIds -> {
                         if (edgeIds != null && !edgeIds.isEmpty()) {
+                            EntityGroupId entityGroupId = constructEntityGroupId(edgeNotificationMsg);
                             for (EdgeId edgeId : edgeIds) {
                                 try {
-                                    saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null);
+                                    saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null, entityGroupId);
                                 } catch (Exception e) {
                                     log.error("[{}] Failed to push event to edge, edgeId [{}], edgeEventType [{}], edgeEventActionType [{}], entityId [{}]",
                                             tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, e);
@@ -242,6 +256,14 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case RELATIONS_DELETED:
                 // TODO: voba - add support for relations deleted
                 break;
+        }
+    }
+
+    private EntityGroupId constructEntityGroupId(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        if (edgeNotificationMsg.getEntityGroupIdMSB() != 0 && edgeNotificationMsg.getEntityGroupIdLSB() != 0) {
+            return new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
+        } else {
+            return null;
         }
     }
 

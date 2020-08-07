@@ -508,14 +508,16 @@ public abstract class BaseController {
                 logEntityAction(savedEntity.getId(), savedEntity,
                         savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
-            }
 
-            sendNotificationMsgToEdgeService(savedEntity.getTenantId(), null, savedEntity.getId(),
-                    EdgeEventType.DASHBOARD, savedEntity.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+                sendNotificationMsgToEdgeService(getTenantId(), savedEntity.getId(), ActionType.ADDED_TO_ENTITY_GROUP);
+            }
 
             logEntityAction(savedEntity.getId(), savedEntity,
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
+                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
 
             return savedEntity;
 
