@@ -30,7 +30,8 @@
 ///
 
 import L, {
-  FeatureGroup, Icon,
+  FeatureGroup,
+  Icon,
   LatLngBounds,
   LatLngTuple,
   markerClusterGroup,
@@ -47,6 +48,7 @@ import {
   MarkerSettings,
   PolygonSettings,
   PolylineSettings,
+  ReplaceInfo,
   UnitedMapSettings
 } from './map-models';
 import { Marker } from './markers';
@@ -77,6 +79,10 @@ export default abstract class LeafletMap {
     defaultMarkerIconInfo: { size: number[], icon: Icon };
     loadingDiv: JQuery<HTMLElement>;
     loading = false;
+    replaceInfoLabelMarker: Array<ReplaceInfo> = [];
+    markerLabelText: string;
+    replaceInfoTooltipMarker: Array<ReplaceInfo> = [];
+    markerTooltipText: string;
 
     protected constructor(public ctx: WidgetContext,
                           public $container: HTMLElement,
