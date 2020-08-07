@@ -46,7 +46,7 @@ import { deepClone } from '@core/utils';
 export interface AlarmDataListener {
   subscriptionTimewindow?: SubscriptionTimewindow;
   alarmSource: Datasource;
-  alarmsLoaded: (pageData: PageData<AlarmData>, pageLink: AlarmDataPageLink, allowedEntities: number, totalEntities: number) => void;
+  alarmsLoaded: (pageData: PageData<AlarmData>, allowedEntities: number, totalEntities: number) => void;
   alarmsUpdated: (update: Array<AlarmData>, pageData: PageData<AlarmData>) => void;
   subscription?: AlarmDataSubscription;
 }
