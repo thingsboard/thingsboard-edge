@@ -35,7 +35,6 @@ import { PageData } from '@shared/models/page/page-data';
 import { AlarmData, AlarmDataPageLink, KeyFilter } from '@shared/models/query/query.models';
 import { Injectable } from '@angular/core';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
-import { UtilsService } from '@core/services/utils.service';
 import {
   AlarmDataSubscription,
   AlarmDataSubscriptionOptions,
@@ -56,8 +55,7 @@ export interface AlarmDataListener {
 })
 export class AlarmDataService {
 
-  constructor(private telemetryService: TelemetryWebsocketService,
-              private utils: UtilsService) {}
+  constructor(private telemetryService: TelemetryWebsocketService) {}
 
 
   public subscribeForAlarms(listener: AlarmDataListener,
@@ -103,7 +101,7 @@ export class AlarmDataService {
       alarmDataSubscriptionOptions.additionalKeyFilters = additionalKeyFilters;
     }
     return new AlarmDataSubscription(alarmDataSubscriptionOptions,
-      listener, this.telemetryService, this.utils);
+      listener, this.telemetryService);
   }
 
 }
