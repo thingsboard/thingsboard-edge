@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.mqtt;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
 
@@ -37,6 +38,7 @@ import org.thingsboard.integration.mqtt.credentials.MqttClientCredentials;
  * Created by ashvayka on 25.12.17.
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MqttClientConfiguration {
 
     private String host;
