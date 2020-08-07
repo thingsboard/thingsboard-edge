@@ -30,19 +30,19 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-tab *ngIf="entity && (entityGroup | hasEntityGroupPermission: operation.READ_ATTRIBUTES)"
+<mat-tab *ngIf="entity && (entityGroup | hasGroupEntityPermission: operation.READ_ATTRIBUTES)"
          label="{{ 'attribute.attributes' | translate }}" #attributesTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="entityType === entityTypes.DEVICE ? attributeScopes.CLIENT_SCOPE : attributeScopes.SERVER_SCOPE"
-                      [readonly]="!(entityGroup | hasEntityGroupPermission: operation.WRITE_ATTRIBUTES)"
+                      [readonly]="!(entityGroup | hasGroupEntityPermission: operation.WRITE_ATTRIBUTES)"
                       [active]="attributesTab.isActive"
                       [entityId]="entity.id"
                       [entityName]="entity.name">
   </tb-attribute-table>
 </mat-tab>
-<mat-tab *ngIf="entity && (entityGroup | hasEntityGroupPermission: operation.READ_TELEMETRY)"
+<mat-tab *ngIf="entity && (entityGroup | hasGroupEntityPermission: operation.READ_TELEMETRY)"
          label="{{ 'attribute.latest-telemetry' | translate }}" #telemetryTab="matTab">
   <tb-attribute-table [defaultAttributeScope]="latestTelemetryTypes.LATEST_TELEMETRY"
-                      [readonly]="!(entityGroup | hasEntityGroupPermission: operation.WRITE_TELEMETRY)"
+                      [readonly]="!(entityGroup | hasGroupEntityPermission: operation.WRITE_TELEMETRY)"
                       disableAttributeScopeSelection
                       [active]="telemetryTab.isActive"
                       [entityId]="entity.id"
