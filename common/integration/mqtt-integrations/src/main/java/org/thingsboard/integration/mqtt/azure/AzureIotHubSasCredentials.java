@@ -52,7 +52,6 @@ import java.util.Optional;
 
 @Data
 @Slf4j
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class AzureIotHubSasCredentials implements MqttClientCredentials {
     private String sasKey;
     private String caCert;
