@@ -30,9 +30,11 @@
  */
 package org.thingsboard.integration.aws.kinesis;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class KinesisClientConfiguration {
 
     private String streamName;
