@@ -121,8 +121,8 @@ public class DeviceController extends BaseController {
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
 
-            sendNotificationMsgToEdgeService(savedDevice.getTenantId(), null, savedDevice.getId(),
-                    EdgeEventType.DEVICE, device.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToEdgeService(savedDevice.getTenantId(), savedDevice.getId(),
+                    device.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
@@ -149,7 +149,7 @@ public class DeviceController extends BaseController {
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, deviceId, EdgeEventType.DEVICE, ActionType.DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), deviceId, ActionType.DELETED);
 
             deviceStateService.onDeviceDeleted(device);
         } catch (Exception e) {
@@ -193,7 +193,7 @@ public class DeviceController extends BaseController {
 
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId()), null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, device.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
+            sendNotificationMsgToEdgeService(getTenantId(), device.getId(), ActionType.CREDENTIALS_UPDATED);
 
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),

@@ -263,6 +263,8 @@ public final class EdgeGrpcSession implements Closeable {
                             case ALARM_ACK:
                             case ALARM_CLEAR:
                             case CREDENTIALS_UPDATED:
+                            case RELATION_ADD_OR_UPDATE:
+                            case RELATION_DELETED:
                                 processEntityMessage(edgeEvent, edgeEventAction);
                                 break;
                             case ATTRIBUTES_UPDATED:
@@ -847,9 +849,11 @@ public final class EdgeGrpcSession implements Closeable {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
+            case RELATION_ADD_OR_UPDATE:
                 return ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
+            case RELATION_DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:

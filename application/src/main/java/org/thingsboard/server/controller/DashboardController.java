@@ -149,7 +149,7 @@ public class DashboardController extends BaseController {
                     null,
                     ActionType.DELETED, null, strDashboardId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, dashboardId, EdgeEventType.DASHBOARD, ActionType.DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), dashboardId, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DASHBOARD),
                     null,

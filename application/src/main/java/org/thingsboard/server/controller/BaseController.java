@@ -1110,14 +1110,14 @@ public abstract class BaseController {
     }
 
     protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, ActionType edgeEventAction) {
-        EdgeEventType edgeEventType = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
-        if (edgeEventType != null) {
-            sendNotificationMsgToEdgeService(tenantId, null, entityId, null, edgeEventType, edgeEventAction, null);
-        }
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, edgeEventAction);
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventType edgeEventType, ActionType edgeEventAction) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, edgeEventType, edgeEventAction, null);
+    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, ActionType edgeEventAction) {
+        EdgeEventType edgeEventType = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
+        if (edgeEventType != null) {
+            sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, edgeEventType, edgeEventAction, null);
+        }
     }
 
     protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, ActionType edgeEventAction) {
@@ -1143,7 +1143,7 @@ public abstract class BaseController {
             builder.setEntityBody(entityBody);
         }
         if (groupType != null) {
-            builder.setGroupType(groupType.name());
+            builder.setEntityGroupType(groupType.name());
         }
         TransportProtos.EdgeNotificationMsgProto msg = builder.build();
         tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
