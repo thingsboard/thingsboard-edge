@@ -33,9 +33,18 @@ package org.thingsboard.server.service.cloud.processor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
@@ -47,7 +56,7 @@ import java.util.UUID;
 public class RelationUpdateProcessor extends BaseUpdateProcessor {
 
     public void onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
-        log.info("onRelationUpdate {}", relationUpdateMsg);
+        log.debug("onRelationUpdate {}", relationUpdateMsg);
         try {
             EntityRelation entityRelation = new EntityRelation();
 
@@ -66,7 +75,10 @@ public class RelationUpdateProcessor extends BaseUpdateProcessor {
             switch (relationUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    relationService.saveRelationAsync(tenantId, entityRelation);
+                    if (isEntityExists(tenantId, entityRelation.getTo())
+                            && isEntityExists(tenantId, entityRelation.getFrom())) {
+                        relationService.saveRelationAsync(tenantId, entityRelation);
+                    }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
                     relationService.deleteRelation(tenantId, entityRelation);
@@ -77,5 +89,27 @@ public class RelationUpdateProcessor extends BaseUpdateProcessor {
         } catch (Exception e) {
             log.error("Error during relation update msg", e);
         }
+    }
+
+    private boolean isEntityExists(TenantId tenantId, EntityId entityId) throws ThingsboardException {
+        switch (entityId.getEntityType()) {
+            case DEVICE:
+                return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
+            case ASSET:
+                return assetService.findAssetById(tenantId, new AssetId(entityId.getId())) != null;
+            case ENTITY_VIEW:
+                return entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
+            case CUSTOMER:
+                return customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
+            case USER:
+                return userService.findUserById(tenantId, new UserId(entityId.getId())) != null;
+            case DASHBOARD:
+                return dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
+            case ENTITY_GROUP:
+                return entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
+            default:
+                throw new ThingsboardException("Unsupported entity type " + entityId.getEntityType(), ThingsboardErrorCode.INVALID_ARGUMENTS);
+        }
+
     }
 }
