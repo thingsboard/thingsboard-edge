@@ -363,7 +363,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.ADDED_TO_ENTITY_GROUP);
+                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {

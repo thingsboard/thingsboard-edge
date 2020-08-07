@@ -213,7 +213,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             // case ADDED:
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
-            case REMOVED_FROM_ENTITY_GROUP:
             case CREDENTIALS_UPDATED:
                 if (edgeEventType.equals(EdgeEventType.WIDGETS_BUNDLE) || edgeEventType.equals(EdgeEventType.WIDGET_TYPE)) {
                     TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
@@ -241,10 +240,12 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 }
                 break;
             case DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
                 TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
                 if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
+                    EntityGroupId entityGroupId = constructEntityGroupId(edgeNotificationMsg);
                     for (Edge edge : edgesByTenantId.getData()) {
-                        saveEdgeEvent(tenantId, edge.getId(), edgeEventType, edgeEventActionType, entityId, null);
+                        saveEdgeEvent(tenantId, edge.getId(), edgeEventType, edgeEventActionType, entityId, null, entityGroupId);
                     }
                 }
                 break;
