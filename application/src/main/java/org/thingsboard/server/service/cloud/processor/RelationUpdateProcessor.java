@@ -56,7 +56,6 @@ import java.util.UUID;
 public class RelationUpdateProcessor extends BaseUpdateProcessor {
 
     public void onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
-        log.debug("onRelationUpdate {}", relationUpdateMsg);
         try {
             EntityRelation entityRelation = new EntityRelation();
 

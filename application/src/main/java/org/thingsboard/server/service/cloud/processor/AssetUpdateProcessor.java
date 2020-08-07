@@ -51,7 +51,6 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
     private final Lock assetCreationLock = new ReentrantLock();
 
     public void onAssetUpdate(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
-        log.info("onAssetUpdate {}", assetUpdateMsg);
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

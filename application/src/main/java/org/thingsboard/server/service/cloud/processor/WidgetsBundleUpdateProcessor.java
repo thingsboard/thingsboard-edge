@@ -48,7 +48,6 @@ public class WidgetsBundleUpdateProcessor extends BaseUpdateProcessor {
     private final Lock widgetBundleCreationLock = new ReentrantLock();
 
     public void onWidgetsBundleUpdate(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
-        log.info("onWidgetsBundleUpdate {}", widgetsBundleUpdateMsg);
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

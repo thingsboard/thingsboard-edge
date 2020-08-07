@@ -67,7 +67,6 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
     private UserService userService;
 
     public void onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
-        log.info("onUserUpdate {}", userUpdateMsg);
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

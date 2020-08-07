@@ -56,7 +56,6 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
     private CustomerService customerService;
 
     public void onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
-        log.info("onCustomerUpdate {}", customerUpdateMsg);
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

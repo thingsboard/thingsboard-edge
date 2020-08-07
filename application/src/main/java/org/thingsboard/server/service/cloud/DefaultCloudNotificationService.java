@@ -103,7 +103,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                                 EntityId entityId,
                                 JsonNode entityBody,
                                 EntityId entityGroupId) {
-        log.debug("Pushing cloud event to cloud queue. tenantId [{}], cloudEventType [{}], " +
+        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], " +
                         "cloudEventAction[{}], entityId [{}], entityBody [{}], entityGroupId [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody, entityGroupId);
 

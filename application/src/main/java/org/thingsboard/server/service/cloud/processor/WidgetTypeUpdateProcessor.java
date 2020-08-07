@@ -49,7 +49,6 @@ public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
     private final Lock widgetTypeCreationLock = new ReentrantLock();
 
     public void onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
-        log.info("onWidgetTypeUpdate {}", widgetTypeUpdateMsg);
         WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
         switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

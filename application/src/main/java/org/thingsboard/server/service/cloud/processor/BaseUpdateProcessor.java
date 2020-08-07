@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -65,6 +66,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -94,6 +96,12 @@ public abstract class BaseUpdateProcessor {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected UserService userService;
+
+    @Autowired
+    protected CustomerService customerService;
 
     @Autowired
     protected DashboardService dashboardService;
@@ -194,7 +202,7 @@ public abstract class BaseUpdateProcessor {
                                   ActionType cloudEventAction,
                                   EntityId entityId,
                                   JsonNode entityBody) {
-        log.debug("Pushing cloud event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
         CloudEvent cloudEvent = new CloudEvent();

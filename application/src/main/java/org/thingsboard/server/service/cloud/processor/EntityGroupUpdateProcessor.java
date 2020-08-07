@@ -41,12 +41,20 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -58,7 +66,6 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
     public void onEntityGroupUpdate(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
-        log.info("onEntityGroupUpdate {}", entityGroupUpdateMsg);
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -91,7 +98,36 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                     @Override
                     public void onSuccess(@Nullable EntityGroup entityGroup) {
                         if (entityGroup != null) {
-                            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                            Futures.addCallback(entityIdsFuture, new FutureCallback<List<EntityId>>() {
+                                @Override
+                                public void onSuccess(@Nullable List<EntityId> entityIds) {
+                                    if (entityIds != null && !entityIds.isEmpty()) {
+                                        for (EntityId entityId : entityIds) {
+                                            ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                                            Futures.addCallback(entityGroupsForEntityFuture, new FutureCallback<List<EntityGroupId>>() {
+                                                @Override
+                                                public void onSuccess(@Nullable List<EntityGroupId> entityGroupIds) {
+                                                    if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
+                                                        deleteEntityById(tenantId, entityId);
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(Throwable t) {
+                                                    log.error("Can't find entity groups for entity, entityId [{}]", entityId, t);
+                                                }
+                                            }, dbCallbackExecutor);
+                                        }
+                                    }
+                                    entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+                                }
+
+                                @Override
+                                public void onFailure(Throwable t) {
+                                    log.error("Can't find entity ids, entityGroupUpdateMsg [{}]", entityGroupUpdateMsg, t);
+                                }
+                            }, dbCallbackExecutor);
                         }
                     }
 
@@ -110,6 +146,26 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
             ObjectNode body = mapper.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
             saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
+        }
+    }
+
+    private void deleteEntityById(TenantId tenantId, EntityId entityId) {
+        switch (entityId.getEntityType()) {
+            case DEVICE:
+                deviceService.deleteDevice(tenantId, new DeviceId(entityId.getId()));
+                break;
+            case ASSET:
+                assetService.deleteAsset(tenantId, new AssetId(entityId.getId()));
+                break;
+            case ENTITY_VIEW:
+                entityViewService.deleteEntityView(tenantId, new EntityViewId(entityId.getId()));
+                break;
+            case USER:
+                userService.deleteUser(tenantId, new UserId(entityId.getId()));
+                break;
+            case DASHBOARD:
+                dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));
+                break;
         }
     }
 }

@@ -80,7 +80,6 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
     private final Lock deviceCreationLock = new ReentrantLock();
 
     public void onDeviceUpdate(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
-        log.info("onDeviceUpdate {}", deviceUpdateMsg);
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

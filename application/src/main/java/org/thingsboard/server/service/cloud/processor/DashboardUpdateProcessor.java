@@ -57,7 +57,6 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
     private DashboardService dashboardService;
 
     public void onDashboardUpdate(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) {
-        log.info("DashboardUpdateMsg {}", dashboardUpdateMsg);
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:

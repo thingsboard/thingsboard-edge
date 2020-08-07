@@ -835,10 +835,10 @@ public class CloudManagerService {
                 log.debug("Relation update message received [{}]", entityUpdateMsg.getRelationUpdateMsg());
                 relationUpdateProcessor.onRelationUpdate(tenantId, entityUpdateMsg.getRelationUpdateMsg());
             } else if (entityUpdateMsg.hasWidgetsBundleUpdateMsg()) {
-                log.debug("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
+                log.trace("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
                 widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, entityUpdateMsg.getWidgetsBundleUpdateMsg());
             } else if (entityUpdateMsg.hasWidgetTypeUpdateMsg()) {
-                log.debug("WidgetType update message received [{}]", entityUpdateMsg.getWidgetTypeUpdateMsg());
+                log.trace("WidgetType update message received [{}]", entityUpdateMsg.getWidgetTypeUpdateMsg());
                 widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, entityUpdateMsg.getWidgetTypeUpdateMsg());
             } else if (entityUpdateMsg.hasUserUpdateMsg()) {
                 log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
@@ -919,7 +919,7 @@ public class CloudManagerService {
                                 ActionType cloudEventAction,
                                 EntityId entityId,
                                 JsonNode entityBody) {
-        log.debug("Pushing cloud event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
+        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
         CloudEvent cloudEvent = new CloudEvent();

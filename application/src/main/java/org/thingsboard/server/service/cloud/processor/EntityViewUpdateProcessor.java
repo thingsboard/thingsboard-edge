@@ -54,7 +54,6 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
     private final Lock entityViewCreationLock = new ReentrantLock();
 
     public void onEntityViewUpdate(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg) {
-        log.info("onEntityViewUpdate {}", entityViewUpdateMsg);
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
