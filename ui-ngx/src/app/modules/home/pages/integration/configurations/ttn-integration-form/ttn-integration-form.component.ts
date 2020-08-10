@@ -72,7 +72,7 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
   }
 
   onIntegrationFormSet() {
-    this.hostRegionSuffix = this.integrationType === "TTN" ? '.thethings.network' : '.thethings.industries';
+    this.hostRegionSuffix = this.integrationType === "TTN" ? '.thethings.network' : '.cloud.thethings.industries';
     const hostType: string = this.form.get('customHost').value ? 'Custom' : 'Region';
     this.currentHostType.patchValue(hostType, {emitEvent: false});
     const host: string = this.form.get('host').value;
