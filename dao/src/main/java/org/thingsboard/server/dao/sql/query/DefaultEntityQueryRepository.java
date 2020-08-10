@@ -288,6 +288,22 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select name from entity_view where id = entity_id)" +
             " END as label";
+    private static final String SELECT_ADDITIONAL_INFO = " CASE" +
+            " WHEN entity.entity_type = 'TENANT'" +
+            " THEN (select additional_info from tenant where id = entity_id)" +
+            " WHEN entity.entity_type = 'CUSTOMER' " +
+            " THEN (select additional_info from customer where id = entity_id)" +
+            " WHEN entity.entity_type = 'USER'" +
+            " THEN (select additional_info from tb_user where id = entity_id)" +
+            " WHEN entity.entity_type = 'DASHBOARD'" +
+            " THEN (select '' from dashboard where id = entity_id)" +
+            " WHEN entity.entity_type = 'ASSET'" +
+            " THEN (select additional_info from asset where id = entity_id)" +
+            " WHEN entity.entity_type = 'DEVICE'" +
+            " THEN (select additional_info from device where id = entity_id)" +
+            " WHEN entity.entity_type = 'ENTITY_VIEW'" +
+            " THEN (select additional_info from entity_view where id = entity_id)" +
+            " END as label";
 
     public static final String ATTR_READ_FLAG = "attr_read";
     public static final String TS_READ_FLAG = "ts_read";
@@ -364,16 +380,15 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private final AlarmRepository alarmRepository;
     private final BlobEntityRepository blobEntityRepository;
 
-
-    @Value("${sql.log_entity_queries:false}")
-    private boolean logSqlQueries;
+    private final DefaultQueryLogComponent queryLog;
 
     public DefaultEntityQueryRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate,
                                         AssetRepository assetRepository, CustomerRepository customerRepository,
                                         DeviceRepository deviceRepository, EntityViewRepository entityViewRepository,
                                         UserRepository userRepository, DashboardRepository dashboardRepository,
                                         EntityGroupRepository entityGroupRepository, SchedulerEventRepository schedulerEventRepository,
-                                        RoleRepository roleRepository, AlarmRepository alarmRepository, BlobEntityRepository blobEntityRepository) {
+                                        RoleRepository roleRepository, AlarmRepository alarmRepository, BlobEntityRepository blobEntityRepository
+            , DefaultQueryLogComponent queryLog) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.assetRepository = assetRepository;
@@ -387,6 +402,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         this.roleRepository = roleRepository;
         this.alarmRepository = alarmRepository;
         this.blobEntityRepository = blobEntityRepository;
+        this.queryLog = queryLog;
     }
 
     @Override
@@ -400,11 +416,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             ctx.append(" where ");
             ctx.append(entityWhereClause);
         }
-        if (logSqlQueries) {
-            log.info("QUERY: {}", ctx.getQuery());
-            Arrays.asList(ctx.getParameterNames()).forEach(param -> log.info("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
-        }
-        return transactionTemplate.execute(status -> jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class));
+        return transactionTemplate.execute(status -> {
+            long startTs = System.currentTimeMillis();
+            try {
+                return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
+            }finally {
+                queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+            }
+        });
     }
 
     @Override
@@ -497,10 +516,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
 
             String countQuery = String.format("select count(*) %s", fromClauseCount);
-            if (log.isInfoEnabled()) {
-                log.info("COUNT QUERY: {}", countQuery);
+
+            long startTs = System.currentTimeMillis();
+            int totalElements;
+            try {
+                totalElements = jdbcTemplate.queryForObject(countQuery, ctx, Integer.class);
+            } finally {
+                queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
             }
-            int totalElements = jdbcTemplate.queryForObject(countQuery, ctx, Integer.class);
 
             if (totalElements == 0) {
                 return new PageData<>();
@@ -525,13 +548,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (pageLink.getPageSize() > 0) {
                 dataQuery = String.format("%s limit %s offset %s", dataQuery, pageLink.getPageSize(), startIndex);
             }
-            if (logSqlQueries) {
-                log.info("QUERY: {}", dataQuery);
-                Arrays.asList(ctx.getParameterNames()).forEach(param -> log.info("QUERY PARAM: {}->{}", param, ctx.getValue(param)));
-            }
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(dataQuery, ctx);
-            if (logSqlQueries) {
-                log.info("QUERY COMPLETED");
+            startTs = System.currentTimeMillis();
+            List<Map<String, Object>> rows;
+            try {
+                rows = jdbcTemplate.queryForList(dataQuery, ctx);
+            } finally {
+                queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
             }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
@@ -1328,7 +1350,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 + SELECT_TYPE + ", " + SELECT_NAME + ", " + SELECT_LABEL + ", " +
                 SELECT_FIRST_NAME + ", " + SELECT_LAST_NAME + ", " + SELECT_EMAIL + ", " + SELECT_REGION + ", " +
                 SELECT_TITLE + ", " + SELECT_COUNTRY + ", " + SELECT_STATE + ", " + SELECT_CITY + ", " +
-                SELECT_ADDRESS + ", " + SELECT_ADDRESS_2 + ", " + SELECT_ZIP + ", " + SELECT_PHONE +
+                SELECT_ADDRESS + ", " + SELECT_ADDRESS_2 + ", " + SELECT_ZIP + ", " + SELECT_PHONE + ", " + SELECT_ADDITIONAL_INFO +
                 ", entity.entity_type as entity_type";
         String from = getQueryTemplate(entityFilter.getDirection());
         ctx.addUuidParameter("relation_root_id", rootId.getId());
@@ -1414,7 +1436,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         if (!StringUtils.isEmpty(searchText) && !selectionMapping.isEmpty()) {
             String lowerSearchText = "%" + searchText.toLowerCase() + "%";
             ctx.addStringParameter("lowerSearchTextParam", lowerSearchText);
-            List<String> searchAliases = selectionMapping.stream().map(EntityKeyMapping::getValueAlias).collect(Collectors.toList());
+            List<String> searchAliases = selectionMapping.stream().filter(EntityKeyMapping::isSearchable).map(EntityKeyMapping::getValueAlias).collect(Collectors.toList());
             String searchAliasesExpression;
             if (searchAliases.size() > 1) {
                 searchAliasesExpression = "CONCAT(" + String.join(" , ", searchAliases) + ")";

@@ -108,6 +108,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
                                 AttributesService attributesService, SubscriptionServiceStatistics stats,
                                 TelemetryWebSocketSessionRef sessionRef, int cmdId) {
         this.serviceId = serviceId;
+
         this.wsService = wsService;
         this.entityService = entityService;
         this.localSubscriptionService = localSubscriptionService;
@@ -116,7 +117,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         this.sessionRef = sessionRef;
         this.cmdId = cmdId;
         this.subToEntityIdMap = new ConcurrentHashMap<>();
-        this.subToDynamicValueKeySet = new ConcurrentHashMap<>();
+        this.subToDynamicValueKeySet = ConcurrentHashMap.newKeySet();
         this.dynamicValues = new ConcurrentHashMap<>();
     }
 
