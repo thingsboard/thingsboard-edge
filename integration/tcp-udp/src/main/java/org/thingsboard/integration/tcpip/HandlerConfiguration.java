@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.tcpip;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
@@ -45,6 +46,7 @@ import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
         @JsonSubTypes.Type(value = JsonHandlerConfiguration.class, name = "JSON"),
         @JsonSubTypes.Type(value = HexHandlerConfiguration.class, name = "HEX")
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public interface HandlerConfiguration {
 
     String getHandlerType();

@@ -94,6 +94,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
         if (schedulerEventInfo.getId() != null) {
             this.setUuid(schedulerEventInfo.getId().getId());
         }
+        this.setCreatedTime(schedulerEventInfo.getCreatedTime());
         if (schedulerEventInfo.getTenantId() != null) {
             this.tenantId = schedulerEventInfo.getTenantId().getId();
         }
@@ -108,6 +109,7 @@ public abstract class AbstractSchedulerEventInfoEntity<T extends SchedulerEventI
 
     public AbstractSchedulerEventInfoEntity(SchedulerEventInfoEntity schedulerEventInfoEntity) {
         this.setId(schedulerEventInfoEntity.getId());
+        this.setCreatedTime(schedulerEventInfoEntity.getCreatedTime());
         this.tenantId = schedulerEventInfoEntity.getTenantId();
         this.customerId = schedulerEventInfoEntity.getCustomerId();
         this.type = schedulerEventInfoEntity.getType();

@@ -40,6 +40,7 @@ import { map } from 'rxjs/operators';
 import { DOCUMENT } from '@angular/common';
 import { WINDOW } from '@core/services/window.service';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { isDefinedAndNotNull } from '@core/utils';
 
 // @dynamic
 @Injectable({
@@ -60,7 +61,11 @@ export class BlobEntityService {
 
   public getBlobEntities(pageLink: TimePageLink, type: string = '',
                          config?: RequestConfig): Observable<PageData<BlobEntityWithCustomerInfo>> {
-    return this.http.get<PageData<BlobEntityWithCustomerInfo>>(`/api/blobEntities${pageLink.toQuery()}&type=${type}`,
+    let url = `/api/blobEntities${pageLink.toQuery()}`;
+    if (isDefinedAndNotNull(type)) {
+      url += `&type=${type}`;
+    }
+    return this.http.get<PageData<BlobEntityWithCustomerInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

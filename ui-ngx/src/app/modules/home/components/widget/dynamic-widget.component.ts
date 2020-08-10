@@ -56,6 +56,7 @@ import { CustomDialogService } from '@home/components/widget/dialog/custom-dialo
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 export class DynamicWidgetComponent extends PageComponent implements IDynamicWidgetComponent, OnInit, OnDestroy {
 
@@ -91,6 +92,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.date = $injector.get(DatePipe);
     this.ctx.translate = $injector.get(TranslateService);
     this.ctx.http = $injector.get(HttpClient);
+    this.ctx.sanitizer = $injector.get(DomSanitizer);
 
     this.ctx.$scope = this;
     if (this.ctx.defaultSubscription) {

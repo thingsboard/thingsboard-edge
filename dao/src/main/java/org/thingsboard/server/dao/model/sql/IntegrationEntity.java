@@ -147,7 +147,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Override
     public Integration toData() {
         Integration integration = new Integration(new IntegrationId(id));
-        integration.setCreatedTime(Uuids.unixTimestamp(id));
+        integration.setCreatedTime(this.createdTime);
         if (tenantId != null) {
             integration.setTenantId(new TenantId(tenantId));
         }
