@@ -38,11 +38,12 @@ import L, {
   MarkerClusterGroup,
   MarkerClusterGroupOptions
 } from 'leaflet';
-
+import tinycolor from 'tinycolor2';
 import 'leaflet-providers';
 import 'leaflet.markercluster/dist/leaflet.markercluster';
 
 import {
+  defaultSettings,
   FormattedData,
   MapSettings,
   MarkerSettings,
@@ -59,7 +60,7 @@ import { Polygon } from './polygon';
 import { createLoadingDiv, createTooltip, parseArray, safeExecute } from '@home/components/widget/lib/maps/maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { DatasourceData } from '@shared/models/widget.models';
-import { deepClone, isDefinedAndNotNull } from '@core/utils';
+import { deepClone, isDefinedAndNotEmptyStr } from '@core/utils';
 
 export default abstract class LeafletMap {
 
@@ -91,6 +92,7 @@ export default abstract class LeafletMap {
     }
 
     public initSettings(options: MapSettings) {
+        this.options.tinyColor = tinycolor(this.options.color || defaultSettings.color);
         const { initCallback,
             disableScrollZooming,
             useClusterMarkers,
@@ -291,7 +293,7 @@ export default abstract class LeafletMap {
         if (!expression) return null;
         const lat = expression[this.options.latKeyName];
         const lng = expression[this.options.lngKeyName];
-        if (!isDefinedAndNotNull(lat) || isNaN(lat) || !isDefinedAndNotNull(lng) || isNaN(lng)) {
+        if (!isDefinedAndNotEmptyStr(lat) || isNaN(lat) || !isDefinedAndNotEmptyStr(lng) || isNaN(lng)) {
           return null;
         }
         return L.latLng(lat, lng) as L.LatLng;
@@ -335,9 +337,13 @@ export default abstract class LeafletMap {
         bounds.extend(polygon.leafletPoly.getBounds());
       });
     }
-    this.markers.forEach((marker) => {
-      bounds.extend(marker.leafletMarker.getLatLng());
-    });
+    if ((this.options as MarkerSettings).useClusterMarkers) {
+      bounds.extend(this.markersCluster.getBounds());
+    } else {
+      this.markers.forEach((marker) => {
+        bounds.extend(marker.leafletMarker.getLatLng());
+      });
+    }
 
     const mapBounds = this.map.getBounds();
     if (bounds.isValid() && (!this.bounds || !mapBounds.contains(bounds))) {
@@ -411,16 +417,20 @@ export default abstract class LeafletMap {
 
     private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings,
                          updateBounds = true, callback?): Marker {
-        const newMarker = new Marker(this, this.convertPosition(data), settings, data, dataSources, this.dragMarker);
-        if (callback)
-            newMarker.leafletMarker.on('click', () => { callback(data, true) });
-        if (this.bounds && updateBounds)
-            this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()));
-        this.markers.set(key, newMarker);
-        if (!this.options.useClusterMarkers) {
-          this.map.addLayer(newMarker.leafletMarker);
-        }
-        return newMarker;
+      const newMarker = new Marker(this, this.convertPosition(data), settings, data, dataSources, this.dragMarker);
+      if (callback) {
+        newMarker.leafletMarker.on('click', () => {
+          callback(data, true)
+        });
+      }
+      if (this.bounds && updateBounds && !(this.options as MarkerSettings).useClusterMarkers) {
+        this.fitBounds(this.bounds.extend(newMarker.leafletMarker.getLatLng()));
+      }
+      this.markers.set(key, newMarker);
+      if (!this.options.useClusterMarkers) {
+        this.map.addLayer(newMarker.leafletMarker);
+      }
+      return newMarker;
     }
 
     private updateMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings): Marker {
@@ -539,7 +549,7 @@ export default abstract class LeafletMap {
     const keys: string[] = [];
     this.polygonsData = deepClone(polyData);
     polyData.forEach((data: FormattedData) => {
-      if (data && data.hasOwnProperty(this.options.polygonKeyName) && data[this.options.polygonKeyName] !== null) {
+      if (data && isDefinedAndNotEmptyStr(data[this.options.polygonKeyName])) {
         if (typeof (data[this.options.polygonKeyName]) === 'string') {
           data[this.options.polygonKeyName] = JSON.parse(data[this.options.polygonKeyName]);
         }

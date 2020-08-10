@@ -617,6 +617,10 @@ export const entityInfoFields: EntityKey[] = [
   {
     type: EntityKeyType.ENTITY_FIELD,
     key: 'label'
+  },
+  {
+    type: EntityKeyType.ENTITY_FIELD,
+    key: 'additionalInfo'
   }
 ];
 
@@ -637,7 +641,18 @@ export function entityDataToEntityInfo(entityData: EntityData): EntityInfo {
     } else {
       entityInfo.label = '';
     }
-    entityInfo.entityDescription = 'TODO: Not implemented';
+    entityInfo.entityDescription = '';
+    if (fields.additionalInfo) {
+      const additionalInfo = fields.additionalInfo.value;
+      if (additionalInfo && additionalInfo.length) {
+        try {
+          const additionalInfoJson = JSON.parse(additionalInfo);
+          if (additionalInfoJson && additionalInfoJson.description) {
+            entityInfo.entityDescription = additionalInfoJson.description;
+          }
+        } catch (e) {}
+      }
+    }
   }
   return entityInfo;
 }

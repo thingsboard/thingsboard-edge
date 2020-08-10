@@ -880,6 +880,9 @@ export class EntityService {
     }
     if (useAliasEntityTypes) {
       entityTypes.push(AliasEntityType.CURRENT_USER);
+      if (authUser.authority !== Authority.SYS_ADMIN) {
+        entityTypes.push(AliasEntityType.CURRENT_USER_OWNER);
+      }
     }
     if (allowedEntityTypes && allowedEntityTypes.length) {
       for (let index = entityTypes.length - 1; index >= 0; index--) {
@@ -1302,16 +1305,20 @@ export class EntityService {
       );
       observables.push(observable);
     }
-    return forkJoin(observables).pipe(
-      map((response) => {
-        const hasError = response.filter((status) => status === 'error').length > 0;
-        if (hasError) {
-          throw Error();
-        } else {
-          return response;
-        }
-      })
-    );
+    if (observables.length) {
+      return forkJoin(observables).pipe(
+        map((response) => {
+          const hasError = response.filter((status) => status === 'error').length > 0;
+          if (hasError) {
+            throw Error();
+          } else {
+            return response;
+          }
+        })
+      );
+    } else {
+      return of(null);
+    }
   }
 
   private getStateEntityInfo(filter: EntityAliasFilter, stateParams: StateParams): {entityId: EntityId, entityGroupType: EntityType} {
@@ -1364,6 +1371,15 @@ export class EntityService {
       const authUser =  getCurrentAuthUser(this.store);
       entityId.entityType = EntityType.USER;
       entityId.id = authUser.userId;
+    } else if (entityType === AliasEntityType.CURRENT_USER_OWNER){
+      const authUser =  getCurrentAuthUser(this.store);
+      if (authUser.authority === Authority.TENANT_ADMIN) {
+        entityId.entityType = EntityType.TENANT;
+        entityId.id = authUser.tenantId;
+      } else if (authUser.authority === Authority.CUSTOMER_USER) {
+        entityId.entityType = EntityType.CUSTOMER;
+        entityId.id = authUser.customerId;
+      }
     }
     return entityId;
   }
