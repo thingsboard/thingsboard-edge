@@ -78,11 +78,14 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
     private boolean initialDataSent;
     private TimeSeriesCmd curTsCmd;
     private LatestValueCmd latestValueCmd;
+    @Getter
+    private final int maxEntitiesPerDataSubscription;
 
     public TbEntityDataSubCtx(String serviceId, TelemetryWebSocketService wsService, EntityService entityService,
                               TbLocalSubscriptionService localSubscriptionService, AttributesService attributesService,
-                              SubscriptionServiceStatistics stats, TelemetryWebSocketSessionRef sessionRef, int cmdId) {
+                              SubscriptionServiceStatistics stats, TelemetryWebSocketSessionRef sessionRef, int cmdId, int maxEntitiesPerDataSubscription) {
         super(serviceId, wsService, entityService, localSubscriptionService, attributesService, stats, sessionRef, cmdId);
+        this.maxEntitiesPerDataSubscription = maxEntitiesPerDataSubscription;
     }
 
     @Override
@@ -134,7 +137,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
             if (!latestUpdate.isEmpty()) {
                 Map<EntityKeyType, Map<String, TsValue>> latestMap = Collections.singletonMap(keyType, latestUpdate);
                 entityData = new EntityData(entityId, entityData.isReadAttrs(), entityData.isReadTs(), latestMap, null);
-                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
             }
         }
     }
@@ -177,7 +180,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                 Map<String, TsValue[]> tsMap = new HashMap<>();
                 tsUpdate.forEach((key, tsValue) -> tsMap.put(key, tsValue.toArray(new TsValue[tsValue.size()])));
                 entityData = new EntityData(entityId, entityData.isReadAttrs(), entityData.isReadTs(), null, tsMap);
-                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData)));
+                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
             }
         }
     }
@@ -222,7 +225,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                 );
             }
         }
-        wsService.sendWsMsg(sessionRef.getSessionId(), new EntityDataUpdate(cmdId, data, null));
+        wsService.sendWsMsg(sessionRef.getSessionId(), new EntityDataUpdate(cmdId, data, null, maxEntitiesPerDataSubscription));
         subIdsToCancel.forEach(subId -> localSubscriptionService.cancelSubscription(getSessionId(), subId));
         subsToAdd.forEach(localSubscriptionService::addSubscription);
     }
@@ -234,6 +237,9 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
 
     @Override
     protected EntityDataQuery buildEntityDataQuery() {
+        if (query.getPageLink().getPageSize() > maxEntitiesPerDataSubscription) {
+            query.getPageLink().setPageSize(maxEntitiesPerDataSubscription);
+        }
         return query;
     }
 }
