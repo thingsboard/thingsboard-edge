@@ -62,8 +62,8 @@ export class ImageMap extends LeafletMap {
             this.onResize(true);
           } else {
             this.onResize();
-            super.setMap(this.map);
             super.initSettings(options);
+            super.setMap(this.map);
           }
         });
     }
