@@ -1073,7 +1073,7 @@ public final class EdgeGrpcSession implements Closeable {
     private void removeDeviceFromDeviceGroup(DeviceId deviceId) {
         Device deviceToDelete = ctx.getDeviceService().findDeviceById(edge.getTenantId(), deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
             Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
                 @Override
                 public void onSuccess(@Nullable EntityGroup entityGroup) {
@@ -1091,7 +1091,7 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private void addDeviceToDeviceGroup(DeviceId deviceId) {
-        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
         Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
             @Override
             public void onSuccess(@Nullable EntityGroup entityGroup) {
@@ -1242,11 +1242,11 @@ public final class EdgeGrpcSession implements Closeable {
         return metaData;
     }
 
-    private ListenableFuture<EntityGroup> findEdgeDeviceGroup() {
+    private ListenableFuture<EntityGroup> findEdgeAllGroup(EntityType groupType) {
         TenantId tenantId = edge.getTenantId();
-        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_DEVICES_NAME_PATTERN, edge.getName());
+        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = ctx.getEntityGroupService()
-                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), EntityType.DEVICE, deviceGroupName);
+                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName);
 
         return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
             EntityGroup result =
