@@ -114,7 +114,7 @@
     <div style="height: 30px;"></div>
     <mat-form-field class="mat-block">
         <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [formControl]="downlinkTopicPattern">
+        <input matInput required [readonly]="true" [formControl]="downlinkTopicPattern">
         <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
             integration.downlink-topic-pattern-required</mat-error>
     </mat-form-field>
