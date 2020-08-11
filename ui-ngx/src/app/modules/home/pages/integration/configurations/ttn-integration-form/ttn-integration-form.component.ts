@@ -88,10 +88,17 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
       this.hostCustom.patchValue('', {emitEvent: false});
     }
     this.updateHostParams(hostType);
-    this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value + '/devices/${devId}/down');
-    this.form.get('credentials').get('username').valueChanges.subscribe(name => {
-      this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
-    });
+    if (this.integrationType === "TTN") {
+      this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value + '/devices/${devId}/down');
+      this.form.get('credentials').get('username').valueChanges.subscribe(name => {
+        this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
+      });
+    } else {
+      this.downlinkTopicPattern.patchValue(this.form.get('credentials').get('username').value.replace(/@.*$/gm, "") + '/devices/${devId}/down');
+      this.form.get('credentials').get('username').valueChanges.subscribe(name => {
+        this.downlinkTopicPattern.patchValue(name.replace(/@.*$/gm, "") + '/devices/${devId}/down');
+      });
+    }
     this.updateControlsState();
   }
 
