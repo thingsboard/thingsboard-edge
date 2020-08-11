@@ -145,6 +145,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
 
+  private entitiesTitlePattern: string;
+
   private defaultPageSize = 10;
   private defaultSortOrder = 'entityName';
 
@@ -226,6 +228,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
   public onDataUpdated() {
     this.ngZone.run(() => {
+      this.updateTitle(true);
       this.entityDatasource.dataUpdated();
       this.ctx.detectChanges();
     });
@@ -242,16 +245,13 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
     this.actionCellDescriptors = this.ctx.actionsApi.getActionDescriptors('actionCellButton');
 
-    let entitiesTitle: string;
-
     if (this.settings.entitiesTitle && this.settings.entitiesTitle.length) {
-      entitiesTitle = this.utils.customTranslation(this.settings.entitiesTitle, this.settings.entitiesTitle);
+      this.entitiesTitlePattern = this.utils.customTranslation(this.settings.entitiesTitle, this.settings.entitiesTitle);
     } else {
-      entitiesTitle = this.translate.instant('entity.entities');
+      this.entitiesTitlePattern = this.translate.instant('entity.entities');
     }
 
-    const datasource = this.subscription.datasources[0];
-    this.ctx.widgetTitle = createLabelFromDatasource(datasource, entitiesTitle);
+    this.updateTitle(false);
 
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
@@ -271,6 +271,16 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     cssParser.cssPreviewNamespace = namespace;
     cssParser.createStyleElement(namespace, cssString);
     $(this.elementRef.nativeElement).addClass(namespace);
+  }
+
+  private updateTitle(updateWidgetParams = false) {
+    const newTitle = createLabelFromDatasource(this.subscription.datasources[0], this.entitiesTitlePattern);
+    if (this.ctx.widgetTitle !== newTitle) {
+      this.ctx.widgetTitle = newTitle;
+      if (updateWidgetParams) {
+        this.ctx.updateWidgetParams();
+      }
+    }
   }
 
   private updateDatasources() {
