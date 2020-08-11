@@ -869,7 +869,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   }
 
   customDataExport(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
-    if (this.alarmSource && this.alarmSource.type === DatasourceType.entity && this.alarmSource.entityFilter) {
+    if (this.subscription.alarmSource && this.subscription.alarmSource.type === DatasourceType.entity &&
+        this.subscription.alarmSource.entityFilter) {
       const pageLink = deepClone(this.pageLink);
       pageLink.dynamic = false;
       pageLink.page = 0;
@@ -878,8 +879,8 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       pageLink.endTs = this.subscription.timeWindow.maxTime;
       delete pageLink.timeWindow;
       const query: AlarmDataQuery = {
-        entityFilter: this.alarmSource.entityFilter,
-        keyFilters: this.alarmSource.keyFilters,
+        entityFilter: this.subscription.alarmSource.entityFilter,
+        keyFilters: this.subscription.alarmSource.keyFilters,
         pageLink
       };
       const exportedColumns = this.columns.filter(
