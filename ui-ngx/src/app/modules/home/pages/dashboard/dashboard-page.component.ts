@@ -507,7 +507,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public canEdit(): boolean {
-    return this.isTenantAdmin() || this.isCustomerUser();
+    return this.isTenantAdmin() || this.isCustomerUser() || (this.isSystemAdmin() && this.widgetEditMode);
   }
 
   public exportDashboard($event: Event) {
