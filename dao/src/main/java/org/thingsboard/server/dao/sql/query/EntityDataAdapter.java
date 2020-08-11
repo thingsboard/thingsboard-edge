@@ -84,7 +84,7 @@ public class EntityDataAdapter {
                 String strValue;
                 long ts;
                 if (entityKey.getType().equals(EntityKeyType.ENTITY_FIELD)) {
-                    strValue = value != null ? value.toString() : null;
+                    strValue = value != null ? value.toString() : "";
                     ts = System.currentTimeMillis();
                 } else {
                     strValue = convertValue(value);
@@ -118,7 +118,7 @@ public class EntityDataAdapter {
             }
             return strVal;
         } else {
-            return null;
+            return "";
         }
     }
 
