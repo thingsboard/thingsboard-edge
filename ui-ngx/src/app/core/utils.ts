@@ -581,11 +581,18 @@ export function baseUrl(): string {
 
 export function generateId(length: number): string {
   if (!length || isNaN(length)) {
-      length = 1;
+    length = 1;
   }
   const str = Math.random().toString(36).substr(2, length > 10 ? 10 : length);
   if (str.length >= length) {
-      return str;
+    return str;
   }
   return str.concat(generateId(length - str.length));
+}
+
+export function sortObjectKeys<T>(obj: T): T {
+  return Object.keys(obj).sort().reduce((acc, key) => {
+    acc[key] = obj[key];
+    return acc;
+  }, {} as T);
 }
