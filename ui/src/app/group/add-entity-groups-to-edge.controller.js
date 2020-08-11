@@ -89,7 +89,8 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
                 vm.entityGroups.pending = true;
                 fetchEntityGroups().then(
                     function success(_entityGroups) {
-                        vm.entityGroups.data = $filter('filter')(_entityGroups.data, {groupAll: false, $: vm.searchText});
+                        var entityGroupsExcludeAll = $filter('filter')(_entityGroups.data, {groupAll: false, $: vm.searchText});
+                        vm.entityGroups.data = entityGroupsExcludeAll;
                         vm.entityGroups.nextPageLink = _entityGroups.nextPageLink;
                         vm.entityGroups.hasNext = _entityGroups.hasNext;
                         if (vm.entityGroups.hasNext) {
@@ -115,7 +116,7 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
         }
         fetchPromise.then(
             function success(_entityGroups) {
-                utils.filterSearchTextEntities(_entityGroups, 'name', {pageSize: vm.entityGroups.pageSize}, deferred);
+                utils.filterSearchTextEntities(_entityGroups, 'name', {}, deferred);
             },
             function fail() {
                 deferred.reject();
