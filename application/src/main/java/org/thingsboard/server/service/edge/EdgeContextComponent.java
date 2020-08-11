@@ -50,6 +50,8 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -62,10 +64,13 @@ import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstr
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.MailTemplateSettingsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -150,6 +155,14 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Lazy
+    @Autowired
+    private WidgetTypeService widgetTypeService;
+
+    @Lazy
+    @Autowired
     private DeviceStateService deviceStateService;
 
     @Lazy
@@ -194,6 +207,14 @@ public class EdgeContextComponent {
 
     @Lazy
     @Autowired
+    private WidgetsBundleUpdateMsgConstructor widgetsBundleUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private WidgetTypeUpdateMsgConstructor widgetTypeUpdateMsgConstructor;
+
+    @Lazy
+    @Autowired
     private EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Lazy
@@ -209,6 +230,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private CustomTranslationProtoConstructor customTranslationProtoConstructor;
+
+    @Autowired
+    private MailTemplateSettingsProtoConstructor mailTemplateSettingsProtoConstructor;
 
     @Lazy
     @Autowired

@@ -211,6 +211,8 @@ public class UserController extends BaseController {
                 logEntityAction(savedUser.getId(), savedUser,
                         savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
+
+                sendNotificationMsgToEdgeService(getTenantId(), user.getId(), ActionType.ADDED_TO_ENTITY_GROUP);
             }
 
             if (sendEmail) {
@@ -234,7 +236,8 @@ public class UserController extends BaseController {
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, user.getId(), EdgeEventType.USER, user.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(),
+                    user.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
 
             return savedUser;
         } catch (Exception e) {
@@ -313,7 +316,7 @@ public class UserController extends BaseController {
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, user.getId(), EdgeEventType.USER, ActionType.DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), user.getId(), ActionType.DELETED);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),

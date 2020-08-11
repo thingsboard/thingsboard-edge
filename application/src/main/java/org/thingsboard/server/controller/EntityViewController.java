@@ -125,8 +125,6 @@ public class EntityViewController extends BaseController {
                     throw new RuntimeException("Failed to copy attributes to entity view", e);
                 }
             }
-            sendNotificationMsgToEdgeService(getTenantId(), null, savedEntityView.getId(),
-                    EdgeEventType.ENTITY_VIEW, entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
             return savedEntityView;
         } catch (Exception e) {
             throw handleException(e);
@@ -195,7 +193,7 @@ public class EntityViewController extends BaseController {
             logEntityAction(entityViewId, entityView, entityView.getCustomerId(),
                     ActionType.DELETED, null, strEntityViewId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), null, entityViewId, EdgeEventType.ENTITY_VIEW, ActionType.DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), entityViewId, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ENTITY_VIEW),
                     null,

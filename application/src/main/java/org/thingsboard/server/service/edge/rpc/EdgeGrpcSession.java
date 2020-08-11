@@ -45,6 +45,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -72,6 +73,8 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
@@ -88,6 +91,8 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -125,6 +130,8 @@ import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
+import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
@@ -256,6 +263,8 @@ public final class EdgeGrpcSession implements Closeable {
                             case ALARM_ACK:
                             case ALARM_CLEAR:
                             case CREDENTIALS_UPDATED:
+                            case RELATION_ADD_OR_UPDATE:
+                            case RELATION_DELETED:
                                 processEntityMessage(edgeEvent, edgeEventAction);
                                 break;
                             case ATTRIBUTES_UPDATED:
@@ -326,6 +335,12 @@ public final class EdgeGrpcSession implements Closeable {
             case DASHBOARD:
                 entityId = new DashboardId(edgeEvent.getEntityId());
                 break;
+            case TENANT:
+                entityId = new TenantId(edgeEvent.getEntityId());
+                break;
+            case CUSTOMER:
+                entityId = new CustomerId(edgeEvent.getEntityId());
+                break;
         }
         if (entityId != null) {
             log.debug("Sending telemetry data msg, entityId [{}], body [{}]", edgeEvent.getEntityId(), edgeEvent.getEntityBody());
@@ -376,6 +391,12 @@ public final class EdgeGrpcSession implements Closeable {
             case RELATION:
                 processRelation(edgeEvent, msgType);
                 break;
+            case WIDGETS_BUNDLE:
+                processWidgetsBundle(edgeEvent, msgType, edgeEventAction);
+                break;
+            case WIDGET_TYPE:
+                processWidgetType(edgeEvent, msgType, edgeEventAction);
+                break;
             case SCHEDULER_EVENT:
                 processSchedulerEvent(edgeEvent, msgType);
                 break;
@@ -390,6 +411,9 @@ public final class EdgeGrpcSession implements Closeable {
                 break;
             case CUSTOM_TRANSLATION:
                 processCustomTranslation(edgeEvent);
+                break;
+            case MAIL_TEMPLATE_SETTINGS:
+                processMailTemplates(edgeEvent);
                 break;
         }
     }
@@ -659,6 +683,66 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
+    private void processWidgetsBundle(EdgeEvent edgeEvent, UpdateMsgType msgType, ActionType edgeActionType) {
+        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(edgeEvent.getEntityId());
+        EntityUpdateMsg entityUpdateMsg = null;
+        switch (edgeActionType) {
+            case ADDED:
+            case UPDATED:
+                WidgetsBundle widgetsBundle = ctx.getWidgetsBundleService().findWidgetsBundleById(edgeEvent.getTenantId(), widgetsBundleId);
+                if (widgetsBundle != null) {
+                    WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
+                            ctx.getWidgetsBundleUpdateMsgConstructor().constructWidgetsBundleUpdateMsg(msgType, widgetsBundle);
+                    entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                            .setWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)
+                            .build();
+                }
+                break;
+            case DELETED:
+                WidgetsBundleUpdateMsg widgetsBundleUpdateMsg =
+                        ctx.getWidgetsBundleUpdateMsgConstructor().constructWidgetsBundleDeleteMsg(widgetsBundleId);
+                entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setWidgetsBundleUpdateMsg(widgetsBundleUpdateMsg)
+                        .build();
+                break;
+        }
+        if (entityUpdateMsg != null) {
+            outputStream.onNext(ResponseMsg.newBuilder()
+                    .setEntityUpdateMsg(entityUpdateMsg)
+                    .build());
+        }
+    }
+
+    private void processWidgetType(EdgeEvent edgeEvent, UpdateMsgType msgType, ActionType edgeActionType) {
+        WidgetTypeId widgetTypeId = new WidgetTypeId(edgeEvent.getEntityId());
+        EntityUpdateMsg entityUpdateMsg = null;
+        switch (edgeActionType) {
+            case ADDED:
+            case UPDATED:
+                WidgetType widgetType = ctx.getWidgetTypeService().findWidgetTypeById(edgeEvent.getTenantId(), widgetTypeId);
+                if (widgetType != null) {
+                    WidgetTypeUpdateMsg widgetTypeUpdateMsg =
+                            ctx.getWidgetTypeUpdateMsgConstructor().constructWidgetTypeUpdateMsg(msgType, widgetType);
+                    entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                            .setWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
+                            .build();
+                }
+                break;
+            case DELETED:
+                WidgetTypeUpdateMsg widgetTypeUpdateMsg =
+                        ctx.getWidgetTypeUpdateMsgConstructor().constructWidgetTypeDeleteMsg(widgetTypeId);
+               entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                       .setWidgetTypeUpdateMsg(widgetTypeUpdateMsg)
+                       .build();
+                break;
+        }
+        if (entityUpdateMsg != null) {
+            outputStream.onNext(ResponseMsg.newBuilder()
+                    .setEntityUpdateMsg(entityUpdateMsg)
+                    .build());
+        }
+    }
+
     private void processSchedulerEvent(EdgeEvent edgeEvent, UpdateMsgType msgType) {
         SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
         switch (msgType) {
@@ -747,6 +831,16 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
+    private void processMailTemplates(EdgeEvent edgeEvent) {
+        AdminSettings adminSettings = mapper.convertValue(edgeEvent.getEntityBody(), AdminSettings.class);
+        EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                .setMailTemplateSettings(ctx.getMailTemplateSettingsProtoConstructor().constructMailTemplateSettings(adminSettings))
+                .build();
+        outputStream.onNext(ResponseMsg.newBuilder()
+                .setEntityUpdateMsg(entityUpdateMsg)
+                .build());
+    }
+
     private UpdateMsgType getResponseMsgType(ActionType actionType) {
         switch (actionType) {
             case UPDATED:
@@ -755,9 +849,11 @@ public final class EdgeGrpcSession implements Closeable {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
+            case RELATION_ADD_OR_UPDATE:
                 return ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
+            case RELATION_DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
@@ -900,6 +996,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return new EntityViewId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case DASHBOARD:
                 return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case TENANT:
+                return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case CUSTOMER:
+                return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;
@@ -973,7 +1073,7 @@ public final class EdgeGrpcSession implements Closeable {
     private void removeDeviceFromDeviceGroup(DeviceId deviceId) {
         Device deviceToDelete = ctx.getDeviceService().findDeviceById(edge.getTenantId(), deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
             Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
                 @Override
                 public void onSuccess(@Nullable EntityGroup entityGroup) {
@@ -991,7 +1091,7 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private void addDeviceToDeviceGroup(DeviceId deviceId) {
-        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeDeviceGroup();
+        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(EntityType.DEVICE);
         Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
             @Override
             public void onSuccess(@Nullable EntityGroup entityGroup) {
@@ -1142,11 +1242,11 @@ public final class EdgeGrpcSession implements Closeable {
         return metaData;
     }
 
-    private ListenableFuture<EntityGroup> findEdgeDeviceGroup() {
+    private ListenableFuture<EntityGroup> findEdgeAllGroup(EntityType groupType) {
         TenantId tenantId = edge.getTenantId();
-        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_DEVICES_NAME_PATTERN, edge.getName());
+        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = ctx.getEntityGroupService()
-                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), EntityType.DEVICE, deviceGroupName);
+                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName);
 
         return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
             EntityGroup result =

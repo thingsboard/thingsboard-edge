@@ -28,43 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import org.thingsboard.server.common.data.edge.EdgeEventType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.MailTemplateSettingsProto;
 
-public final class EdgeUtils {
+@Slf4j
+@Component
+public class MailTemplateSettingsProtoConstructor {
 
-    private EdgeUtils() {
-    }
-
-    public static EdgeEventType getEdgeEventTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return EdgeEventType.DEVICE;
-            case ASSET:
-                return EdgeEventType.ASSET;
-            case ENTITY_VIEW:
-                return EdgeEventType.ENTITY_VIEW;
-            case DASHBOARD:
-                return EdgeEventType.DASHBOARD;
-            case USER:
-                return EdgeEventType.USER;
-            case ALARM:
-                return EdgeEventType.ALARM;
-            case TENANT:
-                return EdgeEventType.TENANT;
-            case CUSTOMER:
-                return EdgeEventType.CUSTOMER;
-            case WIDGETS_BUNDLE:
-                return EdgeEventType.WIDGETS_BUNDLE;
-            case WIDGET_TYPE:
-                return EdgeEventType.WIDGET_TYPE;
-            case ENTITY_GROUP:
-                return EdgeEventType.ENTITY_GROUP;
-            case SCHEDULER_EVENT:
-                return EdgeEventType.SCHEDULER_EVENT;
-            default:
-                return null;
+    public MailTemplateSettingsProto constructMailTemplateSettings(AdminSettings adminSettings) {
+        MailTemplateSettingsProto.Builder builder = MailTemplateSettingsProto.newBuilder()
+                .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
+        AdminSettingsId adminSettingsId = adminSettings.getId();
+        if (adminSettingsId != null) {
+            builder.setIdMSB(adminSettingsId.getId().getMostSignificantBits());
+            builder.setIdLSB(adminSettingsId.getId().getLeastSignificantBits());
         }
+        return builder.build();
     }
 }
