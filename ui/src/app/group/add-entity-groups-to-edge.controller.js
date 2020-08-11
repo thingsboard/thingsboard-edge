@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function AddEntityGroupsToEdgeController(entityGroupService, $mdDialog, $q, $filter, types, edgeId, entityGroups, groupType) {
+export default function AddEntityGroupsToEdgeController(entityGroupService, $mdDialog, $q, $filter, types, edgeId, entityGroups, groupType, utils) {
 
     var vm = this;
 
@@ -87,11 +87,11 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
         fetchMoreItems_: function () {
             if (vm.entityGroups.hasNext && !vm.entityGroups.pending) {
                 vm.entityGroups.pending = true;
-                entityGroupService.getEdgeEntityGroups(edgeId, vm.groupType).then(
-                    function success(entityGroups) {
-                        vm.entityGroups.data = entityGroups.data;
-                        vm.entityGroups.nextPageLink = entityGroups.nextPageLink;
-                        vm.entityGroups.hasNext = entityGroups.hasNext;
+                fetchEntityGroups().then(
+                    function success(_entityGroups) {
+                        vm.entityGroups.data = $filter('filter')(_entityGroups.data, {groupAll: false, $: vm.searchText});
+                        vm.entityGroups.nextPageLink = _entityGroups.nextPageLink;
+                        vm.entityGroups.hasNext = _entityGroups.hasNext;
                         if (vm.entityGroups.hasNext) {
                             vm.entityGroups.nextPageLink.limit = vm.entityGroups.pageSize;
                         }
@@ -103,6 +103,25 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
                     });
             }
         }
+    }
+
+    function fetchEntityGroups() {
+        var deferred = $q.defer();
+        var fetchPromise;
+        if (vm.customerId) {
+            fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
+        } else {
+            fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
+        }
+        fetchPromise.then(
+            function success(_entityGroups) {
+                utils.filterSearchTextEntities(_entityGroups, 'name', {pageSize: vm.entityGroups.pageSize}, deferred);
+            },
+            function fail() {
+                deferred.reject();
+            }
+        );
+        return deferred.promise;
     }
 
     function cancel () {
