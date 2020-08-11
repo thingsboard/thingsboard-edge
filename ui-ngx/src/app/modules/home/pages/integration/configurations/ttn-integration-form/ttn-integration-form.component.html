@@ -77,19 +77,36 @@
         <div formGroupName="credentials">
             <div class="tb-panel-title" style="padding-bottom: 15px;">
                 {{ 'integration.application-credentials' | translate }}</div>
+          <section *ngIf="integrationType === 'TTN'">
             <mat-form-field class="mat-block">
-                <mat-label translate>integration.application-id</mat-label>
-                <input matInput required formControlName="username" autocomplete="new-username">
-                <mat-error translate *ngIf="form.get('credentials').get('username').hasError('required')">
-                    integration.application-id-required</mat-error>
+              <mat-label translate>integration.application-id</mat-label>
+              <input matInput required formControlName="username" autocomplete="new-username">
+              <mat-error translate *ngIf="form.get('credentials').get('username').hasError('required')">
+                integration.application-id-required</mat-error>
             </mat-form-field>
             <mat-form-field class="mat-block">
-                <mat-label translate>integration.access-key</mat-label>
-                <input matInput type="password" required formControlName="password" autocomplete="new-password">
-                <mat-error translate *ngIf="form.get('credentials').get('password').hasError('required')">
-                    integration.access-key-required
-                </mat-error>
+              <mat-label translate>integration.access-key</mat-label>
+              <input matInput type="password" required formControlName="password" autocomplete="new-password">
+              <mat-error translate *ngIf="form.get('credentials').get('password').hasError('required')">
+                integration.access-key-required
+              </mat-error>
             </mat-form-field>
+          </section>
+          <section *ngIf="integrationType === 'TTI'">
+            <mat-form-field class="mat-block">
+              <mat-label translate>integration.username</mat-label>
+              <input matInput required formControlName="username" autocomplete="new-username">
+              <mat-error translate *ngIf="form.get('credentials').get('username').hasError('required')">
+                integration.username-required</mat-error>
+            </mat-form-field>
+            <mat-form-field class="mat-block">
+              <mat-label translate>integration.password</mat-label>
+              <input matInput type="password" required formControlName="password" autocomplete="new-password">
+              <mat-error translate *ngIf="form.get('credentials').get('password').hasError('required')">
+                integration.password-required
+              </mat-error>
+            </mat-form-field>
+          </section>
         </div>
     </fieldset>
     <tb-mqtt-topic-filters [topicFilters]="topicFilters">
