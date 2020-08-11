@@ -258,7 +258,7 @@ export const commonMapSettingsSchema =
                 default: false
             },
             mapPageSize: {
-                title: 'Map page size load entities',
+                title: 'Limit of entities to load',
                 type: 'number',
                 default: 16384
             },
