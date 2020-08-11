@@ -357,7 +357,7 @@ export const templates = {
       },
     },
     topicFilters: [{
-      filter: '+/devices/+/up',
+      filter: 'v3/+/devices/+/up',
       qos: 0
     }],
     downlinkTopicPattern: '',
