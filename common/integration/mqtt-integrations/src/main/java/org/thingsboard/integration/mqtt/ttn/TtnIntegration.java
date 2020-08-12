@@ -55,13 +55,10 @@ public class TtnIntegration extends BasicMqttIntegration {
 
     private static final String TTN_ENDPOINT = "thethings.network";
     private static final String TTI_ENDPOINT = "thethings.industries";
-    private static final String TTN_DOWNLINK_TOPIC = "/devices/${devId}/down";
-
-    private String appId;
 
     @Override
     protected String getDownlinkTopicPattern() {
-        return this.appId + TTN_DOWNLINK_TOPIC;
+        return this.configuration.getConfiguration().get("downlinkTopicPattern").asText();
     }
 
     @Override
@@ -77,8 +74,6 @@ public class TtnIntegration extends BasicMqttIntegration {
                 StringUtils.isEmpty(basicCredentials.getPassword())) {
             throw new RuntimeException("Can't setup TheThingsNetwork integration. Required TheThingsNetwork Application Credentials values are missing!");
         }
-
-        this.appId = basicCredentials.getUsername();
 
         if (!mqttClientConfiguration.isCustomHost()) {
             String region = mqttClientConfiguration.getHost();

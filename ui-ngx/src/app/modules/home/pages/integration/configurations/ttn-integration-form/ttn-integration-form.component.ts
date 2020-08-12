@@ -94,7 +94,7 @@ export class TtnIntegrationFormComponent extends IntegrationFormComponent {
         this.downlinkTopicPattern.patchValue(name + '/devices/${devId}/down');
       });
     } else {
-      this.downlinkTopicPattern.patchValue('v3/' + this.form.get('credentials').get('username').value + '/devices/${devId}/down');
+      this.downlinkTopicPattern.patchValue('v3/' + this.form.get('credentials').get('username').value + '/devices/${devId}/down/push');
       this.form.get('credentials').get('username').valueChanges.subscribe(name => {
         this.downlinkTopicPattern.patchValue('v3/' + name + '/devices/${devId}/down/push');
       });
