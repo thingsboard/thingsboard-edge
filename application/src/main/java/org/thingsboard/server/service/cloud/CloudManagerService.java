@@ -743,6 +743,7 @@ public class CloudManagerService {
     }
 
     private void cleanUp() {
+        log.debug("Starting clean up procedure");
         userService.deleteTenantAdmins(tenantId);
         TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
         if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
@@ -775,6 +776,7 @@ public class CloudManagerService {
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unable to delete entity groups", e);
         }
+        log.debug("Clean up procedure successfully finished!");
     }
 
     private Tenant getOrCreateTenant(TenantId tenantId) {

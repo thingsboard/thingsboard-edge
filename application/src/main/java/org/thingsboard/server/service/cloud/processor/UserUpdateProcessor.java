@@ -90,8 +90,10 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     User savedUser = userService.saveUser(user, created);
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+                    if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
+                        EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                        addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+                    }
 
                     addEntityToGroup(tenantId, EntityGroup.GROUP_TENANT_USERS_NAME, savedUser.getId(), EntityType.USER);
                 } finally {
@@ -99,9 +101,15 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                User userToDelete = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
-                if (userToDelete != null) {
-                    userService.deleteUser(tenantId, userToDelete.getId());
+                if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId =
+                            new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
+                } else {
+                    User userToDelete = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
+                    if (userToDelete != null) {
+                        userService.deleteUser(tenantId, userToDelete.getId());
+                    }
                 }
                 break;
             case UNRECOGNIZED:

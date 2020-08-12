@@ -99,24 +99,21 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    ListenableFuture<RuleChain> ruleChainByIdAsyncFuture = ruleChainService.findRuleChainByIdAsync(tenantId, ruleChainId);
-                    Futures.transform(ruleChainByIdAsyncFuture, ruleChainByIdAsync -> {
-                        if (ruleChainByIdAsync != null) {
-                            List<RuleNode> referencingRuleNodes = ruleChainService.getReferencingRuleChainNodes(tenantId, ruleChainId);
+                    RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
+                    if (ruleChainById != null) {
+                        List<RuleNode> referencingRuleNodes = ruleChainService.getReferencingRuleChainNodes(tenantId, ruleChainId);
 
-                            Set<RuleChainId> referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());
+                        Set<RuleChainId> referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());
 
-                            ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
+                        ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
 
-                            referencingRuleChainIds.remove(ruleChainId);
+                        referencingRuleChainIds.remove(ruleChainId);
 
-                            referencingRuleChainIds.forEach(referencingRuleChainId ->
-                                    tbClusterService.onEntityStateChange(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
+                        referencingRuleChainIds.forEach(referencingRuleChainId ->
+                                tbClusterService.onEntityStateChange(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
 
-                            tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
-                        }
-                        return null;
-                    }, dbCallbackExecutor);
+                        tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
+                    }
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");

@@ -87,13 +87,15 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
                 saveOrUpdateDevice(tenantId, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<Device> deviceByIdAsyncFuture = deviceService.findDeviceByIdAsync(tenantId, deviceId);
-                Futures.transform(deviceByIdAsyncFuture, deviceByIdAsync -> {
-                    if (deviceByIdAsync != null) {
+                if (isNonEmptyGroupId(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                } else {
+                    Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
+                    if (deviceById != null) {
                         deviceService.deleteDevice(tenantId, deviceId);
                     }
-                    return null;
-                }, dbCallbackExecutor);
+                }
                 break;
             case DEVICE_CONFLICT_RPC_MESSAGE:
                 try {
@@ -130,31 +132,21 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
 
     public void onDeviceCredentialsUpdate(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsUpdateMsg.getDeviceIdMSB(), deviceCredentialsUpdateMsg.getDeviceIdLSB()));
-        ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, deviceId);
+        Device device = deviceService.findDeviceById(tenantId, deviceId);
 
-        Futures.addCallback(deviceFuture, new FutureCallback<Device>() {
-            @Override
-            public void onSuccess(@Nullable Device device) {
-                if (device != null) {
-                    log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
-                            device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
-                    try {
-                        DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
-                        deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
-                        deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
-                        deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.getCredentialsValue());
-                        deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
-                    } catch (Exception e) {
-                        log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]", device.getName(), deviceCredentialsUpdateMsg, e);
-                    }
-                }
+        if (device != null) {
+            log.debug("Updating device credentials for device [{}]. New device credentials Id [{}], value [{}]",
+                    device.getName(), deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentialsUpdateMsg.getCredentialsValue());
+            try {
+                DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
+                deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
+                deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
+                deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.getCredentialsValue());
+                deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
+            } catch (Exception e) {
+                log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]", device.getName(), deviceCredentialsUpdateMsg, e);
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("Can't update device credentials for deviceCredentialsUpdateMsg [{}]", deviceCredentialsUpdateMsg, t);
-            }
-        }, dbCallbackExecutor);
+        }
     }
 
     private ListenableFuture<List<Void>> updateOrCopyDeviceRelatedEntities(TenantId tenantId, Device origin, Device destination) {
@@ -249,8 +241,11 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
                 deviceStateService.onDeviceAdded(device);
             }
 
-            EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
-            addEntityToGroup(tenantId, entityGroupId, device.getId());
+            if (isNonEmptyGroupId(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB())) {
+                EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                addEntityToGroup(tenantId, entityGroupId, device.getId());
+            }
+
         } finally {
             deviceCreationLock.unlock();
         }

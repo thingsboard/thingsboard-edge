@@ -84,15 +84,12 @@ public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    ListenableFuture<SchedulerEventInfo> schedulerEventByIdAsyncFuture = schedulerEventService.findSchedulerEventInfoByIdAsync(tenantId, schedulerEventId);
-                    Futures.transform(schedulerEventByIdAsyncFuture, schedulerEventByIdAsync -> {
-                        if (schedulerEventByIdAsync != null) {
-                            schedulerEventService.deleteSchedulerEvent(tenantId, schedulerEventId);
+                    SchedulerEventInfo schedulerEventById = schedulerEventService.findSchedulerEventInfoById(tenantId, schedulerEventId);
+                    if (schedulerEventById != null) {
+                        schedulerEventService.deleteSchedulerEvent(tenantId, schedulerEventId);
 
-                            schedulerService.onSchedulerEventDeleted(schedulerEventByIdAsync);
-                        }
-                        return null;
-                    }, dbCallbackExecutor);
+                        schedulerService.onSchedulerEventDeleted(schedulerEventById);
+                    }
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");

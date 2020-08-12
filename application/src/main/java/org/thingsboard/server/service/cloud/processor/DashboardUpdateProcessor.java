@@ -75,21 +75,27 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
                     Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, created);
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, savedDashboard.getId());
+                    if (isNonEmptyGroupId(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB())) {
+                        EntityGroupId entityGroupId =
+                                new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
+                        addEntityToGroup(tenantId, entityGroupId, savedDashboard.getId());
+                    }
 
                 } finally {
                     dashboardCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<Dashboard> dashboardByIdAsyncFuture = dashboardService.findDashboardByIdAsync(tenantId, dashboardId);
-                Futures.transform(dashboardByIdAsyncFuture, dashboardByIdAsync -> {
-                    if (dashboardByIdAsync != null) {
+                if (isNonEmptyGroupId(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId =
+                            new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
+                } else {
+                    Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
+                    if (dashboardById != null) {
                         dashboardService.deleteDashboard(tenantId, dashboardId);
                     }
-                    return null;
-                }, dbCallbackExecutor);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
