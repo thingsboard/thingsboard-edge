@@ -132,7 +132,7 @@ import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.MailTemplatesUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.AdminSettingsUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
@@ -292,7 +292,7 @@ public class CloudManagerService {
     private WidgetTypeUpdateProcessor widgetTypeUpdateProcessor;
 
     @Autowired
-    private MailTemplatesUpdateProcessor mailTemplatesUpdateProcessor;
+    private AdminSettingsUpdateProcessor adminSettingsUpdateProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -756,6 +756,7 @@ public class CloudManagerService {
         assetService.deleteAssetsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
+        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
@@ -861,9 +862,9 @@ public class CloudManagerService {
             } else if (entityUpdateMsg.hasSchedulerEventUpdateMsg()) {
                 log.debug("Schedule event received [{}]", entityUpdateMsg.getSchedulerEventUpdateMsg());
                 schedulerEventUpdateProcessor.onScheduleEventUpdate(tenantId, entityUpdateMsg.getSchedulerEventUpdateMsg());
-            } else if (entityUpdateMsg.hasMailTemplateSettings()) {
-                log.debug("Mail template settings received [{}]", entityUpdateMsg.getMailTemplateSettings());
-                mailTemplatesUpdateProcessor.onMailTemplatesUpdate(tenantId, entityUpdateMsg.getMailTemplateSettings());
+            } else if (entityUpdateMsg.hasAdminSettingsUpdateMsg()) {
+                log.debug("AdminSettings update message received [{}]", entityUpdateMsg.getAdminSettingsUpdateMsg());
+                adminSettingsUpdateProcessor.onAdminSettingsUpdate(tenantId, entityUpdateMsg.getAdminSettingsUpdateMsg());
             }
         } catch (Exception e) {
             log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);

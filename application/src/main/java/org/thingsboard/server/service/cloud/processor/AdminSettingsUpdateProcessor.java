@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.MailTemplateSettingsProto;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,22 +48,20 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class MailTemplatesUpdateProcessor extends BaseUpdateProcessor {
+public class AdminSettingsUpdateProcessor extends BaseUpdateProcessor {
 
-    private static final String MAIL_TEMPLATES = "mailTemplates";
-
-    public void onMailTemplatesUpdate(TenantId tenantId, MailTemplateSettingsProto mailTemplateSettings) {
-        UUID uuid = new UUID(mailTemplateSettings.getIdMSB(), mailTemplateSettings.getIdLSB());
+    public void onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+        UUID uuid = new UUID(adminSettingsUpdateMsg.getIdMSB(), adminSettingsUpdateMsg.getIdLSB());
         if (uuid.version() != 0) {
             AdminSettings adminSettings = new AdminSettings();
             adminSettings.setId(new AdminSettingsId(uuid));
-            adminSettings.setKey(MAIL_TEMPLATES);
-            adminSettings.setJsonValue(JacksonUtil.toJsonNode(mailTemplateSettings.getJsonValue()));
+            adminSettings.setKey(adminSettingsUpdateMsg.getKey());
+            adminSettings.setJsonValue(JacksonUtil.toJsonNode(adminSettingsUpdateMsg.getJsonValue()));
             adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             long ts = System.currentTimeMillis();
-            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(MAIL_TEMPLATES, mailTemplateSettings.getJsonValue()), ts));
+            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsUpdateMsg.getKey(), adminSettingsUpdateMsg.getJsonValue()), ts));
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         }
     }
