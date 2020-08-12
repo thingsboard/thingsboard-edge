@@ -756,6 +756,7 @@
                             <exclude>**/src/index.html</exclude>
                             <exclude>**/public/static/rulenode/**</exclude>
                             <exclude>**/*.proto.js</exclude>
+                            <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>
                         </excludes>
                         <mapping>
