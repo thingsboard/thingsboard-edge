@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.queue;
 
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
@@ -56,6 +58,8 @@ public class TbRuleEngineConsumerStats {
     public static final String SUCCESSFUL_ITERATIONS = "successfulIterations";
     public static final String FAILED_ITERATIONS = "failedIterations";
 
+    private final StatsFactory statsFactory;
+
     private final StatsCounter totalMsgCounter;
     private final StatsCounter successMsgCounter;
     private final StatsCounter tmpTimeoutMsgCounter;
@@ -69,12 +73,14 @@ public class TbRuleEngineConsumerStats {
 
     private final List<StatsCounter> counters = new ArrayList<>();
     private final ConcurrentMap<UUID, TbTenantRuleEngineStats> tenantStats = new ConcurrentHashMap<>();
+    private final ConcurrentMap<TenantId, Timer> tenantMsgProcessTimers = new ConcurrentHashMap<>();
     private final ConcurrentMap<TenantId, RuleEngineException> tenantExceptions = new ConcurrentHashMap<>();
 
     private final String queueName;
 
     public TbRuleEngineConsumerStats(String queueName, StatsFactory statsFactory) {
         this.queueName = queueName;
+        this.statsFactory = statsFactory;
 
         String statsKey = StatsType.RULE_ENGINE.getName() + "." + queueName;
         this.totalMsgCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
@@ -95,6 +101,14 @@ public class TbRuleEngineConsumerStats {
         counters.add(tmpFailedMsgCounter);
         counters.add(successIterationsCounter);
         counters.add(failedIterationsCounter);
+    }
+
+    public Timer getTimer(TenantId tenantId, String status){
+        return tenantMsgProcessTimers.computeIfAbsent(tenantId,
+                id -> statsFactory.createTimer(StatsType.RULE_ENGINE.getName() + "." + queueName,
+                        "tenantId", tenantId.getId().toString(),
+                        "status", status
+                ));
     }
 
     public void log(TbRuleEngineProcessingResult msg, boolean finalIterationForPack) {
