@@ -52,14 +52,13 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams, edgeService,
+export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams,
                                       $q, $translate, types, securityTypes, userPermissionsService, $filter) {
 
     var vm = this;
 
     vm.customerId = $stateParams.customerId;
     vm.edgeId = $stateParams.edgeId;
-    vm.edge = '';
     if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
         vm.groupType = $stateParams.childGroupType;
     } else {
@@ -196,10 +195,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     function initController() {
         if (vm.edgeId) {
-            edgeService.getEdge(vm.edgeId).then(
-                function success(edge) {
-                    vm.edge = edge;
-                });
             var fetchEntityGroupsFunction = null;
             var deleteEntityGroupFunction = null;
             fetchEntityGroupsFunction = function (pageLink) {
@@ -229,8 +224,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                     details: function() { return $translate.instant('entity-group.unassign-from-edge') },
                     icon: "assignment_return",
                     isEnabled: function (item) {
-                        var createdByEdgeGroupPatternName = `Edge ${vm.edge.name} Devices`;
-                        return !(item.name === createdByEdgeGroupPatternName);
+                        return !item.edgeGroupAll;
                     }
                 }
             );
