@@ -52,13 +52,14 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams,
+export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams, edgeService,
                                       $q, $translate, types, securityTypes, userPermissionsService, $filter) {
 
     var vm = this;
 
     vm.customerId = $stateParams.customerId;
     vm.edgeId = $stateParams.edgeId;
+    vm.edge = '';
     if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
         vm.groupType = $stateParams.childGroupType;
     } else {
@@ -194,16 +195,11 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
     initController();
 
     function initController() {
-        // if (edgeId) {
-        //     vm.edgeRuleChainsTitle = $translate.instant('edge.rulechains');
-        //     edgeService.getEdge(edgeId).then(
-        //         function success(edge) {
-        //             vm.edge = edge;
-        //         }
-        //     );
-        // }
-
         if (vm.edgeId) {
+            edgeService.getEdge(vm.edgeId).then(
+                function success(edge) {
+                    vm.edge = edge;
+                });
             var fetchEntityGroupsFunction = null;
             var deleteEntityGroupFunction = null;
             fetchEntityGroupsFunction = function (pageLink) {
@@ -232,6 +228,10 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                     name: function() { return $translate.instant('action.unassign') },
                     details: function() { return $translate.instant('entity-group.unassign-from-edge') },
                     icon: "assignment_return",
+                    isEnabled: function (item) {
+                        var createdByEdgeGroupPatternName = `Edge ${vm.edge.name} Devices`;
+                        return !(item.name === createdByEdgeGroupPatternName);
+                    }
                 }
             );
 
@@ -425,34 +425,6 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             }
         );
     }
-
-    // function manageAssignedEdgeGroups($event, entityGroup) {
-    //     showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds, 'EntityGroup');
-    // }
-    //
-    // function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds, targetGroupType) {
-    //     if ($event) {
-    //         $event.stopPropagation();
-    //     }
-    //     $mdDialog.show({
-    //         controller: 'ManageAssignedEdgeGroupsController',
-    //         controllerAs: 'vm',
-    //         templateUrl: manageAssignedEdgeGroupsTemplate,
-    //         locals: {
-    //             actionType: actionType,
-    //             entityService: entityGroupService,
-    //             entityIds: entityGroupId,
-    //             assignedEdgeGroupIds: assignedEdgeGroupIds,
-    //             targetGroupType: targetGroupType
-    //         },
-    //         parent: angular.element($document[0].body),
-    //         fullscreen: true,
-    //         targetEvent: $event
-    //     }).then(function () {
-    //         vm.grid.refreshList();
-    //     }, function () {
-    //     });
-    // }
 
     function reload() {
         vm.customerId = $stateParams.customerId;
