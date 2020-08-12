@@ -35,14 +35,15 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.MailTemplateSettingsProto;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 
 @Slf4j
 @Component
-public class MailTemplateSettingsProtoConstructor {
+public class AdminSettingsUpdateMsgConstructor {
 
-    public MailTemplateSettingsProto constructMailTemplateSettings(AdminSettings adminSettings) {
-        MailTemplateSettingsProto.Builder builder = MailTemplateSettingsProto.newBuilder()
+    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings) {
+        AdminSettingsUpdateMsg.Builder builder = AdminSettingsUpdateMsg.newBuilder()
+                .setKey(adminSettings.getKey())
                 .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
         AdminSettingsId adminSettingsId = adminSettings.getId();
         if (adminSettingsId != null) {

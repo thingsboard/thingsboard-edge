@@ -412,8 +412,8 @@ public final class EdgeGrpcSession implements Closeable {
             case CUSTOM_TRANSLATION:
                 processCustomTranslation(edgeEvent);
                 break;
-            case MAIL_TEMPLATE_SETTINGS:
-                processMailTemplates(edgeEvent);
+            case ADMIN_SETTINGS:
+                processAdminSettings(edgeEvent);
                 break;
         }
     }
@@ -831,10 +831,10 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
-    private void processMailTemplates(EdgeEvent edgeEvent) {
+    private void processAdminSettings(EdgeEvent edgeEvent) {
         AdminSettings adminSettings = mapper.convertValue(edgeEvent.getEntityBody(), AdminSettings.class);
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setMailTemplateSettings(ctx.getMailTemplateSettingsProtoConstructor().constructMailTemplateSettings(adminSettings))
+                .setAdminSettingsUpdateMsg(ctx.getAdminSettingsUpdateMsgConstructor().constructAdminSettingsUpdateMsg(adminSettings))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)

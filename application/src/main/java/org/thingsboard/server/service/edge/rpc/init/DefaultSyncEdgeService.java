@@ -105,6 +105,7 @@ import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,8 +118,6 @@ import java.util.stream.Collectors;
 public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-
-    private static final String MAIL_TEMPLATES = "mailTemplates";
 
     @Autowired
     private EdgeEventService edgeEventService;
@@ -181,7 +180,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             syncRuleChains(edge);
             syncEntityGroups(edge);
             syncSchedulerEvents(edge);
-            syncMailTemplateSettings(edge);
+            syncAdminSettings(edge);
         } catch (Exception e) {
             log.error("Exception during sync process", e);
         }
@@ -347,27 +346,31 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncMailTemplateSettings(Edge edge) {
+    private void syncAdminSettings(Edge edge) {
         try {
-            AdminSettings sysAdminMailTemplates = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, MAIL_TEMPLATES);
-            saveMailTemplateSettingsEdgeEvent(edge, sysAdminMailTemplates);
-            Optional<AttributeKvEntry> tenantMailTemplateAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, MAIL_TEMPLATES).get();
-            if (tenantMailTemplateAttr.isPresent()) {
-                AdminSettings tenantMailTemplates = new AdminSettings();
-                tenantMailTemplates.setKey(MAIL_TEMPLATES);
-                String value = tenantMailTemplateAttr.get().getValueAsString();
-                tenantMailTemplates.setJsonValue(mapper.readTree(value));
-                saveMailTemplateSettingsEdgeEvent(edge, tenantMailTemplates);
+            List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
+            for (String key: adminSettingsKeys) {
+                AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+                saveAdminSettingsEdgeEvent(edge, sysAdminMainSettings);
+                Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, key).get();
+                if (tenantMailSettingsAttr.isPresent()) {
+                    AdminSettings tenantMailSettings = new AdminSettings();
+                    tenantMailSettings.setKey(key);
+                    String value = tenantMailSettingsAttr.get().getValueAsString();
+                    tenantMailSettings.setJsonValue(mapper.readTree(value));
+                    saveAdminSettingsEdgeEvent(edge, tenantMailSettings);
+                }
             }
         } catch (Exception e) {
-            log.error("Can't load mail template settings", e);
+            log.error("Can't load admin settings", e);
         }
     }
 
-    private void saveMailTemplateSettingsEdgeEvent(Edge edge, AdminSettings adminSettings) {
+    private void saveAdminSettingsEdgeEvent(Edge edge, AdminSettings adminSettings) {
+        log.info(String.valueOf(adminSettings));
         saveEdgeEvent(edge.getTenantId(),
                 edge.getId(),
-                EdgeEventType.MAIL_TEMPLATE_SETTINGS,
+                EdgeEventType.ADMIN_SETTINGS,
                 ActionType.UPDATED,
                 null,
                 mapper.valueToTree(adminSettings),
