@@ -32,7 +32,6 @@
 
 import addEntityGroupTemplate from './add-entity-group.tpl.html';
 import entityGroupCard from './entity-group-card.tpl.html';
-import manageAssignedEdgeGroupsTemplate from "../dialog/manage-assigned-edge-groups.tpl.html";
 import addEntityGroupsToEdgeTemplate from "./add-entity-groups-to-edge.tpl.html";
 
 /* eslint-enable import/no-unresolved, import/default */
@@ -54,7 +53,7 @@ export function EntityGroupCardController() {
 
 /*@ngInject*/
 export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams,
-                                      $q, $translate, types, securityTypes, userPermissionsService) {
+                                      $q, $translate, types, securityTypes, userPermissionsService, $filter) {
 
     var vm = this;
 
@@ -427,33 +426,33 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         );
     }
 
-    function manageAssignedEdgeGroups($event, entityGroup) { //eslint-disable-line
-        showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds, 'EntityGroup');
-    }
-
-    function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds, targetGroupType) {
-        if ($event) {
-            $event.stopPropagation();
-        }
-        $mdDialog.show({
-            controller: 'ManageAssignedEdgeGroupsController',
-            controllerAs: 'vm',
-            templateUrl: manageAssignedEdgeGroupsTemplate,
-            locals: {
-                actionType: actionType,
-                entityService: entityGroupService,
-                entityIds: entityGroupId,
-                assignedEdgeGroupIds: assignedEdgeGroupIds,
-                targetGroupType: targetGroupType
-            },
-            parent: angular.element($document[0].body),
-            fullscreen: true,
-            targetEvent: $event
-        }).then(function () {
-            vm.grid.refreshList();
-        }, function () {
-        });
-    }
+    // function manageAssignedEdgeGroups($event, entityGroup) {
+    //     showManageAssignedEdgeGroupsDialog($event, [entityGroup.id.id], 'manage', entityGroup.assignedEdgeGroupIds, 'EntityGroup');
+    // }
+    //
+    // function showManageAssignedEdgeGroupsDialog($event, entityGroupId, actionType, assignedEdgeGroupIds, targetGroupType) {
+    //     if ($event) {
+    //         $event.stopPropagation();
+    //     }
+    //     $mdDialog.show({
+    //         controller: 'ManageAssignedEdgeGroupsController',
+    //         controllerAs: 'vm',
+    //         templateUrl: manageAssignedEdgeGroupsTemplate,
+    //         locals: {
+    //             actionType: actionType,
+    //             entityService: entityGroupService,
+    //             entityIds: entityGroupId,
+    //             assignedEdgeGroupIds: assignedEdgeGroupIds,
+    //             targetGroupType: targetGroupType
+    //         },
+    //         parent: angular.element($document[0].body),
+    //         fullscreen: true,
+    //         targetEvent: $event
+    //     }).then(function () {
+    //         vm.grid.refreshList();
+    //     }, function () {
+    //     });
+    // }
 
     function reload() {
         vm.customerId = $stateParams.customerId;
@@ -486,7 +485,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             function success(_entityGroups) {
                 var entityGroups = {
                     pageSize: pageSize,
-                    data: _entityGroups.data,
+                    data: $filter('filter')(_entityGroups.data, {groupAll: false}),
                     nextPageLink: _entityGroups.nextPageLink,
                     selections: {},
                     selectedCount: 0,
