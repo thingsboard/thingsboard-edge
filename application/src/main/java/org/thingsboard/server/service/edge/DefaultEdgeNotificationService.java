@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -60,18 +61,14 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -101,9 +98,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private AlarmService alarmService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -236,7 +230,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     ListenableFuture<List<EdgeId>> edgeIdsFuture = findRelatedEdgeIdsByEntityId(tenantId, entityId, edgeNotificationMsg.getEntityGroupType());
                     Futures.transform(edgeIdsFuture, edgeIds -> {
                         if (edgeIds != null && !edgeIds.isEmpty()) {
-                            EntityGroupId entityGroupId = constructEntityGroupId(edgeNotificationMsg);
+                            EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
                             for (EdgeId edgeId : edgeIds) {
                                 try {
                                     saveEdgeEvent(tenantId, edgeId, edgeEventType, edgeEventActionType, entityId, null, entityGroupId);
@@ -254,7 +248,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case REMOVED_FROM_ENTITY_GROUP:
                 TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
                 if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
-                    EntityGroupId entityGroupId = constructEntityGroupId(edgeNotificationMsg);
+                    EntityGroupId entityGroupId = constructEntityGroupId(tenantId, edgeNotificationMsg);
                     for (Edge edge : edgesByTenantId.getData()) {
                         saveEdgeEvent(tenantId, edge.getId(), edgeEventType, edgeEventActionType, entityId, null, entityGroupId);
                     }
@@ -308,9 +302,15 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         }, dbCallbackExecutorService);
     }
 
-    private EntityGroupId constructEntityGroupId(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    private EntityGroupId constructEntityGroupId(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         if (edgeNotificationMsg.getEntityGroupIdMSB() != 0 && edgeNotificationMsg.getEntityGroupIdLSB() != 0) {
-            return new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
+            EntityGroupId entityGroupId = new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
+            EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+            if (entityGroup.isEdgeGroupAll()) {
+                return null;
+            } else {
+                return entityGroupId;
+            }
         } else {
             return null;
         }
