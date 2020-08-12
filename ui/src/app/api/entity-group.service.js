@@ -166,7 +166,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroups(response.data, 'EntityGroup'));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -426,7 +426,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -437,7 +437,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/add';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });
@@ -448,7 +448,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         var deferred = $q.defer();
         var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/remove';
         $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
+            deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
         });

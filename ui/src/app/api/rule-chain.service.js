@@ -32,7 +32,7 @@ export default angular.module('thingsboard.api.ruleChain', [])
     .factory('ruleChainService', RuleChainService).name;
 
 /*@ngInject*/
-function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, componentDescriptorService, utils) {
+function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, componentDescriptorService) {
 
     var ruleNodeComponents = {};
 
@@ -51,10 +51,6 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         resolveTargetRuleChains: resolveTargetRuleChains,
         testScript: testScript,
         getLatestRuleNodeDebugInput: getLatestRuleNodeDebugInput,
-        updateRuleChainEdgeGroups: updateRuleChainEdgeGroups,
-        addRuleChainEdgeGroups: addRuleChainEdgeGroups,
-        removeRuleChainEdgeGroups: removeRuleChainEdgeGroups,
-        getEdgeGroupRuleChains: getEdgeGroupRuleChains,
         getEdgeRuleChains: getEdgeRuleChains,
         getEdgesRuleChains: getEdgesRuleChains,
         assignRuleChainToEdge: assignRuleChainToEdge,
@@ -329,59 +325,8 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return deferred.promise;
     }
 
-    function updateRuleChainEdgeGroups(ruleChainId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function addRuleChainEdgeGroups(ruleChainId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups/add';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function removeRuleChainEdgeGroups(ruleChainId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/ruleChain/' + ruleChainId + '/edgeGroups/remove';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(utils.prepareAssignedEdgeGroup(response.data));
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
     function getEdgesRuleChains(pageLink, config) {
         return getRuleChains(pageLink, config, types.edgeRuleChainType);
-    }
-
-    function getEdgeGroupRuleChains(edgeGroupId, pageLink, config) {
-        var deferred = $q.defer();
-        var url = '/api/edgeGroup/' + edgeGroupId + '/ruleChains?limit=' + pageLink.limit;
-        if (angular.isDefined(pageLink.idOffset)) {
-            url += '&offset=' + pageLink.idOffset;
-        }
-        $http.get(url, config).then(function success(response) {
-            response.data = utils.prepareAssignedEdgeGroups(response.data, 'RuleChain');
-            if (pageLink.textSearch) {
-                response.data.data = $filter('filter')(response.data.data, {title: pageLink.textSearch});
-            }
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
     }
 
     function getEdgeRuleChains(edgeId, pageLink, config) {
