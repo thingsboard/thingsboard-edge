@@ -109,14 +109,14 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
-        this.intervalReportCheckPeriod = TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue());
-        this.statePersistCheckPeriod = TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue());
+        this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
+        this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
         scheduleReportTickMsg(ctx);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx);
         }
         if (config.isAutoCreateIntervals()) {
-            this.entitiesCheckPeriod = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
+            this.entitiesCheckPeriod = Math.max(config.getPeriodTimeUnit().toMillis(config.getPeriodValue()), TimeUnit.MINUTES.toMillis(1));
             try {
                 initEntities(ctx, null);
             } catch (Exception e) {
