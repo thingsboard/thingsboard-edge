@@ -35,7 +35,7 @@ export default angular.module('thingsboard.api.device', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function DeviceService($http, $q, $window, $filter, userService, attributeService, customerService, types) {
+function DeviceService($http, $q, $window, userService, attributeService, customerService, types) {
 
     var service = {
         //assignDeviceToCustomer: assignDeviceToCustomer,

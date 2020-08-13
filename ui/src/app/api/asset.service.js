@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.asset', [])
     .name;
 
 /*@ngInject*/
-function AssetService($http, $q, $filter, customerService, userService) {
+function AssetService($http, $q, customerService, userService) {
 
     var service = {
         getAsset: getAsset,
