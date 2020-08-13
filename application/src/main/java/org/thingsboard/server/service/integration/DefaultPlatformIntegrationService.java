@@ -72,6 +72,7 @@ import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
+import org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
@@ -973,6 +974,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
+            case AZURE_IOT_HUB:
+                return new AzureIotHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
             case AWS_KINESIS:

@@ -400,7 +400,9 @@
         "action-data": "Action data",
         "failure-details": "Failure details",
         "search": "Search audit logs",
-        "clear-search": "Clear search"
+        "clear-search": "Clear search",
+        "type-assigned-from-tenant": "Assigned from Tenant",
+        "type-assigned-to-tenant": "Assigned to Tenant"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
@@ -1719,6 +1721,7 @@
         "private-key": "Private key file *",
         "private-key-password": "Private key password",
         "cert": "Certificate file *",
+        "azure-ca-cert": "CA certificate file",
         "no-file": "No file selected.",
         "drop-file": "Drop a file or click to select a file to upload.",
         "topic-filters": "Topic filters",
@@ -1760,6 +1763,13 @@
         "sas-key-name-required": "SAS Key Name is required.",
         "sas-key": "SAS Key",
         "sas-key-required": "SAS Key is required.",
+        "sas": "Shared Access Signature",
+        "hostname": "Hostname",
+        "hostname-required": "Hostname is required",
+        "device-id": "Device ID",
+        "device-id-required": "Device ID is required.",
+        "device-id-range": "Device ID should be in a range from 1 to 23 characters. [MQTT-3.1.3-5]",
+        "device-id-pattern": "Device ID should consist of numbers, upper and lower case letters. [MQTT-3.1.3-5]",
         "iot-hub-name": "IoT Hub Name (required for downlink)",
         "integration-clazz": "Integration class",
         "integration-clazz-required": "Integration class is required",
@@ -1783,6 +1793,7 @@
         "type-ibm-watson-iot": "IBM Watson IoT",
         "type-ttn": "TheThingsNetwork",
         "type-azure-event-hub": "Azure Event Hub",
+        "type-azure-iot-hub": "Azure IoT Hub",
         "type-opc-ua": "OPC-UA",
         "type-custom": "Custom",
         "type-udp": "UDP",
@@ -2300,7 +2311,8 @@
                 "CHANGE_OWNER": "Change owner",
                 "ADD_TO_GROUP": "Add to Group",
                 "REMOVE_FROM_GROUP": "Remove from Group",
-                "SHARE_GROUP": "Share Group"
+                "SHARE_GROUP": "Share Group",
+                "ASSIGN_TO_TENANT": "Assign to Tenant"
             }
         }
     },

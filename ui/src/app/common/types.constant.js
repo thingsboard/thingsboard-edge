@@ -252,6 +252,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "LOCKOUT": {
                     name: "audit-log.type-lockout"
+                },
+                "ASSIGNED_FROM_TENANT": {
+                    name: "audit-log.type-assigned-from-tenant"
+                },
+                "ASSIGNED_TO_TENANT": {
+                    name: "audit-log.type-assigned-to-tenant"
                 }
             },
             auditLogActionStatus: {
@@ -467,6 +473,10 @@ export default angular.module('thingsboard.types', [])
                 "AZURE_EVENT_HUB": {
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
+                },
+                "AZURE_IOT_HUB": {
+                    name: "integration.type-azure-iot-hub",
+                    value: "AZURE_IOT_HUB"
                 },
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
@@ -1110,6 +1120,16 @@ export default angular.module('thingsboard.types', [])
                 basic: {
                     value: "basic",
                     name: "extension.basic"
+                },
+                'cert.PEM': {
+                    value: "cert.PEM",
+                    name: "extension.pem"
+                }
+            },
+            azureIotHubCredentialTypes: {
+                sas: {
+                    value: "sas",
+                    name: "integration.sas"
                 },
                 'cert.PEM': {
                     value: "cert.PEM",

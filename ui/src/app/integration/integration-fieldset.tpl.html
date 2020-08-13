@@ -190,6 +190,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-azure-event-hub>
+    <tb-integration-azure-iot-hub
+            ng-if="integration.type == types.integrationType.AZURE_IOT_HUB.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-azure-iot-hub>
     <tb-integration-tcp
             ng-if="integration.type == types.integrationType.TCP.value"
             is-edit="isEdit"

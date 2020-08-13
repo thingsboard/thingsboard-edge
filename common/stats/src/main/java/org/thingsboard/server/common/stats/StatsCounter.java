@@ -28,21 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.metrics;
+package org.thingsboard.server.common.stats;
 
 import io.micrometer.core.instrument.Counter;
 
-public class StubCounter implements Counter {
-    @Override
-    public void increment(double amount) {}
+import java.util.concurrent.atomic.AtomicInteger;
 
-    @Override
-    public double count() {
-        return 0;
+public class StatsCounter extends DefaultCounter {
+    private final String name;
+
+    public StatsCounter(AtomicInteger aiCounter, Counter micrometerCounter, String name) {
+        super(aiCounter, micrometerCounter);
+        this.name = name;
     }
 
-    @Override
-    public Id getId() {
-        return null;
+    public String getName() {
+        return name;
     }
 }

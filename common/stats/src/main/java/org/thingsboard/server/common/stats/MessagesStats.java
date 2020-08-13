@@ -28,36 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.server.common.stats;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.service.metrics.StubCounter;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-@Service
-public class StatsCounterFactory {
-    private static final String STATS_NAME_TAG = "statsName";
-
-    private static final Counter STUB_COUNTER = new StubCounter();
-
-    @Autowired
-    private MeterRegistry meterRegistry;
-
-    @Value("${metrics.enabled}")
-    private Boolean metricsEnabled;
-
-    public StatsCounter createStatsCounter(String key, String statsName) {
-        return new StatsCounter(
-                new AtomicInteger(0),
-                metricsEnabled ?
-                        meterRegistry.counter(key, STATS_NAME_TAG, statsName)
-                        : STUB_COUNTER,
-                statsName
-        );
+public interface MessagesStats {
+    default void incrementTotal() {
+        incrementTotal(1);
     }
+
+    void incrementTotal(int amount);
+
+    default void incrementSuccessful() {
+        incrementSuccessful(1);
+    }
+
+    void incrementSuccessful(int amount);
+
+    default void incrementFailed() {
+        incrementFailed(1);
+    }
+
+    void incrementFailed(int amount);
+
+    int getTotal();
+
+    int getSuccessful();
+
+    int getFailed();
+
+    void reset();
 }
