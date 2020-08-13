@@ -178,6 +178,14 @@
         <tb-kafka-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-kafka-integration-form>
       </section>
+
+
+      <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
+        <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        </tb-pulsar-integration-form>
+      </section>
+
+
       <section *ngIf="integrationType === integrationTypes.CUSTOM">
         <tb-custom-integration-form #integrationFormComponent [form]="integrationForm">
         </tb-custom-integration-form>

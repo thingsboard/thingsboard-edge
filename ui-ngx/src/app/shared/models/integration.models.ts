@@ -54,6 +54,7 @@ export enum IntegrationType {
   UDP = 'UDP',
   TCP = 'TCP',
   KAFKA = 'KAFKA',
+  APACHE_PULSAR = 'APACHE_PULSAR',
   CUSTOM = 'CUSTOM'
 }
 
@@ -141,6 +142,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
     [
       IntegrationType.KAFKA,
       { name: 'integration.type-kafka' }
+    ],
+    [
+      IntegrationType.APACHE_PULSAR,
+      { name: 'integration.type-apache-pulsar' }
     ],
     [
       IntegrationType.CUSTOM,
