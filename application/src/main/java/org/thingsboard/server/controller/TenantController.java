@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -70,6 +71,25 @@ public class TenantController extends BaseController {
             TenantId tenantId = new TenantId(toUUID(strTenantId));
             checkTenantId(tenantId, Operation.READ);
             return checkNotNull(tenantService.findTenantById(tenantId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @RequestMapping(value = "/tenant", method = RequestMethod.POST)
+    @ResponseBody
+    public Tenant saveTenant(@RequestBody Tenant tenant) throws ThingsboardException {
+        try {
+            boolean newTenant = tenant.getId() == null;
+
+            checkEntity(tenant.getId(), tenant, Resource.TENANT, null);
+
+            tenant = checkNotNull(tenantService.saveTenant(tenant));
+//            if (newTenant) {
+//                installScripts.createDefaultRuleChains(tenant.getId());
+//            }
+            return tenant;
         } catch (Exception e) {
             throw handleException(e);
         }

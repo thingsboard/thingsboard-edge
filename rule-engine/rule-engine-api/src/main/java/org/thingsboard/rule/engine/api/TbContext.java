@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.api;
 
-import com.datastax.driver.core.ResultSetFuture;
 import io.netty.channel.EventLoopGroup;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.thingsboard.common.util.ListeningExecutor;
@@ -50,14 +49,13 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.gen.edge.UplinkMsg;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -158,10 +156,6 @@ public interface TbContext {
 
     // TODO: Does this changes the message?
     TbMsg alarmCreatedMsg(Alarm alarm, RuleNodeId ruleNodeId);
-
-    TbMsg alarmUpdatedMsg(Alarm alarm, RuleNodeId ruleNodeId);
-
-    TbMsg alarmClearedMsg(Alarm alarm, RuleNodeId ruleNodeId);
 
     /*
      *
