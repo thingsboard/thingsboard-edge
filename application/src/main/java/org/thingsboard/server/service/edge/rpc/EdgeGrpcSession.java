@@ -157,6 +157,7 @@ import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_M
 public final class EdgeGrpcSession implements Closeable {
 
     private static final ReentrantLock deviceCreationLock = new ReentrantLock();
+    private static final ReentrantLock entityGroupCreationLock = new ReentrantLock();
 
     private final Gson gson = new Gson();
 
@@ -1249,13 +1250,28 @@ public final class EdgeGrpcSession implements Closeable {
                 .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName);
 
         return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
-            EntityGroup result =
-                    optionalEntityGroup.orElseGet(() -> {
+            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
+                return optionalEntityGroup.get();
+            } else {
+                try {
+                    entityGroupCreationLock.lock();
+                    Optional<EntityGroup> currentEntityGroup = ctx.getEntityGroupService()
+                            .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName).get();
+                    if (!currentEntityGroup.isPresent()) {
                         EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
                         ctx.getEntityGroupService().assignEntityGroupToEdge(edge.getTenantId(), entityGroup.getId(), edge.getId(), EntityType.DEVICE);
                         return entityGroup;
-                    });
-            return result;
+                    } else {
+                        return currentEntityGroup.get();
+                    }
+                } catch (Exception e) {
+                    log.error("[{}] Can't get entity group by name edge owner id [{}], groupType [{}], deviceGroupName [{}]",
+                            tenantId, edge.getOwnerId(), groupType, deviceGroupName, e);
+                    throw new RuntimeException(e);
+                } finally {
+                    entityGroupCreationLock.unlock();
+                }
+            }
         }, ctx.getDbCallbackExecutor());
     }
 
