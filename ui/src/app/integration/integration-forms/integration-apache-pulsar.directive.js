@@ -60,7 +60,7 @@ export default function IntegrationApachePulsarDirective($compile, $templateCach
             if (!scope.configuration.clientConfiguration) {
                 scope.configuration.clientConfiguration = {
                     serviceUrl: 'pulsar://localhost:6650',
-                    topic: 'my-topic',
+                    topics: 'my-topic',
                     subscriptionName: 'my-subscription',
                     maxNumMessages: 1000,
                     maxNumBytes: 10 * 1024 * 1024,
@@ -69,9 +69,6 @@ export default function IntegrationApachePulsarDirective($compile, $templateCach
                         type: types.apachePulsarCredentialTypes.anonymous.value
                     }
                 };
-            }
-            if (!scope.configuration.topicFilters) {
-                scope.configuration.topicFilters = [];
             }
         }
 

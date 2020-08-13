@@ -77,7 +77,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
         pulsarConsumer = pulsarClient
                 .newConsumer()
                 .subscriptionName(pulsarConfiguration.getSubscriptionName())
-                .topic(pulsarConfiguration.getTopic().split(","))
+                .topic(pulsarConfiguration.getTopics().split(","))
                 .batchReceivePolicy(batchReceivePolicy)
                 .subscribe();
     }

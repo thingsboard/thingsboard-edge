@@ -1702,7 +1702,7 @@
         "group-id": "Group ID",
         "group-id-required": "Group ID is required.",
         "topics": "Topics",
-        "topics-required": "Topic is required.",
+        "topics-required": "Topics is required.",
         "bootstrap-servers": "Bootstrap servers",
         "bootstrap-servers-required": "Bootstrap servers is required.",
         "poll-interval": "Poll interval",
@@ -1920,7 +1920,6 @@
         "user-id-required": "User ID is required.",
         "pulsar-token": "Token",
         "pulsar-token-required": "Token is required.",
-        "topic-required": "Topic is required.",
         "tcp": {
             "system-line-separator": "System Line Separator",
             "nul-delimiter": "Nul Delimiter",

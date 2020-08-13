@@ -37,7 +37,7 @@ import org.thingsboard.integration.apache.pulsar.credentials.PulsarCredentials;
 public class PulsarConfiguration {
 
     private String serviceUrl;
-    private String topic;
+    private String topics;
     private String subscriptionName;
     private int maxNumMessages;
     private int maxNumBytes;
