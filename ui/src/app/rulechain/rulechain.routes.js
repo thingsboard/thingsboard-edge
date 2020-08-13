@@ -208,6 +208,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
         }
     }).state('home.edgeGroups.edgeGroup.ruleChains', {
         url: '/:edgeId/ruleChains',
+        params: {'topIndex': 0},
         module: 'private',
         auth: ['TENANT_ADMIN'],
         views: {
