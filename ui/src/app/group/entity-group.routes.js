@@ -757,7 +757,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             }
         })
         .state('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup', {
-            url: '/edge/:childEntityGroupId',
+            url: '/:childEntityGroupId',
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
@@ -777,6 +777,30 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller, entityGroup) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: entityGroup});
+                        }
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'edge.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
         })
         .state('home.edgeGroups.edgeGroup.schedulerEvents', {
@@ -1051,7 +1075,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         });
 
     /*@ngInject*/
-
     function EntityGroupResolver($stateParams, entityGroupService) {
         return entityGroupService.constructGroupConfigByStateParams($stateParams);
     }
