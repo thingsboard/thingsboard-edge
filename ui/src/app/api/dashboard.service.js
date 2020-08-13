@@ -59,9 +59,9 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         //makeDashboardPublic: makeDashboardPublic,
         //makeDashboardPrivate: makeDashboardPrivate,
         getPublicDashboardLink: getPublicDashboardLink,
-        getEdgeDashboards: getEdgeDashboards,
-        assignDashboardToEdge: assignDashboardToEdge,
-        unassignDashboardFromEdge: unassignDashboardFromEdge
+        // getEdgeDashboards: getEdgeDashboards,
+        // assignDashboardToEdge: assignDashboardToEdge,
+        // unassignDashboardFromEdge: unassignDashboardFromEdge
     }
 
     return service;
@@ -358,13 +358,6 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
             }
             dashboard.assignedCustomersText = assignedCustomersTitles.join(', ');
         }
-        dashboard.assignedEdgesIds = [];
-        if (dashboard.assignedEdges && dashboard.assignedEdges.length) {
-            for (var j = 0; j < dashboard.assignedEdges.length; j++) {
-                var assignedEdge = dashboard.assignedEdges[j];
-                dashboard.assignedEdgesIds.push(assignedEdge.edgeId.id);
-            }
-        }
         return dashboard;
     }
 
@@ -372,10 +365,9 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         delete dashboard.publicCustomerId;
         delete dashboard.assignedCustomersText;
         delete dashboard.assignedCustomersIds;
-        delete dashboard.assignedEdgesIds;
         return dashboard;
     }
-
+/*
     function getEdgeDashboards(edgeId, pageLink, config) {
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId + '/dashboards?limit=' + pageLink.limit;
@@ -415,4 +407,5 @@ function DashboardService($rootScope, $http, $q, $location, $filter, securityTyp
         });
         return deferred.promise;
     }
+ */
 }
