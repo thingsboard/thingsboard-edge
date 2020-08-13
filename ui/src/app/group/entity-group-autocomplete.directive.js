@@ -63,7 +63,7 @@ export default function EntityGroupAutocompleteDirective($compile, $templateCach
                 getEntityGroupsPromise.then(
                     function success(entityGroups) {
                         if (scope.excludeGroupAll) {
-                            scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false});
+                            scope.allEntityGroups = $filter('filter')(entityGroups, {groupAll: false, edgeGroupAll: false});
                         } else {
                             scope.allEntityGroups = entityGroups;
                         }
