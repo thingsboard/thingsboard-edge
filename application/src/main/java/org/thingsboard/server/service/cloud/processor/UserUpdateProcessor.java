@@ -82,20 +82,24 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                         created = true;
                     }
                     user.setEmail(userUpdateMsg.getEmail());
-                    // TODO: voba - fix this hardcoded authority
-                    user.setAuthority(Authority.TENANT_ADMIN);
-                    // user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
+                    user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.getFirstName());
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     User savedUser = userService.saveUser(user, created);
 
+                    if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
+                        EntityGroup edgeAdmins = entityGroupService.findOrCreateEdgeTenantAdminsGroup(user.getTenantId());
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeAdmins.getId(), user.getId());
+                    } else {
+                        EntityGroup edgeCustomerUsers = entityGroupService.findOrCreateEdgeCustomerUsersGroup(user.getTenantId());
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeCustomerUsers.getId(), savedUser.getId());
+                    }
+
                     if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
                         EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
                         addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
                     }
-
-                    addEntityToGroup(tenantId, EntityGroup.GROUP_TENANT_USERS_NAME, savedUser.getId(), EntityType.USER);
                 } finally {
                     userCreationLock.unlock();
                 }

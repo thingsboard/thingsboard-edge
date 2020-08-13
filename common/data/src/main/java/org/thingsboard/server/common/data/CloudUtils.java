@@ -51,6 +51,8 @@ public final class CloudUtils {
                 return CloudEventType.USER;
             case ALARM:
                 return CloudEventType.ALARM;
+            case CUSTOMER:
+                return CloudEventType.CUSTOMER;
             default:
                 return null;
         }
