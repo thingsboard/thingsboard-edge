@@ -1,0 +1,121 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section ng-form name="apachePulsarIntegrationForm" layout="column">
+    <fieldset ng-disabled="$root.loading || !isEdit">
+        <md-input-container class="md-block">
+            <label translate>integration.service-url</label>
+            <input required name="serviceUrl" ng-model="configuration.clientConfiguration.serviceUrl" >
+            <div ng-messages="apachePulsarIntegrationForm.serviceUrl.$error">
+                <div translate ng-message="required">integration.service-url-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.topic</label>
+            <input required name="topic" ng-model="configuration.clientConfiguration.topic" >
+            <div ng-messages="apachePulsarIntegrationForm.topic.$error">
+                <div translate ng-message="required">integration.topic-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.subscription-name</label>
+            <input required name="subscriptionName" ng-model="configuration.clientConfiguration.subscriptionName" >
+            <div ng-messages="apachePulsarIntegrationForm.topic.$error">
+                <div translate ng-message="required">integration.subscription-name-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.max-num-messages</label>
+            <input required="" name="maxNumMessages" ng-model="configuration.clientConfiguration.maxNumMessages" type="number" step="1">
+            <div ng-messages="apachePulsarIntegrationForm.maxNumMessages.$error">
+                <div translate ng-message="required">integration.max-num-messages-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.max-num-bytes</label>
+            <input required="" name="maxNumBytes" ng-model="configuration.clientConfiguration.maxNumBytes" type="number" step="1">
+            <div ng-messages="apachePulsarIntegrationForm.maxNumBytes.$error">
+                <div translate ng-message="required">integration.max-num-bytes-required</div>
+            </div>
+        </md-input-container>
+        <md-input-container class="md-block">
+            <label translate>integration.timeout-in-ms</label>
+            <input required name="timeoutInMs" ng-model="configuration.clientConfiguration.timeoutInMs" type="number" step="1">
+            <div ng-messages="apachePulsarIntegrationForm.timeoutInMs.$error">
+                <div translate ng-message="required">integration.timeout-in-ms-required</div>
+            </div>
+        </md-input-container>
+        <md-expansion-panel-group class="tb-integration-panel-group" ng-class="{'disabled': $root.loading || !isEdit}" md-component-id="credentialsPanelGroup">
+            <md-expansion-panel md-component-id="credentialsPanel">
+                <md-expansion-panel-collapsed>
+                    <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
+                    <div class="tb-panel-prompt">{{ types.mqttCredentialTypes[configuration.clientConfiguration.credentials.type].name | translate }}</div>
+                    <span flex></span>
+                    <md-expansion-panel-icon></md-expansion-panel-icon>
+                </md-expansion-panel-collapsed>
+                <md-expansion-panel-expanded>
+                    <md-expansion-panel-header ng-click="$mdExpansionPanel('credentialsPanel').collapse()">
+                        <div class="tb-panel-title">{{ 'integration.credentials' | translate }}</div>
+                        <div class="tb-panel-prompt">{{ types.mqttCredentialTypes[configuration.clientConfiguration.credentials.type].name | translate }}</div>
+                        <span flex></span>
+                        <md-expansion-panel-icon></md-expansion-panel-icon>
+                    </md-expansion-panel-header>
+                    <md-expansion-panel-content>
+                        <div>
+                            <md-input-container class="md-block">
+                                <label translate>integration.credentials-type</label>
+                                <md-select required name="credentialsType" ng-model="configuration.clientConfiguration.credentials.type"
+                                           ng-disabled="$root.loading || !isEdit" ng-change="credentialsTypeChanged()">
+                                    <md-option ng-repeat="(credentialsType, credentialsValue) in types.apachePulsarCredentialTypes" ng-value="credentialsValue.value">
+                                        {{credentialsValue.name | translate}}
+                                    </md-option>
+                                </md-select>
+                                <div ng-messages="apachePulsarIntegrationForm.credentialsType.$error">
+                                    <div translate ng-message="required">integration.credentials-type-required</div>
+                                </div>
+                            </md-input-container>
+                            <section ng-if="configuration.clientConfiguration.credentials.type == types.apachePulsarCredentialTypes.token.value">
+                                <md-input-container class="md-block">
+                                    <label translate>integration.pulsar-token</label>
+                                    <input type="password" autocomplete="new-password" required name="token" ng-model="configuration.clientConfiguration.credentials.token">
+                                    <div ng-messages="apachePulsarIntegrationForm.token.$error">
+                                        <div translate ng-message="required">integration.pulsar-token-required</div>
+                                    </div>
+                                </md-input-container>
+                            </section>
+                        </div>
+                    </md-expansion-panel-content>
+                </md-expansion-panel-expanded>
+            </md-expansion-panel>
+        </md-expansion-panel-group>
+    </fieldset>
+</section>

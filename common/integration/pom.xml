@@ -58,6 +58,7 @@
         <module>opcua-integrations</module>
         <module>kafka-integrations</module>
         <module>remote-integration-api</module>
+        <module>apache-pulsar</module>
     </modules>
 
 </project>

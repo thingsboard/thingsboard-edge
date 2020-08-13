@@ -46,7 +46,7 @@ import OpcUaSubscriptionTagsDirective from './integration-forms/opc-ua-subscript
 import IntegrationAzureEventHubDirective from './integration-forms/integration-azure-event-hub.directive';
 import IntegrationCustomDirective from './integration-forms/integration-custom.directive';
 import IntegrationKafkaDirective from './integration-forms/integration-kafka.directive';
-
+import IntegrationApachePulsarDirective from './integration-forms/integration-apache-pulsar.directive';
 
 export default angular.module('thingsboard.integration', [])
     .config(IntegrationRoutes)
@@ -67,5 +67,6 @@ export default angular.module('thingsboard.integration', [])
     .directive('tbOpcUaSubscriptionTags', OpcUaSubscriptionTagsDirective)
     .directive('tbIntegrationAzureEventHub', IntegrationAzureEventHubDirective)
     .directive('tbIntegrationKafka', IntegrationKafkaDirective)
+    .directive('tbIntegrationApachePulsar', IntegrationApachePulsarDirective)
     .directive('tbIntegrationCustom', IntegrationCustomDirective)
     .name;

@@ -208,6 +208,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-kafka>
+    <tb-integration-apache-pulsar
+            ng-if="integration.type == types.integrationType.APACHE_PULSAR.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-apache-pulsar>
     <tb-integration-custom
             ng-if="integration.type == types.integrationType.CUSTOM.value"
             is-edit="isEdit"
