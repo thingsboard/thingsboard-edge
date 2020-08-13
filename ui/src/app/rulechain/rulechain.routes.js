@@ -232,7 +232,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ruleChainsType: 'edge'
         },
         ncyBreadcrumb: {
-            label: '{"icon": "settings_ethernet", "label": "{{ vm.edge.name }}", "translate": "false"}'
+            label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
         }
     }).state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
         url: '/:ruleChainId',

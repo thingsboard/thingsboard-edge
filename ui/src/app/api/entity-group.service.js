@@ -497,7 +497,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                         entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant('edge.rulechains');
                     }
                     else {
-                        entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant(entityGroupsTitle(groupType))
+                        entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant(entityGroupsTitle(groupType));
                     }
                     if ($stateParams.childEntityGroupId) {
                         getEntityGroup($stateParams.entityGroupId).then(

@@ -45,14 +45,14 @@ import addRuleNodeLinkTemplate from './add-link.tpl.html';
 export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $timeout, $mdExpansionPanel, $window, $document, $mdDialog,
                                     $filter, $translate, hotkeys, types, securityTypes, userPermissionsService,
                                     ruleChainService, itembuffer, Modelfactory, flowchartConstants,
-                                    ruleChain, ruleChainMetaData, ruleNodeComponents, helpLinks) {
+                                    ruleChain, ruleChainMetaData, ruleNodeComponents, helpLinks, entityGroup) {
 
     var vm = this;
 
     vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
-
     vm.$mdExpansionPanel = $mdExpansionPanel;
     vm.types = types;
+    vm.entityGroup = entityGroup;
 
     if ($state.current.data.import && !ruleChain) {
         $state.go('home.ruleChains');
