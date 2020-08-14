@@ -452,12 +452,6 @@ message CustomTranslationProto {
   map<string, string> translationMap = 1;
 }
 
-message AdminSettingsUpdateMsg {
-  int64 idMSB = 1;
-  int64 idLSB = 2;
-  string key = 3;
-  string jsonValue = 4;
-}
 
 /**
  * Main Messages;
