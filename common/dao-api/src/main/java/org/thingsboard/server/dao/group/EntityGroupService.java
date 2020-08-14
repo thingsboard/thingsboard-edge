@@ -128,6 +128,10 @@ public interface EntityGroupService {
 
     EntityGroup findOrCreateEdgeTenantAdminsGroup(TenantId tenantId);
 
-    EntityGroup findOrCreateEdgeCustomerUsersGroup(TenantId tenantId);
+    EntityGroup findOrCreateEdgeTenantUsersGroup(TenantId tenantId);
+
+    EntityGroup findOrCreateEdgeCustomerAdminsGroup(TenantId tenantId, CustomerId customerId);
+
+    EntityGroup findOrCreateEdgeCustomerUsersGroup(TenantId tenantId, CustomerId customerId);
 
 }

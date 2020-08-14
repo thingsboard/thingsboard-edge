@@ -79,13 +79,15 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     private static final List<Operation> NONE_PERMISSIONS = Arrays.asList();
 
     public static final Map<Resource, List<Operation>> EDGE_TENANT_ADMIN_PERMISSIONS = new HashMap<>();
+    public static final Map<Resource, List<Operation>> EDGE_TENANT_USER_PERMISSIONS = new HashMap<>();
+    public static final Map<Resource, List<Operation>> EDGE_CUSTOMER_ADMIN_PERMISSIONS = new HashMap<>();
     public static final Map<Resource, List<Operation>> EDGE_CUSTOMER_USER_PERMISSIONS = new HashMap<>();
 
     static {
         Map<Resource, List<Operation>> commonEdgePermissions = new HashMap<>();
         commonEdgePermissions.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
 
-        commonEdgePermissions.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
+        commonEdgePermissions.put(Resource.PROFILE, READ_ONLY_GROUP_PERMISSIONS);
         commonEdgePermissions.put(Resource.ALARM, Arrays.asList(Operation.ALL));
 
         commonEdgePermissions.put(Resource.DEVICE_GROUP, READ_ONLY_GROUP_PERMISSIONS);
@@ -119,6 +121,12 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
 
         EDGE_TENANT_ADMIN_PERMISSIONS.putAll(commonEdgePermissions);
         EDGE_TENANT_ADMIN_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
+
+        EDGE_TENANT_USER_PERMISSIONS.putAll(commonEdgePermissions);
+        EDGE_TENANT_USER_PERMISSIONS.put(Resource.DEVICE, READ_ONLY_GROUP_PERMISSIONS);
+
+        EDGE_CUSTOMER_ADMIN_PERMISSIONS.putAll(commonEdgePermissions);
+        EDGE_CUSTOMER_ADMIN_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
 
         EDGE_CUSTOMER_USER_PERMISSIONS.putAll(commonEdgePermissions);
         EDGE_CUSTOMER_USER_PERMISSIONS.put(Resource.DEVICE, READ_ONLY_GROUP_PERMISSIONS);

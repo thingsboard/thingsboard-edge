@@ -87,7 +87,11 @@ public interface RoleService {
 
     TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink);
 
-    Role findOrCreateEdgeTenantAdminRole();
+    Role findOrCreateEdgeTenantAdminRole(TenantId tenantId);
 
-    Role findOrCreateEdgeCustomerUserRole();
+    Role findOrCreateEdgeTenantUserRole(TenantId tenantId);
+
+    Role findOrCreateEdgeCustomerAdminRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreateEdgeCustomerUserRole(TenantId tenantId, CustomerId customerId);
 }

@@ -30,9 +30,12 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.gson.JsonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,11 +97,21 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     User savedUser = userService.saveUser(user, created);
 
                     if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
-                        EntityGroup edgeAdmins = entityGroupService.findOrCreateEdgeTenantAdminsGroup(user.getTenantId());
-                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeAdmins.getId(), user.getId());
+                        if (isFullAccess(savedUser.getAdditionalInfo())) {
+                            EntityGroup edgeTenantAdmins = entityGroupService.findOrCreateEdgeTenantAdminsGroup(savedUser.getTenantId());
+                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeTenantAdmins.getId(), savedUser.getId());
+                        } else {
+                            EntityGroup edgeTenantUsers = entityGroupService.findOrCreateEdgeTenantUsersGroup(savedUser.getTenantId());
+                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeTenantUsers.getId(), savedUser.getId());
+                        }
                     } else {
-                        EntityGroup edgeCustomerUsers = entityGroupService.findOrCreateEdgeCustomerUsersGroup(user.getTenantId());
-                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeCustomerUsers.getId(), savedUser.getId());
+                        if (isFullAccess(savedUser.getAdditionalInfo())) {
+                            EntityGroup edgeCustomerAdmins = entityGroupService.findOrCreateEdgeCustomerAdminsGroup(savedUser.getTenantId(), savedUser.getCustomerId());
+                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCustomerAdmins.getId(), savedUser.getId());
+                        } else {
+                            EntityGroup edgeCustomerUsers = entityGroupService.findOrCreateEdgeCustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
+                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCustomerUsers.getId(), savedUser.getId());
+                        }
                     }
 
                     if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
@@ -130,6 +143,13 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
             saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
         }
+    }
+
+    private boolean isFullAccess(JsonNode additionalInfo) {
+        if (additionalInfo != null && additionalInfo.has("isFullAccess")) {
+            return additionalInfo.get("isFullAccess").asBoolean();
+        }
+        return false;
     }
 
     public void onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
