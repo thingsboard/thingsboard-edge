@@ -28,27 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-public enum EdgeEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    EDGE,
-    USER,
-    CUSTOMER,
-    RELATION,
-    TENANT,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ENTITY_GROUP,
-    SCHEDULER_EVENT,
-    WHITE_LABELING,
-    LOGIN_WHITE_LABELING,
-    CUSTOM_TRANSLATION,
-    ADMIN_SETTINGS
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
+
+@Slf4j
+@Component
+public class AdminSettingsUpdateMsgConstructor {
+
+    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings) {
+        AdminSettingsUpdateMsg.Builder builder = AdminSettingsUpdateMsg.newBuilder()
+                .setKey(adminSettings.getKey())
+                .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
+        AdminSettingsId adminSettingsId = adminSettings.getId();
+        if (adminSettingsId != null) {
+            builder.setIdMSB(adminSettingsId.getId().getMostSignificantBits());
+            builder.setIdLSB(adminSettingsId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
+    }
+
 }

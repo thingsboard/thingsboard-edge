@@ -91,6 +91,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.security.UserCredentials;
@@ -423,8 +424,8 @@ public final class EdgeGrpcSession implements Closeable {
             case CUSTOM_TRANSLATION:
                 processCustomTranslation(edgeEvent);
                 break;
-            case MAIL_TEMPLATE_SETTINGS:
-                processMailTemplates(edgeEvent);
+            case ADMIN_SETTINGS:
+                processAdminSettings(edgeEvent);
                 break;
         }
     }
@@ -694,7 +695,7 @@ public final class EdgeGrpcSession implements Closeable {
                 break;
             case CREDENTIALS_UPDATED:
                 UserCredentials userCredentialsByUserId = ctx.getUserService().findUserCredentialsByUserId(edge.getTenantId(), userId);
-                if (userCredentialsByUserId != null) {
+                if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
                     UserCredentialsUpdateMsg userCredentialsUpdateMsg =
                             ctx.getUserUpdateMsgConstructor().constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
@@ -893,10 +894,10 @@ public final class EdgeGrpcSession implements Closeable {
                 .build());
     }
 
-    private void processMailTemplates(EdgeEvent edgeEvent) {
+    private void processAdminSettings(EdgeEvent edgeEvent) {
         AdminSettings adminSettings = mapper.convertValue(edgeEvent.getEntityBody(), AdminSettings.class);
         EntityUpdateMsg entityUpdateMsg = EntityUpdateMsg.newBuilder()
-                .setMailTemplateSettings(ctx.getMailTemplateSettingsProtoConstructor().constructMailTemplateSettings(adminSettings))
+                .setAdminSettingsUpdateMsg(ctx.getAdminSettingsUpdateMsgConstructor().constructAdminSettingsUpdateMsg(adminSettings))
                 .build();
         outputStream.onNext(ResponseMsg.newBuilder()
                 .setEntityUpdateMsg(entityUpdateMsg)
