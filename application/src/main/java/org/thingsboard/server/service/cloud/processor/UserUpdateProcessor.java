@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -81,6 +82,10 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                         user.setId(userId);
                         created = true;
                     }
+                    if (userUpdateMsg.getCustomerIdMSB() != 0 && userUpdateMsg.getCustomerIdLSB() != 0) {
+                        CustomerId customerId = new CustomerId(new UUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
+                        user.setCustomerId(customerId);
+                    }
                     user.setEmail(userUpdateMsg.getEmail());
                     user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.getFirstName());
@@ -110,7 +115,7 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                             new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
                 } else {
-                    User userToDelete = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
+                    User userToDelete = userService.findUserById(tenantId, userId);
                     if (userToDelete != null) {
                         userService.deleteUser(tenantId, userToDelete.getId());
                     }
