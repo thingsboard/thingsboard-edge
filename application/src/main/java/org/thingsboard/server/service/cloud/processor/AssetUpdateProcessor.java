@@ -70,21 +70,25 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                     asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset, created);
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, asset.getId());
+                    if (isNonEmptyGroupId(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB())) {
+                        EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
+                        addEntityToGroup(tenantId, entityGroupId, asset.getId());
+                    }
 
                 } finally {
                     assetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<Asset> assetByIdAsyncFuture = assetService.findAssetByIdAsync(tenantId, assetId);
-                Futures.transform(assetByIdAsyncFuture, assetByIdAsync -> {
-                    if (assetByIdAsync != null) {
+                if (isNonEmptyGroupId(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
+                } else {
+                    Asset assetById = assetService.findAssetById(tenantId, assetId);
+                    if (assetById != null) {
                         assetService.deleteAsset(tenantId, assetId);
                     }
-                    return null;
-                }, dbCallbackExecutor);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");

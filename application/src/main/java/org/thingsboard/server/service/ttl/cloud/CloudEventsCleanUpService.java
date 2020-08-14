@@ -28,33 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.ttl.cloud;
 
-import org.thingsboard.server.common.data.cloud.CloudEventType;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
-public final class CloudUtils {
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-    private CloudUtils() {
+@PsqlDao
+@Slf4j
+@Service
+public class CloudEventsCleanUpService extends AbstractCleanUpService {
+
+    @Value("${sql.ttl.cloud_events.cloud_events_ttl}")
+    private long ttl;
+
+    @Value("${sql.ttl.cloud_events.enabled}")
+    private boolean ttlTaskExecutionEnabled;
+
+    @Scheduled(initialDelayString = "${sql.ttl.cloud_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.cloud_events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled) {
+            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                doCleanUp(conn);
+            } catch (SQLException e) {
+                log.error("SQLException occurred during TTL task execution ", e);
+            }
+        }
     }
 
-    public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return CloudEventType.DEVICE;
-            case ASSET:
-                return CloudEventType.ASSET;
-            case ENTITY_VIEW:
-                return CloudEventType.ENTITY_VIEW;
-            case DASHBOARD:
-                return CloudEventType.DASHBOARD;
-            case USER:
-                return CloudEventType.USER;
-            case ALARM:
-                return CloudEventType.ALARM;
-            case CUSTOMER:
-                return CloudEventType.CUSTOMER;
-            default:
-                return null;
-        }
+    @Override
+    protected void doCleanUp(Connection connection) {
+        long totalCloudEventsRemoved = executeQuery(connection, "call cleanup_cloud_events_by_ttl(" + ttl + ", 0);");
+        log.info("Total cloud events removed by TTL: [{}]", totalCloudEventsRemoved);
     }
 }

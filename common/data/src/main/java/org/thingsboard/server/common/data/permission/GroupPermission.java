@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,11 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
 
     private static final long serialVersionUID = 5582010124562018986L;
 
+    public static final Map<Resource, List<Operation>> ALL_PERMISSIONS = new HashMap<>();
+    static {
+        ALL_PERMISSIONS.put(Resource.ALL, Collections.singletonList(Operation.ALL));
+    }
+
     public static final List<Operation> READ_ONLY_GROUP_PERMISSIONS = Arrays.asList(
             Operation.READ,
             Operation.RPC_CALL,
@@ -64,46 +70,58 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Operation.READ_TELEMETRY
     );
 
+    public static final Map<Resource, List<Operation>> READ_ONLY_USER_PERMISSIONS = new HashMap<>();
+    static {
+        READ_ONLY_USER_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
+        READ_ONLY_USER_PERMISSIONS.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
+    }
+
     private static final List<Operation> NONE_PERMISSIONS = Arrays.asList();
 
+    public static final Map<Resource, List<Operation>> EDGE_TENANT_ADMIN_PERMISSIONS = new HashMap<>();
+    public static final Map<Resource, List<Operation>> EDGE_CUSTOMER_USER_PERMISSIONS = new HashMap<>();
 
-    public static final Map<Resource, List<Operation>> EDGE_USER_PERMISSIONS = new HashMap<>();
     static {
-        EDGE_USER_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
+        Map<Resource, List<Operation>> commonEdgePermissions = new HashMap<>();
+        commonEdgePermissions.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
 
-        EDGE_USER_PERMISSIONS.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
-        EDGE_USER_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
-        EDGE_USER_PERMISSIONS.put(Resource.ALARM, Arrays.asList(Operation.ALL));
+        commonEdgePermissions.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
+        commonEdgePermissions.put(Resource.ALARM, Arrays.asList(Operation.ALL));
 
-        EDGE_USER_PERMISSIONS.put(Resource.DEVICE_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.ASSET_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.USER_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.ENTITY_VIEW_GROUP, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.DASHBOARD_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.DEVICE_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ASSET_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.USER_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ENTITY_VIEW_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.DASHBOARD_GROUP, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.CUSTOMER_GROUP, READ_ONLY_GROUP_PERMISSIONS);
 
-        EDGE_USER_PERMISSIONS.put(Resource.CUSTOMER, NONE_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.CUSTOMER_GROUP, NONE_PERMISSIONS);
 
-        EDGE_USER_PERMISSIONS.put(Resource.ASSET, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.DASHBOARD, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.ENTITY_VIEW, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.TENANT, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.RULE_CHAIN, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.USER, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.WIDGETS_BUNDLE, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.WIDGET_TYPE, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.SCHEDULER_EVENT, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.BLOB_ENTITY, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ASSET, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.DASHBOARD, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ENTITY_VIEW, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.TENANT, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.CUSTOMER, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.RULE_CHAIN, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.USER, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.WIDGETS_BUNDLE, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.WIDGET_TYPE, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.SCHEDULER_EVENT, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.BLOB_ENTITY, READ_ONLY_GROUP_PERMISSIONS);
 
-        EDGE_USER_PERMISSIONS.put(Resource.WHITE_LABELING, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.AUDIT_LOG, READ_ONLY_GROUP_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.ADMIN_SETTINGS, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.WHITE_LABELING, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.AUDIT_LOG, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ADMIN_SETTINGS, READ_ONLY_GROUP_PERMISSIONS);
 
-        EDGE_USER_PERMISSIONS.put(Resource.ROLE, NONE_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.GROUP_PERMISSION, NONE_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.CONVERTER, NONE_PERMISSIONS);
-        EDGE_USER_PERMISSIONS.put(Resource.INTEGRATION, NONE_PERMISSIONS);
+        commonEdgePermissions.put(Resource.ROLE, NONE_PERMISSIONS);
+        commonEdgePermissions.put(Resource.GROUP_PERMISSION, NONE_PERMISSIONS);
+        commonEdgePermissions.put(Resource.CONVERTER, NONE_PERMISSIONS);
+        commonEdgePermissions.put(Resource.INTEGRATION, NONE_PERMISSIONS);
 
+        EDGE_TENANT_ADMIN_PERMISSIONS.putAll(commonEdgePermissions);
+        EDGE_TENANT_ADMIN_PERMISSIONS.put(Resource.DEVICE, Arrays.asList(Operation.ALL));
+
+        EDGE_CUSTOMER_USER_PERMISSIONS.putAll(commonEdgePermissions);
+        EDGE_CUSTOMER_USER_PERMISSIONS.put(Resource.DEVICE, READ_ONLY_GROUP_PERMISSIONS);
     }
 
     public static final Map<Resource, List<Operation>> PUBLIC_USER_PERMISSIONS = new HashMap<>();

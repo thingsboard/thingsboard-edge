@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -81,27 +82,43 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                         user.setId(userId);
                         created = true;
                     }
+                    if (userUpdateMsg.getCustomerIdMSB() != 0 && userUpdateMsg.getCustomerIdLSB() != 0) {
+                        CustomerId customerId = new CustomerId(new UUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
+                        user.setCustomerId(customerId);
+                    }
                     user.setEmail(userUpdateMsg.getEmail());
-                    // TODO: voba - fix this hardcoded authority
-                    user.setAuthority(Authority.TENANT_ADMIN);
-                    // user.setAuthority(Authority.parse(userUpdateMsg.getAuthority()));
+                    user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.getFirstName());
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
                     User savedUser = userService.saveUser(user, created);
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+                    if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
+                        EntityGroup edgeAdmins = entityGroupService.findOrCreateEdgeTenantAdminsGroup(user.getTenantId());
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeAdmins.getId(), user.getId());
+                    } else {
+                        EntityGroup edgeCustomerUsers = entityGroupService.findOrCreateEdgeCustomerUsersGroup(user.getTenantId());
+                        entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, edgeCustomerUsers.getId(), savedUser.getId());
+                    }
 
-                    addEntityToGroup(tenantId, EntityGroup.GROUP_TENANT_USERS_NAME, savedUser.getId(), EntityType.USER);
+                    if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
+                        EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                        addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+                    }
                 } finally {
                     userCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                User userToDelete = userService.findUserByEmail(tenantId, userUpdateMsg.getEmail());
-                if (userToDelete != null) {
-                    userService.deleteUser(tenantId, userToDelete.getId());
+                if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId =
+                            new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
+                } else {
+                    User userToDelete = userService.findUserById(tenantId, userId);
+                    if (userToDelete != null) {
+                        userService.deleteUser(tenantId, userToDelete.getId());
+                    }
                 }
                 break;
             case UNRECOGNIZED:

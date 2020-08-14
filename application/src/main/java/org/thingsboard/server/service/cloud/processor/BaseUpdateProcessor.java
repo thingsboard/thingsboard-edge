@@ -197,6 +197,10 @@ public abstract class BaseUpdateProcessor {
         }
     }
 
+    protected boolean isNonEmptyGroupId(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0;
+    }
+
     protected void saveCloudEvent(TenantId tenantId,
                                   CloudEventType cloudEventType,
                                   ActionType cloudEventAction,

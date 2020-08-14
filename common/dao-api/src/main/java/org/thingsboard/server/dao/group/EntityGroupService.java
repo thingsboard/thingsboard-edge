@@ -76,7 +76,11 @@ public interface EntityGroupService {
 
     EntityGroup findOrCreateTenantUsersGroup(TenantId tenantId);
 
+    EntityGroup findOrCreateTenantAdminsGroup(TenantId tenantId);
+
     EntityGroup findOrCreateCustomerUsersGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
+
+    EntityGroup findOrCreateCustomerAdminsGroup(TenantId tenantId, CustomerId customerId, CustomerId parentCustomerId);
 
     EntityGroup findOrCreatePublicUsersGroup(TenantId tenantId, CustomerId customerId);
 
@@ -121,5 +125,9 @@ public interface EntityGroupService {
     ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
+
+    EntityGroup findOrCreateEdgeTenantAdminsGroup(TenantId tenantId);
+
+    EntityGroup findOrCreateEdgeCustomerUsersGroup(TenantId tenantId);
 
 }

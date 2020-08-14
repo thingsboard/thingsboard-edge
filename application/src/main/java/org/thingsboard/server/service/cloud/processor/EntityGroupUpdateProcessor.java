@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -102,25 +103,30 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                             Futures.addCallback(entityIdsFuture, new FutureCallback<List<EntityId>>() {
                                 @Override
                                 public void onSuccess(@Nullable List<EntityId> entityIds) {
+                                    List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
                                     if (entityIds != null && !entityIds.isEmpty()) {
                                         for (EntityId entityId : entityIds) {
                                             ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
-                                            Futures.addCallback(entityGroupsForEntityFuture, new FutureCallback<List<EntityGroupId>>() {
-                                                @Override
-                                                public void onSuccess(@Nullable List<EntityGroupId> entityGroupIds) {
-                                                    if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
-                                                        deleteEntityById(tenantId, entityId);
-                                                    }
+                                            deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
+                                                if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
+                                                    deleteEntityById(tenantId, entityId);
                                                 }
-
-                                                @Override
-                                                public void onFailure(Throwable t) {
-                                                    log.error("Can't find entity groups for entity, entityId [{}]", entityId, t);
-                                                }
-                                            }, dbCallbackExecutor);
+                                                return null;
+                                            }, dbCallbackExecutor));
                                         }
                                     }
-                                    entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+                                    ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
+                                    Futures.addCallback(allFuture, new FutureCallback<List<Void>>() {
+                                        @Override
+                                        public void onSuccess(@Nullable List<Void> voids) {
+                                            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+                                        }
+
+                                        @Override
+                                        public void onFailure(Throwable t) {
+                                            log.error("Exception during delete entities", t);
+                                        }
+                                    }, dbCallbackExecutor);
                                 }
 
                                 @Override

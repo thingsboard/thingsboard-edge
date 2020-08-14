@@ -69,9 +69,13 @@ public interface RoleService {
     Role findOrCreateRole(TenantId tenantId, CustomerId customerId, RoleType type,
                           String name, Object permissions, String description);
 
-    Role findOrCreateEdgeTenantUserRole();
+    Role findOrCreateTenantUserRole();
 
-    Role findOrCreateEdgeCustomerUserRole(TenantId tenantId, CustomerId customerId);
+    Role findOrCreateTenantAdminRole();
+
+    Role findOrCreateCustomerUserRole(TenantId tenantId, CustomerId customerId);
+
+    Role findOrCreateCustomerAdminRole(TenantId tenantId, CustomerId customerId);
 
     Role findOrCreatePublicUsersEntityGroupRole(TenantId tenantId, CustomerId customerId);
 
@@ -82,4 +86,8 @@ public interface RoleService {
     TextPageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, TextPageLink pageLink);
 
     TextPageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, TextPageLink pageLink);
+
+    Role findOrCreateEdgeTenantAdminRole();
+
+    Role findOrCreateEdgeCustomerUserRole();
 }

@@ -743,6 +743,7 @@ public class CloudManagerService {
     }
 
     private void cleanUp() {
+        log.debug("Starting clean up procedure");
         userService.deleteTenantAdmins(tenantId);
         TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
         if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
@@ -771,11 +772,13 @@ public class CloudManagerService {
             List<EntityGroup> entityGroups = entityGroupsFuture.get();
             entityGroups.stream()
                     .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_TENANT_USERS_NAME))
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_TENANT_ADMINS_NAME))
+                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CUSTOMER_USERS_NAME))
                     .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId()));
         } catch (InterruptedException | ExecutionException e) {
             log.error("Unable to delete entity groups", e);
         }
+        log.debug("Clean up procedure successfully finished!");
     }
 
     private Tenant getOrCreateTenant(TenantId tenantId) {

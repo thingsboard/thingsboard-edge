@@ -86,13 +86,10 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<Customer> customerByIdAsyncFuture = customerService.findCustomerByIdAsync(tenantId, customerId);
-                Futures.transform(customerByIdAsyncFuture, customerByIdAsync -> {
-                    if (customerByIdAsync != null) {
-                        customerService.deleteCustomer(tenantId, customerId);
-                    }
-                    return null;
-                }, dbCallbackExecutor);
+                Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                if (customerById != null) {
+                    customerService.deleteCustomer(tenantId, customerId);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");

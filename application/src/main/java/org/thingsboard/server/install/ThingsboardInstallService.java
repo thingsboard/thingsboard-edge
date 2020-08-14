@@ -125,7 +125,7 @@ public class ThingsboardInstallService {
 
                 componentDiscoveryService.discoverComponents();
 
-                systemDataLoaderService.createSysAdmin();
+                //systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createAdminSettings();
                 //systemDataLoaderService.loadSystemWidgets();
 

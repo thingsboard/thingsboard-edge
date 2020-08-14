@@ -82,20 +82,26 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                     entityView.setEntityId(entityId);
                     entityViewService.saveEntityView(entityView, created);
 
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
-                    addEntityToGroup(tenantId, entityGroupId, entityView.getId());
+                    if (isNonEmptyGroupId(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB())) {
+                        EntityGroupId entityGroupId =
+                                new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
+                        addEntityToGroup(tenantId, entityGroupId, entityView.getId());
+                    }
                 } finally {
                     entityViewCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<EntityView> entityViewByIdAsyncFuture = entityViewService.findEntityViewByIdAsync(tenantId, entityViewId);
-                Futures.transform(entityViewByIdAsyncFuture, entityViewByIdAsync -> {
-                    if (entityViewByIdAsync != null) {
+                if (isNonEmptyGroupId(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB())) {
+                    EntityGroupId entityGroupId =
+                            new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, entityViewId);
+                } else {
+                    EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
+                    if (entityViewById != null) {
                         entityViewService.deleteEntityView(tenantId, entityViewId);
                     }
-                    return null;
-                }, dbCallbackExecutor);
+                }
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");

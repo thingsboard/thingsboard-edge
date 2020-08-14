@@ -286,21 +286,9 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return entityCreatedMsg(alarm, alarm.getId(), ruleNodeId);
     }
 
-    public TbMsg alarmUpdatedMsg(Alarm alarm, RuleNodeId ruleNodeId) {
-        return entityMsg(alarm, alarm.getId(), ruleNodeId, DataConstants.ENTITY_UPDATED);
-    }
-
-    public TbMsg alarmClearedMsg(Alarm alarm, RuleNodeId ruleNodeId) {
-        return entityMsg(alarm, alarm.getId(), ruleNodeId, DataConstants.ALARM_CLEAR);
-    }
-
-    private <E, I extends EntityId> TbMsg entityCreatedMsg(E entity, I id, RuleNodeId ruleNodeId) {
-        return entityMsg(entity, id, ruleNodeId, DataConstants.ENTITY_CREATED);
-    }
-
-    private <E, I extends EntityId> TbMsg entityMsg(E entity, I id, RuleNodeId ruleNodeId, String msgType) {
+    public <E, I extends EntityId> TbMsg entityCreatedMsg(E entity, I id, RuleNodeId ruleNodeId) {
         try {
-            return TbMsg.newMsg(msgType, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)));
+            return TbMsg.newMsg(DataConstants.ENTITY_CREATED, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)));
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " created msg: " + e);
         }

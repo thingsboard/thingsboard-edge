@@ -167,8 +167,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
             entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            // Edge - not required ?
-            // entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
         }
 
         return savedTenant;
