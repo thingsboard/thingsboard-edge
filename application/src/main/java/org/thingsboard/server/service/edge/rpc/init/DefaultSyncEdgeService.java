@@ -45,7 +45,6 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
@@ -75,10 +74,10 @@ import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.widget.WidgetType;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -175,6 +174,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     @Override
     public void sync(Edge edge) {
         try {
+            syncOwner(edge);
             syncWidgetsBundleAndWidgetTypes(edge);
             syncLoginWhiteLabeling(edge);
             syncWhiteLabeling(edge);
@@ -185,6 +185,12 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             syncMailTemplateSettings(edge);
         } catch (Exception e) {
             log.error("Exception during sync process", e);
+        }
+    }
+
+    private void syncOwner(Edge edge) {
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, ActionType.ADDED, edge.getOwnerId(), null, null);
         }
     }
 
@@ -690,7 +696,6 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             if (entityIds != null && !entityIds.isEmpty()) {
                 List<UserId> userIds = entityIds.stream().map(e -> new UserId(e.getId())).collect(Collectors.toList());
                 ListenableFuture<List<User>> usersFuture = userService.findUsersByTenantIdAndIdsAsync(edge.getTenantId(), userIds);
-
                 Futures.addCallback(usersFuture, new FutureCallback<List<User>>() {
                     @Override
                     public void onSuccess(@Nullable List<User> users) {

@@ -32,7 +32,9 @@ package org.thingsboard.server.service.edge.rpc;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -46,6 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -80,6 +83,9 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -106,6 +112,7 @@ import org.thingsboard.server.gen.edge.ConnectRequestMsg;
 import org.thingsboard.server.gen.edge.ConnectResponseCode;
 import org.thingsboard.server.gen.edge.ConnectResponseMsg;
 import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
@@ -377,6 +384,9 @@ public final class EdgeGrpcSession implements Closeable {
             case DASHBOARD:
                 processDashboard(edgeEvent, msgType, edgeEventAction);
                 break;
+            case CUSTOMER:
+                processCustomer(edgeEvent, msgType, edgeEventAction);
+                break;
             case RULE_CHAIN:
                 processRuleChain(edgeEvent, msgType, edgeEventAction);
                 break;
@@ -569,6 +579,36 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
+    private void processCustomer(EdgeEvent edgeEvent, UpdateMsgType msgType, ActionType edgeEventAction) {
+        CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
+        EntityUpdateMsg entityUpdateMsg = null;
+        switch (edgeEventAction) {
+            case ADDED:
+            case UPDATED:
+                Customer customer = ctx.getCustomerService().findCustomerById(edgeEvent.getTenantId(), customerId);
+                if (customer != null) {
+                    CustomerUpdateMsg customerUpdateMsg =
+                            ctx.getCustomerUpdateMsgConstructor().constructCustomerUpdatedMsg(msgType, customer);
+                    entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                            .setCustomerUpdateMsg(customerUpdateMsg)
+                            .build();
+                }
+                break;
+            case DELETED:
+                CustomerUpdateMsg customerUpdateMsg =
+                        ctx.getCustomerUpdateMsgConstructor().constructCustomerDeleteMsg(customerId);
+                entityUpdateMsg = EntityUpdateMsg.newBuilder()
+                        .setCustomerUpdateMsg(customerUpdateMsg)
+                        .build();
+                break;
+        }
+        if (entityUpdateMsg != null) {
+            outputStream.onNext(ResponseMsg.newBuilder()
+                    .setEntityUpdateMsg(entityUpdateMsg)
+                    .build());
+        }
+    }
+
     private void processRuleChain(EdgeEvent edgeEvent, UpdateMsgType msgType, ActionType edgeEventAction) {
         RuleChainId ruleChainId = new RuleChainId(edgeEvent.getEntityId());
         EntityUpdateMsg entityUpdateMsg = null;
@@ -628,6 +668,18 @@ public final class EdgeGrpcSession implements Closeable {
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+
+                    try {
+                        MergedUserPermissions mergedPermissions = ctx.getUserPermissionsService().getMergedPermissions(user, false);
+                        boolean fullAccess = false;
+                        if (mergedPermissions.hasGenericPermission(Resource.DEVICE, Operation.WRITE)) {
+                            fullAccess = true;
+                        }
+                        setFullAccess(user, fullAccess);
+                    } catch (Exception e) {
+                        log.error("Can't get merged permissions, user [{}]", user, e);
+                    }
+
                     entityUpdateMsg = EntityUpdateMsg.newBuilder()
                             .setUserUpdateMsg(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
@@ -655,6 +707,15 @@ public final class EdgeGrpcSession implements Closeable {
                     .setEntityUpdateMsg(entityUpdateMsg)
                     .build());
         }
+    }
+
+    private void setFullAccess(User user, boolean isFullAccess) {
+        JsonNode additionalInfo = user.getAdditionalInfo();
+        if (additionalInfo == null || additionalInfo instanceof NullNode) {
+            additionalInfo = mapper.createObjectNode();
+        }
+        ((ObjectNode) additionalInfo).put("isFullAccess", isFullAccess);
+        user.setAdditionalInfo(additionalInfo);
     }
 
     private void processRelation(EdgeEvent edgeEvent, UpdateMsgType msgType) {

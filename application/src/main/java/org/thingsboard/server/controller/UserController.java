@@ -212,7 +212,7 @@ public class UserController extends BaseController {
                         savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), user.getId(), ActionType.ADDED_TO_ENTITY_GROUP);
+                sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(), ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             if (sendEmail) {
