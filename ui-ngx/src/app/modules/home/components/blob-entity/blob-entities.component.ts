@@ -223,7 +223,7 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
         this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
       }
 
-      (this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange)
+      ((this.displayPagination ? merge(this.sort.sortChange, this.paginator.page) : this.sort.sortChange) as Observable<any>)
         .pipe(
           tap(() => this.updateData())
         )

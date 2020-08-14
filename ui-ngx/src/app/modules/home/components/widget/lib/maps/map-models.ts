@@ -65,7 +65,7 @@ export type MapSettings = {
     markerClusteringSetting?;
     useDefaultCenterPosition?: boolean;
     gmDefaultMapType?: string;
-    useLabelFunction: string;
+    useLabelFunction: boolean;
     icon?: any;
     zoomOnClick: boolean,
     maxZoom: number,
@@ -211,7 +211,7 @@ export type TripAnimationSettings = {
     pointAsAnchorFunction: GenericFunction;
     tooltipFunction: GenericFunction;
     labelFunction: GenericFunction;
-}
+};
 
 export type actionsHandler = ($event: Event, datasource: Datasource) => void;
 

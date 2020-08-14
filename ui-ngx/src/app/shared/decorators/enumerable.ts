@@ -29,15 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
-
-@Component({
-  selector: 'tb-todo-dialog',
-  templateUrl: './todo-dialog.component.html',
-  styleUrls: ['./todo-dialog.component.scss']
-})
-export class TodoDialogComponent {
-  constructor(public dialogRef: MatDialogRef<TodoDialogComponent>) {
-  }
+export function enumerable(value: boolean) {
+  return (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) => {
+    descriptor.enumerable = value;
+  };
 }

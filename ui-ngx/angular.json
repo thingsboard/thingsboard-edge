@@ -29,7 +29,10 @@
               { "glob": "worker-css.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
               { "glob": "worker-json.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
               { "glob": "worker-javascript.js", "input": "./node_modules/ace-builds/src-min/", "output": "/" },
-              { "glob": "**/*", "input": "node_modules/tinymce", "output": "/assets/tinymce/" }
+              { "glob": "**/*", "input": "node_modules/tinymce", "output": "/assets/tinymce/" },
+              { "glob": "marker-icon-2x.png", "input": "node_modules/leaflet/dist/images/", "output": "/" },
+              { "glob": "marker-icon.png", "input": "node_modules/leaflet/dist/images/", "output": "/" },
+              { "glob": "marker-shadow.png", "input": "node_modules/leaflet/dist/images/", "output": "/" }
             ],
             "styles": [
               {
@@ -100,10 +103,29 @@
               "node_modules/systemjs/dist/system.js",
               "node_modules/jstree/dist/jstree.min.js"
             ],
-            "es5BrowserSupport": true,
             "customWebpackConfig": {
               "path": "./extra-webpack.config.js"
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "hammerjs",
+              "react",
+              "react-dom",
+              "reactcss",
+              "react-ace",
+              "schema-inspector",
+              "@flowjs/flow.js",
+              "@material-ui/icons/Add",
+              "@material-ui/icons/Clear",
+              "js-beautify",
+              "mousetrap",
+              "prop-types",
+              "react-is",
+              "hoist-non-react-statics",
+              "classnames",
+              "raf",
+              "exceljs/dist/exceljs.min.js",
+              "moment-timezone"
+            ]
           },
           "configurations": {
             "production": {
