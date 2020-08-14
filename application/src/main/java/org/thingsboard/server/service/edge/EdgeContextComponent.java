@@ -66,7 +66,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.DeviceUpdateMsgConstr
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.MailTemplateSettingsProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
@@ -247,7 +247,7 @@ public class EdgeContextComponent {
     private CustomTranslationProtoConstructor customTranslationProtoConstructor;
 
     @Autowired
-    private MailTemplateSettingsProtoConstructor mailTemplateSettingsProtoConstructor;
+    private AdminSettingsUpdateMsgConstructor adminSettingsUpdateMsgConstructor;
 
     @Lazy
     @Autowired

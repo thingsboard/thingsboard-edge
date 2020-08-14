@@ -52,5 +52,4 @@ public class AdminSettingsUpdateMsgConstructor {
         }
         return builder.build();
     }
-
 }

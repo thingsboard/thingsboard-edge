@@ -106,6 +106,7 @@ import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,8 +119,6 @@ import java.util.stream.Collectors;
 public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private static final ObjectMapper mapper = new ObjectMapper();
-
-    private static final String MAIL_TEMPLATES = "mailTemplates";
 
     @Autowired
     private EdgeEventService edgeEventService;
@@ -357,6 +356,37 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
+    private void syncAdminSettings(Edge edge) {
+        try {
+            List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
+            for (String key: adminSettingsKeys) {
+                AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+                saveAdminSettingsEdgeEvent(edge, sysAdminMainSettings);
+                Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, key).get();
+                if (tenantMailSettingsAttr.isPresent()) {
+                    AdminSettings tenantMailSettings = new AdminSettings();
+                    tenantMailSettings.setKey(key);
+                    String value = tenantMailSettingsAttr.get().getValueAsString();
+                    tenantMailSettings.setJsonValue(mapper.readTree(value));
+                    saveAdminSettingsEdgeEvent(edge, tenantMailSettings);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Can't load admin settings", e);
+        }
+    }
+
+    private void saveAdminSettingsEdgeEvent(Edge edge, AdminSettings adminSettings) {
+        log.info(String.valueOf(adminSettings));
+        saveEdgeEvent(edge.getTenantId(),
+                edge.getId(),
+                EdgeEventType.ADMIN_SETTINGS,
+                ActionType.UPDATED,
+                null,
+                mapper.valueToTree(adminSettings),
+                null);
+    }
+
     private void syncWidgetsBundleAndWidgetTypes(Edge edge) {
         List<WidgetsBundle> widgetsBundlesToPush = new ArrayList<>();
         List<WidgetType> widgetTypesToPush = new ArrayList<>();
@@ -372,15 +402,6 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             }
         } catch (Exception e) {
             log.error("Exception during loading widgets bundle(s) and widget type(s) on sync!", e);
-        }
-    }
-
-    private void syncAdminSettings(Edge edge) {
-        try {
-            AdminSettings mailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ADMIN_SETTINGS, ActionType.UPDATED, null, mapper.valueToTree(mailSettings), null);
-        } catch (Exception e) {
-            log.error("Can't load admin settings", e);
         }
     }
 
@@ -679,6 +700,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             if (entityIds != null && !entityIds.isEmpty()) {
                 List<UserId> userIds = entityIds.stream().map(e -> new UserId(e.getId())).collect(Collectors.toList());
                 ListenableFuture<List<User>> usersFuture = userService.findUsersByTenantIdAndIdsAsync(edge.getTenantId(), userIds);
+
                 Futures.addCallback(usersFuture, new FutureCallback<List<User>>() {
                     @Override
                     public void onSuccess(@Nullable List<User> users) {
