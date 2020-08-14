@@ -246,9 +246,6 @@ public class EdgeContextComponent {
     @Autowired
     private CustomTranslationProtoConstructor customTranslationProtoConstructor;
 
-    @Autowired
-    private AdminSettingsUpdateMsgConstructor adminSettingsUpdateMsgConstructor;
-
     @Lazy
     @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
