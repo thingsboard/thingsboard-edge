@@ -420,7 +420,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             long startTs = System.currentTimeMillis();
             try {
                 return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
-            }finally {
+            } finally {
                 queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
             }
         });
@@ -818,13 +818,17 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                                     "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains'))");
                         }
                     } else {
-                        entitiesQuery.append(" AND EXISTS ( SELECT rattr.to_id FROM relation rattr WHERE rattr.to_id = e.id AND rattr.to_type = '");
-                        entitiesQuery.append(entityType.name());
-                        String param = "permissions_read_group_ids_" + entityType.name().toLowerCase();
-                        ctx.addUuidListParameter(param,
-                                permissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
-                        entitiesQuery.append("' and rattr.from_id in (:").append(param).append(") AND rattr.from_type = 'ENTITY_GROUP' " +
-                                "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains'))");
+                        if (permissions.getEntityGroupIds().isEmpty()) {
+                            entitiesQuery.append(" AND FALSE");
+                        } else {
+                            entitiesQuery.append(" AND EXISTS ( SELECT rattr.to_id FROM relation rattr WHERE rattr.to_id = e.id AND rattr.to_type = '");
+                            entitiesQuery.append(entityType.name());
+                            String param = "permissions_read_group_ids_" + entityType.name().toLowerCase();
+                            ctx.addUuidListParameter(param,
+                                    permissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
+                            entitiesQuery.append("' and rattr.from_id in (:").append(param).append(") AND rattr.from_type = 'ENTITY_GROUP' " +
+                                    "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains'))");
+                        }
                     }
                 }
                 entitiesQuery.append(")");
