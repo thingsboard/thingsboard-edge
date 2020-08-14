@@ -74,6 +74,7 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/stop-db.sh /usr/bin
 
 RUN dpkg -i /tmp/tb-web-report.deb
+RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
 
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
