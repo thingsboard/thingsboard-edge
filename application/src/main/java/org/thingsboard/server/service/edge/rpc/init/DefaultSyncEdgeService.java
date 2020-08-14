@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
@@ -229,7 +230,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                         for (List<EntityGroup> entityGroups : result) {
                             if (entityGroups != null && !entityGroups.isEmpty()) {
                                 for (EntityGroup entityGroup : entityGroups) {
-                                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP, ActionType.ADDED, entityGroup.getId(), null, null);
+                                    if (!entityGroup.isEdgeGroupAll()) {
+                                        saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP, ActionType.ADDED, entityGroup.getId(), null, null);
+                                    }
                                 }
                             }
                         }

@@ -509,7 +509,7 @@ public abstract class BaseController {
                         savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), savedEntity.getId(), ActionType.ADDED_TO_ENTITY_GROUP);
+                sendNotificationMsgToEdgeService(getTenantId(), savedEntity.getId(), ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,

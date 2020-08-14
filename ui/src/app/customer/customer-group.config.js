@@ -150,6 +150,17 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             }
         };
 
+        groupConfig.onManageEdge = (event, entity) => {
+            if (event) {
+                event.stopPropagation();
+            }
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                params.hierarchyCallbacks.customerGroupsSelected(params.nodeId, entity.id.id, types.entityType.edge);
+            } else {
+                $state.go('home.customerGroups.customerGroup.edgeGroups', {customerId: entity.id.id});
+            }
+        };
+
         groupConfig.onManageDashboards = (event, entity) => {
             if (event) {
                 event.stopPropagation();
@@ -233,6 +244,21 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
                     },
                     onAction: ($event, entity) => {
                         groupConfig.onManageEntityViews($event, entity);
+                    }
+                }
+            );
+        }
+
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.edgeGroup, securityTypes.operation.read)) {
+            groupConfig.actionCellDescriptors.push(
+                {
+                    name: $translate.instant('customer.manage-customer-edge-groups'),
+                    icon: 'router',
+                    isEnabled: () => {
+                        return settings.enableEdgeManagement;
+                    },
+                    onAction: ($event, entity) => {
+                        groupConfig.onManageEdge($event, entity);
                     }
                 }
             );

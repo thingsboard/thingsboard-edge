@@ -62,7 +62,9 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     public static final String GROUP_CUSTOMER_ADMINS_NAME = "Customer Administrators";
     public static final String GROUP_PUBLIC_USERS_NAME = "Public Users";
 
-    public static final String GROUP_EDGE_ALL_NAME_PATTERN = "[Edge] %s All";
+    private static final String GROUP_EDGE_ALL_STARTS_WITH = "[Edge]";
+    private static final String GROUP_EDGE_ALL_ENDS_WITH = "All";
+    public static final String GROUP_EDGE_ALL_NAME_PATTERN = GROUP_EDGE_ALL_STARTS_WITH + " %s " + GROUP_EDGE_ALL_ENDS_WITH;
 
     @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
     private EntityType type;
@@ -104,6 +106,10 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     public boolean isGroupAll() {
         return GROUP_ALL_NAME.equals(name);
+    }
+
+    public boolean isEdgeGroupAll() {
+        return name.startsWith(GROUP_EDGE_ALL_STARTS_WITH) && name.endsWith(GROUP_EDGE_ALL_ENDS_WITH);
     }
 
     @JsonIgnore

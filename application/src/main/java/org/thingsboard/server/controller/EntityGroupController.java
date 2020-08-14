@@ -410,7 +410,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.REMOVED_FROM_ENTITY_GROUP);
+                sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {
