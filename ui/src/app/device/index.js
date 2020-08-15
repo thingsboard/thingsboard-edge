@@ -41,7 +41,7 @@ import {DeviceController, DeviceCardController} from './device.controller';
 import ManageDeviceCredentialsController from './device-credentials.controller';
 import DeviceDirective from './device.directive';
 import DeviceGroupConfig from './device-group.config';
-import AddDevicesToEdgeController from './add-devices-to-edge.controller';
+// import AddDevicesToEdgeController from './add-devices-to-edge.controller';
 
 export default angular.module('thingsboard.device', [
     uiRouter,
@@ -56,7 +56,7 @@ export default angular.module('thingsboard.device', [
     //.controller('AssignDeviceToCustomerController', AssignDeviceToCustomerController)
     //.controller('AddDevicesToCustomerController', AddDevicesToCustomerController)
     .controller('ManageDeviceCredentialsController', ManageDeviceCredentialsController)
-    .controller('AddDevicesToEdgeController', AddDevicesToEdgeController)
+    // .controller('AddDevicesToEdgeController', AddDevicesToEdgeController)
     .directive('tbDevice', DeviceDirective)
     .factory('deviceGroupConfig', DeviceGroupConfig)
     .name;

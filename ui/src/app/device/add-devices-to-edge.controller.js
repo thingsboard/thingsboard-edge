@@ -29,6 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
+/*
 export default function AddDevicesToEdgeController(deviceService, $mdDialog, $q, edgeId, devices) {
 
     var vm = this;
@@ -136,3 +137,4 @@ export default function AddDevicesToEdgeController(deviceService, $mdDialog, $q,
     }
 
 }
+*/
