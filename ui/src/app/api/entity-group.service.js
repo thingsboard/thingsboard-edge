@@ -57,9 +57,6 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         getEntityGroupEntities: getEntityGroupEntities,
         constructGroupConfigByStateParams: constructGroupConfigByStateParams,
         constructGroupConfig: constructGroupConfig,
-        updateEntityGroupEdges: updateEntityGroupEdges,
-        addEntityGroupEdges: addEntityGroupEdges,
-        removeEntityGroupEdges: removeEntityGroupEdges,
         getEdgeEntityGroups: getEdgeEntityGroups,
         assignEntityGroupToEdge: assignEntityGroupToEdge,
         unassignEntityGroupFromEdge: unassignEntityGroupFromEdge
@@ -109,7 +106,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
             config = {};
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
-        $http.post(url, cleanEntityGroup(entityGroup), config).then(function success(response) {
+        $http.post(url, cleanEntityGroup(entityGroup), config).then(function success(response) { //TODO cleaning: check usage cleanEntityGroup
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -422,39 +419,6 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         return deferred.promise;
     }
 
-    function updateEntityGroupEdges(entityGroupId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function addEntityGroupEdges(entityGroupId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/add';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
-    function removeEntityGroupEdges(entityGroupId, edgeGroupIds) {
-        var deferred = $q.defer();
-        var url = '/api/entityGroup/' + entityGroupId + '/edgeGroups/remove';
-        $http.post(url, edgeGroupIds).then(function success(response) {
-            deferred.resolve(response.data);
-        }, function fail() {
-            deferred.reject();
-        });
-        return deferred.promise;
-    }
-
     function cleanEntityGroup(entityGroup) {
         delete entityGroup.assignedEdgeGroupsText;
         delete entityGroup.assignedEdgeGroupIds;
@@ -464,7 +428,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
     function resolveParentGroupInfo($stateParams, entityGroup) {
         var deferred = $q.defer();
         if ($stateParams.customerId) {
-            let groupType = $stateParams.childGroupType || $stateParams.groupType;
+            var groupType = $stateParams.childGroupType || $stateParams.groupType;
             customerService.getShortCustomerInfo($stateParams.customerId).then(
                 (info) => {
                     entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
@@ -487,7 +451,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                 }
             );
         } else if ($stateParams.edgeId) {
-            let groupType = $stateParams.childGroupType || $stateParams.groupType;
+            var groupType = $stateParams.childGroupType || $stateParams.groupType; //TODO clean: check if var groupType is not conflicting
             edgeService.getEdge($stateParams.edgeId).then(
                 (info) => {
                     if (groupType === types.entityType.schedulerEvent) {

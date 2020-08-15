@@ -35,7 +35,7 @@ export default angular.module('thingsboard.api.entityView', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function EntityViewService($http, $q, $window, $filter, userService, attributeService, customerService, types) {
+function EntityViewService($http, $q, $window, userService, attributeService, customerService, types) {
 
     var service = {
         //assignEntityViewToCustomer: assignEntityViewToCustomer,
@@ -52,7 +52,7 @@ function EntityViewService($http, $q, $window, $filter, userService, attributeSe
         unsubscribeForEntityViewAttributes: unsubscribeForEntityViewAttributes,
         findByQuery: findByQuery,
         getEntityViewTypes: getEntityViewTypes//,
-        //makeEntityViewPublic: makeEntityViewPublic,
+        //makeEntityViewPublic: makeEntityViewPublic
     }
 
     return service;
