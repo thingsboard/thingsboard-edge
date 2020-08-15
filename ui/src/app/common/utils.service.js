@@ -753,7 +753,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 settings.enableLoginAsUser = true;
             }
         }
-        if (entityType == types.entityType.customer || entityType == types.entityType.edge) {
+        if (entityType == types.entityType.customer || entityType == types.entityType.edge) { //TODO clean: check usage
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;
             }
@@ -774,11 +774,6 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             }
             if (angular.isUndefined(settings.enableDashboardsManagement)) {
                 settings.enableDashboardsManagement = true;
-            }
-        }
-        if (entityType == types.entityType.customer) {
-            if (angular.isUndefined(settings.enableCustomersManagement)) {
-                settings.enableCustomersManagement = true;
             }
         }
         if (entityType == types.entityType.edge) {

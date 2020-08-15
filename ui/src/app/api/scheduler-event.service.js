@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.schedulerEvent', [])
     .name;
 
 /*@ngInject*/
-function SchedulerEventService($http, $q, $filter, customerService) {
+function SchedulerEventService($http, $q, customerService) {
 
     var service = {
         getSchedulerEvents: getSchedulerEvents,
@@ -43,7 +43,7 @@ function SchedulerEventService($http, $q, $filter, customerService) {
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent,
         assignSchedulerEventToEdge: assignSchedulerEventToEdge,
-        unassignSchedulerEventFromEdge: unassignSchedulerEventFromEdge,
+        unassignSchedulerEventFromEdgeunassignSchedulerEventFromEdge: unassignSchedulerEventFromEdge,
         getEdgeSchedulerEvents: getEdgeSchedulerEvents
     };
 
