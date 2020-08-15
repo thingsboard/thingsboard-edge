@@ -97,7 +97,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
                 ruleNodeComponents:
                 /*@ngInject*/
                     function($stateParams, ruleChainService) {
-                        return ruleChainService.getRuleNodeComponents(types.coreRuleChainType);
+                        return ruleChainService.getRuleNodeComponents(types.ruleChainType.core);
                     }
             },
             data: {
@@ -195,7 +195,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ruleNodeComponents:
             /*@ngInject*/
                 function($stateParams, ruleChainService) {
-                    return ruleChainService.getRuleNodeComponents(types.edgeRuleChainType);
+                    return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
                 }
         },
         data: {
@@ -260,7 +260,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             ruleNodeComponents:
             /*@ngInject*/
                 function($stateParams, ruleChainService) {
-                    return ruleChainService.getRuleNodeComponents(types.edgeRuleChainType);
+                    return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
                 }
         },
         data: {

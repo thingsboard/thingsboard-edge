@@ -34,7 +34,7 @@ export default angular.module('thingsboard.api.ruleChain', [])
 /*@ngInject*/
 function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, componentDescriptorService) {
 
-    var ruleNodeComponents = {};
+    var ruleNodeComponents = null;
 
     var service = {
         getRuleChains: getRuleChains,
@@ -169,20 +169,20 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return component.configurationDescriptor.nodeDefinition.customRelations;
     }
 
-    function getRuleNodeComponents(ruleChainType) {
+    function getRuleNodeComponents(type) {
         var deferred = $q.defer();
-        if (ruleNodeComponents[ruleChainType]) {
-            deferred.resolve(ruleNodeComponents[ruleChainType]);
+        if (ruleNodeComponents[type]) {
+            deferred.resolve(ruleNodeComponents[type]);
         } else {
-            loadRuleNodeComponents(ruleChainType).then(
+            loadRuleNodeComponents(type).then(
                 (components) => {
                     resolveRuleNodeComponentsUiResources(components).then(
                         (components) => {
-                            ruleNodeComponents[ruleChainType] = components;
-                            ruleNodeComponents[ruleChainType].push(
+                            ruleNodeComponents[type] = components;
+                            ruleNodeComponents[type].push(
                                 types.ruleChainNodeComponent
                             );
-                            ruleNodeComponents[ruleChainType].sort(
+                            ruleNodeComponents[type].sort(
                                 (comp1, comp2) => {
                                     var result = comp1.type.localeCompare(comp2.type);
                                     if (result == 0) {
@@ -191,7 +191,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
                                     return result;
                                 }
                             );
-                            deferred.resolve(ruleNodeComponents[ruleChainType]);
+                            deferred.resolve(ruleNodeComponents[type]);
                         },
                         () => {
                             deferred.reject();
@@ -248,8 +248,8 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return deferred.promise;
     }
 
-    function getRuleNodeComponentByClazz(clazz, ruleNodeType) {
-        var res = $filter('filter')(ruleNodeComponents[ruleNodeType], {clazz: clazz}, true);
+    function getRuleNodeComponentByClazz(clazz, type) {
+        var res = $filter('filter')(ruleNodeComponents[type], {clazz: clazz}, true);
         if (res && res.length) {
             return res[0];
         }
@@ -299,8 +299,8 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
         return deferred.promise;
     }
 
-    function loadRuleNodeComponents(ruleChainType) {
-        return componentDescriptorService.getComponentDescriptorsByTypes(types.ruleNodeTypeComponentTypes, ruleChainType);
+    function loadRuleNodeComponents(type) {
+        return componentDescriptorService.getComponentDescriptorsByTypes(types.ruleNodeTypeComponentTypes, type);
     }
 
     function testScript(inputParams) {
@@ -326,7 +326,7 @@ function RuleChainService($http, $q, $filter, $ocLazyLoad, $translate, types, co
     }
 
     function getEdgesRuleChains(pageLink, config) {
-        return getRuleChains(pageLink, config, types.edgeRuleChainType);
+        return getRuleChains(pageLink, config, types.ruleChainType.edge);
     }
 
     function getEdgeRuleChains(edgeId, pageLink, config) {
