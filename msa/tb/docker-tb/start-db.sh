@@ -30,29 +30,18 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
-
-service tb-web-report start
-
-CONF_FOLDER="${pkg.installFolder}/conf"
-jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
-configfile=${pkg.name}.conf
 firstlaunch=${DATA_FOLDER}/.firstlaunch
 
-source "${CONF_FOLDER}/${configfile}"
+export PG_CTL=$(find /usr/lib/postgresql/ -name pg_ctl)
 
-if [ ! -f ${firstlaunch} ]; then
-    install-tb.sh --loadDemo
-    touch ${firstlaunch}
+if [ ! -d ${PGDATA} ]; then
+    mkdir -p ${PGDATA}
+    chown -R postgres:postgres ${PGDATA}
+    su postgres -c '${PG_CTL} initdb -U postgres'
 fi
 
-echo "Starting ThingsBoard ..."
+su postgres -c '${PG_CTL} -l /var/log/postgres/postgres.log -w start'
 
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardServerApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
-
-service tb-web-report stop
-
-stop-db.sh
+if [ ! -f ${firstlaunch} ]; then
+    su postgres -c 'psql -U postgres -d postgres -c "CREATE DATABASE thingsboard"'
+fi
