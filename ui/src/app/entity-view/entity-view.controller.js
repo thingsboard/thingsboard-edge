@@ -300,7 +300,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
             }
         } else if (vm.entityViewsScope === 'edge') {
             fetchEntityViewsFunction = function (pageLink, entityViewType) {
-                return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType);
+                return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType); //TODO clean: method is used in CE. Comment
             };
             deleteEntityViewFunction = function (entityViewId) {
                 return entityViewService.unassignEntityViewFromEdge(edgeId, entityViewId);
