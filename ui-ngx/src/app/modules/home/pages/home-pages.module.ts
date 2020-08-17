@@ -45,6 +45,8 @@ import { IntegrationModule } from '@home/pages/integration/integration.module';
 import { RoleModule } from '@home/pages/role/role.module';
 import { SchedulerModule } from '@home/pages/scheduler/scheduler.module';
 import { EntityGroupModule } from '@home/pages/group/entity-group.module';
+import { MODULES_MAP } from '@shared/public-api';
+import { modulesMap } from '../../common/modules-map';
 
 @NgModule({
   exports: [
@@ -62,6 +64,12 @@ import { EntityGroupModule } from '@home/pages/group/entity-group.module';
     EntityGroupModule,
     IFrameViewModule,
     SchedulerModule
+  ],
+  providers: [
+    {
+      provide: MODULES_MAP,
+      useValue: modulesMap
+    }
   ]
 })
 export class HomePagesModule { }
