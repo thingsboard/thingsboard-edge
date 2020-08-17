@@ -41,11 +41,10 @@ import {
   tbPrimaryPalette,
   WhiteLabelingParams
 } from '@shared/models/white-labeling.models';
-import { Observable, of, ReplaySubject } from 'rxjs';
+import { Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { ColorPalette, extendPalette, materialColorPalette } from '@shared/models/material.models';
 import { deepClone, isEqual, objectHashCode } from '@core/utils';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
-import { throwError } from 'rxjs/internal/observable/throwError';
 import { environment as env } from '@env/environment';
 import { ActionSettingsChangeWhiteLabeling } from '@core/settings/settings.actions';
 import { Store } from '@ngrx/store';

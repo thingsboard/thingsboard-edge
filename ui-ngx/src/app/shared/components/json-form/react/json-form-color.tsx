@@ -36,7 +36,7 @@ import * as tinycolor_ from 'tinycolor2';
 import TextField from '@material-ui/core/TextField';
 import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
 import IconButton from '@material-ui/core/IconButton';
-import ClearIcon from '@material-ui/icons/Clear';
+import Clear from '@material-ui/icons/Clear';
 import Tooltip from '@material-ui/core/Tooltip';
 
 const tinycolor = tinycolor_;
@@ -192,7 +192,7 @@ class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardCo
                      onBlur={this.onBlur}
                      style={ styles.swatchText }/>
                  </div>
-                 <Tooltip title='Clear' placement='top'><IconButton onClick={this.onClear}><ClearIcon/></IconButton></Tooltip>
+                 <Tooltip title='Clear' placement='top'><IconButton onClick={this.onClear}><Clear/></IconButton></Tooltip>
             </div>
         );
     }
