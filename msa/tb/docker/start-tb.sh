@@ -38,7 +38,6 @@ identity=tb-web-report
 CONF_FOLDER=/usr/tb-web-report/usr/share/tb-web-report/conf
 configfile=tb-web-report.conf
 source "${CONF_FOLDER}/${configfile}"
-exec setsid nohup postgres >> ${PGLOG}/postgres.log 2>&1 &
 exec /bin/sh -c "/usr/tb-web-report/usr/share/tb-web-report/bin/tb-web-report" &
 
 CONF_FOLDER="${pkg.installFolder}/conf"
