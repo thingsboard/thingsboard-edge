@@ -30,29 +30,6 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
+export PG_CTL=$(find /usr/lib/postgresql/ -name pg_ctl)
 
-service tb-web-report start
-
-CONF_FOLDER="${pkg.installFolder}/conf"
-jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
-configfile=${pkg.name}.conf
-firstlaunch=${DATA_FOLDER}/.firstlaunch
-
-source "${CONF_FOLDER}/${configfile}"
-
-if [ ! -f ${firstlaunch} ]; then
-    install-tb.sh --loadDemo
-    touch ${firstlaunch}
-fi
-
-echo "Starting ThingsBoard ..."
-
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardServerApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
-
-service tb-web-report stop
-
-stop-db.sh
+su postgres -c '${PG_CTL} stop'
