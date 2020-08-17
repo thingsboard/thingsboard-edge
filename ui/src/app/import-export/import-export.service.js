@@ -307,10 +307,10 @@ export default function ImportExport($log, $translate, $q, $mdDialog, $document,
             ruleChain.firstRuleNodeId = null;
         }
         ruleChain.root = false;
-        delete ruleChain.assignedEdgeGroupsText;
+        delete ruleChain.assignedEdgeGroupsText; //TODO clean: check if these three parameters used
         delete ruleChain.assignedEdgeGroups;
         delete ruleChain.assignedEdgeGroupIds;
-        return ruleChain;
+        return ruleChain;``
     }
 
     function prepareRuleChainMetaData(ruleChainMetaData) {

@@ -1004,8 +1004,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             ncyBreadcrumb: {
                 label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
-        })
-        .state('home.dashboardGroups', {
+        }).state('home.dashboardGroups', {
             url: '/dashboardGroups',
             params: {'groupType': types.entityType.dashboard, 'topIndex': 0},
             module: 'private',

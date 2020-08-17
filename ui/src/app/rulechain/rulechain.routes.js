@@ -272,7 +272,7 @@ export default function RuleChainRoutes($stateProvider, NodeTemplatePathProvider
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
     });
-
+// TODO clean: move edgeGroup routes to entity-group.routes.js
     function EntityGroupResolver($stateParams, entityGroupService) {
         return entityGroupService.constructGroupConfigByStateParams($stateParams);
     }

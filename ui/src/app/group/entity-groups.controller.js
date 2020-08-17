@@ -52,8 +52,9 @@ export function EntityGroupCardController() {
 
 
 /*@ngInject*/
-export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, utils, tbDialogs, entityGroupService, customerService, $stateParams,
-                                      $q, $translate, types, securityTypes, userPermissionsService, $filter) {
+export function EntityGroupsController($rootScope, $scope, $state, $document, $mdDialog, $filter,
+                                       utils, tbDialogs, entityGroupService, customerService, $stateParams,
+                                      $q, $translate, types, securityTypes, userPermissionsService) {
 
     var vm = this;
 
