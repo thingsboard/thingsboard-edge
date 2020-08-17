@@ -28,25 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const ruleNodeUiforwardHost = "localhost";
-const ruleNodeUiforwardPort = 8080;
+
+const forwardUrl = "http://localhost:8080";
+const wsForwardUrl = "ws://localhost:8080";
+const ruleNodeUiforwardUrl = forwardUrl;
 
 const PROXY_CONFIG = {
   "/api": {
-    "target": "http://localhost:8080",
+    "target": forwardUrl,
     "secure": false,
   },
   "/static/rulenode": {
-    "target": `http://${ruleNodeUiforwardHost}:${ruleNodeUiforwardPort}`,
+    "target": ruleNodeUiforwardUrl,
     "secure": false,
   },
   "/static": {
-    "target": "http://localhost:8080",
+    "target": forwardUrl,
     "secure": false,
   },
   "/api/ws": {
-    "target": "ws://localhost:8080",
+    "target": wsForwardUrl,
     "ws": true,
+    "secure": false
   },
 };
 

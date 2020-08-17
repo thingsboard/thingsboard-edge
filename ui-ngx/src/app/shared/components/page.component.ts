@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { OnDestroy } from '@angular/core';
+import { Directive, OnDestroy } from '@angular/core';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Observable, Subscription } from 'rxjs';
@@ -38,6 +38,7 @@ import { delay, share } from 'rxjs/operators';
 import { AbstractControl } from '@angular/forms';
 import { Operation, Resource } from '@shared/models/security.models';
 
+@Directive()
 export abstract class PageComponent implements OnDestroy {
 
   isLoading$: Observable<boolean>;
