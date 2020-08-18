@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
@@ -196,8 +197,8 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         }, dbCallbackExecutorService);
     }
 
-    private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
-        EntityRelation relation = mapper.convertValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
+    private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {
+        EntityRelation relation = mapper.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         saveCloudEvent(tenantId,
                 CloudEventType.RELATION,
                 ActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
