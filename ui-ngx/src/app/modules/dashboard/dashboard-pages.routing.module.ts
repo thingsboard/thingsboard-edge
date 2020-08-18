@@ -41,6 +41,8 @@ import { DashboardResolver } from '@app/modules/home/pages/dashboard/dashboard-r
 import { UtilsService } from '@core/services/utils.service';
 import { Widget } from '@app/shared/models/widget.models';
 import { Operation, Resource } from '@shared/models/security.models';
+import { MODULES_MAP } from '../../shared/models/constants';
+import { modulesMap } from '../common/modules-map';
 
 @Injectable()
 export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
@@ -119,6 +121,10 @@ const routes: Routes = [
     {
       provide: 'entityGroupResolver',
       useValue: (route: ActivatedRouteSnapshot) => null
+    },
+    {
+      provide: MODULES_MAP,
+      useValue: modulesMap
     }
   ]
 })

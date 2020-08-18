@@ -44,13 +44,13 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
 import org.thingsboard.server.common.data.query.EntityFilter;
+import org.thingsboard.server.common.data.query.EntityFilterType;
 import org.thingsboard.server.common.data.query.EntityGroupFilter;
 import org.thingsboard.server.common.data.query.EntityGroupListFilter;
 import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
 
 import java.util.Map;
 
-@RequiredArgsConstructor
 public class QuerySecurityContext {
 
     @Getter
@@ -67,6 +67,32 @@ public class QuerySecurityContext {
     @Getter
     @Setter
     private final EntityId ownerId;
+
+    @Getter
+    @Setter
+    private final EntityType entityGroupType;
+
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, null);
+    }
+
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, ownerId, null);
+    }
+
+    public QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityType entityGroupType) {
+        this(tenantId, customerId, entityType, userPermissions, entityFilter, null, entityGroupType);
+    }
+
+    private QuerySecurityContext(TenantId tenantId, CustomerId customerId, EntityType entityType, MergedUserPermissions userPermissions, EntityFilter entityFilter, EntityId ownerId, EntityType entityGroupType) {
+        this.tenantId = tenantId;
+        this.customerId = customerId;
+        this.entityType = entityType;
+        this.userPermissions = userPermissions;
+        this.entityFilter = entityFilter;
+        this.ownerId = ownerId;
+        this.entityGroupType = entityGroupType;
+    }
 
     public boolean isTenantUser() {
         return customerId == null || customerId.isNullUid();
@@ -111,7 +137,11 @@ public class QuerySecurityContext {
                     return Resource.groupResourceFromGroupType(((EntityGroupListFilter) entityFilter).getGroupType());
             }
         }
-        return Resource.resourceFromEntityType(getEntityType());
+        if (entityGroupType != null) {
+            return Resource.groupResourceFromGroupType(entityGroupType);
+        } else {
+            return Resource.resourceFromEntityType(entityType);
+        }
     }
 
     public MergedGroupTypePermissionInfo getMergedReadAttrPermissionsByEntityType() {
@@ -134,4 +164,9 @@ public class QuerySecurityContext {
         return userPermissions.getReadTsPermissions();
     }
 
+    public boolean isEntityGroup() {
+        return EntityType.ENTITY_GROUP.equals(entityType)
+                ||  EntityFilterType.ENTITY_GROUP_NAME.equals(entityFilter.getType())
+                ||  EntityFilterType.ENTITY_GROUP_LIST.equals(entityFilter.getType());
+    }
 }
