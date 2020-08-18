@@ -51,6 +51,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -988,6 +989,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case APACHE_PULSAR:
+                return new BasicPulsarIntegration();
             case CUSTOM:
             case TCP:
             case UDP:
