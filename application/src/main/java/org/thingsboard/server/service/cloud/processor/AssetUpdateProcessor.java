@@ -35,11 +35,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -50,7 +52,7 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 
-    public void onAssetUpdate(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
+    public ListenableFuture<Void> onAssetUpdate(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -92,9 +94,10 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + assetUpdateMsg.getMsgType()));
         }
 
-        requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId);
+        return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId), future -> null, dbCallbackExecutor);
     }
 
 }

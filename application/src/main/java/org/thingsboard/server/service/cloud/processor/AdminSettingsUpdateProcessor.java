@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -50,7 +52,7 @@ import java.util.UUID;
 @Component
 public class AdminSettingsUpdateProcessor extends BaseUpdateProcessor {
 
-    public void onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
+    public ListenableFuture<Void> onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
         UUID uuid = new UUID(adminSettingsUpdateMsg.getIdMSB(), adminSettingsUpdateMsg.getIdLSB());
         String key = adminSettingsUpdateMsg.getKey();
         String jsonValue = adminSettingsUpdateMsg.getJsonValue();
@@ -65,5 +67,6 @@ public class AdminSettingsUpdateProcessor extends BaseUpdateProcessor {
             attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, jsonValue), System.currentTimeMillis()));
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         }
+        return Futures.immediateFuture(null);
     }
 }

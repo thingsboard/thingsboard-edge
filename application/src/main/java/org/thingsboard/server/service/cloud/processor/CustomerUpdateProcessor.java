@@ -55,7 +55,7 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public void onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -93,6 +93,8 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + customerUpdateMsg.getMsgType()));
         }
+        return Futures.immediateFuture(null);
     }
 }

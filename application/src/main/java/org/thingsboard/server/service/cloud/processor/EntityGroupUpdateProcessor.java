@@ -39,6 +39,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -66,7 +67,7 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
-    public void onEntityGroupUpdate(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
+    public ListenableFuture<Void> onEntityGroupUpdate(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -145,14 +146,17 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + entityGroupUpdateMsg.getMsgType()));
         }
 
+        ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
             ObjectNode body = mapper.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
-            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
+            f = saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
         }
+        return Futures.transform(f, tmp -> null, dbCallbackExecutor);
     }
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {

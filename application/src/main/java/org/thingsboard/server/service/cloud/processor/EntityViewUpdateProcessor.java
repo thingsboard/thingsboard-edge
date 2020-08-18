@@ -53,7 +53,7 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
-    public void onEntityViewUpdate(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg) {
+    public ListenableFuture<Void> onEntityViewUpdate(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -105,8 +105,8 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + entityViewUpdateMsg.getMsgType()));
         }
-
-        requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId);
+        return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId), future -> null, dbCallbackExecutor);
     }
 }

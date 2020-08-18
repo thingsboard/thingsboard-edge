@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -44,7 +46,7 @@ import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 @Slf4j
 public class AlarmUpdateProcessor extends BaseUpdateProcessor {
 
-    public void onAlarmUpdate(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
+    public ListenableFuture<Void> onAlarmUpdate(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         EntityId originatorId = getAlarmOriginator(tenantId,
                 alarmUpdateMsg.getOriginatorName(),
                 EntityType.valueOf(alarmUpdateMsg.getOriginatorType()));
@@ -88,8 +90,10 @@ public class AlarmUpdateProcessor extends BaseUpdateProcessor {
                 }
             } catch (Exception e) {
                 log.error("Error during on alarm update msg", e);
+                return Futures.immediateFailedFuture(new RuntimeException("Error during on alarm update msg", e));
             }
         }
+        return Futures.immediateFuture(null);
     }
 
     private EntityId getAlarmOriginator(TenantId tenantId, String entityName, EntityType entityType) {

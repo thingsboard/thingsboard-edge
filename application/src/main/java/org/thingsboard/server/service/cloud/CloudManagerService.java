@@ -37,10 +37,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -105,27 +107,45 @@ import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
+import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
+import org.thingsboard.server.gen.edge.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
+import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
-import org.thingsboard.server.gen.edge.EntityUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
+import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
+import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
+import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
+import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.cloud.processor.AdminSettingsUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.AlarmUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.CustomerUpdateProcessor;
@@ -133,7 +153,6 @@ import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.AdminSettingsUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
@@ -151,6 +170,7 @@ import org.thingsboard.server.service.user.UserLoaderService;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -249,7 +269,7 @@ public class CloudManagerService {
     private AdminSettingsService adminSettingsService;
 
     @Autowired
-    private DbCallbackExecutorService dbCallbackExecutor;
+    private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Autowired
     private RuleChainUpdateProcessor ruleChainUpdateProcessor;
@@ -329,7 +349,6 @@ public class CloudManagerService {
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
                 this::onEdgeUpdate,
-                this::onEntityUpdate,
                 this::onDownlink,
                 this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor();
@@ -361,50 +380,19 @@ public class CloudManagerService {
                         do {
                             pageData = cloudNotificationService.findCloudEvents(tenantId, pageLink);
                             if (initialized && !pageData.getData().isEmpty()) {
-                                log.trace("[{}] event(s) are going to be processed.", pageData.getData().size());
-                                latch = new CountDownLatch(pageData.getData().size());
-                                for (CloudEvent cloudEvent : pageData.getData()) {
-                                    log.trace("Processing cloud event [{}]", cloudEvent);
-                                    try {
-                                        ActionType edgeEventAction = ActionType.valueOf(cloudEvent.getCloudEventAction());
-                                        switch (edgeEventAction) {
-                                            case UPDATED:
-                                            case ADDED:
-                                            case DELETED:
-                                            case ALARM_ACK:
-                                            case ALARM_CLEAR:
-                                            case CREDENTIALS_UPDATED:
-                                                processEntityMessage(cloudEvent, edgeEventAction);
-                                                break;
-                                            case ATTRIBUTES_UPDATED:
-                                            case ATTRIBUTES_DELETED:
-                                            case TIMESERIES_UPDATED:
-                                                processTelemetryMessage(cloudEvent);
-                                                break;
-                                            case ATTRIBUTES_REQUEST:
-                                                processAttributesRequest(cloudEvent);
-                                                break;
-                                            case RELATION_REQUEST:
-                                                processRelationRequest(cloudEvent);
-                                                break;
-                                            case RULE_CHAIN_METADATA_REQUEST:
-                                                processRuleChainMetadataRequest(cloudEvent);
-                                                break;
-                                            case CREDENTIALS_REQUEST:
-                                                processCredentialsRequest(cloudEvent);
-                                                break;
-                                            case GROUP_ENTITIES_REQUEST:
-                                                processGroupEntitiesRequest(cloudEvent);
-                                                break;
-                                        }
-                                    } catch (Exception e) {
-                                        log.error("Exception during processing records from queue", e);
-                                    }
-                                    ifOffset = cloudEvent.getUuidId();
+                                log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
+                                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());
+                                log.trace("[{}] uplink msg(s) are going to be send.", uplinkMsgsPack.size());
+
+                                latch = new CountDownLatch(uplinkMsgsPack.size());
+                                for (UplinkMsg uplinkMsg : uplinkMsgsPack) {
+                                    edgeRpcClient.sendUplinkMsg(uplinkMsg);
                                 }
+
+                                ifOffset = pageData.getData().get(pageData.getData().size() - 1).getUuidId();
                                 success = latch.await(10, TimeUnit.SECONDS);
                                 if (!success) {
-                                    log.warn("Failed to deliver the batch: {}", pageData.getData());
+                                    log.warn("Failed to deliver the batch: {}", uplinkMsgsPack);
                                 }
                             }
                             if (initialized && (!success || pageData.hasNext())) {
@@ -438,6 +426,53 @@ public class CloudManagerService {
         });
     }
 
+    private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
+        List<UplinkMsg> result = new ArrayList<>();
+        for (CloudEvent cloudEvent : cloudEvents) {
+            log.trace("Processing cloud event [{}]", cloudEvent);
+            try {
+                UplinkMsg uplinkMsg = null;
+                ActionType edgeEventAction = ActionType.valueOf(cloudEvent.getCloudEventAction());
+                switch (edgeEventAction) {
+                    case UPDATED:
+                    case ADDED:
+                    case DELETED:
+                    case ALARM_ACK:
+                    case ALARM_CLEAR:
+                    case CREDENTIALS_UPDATED:
+                        uplinkMsg = processEntityMessage(cloudEvent, edgeEventAction);
+                        break;
+                    case ATTRIBUTES_UPDATED:
+                    case ATTRIBUTES_DELETED:
+                    case TIMESERIES_UPDATED:
+                        uplinkMsg = processTelemetryMessage(cloudEvent);
+                        break;
+                    case ATTRIBUTES_REQUEST:
+                        uplinkMsg = processAttributesRequest(cloudEvent);
+                        break;
+                    case RELATION_REQUEST:
+                        uplinkMsg = processRelationRequest(cloudEvent);
+                        break;
+                    case RULE_CHAIN_METADATA_REQUEST:
+                        uplinkMsg = processRuleChainMetadataRequest(cloudEvent);
+                        break;
+                    case CREDENTIALS_REQUEST:
+                        uplinkMsg = processCredentialsRequest(cloudEvent);
+                        break;
+                    case GROUP_ENTITIES_REQUEST:
+                        uplinkMsg = processGroupEntitiesRequest(cloudEvent);
+                        break;
+                }
+                if (uplinkMsg != null) {
+                    result.add(uplinkMsg);
+                }
+            } catch (Exception e) {
+                log.error("Exception during processing events from queue, skipping event [{}]", cloudEvent, e);
+            }
+        }
+        return result;
+    }
+
     private ListenableFuture<Long> getQueueStartTs() {
         ListenableFuture<Optional<AttributeKvEntry>> future =
                 attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, QUEUE_START_TS_ATTR_KEY);
@@ -448,7 +483,7 @@ public class CloudManagerService {
             } else {
                 return 0L;
             }
-        }, dbCallbackExecutor);
+        }, dbCallbackExecutorService);
     }
 
     private void updateQueueStartTs(Long newStartTs) {
@@ -457,72 +492,52 @@ public class CloudManagerService {
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
     }
 
-    private void processTelemetryMessage(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processTelemetryMessage, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = null;
-        switch (cloudEvent.getCloudEventType()) {
-            case DEVICE:
-                entityId = new DeviceId(cloudEvent.getEntityId());
-                break;
-            case ASSET:
-                entityId = new AssetId(cloudEvent.getEntityId());
-                break;
-            case ENTITY_VIEW:
-                entityId = new EntityViewId(cloudEvent.getEntityId());
-                break;
-            case DASHBOARD:
-                entityId = new DashboardId(cloudEvent.getEntityId());
-                break;
-        }
-        if (entityId != null) {
-            log.debug("Sending telemetry data msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
-            try {
-                ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
-                JsonNode data = cloudEvent.getEntityBody().get("data");
-                long ts = cloudEvent.getEntityBody().get("ts").asLong();
-                UplinkMsg msg = constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(data)), ts);
-                edgeRpcClient.sendUplinkMsg(msg);
-            } catch (Exception e) {
-                log.warn("Can't send telemetry data msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+    private UplinkMsg processTelemetryMessage(CloudEvent cloudEvent) {
+        try {
+            log.trace("Executing processTelemetryMessage, cloudEvent [{}]", cloudEvent);
+            EntityId entityId;
+            switch (cloudEvent.getCloudEventType()) {
+                case DEVICE:
+                    entityId = new DeviceId(cloudEvent.getEntityId());
+                    break;
+                case ASSET:
+                    entityId = new AssetId(cloudEvent.getEntityId());
+                    break;
+                case ENTITY_VIEW:
+                    entityId = new EntityViewId(cloudEvent.getEntityId());
+                    break;
+                case DASHBOARD:
+                    entityId = new DashboardId(cloudEvent.getEntityId());
+                    break;
+                default:
+                    throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
             }
+
+            ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
+            JsonNode data = cloudEvent.getEntityBody().get("data");
+            long ts = cloudEvent.getEntityBody().get("ts").asLong();
+            return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(data)), ts);
+        } catch (Exception e) {
+            log.warn("Can't convert telemetry data msg, cloudEvent [{}]", cloudEvent, e);
+            return null;
         }
     }
 
-    private void processEntityMessage(CloudEvent cloudEvent, ActionType edgeEventAction) {
+    private UplinkMsg processEntityMessage(CloudEvent cloudEvent, ActionType edgeEventAction) {
         UpdateMsgType msgType = getResponseMsgType(ActionType.valueOf(cloudEvent.getCloudEventAction()));
         log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
         switch (cloudEvent.getCloudEventType()) {
             case DEVICE:
-                processDevice(cloudEvent, msgType, edgeEventAction);
-                break;
-//            case ASSET:
-//                processAsset(cloudEvent, msgType, edgeEventAction);
-//                break;
-//            case ENTITY_VIEW:
-//                processEntityView(cloudEvent, msgType, edgeEventAction);
-//                break;
-//            case DASHBOARD:
-//                processDashboard(cloudEvent, msgType, edgeEventAction);
-//                break;
-//            case RULE_CHAIN:
-//                processRuleChain(cloudEvent, msgType, edgeEventAction);
-//                break;
-//            case RULE_CHAIN_METADATA:
-//                processRuleChainMetadata(cloudEvent, msgType);
-//                break;
+                return processDevice(cloudEvent, msgType, edgeEventAction);
             case ALARM:
-                processAlarm(cloudEvent, msgType);
-                break;
-//            case USER:
-//                processUser(cloudEvent, msgType, edgeEventAction);
-//                break;
-//            case RELATION:
-//                processRelation(cloudEvent, msgType);
-//                break;
+                return processAlarm(cloudEvent, msgType);
+            default:
+                log.warn("Unsupported cloud event type [{}]", cloudEvent);
+                return null;
         }
     }
 
-    private void processDevice(CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeActionType) {
+    private UplinkMsg processDevice(CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeActionType) {
         try {
             DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
             UplinkMsg msg = null;
@@ -535,6 +550,8 @@ public class CloudManagerService {
                                 deviceUpdateMsgConstructor.constructDeviceUpdatedMsg(msgType, device);
                         msg = UplinkMsg.newBuilder()
                                 .addAllDeviceUpdateMsg(Collections.singletonList(deviceUpdateMsg)).build();
+                    } else {
+                        log.info("Skipping event as device was not found [{}]", cloudEvent);
                     }
                     break;
                 case DELETED:
@@ -550,36 +567,42 @@ public class CloudManagerService {
                                 deviceUpdateMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                         msg = UplinkMsg.newBuilder()
                                 .addAllDeviceCredentialsUpdateMsg(Collections.singletonList(deviceCredentialsUpdateMsg)).build();
+                    } else {
+                        log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
                     }
                     break;
+                default:
+                    throw new IllegalArgumentException("Unsupported edge action type [" + edgeActionType + "]");
             }
-            if (msg != null) {
-                edgeRpcClient.sendUplinkMsg(msg);
-            }
+            return msg;
         } catch (Exception e) {
             log.error("Can't process device msg [{}] [{}]", cloudEvent, msgType, e);
+            return null;
         }
     }
 
-    private void processAlarm(CloudEvent cloudEvent, UpdateMsgType msgType) {
+    private UplinkMsg processAlarm(CloudEvent cloudEvent, UpdateMsgType msgType) {
         try {
             AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
             Alarm alarm = alarmService.findAlarmByIdAsync(cloudEvent.getTenantId(), alarmId).get();
+            UplinkMsg msg = null;
             if (alarm != null) {
                 AlarmUpdateMsg alarmUpdateMsg = alarmUpdateMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, alarm);
-                UplinkMsg msg = UplinkMsg.newBuilder()
+                msg = UplinkMsg.newBuilder()
                         .addAllAlarmUpdateMsg(Collections.singletonList(alarmUpdateMsg)).build();
-                edgeRpcClient.sendUplinkMsg(msg);
+            } else {
+                log.info("Skipping event as alarm was not found [{}]", cloudEvent);
             }
+            return msg;
         } catch (Exception e) {
             log.error("Can't process alarm msg [{}] [{}]", cloudEvent, msgType, e);
+            return null;
         }
     }
 
-    private void processAttributesRequest(CloudEvent cloudEvent) throws IOException {
+    private UplinkMsg processAttributesRequest(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        log.debug("Sending attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         try {
             AttributesRequestMsg attributesRequestMsg = AttributesRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
@@ -588,16 +611,16 @@ public class CloudManagerService {
                     .build();
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                     .addAllAttributesRequestMsg(Collections.singletonList(attributesRequestMsg));
-            edgeRpcClient.sendUplinkMsg(builder.build());
+            return builder.build();
         } catch (Exception e) {
             log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
         }
     }
 
-    private void processRelationRequest(CloudEvent cloudEvent) throws IOException {
+    private UplinkMsg processRelationRequest(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processRelationRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        log.debug("Sending relation request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         try {
             RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
@@ -606,16 +629,16 @@ public class CloudManagerService {
                     .build();
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                     .addAllRelationRequestMsg(Collections.singletonList(relationRequestMsg));
-            edgeRpcClient.sendUplinkMsg(builder.build());
+            return builder.build();
         } catch (Exception e) {
             log.warn("Can't send relation request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
         }
     }
 
-    private void processRuleChainMetadataRequest(CloudEvent cloudEvent) throws IOException {
+    private UplinkMsg processRuleChainMetadataRequest(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processRuleChainMetadataRequest, cloudEvent [{}]", cloudEvent);
         EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        log.debug("Sending rule chain metadata request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         try {
             RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
                     .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
@@ -623,16 +646,16 @@ public class CloudManagerService {
                     .build();
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                     .addAllRuleChainMetadataRequestMsg(Collections.singletonList(ruleChainMetadataRequestMsg));
-            edgeRpcClient.sendUplinkMsg(builder.build());
+            return builder.build();
         } catch (Exception e) {
             log.warn("Can't send rule chain metadata request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
         }
     }
 
-    private void processCredentialsRequest(CloudEvent cloudEvent) throws IOException {
+    private UplinkMsg processCredentialsRequest(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processCredentialsRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
-        log.debug("Sending credentials request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         try {
             UplinkMsg msg = null;
             switch (entityId.getEntityType()) {
@@ -654,20 +677,20 @@ public class CloudManagerService {
                             .addAllDeviceCredentialsRequestMsg(Collections.singletonList(deviceCredentialsRequestMsg))
                             .build();
                     break;
+                default:
+                    log.info("Skipping event as entity type doesn't supported [{}]", cloudEvent);
             }
-            if (msg != null) {
-                edgeRpcClient.sendUplinkMsg(msg);
-            }
+            return msg;
         } catch (Exception e) {
             log.warn("Can't send credentials request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
         }
     }
 
-    private void processGroupEntitiesRequest(CloudEvent cloudEvent) throws IOException {
+    private UplinkMsg processGroupEntitiesRequest(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processGroupEntitiesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         String type = cloudEvent.getEntityBody().get("type").asText();
-        log.debug("Sending group entities request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         try {
             EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = EntityGroupEntitiesRequestMsg.newBuilder()
                     .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
@@ -676,9 +699,10 @@ public class CloudManagerService {
                     .build();
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                     .addAllEntityGroupEntitiesRequestMsg(Collections.singletonList(entityGroupEntitiesRequestMsg));
-            edgeRpcClient.sendUplinkMsg(builder.build());
+            return builder.build();
         } catch (Exception e) {
             log.warn("Can't group entities credentials request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
         }
     }
 
@@ -741,7 +765,7 @@ public class CloudManagerService {
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
 
-            AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
+            AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
             if (newEdgeSetting.getCloudType().equals("CE") && existingMailTemplates == null) {
                 installScripts.loadMailTemplates();
             }
@@ -766,8 +790,8 @@ public class CloudManagerService {
         deviceService.deleteDevicesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
-        adminSettingsService.deleteAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
+        adminSettingsService.deleteAdminSettingsByKey(tenantId, "mailTemplates");
+        adminSettingsService.deleteAdminSettingsByKey(tenantId, "mail");
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
@@ -815,124 +839,171 @@ public class CloudManagerService {
 
         return edgeSettings;
     }
-
-    private void onEntityUpdate(EntityUpdateMsg entityUpdateMsg) {
-        try {
-            if (entityUpdateMsg.hasDeviceUpdateMsg()) {
-                log.debug("Device update message received [{}]", entityUpdateMsg.getDeviceUpdateMsg());
-                deviceUpdateProcessor.onDeviceUpdate(tenantId, entityUpdateMsg.getDeviceUpdateMsg());
-            } else if (entityUpdateMsg.hasDeviceCredentialsUpdateMsg()) {
-                log.debug("Device credentials update message received [{}]", entityUpdateMsg.getDeviceCredentialsUpdateMsg());
-                deviceUpdateProcessor.onDeviceCredentialsUpdate(tenantId, entityUpdateMsg.getDeviceCredentialsUpdateMsg());
-            } else if (entityUpdateMsg.hasAssetUpdateMsg()) {
-                log.debug("Asset update message received [{}]", entityUpdateMsg.getAssetUpdateMsg());
-                assetUpdateProcessor.onAssetUpdate(tenantId, entityUpdateMsg.getAssetUpdateMsg());
-            } else if (entityUpdateMsg.hasEntityViewUpdateMsg()) {
-                log.debug("EntityView update message received [{}]", entityUpdateMsg.getEntityViewUpdateMsg());
-                entityViewUpdateProcessor.onEntityViewUpdate(tenantId, entityUpdateMsg.getEntityViewUpdateMsg());
-            } else if (entityUpdateMsg.hasRuleChainUpdateMsg()) {
-                log.debug("Rule Chain udpate message received [{}]", entityUpdateMsg.getRuleChainUpdateMsg());
-                ruleChainUpdateProcessor.onRuleChainUpdate(tenantId, entityUpdateMsg.getRuleChainUpdateMsg());
-            } else if (entityUpdateMsg.hasRuleChainMetadataUpdateMsg()) {
-                log.debug("Rule Chain Metadata udpate message received [{}]", entityUpdateMsg.getRuleChainMetadataUpdateMsg());
-                ruleChainUpdateProcessor.onRuleChainMetadataUpdate(tenantId, entityUpdateMsg.getRuleChainMetadataUpdateMsg());
-            } else if (entityUpdateMsg.hasDashboardUpdateMsg()) {
-                log.debug("Dashboard message received [{}]", entityUpdateMsg.getDashboardUpdateMsg());
-                dashboardUpdateProcessor.onDashboardUpdate(tenantId, entityUpdateMsg.getDashboardUpdateMsg());
-            } else if (entityUpdateMsg.hasAlarmUpdateMsg()) {
-                log.debug("Alarm message received [{}]", entityUpdateMsg.getAlarmUpdateMsg());
-                alarmUpdateProcessor.onAlarmUpdate(tenantId, entityUpdateMsg.getAlarmUpdateMsg());
-            } else if (entityUpdateMsg.hasCustomerUpdateMsg()) {
-                log.debug("Customer message received [{}]", entityUpdateMsg.getCustomerUpdateMsg());
-                customerUpdateProcessor.onCustomerUpdate(tenantId, entityUpdateMsg.getCustomerUpdateMsg());
-            } else if (entityUpdateMsg.hasRelationUpdateMsg()) {
-                log.debug("Relation update message received [{}]", entityUpdateMsg.getRelationUpdateMsg());
-                relationUpdateProcessor.onRelationUpdate(tenantId, entityUpdateMsg.getRelationUpdateMsg());
-            } else if (entityUpdateMsg.hasWidgetsBundleUpdateMsg()) {
-                log.trace("WidgetBundle update message received [{}]", entityUpdateMsg.getWidgetsBundleUpdateMsg());
-                widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, entityUpdateMsg.getWidgetsBundleUpdateMsg());
-            } else if (entityUpdateMsg.hasWidgetTypeUpdateMsg()) {
-                log.trace("WidgetType update message received [{}]", entityUpdateMsg.getWidgetTypeUpdateMsg());
-                widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, entityUpdateMsg.getWidgetTypeUpdateMsg());
-            } else if (entityUpdateMsg.hasUserUpdateMsg()) {
-                log.debug("User message received [{}]", entityUpdateMsg.getUserUpdateMsg());
-                userUpdateProcessor.onUserUpdate(tenantId, entityUpdateMsg.getUserUpdateMsg());
-            } else if (entityUpdateMsg.hasUserCredentialsUpdateMsg()) {
-                log.debug("User credentials message received [{}]", entityUpdateMsg.getUserCredentialsUpdateMsg());
-                userUpdateProcessor.onUserCredentialsUpdate(tenantId, entityUpdateMsg.getUserCredentialsUpdateMsg());
-            } else if (entityUpdateMsg.hasEntityGroupUpdateMsg()) {
-                log.debug("Entity group message received [{}]", entityUpdateMsg.getEntityGroupUpdateMsg());
-                entityGroupUpdateProcessor.onEntityGroupUpdate(tenantId, entityUpdateMsg.getEntityGroupUpdateMsg());
-            } else if (entityUpdateMsg.hasCustomTranslation()) {
-                log.debug("Custom translation received [{}]", entityUpdateMsg.getCustomTranslation());
-                whiteLabelingUpdateProcessor.onCustomTranslationUpdate(tenantId, entityUpdateMsg.getCustomTranslation());
-            } else if (entityUpdateMsg.hasWhiteLabelingParams()) {
-                log.debug("White labeling params received [{}]", entityUpdateMsg.getWhiteLabelingParams());
-                whiteLabelingUpdateProcessor.onWhiteLabelingParamsUpdate(tenantId, entityUpdateMsg.getWhiteLabelingParams());
-            } else if (entityUpdateMsg.hasLoginWhiteLabelingParams()) {
-                log.debug("Login white labeling params received [{}]", entityUpdateMsg.getLoginWhiteLabelingParams());
-                whiteLabelingUpdateProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, entityUpdateMsg.getLoginWhiteLabelingParams());
-            } else if (entityUpdateMsg.hasSchedulerEventUpdateMsg()) {
-                log.debug("Schedule event received [{}]", entityUpdateMsg.getSchedulerEventUpdateMsg());
-                schedulerEventUpdateProcessor.onScheduleEventUpdate(tenantId, entityUpdateMsg.getSchedulerEventUpdateMsg());
-            } else if (entityUpdateMsg.hasAdminSettingsUpdateMsg()) {
-                log.debug("AdminSettings update message received [{}]", entityUpdateMsg.getAdminSettingsUpdateMsg());
-                adminSettingsUpdateProcessor.onAdminSettingsUpdate(tenantId, entityUpdateMsg.getAdminSettingsUpdateMsg());
+    private void onDownlink(DownlinkMsg downlinkMsg) {
+        ListenableFuture<List<Void>> future = processDownlinkMsg(downlinkMsg);
+        Futures.addCallback(future, new FutureCallback<List<Void>>() {
+            @Override
+            public void onSuccess(@Nullable List<Void> result) {
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder().setSuccess(true).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
-        } catch (Exception e) {
-            log.error("Can't process entity updated msg [{}]", entityUpdateMsg, e);
-        }
+
+            @Override
+            public void onFailure(Throwable t) {
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder().setSuccess(false).setErrorMsg(t.getMessage()).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
+            }
+        }, MoreExecutors.directExecutor());
     }
 
-    private void onDownlink(DownlinkMsg downlinkMsg) {
+    private ListenableFuture<List<Void>> processDownlinkMsg(DownlinkMsg downlinkMsg) {
+        List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
             log.debug("onDownlink {}", downlinkMsg);
             if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                     EntityId entityId = constructEntityId(entityData);
                     if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg()) && entityId != null) {
-                        ListenableFuture<TbMsgMetaData> metaDataFuture = constructBaseMsgMetadata(entityId);
-                        Futures.transform(metaDataFuture, metaData -> {
-                            if (metaData != null) {
-                                metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
-                                if (entityData.hasPostAttributesMsg()) {
-                                    metaData.putValue("scope", entityData.getPostAttributeScope());
-                                    processPostAttributes(entityId, entityData.getPostAttributesMsg(), metaData);
-                                }
-                                if (entityData.hasPostTelemetryMsg()) {
-                                    processPostTelemetry(entityId, entityData.getPostTelemetryMsg(), metaData);
-                                }
-                            }
-                            return null;
-                        }, dbCallbackExecutor);
+                        TbMsgMetaData metaData = constructBaseMsgMetadata(entityId);
+                        metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
+                        if (entityData.hasPostAttributesMsg()) {
+                            metaData.putValue("scope", entityData.getPostAttributeScope());
+                            result.add(processPostAttributes(entityId, entityData.getPostAttributesMsg(), metaData));
+                        }
+                        if (entityData.hasPostTelemetryMsg()) {
+                            result.add(processPostTelemetry(entityId, entityData.getPostTelemetryMsg(), metaData));
+                        }
                     }
                     if (entityData.hasAttributeDeleteMsg()) {
-                        processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType());
+                        result.add(processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType()));
                     }
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
                 for (DeviceCredentialsRequestMsg deviceCredentialsRequestMsg : downlinkMsg.getDeviceCredentialsRequestMsgList()) {
-                    processDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg);
+                    result.add(processDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg));
+                }
+            }
+            if (downlinkMsg.getDeviceUpdateMsgList() != null && !downlinkMsg.getDeviceUpdateMsgList().isEmpty()) {
+                for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
+                    result.add(deviceUpdateProcessor.onDeviceUpdate(tenantId, deviceUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getDeviceCredentialsUpdateMsgList() != null && !downlinkMsg.getDeviceCredentialsUpdateMsgList().isEmpty()) {
+                for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
+                    result.add(deviceUpdateProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getAssetUpdateMsgList() != null && !downlinkMsg.getAssetUpdateMsgList().isEmpty()) {
+                for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
+                    result.add(assetUpdateProcessor.onAssetUpdate(tenantId, assetUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getEntityViewUpdateMsgList() != null && !downlinkMsg.getEntityViewUpdateMsgList().isEmpty()) {
+                for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
+                    result.add(entityViewUpdateProcessor.onEntityViewUpdate(tenantId, entityViewUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getRuleChainUpdateMsgList() != null && !downlinkMsg.getRuleChainUpdateMsgList().isEmpty()) {
+                for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
+                    result.add(ruleChainUpdateProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getRuleChainMetadataUpdateMsgList() != null && !downlinkMsg.getRuleChainMetadataUpdateMsgList().isEmpty()) {
+                for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : downlinkMsg.getRuleChainMetadataUpdateMsgList()) {
+                    result.add(ruleChainUpdateProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getDashboardUpdateMsgList() != null && !downlinkMsg.getDashboardUpdateMsgList().isEmpty()) {
+                for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
+                    result.add(dashboardUpdateProcessor.onDashboardUpdate(tenantId, dashboardUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getAlarmUpdateMsgList() != null && !downlinkMsg.getAlarmUpdateMsgList().isEmpty()) {
+                for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
+                    result.add(alarmUpdateProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getCustomerUpdateMsgList() != null && !downlinkMsg.getCustomerUpdateMsgList().isEmpty()) {
+                for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
+                    result.add(customerUpdateProcessor.onCustomerUpdate(tenantId, customerUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getRelationUpdateMsgList() != null && !downlinkMsg.getRelationUpdateMsgList().isEmpty()) {
+                for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
+                    result.add(relationUpdateProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getWidgetsBundleUpdateMsgList() != null && !downlinkMsg.getWidgetsBundleUpdateMsgList().isEmpty()) {
+                for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
+                    result.add(widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getWidgetTypeUpdateMsgList() != null && !downlinkMsg.getWidgetTypeUpdateMsgList().isEmpty()) {
+                for (WidgetTypeUpdateMsg widgetTypeUpdateMsg : downlinkMsg.getWidgetTypeUpdateMsgList()) {
+                    result.add(widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getUserUpdateMsgList() != null && !downlinkMsg.getUserUpdateMsgList().isEmpty()) {
+                for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
+                    result.add(userUpdateProcessor.onUserUpdate(tenantId, userUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getUserCredentialsUpdateMsgList() != null && !downlinkMsg.getUserCredentialsUpdateMsgList().isEmpty()) {
+                for (UserCredentialsUpdateMsg userCredentialsUpdateMsg : downlinkMsg.getUserCredentialsUpdateMsgList()) {
+                    result.add(userUpdateProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getEntityGroupUpdateMsgList() != null && !downlinkMsg.getEntityGroupUpdateMsgList().isEmpty()) {
+                for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
+                    result.add(entityGroupUpdateProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getCustomTranslationMsgList() != null && !downlinkMsg.getCustomTranslationMsgList().isEmpty()) {
+                for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
+                    result.add(whiteLabelingUpdateProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
+                }
+            }
+            if (downlinkMsg.getWhiteLabelingParamsList() != null && !downlinkMsg.getWhiteLabelingParamsList().isEmpty()) {
+                for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
+                    result.add(whiteLabelingUpdateProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
+                }
+            }
+            if (downlinkMsg.getLoginWhiteLabelingParamsList() != null && !downlinkMsg.getLoginWhiteLabelingParamsList().isEmpty()) {
+                for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
+                    result.add(whiteLabelingUpdateProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
+                }
+            }
+            if (downlinkMsg.getSchedulerEventUpdateMsgList() != null && !downlinkMsg.getSchedulerEventUpdateMsgList().isEmpty()) {
+                for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
+                    result.add(schedulerEventUpdateProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getAdminSettingsUpdateMsgList() != null && !downlinkMsg.getAdminSettingsUpdateMsgList().isEmpty()) {
+                for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
+                    result.add(adminSettingsUpdateProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
                 }
             }
         } catch (Exception e) {
             log.error("Can't process downlink message [{}]", downlinkMsg, e);
         }
+        return Futures.allAsList(result);
     }
 
-    private void processDeviceCredentialsRequestMsg(DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
+    private ListenableFuture<Void> processDeviceCredentialsRequestMsg(DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
         if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
             DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
+            ListenableFuture<CloudEvent> future = saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
+            return Futures.transform(future, cloudEvent -> null, dbCallbackExecutorService);
         }
+        return Futures.immediateFuture(null);
     }
 
-    private void saveCloudEvent(TenantId tenantId,
-                                CloudEventType cloudEventType,
-                                ActionType cloudEventAction,
-                                EntityId entityId,
-                                JsonNode entityBody) {
+    private ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
+                                                        CloudEventType cloudEventType,
+                                                        ActionType cloudEventAction,
+                                                        EntityId entityId,
+                                                        JsonNode entityBody) {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
@@ -944,45 +1015,38 @@ public class CloudManagerService {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        cloudEventService.saveAsync(cloudEvent);
+        return cloudEventService.saveAsync(cloudEvent);
     }
 
-    private ListenableFuture<TbMsgMetaData> constructBaseMsgMetadata(EntityId entityId) {
+    private TbMsgMetaData constructBaseMsgMetadata(EntityId entityId) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
         switch (entityId.getEntityType()) {
             case DEVICE:
-                ListenableFuture<Device> deviceFuture = deviceService.findDeviceByIdAsync(tenantId, new DeviceId(entityId.getId()));
-                return Futures.transform(deviceFuture, device -> {
-                    TbMsgMetaData metaData = new TbMsgMetaData();
-                    if (device != null) {
-                        metaData.putValue("deviceName", device.getName());
-                        metaData.putValue("deviceType", device.getType());
-                    }
-                    return metaData;
-                }, dbCallbackExecutor);
+                Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                if (device != null) {
+                    metaData.putValue("deviceName", device.getName());
+                    metaData.putValue("deviceType", device.getType());
+                }
+              break;
             case ASSET:
-                ListenableFuture<Asset> assetFuture = assetService.findAssetByIdAsync(tenantId, new AssetId(entityId.getId()));
-                return Futures.transform(assetFuture, asset -> {
-                    TbMsgMetaData metaData = new TbMsgMetaData();
-                    if (asset != null) {
-                        metaData.putValue("assetName", asset.getName());
-                        metaData.putValue("assetType", asset.getType());
-                    }
-                    return metaData;
-                }, dbCallbackExecutor);
+                Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                if (asset != null) {
+                    metaData.putValue("assetName", asset.getName());
+                    metaData.putValue("assetType", asset.getType());
+                }
+                break;
             case ENTITY_VIEW:
-                ListenableFuture<EntityView> entityViewFuture = entityViewService.findEntityViewByIdAsync(tenantId, new EntityViewId(entityId.getId()));
-                return Futures.transform(entityViewFuture, entityView -> {
-                    TbMsgMetaData metaData = new TbMsgMetaData();
-                    if (entityView != null) {
-                        metaData.putValue("entityViewName", entityView.getName());
-                        metaData.putValue("entityViewType", entityView.getType());
-                    }
-                    return metaData;
-                }, dbCallbackExecutor);
+                EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                if (entityView != null) {
+                    metaData.putValue("entityViewName", entityView.getName());
+                    metaData.putValue("entityViewType", entityView.getType());
+                }
+                break;
             default:
-                log.debug("Constructing empty metadata for entityId [{}]", entityId);
-                return Futures.immediateFuture(new TbMsgMetaData());
+                log.debug("Using empty metadata for entityId [{}]", entityId);
+                break;
         }
+        return metaData;
     }
 
     private EntityId constructEntityId(EntityDataProto entityData) {
@@ -1006,35 +1070,53 @@ public class CloudManagerService {
         }
     }
 
-    private void processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
-        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
-            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-            metaData.putValue("ts", tsKv.getTs() + "");
-            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
+    private ListenableFuture<Void> processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
+        try {
+            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+                JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+                metaData.putValue("ts", tsKv.getTs() + "");
+                TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
+                // TODO: voba - verify that null callback is OK
+                tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+            }
+        } catch (Exception e) {
+            log.error("Can't process post telemetry [{}]", msg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process post telemetry " + msg, e));
+        }
+        return Futures.immediateFuture(null);
+    }
+
+    private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        try {
+            JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
             // TODO: voba - verify that null callback is OK
             tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+        } catch (Exception e) {
+            log.error("Can't process post attributes [{}]", msg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process post attributes " + msg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
-    private void processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
-        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-        TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
-        // TODO: voba - verify that null callback is OK
-        tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
-    }
-
-    private void processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
-        String scope = attributeDeleteMsg.getScope();
-        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
-        attributesService.removeAll(tenantId, entityId, scope, attributeNames);
-        if (EntityType.DEVICE.name().equals(entityType)) {
-            Set<AttributeKey> attributeKeys = new HashSet<>();
-            for (String attributeName: attributeNames) {
-                attributeKeys.add(new AttributeKey(scope, attributeName));
+    private ListenableFuture<Void> processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
+        try {
+            String scope = attributeDeleteMsg.getScope();
+            List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
+            attributesService.removeAll(tenantId, entityId, scope, attributeNames);
+            if (EntityType.DEVICE.name().equals(entityType)) {
+                Set<AttributeKey> attributeKeys = new HashSet<>();
+                for (String attributeName : attributeNames) {
+                    attributeKeys.add(new AttributeKey(scope, attributeName));
+                }
+                tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
+                        tenantId, (DeviceId) entityId, attributeKeys), null);
             }
-            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
-                    tenantId, (DeviceId)entityId, attributeKeys), null);
+        } catch (Exception e) {
+            log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process attribute delete msg " + attributeDeleteMsg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
     private void scheduleReconnect(Exception e) {
@@ -1049,7 +1131,6 @@ public class CloudManagerService {
                 edgeRpcClient.connect(routingKey, routingSecret,
                         this::onUplinkResponse,
                         this::onEdgeUpdate,
-                        this::onEntityUpdate,
                         this::onDownlink,
                         this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);

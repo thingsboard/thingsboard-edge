@@ -56,7 +56,7 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private DashboardService dashboardService;
 
-    public void onDashboardUpdate(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) {
+    public ListenableFuture<Void> onDashboardUpdate(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -99,8 +99,9 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + dashboardUpdateMsg.getMsgType()));
         }
 
-        requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId);
+        return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId), future -> null, dbCallbackExecutor);
     }
 }

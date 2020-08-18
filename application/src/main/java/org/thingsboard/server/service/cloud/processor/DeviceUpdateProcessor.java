@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -79,7 +80,7 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock deviceCreationLock = new ReentrantLock();
 
-    public void onDeviceUpdate(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    public ListenableFuture<Void> onDeviceUpdate(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -119,18 +120,25 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + deviceUpdateMsg.getMsgType()));
         }
 
-        requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId);
+        ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), future -> null, dbCallbackExecutor);
 
-        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-            saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
-        }
+        ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
+            ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
+            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                    UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                f = saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
+            }
+            return Futures.transform(f, tmp -> null, dbCallbackExecutor);
+        }, dbCallbackExecutor);
+
+        return Futures.transform(t, tt -> null, dbCallbackExecutor);
     }
 
-    public void onDeviceCredentialsUpdate(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
+    public ListenableFuture<Void> onDeviceCredentialsUpdate(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsUpdateMsg.getDeviceIdMSB(), deviceCredentialsUpdateMsg.getDeviceIdLSB()));
         Device device = deviceService.findDeviceById(tenantId, deviceId);
 
@@ -144,9 +152,15 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
                 deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.getCredentialsValue());
                 deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
             } catch (Exception e) {
-                log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]", device.getName(), deviceCredentialsUpdateMsg, e);
+                log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",
+                        device.getName(), deviceCredentialsUpdateMsg, e);
+                return Futures.immediateFailedFuture(
+                        new RuntimeException("Can't update device credentials for device " +
+                                device.getName() +", deviceCredentialsUpdateMsg " + deviceCredentialsUpdateMsg,
+                                e));
             }
         }
+        return Futures.immediateFuture(null);
     }
 
     private ListenableFuture<List<Void>> updateOrCopyDeviceRelatedEntities(TenantId tenantId, Device origin, Device destination) {

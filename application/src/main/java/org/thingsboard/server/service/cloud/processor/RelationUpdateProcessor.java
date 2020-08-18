@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -55,7 +57,7 @@ import java.util.UUID;
 @Slf4j
 public class RelationUpdateProcessor extends BaseUpdateProcessor {
 
-    public void onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
+    public ListenableFuture<Void> onRelationUpdate(TenantId tenantId, RelationUpdateMsg relationUpdateMsg) {
         try {
             EntityRelation entityRelation = new EntityRelation();
 
@@ -84,10 +86,13 @@ public class RelationUpdateProcessor extends BaseUpdateProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + relationUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Error during relation update msg", e);
+            return Futures.immediateFailedFuture(new RuntimeException("Error during relation update msg", e));
         }
+        return Futures.immediateFuture(null);
     }
 
     private boolean isEntityExists(TenantId tenantId, EntityId entityId) throws ThingsboardException {

@@ -45,6 +45,7 @@ import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 
 import java.util.UUID;
+import java.util.concurrent.Future;
 
 @Component
 @Slf4j
@@ -56,7 +57,7 @@ public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private SchedulerService schedulerService;
 
-    public void onScheduleEventUpdate(TenantId tenantId, SchedulerEventUpdateMsg schedulerEventUpdateMsg) {
+    public ListenableFuture<Void> onScheduleEventUpdate(TenantId tenantId, SchedulerEventUpdateMsg schedulerEventUpdateMsg) {
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(new UUID(schedulerEventUpdateMsg.getIdMSB(), schedulerEventUpdateMsg.getIdLSB()));
             switch (schedulerEventUpdateMsg.getMsgType()) {
@@ -93,10 +94,13 @@ public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + schedulerEventUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process SchedulerEventUpdateMsg [{}]", schedulerEventUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process SchedulerEventUpdateMsg " + schedulerEventUpdateMsg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
 }

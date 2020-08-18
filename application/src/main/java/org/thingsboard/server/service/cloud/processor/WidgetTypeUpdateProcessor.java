@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,7 +50,7 @@ public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock widgetTypeCreationLock = new ReentrantLock();
 
-    public void onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
+    public ListenableFuture<Void> onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
         WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
         switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -82,6 +84,8 @@ public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + widgetTypeUpdateMsg.getMsgType()));
         }
+        return Futures.immediateFuture(null);
     }
 }

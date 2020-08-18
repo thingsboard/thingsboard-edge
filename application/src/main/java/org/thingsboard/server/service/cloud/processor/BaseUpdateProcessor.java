@@ -37,10 +37,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
@@ -73,6 +71,9 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public abstract class BaseUpdateProcessor {
@@ -147,15 +148,17 @@ public abstract class BaseUpdateProcessor {
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected void requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
+    protected ListenableFuture<List<CloudEvent>> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
+        List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(updateMsgType)) {
-            saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
-                    ActionType.ATTRIBUTES_REQUEST, entityId, null);
-            saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
-                    ActionType.RELATION_REQUEST, entityId, null);
+            futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+                    ActionType.ATTRIBUTES_REQUEST, entityId, null));
+            futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
+                    ActionType.RELATION_REQUEST, entityId, null));
         }
+        return Futures.allAsList(futures);
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
@@ -167,15 +170,6 @@ public abstract class BaseUpdateProcessor {
             }
         }
         log.debug("Related events updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
-    }
-
-    protected void addEntityToGroup(TenantId tenantId, String groupName, EntityId entityId, EntityType entityType) {
-        if (!StringUtils.isEmpty(groupName)) {
-            EntityGroup orCreateEntityGroup = entityGroupService.findOrCreateEntityGroup(tenantId, tenantId, entityType, groupName, null, null);
-            if (orCreateEntityGroup != null) {
-                addEntityToGroup(tenantId, orCreateEntityGroup.getId(), entityId);
-            }
-        }
     }
 
     protected void addEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
@@ -201,11 +195,11 @@ public abstract class BaseUpdateProcessor {
         return mSB != 0 && lSB != 0;
     }
 
-    protected void saveCloudEvent(TenantId tenantId,
-                                  CloudEventType cloudEventType,
-                                  ActionType cloudEventAction,
-                                  EntityId entityId,
-                                  JsonNode entityBody) {
+    protected ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,
+                                                          CloudEventType cloudEventType,
+                                                          ActionType cloudEventAction,
+                                                          EntityId entityId,
+                                                          JsonNode entityBody) {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
@@ -217,6 +211,6 @@ public abstract class BaseUpdateProcessor {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        cloudEventService.saveAsync(cloudEvent);
+        return cloudEventService.saveAsync(cloudEvent);
     }
 }

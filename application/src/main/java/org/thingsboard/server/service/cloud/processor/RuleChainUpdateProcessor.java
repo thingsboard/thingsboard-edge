@@ -66,7 +66,7 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private RuleChainService ruleChainService;
 
-    public void onRuleChainUpdate(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
+    public ListenableFuture<Void> onRuleChainUpdate(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
         try {
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
@@ -117,13 +117,16 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + ruleChainUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process RuleChainUpdateMsg [{}]", ruleChainUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process RuleChainUpdateMsg " + ruleChainUpdateMsg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
-    public void onRuleChainMetadataUpdate(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
+    public ListenableFuture<Void> onRuleChainMetadataUpdate(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
         try {
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -142,10 +145,13 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                     break;
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
+                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + ruleChainMetadataUpdateMsg.getMsgType()));
             }
         } catch (Exception e) {
             log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Can't process RuleChainMetadataUpdateMsg " + ruleChainMetadataUpdateMsg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
     private List<RuleChainConnectionInfo> parseRuleChainConnectionProtos(List<org.thingsboard.server.gen.edge.RuleChainConnectionInfoProto> ruleChainConnectionsList) throws IOException {

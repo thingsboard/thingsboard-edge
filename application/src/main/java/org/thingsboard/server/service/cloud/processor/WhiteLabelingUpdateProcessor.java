@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,23 +61,27 @@ public class WhiteLabelingUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public void onCustomTranslationUpdate(TenantId tenantId, CustomTranslationProto customTranslationProto) {
+    public ListenableFuture<Void> onCustomTranslationUpdate(TenantId tenantId, CustomTranslationProto customTranslationProto) {
         try {
             CustomTranslation customTranslation = new CustomTranslation();
             customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
             customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
         } catch (Exception e) {
             log.error("Exception during updating custom translation", e);
+            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating custom translation", e));
         }
+        return Futures.immediateFuture(null);
     }
 
-    public void onLoginWhiteLabelingParamsUpdate(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
+    public ListenableFuture<Void> onLoginWhiteLabelingParamsUpdate(TenantId tenantId, LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
         try {
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
             whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);
         } catch (Exception e) {
             log.error("Exception during updating login white labeling params", e);
+            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating login white labeling params", e));
         }
+        return Futures.immediateFuture(null);
     }
 
     private LoginWhiteLabelingParams constructLoginWhiteLabelingParams(LoginWhiteLabelingParamsProto loginWLPProto) {
@@ -102,13 +108,15 @@ public class WhiteLabelingUpdateProcessor extends BaseUpdateProcessor {
         return loginWLP;
     }
 
-    public void onWhiteLabelingParamsUpdate(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
+    public ListenableFuture<Void> onWhiteLabelingParamsUpdate(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
         try {
             WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
             whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, wLP);
         } catch (Exception e) {
             log.error("Exception during updating white labeling params", e);
+            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating white labeling params", e));
         }
+        return Futures.immediateFuture(null);
     }
 
     private WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {

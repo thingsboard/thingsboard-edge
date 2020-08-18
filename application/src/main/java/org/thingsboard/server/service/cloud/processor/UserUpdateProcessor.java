@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -57,6 +58,7 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -70,7 +72,7 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private UserService userService;
 
-    public void onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
+    public ListenableFuture<Void> onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -136,13 +138,20 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type");
+                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + userUpdateMsg.getMsgType()));
         }
-        requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId);
+        ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId), future -> null, dbCallbackExecutor);
 
-        if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
-                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-            saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
-        }
+        ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
+            ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
+            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
+                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
+                f = saveCloudEvent(tenantId, CloudEventType.USER, ActionType.CREDENTIALS_REQUEST, userId, null);
+            }
+            return Futures.transform(f, tmp -> null, dbCallbackExecutor);
+        }, dbCallbackExecutor);
+
+        return Futures.transform(t, tt -> null, dbCallbackExecutor);
     }
 
     private boolean isFullAccess(JsonNode additionalInfo) {
@@ -152,26 +161,19 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
         return false;
     }
 
-    public void onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
+    public ListenableFuture<Void> onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
         UserId userId = new UserId(new UUID(userCredentialsUpdateMsg.getUserIdMSB(), userCredentialsUpdateMsg.getUserIdLSB()));
         ListenableFuture<User> userFuture = userService.findUserByIdAsync(tenantId, userId);
-        Futures.addCallback(userFuture, new FutureCallback<User>() {
-            @Override
-            public void onSuccess(@Nullable User result) {
-                if (result != null) {
-                    UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, result.getId());
-                    userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
-                    userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
-                    userCredentials.setActivateToken(null);
-                    userCredentials.setResetToken(null);
-                    userService.saveUserCredentials(tenantId, userCredentials);
-                }
+        return Futures.transform(userFuture, user -> {
+            if (user != null) {
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, user.getId());
+                userCredentials.setEnabled(userCredentialsUpdateMsg.getEnabled());
+                userCredentials.setPassword(userCredentialsUpdateMsg.getPassword());
+                userCredentials.setActivateToken(null);
+                userCredentials.setResetToken(null);
+                userService.saveUserCredentials(tenantId, userCredentials);
             }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("Can't update user credentials for userCredentialsUpdateMsg [{}]", userCredentialsUpdateMsg, t);
-            }
+            return null;
         }, dbCallbackExecutor);
     }
 }
