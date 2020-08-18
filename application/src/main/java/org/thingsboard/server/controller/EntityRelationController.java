@@ -82,6 +82,8 @@ public class EntityRelationController extends BaseController {
                     ActionType.RELATION_ADD_OR_UPDATE, null, relation);
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, null, relation);
+
+            sendNotificationMsgToCloudService(getTenantId(), relation, ActionType.RELATION_ADD_OR_UPDATE);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, e, relation);
@@ -119,6 +121,8 @@ public class EntityRelationController extends BaseController {
                     ActionType.RELATION_DELETED, null, relation);
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, null, relation);
+
+            sendNotificationMsgToCloudService(getTenantId(), relation, ActionType.RELATION_DELETED);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, e, relation);
@@ -140,6 +144,8 @@ public class EntityRelationController extends BaseController {
         try {
             relationService.deleteEntityRelations(getTenantId(), entityId);
             logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, null);
+
+            sendNotificationMsgToCloudService(getTenantId(), entityId, ActionType.RELATIONS_DELETED);
         } catch (Exception e) {
             logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, e);
             throw handleException(e);

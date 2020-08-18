@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -117,6 +118,7 @@ import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
 import org.thingsboard.server.gen.edge.EntityUpdateMsg;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UplinkMsg;
@@ -126,6 +128,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.cloud.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.processor.AlarmUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.CustomerUpdateProcessor;
@@ -306,6 +309,9 @@ public class CloudManagerService {
     private AlarmUpdateMsgConstructor alarmUpdateMsgConstructor;
 
     @Autowired
+    private RelationUpdateMsgConstructor relationUpdateMsgConstructor;
+
+    @Autowired
     private EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
@@ -374,6 +380,8 @@ public class CloudManagerService {
                                             case ALARM_ACK:
                                             case ALARM_CLEAR:
                                             case CREDENTIALS_UPDATED:
+                                            case RELATION_ADD_OR_UPDATE:
+                                            case RELATION_DELETED:
                                                 processEntityMessage(cloudEvent, edgeEventAction);
                                                 break;
                                             case ATTRIBUTES_UPDATED:
@@ -516,9 +524,9 @@ public class CloudManagerService {
 //            case USER:
 //                processUser(cloudEvent, msgType, edgeEventAction);
 //                break;
-//            case RELATION:
-//                processRelation(cloudEvent, msgType);
-//                break;
+            case RELATION:
+                processRelation(cloudEvent, msgType);
+                break;
         }
     }
 
@@ -573,6 +581,20 @@ public class CloudManagerService {
             }
         } catch (Exception e) {
             log.error("Can't process alarm msg [{}] [{}]", cloudEvent, msgType, e);
+        }
+    }
+
+    private void processRelation(CloudEvent cloudEvent, UpdateMsgType msgType) {
+        try {
+            EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
+            if (entityRelation != null) {
+                RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
+                UplinkMsg msg = UplinkMsg.newBuilder()
+                        .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
+                edgeRpcClient.sendUplinkMsg(msg);
+            }
+        } catch (Exception e) {
+            log.error("Can't process relation msg [{}] [{}]", cloudEvent, msgType, e);
         }
     }
 
@@ -688,8 +710,10 @@ public class CloudManagerService {
             case CREDENTIALS_UPDATED:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
+            case RELATION_ADD_OR_UPDATE:
                 return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
+            case RELATION_DELETED:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
