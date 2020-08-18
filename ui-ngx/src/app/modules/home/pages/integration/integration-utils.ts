@@ -88,7 +88,7 @@ export function changeRequiredApachePulsarCredentialsFields(form: FormGroup, cre
       disabled = [...token];
       break;
     case 'token':
-      enabled = token;
+      enabled = [...token];
       break;
   }
 
