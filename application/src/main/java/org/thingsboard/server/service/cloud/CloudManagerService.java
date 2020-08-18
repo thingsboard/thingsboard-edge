@@ -82,6 +82,7 @@ import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -145,6 +146,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
+import org.thingsboard.server.service.cloud.constructor.RelationUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.processor.AdminSettingsUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.AlarmUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
@@ -326,6 +328,9 @@ public class CloudManagerService {
     private AlarmUpdateMsgConstructor alarmUpdateMsgConstructor;
 
     @Autowired
+    private RelationUpdateMsgConstructor relationUpdateMsgConstructor;
+
+    @Autowired
     private EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
@@ -440,6 +445,8 @@ public class CloudManagerService {
                     case ALARM_ACK:
                     case ALARM_CLEAR:
                     case CREDENTIALS_UPDATED:
+                    case RELATION_ADD_OR_UPDATE:
+                    case RELATION_DELETED:
                         uplinkMsg = processEntityMessage(cloudEvent, edgeEventAction);
                         break;
                     case ATTRIBUTES_UPDATED:
@@ -531,6 +538,8 @@ public class CloudManagerService {
                 return processDevice(cloudEvent, msgType, edgeEventAction);
             case ALARM:
                 return processAlarm(cloudEvent, msgType);
+            case RELATION:
+                return processRelation(cloudEvent, msgType);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;
@@ -616,6 +625,21 @@ public class CloudManagerService {
             log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
             return null;
         }
+    }
+
+    private UplinkMsg processRelation(CloudEvent cloudEvent, UpdateMsgType msgType) {
+        UplinkMsg msg = null;
+        try {
+            EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
+            if (entityRelation != null) {
+                RelationUpdateMsg relationUpdateMsg = relationUpdateMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
+                msg = UplinkMsg.newBuilder()
+                        .addAllRelationUpdateMsg(Collections.singletonList(relationUpdateMsg)).build();
+            }
+        } catch (Exception e) {
+            log.error("Can't process relation msg [{}] [{}]", cloudEvent, msgType, e);
+        }
+        return msg;
     }
 
     private UplinkMsg processRelationRequest(CloudEvent cloudEvent) throws IOException {
@@ -712,8 +736,10 @@ public class CloudManagerService {
             case CREDENTIALS_UPDATED:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
+            case RELATION_ADD_OR_UPDATE:
                 return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
+            case RELATION_DELETED:
                 return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
             case ALARM_ACK:
                 return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
