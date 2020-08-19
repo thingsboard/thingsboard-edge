@@ -43,7 +43,7 @@ function SchedulerEventService($http, $q, customerService) {
         saveSchedulerEvent: saveSchedulerEvent,
         deleteSchedulerEvent: deleteSchedulerEvent,
         assignSchedulerEventToEdge: assignSchedulerEventToEdge,
-        unassignSchedulerEventFromEdgeunassignSchedulerEventFromEdge: unassignSchedulerEventFromEdge,
+        unassignSchedulerEventFromEdge: unassignSchedulerEventFromEdge,
         getEdgeSchedulerEvents: getEdgeSchedulerEvents
     };
 

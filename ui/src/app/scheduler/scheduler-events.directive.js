@@ -171,7 +171,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     initController();
 
     function initController() {
-        if (vm.schedulerScope === 'edge') { //TODO clean: refactor hardcoded edge scopes (tenant/edge/edges) through the code in PE and CE?
+        if (vm.schedulerScope === 'edge') {
             vm.addSchedulerEvent = assignSchedulerEventToEdge;
             vm.deleteSchedulerEvent = unassignSchedulerEvent;
             vm.deleteSchedulerEvents = unassignSchedulerEvents;
