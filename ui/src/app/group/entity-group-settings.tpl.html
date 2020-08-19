@@ -99,9 +99,6 @@
                          ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}
             </md-checkbox>
         </section>
-        <!--
-            TODO: voba - merge this with the customer section
-         -->
         <section ng-if="vm.entityType == vm.types.entityType.edge" layout="column">
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-users-management' | translate }}"
                          ng-model="vm.settings.enableUsersManagement">{{ 'entity-group.enable-users-management' | translate }}
