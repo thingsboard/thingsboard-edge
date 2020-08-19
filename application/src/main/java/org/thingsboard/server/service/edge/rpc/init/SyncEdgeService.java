@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.init;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
@@ -42,15 +43,15 @@ public interface SyncEdgeService {
 
     void sync(Edge edge);
 
-    void processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg);
+    ListenableFuture<Void> processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg);
 
-    void processAttributesRequestMsg(Edge edge, AttributesRequestMsg attributesRequestMsg);
+    ListenableFuture<Void> processAttributesRequestMsg(Edge edge, AttributesRequestMsg attributesRequestMsg);
 
-    void processRelationRequestMsg(Edge edge, RelationRequestMsg relationRequestMsg);
+    ListenableFuture<Void> processRelationRequestMsg(Edge edge, RelationRequestMsg relationRequestMsg);
 
-    void processDeviceCredentialsRequestMsg(Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg);
+    ListenableFuture<Void> processDeviceCredentialsRequestMsg(Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg);
 
-    void processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg);
+    ListenableFuture<Void> processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg);
 
-    void processEntityGroupEntitiesRequest(Edge edge, EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg);
+    ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg);
 }
