@@ -1599,7 +1599,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 findByQueryPromise = assetService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             } else if (entityType == types.entityType.device) {
                 findByQueryPromise = deviceService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
-            } else if (entityType == types.entityType.entityView) { //TODO clean: looks like not present in 2.5.3
+            } else if (entityType == types.entityType.entityView) {
                 findByQueryPromise = entityViewService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});
             } else if (entityType == types.entityType.edge) {
                 findByQueryPromise = edgeService.findByQuery(entitySearchQuery, true, {ignoreLoading: true});

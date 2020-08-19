@@ -299,15 +299,15 @@ export function EntityViewController($rootScope, userService, entityViewService,
                 vm.entityViewGridConfig.addItemAction = {};
             }
         } else if (vm.entityViewsScope === 'edge') {
-            fetchEntityViewsFunction = function (pageLink, entityViewType) {
-                return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType); //TODO clean: method is used in CE. Comment
+            /* fetchEntityViewsFunction = function (pageLink, entityViewType) {
+                return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType);
             };
             deleteEntityViewFunction = function (entityViewId) {
                 return entityViewService.unassignEntityViewFromEdge(edgeId, entityViewId);
             };
             refreshEntityViewsParamsFunction = function () {
                 return {"edgeId": edgeId, "topIndex": vm.topIndex};
-            };
+            }; */
 
             entityViewActionsList.push({
                     onAction: function ($event, item) {

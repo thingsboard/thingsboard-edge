@@ -106,7 +106,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
             config = {};
         }
         config = Object.assign(config, { ignoreErrors: ignoreErrors });
-        $http.post(url, cleanEntityGroup(entityGroup), config).then(function success(response) { //TODO cleaning: check usage cleanEntityGroup
+        $http.post(url, entityGroup, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail() {
             deferred.reject();
@@ -419,16 +419,10 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
         return deferred.promise;
     }
 
-    function cleanEntityGroup(entityGroup) {
-        delete entityGroup.assignedEdgeGroupsText;
-        delete entityGroup.assignedEdgeGroupIds;
-        return entityGroup;
-    }
-
     function resolveParentGroupInfo($stateParams, entityGroup) {
         var deferred = $q.defer();
         if ($stateParams.customerId) {
-            var groupType = $stateParams.childGroupType || $stateParams.groupType;
+            let groupType = $stateParams.childGroupType || $stateParams.groupType;
             customerService.getShortCustomerInfo($stateParams.customerId).then(
                 (info) => {
                     entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
@@ -451,7 +445,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                 }
             );
         } else if ($stateParams.edgeId) {
-            var groupType = $stateParams.childGroupType || $stateParams.groupType; //TODO clean: check if var groupType is not conflicting
+            let groupType = $stateParams.childGroupType || $stateParams.groupType;
             edgeService.getEdge($stateParams.edgeId).then(
                 (info) => {
                     if (groupType === types.entityType.schedulerEvent) {

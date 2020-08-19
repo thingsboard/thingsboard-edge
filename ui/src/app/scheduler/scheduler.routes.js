@@ -50,11 +50,10 @@ export default function SchedulerRoutes($stateProvider) {
             },
             data: {
                 searchEnabled: false,
-                pageTitle: 'scheduler.scheduler',
-                schedulerScope: 'default' //TODO clean: maybe this line could be deleted as it is not used in code
+                pageTitle: 'scheduler.scheduler'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "schedule", "label": "scheduler.scheduler"}'
             }
-        })
+        });
 }

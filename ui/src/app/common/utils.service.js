@@ -753,7 +753,7 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
                 settings.enableLoginAsUser = true;
             }
         }
-        if (entityType == types.entityType.customer || entityType == types.entityType.edge) { //TODO clean: check usage
+        if (entityType == types.entityType.customer || entityType == types.entityType.edge) {
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;
             }

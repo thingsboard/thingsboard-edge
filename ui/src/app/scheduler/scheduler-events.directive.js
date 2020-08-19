@@ -67,7 +67,6 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.editEnabled = editEnabled();
     vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.create);
     vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.delete);
-    vm.manageAssignedEdgeGroupsEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.manageAssignedEdgeGroups);
 
     vm.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
         userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read);

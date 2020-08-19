@@ -115,8 +115,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 changeOwner: "CHANGE_OWNER",
                 addToGroup: "ADD_TO_GROUP",
                 removeFromGroup: "REMOVE_FROM_GROUP",
-                shareEntityGroup: "SHARE_GROUP",
-                manageAssignedEdgeGroups: 'MANAGE_ASSIGNED_EDGE_GROUPS' //TODO clean: check if this operation is still used
+                shareEntityGroup: "SHARE_GROUP"
             },
             publicGroupTypes: {
                 "ASSET": "ASSET",

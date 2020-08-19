@@ -36,17 +36,21 @@
 <div class="tb-cell" flex="20">{{ event.entityId }}</div>
 <div class="tb-cell" flex="15" ng-style="isPending ? {'color': 'rgba(0, 0, 0, .38)'} : {'color': '#000'}">{{ updateStatus(event.createdTime) | translate }}</div>
 <div class="tb-cell" flex="10">
-    <md-button class="md-icon-button md-primary"
-               ng-click="showEdgeEntityContent($event, 'edge.entity-info', 'JSON')"
-               aria-label="{{ 'action.view' | translate }}">
-        <md-tooltip md-direction="top">
-            {{ 'action.view' | translate }}
-        </md-tooltip>
-        <md-icon aria-label="{{ 'action.view' | translate }}"
-                 class="material-icons">
-            more_horiz
-        </md-icon>
-    </md-button>
+    <ng-container ng-if="event.edgeEventType !== types.edgeEventType.widgetsBundle ||
+                         event.edgeEventType !== types.edgeEventType.widgetType ||
+                         event.edgeEventType !== types.edgeEventType.adminSettings">
+        <md-button class="md-icon-button md-primary"
+                   ng-click="showEdgeEntityContent($event, 'edge.entity-info', 'JSON')"
+                   aria-label="{{ 'action.view' | translate }}">
+            <md-tooltip md-direction="top">
+                {{ 'action.view' | translate }}
+            </md-tooltip>
+            <md-icon aria-label="{{ 'action.view' | translate }}"
+                     class="material-icons">
+                more_horiz
+            </md-icon>
+        </md-button>
+    </ng-container>
 </div>
 
 

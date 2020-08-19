@@ -128,8 +128,6 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
             hideManageDashboards: '=',
             hideManageRuleChains: '=',
             hideManageSchedulerEvents: '='
-            // TODO: voba - move this upgrade from CE correctly
-            // TODO clean: clearify this issue
         }
     };
 }
