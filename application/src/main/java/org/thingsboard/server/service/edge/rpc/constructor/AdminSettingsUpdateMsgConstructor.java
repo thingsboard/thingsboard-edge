@@ -28,30 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.init;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.gen.edge.AttributesRequestMsg;
-import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
-import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
-import org.thingsboard.server.gen.edge.RelationRequestMsg;
-import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
-import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.id.AdminSettingsId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 
-public interface SyncEdgeService {
+@Slf4j
+@Component
+public class AdminSettingsUpdateMsgConstructor {
 
-    void sync(Edge edge);
-
-    ListenableFuture<Void> processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg);
-
-    ListenableFuture<Void> processAttributesRequestMsg(Edge edge, AttributesRequestMsg attributesRequestMsg);
-
-    ListenableFuture<Void> processRelationRequestMsg(Edge edge, RelationRequestMsg relationRequestMsg);
-
-    ListenableFuture<Void> processDeviceCredentialsRequestMsg(Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg);
-
-    ListenableFuture<Void> processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg);
-
-    ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg);
+    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings) {
+        AdminSettingsUpdateMsg.Builder builder = AdminSettingsUpdateMsg.newBuilder()
+                .setKey(adminSettings.getKey())
+                .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
+        AdminSettingsId adminSettingsId = adminSettings.getId();
+        if (adminSettingsId != null) {
+            builder.setIdMSB(adminSettingsId.getId().getMostSignificantBits());
+            builder.setIdLSB(adminSettingsId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
+    }
 }

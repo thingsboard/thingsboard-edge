@@ -178,8 +178,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             TenantId tenantId = new TenantId(new UUID(edgeNotificationMsg.getTenantIdMSB(), edgeNotificationMsg.getTenantIdLSB()));
             EdgeEventType edgeEventType = EdgeEventType.valueOf(edgeNotificationMsg.getEdgeEventType());
             switch (edgeEventType) {
-                // TODO: voba - handle edge updates
-                // case EDGE:
+                case EDGE:
+                    processEdge(tenantId, edgeNotificationMsg);
+                    break;
                 case USER:
                 case ASSET:
                 case DEVICE:
@@ -207,6 +208,10 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         } finally {
             callback.onSuccess();
         }
+    }
+
+    private void processEdge(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        // TODO: voba - handle edge updates
     }
 
     private void processEntity(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {

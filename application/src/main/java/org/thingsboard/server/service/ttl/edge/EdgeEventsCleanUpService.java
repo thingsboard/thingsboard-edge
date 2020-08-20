@@ -28,27 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor;
+package org.thingsboard.server.service.ttl.edge;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.MailTemplateSettingsProto;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.PsqlDao;
+import org.thingsboard.server.service.ttl.AbstractCleanUpService;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+@PsqlDao
 @Slf4j
-@Component
-public class MailTemplateSettingsProtoConstructor {
+@Service
+public class EdgeEventsCleanUpService extends AbstractCleanUpService {
 
-    public MailTemplateSettingsProto constructMailTemplateSettings(AdminSettings adminSettings) {
-        MailTemplateSettingsProto.Builder builder = MailTemplateSettingsProto.newBuilder()
-                .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
-        AdminSettingsId adminSettingsId = adminSettings.getId();
-        if (adminSettingsId != null) {
-            builder.setIdMSB(adminSettingsId.getId().getMostSignificantBits());
-            builder.setIdLSB(adminSettingsId.getId().getLeastSignificantBits());
+    @Value("${sql.ttl.edge_events.edge_events_ttl}")
+    private long ttl;
+
+    @Value("${sql.ttl.edge_events.enabled}")
+    private boolean ttlTaskExecutionEnabled;
+
+    @Scheduled(initialDelayString = "${sql.ttl.edge_events.execution_interval_ms}", fixedDelayString = "${sql.ttl.edge_events.execution_interval_ms}")
+    public void cleanUp() {
+        if (ttlTaskExecutionEnabled) {
+            try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                doCleanUp(conn);
+            } catch (SQLException e) {
+                log.error("SQLException occurred during TTL task execution ", e);
+            }
         }
-        return builder.build();
+    }
+
+    @Override
+    protected void doCleanUp(Connection connection) {
+        long totalEdgeEventsRemoved = executeQuery(connection, "call cleanup_edge_events_by_ttl(" + ttl + ", 0);");
+        log.info("Total edge events removed by TTL: [{}]", totalEdgeEventsRemoved);
     }
 }
