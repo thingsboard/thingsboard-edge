@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.cloud;
 
 import com.datastax.driver.core.utils.UUIDs;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
@@ -50,7 +49,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -164,7 +162,6 @@ import org.thingsboard.server.service.cloud.processor.WidgetTypeUpdateProcessor;
 import org.thingsboard.server.service.cloud.processor.WidgetsBundleUpdateProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -335,9 +332,6 @@ public class CloudManagerService {
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
-
-    @Autowired
-    private InstallScripts installScripts;
 
     private CountDownLatch latch;
 
@@ -791,11 +785,6 @@ public class CloudManagerService {
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
 
-            AdminSettings existingMailTemplates = adminSettingsService.findAdminSettingsByKey(tenantId, "mailTemplates");
-            if (newEdgeSetting.getCloudType().equals("CE") && existingMailTemplates == null) {
-                installScripts.loadMailTemplates();
-            }
-
             initialized = true;
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
@@ -852,7 +841,7 @@ public class CloudManagerService {
         return tenant;
     }
 
-    private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) throws JsonProcessingException {
+    private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {
         EdgeSettings edgeSettings = new EdgeSettings();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         edgeSettings.setEdgeId(edgeUUID.toString());
@@ -865,6 +854,7 @@ public class CloudManagerService {
 
         return edgeSettings;
     }
+
     private void onDownlink(DownlinkMsg downlinkMsg) {
         ListenableFuture<List<Void>> future = processDownlinkMsg(downlinkMsg);
         Futures.addCallback(future, new FutureCallback<List<Void>>() {

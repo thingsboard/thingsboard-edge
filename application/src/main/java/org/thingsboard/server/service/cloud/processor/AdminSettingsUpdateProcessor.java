@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -46,22 +45,23 @@ import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Component
 public class AdminSettingsUpdateProcessor extends BaseUpdateProcessor {
 
     public ListenableFuture<Void> onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
-        UUID uuid = new UUID(adminSettingsUpdateMsg.getIdMSB(), adminSettingsUpdateMsg.getIdLSB());
         String key = adminSettingsUpdateMsg.getKey();
         String jsonValue = adminSettingsUpdateMsg.getJsonValue();
-        if (uuid.version() != 0) {
-            AdminSettings adminSettings = new AdminSettings();
-            adminSettings.setId(new AdminSettingsId(uuid));
-            adminSettings.setKey(key);
+        if (adminSettingsUpdateMsg.getIsSystem()) {
+            AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+            if (adminSettings == null) {
+                adminSettings = new AdminSettings();
+                adminSettings.setKey(key);
+            }
             adminSettings.setJsonValue(JacksonUtil.toJsonNode(jsonValue));
             adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings);
+
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, jsonValue), System.currentTimeMillis()));
