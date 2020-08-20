@@ -50,11 +50,10 @@ export default function SchedulerRoutes($stateProvider) {
             },
             data: {
                 searchEnabled: false,
-                pageTitle: 'scheduler.scheduler',
-                schedulerScope: 'default'
+                pageTitle: 'scheduler.scheduler'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "schedule", "label": "scheduler.scheduler"}'
             }
-        })
+        });
 }

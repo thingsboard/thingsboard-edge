@@ -715,7 +715,10 @@ export default angular.module('thingsboard.types', [])
                 schedulerEvent: "SCHEDULER_EVENT",
                 whiteLabeling: "WHITE_LABELING",
                 loginWhiteLabeling: "LOGIN_WHITE_LABELING",
-                customTranslation: "CUSTOM_TRANSLATION"
+                customTranslation: "CUSTOM_TRANSLATION",
+                widgetsBundle: "WIDGETS_BUNDLE",
+                widgetType: "WIDGET_TYPE",
+                adminSettings: "ADMIN_SETTINGS"
             },
             edgeEventAction: {
                 updated: "UPDATED",
@@ -1301,8 +1304,10 @@ export default angular.module('thingsboard.types', [])
                     clientSide: false
                 }
             },
-            coreRuleChainType: "CORE",
-            edgeRuleChainType: "EDGE",
+            ruleChainType: {
+                core: "CORE",
+                edge: "EDGE"
+            },
             edgeGroupTypes: ["ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
             ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
             ruleChainNodeComponent: {

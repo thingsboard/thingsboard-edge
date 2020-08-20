@@ -299,7 +299,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
                 vm.entityViewGridConfig.addItemAction = {};
             }
         } else if (vm.entityViewsScope === 'edge') {
-            fetchEntityViewsFunction = function (pageLink, entityViewType) {
+            /* fetchEntityViewsFunction = function (pageLink, entityViewType) {
                 return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType);
             };
             deleteEntityViewFunction = function (entityViewId) {
@@ -307,7 +307,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
             };
             refreshEntityViewsParamsFunction = function () {
                 return {"edgeId": edgeId, "topIndex": vm.topIndex};
-            };
+            }; */
 
             entityViewActionsList.push({
                     onAction: function ($event, item) {

@@ -121,7 +121,7 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
         scope.showEdgeEntityContent = function($event, title, contentType) {
             var onShowingCallback = {
                 onShowing: function(){}
-            }
+            };
             if (!contentType) {
                 contentType = null;
             }
