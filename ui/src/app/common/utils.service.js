@@ -757,9 +757,6 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             if (angular.isUndefined(settings.enableUsersManagement)) {
                 settings.enableUsersManagement = true;
             }
-            if (angular.isUndefined(settings.enableCustomersManagement)) {
-                settings.enableCustomersManagement = true;
-            }
             if (angular.isUndefined(settings.enableAssetsManagement)) {
                 settings.enableAssetsManagement = true;
             }
@@ -774,6 +771,11 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             }
             if (angular.isUndefined(settings.enableDashboardsManagement)) {
                 settings.enableDashboardsManagement = true;
+            }
+        }
+        if (entityType == types.entityType.customer) {
+            if (angular.isUndefined(settings.enableCustomersManagement)) {
+                settings.enableCustomersManagement = true;
             }
         }
         if (entityType == types.entityType.edge) {
