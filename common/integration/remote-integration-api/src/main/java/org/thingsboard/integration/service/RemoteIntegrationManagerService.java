@@ -372,6 +372,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.kinesis.AwsKinesisIntegration");
             case KAFKA:
                 return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
+            case APACHE_PULSAR:
+                return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
             case CUSTOM:
                 return newInstance(configuration.get("clazz").asText());
             default:

@@ -496,6 +496,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-kafka",
                     value: "KAFKA"
                 },
+                "APACHE_PULSAR": {
+                    name: "integration.type-apache-pulsar",
+                    value: "APACHE_PULSAR"
+                },
                 "CUSTOM": {
                     name: "integration.type-custom",
                     value: "CUSTOM",
@@ -1144,6 +1148,16 @@ export default angular.module('thingsboard.types', [])
                 2: {
                     value: 2,
                     name: 'integration.mqtt-qos-exactly-once'
+                }
+            },
+            apachePulsarCredentialTypes: {
+                anonymous:  {
+                    value: "anonymous",
+                    name: "extension.anonymous"
+                },
+                token: {
+                    value: "token",
+                    name: "extension.pulsar-token"
                 }
             },
             opcSecurityTypes: {

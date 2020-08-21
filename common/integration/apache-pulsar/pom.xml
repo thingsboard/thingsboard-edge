@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -30,34 +31,63 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.thingsboard</groupId>
-        <version>2.5.4PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
+        <groupId>org.thingsboard.common</groupId>
+        <version>2.5.3PE-SNAPSHOT</version>
+        <artifactId>integration</artifactId>
     </parent>
-    <artifactId>integration</artifactId>
-    <packaging>pom</packaging>
+    <groupId>org.thingsboard.common.integration</groupId>
+    <artifactId>apache-pulsar</artifactId>
+    <packaging>jar</packaging>
 
-    <name>ThingsBoard PE Server Integration Modules</name>
+    <name>ThingsBoard Server Apache Pulsar Integrations</name>
     <url>https://thingsboard.io</url>
 
     <properties>
-        <main.dir>${basedir}/..</main.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <main.dir>${basedir}/../../..</main.dir>
+        <apache-pulsar.version>2.6.0</apache-pulsar.version>
     </properties>
 
-    <modules>
-        <module>http</module>
-        <module>mqtt</module>
-        <module>opc-ua</module>
-        <module>azure</module>
-        <module>aws</module>
-        <module>tcp-udp</module>
-        <module>kafka</module>
-        <module>pulsar</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>js-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>proto</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client</artifactId>
+            <version>2.6.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.validation</groupId>
+                    <artifactId>validation-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
