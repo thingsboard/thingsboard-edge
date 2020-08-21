@@ -183,7 +183,17 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                     entity: entity,
                     childEntityGroupId: params.childEntityGroupId,
                     targetGroupType: types.entityType.user});
-            } else {
+            } else if (params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
+                    entityGroup: params.entityGroup,
+                    entityGroupId:params.entityGroupId,
+                    edgeId: entity.id.id,
+                    customerId: params.customerId,
+                    entity: entity,
+                    childEntityGroupId: params.childEntityGroupId,
+                    targetGroupType: types.entityType.user});
+            }
+            else {
                 $state.go('home.edgeGroups.edgeGroup.userGroups', {edgeId: entity.id.id});
             }
         };
