@@ -72,7 +72,7 @@ export class Polyline {
           })
         }
       ]
-    }
+    };
   }
 
   updatePolyline(locations: L.LatLng[], data: FormattedData, dataSources: FormattedData[], settings: PolylineSettings) {
@@ -80,8 +80,9 @@ export class Polyline {
     this.dataSources = dataSources;
     this.leafletPoly.setLatLngs(locations);
     this.leafletPoly.setStyle(this.getPolyStyle(settings));
-    if (this.polylineDecorator)
+    if (this.polylineDecorator) {
       this.polylineDecorator.setPaths(this.leafletPoly);
+    }
   }
 
   getPolyStyle(settings: PolylineSettings): L.PolylineOptions {
@@ -93,7 +94,7 @@ export class Polyline {
         [this.data, this.dataSources, this.data.dsIndex], settings.strokeOpacity),
       weight: functionValueCalculator(settings.useStrokeWeightFunction, settings.strokeWeightFunction,
         [this.data, this.dataSources, this.data.dsIndex], settings.strokeWeight)
-    }
+    };
   }
 
   removePolyline() {
