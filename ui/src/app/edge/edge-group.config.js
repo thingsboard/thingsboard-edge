@@ -175,7 +175,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                 event.stopPropagation();
             }
             if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
-                var stateParams = {edgeId: entity.id.id};
+                var stateParams = {edgeId: entity.id.id, customerId: params.customerId};
                 if (params.hierarchyView) {
                     stateParams.entityGroupId = params.entityGroupId;
                     var href = $state.href('home.edgeGroups.edgeGroup.userGroups', stateParams, {absolute: true});

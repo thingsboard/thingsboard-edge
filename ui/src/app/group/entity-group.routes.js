@@ -518,7 +518,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.userGroups', {
             url: '/edge/:edgeId/userGroups',
-            // TODO: add customerId into request as well
             params: {'childGroupType': types.entityType.user, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
