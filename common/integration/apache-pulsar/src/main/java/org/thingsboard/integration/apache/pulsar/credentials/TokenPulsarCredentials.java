@@ -28,28 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.apache.pulsar.credentials;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Setter;
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.impl.auth.AuthenticationToken;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false), AZURE_IOT_HUB(true), APACHE_PULSAR(false);
+public class TokenPulsarCredentials implements PulsarCredentials {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+    @Setter
+    private String token;
+
+    @Override
+    public Authentication getAuthentication() {
+        return new AuthenticationToken(token);
     }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
 }
