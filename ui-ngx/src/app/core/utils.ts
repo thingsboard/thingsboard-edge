@@ -476,9 +476,11 @@ export function cloneMetadata<S, T>(sourceType: Type<S>, targetType: Type<T>) {
   const sourceMeta = sourceType.prototype.constructor[PROP_METADATA];
   const targetMeta = Object.defineProperty(targetType.prototype.constructor,
     PROP_METADATA, { value: {} })[PROP_METADATA];
-  for (const field of Object.keys(sourceMeta)) {
-    if (sourceMeta.hasOwnProperty(field)) {
-      targetMeta[field] = sourceMeta[field];
+  if (isDefinedAndNotNull(sourceMeta)) {
+    for (const field of Object.keys(sourceMeta)) {
+      if (sourceMeta.hasOwnProperty(field)) {
+        targetMeta[field] = sourceMeta[field];
+      }
     }
   }
 }
