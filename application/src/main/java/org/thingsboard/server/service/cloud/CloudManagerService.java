@@ -1060,6 +1060,13 @@ public class CloudManagerService {
                     metaData.putValue("entityViewType", entityView.getType());
                 }
                 break;
+            case ENTITY_GROUP:
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
+                if (entityGroup != null) {
+                    metaData.putValue("entityGroupName", entityGroup.getName());
+                    metaData.putValue("entityGroupType", entityGroup.getType().name());
+                }
+                break;
             default:
                 log.debug("Using empty metadata for entityId [{}]", entityId);
                 break;
@@ -1082,6 +1089,8 @@ public class CloudManagerService {
                 return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case CUSTOMER:
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case ENTITY_GROUP:
+                return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;
