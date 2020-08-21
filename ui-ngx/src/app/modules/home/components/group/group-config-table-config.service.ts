@@ -53,7 +53,7 @@ import { Operation } from '@shared/models/security.models';
 import { Direction } from '@shared/models/page/sort-order';
 import { GroupEntitiesDataSource } from '@home/models/datasource/group-entity-datasource';
 import { WidgetActionDescriptor, WidgetActionType } from '@shared/models/widget.models';
-import { deepClone, isDefined, objToBase64 } from '@core/utils';
+import { deepClone, isDefined, objToBase64URI } from '@core/utils';
 import {
   CellActionDescriptor,
   CellContentFunction,
@@ -512,7 +512,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         if (targetDashboardStateId) {
           stateObject.id = targetDashboardStateId;
         }
-        const state = objToBase64([ stateObject ]);
+        const state = objToBase64URI([ stateObject ]);
         const url = `/dashboards/${targetDashboardId}?state=${state}`;
         this.router.navigateByUrl(url);
         break;
