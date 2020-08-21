@@ -427,6 +427,29 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
             }
         })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups.userGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.user-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
         .state('home.customerGroups.customerGroup.dashboardGroups', {
             url: '/:customerId/dashboardGroups',
             params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0},

@@ -378,10 +378,12 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
         } else {
             var targetStatePrefix = 'home.';
-            if (vm.edgeId) {
+            if (vm.edgeId && !vm.customerId) {
                 targetStatePrefix = 'home.edgeGroups.edgeGroup.';
-            } else if (vm.customerId) {
+            } else if (vm.customerId && !vm.edgeId) {
                 targetStatePrefix = 'home.customerGroups.customerGroup.';
+            } else if (vm.edgeId && vm.customerId) {
+                targetStatePrefix = 'home.customerGroups.customerGroup.edgeGroups.edgeGroup.';
             }
             var targetState;
             if (entityGroup.type == types.entityType.asset) {
