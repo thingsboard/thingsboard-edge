@@ -30,11 +30,16 @@
 ///
 
 import { FormGroup } from '@angular/forms';
-import {azureIotHubCredentialsType, mqttCredentialType} from '@home/pages/integration/integration-forms-templates';
+import {
+  apachePulsarCredentialsType,
+  azureIotHubCredentialsType,
+  mqttCredentialType
+} from '@home/pages/integration/integration-forms-templates';
 
 const basic = ['username', 'password'];
 const pem = ['caCertFileName', 'caCert', 'certFileName', 'cert', 'privateKeyFileName', 'privateKey', 'privateKeyPassword'];
 const sas = ['sasKey', 'caCertFileName', 'caCert'];
+const token = ['token'];
 
 export function changeRequiredCredentialsFields(form: FormGroup, credentialType: mqttCredentialType) {
     let disabled = [];
@@ -68,6 +73,22 @@ export function changeRequiredAzureCredentialsFields(form: FormGroup, credential
     case 'cert.PEM':
       disabled = basic;
       enabled = pem;
+      break;
+  }
+
+  disableFields(form, disabled);
+  enableFields(form, enabled);
+}
+
+export function changeRequiredApachePulsarCredentialsFields(form: FormGroup, credentialType: apachePulsarCredentialsType) {
+  let disabled = [];
+  let enabled = [];
+  switch (credentialType) {
+    case 'anonymous':
+      disabled = [...token];
+      break;
+    case 'token':
+      enabled = [...token];
       break;
   }
 

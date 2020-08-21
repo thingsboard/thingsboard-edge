@@ -46,6 +46,7 @@ import { MqttTopicFiltersComponent } from './mqtt-topic-filters/mqtt-topic-filte
 import { OpcUaSubscriptionTagsComponent } from './opc-ua-subscription-tags/opc-ua-subscription-tags.component';
 import { CustomIntegrationFormComponent } from './custom-integration-form/custom-integration-form.component';
 import {AzureIotHubIntegrationFormComponent} from "@home/pages/integration/configurations/azure-iot-hub-integration-form/azure-iot-hub-integration-form.component";
+import {PulsarIntegrationFormComponent} from "./apache-pulsar-integration-form/pulsar-integration-form.component";
 
 export const integrations = [
     CertUploadComponent,
@@ -65,5 +66,6 @@ export const integrations = [
     TcpIntegrationFormComponent,
     TtnIntegrationFormComponent,
     UdpIntegrationFormComponent,
-    OpcUaSubscriptionTagsComponent
+    OpcUaSubscriptionTagsComponent,
+    PulsarIntegrationFormComponent
 ];
