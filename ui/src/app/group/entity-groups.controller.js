@@ -60,6 +60,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     vm.customerId = $stateParams.customerId;
     vm.edgeId = $stateParams.edgeId;
+    vm.entityGroup = $stateParams.entityGroup;
     if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
         vm.groupType = $stateParams.childGroupType;
     } else {
@@ -305,7 +306,11 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         var deferred = $q.defer();
         var fetchPromise;
         if (vm.customerId) {
-            fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
+            if ($state.$current.data.targetGroupType) {
+                fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, $state.$current.data.targetGroupType);
+            } else {
+                fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
+            }
         } else {
             fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
         }

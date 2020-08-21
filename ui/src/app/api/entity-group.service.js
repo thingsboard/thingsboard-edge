@@ -425,6 +425,9 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
             let groupType = $stateParams.childGroupType || $stateParams.groupType;
             customerService.getShortCustomerInfo($stateParams.customerId).then(
                 (info) => {
+                    if ($stateParams.entity && $stateParams.edgeId && $stateParams.targetGroupType) {
+                        entityGroup.edgeGroupsTitle = $stateParams.entity.name + ': ' + $translate.instant(entityGroupsTitle($stateParams.targetGroupType));
+                    }
                     entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
                     if ($stateParams.childEntityGroupId) {
                         getEntityGroup($stateParams.entityGroupId).then(

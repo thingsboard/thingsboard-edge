@@ -391,10 +391,40 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             data: {
                 searchEnabled: false,
-                pageTitle: 'entity-group.edge-group'
+                pageTitle: 'entity-group.edge-group',
+                targetGroupType: types.entityType.user
             },
             ncyBreadcrumb: {
                 label: '{"icon": "router", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
+            url: '/edge/:edgeId/userGroups',
+            params: {'childGroupType': types.entityType.user, 'topIndex': 0, 'customerId': null, 'entity': null, 'targetGroupType': null},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.user-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
             }
         })
         .state('home.customerGroups.customerGroup.dashboardGroups', {
@@ -570,7 +600,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.assetGroups', {
             url: '/edge/:edgeId/assetGroups',
-            // TODO: add customerId into request as well
             params: {'childGroupType': types.entityType.asset, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
