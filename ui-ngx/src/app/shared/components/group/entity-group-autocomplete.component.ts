@@ -53,6 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
+import { isEqual } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -158,7 +159,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   ngOnChanges(changes: SimpleChanges): void {
     for (const propName of Object.keys(changes)) {
       const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
+      if (!change.firstChange && !isEqual(change.currentValue, change.previousValue)) {
         if (propName === 'groupType') {
           const currentEntityGroup = this.getCurrentEntityGroup();
           if (!currentEntityGroup || currentEntityGroup.type !== this.groupType) {

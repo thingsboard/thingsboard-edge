@@ -98,6 +98,9 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
   @Output()
   currentGroupType = new EventEmitter<EntityType>();
 
+  @Output()
+  currentGroupInfo = new EventEmitter<EntityGroupInfo>();
+
   displayGroupTypeSelect: boolean;
 
   entityGroupTypes: Array<EntityType>;
@@ -187,6 +190,7 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
   }
 
   entityGroupLoaded(entityGroup: EntityGroupInfo) {
+    this.currentGroupInfo.next(entityGroup);
     setTimeout(() => {
       this.entityGroupSelectFormGroup.get('groupType').patchValue(entityGroup ? entityGroup.type : null, {emitEvent: true});
     }, 0);
