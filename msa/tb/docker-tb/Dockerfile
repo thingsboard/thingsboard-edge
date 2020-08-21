@@ -79,6 +79,8 @@ RUN dpkg -i /tmp/tb-web-report.deb
 
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
 
+RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
+
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
 RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
@@ -86,7 +88,6 @@ RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
 
 ENV DATA_FOLDER=/data
 
-ENV HTTP_BIND_PORT=9090
 ENV DATABASE_TS_TYPE=sql
 ENV DATABASE_ENTITIES_TYPE=sql
 
@@ -99,6 +100,7 @@ ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
 
 EXPOSE 9090
+EXPOSE 8080
 EXPOSE 1883
 EXPOSE 5683/udp
 
