@@ -106,6 +106,18 @@ export const azureIotHubCredentialsTypes = {
   }
 }
 
+export type apachePulsarCredentialsType = 'anonymous' | 'token';
+export const apachePulsarCredentialsTypes = {
+  anonymous: {
+    value: 'anonymous',
+    name: 'extension.anonymous'
+  },
+  token: {
+    value: 'token',
+    name: 'extension.token'
+  }
+}
+
 export function updateIntegrationFormState(type: IntegrationType, info: IntegrationTypeInfo,
                                            integrationForm: FormGroup, disabled: boolean) {
   if (disabled) {
@@ -528,6 +540,30 @@ export const templates = {
       'clientConfiguration.pollInterval': [Validators.required]
     }
   },
+
+  [IntegrationType.APACHE_PULSAR]: {
+    clientConfiguration: {
+      serviceUrl: 'pulsar://localhost:6650',
+      topics: 'my-topic',
+      subscriptionName: 'my-subscription',
+      maxNumMessages: 1000,
+      maxNumBytes: 10 * 1024 * 1024,
+      timeoutInMs: 100,
+      credentials: {
+        type: apachePulsarCredentialsTypes.anonymous.value,
+        token: ''
+      }
+    },
+    fieldValidators: {
+      'clientConfiguration.serviceUrl': [Validators.required],
+      'clientConfiguration.topics': [Validators.required],
+      'clientConfiguration.subscriptionName': [Validators.required],
+      'clientConfiguration.maxNumMessages': [Validators.required],
+      'clientConfiguration.maxNumBytes': [Validators.required],
+      'clientConfiguration.timeoutInMs': [Validators.required],
+    }
+  },
+
   [IntegrationType.CUSTOM]: {
     clazz: '',
     configuration: '',
