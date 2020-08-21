@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -96,12 +97,17 @@ public class AdminController extends BaseController {
                                                   defaultValue = "false") boolean systemByDefault) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
+            AdminSettings adminSettings;
             if (authority == Authority.SYS_ADMIN) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-                return checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
+                adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
-                return getTenantAdminSettings(key, systemByDefault);
+                adminSettings = getTenantAdminSettings(key, systemByDefault);
             }
+            if (adminSettings.getKey().equals("mail")) {
+                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
+            }
+            return adminSettings;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -118,6 +124,9 @@ public class AdminController extends BaseController {
                 adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
                 adminSettings = saveTenantAdminSettings(adminSettings);
+            }
+            if (adminSettings.getKey().equals("mail")) {
+                ((ObjectNode) adminSettings.getJsonValue()).put("password", "");
             }
             return adminSettings;
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 {
   "name": "thingsboard",
   "private": true,
-  "version": "2.5.3PE",
+  "version": "2.5.4PE",
   "description": "ThingsBoard PE UI",
   "licenses": [
     {
