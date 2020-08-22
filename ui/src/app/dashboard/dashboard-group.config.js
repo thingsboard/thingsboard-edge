@@ -119,6 +119,9 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
                     $window.open(href, '_blank');
                 } else if (params.groupType === types.entityType.edge) {
                     $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
+                } else if (params.targetGroupType === types.entityType.dashboard) {
+                    stateParams.groupType = params.targetGroupType;
+                    $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
                 } else {
                     $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
                 }
