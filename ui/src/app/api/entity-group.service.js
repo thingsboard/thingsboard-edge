@@ -502,6 +502,10 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                 return 'entity-group.edge-groups';
             case types.entityType.dashboard:
                 return 'entity-group.dashboard-groups';
+            case types.entityType.schedulerEvent:
+                return 'scheduler.scheduler-events';
+            case types.entityType.ruleChain:
+                return 'edge.rulechains';
         }
     }
 

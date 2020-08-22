@@ -467,8 +467,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             data: {
                 searchEnabled: false,
-                pageTitle: 'entity-group.edge-group',
-                targetGroupType: types.entityType.user
+                pageTitle: 'entity-group.edge-group'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "router", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
@@ -705,7 +704,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             data: {
                 searchEnabled: true,
-                pageTitle: 'entity-group.dashboard-groups'
+                pageTitle: 'entity-group.dashboard-groups',
             },
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
@@ -757,6 +756,36 @@ export default function EntityGroupRoutes($stateProvider, types) {
             },
             ncyBreadcrumb: {
                 label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.schedulerEvents', {
+            url: '/:edgeId/schedulerEvents',
+            params: {'childGroupType': types.entityType.schedulerEvent, 'topIndex': 0, 'customerId': null, 'entity': null, 'targetGroupType': null},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: schedulerTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('SchedulerController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'scheduler.scheduler-events',
+                schedulerScope: 'edge'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "schedule", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
             }
         })
         .state('home.edgeGroups', {
