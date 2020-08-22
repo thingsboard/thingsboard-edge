@@ -450,9 +450,12 @@ export default function RuleChainsController(ruleChainService, userService, edge
         if ($event) {
             $event.stopPropagation();
         }
-
         if (vm.ruleChainsScope === 'edge') {
-            $state.go('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edge.id.id});
+            if ($state.params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edge.id.id});
+            } else {
+                $state.go('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edge.id.id});
+            }
         } else if (vm.ruleChainsScope === 'edges') {
             $state.go('home.ruleChains.edge.ruleChain', {ruleChainId: ruleChain.id.id});
         } else {

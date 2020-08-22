@@ -212,15 +212,8 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
-            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
-                var stateParams = {edgeId: entity.id.id};
-                if (params.hierarchyView) {
-                    stateParams.entityGroupId = params.entityGroupId;
-                    var href = $state.href('home.edgeGroups.edgeGroup.ruleChains', stateParams, {absolute: true});
-                    $window.open(href, '_blank');
-                } else {
-                    $state.go('home.edgeGroups.edgeGroup.ruleChains', stateParams);
-                }
+            if ((params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) || params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains', createStateParams(entity, types.entityType.rulechain));
             } else {
                 $state.go('home.edgeGroups.edgeGroup.ruleChains', {edgeId: entity.id.id});
             }
