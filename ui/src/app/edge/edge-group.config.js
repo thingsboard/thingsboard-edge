@@ -156,15 +156,11 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
+            var stateParams = createStateParams(entity, types.entityType.device);
             if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
-                var stateParams = {edgeId: entity.id.id};
-                if (params.hierarchyView) {
-                    stateParams.entityGroupId = params.entityGroupId;
-                    var href = $state.href('home.edgeGroups.edgeGroup.deviceGroups', stateParams, {absolute: true});
-                    $window.open(href, '_blank');
-                } else {
-                    $state.go('home.edgeGroups.edgeGroup.deviceGroups', stateParams);
-                }
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.deviceGroups', stateParams);
+            } else if (params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.deviceGroups', stateParams);
             } else {
                 $state.go('home.edgeGroups.edgeGroup.deviceGroups', {edgeId: entity.id.id});
             }
@@ -174,26 +170,12 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
+            var stateParams = createStateParams(entity, types.entityType.user);
             if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
-                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
-                    entityGroup: params.entityGroup,
-                    entityGroupId:params.entityGroupId,
-                    edgeId: entity.id.id,
-                    customerId: params.customerId,
-                    entity: entity,
-                    childEntityGroupId: params.childEntityGroupId,
-                    targetGroupType: types.entityType.user});
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', stateParams);
             } else if (params.groupType === types.entityType.customer) {
-                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
-                    entityGroup: params.entityGroup,
-                    entityGroupId:params.entityGroupId,
-                    edgeId: entity.id.id,
-                    customerId: params.customerId,
-                    entity: entity,
-                    childEntityGroupId: params.childEntityGroupId,
-                    targetGroupType: types.entityType.user});
-            }
-            else {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', stateParams);
+            } else {
                 $state.go('home.edgeGroups.edgeGroup.userGroups', {edgeId: entity.id.id});
             }
         };
@@ -202,8 +184,9 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
-            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
-                $state.go('home.edgeGroups.edgeGroup.assetGroups', {entityGroupId:params.entityGroupId, edgeId: entity.id.id, customerId: params.customerId});
+            var stateParams = createStateParams(entity, types.entityType.asset);
+            if ((params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) || params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.assetGroups', stateParams);
             } else {
                 $state.go('home.edgeGroups.edgeGroup.assetGroups', {edgeId: entity.id.id});
             }
@@ -213,15 +196,11 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
-            if (entityGroup.parentEntityGroup && params.hierarchyCallbacks.customerGroupsSelected) {
-                var stateParams = {edgeId: entity.id.id};
-                if (params.hierarchyView) {
-                    stateParams.entityGroupId = params.entityGroupId;
-                    var href = $state.href('home.edgeGroups.edgeGroup.entityViewGroups', stateParams, {absolute: true});
-                    $window.open(href, '_blank');
-                } else {
-                    $state.go('home.edgeGroups.edgeGroup.entityViewGroups', stateParams);
-                }
+            var stateParams = createStateParams(entity, types.entityType.entityView);
+            if (params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.entityViewGroups', stateParams);
+            } else if (params.groupType === types.entityType.customer) {
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.entityViewGroups', stateParams);
             } else {
                 $state.go('home.edgeGroups.edgeGroup.entityViewGroups', {edgeId: entity.id.id});
             }
@@ -418,6 +397,18 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                     }
                 }
             );
+        }
+
+        function createStateParams(entity, targetGroupType) {
+            return {
+                entityGroup: params.entityGroup,
+                entityGroupId:params.entityGroupId,
+                edgeId: entity.id.id,
+                customerId: params.customerId,
+                entity: entity,
+                childEntityGroupId: params.childEntityGroupId,
+                targetGroupType: targetGroupType
+            }
         }
 
         utils.groupConfigDefaults(groupConfig);
