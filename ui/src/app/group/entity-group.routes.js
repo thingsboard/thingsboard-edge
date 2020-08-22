@@ -713,6 +713,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup', {
             url: '/:childEntityGroupId',
+            params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0, 'customerId': null, 'entity': null, 'targetGroupType': null},
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],

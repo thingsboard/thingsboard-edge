@@ -119,9 +119,14 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
                     $window.open(href, '_blank');
                 } else if (params.groupType === types.entityType.edge) {
                     $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
-                } else if (params.targetGroupType === types.entityType.dashboard) {
-                    stateParams.groupType = params.targetGroupType;
-                    $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
+                } else if (params.groupType === types.entityType.customer && params.childGroupType === types.entityType.edge) {
+                    stateParams.customerId = params.customerId;
+                    stateParams.entityGroupId = params.entityGroupId;
+                    stateParams.groupType = types.entityType.dashboard;
+                    stateParams.childEntityGroupId = params.childEntityGroupId;
+                    stateParams.childGroupType = params.childGroupType;
+                    var href2 = $state.href('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    $window.open(href2, '_blank');
                 } else {
                     $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
                 }
