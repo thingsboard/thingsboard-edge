@@ -1102,35 +1102,10 @@ public class CloudManagerService {
 
     private ListenableFuture<Void> processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        try {
-            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
-                JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                metaData.putValue("ts", tsKv.getTs() + "");
-                TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
-                tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
-                    @Override
-                    public void onSuccess(TbQueueMsgMetadata metadata) {
-                        futureToSet.set(null);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        futureToSet.setException(t);
-                    }
-                });
-            }
-        } catch (Exception e) {
-            log.error("Can't process post telemetry [{}]", msg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process post telemetry " + msg, e));
-        }
-        return futureToSet;
-    }
-
-    private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
-        SettableFuture<Void> futureToSet = SettableFuture.create();
-        try {
-            JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+            metaData.putValue("ts", tsKv.getTs() + "");
+            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
             tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
@@ -1139,43 +1114,56 @@ public class CloudManagerService {
 
                 @Override
                 public void onFailure(Throwable t) {
+                    log.error("Can't process post telemetry [{}]", msg, t);
                     futureToSet.setException(t);
                 }
             });
-        } catch (Exception e) {
-            log.error("Can't process post attributes [{}]", msg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process post attributes " + msg, e));
         }
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+        TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
+        tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
+                futureToSet.set(null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Can't process post attributes [{}]", msg, t);
+                futureToSet.setException(t);
+            }
+        });
         return futureToSet;
     }
 
     private ListenableFuture<Void> processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        try {
-            String scope = attributeDeleteMsg.getScope();
-            List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
-            attributesService.removeAll(tenantId, entityId, scope, attributeNames);
-            if (EntityType.DEVICE.name().equals(entityType)) {
-                Set<AttributeKey> attributeKeys = new HashSet<>();
-                for (String attributeName : attributeNames) {
-                    attributeKeys.add(new AttributeKey(scope, attributeName));
-                }
-                tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
-                        tenantId, (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
-                    @Override
-                    public void onSuccess(TbQueueMsgMetadata metadata) {
-                        futureToSet.set(null);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        futureToSet.setException(t);
-                    }
-                });
+        String scope = attributeDeleteMsg.getScope();
+        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
+        attributesService.removeAll(tenantId, entityId, scope, attributeNames);
+        if (EntityType.DEVICE.name().equals(entityType)) {
+            Set<AttributeKey> attributeKeys = new HashSet<>();
+            for (String attributeName : attributeNames) {
+                attributeKeys.add(new AttributeKey(scope, attributeName));
             }
-        } catch (Exception e) {
-            log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process attribute delete msg " + attributeDeleteMsg, e));
+            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
+                    tenantId, (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, t);
+                    futureToSet.setException(t);
+                }
+            });
         }
         return futureToSet;
     }
