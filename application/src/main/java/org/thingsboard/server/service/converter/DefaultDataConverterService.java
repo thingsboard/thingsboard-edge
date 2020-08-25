@@ -38,11 +38,12 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 
@@ -67,6 +68,9 @@ public class DefaultDataConverterService implements DataConverterService {
     @Autowired
     private IntegrationRpcService rpcService;
 
+    @Autowired
+    private ActorSystemContext actorContext;
+
     private final ConcurrentMap<ConverterId, TBDataConverter> convertersByIdMap = new ConcurrentHashMap<>();
 
     @PreDestroy
@@ -86,6 +90,7 @@ public class DefaultDataConverterService implements DataConverterService {
         TBDataConverter converter = convertersByIdMap.get(configuration.getId());
         if (converter != null) {
             converter.update(configuration);
+            actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
             return converter;
         } else {
             return createConverter(configuration);
