@@ -50,6 +50,7 @@ import { dashboardBreadcumbLabelFunction } from '@home/pages/dashboard/dashboard
 import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarchy.component';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -490,9 +491,9 @@ const routes: Routes = [
         icon: 'dashboard'
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      permissions: {
-        resources: [Resource.DASHBOARD, Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE],
-        operations: [Operation.READ]
+      canActivated: (userPermissionsService: UserPermissionsService): boolean => {
+        return userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
+          userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
       },
       title: 'dashboard.dashboard',
       widgetEditMode: false
