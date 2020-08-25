@@ -153,8 +153,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             if (data.auth && data.auth.indexOf(authority) === -1) {
               this.dialogService.forbidden();
               return of(false);
-            } else if (isDefined(data.permissions) &&
-              !this.userPermissionsService.hasResourcesGenericPermission(data.permissions.resources, data.permissions.operations)) {
+            } else if (isDefined(data.canActivate) && !data.canActivate(this.userPermissionsService)) {
               this.dialogService.forbidden();
               return of(false);
             } else if (data.redirectTo) {
