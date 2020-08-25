@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -142,6 +143,8 @@ import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
@@ -1098,35 +1101,56 @@ public class CloudManagerService {
     }
 
     private ListenableFuture<Void> processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         try {
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
                 metaData.putValue("ts", tsKv.getTs() + "");
                 TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
-                // TODO: voba - verify that null callback is OK
-                tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+                tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
+                    @Override
+                    public void onSuccess(TbQueueMsgMetadata metadata) {
+                        futureToSet.set(null);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        futureToSet.setException(t);
+                    }
+                });
             }
         } catch (Exception e) {
             log.error("Can't process post telemetry [{}]", msg, e);
             return Futures.immediateFailedFuture(new RuntimeException("Can't process post telemetry " + msg, e));
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         try {
             JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
             TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
-            // TODO: voba - verify that null callback is OK
-            tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, null);
+            tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    futureToSet.setException(t);
+                }
+            });
         } catch (Exception e) {
             log.error("Can't process post attributes [{}]", msg, e);
             return Futures.immediateFailedFuture(new RuntimeException("Can't process post attributes " + msg, e));
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         try {
             String scope = attributeDeleteMsg.getScope();
             List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
@@ -1137,13 +1161,23 @@ public class CloudManagerService {
                     attributeKeys.add(new AttributeKey(scope, attributeName));
                 }
                 tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
-                        tenantId, (DeviceId) entityId, attributeKeys), null);
+                        tenantId, (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
+                    @Override
+                    public void onSuccess(TbQueueMsgMetadata metadata) {
+                        futureToSet.set(null);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        futureToSet.setException(t);
+                    }
+                });
             }
         } catch (Exception e) {
             log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException("Can't process attribute delete msg " + attributeDeleteMsg, e));
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     private void scheduleReconnect(Exception e) {
