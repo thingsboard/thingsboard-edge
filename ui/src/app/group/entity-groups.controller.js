@@ -408,7 +408,12 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             if (targetState) {
                 targetState = targetStatePrefix + targetState;
                 if (vm.edgeId || vm.customerId) {
-                    $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+                    if (entityGroup.type === types.entityType.edge) {
+                        $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+
+                    } else {
+                        $state.go(targetState, {grandChildEntityGroupId: entityGroup.id.id, childEntityGroupId: $stateParams.childEntityGroupId, entityGroup: entityGroup});
+                    }
                 } else {
                     $state.go(targetState, {entityGroupId: entityGroup.id.id});
                 }

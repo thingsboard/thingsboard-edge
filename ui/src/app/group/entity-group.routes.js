@@ -470,12 +470,12 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 pageTitle: 'entity-group.edge-group'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+                label: '{"icon": "router", "label": "{{ vm.entityGroup.edgeGroupName ? vm.entityGroup.edgeGroupName : vm.entityGroup.name }}", "translate": "false"}'
             }
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
             url: '/edge/:edgeId/userGroups',
-            params: {'childGroupType': types.entityType.user, 'topIndex': 0, 'customerId': null, 'entity': null, 'targetGroupType': null},
+            params: {'targetGroupType': types.entityType.user},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -503,7 +503,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             }
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups.userGroup', {
-            url: '/:childEntityGroupId',
+            url: '/:grandChildEntityGroupId',
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],

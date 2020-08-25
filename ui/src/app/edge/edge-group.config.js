@@ -168,7 +168,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                 event.stopPropagation();
             }
             if ((params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) || params.groupType === types.entityType.customer) {
-                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', createStateParams(entity, types.entityType.user));
+                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {edgeId: entity.id.id});
             } else {
                 $state.go('home.edgeGroups.edgeGroup.userGroups', {edgeId: entity.id.id});
             }

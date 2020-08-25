@@ -378,7 +378,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
 
     function constructGroupConfigByStateParams($stateParams) {
         var deferred = $q.defer();
-        var entityGroupId = $stateParams.childEntityGroupId || $stateParams.entityGroupId;
+        var entityGroupId = $stateParams.grandChildEntityGroupId || $stateParams.childEntityGroupId || $stateParams.entityGroupId;
         getEntityGroup(entityGroupId).then(
             (entityGroup) => {
                 constructGroupConfig($stateParams, entityGroup).then(
@@ -425,8 +425,55 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
             let groupType = $stateParams.childGroupType || $stateParams.groupType;
             customerService.getShortCustomerInfo($stateParams.customerId).then(
                 (info) => {
-                    if ($stateParams.entity && $stateParams.edgeId && $stateParams.targetGroupType) {
-                        entityGroup.edgeGroupsTitle = $stateParams.entity.name + ': ' + $translate.instant(entityGroupsTitle($stateParams.targetGroupType));
+                    if ($stateParams.edgeId) {
+                        let groupType = $stateParams.childGroupType || $stateParams.groupType;
+
+                        if ($stateParams.childEntityGroupId) {
+
+                            getEntityGroup($stateParams.childEntityGroupId).then(
+                                (edgeGroup) => {
+                                    entityGroup.edgeGroupName = edgeGroup.name;
+                                    deferred.resolve(entityGroup);
+                                },
+                                () => {
+                                    deferred.reject();
+                                }
+                            )
+
+                        }
+
+
+
+                        edgeService.getEdge($stateParams.edgeId).then(
+                            (edgeInfo) => {
+
+                                if (groupType === types.entityType.schedulerEvent) {
+                                    entityGroup.edgeGroupsTitle = edgeInfo.name + ': ' + $translate.instant('scheduler.scheduler-events');
+                                }
+                                else if (groupType === types.entityType.rulechain) {
+                                    entityGroup.edgeGroupsTitle = edgeInfo.name + ': ' + $translate.instant('edge.rulechains');
+                                }
+                                else {
+                                    entityGroup.edgeGroupsTitle = edgeInfo.name + ': ' + $translate.instant(entityGroupsTitle($stateParams.targetGroupType));
+                                }
+                                if ($stateParams.childEntityGroupId) {
+                                    getEntityGroup($stateParams.entityGroupId).then(
+                                        (parentEntityGroup) => {
+                                            entityGroup.parentEntityGroup = parentEntityGroup;
+                                            deferred.resolve(entityGroup);
+                                        },
+                                        () => {
+                                            deferred.reject();
+                                        }
+                                    )
+                                } else {
+                                    deferred.resolve(entityGroup);
+                                }
+                            },
+                            () => {
+                                deferred.reject();
+                            }
+                        );
                     }
                     entityGroup.customerGroupsTitle = info.title + ': ' + $translate.instant(entityGroupsTitle(groupType));
                     if ($stateParams.childEntityGroupId) {
