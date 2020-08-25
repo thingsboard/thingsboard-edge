@@ -64,7 +64,6 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/install-tb.sh /usr/bin
 
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
-RUN rm /tmp/${pkg.name}.deb
 
 RUN yes | dpkg -i /tmp/tb-web-report.deb
 RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
