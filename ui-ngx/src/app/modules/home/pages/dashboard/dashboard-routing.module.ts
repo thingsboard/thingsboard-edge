@@ -72,7 +72,7 @@ const routes: Routes = [
         icon: 'dashboard'
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      canActivated: (userPermissionsService: UserPermissionsService): boolean => {
+      canActivate: (userPermissionsService: UserPermissionsService): boolean => {
         return userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) &&
           userPermissionsService.hasResourcesGenericPermission([Resource.WIDGETS_BUNDLE, Resource.WIDGET_TYPE], Operation.READ);
       },
