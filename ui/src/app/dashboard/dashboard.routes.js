@@ -135,10 +135,6 @@ export default function DashboardRoutes($stateProvider, types) {
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            // permissions: {
-            //     resources: ["dashboard", "widgetsBundle", "widgetType"],
-            //     operations: ["read"]
-            // },
             canActivate: function (hasGenericPermission, userPermissionsService) {
                 return userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard) &&
                     hasGenericPermission(["widgetsBundle", "widgetType"], "read");
