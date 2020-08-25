@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -510,14 +511,15 @@ public class CloudManagerService {
                 case DASHBOARD:
                     entityId = new DashboardId(cloudEvent.getEntityId());
                     break;
+                case ENTITY_GROUP:
+                    entityId = new EntityGroupId(cloudEvent.getEntityId());
+                    break;
                 default:
                     throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
             }
 
             ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
-            JsonNode data = cloudEvent.getEntityBody().get("data");
-            long ts = cloudEvent.getEntityBody().get("ts").asLong();
-            return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(data)), ts);
+            return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
         } catch (Exception e) {
             log.warn("Can't convert telemetry data msg, cloudEvent [{}]", cloudEvent, e);
             return null;
@@ -744,8 +746,8 @@ public class CloudManagerService {
         }
     }
 
-    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData, long ts) {
-        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData, ts);
+    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
+        EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, actionType, entityData);
         UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                 .addAllEntityData(Collections.singletonList(entityDataProto));
         return builder.build();
@@ -1058,6 +1060,13 @@ public class CloudManagerService {
                     metaData.putValue("entityViewType", entityView.getType());
                 }
                 break;
+            case ENTITY_GROUP:
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
+                if (entityGroup != null) {
+                    metaData.putValue("entityGroupName", entityGroup.getName());
+                    metaData.putValue("entityGroupType", entityGroup.getType().name());
+                }
+                break;
             default:
                 log.debug("Using empty metadata for entityId [{}]", entityId);
                 break;
@@ -1080,6 +1089,8 @@ public class CloudManagerService {
                 return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case CUSTOMER:
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case ENTITY_GROUP:
+                return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;
