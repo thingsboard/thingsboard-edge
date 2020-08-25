@@ -33,7 +33,7 @@ import UrlHandler from './url.handler';
 
 /*@ngInject*/
 export default function AppRun($rootScope, $mdTheming, $window, $injector, $location, $state, $mdDialog, $filter, $q, selfRegistrationService,
-                               whiteLabelingService, loginService, userService, menu, customTranslationService, $translate) {
+                               whiteLabelingService, loginService, userService, menu, customTranslationService, $translate, userPermissionsService) {
 
     $window.Flow = Flow;
     var frame = null;
@@ -147,8 +147,8 @@ export default function AppRun($rootScope, $mdTheming, $window, $injector, $loca
                             to.auth.indexOf(authority) === -1) {
                             evt.preventDefault();
                             showForbiddenDialog();
-                        } else if (angular.isDefined(to.permissions) &&
-                            !$filter('hasGenericPermission')(to.permissions.resources, to.permissions.operations)) {
+                        } else if (angular.isDefined(to.canActivate) &&
+                            !to.canActivate($filter('hasGenericPermission'), userPermissionsService)) {
                             evt.preventDefault();
                             showForbiddenDialog();
                         } else if (to.redirectTo) {
