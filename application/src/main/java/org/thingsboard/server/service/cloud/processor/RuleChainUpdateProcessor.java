@@ -134,10 +134,12 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                     RuleChainMetaData ruleChainMetadata = new RuleChainMetaData();
                     RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataUpdateMsg.getRuleChainIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB()));
                     ruleChainMetadata.setRuleChainId(ruleChainId);
-                    ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
                     ruleChainMetadata.setNodes(parseNodeProtos(ruleChainId, ruleChainMetadataUpdateMsg.getNodesList()));
                     ruleChainMetadata.setConnections(parseConnectionProtos(ruleChainMetadataUpdateMsg.getConnectionsList()));
                     ruleChainMetadata.setRuleChainConnections(parseRuleChainConnectionProtos(ruleChainMetadataUpdateMsg.getRuleChainConnectionsList()));
+                    if (ruleChainMetadataUpdateMsg.getFirstNodeIndex() != -1) {
+                        ruleChainMetadata.setFirstNodeIndex(ruleChainMetadataUpdateMsg.getFirstNodeIndex());
+                    }
                     if (ruleChainMetadata.getNodes().size() > 0) {
                         ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata);
                         tbClusterService.onEntityStateChange(tenantId, ruleChainId, ComponentLifecycleEvent.UPDATED);
