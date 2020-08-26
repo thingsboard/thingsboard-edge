@@ -732,8 +732,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 fromClause.append(")");
             }
             if (typeSet) {
+                fromClause.append(" AND ");
                 ctx.addStringParameter("type", type);
-                fromClause.append(" e.type = ").append(type);
+                fromClause.append(" e.type = :type ");
             }
 
             int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
