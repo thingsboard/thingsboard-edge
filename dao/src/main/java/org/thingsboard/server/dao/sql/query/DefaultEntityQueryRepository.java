@@ -1119,7 +1119,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
                 entitiesQuery.append(innerJoin ? "inner" : "left").append(" join ");
                 if (hasFilters) {
-                    entitiesQuery.append(" (select id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, bool_or(readTsFlag) as readTsFlag ");
+                    entitiesQuery.append(" (select id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, max(readTsFlag) as readTsFlag ");
                     entitiesQuery.append(" from (");
                     entitiesQuery.append(entityFlagsQuery);
                     entitiesQuery.append(" ) ids group by id) entity_flags on e.id = entity_flags.id ");
