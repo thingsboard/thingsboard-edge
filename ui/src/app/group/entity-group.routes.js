@@ -345,58 +345,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "view_quilt", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
             }
         })
-        .state('home.customerGroups.customerGroup.edgeGroups', {
-            url: '/:customerId/edgeGroups',
-            params: {'childGroupType': types.entityType.edge, 'topIndex': 0},
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: entityGroupsTemplate,
-                    controllerAs: 'vm',
-                    controller:
-                    /*@ngInject*/
-                        function($scope, $stateParams, $controller, entityGroup) {
-                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
-                            ctrl.entityGroup = entityGroup;
-                            return ctrl;
-                        }
-                }
-            },
-            resolve: {
-                entityGroup: EntityGroupResolver
-            },
-            data: {
-                searchEnabled: true,
-                pageTitle: 'entity-group.edge-groups'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
-            }
-        })
-        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup', {
-            url: '/:childEntityGroupId',
-            reloadOnSearch: false,
-            module: 'private',
-            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            views: {
-                "content@home": {
-                    templateUrl: entityGroupTemplate,
-                    controller: 'EntityGroupController',
-                    controllerAs: 'vm'
-                }
-            },
-            resolve: {
-                entityGroup: EntityGroupResolver
-            },
-            data: {
-                searchEnabled: false,
-                pageTitle: 'entity-group.edge-group'
-            },
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
-            }
-        })
         .state('home.customerGroups.customerGroup.dashboardGroups', {
             url: '/:customerId/dashboardGroups',
             params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0},
@@ -473,6 +421,373 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
             }
         })
+        .state('home.customerGroups.customerGroup.edgeGroups', {
+            url: '/:customerId/edgeGroups',
+            params: {'childGroupType': types.entityType.edge, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.edge-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "{{ vm.entityGroup.customerGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup', {
+            url: '/:childEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.edge-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "{{ vm.entityGroup.edgeGroupTitle ? vm.entityGroup.edgeGroupTitle : vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
+            url: '/edge/:edgeId/userGroups',
+            params: {'targetGroupType': types.entityType.user, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.user-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups.userGroup', {
+            url: '/:edgeChildEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.user-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.deviceGroups', {
+            url: '/edge/:edgeId/deviceGroups',
+            params: {'targetGroupType': types.entityType.device, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.device-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.deviceGroups.deviceGroup', {
+            url: '/:edgeChildEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.device-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.assetGroups', {
+            url: '/edge/:edgeId/assetGroups',
+            params: {'targetGroupType': types.entityType.asset, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.asset-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.assetGroups.assetGroup', {
+            url: '/:edgeChildEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.asset-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.entityViewGroups', {
+            url: '/edge/:edgeId/entityViewGroups',
+            params: {'targetGroupType': types.entityType.entityView, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.entity-view-groups'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.entityViewGroups.entityViewGroup', {
+            url: '/:edgeChildEntityGroupId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.entity-view-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "account_circle", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups', {
+            url: '/edge/:edgeId/dashboardGroups',
+            params: {'targetGroupType': types.entityType.dashboard, 'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupsTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('EntityGroupsController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'entity-group.dashboard-groups',
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup', {
+            url: '/:edgeChildEntityGroupId',
+            params: {'targetGroupType': types.entityType.dashboard, 'customerId': null, 'entity': null},
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: entityGroupTemplate,
+                    controller: 'EntityGroupController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'entity-group.dashboard-group'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.entityGroup.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', {
+            url: '/:dashboardId?state',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: dashboardTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $element, $controller, entityGroup) {
+                            return $controller('DashboardController as vm',{$scope: $scope, $stateParams: $stateParams, $element: $element, entityGroup: entityGroup});
+                        }
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'edge.dashboard'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "dashboard", "label": "{{ vm.dashboard.title }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.schedulerEvents', {
+            url: '/:edgeId/schedulerEvents',
+            params: {'targetGroupType': types.entityType.schedulerEvent, 'customerId': null, 'entity': null},
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            views: {
+                "content@home": {
+                    templateUrl: schedulerTemplate,
+                    controllerAs: 'vm',
+                    controller:
+                    /*@ngInject*/
+                        function($scope, $stateParams, $controller, entityGroup) {
+                            var ctrl = $controller('SchedulerController as vm',{$scope: $scope, $stateParams: $stateParams});
+                            ctrl.entityGroup = entityGroup;
+                            return ctrl;
+                        }
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'scheduler.scheduler-events',
+                schedulerScope: 'edge'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "schedule", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
         .state('home.edgeGroups', {
             url: '/edgeGroups',
             params: {'groupType': types.entityType.edge, 'topIndex': 0},
@@ -518,7 +833,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.userGroups', {
             url: '/edge/:edgeId/userGroups',
-            // TODO: add customerId into request as well
             params: {'childGroupType': types.entityType.user, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
@@ -571,7 +885,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.assetGroups', {
             url: '/edge/:edgeId/assetGroups',
-            // TODO: add customerId into request as well
             params: {'childGroupType': types.entityType.asset, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
@@ -807,7 +1120,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.schedulerEvents', {
             url: '/:edgeId/schedulerEvents',
-            params: {'childGroupType': types.entityType.schedulerEvent, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.schedulerEvent},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -837,7 +1150,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.ruleChains', {
             url: '/:edgeId/ruleChains',
-            params: {'childGroupType': types.entityType.rulechain, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.rulechain},
             module: 'private',
             auth: ['TENANT_ADMIN'],
             views: {
@@ -865,40 +1178,40 @@ export default function EntityGroupRoutes($stateProvider, types) {
             }
         })
         .state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
-        url: '/:ruleChainId',
-        reloadOnSearch: false,
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: ruleChainTemplate,
-                controller: 'RuleChainController',
-                controllerAs: 'vm'
-            }
-        },
-        resolve: {
-            ruleChain:
-            /*@ngInject*/
-                function($stateParams, ruleChainService) {
-                    return ruleChainService.getRuleChain($stateParams.ruleChainId);
-                },
-            ruleChainMetaData:
-            /*@ngInject*/
-                function($stateParams, ruleChainService) {
-                    return ruleChainService.getRuleChainMetaData($stateParams.ruleChainId);
-                },
-            ruleNodeComponents:
-            /*@ngInject*/
-                function($stateParams, ruleChainService) {
-                    return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
+            url: '/:ruleChainId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: ruleChainTemplate,
+                    controller: 'RuleChainController',
+                    controllerAs: 'vm'
                 }
-        },
-        data: {
-            import: false,
-            searchEnabled: false,
-            pageTitle: 'edge.rulechain'
-        },
-        ncyBreadcrumb: {
+            },
+            resolve: {
+                ruleChain:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChain($stateParams.ruleChainId);
+                    },
+                ruleChainMetaData:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChainMetaData($stateParams.ruleChainId);
+                    },
+                ruleNodeComponents:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
+                    }
+            },
+            data: {
+                import: false,
+                searchEnabled: false,
+                pageTitle: 'edge.rulechain'
+            },
+            ncyBreadcrumb: {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
         })

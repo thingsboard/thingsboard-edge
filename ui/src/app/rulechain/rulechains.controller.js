@@ -38,7 +38,7 @@ import addRuleChainsToEdgeTemplate from "./add-rulechains-to-edge.tpl.html";
 
 /*@ngInject*/
 export default function RuleChainsController(ruleChainService, userService, edgeService, importExport, $state,
-                                             $stateParams, $filter, $translate, $mdDialog, $document, $q, types, securityTypes, utils, userPermissionsService) {
+                                             $window, $stateParams, $filter, $translate, $mdDialog, $document, $q, types, securityTypes, utils, userPermissionsService) {
 
     var vm = this;
     var edgeId = $stateParams.edgeId;
@@ -450,9 +450,8 @@ export default function RuleChainsController(ruleChainService, userService, edge
         if ($event) {
             $event.stopPropagation();
         }
-
         if (vm.ruleChainsScope === 'edge') {
-            $state.go('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edge.id.id});
+            $state.go('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {entityGroup: $stateParams.entityGroup,ruleChainId: ruleChain.id.id, edgeId: vm.edge.id.id});
         } else if (vm.ruleChainsScope === 'edges') {
             $state.go('home.ruleChains.edge.ruleChain', {ruleChainId: ruleChain.id.id});
         } else {

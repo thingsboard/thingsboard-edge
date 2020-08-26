@@ -60,8 +60,13 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     vm.customerId = $stateParams.customerId;
     vm.edgeId = $stateParams.edgeId;
+    vm.entityGroup = $stateParams.entityGroup;
     if ((vm.customerId || vm.edgeId) && $stateParams.childGroupType) {
-        vm.groupType = $stateParams.childGroupType;
+        if ($stateParams.targetGroupType) {
+            vm.groupType = $stateParams.targetGroupType;
+        } else {
+            vm.groupType = $stateParams.childGroupType;
+        }
     } else {
         vm.groupType = $stateParams.groupType;
     }
@@ -373,10 +378,12 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             $stateParams.hierarchyCallbacks.groupSelected($stateParams.nodeId, entityGroup.id.id);
         } else {
             var targetStatePrefix = 'home.';
-            if (vm.edgeId) {
+            if (vm.edgeId && !vm.customerId) {
                 targetStatePrefix = 'home.edgeGroups.edgeGroup.';
-            } else if (vm.customerId) {
+            } else if (vm.customerId && !vm.edgeId) {
                 targetStatePrefix = 'home.customerGroups.customerGroup.';
+            } else if (vm.edgeId && vm.customerId) {
+                targetStatePrefix = 'home.customerGroups.customerGroup.edgeGroups.edgeGroup.';
             }
             var targetState;
             if (entityGroup.type == types.entityType.asset) {
@@ -393,11 +400,17 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                 targetState = 'edgeGroups.edgeGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
+            } else if (entityGroup.type == types.entityType.rulechain) {
+                targetState = 'edge.rulechains';
             }
             if (targetState) {
                 targetState = targetStatePrefix + targetState;
                 if (vm.edgeId || vm.customerId) {
-                    $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+                    if ($stateParams.childGroupType === types.entityType.edge && $stateParams.targetGroupType) {
+                        $state.go(targetState, {edgeChildEntityGroupId: entityGroup.id.id, childEntityGroupId: $stateParams.childEntityGroupId, entityGroup: entityGroup});
+                    } else {
+                        $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
+                    }
                 } else {
                     $state.go(targetState, {entityGroupId: entityGroup.id.id});
                 }

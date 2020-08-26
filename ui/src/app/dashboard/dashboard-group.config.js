@@ -108,19 +108,26 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
                 event.stopPropagation();
             }
             if (entityGroup.parentEntityGroup) {
-                var stateParams = {dashboardId: entity.id.id};
+                var href;
+                var stateParams = { dashboardId: entity.id.id,
+                                    customerId: params.customerId,
+                                    entityGroupId: params.entityGroupId,
+                                    childEntityGroupId: params.childEntityGroupId,
+                                    childGroupType: params.childGroupType };
                 if (params.hierarchyView) {
-                    stateParams.customerId = params.customerId;
-                    stateParams.entityGroupId = params.entityGroupId;
                     stateParams.groupType = params.groupType;
-                    stateParams.childEntityGroupId = params.childEntityGroupId;
-                    stateParams.childGroupType = params.childGroupType;
-                    var href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
                     $window.open(href, '_blank');
                 } else if (params.groupType === types.entityType.edge) {
-                    $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
+                    $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+                } else if (params.groupType === types.entityType.customer && params.childGroupType === types.entityType.edge) {
+                    stateParams.edge = params.edgeId;
+                    stateParams.groupType = stateParams.targetGroupType;
+                    stateParams.entity = params.entity;
+                    href = $state.href('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    $window.open(href, '_blank');
                 } else {
-                    $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
+                    $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
                 }
             } else {
                 $state.go('home.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});

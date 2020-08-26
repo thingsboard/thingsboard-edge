@@ -994,6 +994,7 @@
         "assign-new-edge": "Assign new edge",
         "manage-edge-dashboards": "Manage edge dashboards",
         "unassign-from-edge": "Unassign from edge",
+        "dashboard": "Edge Dashboard",
         "dashboards": "Edge Dashboards",
         "rulechains": "Edge Rule Chains",
         "rulechain": "Edge Rule Chain",
