@@ -1179,7 +1179,6 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {
             url: '/:ruleChainId',
-            params: {'entityGroup': null},
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN'],
