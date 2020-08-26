@@ -372,7 +372,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                 customerId: params.customerId,
                 childEntityGroupId: params.childEntityGroupId,
                 targetGroupType: targetGroupType
-            }
+            };
         }
 
         utils.groupConfigDefaults(groupConfig);
