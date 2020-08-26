@@ -665,6 +665,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   public currentDashboardIdChanged(dashboardId: string) {
     if (!this.widgetEditMode) {
+      this.dashboardCtx.stateController.cleanupPreservedStates();
       const url = this.router.createUrlTree([`../${dashboardId}`], {relativeTo: this.route});
       this.router.navigateByUrl(url);
     }
