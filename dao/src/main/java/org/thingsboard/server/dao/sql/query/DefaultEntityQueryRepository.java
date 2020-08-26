@@ -853,7 +853,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                             ctx.addUuidListParameter(param,
                                     permissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
                             entitiesQuery.append("' and rattr.from_id in (:").append(param).append(") AND rattr.from_type = 'ENTITY_GROUP' " +
-                                    "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains'))");
+                                    "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains')");
                         }
                     }
                 }
