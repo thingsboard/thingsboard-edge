@@ -212,11 +212,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             if (event) {
                 event.stopPropagation();
             }
-            if ((params.hierarchyView && params.hierarchyCallbacks.customerGroupsSelected) || params.groupType === types.entityType.customer) {
-                $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains', createStateParams(entity, types.entityType.rulechain));
-            } else {
                 $state.go('home.edgeGroups.edgeGroup.ruleChains', {edgeId: entity.id.id});
-            }
 
         };
 
@@ -339,7 +335,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             );
         }
 
-        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read)) {
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read) && params.groupType === types.entityType.edge) {
             groupConfig.actionCellDescriptors.push(
                 {
                     name: $translate.instant('edge.manage-edge-rule-chains'),

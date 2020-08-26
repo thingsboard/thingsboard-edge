@@ -400,6 +400,8 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                 targetState = 'edgeGroups.edgeGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
+            } else if (entityGroup.type == types.entityType.rulechain) {
+                targetState = 'edge.rulechains';
             }
             if (targetState) {
                 targetState = targetStatePrefix + targetState;

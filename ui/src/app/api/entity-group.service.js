@@ -480,15 +480,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
             let groupType = $stateParams.childGroupType || $stateParams.groupType;
             edgeService.getEdge($stateParams.edgeId).then(
                 (info) => {
-                    if (groupType === types.entityType.schedulerEvent) {
-                        entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant('scheduler.scheduler-events');
-                    }
-                    else if (groupType === types.entityType.rulechain) {
-                        entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant('edge.rulechains');
-                    }
-                    else {
-                        entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant(entityGroupsTitle(groupType));
-                    }
+                    entityGroup.edgeGroupsTitle = info.name + ': ' + $translate.instant(entityGroupsTitle(groupType));
                     if ($stateParams.childEntityGroupId) {
                         getEntityGroup($stateParams.entityGroupId).then(
                             (parentEntityGroup) => {
