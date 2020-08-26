@@ -310,11 +310,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         var deferred = $q.defer();
         var fetchPromise;
         if (vm.customerId) {
-            if ($stateParams.targetGroupType) {
-                fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, $stateParams.targetGroupType);
-            } else {
-                fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
-            }
+            fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
         } else {
             fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
         }
@@ -408,11 +404,10 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             if (targetState) {
                 targetState = targetStatePrefix + targetState;
                 if (vm.edgeId || vm.customerId) {
-                    if (entityGroup.type === types.entityType.edge) {
-                        $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
-
+                    if ($stateParams.childGroupType === types.entityType.edge && $stateParams.targetGroupType) {
+                        $state.go(targetState, {edgeChildEntityGroupId: entityGroup.id.id, childEntityGroupId: $stateParams.childEntityGroupId, entityGroup: entityGroup});
                     } else {
-                        $state.go(targetState, {grandChildEntityGroupId: entityGroup.id.id, childEntityGroupId: $stateParams.childEntityGroupId, entityGroup: entityGroup});
+                        $state.go(targetState, {childEntityGroupId: entityGroup.id.id});
                     }
                 } else {
                     $state.go(targetState, {entityGroupId: entityGroup.id.id});

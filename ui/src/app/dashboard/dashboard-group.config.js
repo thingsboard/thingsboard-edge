@@ -109,13 +109,14 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
             }
             if (entityGroup.parentEntityGroup) {
                 var stateParams = {dashboardId: entity.id.id};
+                var href;
                 if (params.hierarchyView) {
                     stateParams.customerId = params.customerId;
                     stateParams.entityGroupId = params.entityGroupId;
                     stateParams.groupType = params.groupType;
                     stateParams.childEntityGroupId = params.childEntityGroupId;
                     stateParams.childGroupType = params.childGroupType;
-                    var href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
                     $window.open(href, '_blank');
                 } else if (params.groupType === types.entityType.edge) {
                     $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
@@ -127,9 +128,8 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
                     stateParams.childEntityGroupId = params.childEntityGroupId;
                     stateParams.childGroupType = params.childGroupType;
                     stateParams.entity = params.entity;
-                    // var href2 = $state.href('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
-                    var href2 = $state.href('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
-                    $window.open(href2, '_blank');
+                    href = $state.href('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
+                    $window.open(href, '_blank');
                 } else {
                     $state.go('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams);
                 }
