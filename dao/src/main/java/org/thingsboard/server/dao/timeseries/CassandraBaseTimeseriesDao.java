@@ -149,7 +149,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         stmtBuilder.setLong(3, toPartitionTs(ts));
         stmtBuilder.setLong(4, ts);
         BoundStatement stmt = stmtBuilder.build();
-        return getFuture(executeAsyncRead(tenantId, stmt), rs -> convertResultToTsKvEntry(rs.one()));
+        return getFuture(executeAsyncRead(tenantId, stmt), rs -> convertResultToTsKvEntry(key, rs.one()));
     }
 
     public ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
