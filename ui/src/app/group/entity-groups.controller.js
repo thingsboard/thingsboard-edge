@@ -465,7 +465,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             function success(_entityGroups) {
                 var entityGroups = {
                     pageSize: pageSize,
-                    data: $filter('filter')(_entityGroups.data, {groupAll: false}),
+                    data: $filter('filter')(_entityGroups.data, {edgeGroupAll: false, groupAll: false}),
                     nextPageLink: _entityGroups.nextPageLink,
                     selections: {},
                     selectedCount: 0,
