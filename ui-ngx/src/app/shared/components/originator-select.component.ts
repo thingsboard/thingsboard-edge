@@ -101,8 +101,8 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
       groupOwnerId: [null]
     });
     this.originatorFormGroup.get('originator').valueChanges.subscribe(
-      (entityOriginator: string) => {
-        if (entityOriginator === 'groupTenant' || entityOriginator === 'ownerGroup') {
+      (originator: string) => {
+        if (originator === 'groupTenant' || originator === 'ownerGroup') {
           const originatorId = {
             entityType: EntityType.ENTITY_GROUP,
             id: null
@@ -111,7 +111,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
             groupOriginatorId: originatorId,
             groupOwnerId: null
           });
-        } else if (entityOriginator === 'entity') {
+        } else if (originator === 'entity') {
           this.originatorFormGroup.get('entityOriginatorId').patchValue(null);
         }
       }
@@ -164,13 +164,13 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
       this.loadData = false;
       if (this.currentUser.authority === Authority.TENANT_ADMIN && entityGroup?.ownerId?.id !== this.currentUser.tenantId) {
         this.originatorFormGroup.patchValue({
-          entityOriginator: 'ownerGroup',
+          originator: 'ownerGroup',
           groupOwnerId: entityGroup.ownerId,
           groupOriginatorId: entityGroup.id
         }, {emitEvent: false});
       } else {
         this.originatorFormGroup.patchValue({
-          entityOriginator: 'groupTenant',
+          originator: 'groupTenant',
           groupOriginatorId: entityGroup.id
         }, {emitEvent: false});
       }
