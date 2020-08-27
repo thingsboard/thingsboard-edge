@@ -52,6 +52,7 @@ export function RuleChainController($state, $scope, $compile, $q, $mdUtil, $time
     vm.readonly = !userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.write);
     vm.$mdExpansionPanel = $mdExpansionPanel;
     vm.types = types;
+    vm.entityGroup = $state.params.entityGroup;
 
     if ($state.current.data.import && !ruleChain) {
         $state.go('home.ruleChains');
