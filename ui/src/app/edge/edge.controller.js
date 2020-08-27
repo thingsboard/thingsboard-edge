@@ -34,7 +34,7 @@ import addEdgeTemplate from './add-edge.tpl.html';
 import edgeCard from './edge-card.tpl.html';
 import assignToCustomerTemplate from './assign-to-customer.tpl.html';
 import addEdgesToCustomerTemplate from './add-edges-to-customer.tpl.html';
-import setRootRuleChainToEdgesTemplate from './set-root-rule-chain-to-edges.tpl.html';
+// import setRootRuleChainToEdgesTemplate from './set-root-rule-chain-to-edges.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
@@ -70,7 +70,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
 
     var edgeActionsList = [];
 
-    var edgeGroupActionsList = [];
+    // var edgeGroupActionsList = [];
 
     var edgeAddItemActionsList = [
         {
@@ -115,7 +115,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
         parentCtl: vm,
 
         actionsList: edgeActionsList,
-        groupActionsList: edgeGroupActionsList,
+        // groupActionsList: edgeGroupActionsList,
         addItemActions: edgeAddItemActionsList,
 
         onGridInited: gridInited,
@@ -313,7 +313,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                 }
             );
 
-            edgeGroupActionsList.push(
+            /*edgeGroupActionsList.push(
                 {
                     onAction: function ($event, items) {
                         setRootRuleChainToEdges($event, items);
@@ -348,7 +348,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                     details: deleteEdgesActionTitle,
                     icon: "delete"
                 }
-            );
+            );*/
 
        } else if (vm.edgesScope === 'customer' || vm.edgesScope === 'customer_user') {
             fetchEdgesFunction = function (pageLink, edgeType) {
@@ -389,7 +389,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                     }
                 );
 
-                edgeGroupActionsList.push(
+                /*edgeGroupActionsList.push(
                     {
                         onAction: function ($event, items) {
                             unassignEdgesFromCustomer($event, items);
@@ -400,7 +400,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                         },
                         icon: "assignment_return"
                     }
-                );
+                );*/
 
                 vm.edgeGridConfig.addItemAction = {
                     onAction: function ($event) {
@@ -554,7 +554,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
             });
     }
 
-    function setRootRuleChainToEdges($event, items) {
+    /*function setRootRuleChainToEdges($event, items) {
         var edgeIds = [];
         for (var id in items.selections) {
             edgeIds.push(id);
@@ -603,7 +603,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
             edgeIds.push(id);
         }
         assignToCustomer($event, edgeIds);
-    }
+    }*/
 
     function unassignFromCustomer($event, edge, isPublic) {
         if ($event) {
@@ -635,7 +635,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
         });
     }
 
-    function unassignEdgesFromCustomer($event, items) {
+    /*function unassignEdgesFromCustomer($event, items) {
         var confirm = $mdDialog.confirm()
             .targetEvent($event)
             .title($translate.instant('edge.unassign-edges-title', {count: items.selectedCount}, 'messageformat'))
@@ -652,7 +652,7 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                 vm.grid.refreshList();
             });
         });
-    }
+    }*/
 
     function makePublic($event, edge) {
         if ($event) {

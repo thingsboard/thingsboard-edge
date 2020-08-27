@@ -28,12 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+/* eslint-disable no-undef,no-unused-vars */
+
 /*@ngInject*/
 export default function SetRootRuleChainToEdgesController(ruleChainService, edgeService, $mdDialog, $q, edgeIds, ruleChains) {
 
     var vm = this;
 
-    vm.ruleChains = ruleChains;
+    /*vm.ruleChains = ruleChains;
     vm.searchText = '';
 
     vm.assign = assign;
@@ -140,5 +143,5 @@ export default function SetRootRuleChainToEdgesController(ruleChainService, edge
             hasNext: true,
             pending: false
         };
-    }
+    }*/
 }
