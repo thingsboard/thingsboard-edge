@@ -33,12 +33,10 @@ package org.thingsboard.rule.engine.edge;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -59,6 +57,9 @@ import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import javax.annotation.Nullable;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
@@ -127,28 +128,6 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
     }
 
-    private long getTs(TbMsg msg) {
-        long ts = -1;
-        String tsStr = msg.getMetaData().getValue("ts");
-        if (!StringUtils.isEmpty(tsStr)) {
-            try {
-                ts = Long.parseLong(tsStr);
-            } catch (NumberFormatException ignore) {
-            }
-        } else {
-            ts = msg.getTs();
-        }
-        return ts;
-    }
-
-    private ObjectNode getTelemetryEntityBody(TbMsg msg) throws JsonProcessingException {
-        long ts = getTs(msg);
-        ObjectNode entityBody = json.createObjectNode();
-        entityBody.put("ts", ts);
-        entityBody.set("data", json.readTree(msg.getData()));
-        return entityBody;
-    }
-
     private UUID getUUIDFromMsgData(TbMsg msg) throws JsonProcessingException {
         JsonNode data = json.readTree(msg.getData()).get("id");
         String id = json.treeToValue(data.get("id"), String.class);
@@ -163,11 +142,13 @@ public class TbMsgPushToCloudNode implements TbNode {
             if (cloudEventTypeByEntityType == null) {
                 return null;
             }
-            return buildCloudEvent(ctx.getTenantId(), getActionTypeByMsgType(msg.getType()), msg.getOriginator().getId(), cloudEventTypeByEntityType, getTelemetryEntityBody(msg));
+            ActionType actionType = getActionTypeByMsgType(msg.getType());
+            JsonNode entityBody = getEntityBody(actionType, msg.getData(), msg.getMetaData().getData());
+            return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, entityBody);
         }
     }
 
-    private CloudEvent buildCloudEvent(TenantId tenantId, ActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, ObjectNode entityBody) {
+    private CloudEvent buildCloudEvent(TenantId tenantId, ActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, JsonNode entityBody) {
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
         cloudEvent.setCloudEventAction(cloudEventAction.name());
@@ -175,6 +156,27 @@ public class TbMsgPushToCloudNode implements TbNode {
         cloudEvent.setCloudEventType(cloudEventType);
         cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
+    }
+
+    private JsonNode getEntityBody(ActionType actionType, String data, Map<String, String> metadata) throws JsonProcessingException {
+        Map<String, Object> entityBody = new HashMap<>();
+        JsonNode dataJson = json.readTree(data);
+        switch (actionType) {
+            case ATTRIBUTES_UPDATED:
+                entityBody.put("kv", dataJson);
+                entityBody.put("scope", metadata.get("scope"));
+                break;
+            case ATTRIBUTES_DELETED:
+                List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
+                entityBody.put("keys", keys);
+                entityBody.put("scope", metadata.get("scope"));
+                break;
+            case TIMESERIES_UPDATED:
+                entityBody.put("data", dataJson);
+                entityBody.put("ts", metadata.get("ts"));
+                break;
+        }
+        return json.valueToTree(entityBody);
     }
 
     private ActionType getActionTypeByMsgType(String msgType) {
@@ -204,6 +206,7 @@ public class TbMsgPushToCloudNode implements TbNode {
             case ASSET:
             case ENTITY_VIEW:
             case DASHBOARD:
+            case ENTITY_GROUP:
                 return true;
             default:
                 return false;
