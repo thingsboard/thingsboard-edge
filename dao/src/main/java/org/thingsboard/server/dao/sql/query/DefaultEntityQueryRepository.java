@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.EntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
@@ -688,8 +689,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
     @Override
-    public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
-                                                                                         List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping) {
+    public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
+            TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
+            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping) {
         return transactionTemplate.execute(status -> {
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();
@@ -734,6 +736,11 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (typeSet) {
                 ctx.addStringParameter("type", type);
                 fromClause.append(" e.type = ").append(type);
+            }
+
+            if(!StringUtils.isEmpty(pageLink.getTextSearch())){
+                ctx.addStringParameter("textSearch", pageLink.getTextSearch().toLowerCase() + "%");
+                fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
             }
 
             int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
