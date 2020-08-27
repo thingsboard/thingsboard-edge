@@ -77,7 +77,7 @@ export type MapSettings = {
     useCustomProvider: boolean,
     customProviderTileUrl: string;
     mapPageSize: number;
-}
+};
 
 export enum MapProviders {
     google = 'google-map',
@@ -118,7 +118,7 @@ export type MarkerSettings = {
     markerImageFunction?: MarkerImageFunction;
     markerOffsetX: number;
     markerOffsetY: number;
-}
+};
 
 export interface FormattedData {
     $datasource: Datasource;
@@ -127,19 +127,19 @@ export interface FormattedData {
     entityType: EntityType;
     dsIndex: number;
     deviceType: string;
-    [key: string]: any
+    [key: string]: any;
 }
 
 export interface ReplaceInfo {
   variable: string;
   valDec?: number;
-  dataKeyName: string
+  dataKeyName: string;
 }
 
 export type PolygonSettings = {
     showPolygon: boolean;
     polygonKeyName: string;
-    polKeyName: string;// deprecated
+    polKeyName: string; // deprecated
     polygonStrokeOpacity: number;
     polygonOpacity: number;
     polygonStrokeWeight: number;
@@ -156,7 +156,7 @@ export type PolygonSettings = {
     polygonTooltipFunction: GenericFunction;
     polygonColorFunction?: GenericFunction;
     editablePolygon: boolean;
-}
+};
 
 export type PolylineSettings = {
     usePolylineDecorator: any;
@@ -181,7 +181,7 @@ export type PolylineSettings = {
     colorFunction: GenericFunction;
     strokeOpacityFunction: GenericFunction;
     strokeWeightFunction: GenericFunction;
-}
+};
 
 export interface HistorySelectSettings {
     buttonColor: string;
@@ -259,4 +259,5 @@ export const hereProviders = [
     'HERE.normalDay',
     'HERE.normalNight',
     'HERE.hybridDay',
-    'HERE.terrainDay']
+    'HERE.terrainDay'
+];

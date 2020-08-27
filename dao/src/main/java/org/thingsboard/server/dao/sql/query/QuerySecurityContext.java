@@ -106,6 +106,10 @@ public class QuerySecurityContext {
         return userPermissions.getReadEntityPermissions().get(getResource());
     }
 
+    public MergedGroupTypePermissionInfo getMergedReadGroupPermissionsByEntityType() {
+        return userPermissions.getReadGroupPermissions().get(entityType);
+    }
+
     public EntityType getEntityType() {
         EntityType entityType;
         if (entityFilter != null) {

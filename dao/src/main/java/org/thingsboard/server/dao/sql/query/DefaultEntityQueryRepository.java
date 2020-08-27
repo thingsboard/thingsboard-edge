@@ -31,11 +31,10 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -734,8 +733,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 fromClause.append(")");
             }
             if (typeSet) {
+                fromClause.append(" AND ");
                 ctx.addStringParameter("type", type);
-                fromClause.append(" e.type = ").append(type);
+                fromClause.append(" e.type = :type ");
             }
 
             if(!StringUtils.isEmpty(pageLink.getTextSearch())){
@@ -860,7 +860,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                             ctx.addUuidListParameter(param,
                                     permissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
                             entitiesQuery.append("' and rattr.from_id in (:").append(param).append(") AND rattr.from_type = 'ENTITY_GROUP' " +
-                                    "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains'))");
+                                    "AND rattr.relation_type_group = 'FROM_ENTITY_GROUP' AND rattr.relation_type = 'Contains')");
                         }
                     }
                 }
@@ -1126,7 +1126,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 entitiesQuery.append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
                 entitiesQuery.append(innerJoin ? "inner" : "left").append(" join ");
                 if (hasFilters) {
-                    entitiesQuery.append(" (select id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, bool_or(readTsFlag) as readTsFlag ");
+                    entitiesQuery.append(" (select id as id, max(readFlag) as readFlag, max(readAttrFlag) as readAttrFlag, max(readTsFlag) as readTsFlag ");
                     entitiesQuery.append(" from (");
                     entitiesQuery.append(entityFlagsQuery);
                     entitiesQuery.append(" ) ids group by id) entity_flags on e.id = entity_flags.id ");
@@ -1355,13 +1355,36 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private String entityByGroupNameQuery(QueryContext ctx, EntitiesByGroupNameFilter entityFilter) {
         EntityType entityType = entityFilter.getGroupType();
         String selectFields = "SELECT * FROM " + entityTableMap.get(entityType);
-        String from = " WHERE id in (SELECT to_id from relation where from_id in " +
-                "(select id from entity_group where name=:where_group_name and type='" + entityType.name() + "' and owner_id=:where_group_owner_id limit 1)" +
-                " and from_type = '" + EntityType.ENTITY_GROUP.name() + "'" +
-                " and relation_type_group='" + RelationTypeGroup.FROM_ENTITY_GROUP + "' and relation_type='" + EntityRelation.CONTAINS_TYPE + "')";
-        ctx.addStringParameter("where_group_name", entityFilter.getEntityGroupNameFilter());
-        ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
-        return "( " + selectFields + from + ")";
+        MergedGroupTypePermissionInfo groupTypePermissionInfo = ctx.getSecurityCtx().getMergedReadGroupPermissionsByEntityType();
+        String where;
+        if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+
+            String allowedGroupIdsSelect = "(";
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
+                ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+            }
+            if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
+                if (groupTypePermissionInfo.isHasGenericRead()) {
+                    allowedGroupIdsSelect += " or ";
+                }
+                allowedGroupIdsSelect += "id in (:where_group_ids)";
+                ctx.addUuidListParameter("where_group_ids",
+                        groupTypePermissionInfo.getEntityGroupIds().stream()
+                                .map(EntityGroupId::getId).collect(Collectors.toList()));
+            }
+            allowedGroupIdsSelect += ")";
+
+            where = " WHERE id in (SELECT to_id from relation where from_id in " +
+                    "(select id from entity_group where name=:where_group_name and type='" + entityType.name() + "' and " + allowedGroupIdsSelect + " limit 1)" +
+                    " and from_type = '" + EntityType.ENTITY_GROUP.name() + "'" +
+                    " and relation_type_group='" + RelationTypeGroup.FROM_ENTITY_GROUP + "' and relation_type='" + EntityRelation.CONTAINS_TYPE + "')";
+            ctx.addStringParameter("where_group_name", entityFilter.getEntityGroupNameFilter());
+        } else {
+            where = " WHERE false";
+        }
+
+        return "( " + selectFields + where + ")";
     }
 
     private String entitySearchQuery(QueryContext ctx, EntitySearchQueryFilter entityFilter, EntityType entityType, List<String> types) {

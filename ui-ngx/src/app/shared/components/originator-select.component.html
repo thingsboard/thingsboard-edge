@@ -31,30 +31,46 @@
 
 -->
 <section [formGroup]="originatorFormGroup" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
-  <mat-radio-group color="primary" formControlName="isEntityGroupOriginator" fxLayout="row" fxLayout.xs="column"
+  <mat-radio-group color="primary" formControlName="originator" fxLayout="row" fxLayout.xs="column"
                     fxLayoutGap="16px"
                     style="padding: 16px 0;">
-    <mat-radio-button [value]="false" color="primary">
+    <mat-radio-button [value]="'entity'" color="primary">
       <span>{{ singleEntityText | translate }}</span>
     </mat-radio-button>
-    <mat-radio-button [value]="true" color="primary">
+    <mat-radio-button [value]="'groupTenant'" color="primary">
       <span>{{ groupOfEntitiesText | translate }}</span>
+    </mat-radio-button>
+    <mat-radio-button [value]="'ownerGroup'" color="primary">
+      <span>{{ entitiesGroupOwnerText | translate }}</span>
     </mat-radio-button>
   </mat-radio-group>
   <tb-entity-select
-    [fxShow]="!originatorFormGroup.get('isEntityGroupOriginator').value"
+    [fxShow]="originatorFormGroup.get('entityOriginator').value === 'entity'"
     [allowedEntityTypes]="allowedEntityTypes"
     [required]="required"
     formControlName="entityOriginatorId">
   </tb-entity-select>
-  <tb-entity-group-select
-    [fxShow]="originatorFormGroup.get('isEntityGroupOriginator').value"
-    [allowedGroupTypes]="allowedEntityTypes"
-    formControlName="groupOriginatorId"
-    (currentGroupType)="currentGroupType.emit($event)"
-    [required]="required"
-    placeholderText="entity-group.select-entity-group"
-    notFoundText="entity-group.no-entity-groups-matching"
-    requiredText="entity-group.target-entity-group-required">
-  </tb-entity-group-select>
+  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('entityOriginator').value !== 'entity'">
+    <tb-owner-autocomplete
+      formControlName="groupOwnerId"
+      [excludeOwnerIds]="currentUser.tenantId"
+      *ngIf="originatorFormGroup.get('entityOriginator').value === 'ownerGroup'"
+      [required]="required"
+      placeholderText="group-permission.user-group-owner"
+      notFoundText="group-permission.no-owners-matching"
+      requiredText="group-permission.target-user-group-owner-required">
+    </tb-owner-autocomplete>
+    <tb-entity-group-select
+      fxFlex
+      [ownerId]="originatorFormGroup.get('groupOwnerId').value"
+      [allowedGroupTypes]="allowedEntityTypes"
+      (currentGroupInfo)="entityGroupLoaded($event)"
+      (currentGroupType)="currentGroupType.emit($event)"
+      formControlName="groupOriginatorId"
+      [required]="required"
+      placeholderText="entity-group.select-entity-group"
+      notFoundText="entity-group.no-entity-groups-matching"
+      requiredText="entity-group.target-entity-group-required">
+    </tb-entity-group-select>
+  </section>
 </section>

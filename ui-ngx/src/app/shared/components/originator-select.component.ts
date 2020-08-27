@@ -37,7 +37,10 @@ import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityType } from '@shared/models/entity-type.models';
-import { isEqual } from '@core/utils';
+import { isDefinedAndNotNull, isEqual } from '@core/utils';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-originator-select',
@@ -64,6 +67,9 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   @Input()
   groupOfEntitiesText = 'scheduler.group-of-entities';
 
+  @Input()
+  entitiesGroupOwnerText = 'scheduler.entities-group-owner';
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;
@@ -79,25 +85,33 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   @Output()
   currentGroupType = new EventEmitter<EntityType>();
 
+  currentUser = getCurrentAuthUser(this.store);
+
+  private loadData = false;
+
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private fb: FormBuilder) {
     this.originatorFormGroup = this.fb.group({
-      isEntityGroupOriginator: [false],
+      originator: ['entity'],
       entityOriginatorId: [null],
-      groupOriginatorId: [null]
+      groupOriginatorId: [null],
+      groupOwnerId: [null]
     });
-    this.originatorFormGroup.get('isEntityGroupOriginator').valueChanges.subscribe(
-      (isEntityGroupOriginator: boolean) => {
-        if (isEntityGroupOriginator) {
+    this.originatorFormGroup.get('originator').valueChanges.subscribe(
+      (entityOriginator: string) => {
+        if (entityOriginator === 'groupTenant' || entityOriginator === 'ownerGroup') {
           const originatorId = {
             entityType: EntityType.ENTITY_GROUP,
             id: null
           };
-          this.originatorFormGroup.get('groupOriginatorId').patchValue(originatorId);
-        } else {
+          this.originatorFormGroup.patchValue({
+            groupOriginatorId: originatorId,
+            groupOwnerId: null
+          });
+        } else if (entityOriginator === 'entity') {
           this.originatorFormGroup.get('entityOriginatorId').patchValue(null);
         }
       }
@@ -134,19 +148,39 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   writeValue(value: EntityId | null): void {
     this.modelValue = value;
-    let isEntityGroupOriginator = false;
+    let originator = 'entity';
     if (this.modelValue && this.modelValue.entityType === EntityType.ENTITY_GROUP) {
-      isEntityGroupOriginator = true;
+      originator = 'groupTenant';
     }
-    this.originatorFormGroup.get('isEntityGroupOriginator').patchValue(isEntityGroupOriginator, {emitEvent: false});
-    this.originatorFormGroup.get('entityOriginatorId').patchValue(!isEntityGroupOriginator ? value : null, {emitEvent: false});
-    this.originatorFormGroup.get('groupOriginatorId').patchValue(isEntityGroupOriginator ? value : null, {emitEvent: false});
+    this.originatorFormGroup.patchValue({
+      entityOriginatorId: originator === 'entity' ? value : null,
+      groupOriginatorId: originator !== 'entity' ? value : null
+    }, {emitEvent: false});
+    this.loadData = true;
   }
 
-  updateView(value: {isEntityGroupOriginator: boolean, entityOriginatorId: EntityId, groupOriginatorId: EntityId} | null) {
+  entityGroupLoaded(entityGroup: EntityGroupInfo) {
+    if (this.loadData && isDefinedAndNotNull(entityGroup)) {
+      this.loadData = false;
+      if (this.currentUser.authority === Authority.TENANT_ADMIN && entityGroup?.ownerId?.id !== this.currentUser.tenantId) {
+        this.originatorFormGroup.patchValue({
+          entityOriginator: 'ownerGroup',
+          groupOwnerId: entityGroup.ownerId,
+          groupOriginatorId: entityGroup.id
+        }, {emitEvent: false});
+      } else {
+        this.originatorFormGroup.patchValue({
+          entityOriginator: 'groupTenant',
+          groupOriginatorId: entityGroup.id
+        }, {emitEvent: false});
+      }
+    }
+  }
+
+  updateView(value: {originator: string, entityOriginatorId: EntityId, groupOriginatorId: EntityId} | null) {
     let originatorId = null;
     if (value) {
-      originatorId = value.isEntityGroupOriginator ? value.groupOriginatorId : value.entityOriginatorId;
+      originatorId = value.originator !== 'entity' ? value.groupOriginatorId : value.entityOriginatorId;
     }
     if (!isEqual(this.modelValue, originatorId)) {
       this.modelValue = originatorId;
