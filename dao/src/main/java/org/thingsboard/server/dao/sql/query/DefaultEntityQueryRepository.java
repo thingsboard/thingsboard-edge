@@ -1117,6 +1117,18 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 } else {
                     hasFilters = addGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
                 }
+                if (readAttrPermissions.isHasGenericRead() || readTsPermissions.isHasGenericRead()) {
+                    if (hasFilters) {
+                        entityFlagsQuery.append(" UNION ALL ");
+                    } else {
+                        hasFilters = true;
+                    }
+                    entityFlagsQuery.append(" select e.id id, ")
+                            .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                            .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                            .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag")
+                            .append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
+                }
             } else {
                 ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
                 hasFilters = addGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
