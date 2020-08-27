@@ -45,16 +45,16 @@
     </mat-radio-button>
   </mat-radio-group>
   <tb-entity-select
-    [fxShow]="originatorFormGroup.get('entityOriginator').value === 'entity'"
+    [fxShow]="originatorFormGroup.get('originator').value === 'entity'"
     [allowedEntityTypes]="allowedEntityTypes"
     [required]="required"
     formControlName="entityOriginatorId">
   </tb-entity-select>
-  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('entityOriginator').value !== 'entity'">
+  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
       formControlName="groupOwnerId"
-      [excludeOwnerIds]="currentUser.tenantId"
-      *ngIf="originatorFormGroup.get('entityOriginator').value === 'ownerGroup'"
+      [excludeOwnerIds]="[currentUser.tenantId]"
+      *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"
       [required]="required"
       placeholderText="group-permission.user-group-owner"
       notFoundText="group-permission.no-owners-matching"
