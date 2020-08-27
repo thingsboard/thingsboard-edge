@@ -389,18 +389,18 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                     }
                 );
 
-                // edgeGroupActionsList.push(
-                //     {
-                //         onAction: function ($event, items) {
-                //             unassignEdgesFromCustomer($event, items);
-                //         },
-                //         name: function() { return $translate.instant('edge.unassign-edges') },
-                //         details: function(selectedCount) {
-                //             return $translate.instant('edge.unassign-edges-action-title', {count: selectedCount}, "messageformat");
-                //         },
-                //         icon: "assignment_return"
-                //     }
-                // );
+                /*edgeGroupActionsList.push(
+                    {
+                        onAction: function ($event, items) {
+                            unassignEdgesFromCustomer($event, items);
+                        },
+                        name: function() { return $translate.instant('edge.unassign-edges') },
+                        details: function(selectedCount) {
+                            return $translate.instant('edge.unassign-edges-action-title', {count: selectedCount}, "messageformat");
+                        },
+                        icon: "assignment_return"
+                    }
+                );*/
 
                 vm.edgeGridConfig.addItemAction = {
                     onAction: function ($event) {
