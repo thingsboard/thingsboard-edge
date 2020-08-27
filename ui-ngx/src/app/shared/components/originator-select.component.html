@@ -53,7 +53,7 @@
   <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
       formControlName="groupOwnerId"
-      [excludeOwnerIds]="currentUser.tenantId"
+      [excludeOwnerIds]="[currentUser.tenantId]"
       *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"
       [required]="required"
       placeholderText="group-permission.user-group-owner"
