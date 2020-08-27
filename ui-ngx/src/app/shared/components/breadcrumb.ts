@@ -31,6 +31,7 @@
 
 import { ActivatedRouteSnapshot, Params } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface BreadCrumb {
   label: string;
@@ -43,7 +44,12 @@ export interface BreadCrumb {
   queryParams: Params;
 }
 
-export type BreadCrumbLabelFunction<C> = (route: ActivatedRouteSnapshot, translate: TranslateService, component: C, data?: any) => string;
+export type BreadCrumbLabelFunction<C> = (
+  route: ActivatedRouteSnapshot,
+  translate: TranslateService,
+  component: C,
+  data?: any,
+  utils?: UtilsService) => string;
 
 export interface BreadCrumbConfig<C> {
   labelFunction: BreadCrumbLabelFunction<C>;

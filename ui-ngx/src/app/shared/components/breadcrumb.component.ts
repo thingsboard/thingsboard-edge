@@ -124,7 +124,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         } else {
           if (breadcrumbConfig.labelFunction) {
             labelFunction = () => {
-              return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data);
+              return breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils);
             };
             ignoreTranslate = true;
           } else {
