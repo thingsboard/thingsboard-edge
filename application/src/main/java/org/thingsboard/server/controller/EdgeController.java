@@ -75,7 +75,7 @@ public class EdgeController extends BaseController {
 
     public static final String EDGE_ID = "edgeId";
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}", method = RequestMethod.GET)
     @ResponseBody
     public Edge getEdgeById(@PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {

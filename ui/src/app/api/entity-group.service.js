@@ -405,6 +405,7 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, e
                 getGroupConfigFactory(entityGroup.type).createConfig($stateParams, entityGroup).then(
                     (entityGroupConfig) => {
                         entityGroup.entityGroupConfig = entityGroupConfig;
+                        $stateParams.entityGroup = entityGroup;
                         deferred.resolve(entityGroup);
                     },
                     () => {

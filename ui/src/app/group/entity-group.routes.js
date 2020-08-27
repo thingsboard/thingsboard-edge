@@ -1190,6 +1190,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 }
             },
             resolve: {
+                entityGroup: EntityGroupResolver,
                 ruleChain:
                 /*@ngInject*/
                     function($stateParams, ruleChainService) {
