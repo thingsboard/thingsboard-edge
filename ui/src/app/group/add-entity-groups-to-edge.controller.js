@@ -89,7 +89,7 @@ export default function AddEntityGroupsToEdgeController(entityGroupService, $mdD
                 vm.entityGroups.pending = true;
                 fetchEntityGroups().then(
                     function success(_entityGroups) {
-                        var entityGroupsExcludeAll = $filter('filter')(_entityGroups.data, {groupAll: false, $: vm.searchText});
+                        var entityGroupsExcludeAll = $filter('filter')(_entityGroups.data, {edgeGroupAll: false, groupAll: false, $: vm.searchText});
                         vm.entityGroups.data = entityGroupsExcludeAll;
                         vm.entityGroups.nextPageLink = _entityGroups.nextPageLink;
                         vm.entityGroups.hasNext = _entityGroups.hasNext;
