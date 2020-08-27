@@ -494,7 +494,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
                     break;
                 case SINGLE_ENTITY:
-                    if(ctx.getSecurityCtx().isEntityGroup()){
+                    if (ctx.getSecurityCtx().isEntityGroup()) {
                         entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
                     } else {
                         entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
@@ -738,7 +738,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 fromClause.append(" e.type = :type ");
             }
 
-            if(!StringUtils.isEmpty(pageLink.getTextSearch())){
+            if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 ctx.addStringParameter("textSearch", pageLink.getTextSearch().toLowerCase() + "%");
                 fromClause.append(" AND LOWER(e.").append(ModelConstants.SEARCH_TEXT_PROPERTY).append(") LIKE :textSearch");
             }
@@ -961,6 +961,18 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     hasFilters = addGroupEntitiesByGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, permKey -> !permKey.isAttr() && !permKey.isTs());
                 } else {
                     hasFilters = addGroupEntitiesByGroupIdsFilters(ctx, groupIds, entityFlagsQuery, paramIdx, null);
+                }
+                if (readAttrPermissions.isHasGenericRead() || readTsPermissions.isHasGenericRead()) {
+                    if (hasFilters) {
+                        entityFlagsQuery.append(" UNION ALL ");
+                    } else {
+                        hasFilters = true;
+                    }
+                    entityFlagsQuery.append(" select e.id to_id, ")
+                            .append(boolToIntStr(readPermissions.isHasGenericRead())).append(" as readFlag").append(",")
+                            .append(boolToIntStr(readAttrPermissions.isHasGenericRead())).append(" as readAttrFlag").append(",")
+                            .append(boolToIntStr(readTsPermissions.isHasGenericRead())).append(" as readTsFlag")
+                            .append(" from ").append(addEntityTableQuery(ctx, query.getEntityFilter())).append(" e ");
                 }
             } else {
                 ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
@@ -1286,7 +1298,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_GROUP_NAME:
                 return entityGroupQueryByGroupName(ctx, (EntityGroupNameFilter) entityFilter);
             case SINGLE_ENTITY:
-                if(ctx.getSecurityCtx().isEntityGroup()){
+                if (ctx.getSecurityCtx().isEntityGroup()) {
                     return entityGroupQueryById(ctx, (SingleEntityFilter) entityFilter);
                 } else {
                     return entityTableMap.get(ctx.getEntityType());
