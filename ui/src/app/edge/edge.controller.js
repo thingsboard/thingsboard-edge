@@ -313,42 +313,42 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
                 }
             );
 
-            // edgeGroupActionsList.push(
-            //     {
-            //         onAction: function ($event, items) {
-            //             setRootRuleChainToEdges($event, items);
-            //         },
-            //         name: function() { return $translate.instant('edge.set-root-rule-chain-to-edges') },
-            //         details: function(selectedCount) {
-            //             return $translate.instant('edge.set-root-rule-chain-to-edges-text', {count: selectedCount}, "messageformat");
-            //         },
-            //         icon: "flag"
-            //     }
-            // );
+            /*edgeGroupActionsList.push(
+                {
+                    onAction: function ($event, items) {
+                        setRootRuleChainToEdges($event, items);
+                    },
+                    name: function() { return $translate.instant('edge.set-root-rule-chain-to-edges') },
+                    details: function(selectedCount) {
+                        return $translate.instant('edge.set-root-rule-chain-to-edges-text', {count: selectedCount}, "messageformat");
+                    },
+                    icon: "flag"
+                }
+            );
 
-            // edgeGroupActionsList.push(
-            //     {
-            //         onAction: function ($event, items) {
-            //             assignEdgesToCustomer($event, items);
-            //         },
-            //         name: function() { return $translate.instant('edge.assign-edges') },
-            //         details: function(selectedCount) {
-            //             return $translate.instant('edge.assign-edges-text', {count: selectedCount}, "messageformat");
-            //         },
-            //         icon: "assignment_ind"
-            //     }
-            // );
+            edgeGroupActionsList.push(
+                {
+                    onAction: function ($event, items) {
+                        assignEdgesToCustomer($event, items);
+                    },
+                    name: function() { return $translate.instant('edge.assign-edges') },
+                    details: function(selectedCount) {
+                        return $translate.instant('edge.assign-edges-text', {count: selectedCount}, "messageformat");
+                    },
+                    icon: "assignment_ind"
+                }
+            );
 
-            // edgeGroupActionsList.push(
-            //     {
-            //         onAction: function ($event) {
-            //             vm.grid.deleteItems($event);
-            //         },
-            //         name: function() { return $translate.instant('edge.delete-edges') },
-            //         details: deleteEdgesActionTitle,
-            //         icon: "delete"
-            //     }
-            // );
+            edgeGroupActionsList.push(
+                {
+                    onAction: function ($event) {
+                        vm.grid.deleteItems($event);
+                    },
+                    name: function() { return $translate.instant('edge.delete-edges') },
+                    details: deleteEdgesActionTitle,
+                    icon: "delete"
+                }
+            );*/
 
        } else if (vm.edgesScope === 'customer' || vm.edgesScope === 'customer_user') {
             fetchEdgesFunction = function (pageLink, edgeType) {
@@ -554,56 +554,56 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
             });
     }
 
-    // function setRootRuleChainToEdges($event, items) {
-    //     var edgeIds = [];
-    //     for (var id in items.selections) {
-    //         edgeIds.push(id);
-    //     }
-    //     setRootRuleChain($event, edgeIds);
-    // }
+    /*function setRootRuleChainToEdges($event, items) {
+        var edgeIds = [];
+        for (var id in items.selections) {
+            edgeIds.push(id);
+        }
+        setRootRuleChain($event, edgeIds);
+    }
 
-    // function setRootRuleChain($event, edgeIds) {
-    //     if ($event) {
-    //         $event.stopPropagation();
-    //     }
-    //     var pageSize = 10;
-    //     ruleChainService.getRuleChains({limit: pageSize, textSearch: ''}).then(
-    //         function success(_ruleChains) {
-    //             var ruleChains = {
-    //                 pageSize: pageSize,
-    //                 data: _ruleChains.data,
-    //                 nextPageLink: _ruleChains.nextPageLink,
-    //                 selection: null,
-    //                 hasNext: _ruleChains.hasNext,
-    //                 pending: false
-    //             };
-    //             if (ruleChains.hasNext) {
-    //                 ruleChains.nextPageLink.limit = pageSize;
-    //             }
-    //             $mdDialog.show({
-    //                 controller: 'SetRootRuleChainToEdgesController',
-    //                 controllerAs: 'vm',
-    //                 templateUrl: setRootRuleChainToEdgesTemplate,
-    //                 locals: {edgeIds: edgeIds, ruleChains: ruleChains},
-    //                 parent: angular.element($document[0].body),
-    //                 fullscreen: true,
-    //                 targetEvent: $event
-    //             }).then(function () {
-    //                 vm.grid.refreshList();
-    //             }, function () {
-    //             });
-    //         },
-    //         function fail() {
-    //         });
-    // }
+    function setRootRuleChain($event, edgeIds) {
+        if ($event) {
+            $event.stopPropagation();
+        }
+        var pageSize = 10;
+        ruleChainService.getRuleChains({limit: pageSize, textSearch: ''}).then(
+            function success(_ruleChains) {
+                var ruleChains = {
+                    pageSize: pageSize,
+                    data: _ruleChains.data,
+                    nextPageLink: _ruleChains.nextPageLink,
+                    selection: null,
+                    hasNext: _ruleChains.hasNext,
+                    pending: false
+                };
+                if (ruleChains.hasNext) {
+                    ruleChains.nextPageLink.limit = pageSize;
+                }
+                $mdDialog.show({
+                    controller: 'SetRootRuleChainToEdgesController',
+                    controllerAs: 'vm',
+                    templateUrl: setRootRuleChainToEdgesTemplate,
+                    locals: {edgeIds: edgeIds, ruleChains: ruleChains},
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event
+                }).then(function () {
+                    vm.grid.refreshList();
+                }, function () {
+                });
+            },
+            function fail() {
+            });
+    }
 
-    // function assignEdgesToCustomer($event, items) {
-    //     var edgeIds = [];
-    //     for (var id in items.selections) {
-    //         edgeIds.push(id);
-    //     }
-    //     assignToCustomer($event, edgeIds);
-    // }
+    function assignEdgesToCustomer($event, items) {
+        var edgeIds = [];
+        for (var id in items.selections) {
+            edgeIds.push(id);
+        }
+        assignToCustomer($event, edgeIds);
+    }*/
 
     function unassignFromCustomer($event, edge, isPublic) {
         if ($event) {
@@ -635,24 +635,24 @@ export function EdgeController($rootScope, userService, edgeService, customerSer
         });
     }
 
-    // function unassignEdgesFromCustomer($event, items) {
-    //     var confirm = $mdDialog.confirm()
-    //         .targetEvent($event)
-    //         .title($translate.instant('edge.unassign-edges-title', {count: items.selectedCount}, 'messageformat'))
-    //         .htmlContent($translate.instant('edge.unassign-edges-text'))
-    //         .ariaLabel($translate.instant('edge.unassign-edge'))
-    //         .cancel($translate.instant('action.no'))
-    //         .ok($translate.instant('action.yes'));
-    //     $mdDialog.show(confirm).then(function () {
-    //         var tasks = [];
-    //         for (var id in items.selections) {
-    //             tasks.push(edgeService.unassignEdgeFromCustomer(id));
-    //         }
-    //         $q.all(tasks).then(function () {
-    //             vm.grid.refreshList();
-    //         });
-    //     });
-    // }
+    /*function unassignEdgesFromCustomer($event, items) {
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title($translate.instant('edge.unassign-edges-title', {count: items.selectedCount}, 'messageformat'))
+            .htmlContent($translate.instant('edge.unassign-edges-text'))
+            .ariaLabel($translate.instant('edge.unassign-edge'))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+            var tasks = [];
+            for (var id in items.selections) {
+                tasks.push(edgeService.unassignEdgeFromCustomer(id));
+            }
+            $q.all(tasks).then(function () {
+                vm.grid.refreshList();
+            });
+        });
+    }*/
 
     function makePublic($event, edge) {
         if ($event) {
