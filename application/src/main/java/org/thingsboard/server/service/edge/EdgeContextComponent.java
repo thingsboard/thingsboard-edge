@@ -46,7 +46,9 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
@@ -67,7 +69,9 @@ import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.GroupPermissionProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationUpdateMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.SchedulerEventUpdateMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.UserUpdateMsgConstructor;
@@ -151,6 +155,14 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Lazy
+    @Autowired
+    private RoleService roleService;
+
+    @Lazy
+    @Autowired
+    private GroupPermissionService groupPermissionService;
 
     @Lazy
     @Autowired
@@ -240,11 +252,21 @@ public class EdgeContextComponent {
     @Autowired
     private EntityGroupUpdateMsgConstructor entityGroupUpdateMsgConstructor;
 
+    @Lazy
     @Autowired
     private WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
+    @Lazy
     @Autowired
     private CustomTranslationProtoConstructor customTranslationProtoConstructor;
+
+    @Lazy
+    @Autowired
+    private RoleProtoConstructor roleProtoConstructor;
+
+    @Lazy
+    @Autowired
+    private GroupPermissionProtoConstructor groupPermissionProtoConstructor;
 
     @Lazy
     @Autowired

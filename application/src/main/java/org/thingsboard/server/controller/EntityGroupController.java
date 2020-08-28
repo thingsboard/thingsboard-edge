@@ -184,8 +184,10 @@ public class EntityGroupController extends BaseController {
                     null,
                     entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedEntityGroup.getId(),
-                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            if (entityGroup.getId() != null) {
+                sendNotificationMsgToEdgeService(getTenantId(), savedEntityGroup.getId(),
+                        ActionType.UPDATED);
+            }
 
             return toEntityGroupInfo(savedEntityGroup);
         } catch (Exception e) {

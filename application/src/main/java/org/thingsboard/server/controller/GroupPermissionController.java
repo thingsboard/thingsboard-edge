@@ -107,6 +107,9 @@ public class GroupPermissionController extends BaseController {
 
             logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            sendNotificationMsgToEdgeService(getTenantId(), savedGroupPermission.getId(),
+                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
             return savedGroupPermission;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.GROUP_PERMISSION), groupPermission, null,
@@ -139,6 +142,8 @@ public class GroupPermissionController extends BaseController {
             userPermissionsService.onGroupPermissionDeleted(groupPermission);
 
             logEntityAction(groupPermissionId, groupPermission, null, ActionType.DELETED, null, strGroupPermissionId);
+
+            sendNotificationMsgToEdgeService(getTenantId(), groupPermissionId, ActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.GROUP_PERMISSION),
                     null,

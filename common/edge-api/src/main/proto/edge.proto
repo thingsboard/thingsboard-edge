@@ -347,7 +347,7 @@ message DeviceCredentialsRequestMsg {
   int64 deviceIdLSB = 2;
 }
 
-message EntityGroupEntitiesRequestMsg {
+message EntityGroupRequestMsg {
   int64 entityGroupIdMSB = 1;
   int64 entityGroupIdLSB = 2;
   string type = 3;
@@ -435,6 +435,31 @@ message CustomTranslationProto {
   map<string, string> translationMap = 1;
 }
 
+message RoleProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string additionalInfo = 8;
+  string permissions = 9;
+}
+
+message GroupPermissionProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 userGroupIdMSB = 4;
+  int64 userGroupIdLSB = 5;
+  int64 roleIdMSB = 6;
+  int64 roleIdLSB = 7;
+  int64 entityGroupIdMSB = 8;
+  int64 entityGroupIdLSB = 9;
+  string entityGroupType = 10;
+  bool isPublic = 11;
+}
 
 /**
  * Main Messages;
@@ -452,7 +477,8 @@ message UplinkMsg {
   repeated RelationRequestMsg relationRequestMsg = 9;
   repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
   repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
-  repeated EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = 12;
+  repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 12;
+  repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 13;
 }
 
 message UplinkResponseMsg {
@@ -489,4 +515,6 @@ message DownlinkMsg {
   repeated CustomTranslationProto customTranslationMsg = 21;
   repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 22;
   repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 23;
+  repeated RoleProto roleMsg = 24;
+  repeated GroupPermissionProto groupPermissionMsg = 25;
 }

@@ -98,7 +98,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
-import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsRequestMsg;
@@ -358,7 +358,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     private void syncAdminSettings(Edge edge) {
         try {
             List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
-            for (String key: adminSettingsKeys) {
+            for (String key : adminSettingsKeys) {
                 AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
                 saveAdminSettingsEdgeEvent(edge, sysAdminMainSettings);
                 Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, key).get();
@@ -392,11 +392,11 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         widgetsBundlesToPush.addAll(widgetsBundleService.findAllTenantWidgetsBundlesByTenantId(edge.getTenantId()));
         widgetsBundlesToPush.addAll(widgetsBundleService.findSystemWidgetsBundles(edge.getTenantId()));
         try {
-            for (WidgetsBundle widgetsBundle: widgetsBundlesToPush) {
+            for (WidgetsBundle widgetsBundle : widgetsBundlesToPush) {
                 saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGETS_BUNDLE, ActionType.ADDED, widgetsBundle.getId(), null, null);
                 widgetTypesToPush.addAll(widgetTypeService.findWidgetTypesByTenantIdAndBundleAlias(widgetsBundle.getTenantId(), widgetsBundle.getAlias()));
             }
-            for (WidgetType widgetType: widgetTypesToPush) {
+            for (WidgetType widgetType : widgetTypesToPush) {
                 saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.WIDGET_TYPE, ActionType.ADDED, widgetType.getId(), null, null);
             }
         } catch (Exception e) {
@@ -546,7 +546,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     @Override
-    public ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg) {
+    public ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
         if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
             ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
@@ -586,7 +586,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                     }
                     return Futures.allAsList(result);
                 }, dbCallbackExecutorService);
-               return Futures.transform(f, l -> null, dbCallbackExecutorService);
+                return Futures.transform(f, l -> null, dbCallbackExecutorService);
             }
         } catch (Exception e) {
             log.error("Exception during loading edge device(s) on sync!", e);
@@ -692,12 +692,12 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType edgeEventType,
-                               ActionType edgeEventAction,
-                               EntityId entityId,
-                               JsonNode entityBody,
-                               EntityId entityGroupId) {
+                                                      EdgeId edgeId,
+                                                      EdgeEventType edgeEventType,
+                                                      ActionType edgeEventAction,
+                                                      EntityId entityId,
+                                                      JsonNode entityBody,
+                                                      EntityId entityGroupId) {
         log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], edgeEventType [{}], edgeEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody);
 

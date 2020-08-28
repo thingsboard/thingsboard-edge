@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -77,6 +76,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -89,11 +90,10 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -129,7 +129,7 @@ import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
@@ -503,6 +503,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return processLoginWhiteLabeling(edgeEvent);
             case CUSTOM_TRANSLATION:
                 return processCustomTranslation(edgeEvent);
+            case ROLE:
+                return processRole(edgeEvent, msgType);
+            case GROUP_PERMISSION:
+                return processGroupPermission(edgeEvent, msgType);
             default:
                 log.warn("Unsupported edge event type [{}]", edgeEvent);
                 return null;
@@ -816,9 +820,9 @@ public final class EdgeGrpcSession implements Closeable {
             case DELETED:
                 WidgetTypeUpdateMsg widgetTypeUpdateMsg =
                         ctx.getWidgetTypeUpdateMsgConstructor().constructWidgetTypeDeleteMsg(widgetTypeId);
-               downlinkMsg = DownlinkMsg.newBuilder()
-                       .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
-                       .build();
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                        .build();
                 break;
         }
         return downlinkMsg;
@@ -893,6 +897,54 @@ public final class EdgeGrpcSession implements Closeable {
         return DownlinkMsg.newBuilder()
                 .addAllCustomTranslationMsg(Collections.singletonList(customTranslationProto))
                 .build();
+    }
+
+    private DownlinkMsg processRole(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        RoleId roleId = new RoleId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Role role = ctx.getRoleService().findRoleById(edgeEvent.getTenantId(), roleId);
+                if (role != null) {
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .addAllRoleMsg(Collections.singletonList(ctx.getRoleProtoConstructor().constructRoleProto(msgType, role)))
+                            .build();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllRoleMsg(Collections.singletonList(ctx.getRoleProtoConstructor().constructRoleDeleteMsg(roleId)))
+                        .build();
+                break;
+        }
+        return downlinkMsg;
+    }
+
+    private DownlinkMsg processGroupPermission(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                GroupPermission groupPermission = ctx.getGroupPermissionService().findGroupPermissionById(edgeEvent.getTenantId(), groupPermissionId);
+                if (groupPermission != null) {
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .addAllGroupPermissionMsg(
+                                    Collections.singletonList(
+                                            ctx.getGroupPermissionProtoConstructor().constructGroupPermissionProto(msgType, groupPermission)))
+                            .build();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllGroupPermissionMsg(
+                                Collections.singletonList(
+                                        ctx.getGroupPermissionProtoConstructor().constructGroupPermissionDeleteMsg(groupPermissionId)))
+                        .build();
+                break;
+        }
+        return downlinkMsg;
     }
 
     private DownlinkMsg processAdminSettings(EdgeEvent edgeEvent) {
@@ -975,7 +1027,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
             if (uplinkMsg.getRelationUpdateMsgList() != null && !uplinkMsg.getRelationUpdateMsgList().isEmpty()) {
-                for (RelationUpdateMsg relationUpdateMsg: uplinkMsg.getRelationUpdateMsgList()) {
+                for (RelationUpdateMsg relationUpdateMsg : uplinkMsg.getRelationUpdateMsgList()) {
                     onRelationUpdate(relationUpdateMsg);
                 }
             }
@@ -1005,7 +1057,7 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
             if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
-                for (EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
+                for (EntityGroupRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
                     result.add(ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg));
                 }
             }

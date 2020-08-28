@@ -130,6 +130,10 @@ public class EntityIdFactory {
                 return new SchedulerEventId(uuid);
             case ENTITY_GROUP:
                 return new EntityGroupId(uuid);
+            case ROLE:
+                return new RoleId(uuid);
+            case GROUP_PERMISSION:
+                return new GroupPermissionId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }
