@@ -132,7 +132,7 @@ async function generateDashboardReport(browser, url, type, timezone) {
             isLandscape: false
         });
 
-        await page.emulateMedia('screen');
+        await page.emulateMediaType('screen');
 
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
         if (dashboardLoadResponse._status < 400) {
