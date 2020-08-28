@@ -108,7 +108,6 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
@@ -126,7 +125,7 @@ import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
@@ -729,7 +728,7 @@ public class CloudManagerService {
         EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         String type = cloudEvent.getEntityBody().get("type").asText();
         try {
-            EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = EntityGroupEntitiesRequestMsg.newBuilder()
+            EntityGroupRequestMsg entityGroupEntitiesRequestMsg = EntityGroupRequestMsg.newBuilder()
                     .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
                     .setType(type)
@@ -1090,7 +1089,7 @@ public class CloudManagerService {
                     metaData.putValue("deviceName", device.getName());
                     metaData.putValue("deviceType", device.getType());
                 }
-              break;
+                break;
             case ASSET:
                 Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
                 if (asset != null) {
