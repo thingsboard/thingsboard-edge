@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.asset;
 
 
-import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -45,7 +44,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -56,7 +54,6 @@ import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -66,18 +63,14 @@ import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -113,13 +106,7 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
     private CustomerDao customerDao;
 
     @Autowired
-    private EntityService entityService;
-
-    @Autowired
     private EntityViewService entityViewService;
-
-    @Autowired
-    private EdgeService edgeService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -312,12 +299,12 @@ public class BaseAssetService extends AbstractEntityService implements AssetServ
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         ListenableFuture<List<EntitySubtype>> tenantAssetTypes = assetDao.findTenantAssetTypesAsync(tenantId.getId());
         return Futures.transform(tenantAssetTypes,
-            assetTypes -> {
-                if (assetTypes != null) {
-                    assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
-                }
-                return assetTypes;
-            }, MoreExecutors.directExecutor());
+                assetTypes -> {
+                    if (assetTypes != null) {
+                        assetTypes.sort(Comparator.comparing(EntitySubtype::getType));
+                    }
+                    return assetTypes;
+                }, MoreExecutors.directExecutor());
     }
 
     @Override

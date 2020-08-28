@@ -32,9 +32,7 @@ package org.thingsboard.server.service.edge.rpc;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -58,6 +56,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -171,8 +170,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-
 @Slf4j
 @Data
 public final class EdgeGrpcSession implements Closeable {
@@ -219,13 +216,14 @@ public final class EdgeGrpcSession implements Closeable {
             public void onNext(RequestMsg requestMsg) {
                 if (!connected && requestMsg.getMsgType().equals(RequestMsgType.CONNECT_RPC_MESSAGE)) {
                     ConnectResponseMsg responseMsg = processConnect(requestMsg.getConnectRequestMsg());
-                    sendResponseMsg(ResponseMsg.newBuilder()
+                    outputStream.onNext(ResponseMsg.newBuilder()
                             .setConnectResponseMsg(responseMsg)
                             .build());
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     }
                     if (ConnectResponseCode.ACCEPTED == responseMsg.getResponseCode()) {
+                        connected = true;
                         ctx.getSyncEdgeService().sync(edge);
                     }
                 }
@@ -246,6 +244,7 @@ public final class EdgeGrpcSession implements Closeable {
 
             @Override
             public void onCompleted() {
+                connected = false;
                 sessionCloseListener.accept(edge.getId());
                 outputStream.onCompleted();
             }
@@ -291,6 +290,10 @@ public final class EdgeGrpcSession implements Closeable {
             try {
                 responseMsgLock.lock();
                 outputStream.onNext(responseMsg);
+            } catch (Exception e) {
+                log.error("Failed to send response message [{}]", responseMsg, e);
+                connected = false;
+                sessionCloseListener.accept(edge.getId());
             } finally {
                 responseMsgLock.unlock();
             }
@@ -371,10 +374,10 @@ public final class EdgeGrpcSession implements Closeable {
                 switch (edgeEventAction) {
                     case UPDATED:
                     case ADDED:
+                    case DELETED:
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
                     case ASSIGNED_TO_EDGE:
-                    case DELETED:
                     case UNASSIGNED_FROM_EDGE:
                     case ALARM_ACK:
                     case ALARM_CLEAR:
@@ -904,12 +907,14 @@ public final class EdgeGrpcSession implements Closeable {
         switch (actionType) {
             case UPDATED:
             case CREDENTIALS_UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
             case RELATION_ADD_OR_UPDATE:
-                return ENTITY_CREATED_RPC_MESSAGE;
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
             case RELATION_DELETED:
@@ -1063,6 +1068,8 @@ public final class EdgeGrpcSession implements Closeable {
                 return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case CUSTOMER:
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case USER:
+                return new UserId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case ENTITY_GROUP:
                 return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
@@ -1515,7 +1522,6 @@ public final class EdgeGrpcSession implements Closeable {
             edge = optional.get();
             try {
                 if (edge.getSecret().equals(request.getEdgeSecret())) {
-                    connected = true;
                     sessionOpenListener.accept(edge.getId(), this);
                     return ConnectResponseMsg.newBuilder()
                             .setResponseCode(ConnectResponseCode.ACCEPTED)

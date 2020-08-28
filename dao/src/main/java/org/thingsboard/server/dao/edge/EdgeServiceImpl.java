@@ -190,11 +190,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
         Edge edge = edgeDao.findById(tenantId, edgeId.getId());
 
-        // TODO: voba - properly handle edge remove
-        // dashboardService.unassignEdgeDashboards(tenantId, edgeId);
-        // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
-        ruleChainService.unassignEdgeRuleChains(tenantId, edgeId);
-
         List<Object> list = new ArrayList<>();
         list.add(edge.getTenantId());
         list.add(edge.getName());

@@ -188,12 +188,15 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case DEVICE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
+                case CUSTOMER:
                 case RULE_CHAIN:
-                case WIDGETS_BUNDLE:
-                case WIDGET_TYPE:
                 case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
                     processEntity(tenantId, edgeNotificationMsg);
+                    break;
+                case WIDGETS_BUNDLE:
+                case WIDGET_TYPE:
+                    processWidgetBundleOrWidgetType(tenantId, edgeNotificationMsg);
                     break;
                 case ALARM:
                     processAlarm(tenantId, edgeNotificationMsg);
@@ -217,24 +220,40 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 /*        try {
             ActionType edgeEventActionType = ActionType.valueOf(edgeNotificationMsg.getEdgeEventAction());
             EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
+            ListenableFuture<Edge> edgeFuture;
             switch (edgeEventActionType) {
                 case ASSIGNED_TO_CUSTOMER:
-                case UNASSIGNED_FROM_CUSTOMER:
                     CustomerId customerId = mapper.readValue(edgeNotificationMsg.getEntityBody(), CustomerId.class);
-                    ListenableFuture<Edge> edgeFuture = edgeService.findEdgeByIdAsync(tenantId, edgeId);
+                    edgeFuture = edgeService.findEdgeByIdAsync(tenantId, edgeId);
                     Futures.addCallback(edgeFuture, new FutureCallback<Edge>() {
                         @Override
                         public void onSuccess(@Nullable Edge edge) {
-                            if (edge != null && customerId != null && !EntityId.NULL_UUID.equals(customerId.getId())) {
-                                ActionType actionType = ActionType.ASSIGNED_TO_CUSTOMER.equals(edgeEventActionType) ? ActionType.ADDED : ActionType.DELETED;
-                                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, actionType, customerId, null);
+                            if (edge != null && !customerId.isNullUid()) {
+                                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, ActionType.ADDED, customerId, null);
                                 TextPageData<User> pageData = userService.findCustomerUsers(tenantId, customerId, new TextPageLink(Integer.MAX_VALUE));
                                 if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                                    log.trace("[{}] [{}] user(s) are going to be {} to edge.", edge.getId(), pageData.getData().size(), actionType.name());
+                                    log.trace("[{}] [{}] user(s) are going to be added to edge.", edge.getId(), pageData.getData().size());
                                     for (User user : pageData.getData()) {
-                                        saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, actionType, user.getId(), null);
+                                        saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, ActionType.ADDED, user.getId(), null);
                                     }
                                 }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("Can't find edge by id [{}]", edgeNotificationMsg, t);
+                        }
+                    }, dbCallbackExecutorService);
+                    break;
+                case UNASSIGNED_FROM_CUSTOMER:
+                    CustomerId customerIdToDelete = mapper.readValue(edgeNotificationMsg.getEntityBody(), CustomerId.class);
+                    edgeFuture = edgeService.findEdgeByIdAsync(tenantId, edgeId);
+                    Futures.addCallback(edgeFuture, new FutureCallback<Edge>() {
+                        @Override
+                        public void onSuccess(@Nullable Edge edge) {
+                            if (edge != null && !customerIdToDelete.isNullUid()) {
+                                saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, ActionType.DELETED, customerIdToDelete, null);
                             }
                         }
 
@@ -248,6 +267,24 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         } catch (Exception e) {
             log.error("Exception during processing edge event", e);
         }*/
+    }
+
+    private void processWidgetBundleOrWidgetType(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        ActionType edgeEventActionType = ActionType.valueOf(edgeNotificationMsg.getEdgeEventAction());
+        EdgeEventType edgeEventType = EdgeEventType.valueOf(edgeNotificationMsg.getEdgeEventType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(edgeEventType, new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        switch (edgeEventActionType) {
+            case ADDED:
+            case UPDATED:
+            case DELETED:
+                TextPageData<Edge> edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
+                if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
+                    for (Edge edge : edgesByTenantId.getData()) {
+                        saveEdgeEvent(tenantId, edge.getId(), edgeEventType, edgeEventActionType, entityId, null);
+                    }
+                }
+                break;
+        }
     }
 
     private void processEntity(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
