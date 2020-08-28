@@ -720,18 +720,6 @@ public final class EdgeGrpcSession implements Closeable {
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
-
-                    try {
-                        MergedUserPermissions mergedPermissions = ctx.getUserPermissionsService().getMergedPermissions(user, false);
-                        boolean fullAccess = false;
-                        if (mergedPermissions.hasGenericPermission(Resource.DEVICE, Operation.WRITE)) {
-                            fullAccess = true;
-                        }
-                        setFullAccess(user, fullAccess);
-                    } catch (Exception e) {
-                        log.error("Can't get merged permissions, user [{}]", user, e);
-                    }
-
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .addAllUserUpdateMsg(Collections.singletonList(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, entityGroupId)))
                             .build();
@@ -755,15 +743,6 @@ public final class EdgeGrpcSession implements Closeable {
                 }
         }
         return downlinkMsg;
-    }
-
-    private void setFullAccess(User user, boolean isFullAccess) {
-        JsonNode additionalInfo = user.getAdditionalInfo();
-        if (additionalInfo == null || additionalInfo instanceof NullNode) {
-            additionalInfo = mapper.createObjectNode();
-        }
-        ((ObjectNode) additionalInfo).put("isFullAccess", isFullAccess);
-        user.setAdditionalInfo(additionalInfo);
     }
 
     private DownlinkMsg processRelation(EdgeEvent edgeEvent, UpdateMsgType msgType) {
@@ -1022,7 +1001,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
                 for (EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
-                    ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg);
+                    result.add(ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg));
                 }
             }
         } catch (Exception e) {
