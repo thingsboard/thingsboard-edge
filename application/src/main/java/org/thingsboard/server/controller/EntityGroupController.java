@@ -706,7 +706,7 @@ public class EntityGroupController extends BaseController {
                 Set<Operation> mergedOperations = new HashSet<>();
                 MergedUserPermissions userPermissions = getCurrentUser().getUserPermissions();
                 if (groupToShareOwnerIds.contains(currentUserOwnerId)) {
-                    if (hasGenenericPermissionToShareGroup(entityGroupId)) {
+                    if (hasGenenericPermissionToShareGroup(entityGroup.getType())) {
                         Map<Resource, Set<Operation>> genericPermissions = userPermissions.getGenericPermissions();
                         genericPermissions.forEach((resource, operations) -> {
                             if (resource.equals(Resource.ALL) || (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(EntityType.ENTITY_GROUP))) {
@@ -749,8 +749,8 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    private boolean hasGenenericPermissionToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
-        return getCurrentUser().getUserPermissions().hasGenericPermission(Resource.groupResourceFromGroupType(entityGroupId.getEntityType()), Operation.SHARE_GROUP);
+    private boolean hasGenenericPermissionToShareGroup(EntityType type) throws ThingsboardException {
+        return getCurrentUser().getUserPermissions().hasGenericPermission(Resource.groupResourceFromGroupType(type), Operation.SHARE_GROUP);
     }
 
     private boolean hasGroupPermissionsToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
