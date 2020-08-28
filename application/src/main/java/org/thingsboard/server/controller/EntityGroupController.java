@@ -750,30 +750,7 @@ public class EntityGroupController extends BaseController {
     }
 
     private boolean hasGenenericPermissionToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
-        Resource resource;
-        switch (entityGroupId.getEntityType()) {
-            case CUSTOMER:
-                resource = Resource.CUSTOMER_GROUP;
-                break;
-            case USER:
-                resource = Resource.USER_GROUP;
-                break;
-            case DASHBOARD:
-                resource = Resource.DASHBOARD_GROUP;
-                break;
-            case ASSET:
-                resource = Resource.ASSET_GROUP;
-                break;
-            case DEVICE:
-                resource = Resource.DEVICE_GROUP;
-                break;
-            case ENTITY_VIEW:
-                resource = Resource.ENTITY_VIEW_GROUP;
-                break;
-            default:
-                return false;
-        }
-        return getCurrentUser().getUserPermissions().hasGenericPermission(resource, Operation.SHARE_GROUP);
+        return getCurrentUser().getUserPermissions().hasGenericPermission(Resource.groupResourceFromGroupType(entityGroupId.getEntityType()), Operation.SHARE_GROUP);
     }
 
     private boolean hasGroupPermissionsToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
