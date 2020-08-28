@@ -691,16 +691,22 @@ public class EntityGroupController extends BaseController {
         try {
             EntityGroupId userGroupId = new EntityGroupId(toUUID(strUserGroupId));
             EntityGroup userGroup = entityGroupService.findEntityGroupById(getTenantId(), userGroupId);
+            if (userGroup == null) {
+                throw new ThingsboardException("User group with requested id: " + userGroupId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
             Set<EntityId> userGroupOwnerIds = ownersCacheService.fetchOwners(getTenantId(), userGroup.getOwnerId());
             EntityId currentUserOwnerId = getCurrentUser().getOwnerId();
-            if (userGroupOwnerIds.contains(currentUserOwnerId)) {
+            if (!CollectionUtils.isEmpty(userGroupOwnerIds) && userGroupOwnerIds.contains(currentUserOwnerId)) {
                 EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
                 EntityGroup entityGroup = entityGroupService.findEntityGroupById(getTenantId(), entityGroupId);
+                if (entityGroup == null) {
+                    throw new ThingsboardException("Entity group with requested id: " + entityGroupId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+                }
                 Set<EntityId> groupToShareOwnerIds = ownersCacheService.fetchOwners(getTenantId(), entityGroup.getOwnerId());
                 Set<Operation> mergedOperations = new HashSet<>();
                 MergedUserPermissions userPermissions = getCurrentUser().getUserPermissions();
                 if (groupToShareOwnerIds.contains(currentUserOwnerId)) {
-                    if (hasGenenericPermissionToShareGroup()) {
+                    if (hasGenenericPermissionToShareGroup(entityGroupId)) {
                         Map<Resource, Set<Operation>> genericPermissions = userPermissions.getGenericPermissions();
                         genericPermissions.forEach((resource, operations) -> {
                             if (resource.equals(Resource.ALL) || (resource.getEntityType().isPresent() && resource.getEntityType().get().equals(EntityType.ENTITY_GROUP))) {
@@ -716,6 +722,9 @@ public class EntityGroupController extends BaseController {
                 }
                 RoleId roleId = new RoleId(toUUID(strRoleId));
                 Role role = roleService.findRoleById(getTenantId(), roleId);
+                if (role == null) {
+                    throw new ThingsboardException("Role with requested id: " + roleId + " wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+                }
                 Set<EntityId> roleOwnerIds = ownersCacheService.fetchOwners(getTenantId(), role.getOwnerId());
                 if (roleOwnerIds.contains(currentUserOwnerId) || userGroupOwnerIds.containsAll(roleOwnerIds)) {
                     shareGroup(role, userGroup, entityGroup, mergedOperations);
@@ -740,8 +749,31 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    private boolean hasGenenericPermissionToShareGroup() throws ThingsboardException {
-        return getCurrentUser().getUserPermissions().hasGenericPermission(Resource.DASHBOARD_GROUP, Operation.SHARE_GROUP);
+    private boolean hasGenenericPermissionToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
+        Resource resource;
+        switch (entityGroupId.getEntityType()) {
+            case CUSTOMER:
+                resource = Resource.CUSTOMER_GROUP;
+                break;
+            case USER:
+                resource = Resource.USER_GROUP;
+                break;
+            case DASHBOARD:
+                resource = Resource.DASHBOARD_GROUP;
+                break;
+            case ASSET:
+                resource = Resource.ASSET_GROUP;
+                break;
+            case DEVICE:
+                resource = Resource.DEVICE_GROUP;
+                break;
+            case ENTITY_VIEW:
+                resource = Resource.ENTITY_VIEW_GROUP;
+                break;
+            default:
+                return false;
+        }
+        return getCurrentUser().getUserPermissions().hasGenericPermission(resource, Operation.SHARE_GROUP);
     }
 
     private boolean hasGroupPermissionsToShareGroup(EntityGroupId entityGroupId) throws ThingsboardException {
