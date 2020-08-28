@@ -34,14 +34,17 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -52,7 +55,7 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onAssetUpdate(TenantId tenantId, AssetUpdateMsg assetUpdateMsg) {
+    public ListenableFuture<Void> onAssetUpdate(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType) {
         AssetId assetId = new AssetId(new UUID(assetUpdateMsg.getIdMSB(), assetUpdateMsg.getIdLSB()));
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -72,9 +75,30 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                     asset.setLabel(assetUpdateMsg.getLabel());
                     assetService.saveAsset(asset, created);
 
-                    if (isNonEmptyGroupId(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB())) {
-                        EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
-                        addEntityToGroup(tenantId, entityGroupId, asset.getId());
+                    UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
+                    if (entityGroupUUID != null) {
+                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                        addEntityToGroup(tenantId, entityGroupId, assetId);
+                    }
+
+                    CustomerId assetCustomerId = null;
+                    UUID customerUUID = safeGetUUID(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
+                    if (customerUUID != null) {
+                        assetCustomerId = new CustomerId(customerUUID);
+                    }
+
+                    if (CloudType.CE.equals(cloudType)) {
+                        if (assetCustomerId != null && assetCustomerId.equals(customerId)) {
+                            EntityGroup customerAssetsEntityGroup =
+                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
+                            entityGroupService.addEntityToEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
+                        }
+                        if ((assetCustomerId == null || assetCustomerId.isNullUid()) &&
+                                (customerId != null && !customerId.isNullUid())) {
+                            EntityGroup customerAssetsEntityGroup =
+                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
+                            entityGroupService.removeEntityFromEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
+                        }
                     }
 
                 } finally {
@@ -82,8 +106,9 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                if (isNonEmptyGroupId(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB())) {
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB()));
+                UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
+                if (entityGroupUUID != null) {
+                    EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, assetId);
                 } else {
                     Asset assetById = assetService.findAssetById(tenantId, assetId);

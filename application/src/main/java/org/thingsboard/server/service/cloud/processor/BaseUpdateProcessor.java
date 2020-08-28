@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
@@ -64,6 +65,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -74,6 +76,7 @@ import org.thingsboard.server.service.queue.TbClusterService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 public abstract class BaseUpdateProcessor {
@@ -112,6 +115,9 @@ public abstract class BaseUpdateProcessor {
 
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Autowired
+    protected RoleService roleService;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -177,7 +183,7 @@ public abstract class BaseUpdateProcessor {
             ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
             Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
                 @Override
-                public void onSuccess(@org.checkerframework.checker.nullness.qual.Nullable EntityGroup EntityGroup) {
+                public void onSuccess(@Nullable EntityGroup EntityGroup) {
                     if (EntityGroup != null) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
                     }
@@ -191,8 +197,8 @@ public abstract class BaseUpdateProcessor {
         }
     }
 
-    protected boolean isNonEmptyGroupId(long mSB, long lSB) {
-        return mSB != 0 && lSB != 0;
+    protected UUID safeGetUUID(long mSB, long lSB) {
+        return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
     }
 
     protected ListenableFuture<CloudEvent> saveCloudEvent(TenantId tenantId,

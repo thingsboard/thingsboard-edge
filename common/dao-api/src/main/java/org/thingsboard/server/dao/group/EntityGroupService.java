@@ -40,9 +40,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 
 import java.util.List;
 import java.util.Optional;
@@ -126,12 +128,11 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 
-    EntityGroup findOrCreateEdgeTenantAdminsGroup(TenantId tenantId);
+    EntityGroup findOrCreateEdgeCETenantAdminsGroup(TenantId tenantId);
 
-    EntityGroup findOrCreateEdgeTenantUsersGroup(TenantId tenantId);
+    EntityGroup findOrCreateEdgeCECustomerUsersGroup(TenantId tenantId, CustomerId customerId);
 
-    EntityGroup findOrCreateEdgeCustomerAdminsGroup(TenantId tenantId, CustomerId customerId);
-
-    EntityGroup findOrCreateEdgeCustomerUsersGroup(TenantId tenantId, CustomerId customerId);
+    GroupPermission findOrCreateEntityGroupPermission(TenantId tenantId, EntityGroupId entityGroupId,
+                                                             EntityType entityGroupType, EntityGroupId userGroupId, RoleId roleId);
 
 }

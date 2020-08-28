@@ -36,8 +36,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
@@ -55,7 +59,7 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private CustomerService customerService;
 
-    public ListenableFuture<Void> onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> onCustomerUpdate(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg, CloudType cloudType) {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         switch (customerUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -80,7 +84,12 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
                     customer.setPhone(customerUpdateMsg.getPhone());
                     customer.setEmail(customerUpdateMsg.getEmail());
                     customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()));
-                    customerService.saveCustomer(customer, created);
+                    Customer savedCustomer = customerService.saveCustomer(customer, created);
+
+                    if (created && CloudType.CE.equals(cloudType)) {
+                        createCustomerEntityGroupsOnTenantLevel(tenantId, savedCustomer.getId());
+                    }
+
                 } finally {
                     customerCreationLock.unlock();
                 }
@@ -88,6 +97,7 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Customer customerById = customerService.findCustomerById(tenantId, customerId);
                 if (customerById != null) {
+                    deleteCustomerEntityGroupsOnTenantLevel(tenantId, customerById.getId());
                     customerService.deleteCustomer(tenantId, customerId);
                 }
                 break;
@@ -96,5 +106,40 @@ public class CustomerUpdateProcessor extends BaseUpdateProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + customerUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void deleteCustomerEntityGroupsOnTenantLevel(TenantId tenantId, CustomerId customerId) {
+        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DEVICE);
+        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ASSET);
+        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ENTITY_VIEW);
+        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DASHBOARD);
+    }
+
+    private void deleteCustomerEntityGroupOnTenantLevel(TenantId tenantId, CustomerId customerId, EntityType entityType) {
+        EntityGroup entityGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, entityType);
+        if (entityGroup != null && entityGroup.getId() != null) {
+            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
+        }
+    }
+
+    private void createCustomerEntityGroupsOnTenantLevel(TenantId tenantId, CustomerId customerId) {
+        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DEVICE);
+        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ASSET);
+        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ENTITY_VIEW);
+        createCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DASHBOARD);
+    }
+
+    private void createCustomerEntityGroupOnTenantLevel(TenantId tenantId, CustomerId customerId, EntityType entityType) {
+        EntityGroup entityGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, entityType);
+        Role readOnlyGroupRole = roleService.findOrCreateReadOnlyEntityGroupRole(tenantId, null);
+
+        EntityGroup edgeCECustomerUsers =
+                entityGroupService.findOrCreateEdgeCECustomerUsersGroup(tenantId, customerId);
+
+        entityGroupService.findOrCreateEntityGroupPermission(tenantId,
+                entityGroup.getId(),
+                entityGroup.getType(),
+                edgeCECustomerUsers.getId(),
+                readOnlyGroupRole.getId());
     }
 }

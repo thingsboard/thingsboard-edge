@@ -30,23 +30,25 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,7 +65,6 @@ import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.service.state.DeviceStateService;
-import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,16 +81,17 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
 
     private final Lock deviceCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onDeviceUpdate(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    public ListenableFuture<Void> onDeviceUpdate(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, deviceUpdateMsg);
+                saveOrUpdateDevice(tenantId, customerId, deviceUpdateMsg, cloudType);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                if (isNonEmptyGroupId(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB())) {
-                    EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
+                UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB());
+                if (entityGroupUUID != null) {
+                    EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
                 } else {
                     Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
@@ -106,7 +108,7 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
                     if (deviceByName != null) {
                         deviceByName.setName(RandomStringUtils.randomAlphabetic(15));
                         deviceService.saveDevice(deviceByName);
-                        Device deviceCopy = saveOrUpdateDevice(tenantId, deviceUpdateMsg);
+                        Device deviceCopy = saveOrUpdateDevice(tenantId, customerId, deviceUpdateMsg, cloudType);
                         ListenableFuture<List<Void>> future = updateOrCopyDeviceRelatedEntities(tenantId, deviceByName, deviceCopy);
                         Futures.transform(future, list -> {
                             log.debug("Related entities copied, removing origin device [{}]", deviceByName.getId());
@@ -234,7 +236,7 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
         }, MoreExecutors.directExecutor());
     }
 
-    private Device saveOrUpdateDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    private Device saveOrUpdateDevice(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
         Device device;
         try {
             deviceCreationLock.lock();
@@ -254,10 +256,29 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
             if (created) {
                 deviceStateService.onDeviceAdded(device);
             }
+            UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, deviceId);
+            }
 
-            if (isNonEmptyGroupId(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB())) {
-                EntityGroupId entityGroupId = new EntityGroupId(new UUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB()));
-                addEntityToGroup(tenantId, entityGroupId, device.getId());
+            CustomerId deviceCustomerId = null;
+            UUID customerUUID = safeGetUUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
+            if (customerUUID != null) {
+                deviceCustomerId = new CustomerId(customerUUID);
+            }
+            if (CloudType.CE.equals(cloudType)) {
+                if (deviceCustomerId != null && deviceCustomerId.equals(customerId)) {
+                    EntityGroup customerDevicesEntityGroup =
+                            entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
+                    entityGroupService.addEntityToEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
+                }
+                if ((deviceCustomerId == null || deviceCustomerId.isNullUid()) &&
+                        (customerId != null && !customerId.isNullUid())) {
+                    EntityGroup customerDevicesEntityGroup =
+                            entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
+                    entityGroupService.removeEntityFromEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
+                }
             }
 
         } finally {

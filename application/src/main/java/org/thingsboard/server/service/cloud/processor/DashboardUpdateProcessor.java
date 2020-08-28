@@ -36,6 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -56,39 +60,62 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
     @Autowired
     private DashboardService dashboardService;
 
-    public ListenableFuture<Void> onDashboardUpdate(TenantId tenantId, DashboardUpdateMsg dashboardUpdateMsg) {
+    public ListenableFuture<Void> onDashboardUpdate(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
         switch (dashboardUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
                     dashboardCreationLock.lock();
+
                     boolean created = false;
                     Dashboard dashboard = dashboardService.findDashboardById(tenantId, dashboardId);
                     if (dashboard == null) {
-                        created = true;
                         dashboard = new Dashboard();
                         dashboard.setId(dashboardId);
                         dashboard.setTenantId(tenantId);
+                        created = true;
                     }
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
-                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, created);
+                    dashboardService.saveDashboard(dashboard, created);
 
-                    if (isNonEmptyGroupId(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB())) {
-                        EntityGroupId entityGroupId =
-                                new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
-                        addEntityToGroup(tenantId, entityGroupId, savedDashboard.getId());
+                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB());
+                    if (entityGroupUUID != null) {
+                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                        addEntityToGroup(tenantId, entityGroupId, dashboardId);
                     }
+
+                    CustomerId dashboardCustomerId = null;
+                    UUID customerUUID = safeGetUUID(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
+                    if (customerUUID != null) {
+                        dashboardCustomerId = new CustomerId(customerUUID);
+                    }
+
+                    if (CloudType.CE.equals(cloudType)) {
+                        if (dashboardCustomerId != null && dashboardCustomerId.equals(customerId)) {
+                            EntityGroup customerDashboardsEntityGroup =
+                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                            entityGroupService.addEntityToEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
+                        }
+                        if ((dashboardCustomerId == null || dashboardCustomerId.isNullUid()) &&
+                                (customerId != null && !customerId.isNullUid())) {
+                            EntityGroup customerDashboardsEntityGroup =
+                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                            entityGroupService.removeEntityFromEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
+                        }
+                    }
+
 
                 } finally {
                     dashboardCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                if (isNonEmptyGroupId(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB())) {
+                UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB());
+                if (entityGroupUUID != null) {
                     EntityGroupId entityGroupId =
-                            new EntityGroupId(new UUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB()));
+                            new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, dashboardId);
                 } else {
                     Dashboard dashboardById = dashboardService.findDashboardById(tenantId, dashboardId);
