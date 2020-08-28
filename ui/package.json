@@ -59,7 +59,7 @@
     "flot": "git://github.com/thingsboard/flot.git#0.9-work",
     "flot.curvedlines": "git://github.com/MichaelZinsmaier/CurvedLines.git#master",
     "font-awesome": "^4.6.3",
-    "fullcalendar": "^3.6.2",
+    "fullcalendar": "3.6.2",
     "javascript-detect-element-resize": "^0.5.3",
     "jquery": "^3.4.1",
     "jquery.terminal": "^1.5.0",
