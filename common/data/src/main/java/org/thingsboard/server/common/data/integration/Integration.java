@@ -55,6 +55,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private boolean debugMode;
     private Boolean enabled;
     private Boolean isRemote;
+    private Boolean allowCreateDevicesOrAssets;
     private String secret;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
@@ -78,6 +79,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
+        this.allowCreateDevicesOrAssets = integration.getallowCreateDevicesOrAssets();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -147,6 +149,10 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         isRemote = remote;
     }
 
+    public Boolean getallowCreateDevicesOrAssets() { return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets; }
+
+    public void setallowCreateDevicesOrAssets(Boolean allow) { allowCreateDevicesOrAssets = allow; }
+
     public String getSecret() {
         return secret;
     }
@@ -212,6 +218,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append(createdTime);
         builder.append(", id=");
         builder.append(id);
+        builder.append(", allowCreateDevicesOrAssets=");
+        builder.append(allowCreateDevicesOrAssets);
         builder.append("]");
         return builder.toString();
     }

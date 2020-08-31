@@ -106,6 +106,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         type: [entity ? entity.type : null, [Validators.required]],
         enabled: [entity && isDefined(entity.enabled) ? entity.enabled : true],
         debugMode: [entity ? entity.debugMode : null],
+        allowCreateDevicesOrAssets: [entity ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
         remote: [entity ? entity.remote : null],
@@ -193,6 +194,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
     this.entityForm.patchValue({ enabled: isDefined(entity.enabled) ? entity.enabled : true });
     this.entityForm.patchValue({ debugMode: entity.debugMode });
+    this.entityForm.patchValue({ allowCreateDevicesOrAssets: entity.allowCreateDevicesOrAssets});
     this.entityForm.patchValue({ defaultConverterId: entity.defaultConverterId });
     this.entityForm.patchValue({ downlinkConverterId: entity.downlinkConverterId });
     this.entityForm.patchValue({ remote: entity.remote });

@@ -191,6 +191,7 @@ export interface Integration extends BaseData<IntegrationId> {
   debugMode: boolean;
   enabled: boolean;
   remote: boolean;
+  allowCreateDevicesOrAssets: boolean;
   secret: string;
   configuration: any;
   additionalInfo?: any;
