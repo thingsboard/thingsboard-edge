@@ -709,7 +709,7 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
             },
             {
               value: '700',
-              label: '800'
+              label: '700'
             },
             {
               value: '800',
@@ -798,7 +798,7 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
             },
             {
               value: '700',
-              label: '800'
+              label: '700'
             },
             {
               value: '800',
@@ -887,7 +887,7 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
             },
             {
               value: '700',
-              label: '800'
+              label: '700'
             },
             {
               value: '800',
@@ -976,7 +976,7 @@ export const digitalGaugeSettingsSchema: JsonSettingsSchema = {
             },
             {
               value: '700',
-              label: '800'
+              label: '700'
             },
             {
               value: '800',

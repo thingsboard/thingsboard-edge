@@ -41,6 +41,7 @@ import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.AlarmInfoEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -86,7 +87,7 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
                                      @Param("affectedEntityType") String affectedEntityType,
                                      @Param("startTime") Long startTime,
                                      @Param("endTime") Long endTime,
-                                     @Param("alarmStatuses") List<AlarmStatus> alarmStatuses,
+                                     @Param("alarmStatuses") Set<AlarmStatus> alarmStatuses,
                                      @Param("searchText") String searchText,
                                      Pageable pageable);
 

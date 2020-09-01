@@ -48,6 +48,7 @@ import { UserService } from '@core/http/user.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { RoleService } from '@core/http/role.service';
 import { AlarmService } from '@core/http/alarm.service';
+import { Router } from '@angular/router';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -68,6 +69,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['date', DatePipe],
    ['utils', UtilsService],
    ['translate', TranslateService],
-   ['http', HttpClient]
+   ['http', HttpClient],
+   ['router', Router]
   ]
 );
