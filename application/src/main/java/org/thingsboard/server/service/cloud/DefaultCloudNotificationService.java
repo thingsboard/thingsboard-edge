@@ -172,9 +172,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case DELETED:
                 saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, null);
                 break;
-            case RELATIONS_DELETED:
-                // TODO: voba - add support for relations deleted
-                break;
         }
     }
 
