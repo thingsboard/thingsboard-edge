@@ -624,16 +624,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
-        ListenableFuture<PageData<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
-                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
-        return Futures.transform(relations, input -> {
-            List<EntityId> entityIds = new ArrayList<>(input.getData().size());
-            for (EntityRelation relation : input.getData()) {
-                entityIds.add(relation.getTo());
-            }
-            return entityIds;
-        }, MoreExecutors.directExecutor());
+    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
+                                                           EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
+        ListenableFuture<PageData<EntityId>> pageData = entityGroupDao.findGroupEntityIds(groupType, entityGroupId.getId(), pageLink);
+        return Futures.transform(pageData, input -> input.getData(), MoreExecutors.directExecutor());
     }
 
     private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {

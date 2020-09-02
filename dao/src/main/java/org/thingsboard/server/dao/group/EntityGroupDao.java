@@ -70,4 +70,6 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
     ShortEntityView findGroupEntity(EntityId entityId, UUID groupId,
                                     List<ColumnConfiguration> columns);
 
+    ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
+
 }

@@ -35,6 +35,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
 import java.util.List;
@@ -86,5 +88,15 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
             "AND re.fromId = :parentEntityId AND re.fromType = :parentEntityType")
     List<EntityGroupEntity> findAllEntityGroups(@Param("parentEntityId") UUID parentEntityId,
                                                 @Param("parentEntityType") String parentEntityType);
+
+    @Query("SELECT re.toId " +
+           "FROM RelationEntity re " +
+           "WHERE re.toType = :groupType " +
+           "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+           "AND re.relationType = 'Contains' " +
+           "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP'")
+    Page<UUID> findGroupEntityIds(@Param("groupId") UUID groupId,
+                                  @Param("groupType") String groupType,
+                                  Pageable pageable);
 
 }
