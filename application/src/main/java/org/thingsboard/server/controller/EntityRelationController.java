@@ -39,9 +39,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -147,8 +145,6 @@ public class EntityRelationController extends BaseController {
         try {
             relationService.deleteEntityRelations(getTenantId(), entityId);
             logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, null);
-
-            sendNotificationMsgToEdgeService(getTenantId(), entityId, ActionType.RELATIONS_DELETED);
         } catch (Exception e) {
             logEntityAction(entityId, null, getCurrentUser().getCustomerId(), ActionType.RELATIONS_DELETED, e);
             throw handleException(e);
