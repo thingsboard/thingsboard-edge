@@ -357,10 +357,12 @@ message SchedulerEventUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4;
-  string type = 5;
-  string schedule = 6;
-  string configuration = 7;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string schedule = 8;
+  string configuration = 9;
 }
 
 message EntityGroupUpdateMsg {
@@ -371,8 +373,9 @@ message EntityGroupUpdateMsg {
   string type = 5;
   int64 ownerIdMSB = 6;
   int64 ownerIdLSB = 7;
-  string additionalInfo = 8;
-  string configuration = 9;
+  string ownerEntityType = 8;
+  string additionalInfo = 9;
+  string configuration = 10;
 }
 
 enum EdgeEntityType {
@@ -439,12 +442,14 @@ message RoleProto {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  int64 customerIdMSB = 4;
-  int64 customerIdLSB = 5;
-  string name = 6;
-  string type = 7;
-  string additionalInfo = 8;
-  string permissions = 9;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  int64 customerIdMSB = 6;
+  int64 customerIdLSB = 7;
+  string name = 8;
+  string type = 9;
+  string additionalInfo = 10;
+  string permissions = 11;
 }
 
 message GroupPermissionProto {

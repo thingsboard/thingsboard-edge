@@ -43,6 +43,8 @@ public interface SyncEdgeService {
 
     void sync(Edge edge);
 
+    void syncEdgeOwner(Edge edge);
+
     ListenableFuture<Void> processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg);
 
     ListenableFuture<Void> processAttributesRequestMsg(Edge edge, AttributesRequestMsg attributesRequestMsg);
@@ -54,4 +56,6 @@ public interface SyncEdgeService {
     ListenableFuture<Void> processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg);
 
     ListenableFuture<Void> processEntityGroupEntitiesRequest(Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg);
+
+    ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupRequestMsg userGroupEntitiesRequestMsg);
 }

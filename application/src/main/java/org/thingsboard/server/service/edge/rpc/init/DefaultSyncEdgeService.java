@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,12 +68,17 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.common.data.page.TextPageData;
+import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
@@ -87,7 +93,9 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -156,6 +164,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     private EntityGroupService entityGroupService;
 
     @Autowired
+    private GroupPermissionService groupPermissionService;
+
+    @Autowired
     private SchedulerEventService schedulerEventService;
 
     @Autowired
@@ -163,6 +174,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     @Autowired
     private CustomTranslationService customTranslationService;
+
+    @Autowired
+    private RoleService roleService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -173,7 +187,8 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     @Override
     public void sync(Edge edge) {
         try {
-            syncOwner(edge);
+            syncEdgeOwner(edge);
+            syncRoles(edge);
             syncWidgetsBundleAndWidgetTypes(edge);
             syncLoginWhiteLabeling(edge);
             syncWhiteLabeling(edge);
@@ -187,9 +202,36 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         }
     }
 
-    private void syncOwner(Edge edge) {
+    private void syncRoles(Edge edge) {
+        processRolesData(TenantId.SYS_TENANT_ID, edge);
+        processRolesData(edge.getTenantId(), edge);
+    }
+
+    private void processRolesData(TenantId tenantId, Edge edge) {
+        TextPageData<Role> rolesData =
+                roleService.findRolesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
+        if (!rolesData.getData().isEmpty()) {
+            for (Role role : rolesData.getData()) {
+                saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                        EdgeEventType.ROLE, ActionType.ADDED, role.getId(), null, null);
+            }
+        }
+    }
+
+    @Override
+    public void syncEdgeOwner(Edge edge) {
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER, ActionType.ADDED, edge.getOwnerId(), null, null);
+            saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                    EdgeEventType.CUSTOMER, ActionType.ADDED, edge.getOwnerId(), null, null);
+            TextPageData<Role> rolesData =
+                    roleService.findRolesByTenantIdAndCustomerId(edge.getTenantId(),
+                            new CustomerId(edge.getOwnerId().getId()), new TextPageLink(Integer.MAX_VALUE));
+            if (!rolesData.getData().isEmpty()) {
+                for (Role role : rolesData.getData()) {
+                    saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                            EdgeEventType.ROLE, ActionType.ADDED, role.getId(), null, null);
+                }
+            }
         }
     }
 
@@ -569,6 +611,92 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             }, dbCallbackExecutorService);
         }
         return Futures.immediateFuture(null);
+    }
+
+    @Override
+    public ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
+        try {
+            if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
+                EntityGroupId userGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
+                EntityType entityGroupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
+                if (EntityType.USER.equals(entityGroupType)) {
+                    return processUserGroupPermissionsRequest(edge, userGroupId);
+                } else {
+                    return processEntityGroupPermissionsRequest(edge, userGroupId, entityGroupType);
+                }
+            } else {
+                log.warn("Received empty entity group ID MSG and LSB [{}]", entityGroupEntitiesRequestMsg);
+                return Futures.immediateFuture(null);
+            }
+        } catch (Exception e) {
+            log.error("[{}] Failed to process entity group permission request [{}]", edge.getRoutingKey(), entityGroupEntitiesRequestMsg, e);
+            return Futures.immediateFailedFuture(e);
+        }
+    }
+
+    private ListenableFuture<Void> processUserGroupPermissionsRequest(Edge edge, EntityGroupId userGroupId) {
+        TimePageData<GroupPermission> groupPermissionsData =
+                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new TimePageLink(Integer.MAX_VALUE));
+        if (!groupPermissionsData.getData().isEmpty()) {
+            List<ListenableFuture<Void>> result = new ArrayList<>();
+            for (GroupPermission groupPermission : groupPermissionsData.getData()) {
+                ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(edge.getTenantId(), groupPermission.getRoleId());
+                result.add(Futures.transformAsync(roleFuture, role -> {
+                    if (role != null) {
+                        if (RoleType.GENERIC.equals(role.getType())) {
+                            return Futures.transform(saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                                    EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                    groupPermission.getId(), null, null), edgeEvent -> null, dbCallbackExecutorService);
+                        } else {
+                            ListenableFuture<Boolean> checkFuture =
+                                    entityGroupService.checkEdgeEntityGroupById(edge.getTenantId(), edge.getId(), groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                            return Futures.transformAsync(checkFuture, exists -> {
+                                if (Boolean.TRUE.equals(exists)) {
+                                    return Futures.transform(
+                                            saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                                                    EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                                    groupPermission.getId(), null, null),
+                                            edgeEvent -> null, dbCallbackExecutorService);
+                                } else {
+                                    return Futures.immediateFuture(null);
+                                }
+                            }, dbCallbackExecutorService);
+                        }
+                    } else {
+                        return Futures.immediateFuture(null);
+                    }
+                }, dbCallbackExecutorService));
+            }
+            return Futures.transform(Futures.allAsList(result), voids -> null, MoreExecutors.directExecutor());
+        } else {
+            return Futures.immediateFuture(null);
+        }
+    }
+
+    private ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType) {
+        TimePageData<GroupPermission> groupPermissionsData =
+                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+        if (!groupPermissionsData.getData().isEmpty()) {
+            List<ListenableFuture<Void>> result = new ArrayList<>();
+            for (GroupPermission groupPermission : groupPermissionsData.getData()) {
+                ListenableFuture<Boolean> checkFuture =
+                        entityGroupService.checkEdgeEntityGroupById(edge.getTenantId(), edge.getId(), groupPermission.getUserGroupId(), EntityType.USER);
+                result.add(Futures.transformAsync(checkFuture, exists -> {
+                    if (Boolean.TRUE.equals(exists)) {
+                        return Futures.transform(
+                                saveEdgeEvent(edge.getTenantId(), edge.getId(),
+                                        EdgeEventType.GROUP_PERMISSION, ActionType.ADDED,
+                                        groupPermission.getId(), null, null),
+                                edgeEvent -> null, dbCallbackExecutorService);
+                    } else {
+                        return Futures.immediateFuture(null);
+                    }
+                }, dbCallbackExecutorService));
+            }
+            return Futures.transform(Futures.allAsList(result), voids -> null, MoreExecutors.directExecutor());
+        } else {
+            return Futures.immediateFuture(null);
+        }
     }
 
     private ListenableFuture<Void> syncDevices(Edge edge, List<EntityId> entityIds, EntityGroupId entityGroupId) {

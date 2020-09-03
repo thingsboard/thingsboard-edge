@@ -268,7 +268,7 @@ public class SchedulerEventController extends BaseController {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
             SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.UNASSIGN_FROM_EDGE);
 
-            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId, false));
+            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
             logEntityAction(schedulerEventId, schedulerEvent,
                     null,

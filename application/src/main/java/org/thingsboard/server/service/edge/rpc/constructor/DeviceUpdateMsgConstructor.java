@@ -58,6 +58,10 @@ public class DeviceUpdateMsgConstructor {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
         return builder.build();
     }
 

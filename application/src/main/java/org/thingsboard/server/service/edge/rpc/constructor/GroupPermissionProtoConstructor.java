@@ -50,10 +50,12 @@ public class GroupPermissionProtoConstructor {
                 .setUserGroupIdLSB(groupPermission.getUserGroupId().getId().getLeastSignificantBits())
                 .setRoleIdMSB(groupPermission.getRoleId().getId().getMostSignificantBits())
                 .setRoleIdLSB(groupPermission.getRoleId().getId().getLeastSignificantBits())
-                .setEntityGroupIdMSB(groupPermission.getEntityGroupId().getId().getMostSignificantBits())
-                .setEntityGroupIdLSB(groupPermission.getUserGroupId().getId().getLeastSignificantBits())
-                .setEntityGroupType(groupPermission.getEntityGroupType().name())
                 .setIsPublic(groupPermission.isPublic());
+        if (groupPermission.getEntityGroupId() != null) {
+            builder.setEntityGroupIdMSB(groupPermission.getEntityGroupId().getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(groupPermission.getEntityGroupId().getId().getLeastSignificantBits())
+                    .setEntityGroupType(groupPermission.getEntityGroupType().name());
+        }
         return builder.build();
     }
 

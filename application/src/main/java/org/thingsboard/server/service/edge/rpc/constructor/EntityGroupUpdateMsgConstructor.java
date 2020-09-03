@@ -51,6 +51,7 @@ public class EntityGroupUpdateMsgConstructor {
                 .setType(entityGroup.getType().name())
                 .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
                 .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
+                .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
                 .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
                 .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
         return builder.build();

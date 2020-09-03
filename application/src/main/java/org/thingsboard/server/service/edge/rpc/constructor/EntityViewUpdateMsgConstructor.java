@@ -68,6 +68,10 @@ public class EntityViewUpdateMsgConstructor {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
+        if (entityView.getCustomerId() != null && !entityView.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
+        }
         return builder.build();
     }
 

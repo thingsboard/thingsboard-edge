@@ -47,6 +47,8 @@ public class RoleProtoConstructor {
                 .setMsgType(msgType)
                 .setIdMSB(role.getId().getId().getMostSignificantBits())
                 .setIdLSB(role.getId().getId().getLeastSignificantBits())
+                .setTenantIdMSB(role.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(role.getTenantId().getId().getLeastSignificantBits())
                 .setName(role.getName())
                 .setType(role.getType().name())
                 .setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()))

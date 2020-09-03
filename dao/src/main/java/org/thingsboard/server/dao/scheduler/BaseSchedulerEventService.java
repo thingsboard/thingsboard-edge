@@ -202,7 +202,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     }
 
     @Override
-    public SchedulerEventInfo unassignSchedulerEventFromEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId, boolean remove) {
+    public SchedulerEventInfo unassignSchedulerEventFromEdge(TenantId tenantId, SchedulerEventId schedulerEventId, EdgeId edgeId) {
         SchedulerEventInfo schedulerEventInfo = findSchedulerEventInfoById(tenantId, schedulerEventId);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge == null) {

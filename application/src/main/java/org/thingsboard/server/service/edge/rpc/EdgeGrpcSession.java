@@ -1061,6 +1061,11 @@ public final class EdgeGrpcSession implements Closeable {
                     result.add(ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg));
                 }
             }
+            if (uplinkMsg.getEntityGroupPermissionsRequestMsgList() != null && !uplinkMsg.getEntityGroupPermissionsRequestMsgList().isEmpty()) {
+                for (EntityGroupRequestMsg userGroupPermissionsRequestMsg : uplinkMsg.getEntityGroupPermissionsRequestMsgList()) {
+                    result.add(ctx.getSyncEdgeService().processEntityGroupPermissionsRequest(edge, userGroupPermissionsRequestMsg));
+                }
+            }
         } catch (Exception e) {
             log.error("Can't process uplink msg [{}]", uplinkMsg, e);
         }
