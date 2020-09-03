@@ -35,6 +35,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -45,11 +47,10 @@ import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 
 import java.util.UUID;
-import java.util.concurrent.Future;
 
 @Component
 @Slf4j
-public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
+public class SchedulerEventProcessor extends BaseProcessor {
 
     @Autowired
     private SchedulerEventService schedulerEventService;
@@ -75,6 +76,7 @@ public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
                     schedulerEvent.setType(schedulerEventUpdateMsg.getType());
                     schedulerEvent.setSchedule(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getSchedule()));
                     schedulerEvent.setConfiguration(JacksonUtil.toJsonNode(schedulerEventUpdateMsg.getConfiguration()));
+                    safeSetCustomerId(schedulerEventUpdateMsg, schedulerEvent);
                     schedulerEventService.saveSchedulerEvent(schedulerEvent);
 
                     if (created) {
@@ -101,6 +103,11 @@ public class SchedulerEventUpdateProcessor extends BaseUpdateProcessor {
             return Futures.immediateFailedFuture(new RuntimeException("Can't process SchedulerEventUpdateMsg " + schedulerEventUpdateMsg, e));
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void safeSetCustomerId(SchedulerEventUpdateMsg schedulerEventUpdateMsg, SchedulerEvent schedulerEvent) {
+        CustomerId customerId = safeGetCustomerId(schedulerEventUpdateMsg.getCustomerIdMSB(), schedulerEventUpdateMsg.getCustomerIdLSB());
+        schedulerEvent.setCustomerId(customerId);
     }
 
 }

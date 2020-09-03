@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 
@@ -51,7 +50,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class AssetUpdateProcessor extends BaseUpdateProcessor {
+public class AssetProcessor extends BaseProcessor {
 
     private final Lock assetCreationLock = new ReentrantLock();
 
@@ -73,34 +72,9 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
                     asset.setName(assetUpdateMsg.getName());
                     asset.setType(assetUpdateMsg.getType());
                     asset.setLabel(assetUpdateMsg.getLabel());
+                    CustomerId assetCustomerId = safeSetCustomerId(assetUpdateMsg, cloudType, asset);
                     assetService.saveAsset(asset, created);
-
-                    UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
-                    if (entityGroupUUID != null) {
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        addEntityToGroup(tenantId, entityGroupId, assetId);
-                    }
-
-                    CustomerId assetCustomerId = null;
-                    UUID customerUUID = safeGetUUID(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
-                    if (customerUUID != null) {
-                        assetCustomerId = new CustomerId(customerUUID);
-                    }
-
-                    if (CloudType.CE.equals(cloudType)) {
-                        if (assetCustomerId != null && assetCustomerId.equals(customerId)) {
-                            EntityGroup customerAssetsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
-                            entityGroupService.addEntityToEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
-                        }
-                        if ((assetCustomerId == null || assetCustomerId.isNullUid()) &&
-                                (customerId != null && !customerId.isNullUid())) {
-                            EntityGroup customerAssetsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
-                            entityGroupService.removeEntityFromEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
-                        }
-                    }
-
+                    addToEntityGroup(tenantId, customerId, assetUpdateMsg, cloudType, assetId, assetCustomerId);
                 } finally {
                     assetCreationLock.unlock();
                 }
@@ -123,6 +97,36 @@ public class AssetUpdateProcessor extends BaseUpdateProcessor {
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId), future -> null, dbCallbackExecutor);
+    }
+
+    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, AssetUpdateMsg assetUpdateMsg, CloudType cloudType, AssetId assetId, CustomerId assetCustomerId) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (assetCustomerId != null && assetCustomerId.equals(customerId)) {
+                EntityGroup customerAssetsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
+                entityGroupService.addEntityToEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
+            }
+            if ((assetCustomerId == null || assetCustomerId.isNullUid()) &&
+                    (customerId != null && !customerId.isNullUid())) {
+                EntityGroup customerAssetsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ASSET);
+                entityGroupService.removeEntityFromEntityGroup(tenantId, customerAssetsEntityGroup.getId(), assetId);
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(assetUpdateMsg.getEntityGroupIdMSB(), assetUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, assetId);
+            }
+        }
+    }
+
+    private CustomerId safeSetCustomerId(AssetUpdateMsg assetUpdateMsg, CloudType cloudType, Asset asset) {
+        CustomerId assetCustomerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB());
+        if (CloudType.PE.equals(cloudType)) {
+            asset.setCustomerId(assetCustomerId);
+        }
+        return assetCustomerId;
     }
 
 }

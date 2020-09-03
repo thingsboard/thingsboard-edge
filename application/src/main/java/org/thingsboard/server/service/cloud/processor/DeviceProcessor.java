@@ -74,7 +74,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DeviceUpdateProcessor extends BaseUpdateProcessor {
+public class DeviceProcessor extends BaseProcessor {
 
     @Autowired
     private DeviceStateService deviceStateService;
@@ -252,38 +252,45 @@ public class DeviceUpdateProcessor extends BaseUpdateProcessor {
             device.setName(deviceUpdateMsg.getName());
             device.setType(deviceUpdateMsg.getType());
             device.setLabel(deviceUpdateMsg.getLabel());
+            CustomerId deviceCustomerId = safeSetCustomerId(deviceUpdateMsg, cloudType, device);
             device = deviceService.saveDevice(device, created);
             if (created) {
                 deviceStateService.onDeviceAdded(device);
             }
+            addToEntityGroup(tenantId, customerId, deviceUpdateMsg, cloudType, deviceId, deviceCustomerId);
+        } finally {
+            deviceCreationLock.unlock();
+        }
+        return device;
+    }
+
+    private CustomerId safeSetCustomerId(DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType, Device device) {
+        CustomerId deviceCustomerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
+        if (CloudType.PE.equals(cloudType)) {
+            device.setCustomerId(deviceCustomerId);
+        }
+        return deviceCustomerId;
+    }
+
+    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType, DeviceId deviceId, CustomerId deviceCustomerId) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (deviceCustomerId != null && deviceCustomerId.equals(customerId)) {
+                EntityGroup customerDevicesEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
+                entityGroupService.addEntityToEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
+            }
+            if ((deviceCustomerId == null || deviceCustomerId.isNullUid()) &&
+                    (customerId != null && !customerId.isNullUid())) {
+                EntityGroup customerDevicesEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
+                entityGroupService.removeEntityFromEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
+            }
+        } else {
             UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(), deviceUpdateMsg.getEntityGroupIdLSB());
             if (entityGroupUUID != null) {
                 EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                 addEntityToGroup(tenantId, entityGroupId, deviceId);
             }
-
-            CustomerId deviceCustomerId = null;
-            UUID customerUUID = safeGetUUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
-            if (customerUUID != null) {
-                deviceCustomerId = new CustomerId(customerUUID);
-            }
-            if (CloudType.CE.equals(cloudType)) {
-                if (deviceCustomerId != null && deviceCustomerId.equals(customerId)) {
-                    EntityGroup customerDevicesEntityGroup =
-                            entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
-                    entityGroupService.addEntityToEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
-                }
-                if ((deviceCustomerId == null || deviceCustomerId.isNullUid()) &&
-                        (customerId != null && !customerId.isNullUid())) {
-                    EntityGroup customerDevicesEntityGroup =
-                            entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DEVICE);
-                    entityGroupService.removeEntityFromEntityGroup(tenantId, customerDevicesEntityGroup.getId(), deviceId);
-                }
-            }
-
-        } finally {
-            deviceCreationLock.unlock();
         }
-        return device;
     }
 }

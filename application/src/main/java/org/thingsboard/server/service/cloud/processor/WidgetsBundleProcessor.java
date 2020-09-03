@@ -45,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class WidgetsBundleUpdateProcessor extends BaseUpdateProcessor {
+public class WidgetsBundleProcessor extends BaseProcessor {
 
     private final Lock widgetBundleCreationLock = new ReentrantLock();
 

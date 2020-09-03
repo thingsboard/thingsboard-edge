@@ -128,9 +128,11 @@ import org.thingsboard.server.gen.edge.EntityDataProto;
 import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.RoleProto;
 import org.thingsboard.server.gen.edge.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
@@ -151,21 +153,23 @@ import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructo
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.RelationUpdateMsgConstructor;
-import org.thingsboard.server.service.cloud.processor.AdminSettingsUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.AlarmUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.AssetUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.CustomerUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.DashboardUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.DeviceUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityGroupUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.EntityViewUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.RelationUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.RuleChainUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.SchedulerEventUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.UserUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.WhiteLabelingUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetTypeUpdateProcessor;
-import org.thingsboard.server.service.cloud.processor.WidgetsBundleUpdateProcessor;
+import org.thingsboard.server.service.cloud.processor.AdminSettingsProcessor;
+import org.thingsboard.server.service.cloud.processor.AlarmProcessor;
+import org.thingsboard.server.service.cloud.processor.AssetProcessor;
+import org.thingsboard.server.service.cloud.processor.CustomerProcessor;
+import org.thingsboard.server.service.cloud.processor.DashboardProcessor;
+import org.thingsboard.server.service.cloud.processor.DeviceProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityGroupProcessor;
+import org.thingsboard.server.service.cloud.processor.EntityViewProcessor;
+import org.thingsboard.server.service.cloud.processor.GroupPermissionProcessor;
+import org.thingsboard.server.service.cloud.processor.RelationProcessor;
+import org.thingsboard.server.service.cloud.processor.RoleProcessor;
+import org.thingsboard.server.service.cloud.processor.RuleChainProcessor;
+import org.thingsboard.server.service.cloud.processor.SchedulerEventProcessor;
+import org.thingsboard.server.service.cloud.processor.UserProcessor;
+import org.thingsboard.server.service.cloud.processor.WhiteLabelingProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetTypeProcessor;
+import org.thingsboard.server.service.cloud.processor.WidgetsBundleProcessor;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -229,9 +233,6 @@ public class CloudManagerService {
     private RuleChainService ruleChainService;
 
     @Autowired
-    private UserLoaderService userLoaderService;
-
-    @Autowired
     protected TbClusterService tbClusterService;
 
     @Autowired
@@ -280,49 +281,55 @@ public class CloudManagerService {
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     @Autowired
-    private RuleChainUpdateProcessor ruleChainUpdateProcessor;
+    private RuleChainProcessor ruleChainProcessor;
 
     @Autowired
-    private DeviceUpdateProcessor deviceUpdateProcessor;
+    private DeviceProcessor deviceUpdateProcessor;
 
     @Autowired
-    private AssetUpdateProcessor assetUpdateProcessor;
+    private AssetProcessor assetProcessor;
 
     @Autowired
-    private EntityViewUpdateProcessor entityViewUpdateProcessor;
+    private EntityViewProcessor entityViewProcessor;
 
     @Autowired
-    private RelationUpdateProcessor relationUpdateProcessor;
+    private RelationProcessor relationProcessor;
 
     @Autowired
-    private DashboardUpdateProcessor dashboardUpdateProcessor;
+    private DashboardProcessor dashboardProcessor;
 
     @Autowired
-    private CustomerUpdateProcessor customerUpdateProcessor;
+    private CustomerProcessor customerProcessor;
 
     @Autowired
-    private AlarmUpdateProcessor alarmUpdateProcessor;
+    private AlarmProcessor alarmProcessor;
 
     @Autowired
-    private UserUpdateProcessor userUpdateProcessor;
+    private UserProcessor userProcessor;
 
     @Autowired
-    private EntityGroupUpdateProcessor entityGroupUpdateProcessor;
+    private EntityGroupProcessor entityGroupProcessor;
 
     @Autowired
-    private SchedulerEventUpdateProcessor schedulerEventUpdateProcessor;
+    private SchedulerEventProcessor schedulerEventProcessor;
 
     @Autowired
-    private WhiteLabelingUpdateProcessor whiteLabelingUpdateProcessor;
+    private RoleProcessor roleProcessor;
 
     @Autowired
-    private WidgetsBundleUpdateProcessor widgetsBundleUpdateProcessor;
+    private GroupPermissionProcessor groupPermissionProcessor;
 
     @Autowired
-    private WidgetTypeUpdateProcessor widgetTypeUpdateProcessor;
+    private WhiteLabelingProcessor whiteLabelingProcessor;
 
     @Autowired
-    private AdminSettingsUpdateProcessor adminSettingsUpdateProcessor;
+    private WidgetsBundleProcessor widgetsBundleProcessor;
+
+    @Autowired
+    private WidgetTypeProcessor widgetTypeProcessor;
+
+    @Autowired
+    private AdminSettingsProcessor adminSettingsProcessor;
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -479,6 +486,9 @@ public class CloudManagerService {
                         break;
                     case GROUP_ENTITIES_REQUEST:
                         uplinkMsg = processGroupEntitiesRequest(cloudEvent);
+                        break;
+                    case GROUP_PERMISSIONS_REQUEST:
+                        uplinkMsg = processEntityGroupPermissionsRequest(cloudEvent);
                         break;
                 }
                 if (uplinkMsg != null) {
@@ -742,6 +752,26 @@ public class CloudManagerService {
         }
     }
 
+    private UplinkMsg processEntityGroupPermissionsRequest(CloudEvent cloudEvent) throws IOException {
+        log.trace("Executing processEntityGroupPermissionsRequest, cloudEvent [{}]", cloudEvent);
+        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        String type = cloudEvent.getEntityBody().get("type").asText();
+        try {
+            EntityGroupRequestMsg entityGroupPermissionsRequestMsg = EntityGroupRequestMsg.newBuilder()
+                    .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
+                    .setType(type)
+                    .build();
+            UplinkMsg.Builder builder = UplinkMsg.newBuilder()
+                    .addAllEntityGroupPermissionsRequestMsg(Collections.singletonList(entityGroupPermissionsRequestMsg));
+            return builder.build();
+        } catch (Exception e) {
+            log.warn("Failed process group permissions request, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            return null;
+        }
+    }
+
+
     private UpdateMsgType getResponseMsgType(ActionType actionType) {
         switch (actionType) {
             case UPDATED:
@@ -790,7 +820,7 @@ public class CloudManagerService {
             }
 
             UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-            this.tenantId = getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
+            this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 
             this.edgeSettings = cloudEventService.findEdgeSettings(tenantId);
             EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
@@ -853,13 +883,17 @@ public class CloudManagerService {
         log.debug("Clean up procedure successfully finished!");
     }
 
-    private Tenant getOrCreateTenant(TenantId tenantId) {
+    private Tenant getOrCreateTenant(TenantId tenantId, CloudType cloudType) {
         Tenant tenant = tenantService.findTenantById(tenantId);
         if (tenant == null) {
             tenant = new Tenant();
             tenant.setTitle("Tenant");
             tenant.setId(tenantId);
-            tenantService.saveTenant(tenant, true);
+            Tenant savedTenant = tenantService.saveTenant(tenant, true);
+            if (CloudType.CE.equals(cloudType)) {
+                entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
+                entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            }
         }
         return tenant;
     }
@@ -935,39 +969,39 @@ public class CloudManagerService {
             }
             if (downlinkMsg.getAssetUpdateMsgList() != null && !downlinkMsg.getAssetUpdateMsgList().isEmpty()) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetUpdateProcessor.onAssetUpdate(tenantId, customerId, assetUpdateMsg, edgeSettings.getCloudType()));
+                    result.add(assetProcessor.onAssetUpdate(tenantId, customerId, assetUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getEntityViewUpdateMsgList() != null && !downlinkMsg.getEntityViewUpdateMsgList().isEmpty()) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewUpdateProcessor.onEntityViewUpdate(tenantId, customerId, entityViewUpdateMsg, edgeSettings.getCloudType()));
+                    result.add(entityViewProcessor.onEntityViewUpdate(tenantId, customerId, entityViewUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getRuleChainUpdateMsgList() != null && !downlinkMsg.getRuleChainUpdateMsgList().isEmpty()) {
                 for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
-                    result.add(ruleChainUpdateProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
+                    result.add(ruleChainProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
                 }
             }
             if (downlinkMsg.getRuleChainMetadataUpdateMsgList() != null && !downlinkMsg.getRuleChainMetadataUpdateMsgList().isEmpty()) {
                 for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : downlinkMsg.getRuleChainMetadataUpdateMsgList()) {
-                    result.add(ruleChainUpdateProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
+                    result.add(ruleChainProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
                 }
             }
             if (downlinkMsg.getDashboardUpdateMsgList() != null && !downlinkMsg.getDashboardUpdateMsgList().isEmpty()) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardUpdateProcessor.onDashboardUpdate(tenantId, customerId, dashboardUpdateMsg, edgeSettings.getCloudType()));
+                    result.add(dashboardProcessor.onDashboardUpdate(tenantId, customerId, dashboardUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getAlarmUpdateMsgList() != null && !downlinkMsg.getAlarmUpdateMsgList().isEmpty()) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
-                    result.add(alarmUpdateProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
+                    result.add(alarmProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomerUpdateMsgList() != null && !downlinkMsg.getCustomerUpdateMsgList().isEmpty()) {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
-                        result.add(customerUpdateProcessor.onCustomerUpdate(tenantId, customerUpdateMsg, edgeSettings.getCloudType()));
+                        result.add(customerProcessor.onCustomerUpdate(tenantId, customerUpdateMsg, edgeSettings.getCloudType()));
                         updateCustomerId(customerUpdateMsg);
                     } finally {
                         sequenceDependencyLock.unlock();
@@ -976,24 +1010,24 @@ public class CloudManagerService {
             }
             if (downlinkMsg.getRelationUpdateMsgList() != null && !downlinkMsg.getRelationUpdateMsgList().isEmpty()) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
-                    result.add(relationUpdateProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
+                    result.add(relationProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgList() != null && !downlinkMsg.getWidgetsBundleUpdateMsgList().isEmpty()) {
                 for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
-                    result.add(widgetsBundleUpdateProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
+                    result.add(widgetsBundleProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
                 }
             }
             if (downlinkMsg.getWidgetTypeUpdateMsgList() != null && !downlinkMsg.getWidgetTypeUpdateMsgList().isEmpty()) {
                 for (WidgetTypeUpdateMsg widgetTypeUpdateMsg : downlinkMsg.getWidgetTypeUpdateMsgList()) {
-                    result.add(widgetTypeUpdateProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
+                    result.add(widgetTypeProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
                 }
             }
             if (downlinkMsg.getUserUpdateMsgList() != null && !downlinkMsg.getUserUpdateMsgList().isEmpty()) {
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
-                        result.add(userUpdateProcessor.onUserUpdate(tenantId, userUpdateMsg, this.edgeSettings.getCloudType()));
+                        result.add(userProcessor.onUserUpdate(tenantId, userUpdateMsg, this.edgeSettings.getCloudType()));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
@@ -1001,37 +1035,47 @@ public class CloudManagerService {
             }
             if (downlinkMsg.getUserCredentialsUpdateMsgList() != null && !downlinkMsg.getUserCredentialsUpdateMsgList().isEmpty()) {
                 for (UserCredentialsUpdateMsg userCredentialsUpdateMsg : downlinkMsg.getUserCredentialsUpdateMsgList()) {
-                    result.add(userUpdateProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
+                    result.add(userProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getEntityGroupUpdateMsgList() != null && !downlinkMsg.getEntityGroupUpdateMsgList().isEmpty()) {
                 for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
-                    result.add(entityGroupUpdateProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
+                    result.add(entityGroupProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
                 }
             }
             if (downlinkMsg.getCustomTranslationMsgList() != null && !downlinkMsg.getCustomTranslationMsgList().isEmpty()) {
                 for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
-                    result.add(whiteLabelingUpdateProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
+                    result.add(whiteLabelingProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
                 }
             }
             if (downlinkMsg.getWhiteLabelingParamsList() != null && !downlinkMsg.getWhiteLabelingParamsList().isEmpty()) {
                 for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingUpdateProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
+                    result.add(whiteLabelingProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
                 }
             }
             if (downlinkMsg.getLoginWhiteLabelingParamsList() != null && !downlinkMsg.getLoginWhiteLabelingParamsList().isEmpty()) {
                 for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
-                    result.add(whiteLabelingUpdateProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
+                    result.add(whiteLabelingProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
                 }
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgList() != null && !downlinkMsg.getSchedulerEventUpdateMsgList().isEmpty()) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
-                    result.add(schedulerEventUpdateProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
+                    result.add(schedulerEventProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
                 }
             }
             if (downlinkMsg.getAdminSettingsUpdateMsgList() != null && !downlinkMsg.getAdminSettingsUpdateMsgList().isEmpty()) {
                 for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
-                    result.add(adminSettingsUpdateProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
+                    result.add(adminSettingsProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getRoleMsgList() != null && !downlinkMsg.getRoleMsgList().isEmpty()) {
+                for (RoleProto roleProto : downlinkMsg.getRoleMsgList()) {
+                    result.add(roleProcessor.onRoleUpdate(tenantId, roleProto));
+                }
+            }
+            if (downlinkMsg.getGroupPermissionMsgList() != null && !downlinkMsg.getGroupPermissionMsgList().isEmpty()) {
+                for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
+                    result.add(groupPermissionProcessor.onGroupPermissionUpdate(tenantId, groupPermissionProto));
                 }
             }
         } catch (Exception e) {

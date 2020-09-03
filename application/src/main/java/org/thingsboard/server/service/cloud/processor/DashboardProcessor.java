@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class DashboardUpdateProcessor extends BaseUpdateProcessor {
+public class DashboardProcessor extends BaseProcessor {
 
     private final Lock dashboardCreationLock = new ReentrantLock();
 
@@ -78,35 +78,10 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
                     }
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
+
+                    CustomerId dashboardCustomerId = safeSetCustomerId(dashboardUpdateMsg, cloudType, dashboard);
                     dashboardService.saveDashboard(dashboard, created);
-
-                    UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB());
-                    if (entityGroupUUID != null) {
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        addEntityToGroup(tenantId, entityGroupId, dashboardId);
-                    }
-
-                    CustomerId dashboardCustomerId = null;
-                    UUID customerUUID = safeGetUUID(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
-                    if (customerUUID != null) {
-                        dashboardCustomerId = new CustomerId(customerUUID);
-                    }
-
-                    if (CloudType.CE.equals(cloudType)) {
-                        if (dashboardCustomerId != null && dashboardCustomerId.equals(customerId)) {
-                            EntityGroup customerDashboardsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
-                            entityGroupService.addEntityToEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
-                        }
-                        if ((dashboardCustomerId == null || dashboardCustomerId.isNullUid()) &&
-                                (customerId != null && !customerId.isNullUid())) {
-                            EntityGroup customerDashboardsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
-                            entityGroupService.removeEntityFromEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
-                        }
-                    }
-
-
+                    addToEntityGroup(tenantId, customerId, dashboardUpdateMsg, cloudType, dashboardId, dashboardCustomerId);
                 } finally {
                     dashboardCreationLock.unlock();
                 }
@@ -130,5 +105,35 @@ public class DashboardUpdateProcessor extends BaseUpdateProcessor {
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId), future -> null, dbCallbackExecutor);
+    }
+
+    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType, DashboardId dashboardId, CustomerId dashboardCustomerId) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (dashboardCustomerId != null && dashboardCustomerId.equals(customerId)) {
+                EntityGroup customerDashboardsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                entityGroupService.addEntityToEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
+            }
+            if ((dashboardCustomerId == null || dashboardCustomerId.isNullUid()) &&
+                    (customerId != null && !customerId.isNullUid())) {
+                EntityGroup customerDashboardsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                entityGroupService.removeEntityFromEntityGroup(tenantId, customerDashboardsEntityGroup.getId(), dashboardId);
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(dashboardUpdateMsg.getEntityGroupIdMSB(), dashboardUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, dashboardId);
+            }
+        }
+    }
+
+    private CustomerId safeSetCustomerId(DashboardUpdateMsg dashboardUpdateMsg, CloudType cloudType, Dashboard dashboard) {
+        CustomerId dashboardCustomerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB());
+        if (CloudType.PE.equals(cloudType)) {
+            dashboard.setCustomerId(dashboardCustomerId);
+        }
+        return dashboardCustomerId;
     }
 }

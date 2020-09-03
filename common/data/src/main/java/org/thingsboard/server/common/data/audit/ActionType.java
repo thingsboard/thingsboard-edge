@@ -67,7 +67,8 @@ public enum ActionType {
     RULE_CHAIN_METADATA_REQUEST(false),
     RELATION_REQUEST(false),
     CREDENTIALS_REQUEST(false),
-    GROUP_ENTITIES_REQUEST(false);
+    GROUP_ENTITIES_REQUEST(false),
+    GROUP_PERMISSIONS_REQUEST(false);
 
     private final boolean isRead;
 

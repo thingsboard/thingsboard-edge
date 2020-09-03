@@ -59,7 +59,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class UserUpdateProcessor extends BaseUpdateProcessor {
+public class UserProcessor extends BaseProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
@@ -79,12 +79,6 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                         user = new User();
                         user.setTenantId(tenantId);
                         user.setId(userId);
-                        CustomerId customerId = null;
-                        UUID customerUUID = safeGetUUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB());
-                        if (customerUUID != null) {
-                            customerId = new CustomerId(customerUUID);
-                        }
-                        user.setCustomerId(customerId);
                         created = true;
                     }
                     user.setEmail(userUpdateMsg.getEmail());
@@ -92,25 +86,9 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                     user.setFirstName(userUpdateMsg.getFirstName());
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
+                    safeSetCustomerId(userUpdateMsg, user);
                     User savedUser = userService.saveUser(user, created);
-
-                    if (CloudType.PE.equals(cloudType)) {
-                        UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
-                        if (entityGroupUUID != null) {
-                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                            addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
-                        }
-                    } else {
-                        if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
-                            EntityGroup edgeCETenantAdmins =
-                                    entityGroupService.findOrCreateEdgeCETenantAdminsGroup(savedUser.getTenantId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCETenantAdmins.getId(), savedUser.getId());
-                        } else {
-                            EntityGroup edgeCECustomerUsers =
-                                    entityGroupService.findOrCreateEdgeCECustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCECustomerUsers.getId(), savedUser.getId());
-                        }
-                    }
+                    addToEntityGroup(tenantId, userUpdateMsg, cloudType, savedUser);
                 } finally {
                     userCreationLock.unlock();
                 }
@@ -143,6 +121,31 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
         }, dbCallbackExecutor);
 
         return Futures.transform(t, tt -> null, dbCallbackExecutor);
+    }
+
+    private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType, User savedUser) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
+                EntityGroup edgeCETenantAdmins =
+                        entityGroupService.findOrCreateEdgeCETenantAdminsGroup(savedUser.getTenantId());
+                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCETenantAdmins.getId(), savedUser.getId());
+            } else {
+                EntityGroup edgeCECustomerUsers =
+                        entityGroupService.findOrCreateEdgeCECustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
+                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCECustomerUsers.getId(), savedUser.getId());
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+            }
+        }
+    }
+
+    private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
+        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB());
+        user.setCustomerId(customerId);
     }
 
     public ListenableFuture<Void> onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {

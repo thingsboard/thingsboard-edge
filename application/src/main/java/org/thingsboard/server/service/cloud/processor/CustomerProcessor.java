@@ -52,7 +52,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class CustomerUpdateProcessor extends BaseUpdateProcessor {
+public class CustomerProcessor extends BaseProcessor {
 
     private final Lock customerCreationLock = new ReentrantLock();
 

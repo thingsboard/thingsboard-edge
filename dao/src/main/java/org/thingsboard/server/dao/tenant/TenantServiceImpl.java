@@ -166,8 +166,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
 
-            entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            // TODO: voba - these entity groups are created by cloud manager service
+            // entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
+            // entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
         }
 
         return savedTenant;

@@ -48,7 +48,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class AdminSettingsUpdateProcessor extends BaseUpdateProcessor {
+public class AdminSettingsProcessor extends BaseProcessor {
 
     public ListenableFuture<Void> onAdminSettingsUpdate(TenantId tenantId, AdminSettingsUpdateMsg adminSettingsUpdateMsg) {
         String key = adminSettingsUpdateMsg.getKey();

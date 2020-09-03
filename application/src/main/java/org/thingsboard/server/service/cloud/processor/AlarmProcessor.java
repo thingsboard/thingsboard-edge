@@ -44,7 +44,7 @@ import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 
 @Component
 @Slf4j
-public class AlarmUpdateProcessor extends BaseUpdateProcessor {
+public class AlarmProcessor extends BaseProcessor {
 
     public ListenableFuture<Void> onAlarmUpdate(TenantId tenantId, AlarmUpdateMsg alarmUpdateMsg) {
         EntityId originatorId = getAlarmOriginator(tenantId,

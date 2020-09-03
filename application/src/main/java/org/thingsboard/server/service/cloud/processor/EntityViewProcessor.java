@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
+public class EntityViewProcessor extends BaseProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
@@ -85,32 +85,9 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                     entityView.setName(entityViewUpdateMsg.getName());
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
+                    CustomerId entityViewCustomerId = safeSetCustomerId(entityViewUpdateMsg, cloudType, entityView);
                     entityViewService.saveEntityView(entityView, created);
-
-                    UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB());
-                    if (entityGroupUUID != null) {
-                        EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
-                        addEntityToGroup(tenantId, entityGroupId, entityViewId);
-                    }
-
-                    CustomerId entityViewCustomerId = null;
-                    UUID customerUUID = safeGetUUID(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());
-                    if (customerUUID != null) {
-                        entityViewCustomerId = new CustomerId(customerUUID);
-                    }
-                    if (CloudType.CE.equals(cloudType)) {
-                        if (entityViewCustomerId != null && entityViewCustomerId.equals(customerId)) {
-                            EntityGroup customerEntityViewsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
-                            entityGroupService.addEntityToEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
-                        }
-                        if ((entityViewCustomerId == null || entityViewCustomerId.isNullUid()) &&
-                                (customerId != null && !customerId.isNullUid())) {
-                            EntityGroup customerEntityViewsEntityGroup =
-                                    entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
-                            entityGroupService.removeEntityFromEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
-                        }
-                    }
+                    addToEntityGroup(tenantId, customerId, entityViewUpdateMsg, cloudType, entityViewId, entityViewCustomerId);
                 } finally {
                     entityViewCreationLock.unlock();
                 }
@@ -132,5 +109,35 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + entityViewUpdateMsg.getMsgType()));
         }
         return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId), future -> null, dbCallbackExecutor);
+    }
+
+    private CustomerId safeSetCustomerId(EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityView entityView) {
+        CustomerId entityViewCustomerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());;
+        if (CloudType.PE.equals(cloudType)) {
+            entityView.setCustomerId(entityViewCustomerId);
+        }
+        return entityViewCustomerId;
+    }
+
+    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityViewId entityViewId, CustomerId entityViewCustomerId) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (entityViewCustomerId != null && entityViewCustomerId.equals(customerId)) {
+                EntityGroup customerEntityViewsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
+                entityGroupService.addEntityToEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
+            }
+            if ((entityViewCustomerId == null || entityViewCustomerId.isNullUid()) &&
+                    (customerId != null && !customerId.isNullUid())) {
+                EntityGroup customerEntityViewsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
+                entityGroupService.removeEntityFromEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, entityViewId);
+            }
+        }
     }
 }
