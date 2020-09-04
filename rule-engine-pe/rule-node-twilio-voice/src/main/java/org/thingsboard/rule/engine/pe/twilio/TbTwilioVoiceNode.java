@@ -39,6 +39,7 @@ import com.twilio.twiml.voice.SsmlProsody;
 import com.twilio.type.PhoneNumber;
 import com.twilio.type.Twiml;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -90,7 +91,7 @@ public class TbTwilioVoiceNode implements TbNode {
         String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg.getMetaData());
 
         String[] numbersToList = numbersTo.split(",");
-        if (numbersToList.length == 0) {
+        if (StringUtils.isBlank(numbersToList[0])) {
             throw new IllegalArgumentException("To numbers list is empty!");
         }
 
@@ -112,9 +113,9 @@ public class TbTwilioVoiceNode implements TbNode {
             }
         }
 
-        if (!this.config.getPitch().endsWith("%")) this.config.setPitch(this.config.getPitch()+"%");
-        if (!this.config.getRate().endsWith("%")) this.config.setRate(this.config.getRate()+"%");
-        if (!this.config.getVolume().endsWith("dB")) this.config.setVolume(this.config.getVolume()+"dB");
+        if (!this.config.getPitch().endsWith("%")) { this.config.setPitch(this.config.getPitch()+"%"); }
+        if (!this.config.getRate().endsWith("%")) { this.config.setRate(this.config.getRate()+"%"); }
+        if (!this.config.getVolume().endsWith("dB")) { this.config.setVolume(this.config.getVolume()+"dB"); }
 
         SsmlProsody prosody = new SsmlProsody.Builder(payload)
                 .pitch(config.getPitch())
@@ -125,7 +126,6 @@ public class TbTwilioVoiceNode implements TbNode {
         Pause startPause = new Pause.Builder().length(config.getStartPause()).build();
         Say say = new Say.Builder().language(language).voice(voice).prosody(prosody).build();
         VoiceResponse response = new VoiceResponse.Builder().pause(startPause).say(say).build();
-        log.error(response.toXml());
 
         for (String numberTo : numbersToList) {
             Call.creator(
