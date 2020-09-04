@@ -32,36 +32,45 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.SchedulerEventId;
-import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 
 @Component
 @Slf4j
-public class SchedulerEventUpdateMsgConstructor {
+public class WidgetTypeMsgConstructor {
 
-    public SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent) {
-        SchedulerEventUpdateMsg.Builder builder = SchedulerEventUpdateMsg.newBuilder();
-        builder.setMsgType(msgType);
-        builder.setIdMSB(schedulerEvent.getId().getId().getMostSignificantBits());
-        builder.setIdLSB(schedulerEvent.getId().getId().getLeastSignificantBits());
-        builder.setName(schedulerEvent.getName());
-        builder.setType(schedulerEvent.getType());
-        builder.setSchedule(JacksonUtil.toString(schedulerEvent.getSchedule()));
-        builder.setConfiguration(JacksonUtil.toString(schedulerEvent.getConfiguration()));
-        if (schedulerEvent.getCustomerId() != null && !schedulerEvent.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(schedulerEvent.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(schedulerEvent.getCustomerId().getId().getLeastSignificantBits());
-        }
+    public WidgetTypeUpdateMsg constructWidgetTypeUpdateMsg(UpdateMsgType msgType, WidgetType widgetType) {
+        WidgetTypeUpdateMsg.Builder builder = WidgetTypeUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(widgetType.getId().getId().getMostSignificantBits())
+                .setIdLSB(widgetType.getId().getId().getLeastSignificantBits());
+                if (widgetType.getBundleAlias() != null) {
+                    builder.setBundleAlias(widgetType.getBundleAlias());
+                }
+                if (widgetType.getAlias() != null) {
+                    builder.setAlias(widgetType.getAlias());
+                }
+                if (widgetType.getName() != null) {
+                    builder.setName(widgetType.getName());
+                }
+                if (widgetType.getDescriptor() != null) {
+                    builder.setDescriptorJson(JacksonUtil.toString(widgetType.getDescriptor()));
+                }
+                if (widgetType.getTenantId().equals(TenantId.SYS_TENANT_ID)) {
+                   builder.setIsSystem(true);
+                }
         return builder.build();
     }
 
-    public SchedulerEventUpdateMsg constructEventDeleteMsg(SchedulerEventId schedulerEventId) {
-        return SchedulerEventUpdateMsg.newBuilder()
+    public WidgetTypeUpdateMsg constructWidgetTypeDeleteMsg(WidgetTypeId widgetTypeId) {
+        return WidgetTypeUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(schedulerEventId.getId().getMostSignificantBits())
-                .setIdLSB(schedulerEventId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(widgetTypeId.getId().getMostSignificantBits())
+                .setIdLSB(widgetTypeId.getId().getLeastSignificantBits())
+                .build();
     }
 }

@@ -32,40 +32,41 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class DashboardUpdateMsgConstructor {
+public class AssetMsgConstructor {
 
-    public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId) {
-        DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
+    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
+        AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(dashboard.getId().getId().getMostSignificantBits())
-                .setIdLSB(dashboard.getId().getId().getLeastSignificantBits())
-                .setTitle(dashboard.getTitle())
-                .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
+                .setIdMSB(asset.getId().getId().getMostSignificantBits())
+                .setIdLSB(asset.getId().getId().getLeastSignificantBits())
+                .setName(asset.getName())
+                .setType(asset.getType());
+        if (asset.getLabel() != null) {
+            builder.setLabel(asset.getLabel());
+        }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (dashboard.getCustomerId() != null && !dashboard.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(dashboard.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(dashboard.getCustomerId().getId().getLeastSignificantBits());
+        if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(asset.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
-    public DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId) {
-        return DashboardUpdateMsg.newBuilder()
+    public AssetUpdateMsg constructAssetDeleteMsg(AssetId assetId) {
+        return AssetUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(dashboardId.getId().getMostSignificantBits())
-                .setIdLSB(dashboardId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(assetId.getId().getMostSignificantBits())
+                .setIdLSB(assetId.getId().getLeastSignificantBits()).build();
     }
-
 }

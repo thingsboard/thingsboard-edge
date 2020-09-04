@@ -32,57 +32,40 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class DeviceUpdateMsgConstructor {
+public class DashboardMsgConstructor {
 
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, EntityGroupId entityGroupId) {
-        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
+    public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId) {
+        DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(device.getId().getId().getMostSignificantBits())
-                .setIdLSB(device.getId().getId().getLeastSignificantBits())
-                .setName(device.getName())
-                .setType(device.getType());
-        if (device.getLabel() != null) {
-            builder.setLabel(device.getLabel());
-        }
+                .setIdMSB(dashboard.getId().getId().getMostSignificantBits())
+                .setIdLSB(dashboard.getId().getId().getLeastSignificantBits())
+                .setTitle(dashboard.getTitle())
+                .setConfiguration(JacksonUtil.toString(dashboard.getConfiguration()));
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        if (dashboard.getCustomerId() != null && !dashboard.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(dashboard.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(dashboard.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
-    public DeviceCredentialsUpdateMsg constructDeviceCredentialsUpdatedMsg(DeviceCredentials deviceCredentials) {
-        DeviceCredentialsUpdateMsg.Builder builder = DeviceCredentialsUpdateMsg.newBuilder()
-                .setDeviceIdMSB(deviceCredentials.getDeviceId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(deviceCredentials.getDeviceId().getId().getLeastSignificantBits());
-        if (deviceCredentials.getCredentialsType() != null) {
-            builder.setCredentialsType(deviceCredentials.getCredentialsType().name())
-                    .setCredentialsId(deviceCredentials.getCredentialsId());
-        }
-        if (deviceCredentials.getCredentialsValue() != null) {
-            builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
-        }
-        return builder.build();
-    }
-
-    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId) {
-        return DeviceUpdateMsg.newBuilder()
+    public DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId) {
+        return DashboardUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(deviceId.getId().getMostSignificantBits())
-                .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(dashboardId.getId().getMostSignificantBits())
+                .setIdLSB(dashboardId.getId().getLeastSignificantBits()).build();
     }
+
 }

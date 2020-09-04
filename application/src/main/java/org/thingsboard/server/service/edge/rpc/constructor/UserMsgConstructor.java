@@ -43,7 +43,7 @@ import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
 @Component
 @Slf4j
-public class UserUpdateMsgConstructor {
+public class UserMsgConstructor {
 
     public UserUpdateMsg constructUserUpdatedMsg(UpdateMsgType msgType, User user, EntityGroupId entityGroupId) {
         UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()

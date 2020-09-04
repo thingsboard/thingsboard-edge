@@ -32,41 +32,53 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.gen.edge.EdgeEntityType;
+import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class AssetUpdateMsgConstructor {
+public class EntityViewMsgConstructor {
 
-    public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
-        AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
-                .setMsgType(msgType)
-                .setIdMSB(asset.getId().getId().getMostSignificantBits())
-                .setIdLSB(asset.getId().getId().getLeastSignificantBits())
-                .setName(asset.getName())
-                .setType(asset.getType());
-        if (asset.getLabel() != null) {
-            builder.setLabel(asset.getLabel());
+    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EntityGroupId entityGroupId) {
+        EdgeEntityType entityType;
+        switch (entityView.getEntityId().getEntityType()) {
+            case DEVICE:
+                entityType = EdgeEntityType.DEVICE;
+                break;
+            case ASSET:
+                entityType = EdgeEntityType.ASSET;
+                break;
+            default:
+                throw new RuntimeException("Unsupported entity type [" + entityView.getEntityId().getEntityType() + "]");
         }
+        EntityViewUpdateMsg.Builder builder = EntityViewUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(entityView.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityView.getId().getId().getLeastSignificantBits())
+                .setName(entityView.getName())
+                .setType(entityView.getType())
+                .setEntityIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
+                .setEntityIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
+                .setEntityType(entityType);
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(asset.getCustomerId().getId().getLeastSignificantBits());
+        if (entityView.getCustomerId() != null && !entityView.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
-    public AssetUpdateMsg constructAssetDeleteMsg(AssetId assetId) {
-        return AssetUpdateMsg.newBuilder()
+    public EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId) {
+        return EntityViewUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(assetId.getId().getMostSignificantBits())
-                .setIdLSB(assetId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(entityViewId.getId().getMostSignificantBits())
+                .setIdLSB(entityViewId.getId().getLeastSignificantBits()).build();
     }
 }

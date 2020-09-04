@@ -32,56 +32,29 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
+import org.thingsboard.server.gen.edge.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class CustomerUpdateMsgConstructor {
+public class RelationMsgConstructor {
 
-    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer) {
-        CustomerUpdateMsg.Builder builder = CustomerUpdateMsg.newBuilder()
+    public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
+        RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(customer.getId().getId().getMostSignificantBits())
-                .setIdLSB(customer.getId().getId().getLeastSignificantBits())
-                .setTitle(customer.getTitle());
-        if (customer.getCountry() != null) {
-            builder.setCountry(customer.getCountry());
-        }
-        if (customer.getState() != null) {
-            builder.setState(customer.getState());
-        }
-        if (customer.getCity() != null) {
-            builder.setCity(customer.getCity());
-        }
-        if (customer.getAddress() != null) {
-            builder.setAddress(customer.getAddress());
-        }
-        if (customer.getAddress2() != null) {
-            builder.setAddress2(customer.getAddress2());
-        }
-        if (customer.getZip() != null) {
-            builder.setZip(customer.getZip());
-        }
-        if (customer.getPhone() != null) {
-            builder.setPhone(customer.getPhone());
-        }
-        if (customer.getEmail() != null) {
-            builder.setEmail(customer.getEmail());
-        }
-        if (customer.getAdditionalInfo() != null) {
-            builder.setAdditionalInfo(JacksonUtil.toString(customer.getAdditionalInfo()));
+                .setFromIdMSB(entityRelation.getFrom().getId().getMostSignificantBits())
+                .setFromIdLSB(entityRelation.getFrom().getId().getLeastSignificantBits())
+                .setFromEntityType(entityRelation.getFrom().getEntityType().name())
+                .setToIdMSB(entityRelation.getTo().getId().getMostSignificantBits())
+                .setToIdLSB(entityRelation.getTo().getId().getLeastSignificantBits())
+                .setToEntityType(entityRelation.getTo().getEntityType().name())
+                .setType(entityRelation.getType())
+                .setAdditionalInfo(JacksonUtil.toString(entityRelation.getAdditionalInfo()));
+        if (entityRelation.getTypeGroup() != null) {
+            builder.setTypeGroup(entityRelation.getTypeGroup().name());
         }
         return builder.build();
-    }
-
-    public CustomerUpdateMsg constructCustomerDeleteMsg(CustomerId customerId) {
-        return CustomerUpdateMsg.newBuilder()
-                .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(customerId.getId().getMostSignificantBits())
-                .setIdLSB(customerId.getId().getLeastSignificantBits()).build();
     }
 }
