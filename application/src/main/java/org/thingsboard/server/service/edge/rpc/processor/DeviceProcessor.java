@@ -230,7 +230,7 @@ public class DeviceProcessor extends BaseProcessor {
     private void removeDeviceFromDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
         Device deviceToDelete = deviceService.findDeviceById(tenantId, deviceId);
         if (deviceToDelete != null) {
-            ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(tenantId, edge, EntityType.DEVICE);
+            ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE);
             Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
                 @Override
                 public void onSuccess(@Nullable EntityGroup entityGroup) {
@@ -248,7 +248,7 @@ public class DeviceProcessor extends BaseProcessor {
     }
 
     private void addDeviceToDeviceGroup(TenantId tenantId, Edge edge, DeviceId deviceId) {
-        ListenableFuture<EntityGroup> edgeDeviceGroup = findEdgeAllGroup(tenantId, edge, EntityType.DEVICE);
+        ListenableFuture<EntityGroup> edgeDeviceGroup = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, edge.getName(), EntityType.DEVICE);
         Futures.addCallback(edgeDeviceGroup, new FutureCallback<EntityGroup>() {
             @Override
             public void onSuccess(@Nullable EntityGroup entityGroup) {

@@ -32,16 +32,12 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -61,15 +57,10 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
-import java.util.Optional;
-import java.util.concurrent.locks.ReentrantLock;
-
 @Slf4j
 public abstract class BaseProcessor {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
-
-    private static final ReentrantLock entityGroupCreationLock = new ReentrantLock();
 
     @Autowired
     protected AlarmService alarmService;
@@ -136,43 +127,5 @@ public abstract class BaseProcessor {
         }
         edgeEvent.setEntityBody(entityBody);
         return edgeEventService.saveAsync(edgeEvent);
-    }
-
-    protected ListenableFuture<EntityGroup> findEdgeAllGroup(TenantId tenantId, Edge edge, EntityType groupType) {
-        String deviceGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
-        ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
-                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName);
-
-        return Futures.transform(futureEntityGroup, optionalEntityGroup -> {
-            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
-                return optionalEntityGroup.get();
-            } else {
-                try {
-                    entityGroupCreationLock.lock();
-                    Optional<EntityGroup> currentEntityGroup = entityGroupService
-                            .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, deviceGroupName).get();
-                    if (!currentEntityGroup.isPresent()) {
-                        EntityGroup entityGroup = createEntityGroup(deviceGroupName, edge.getOwnerId(), tenantId);
-                        entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(), edge.getId(), EntityType.DEVICE);
-                        return entityGroup;
-                    } else {
-                        return currentEntityGroup.get();
-                    }
-                } catch (Exception e) {
-                    log.error("[{}] Can't get entity group by name edge owner id [{}], groupType [{}], deviceGroupName [{}]",
-                            tenantId, edge.getOwnerId(), groupType, deviceGroupName, e);
-                    throw new RuntimeException(e);
-                } finally {
-                    entityGroupCreationLock.unlock();
-                }
-            }
-        }, dbCallbackExecutorService);
-    }
-
-    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName(entityGroupName);
-        entityGroup.setType(EntityType.DEVICE);
-        return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 }

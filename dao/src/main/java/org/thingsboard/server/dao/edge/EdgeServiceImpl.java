@@ -31,9 +31,11 @@
 package org.thingsboard.server.dao.edge;
 
 import com.google.common.base.Function;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -50,6 +52,7 @@ import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityField;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -85,6 +88,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -332,6 +336,27 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                 (entityId) -> new EdgeId(entityId.getId()),
                 (entityIds) -> findEdgesByTenantIdAndIdsAsync(tenantId, entityIds),
                 new EdgeViewFunction());
+    }
+
+    @Override
+    public void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName) {
+        log.trace("Executing renameDeviceEdgeAllGroup tenantId [{}], edge [{}], previousEdgeName [{}]", tenantId, edge, oldEdgeName);
+        ListenableFuture<EntityGroup> deviceEdgeAllGroupFuture = entityGroupService.findOrCreateEdgeAllGroup(tenantId, edge, oldEdgeName, EntityType.DEVICE);
+        Futures.addCallback(deviceEdgeAllGroupFuture, new FutureCallback<EntityGroup>() {
+            @Override
+            public void onSuccess(@Nullable EntityGroup deviceEdgeAllGroup) {
+                if (deviceEdgeAllGroup != null) {
+                    String newEntityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edge.getName());
+                    deviceEdgeAllGroup.setName(newEntityGroupName);
+                    entityGroupService.saveEntityGroup(tenantId, deviceEdgeAllGroup.getOwnerId(), deviceEdgeAllGroup);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}] Failed to find edge all group [{}]", tenantId, edge, t);
+            }
+        }, MoreExecutors.directExecutor());
     }
 
     class EdgeViewFunction implements BiFunction<Edge, List<EntityField>, ShortEntityView> {
