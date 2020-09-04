@@ -50,7 +50,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <twilio.version>7.16.0</twilio.version>
+        <twilio.version>7.54.2</twilio.version>
     </properties>
 
     <dependencies>
