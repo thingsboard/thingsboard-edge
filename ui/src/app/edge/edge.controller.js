@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($scope, $filter, $translate, attributeService, edgeService, types, userService) {
+export default function EdgeController($scope, $filter, $translate, userPermissionsService, securityTypes, attributeService, edgeService, types, userService) {
 
     var vm = this;
 
@@ -39,6 +39,8 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
     vm.lastDisconnectTime = '';
     vm.edgeSettings = {};
     vm.activeStatus = '';
+
+    vm.isGroupDetailsReadOnly = userPermissionsService.hasEntityGroupPermission(securityTypes.operation.read);
 
     var params = {
         entityType: types.entityType.tenant,
@@ -54,7 +56,25 @@ export default function EdgeController($scope, $filter, $translate, attributeSer
         }
     };
 
-    loadEdgeInfo();
+    if (vm.isGroupDetailsReadOnly) {
+        loadEdgeInfo();
+    } else {
+        loadEdgeName();
+    }
+
+    function loadEdgeName() {
+        edgeService.getEdgeSetting().then(
+            function success(edgeSettings) {
+                vm.edgeSettings.name = edgeSettings.data.name;
+                vm.edgeSettings.cloudType = edgeSettings.data.cloudType;
+                vm.edgeSettings.edgeId = edgeSettings.data.edgeId;
+                vm.edgeSettings.routingKey = edgeSettings.data.routingKey;
+                vm.edgeSettings.type = edgeSettings.data.type;
+            },
+            function fail() {
+            }
+        );
+    }
 
     function loadEdgeInfo() {
         attributeService.getEntityAttributesValues(params.entityType, params.entityId, params.attributeScope, params.keys, params.config)
