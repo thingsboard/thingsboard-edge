@@ -34,8 +34,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -49,17 +53,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
+public class EntityViewProcessor extends BaseProcessor {
 
     private final Lock entityViewCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> onEntityViewUpdate(TenantId tenantId, EntityViewUpdateMsg entityViewUpdateMsg) {
+    public ListenableFuture<Void> onEntityViewUpdate(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
         switch (entityViewUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
                     entityViewCreationLock.lock();
+
                     EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
                     boolean created = false;
                     if (entityView == null) {
@@ -80,21 +85,17 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                     entityView.setName(entityViewUpdateMsg.getName());
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
+                    CustomerId entityViewCustomerId = safeSetCustomerId(entityViewUpdateMsg, cloudType, entityView);
                     entityViewService.saveEntityView(entityView, created);
-
-                    if (isNonEmptyGroupId(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB())) {
-                        EntityGroupId entityGroupId =
-                                new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
-                        addEntityToGroup(tenantId, entityGroupId, entityView.getId());
-                    }
+                    addToEntityGroup(tenantId, customerId, entityViewUpdateMsg, cloudType, entityViewId, entityViewCustomerId);
                 } finally {
                     entityViewCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                if (isNonEmptyGroupId(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB())) {
-                    EntityGroupId entityGroupId =
-                            new EntityGroupId(new UUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB()));
+                UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB());
+                if (entityGroupUUID != null) {
+                    EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, entityViewId);
                 } else {
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
@@ -108,5 +109,35 @@ public class EntityViewUpdateProcessor extends BaseUpdateProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + entityViewUpdateMsg.getMsgType()));
         }
         return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId), future -> null, dbCallbackExecutor);
+    }
+
+    private CustomerId safeSetCustomerId(EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityView entityView) {
+        CustomerId entityViewCustomerId = safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB());;
+        if (CloudType.PE.equals(cloudType)) {
+            entityView.setCustomerId(entityViewCustomerId);
+        }
+        return entityViewCustomerId;
+    }
+
+    private void addToEntityGroup(TenantId tenantId, CustomerId customerId, EntityViewUpdateMsg entityViewUpdateMsg, CloudType cloudType, EntityViewId entityViewId, CustomerId entityViewCustomerId) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (entityViewCustomerId != null && entityViewCustomerId.equals(customerId)) {
+                EntityGroup customerEntityViewsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
+                entityGroupService.addEntityToEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
+            }
+            if ((entityViewCustomerId == null || entityViewCustomerId.isNullUid()) &&
+                    (customerId != null && !customerId.isNullUid())) {
+                EntityGroup customerEntityViewsEntityGroup =
+                        entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.ENTITY_VIEW);
+                entityGroupService.removeEntityFromEntityGroup(tenantId, customerEntityViewsEntityGroup.getId(), entityViewId);
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(entityViewUpdateMsg.getEntityGroupIdMSB(), entityViewUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, entityViewId);
+            }
+        }
     }
 }

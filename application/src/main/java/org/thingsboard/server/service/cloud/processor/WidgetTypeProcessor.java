@@ -46,7 +46,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class WidgetTypeUpdateProcessor extends BaseUpdateProcessor {
+public class WidgetTypeProcessor extends BaseProcessor {
 
     private final Lock widgetTypeCreationLock = new ReentrantLock();
 

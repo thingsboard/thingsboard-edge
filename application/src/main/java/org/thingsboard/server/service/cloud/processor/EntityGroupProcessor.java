@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -63,7 +64,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
+public class EntityGroupProcessor extends BaseProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
@@ -81,14 +82,19 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                         entityGroup.setId(entityGroupId);
                         created = true;
                     }
+
                     entityGroup.setName(entityGroupUpdateMsg.getName());
                     entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
                     entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
                     entityGroup.setAdditionalInfo(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()));
 
-                    // TODO: voba - parent ID is hardcoded. Should be updated in next releases
-                    entityGroup.setOwnerId(tenantId);
-                    entityGroupService.saveEntityGroup(tenantId, tenantId, entityGroup, created);
+                    EntityType ownerEntityType = EntityType.valueOf(entityGroupUpdateMsg.getOwnerEntityType());
+                    EntityId ownerId = tenantId;
+                    if (EntityType.CUSTOMER.equals(ownerEntityType)) {
+                        ownerId = new CustomerId(new UUID(entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB()));
+                    }
+                    entityGroup.setOwnerId(ownerId);
+                    entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, created);
 
                 } finally {
                     entityGroupCreationLock.unlock();
@@ -149,14 +155,17 @@ public class EntityGroupUpdateProcessor extends BaseUpdateProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + entityGroupUpdateMsg.getMsgType()));
         }
 
-        ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
+        ListenableFuture<List<CloudEvent>> future = Futures.immediateFuture(null);
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
             ObjectNode body = mapper.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
-            f = saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
+            List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
+            futures.add(saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body));
+            futures.add(saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body));
+            future = Futures.allAsList(futures);
         }
-        return Futures.transform(f, tmp -> null, dbCallbackExecutor);
+        return Futures.transform(future, tmp -> null, dbCallbackExecutor);
     }
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {

@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
+public class RuleChainProcessor extends BaseProcessor {
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -82,7 +82,9 @@ public class RuleChainUpdateProcessor extends BaseUpdateProcessor {
                     }
                     ruleChain.setName(ruleChainUpdateMsg.getName());
                     if (ruleChainUpdateMsg.getFirstRuleNodeIdMSB() != 0 && ruleChainUpdateMsg.getFirstRuleNodeIdLSB() != 0) {
-                        ruleChain.setFirstRuleNodeId(new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB())));
+                        RuleNodeId firstRuleNodeId =
+                                new RuleNodeId(new UUID(ruleChainUpdateMsg.getFirstRuleNodeIdMSB(), ruleChainUpdateMsg.getFirstRuleNodeIdLSB()));
+                        ruleChain.setFirstRuleNodeId(firstRuleNodeId);
                     }
                     ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
                     ruleChain.setRoot(false);

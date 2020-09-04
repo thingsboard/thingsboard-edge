@@ -40,5 +40,5 @@ public class EdgeSettings {
     private String name;
     private String type;
     private String routingKey;
-    private String cloudType;
+    private CloudType cloudType;
 }

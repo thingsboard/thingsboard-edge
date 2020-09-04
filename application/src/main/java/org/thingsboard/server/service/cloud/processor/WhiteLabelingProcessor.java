@@ -53,7 +53,7 @@ import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 
 @Component
 @Slf4j
-public class WhiteLabelingUpdateProcessor extends BaseUpdateProcessor {
+public class WhiteLabelingProcessor extends BaseProcessor {
 
     @Autowired
     private CustomTranslationService customTranslationService;

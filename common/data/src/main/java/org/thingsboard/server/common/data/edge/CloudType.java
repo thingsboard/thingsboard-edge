@@ -28,51 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.audit;
+package org.thingsboard.server.common.data.edge;
 
-import lombok.Getter;
-
-@Getter
-public enum ActionType {
-    ADDED(false), // log entity
-    DELETED(false), // log string id
-    UPDATED(false), // log entity
-    ATTRIBUTES_UPDATED(false), // log attributes/values
-    ATTRIBUTES_DELETED(false), // log attributes
-    TIMESERIES_DELETED(false), // log timeseries
-    TIMESERIES_UPDATED(false), // log timeseries
-    RPC_CALL(false), // log method and params
-    CREDENTIALS_UPDATED(false), // log new credentials
-    ASSIGNED_TO_CUSTOMER(false), // log customer name
-    UNASSIGNED_FROM_CUSTOMER(false), // log customer name
-    CHANGE_OWNER(false), // log customer name
-    ACTIVATED(false), // log string id
-    SUSPENDED(false), // log string id
-    CREDENTIALS_READ(true), // log device id
-    ATTRIBUTES_READ(true), // log attributes
-    RELATION_ADD_OR_UPDATE (false),
-    RELATION_DELETED (false),
-    RELATIONS_DELETED (false),
-    ALARM_ACK (false),
-    ALARM_CLEAR (false),
-    ADDED_TO_ENTITY_GROUP(false), // log entity group name
-    REMOVED_FROM_ENTITY_GROUP(false), // log entity group name
-    REST_API_RULE_ENGINE_CALL(false), // log call to rule engine from REST API
-    MADE_PUBLIC(false), // log entity group name
-    MADE_PRIVATE(false), // log entity group name
-    LOGIN(false),
-    LOGOUT(false),
-    LOCKOUT(false),
-    ATTRIBUTES_REQUEST(false),
-    RULE_CHAIN_METADATA_REQUEST(false),
-    RELATION_REQUEST(false),
-    CREDENTIALS_REQUEST(false),
-    GROUP_ENTITIES_REQUEST(false),
-    GROUP_PERMISSIONS_REQUEST(false);
-
-    private final boolean isRead;
-
-    ActionType(boolean isRead) {
-        this.isRead = isRead;
-    }
+public enum CloudType {
+    CE, PE
 }

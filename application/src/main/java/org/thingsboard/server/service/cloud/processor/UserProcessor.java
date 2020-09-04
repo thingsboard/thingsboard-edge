@@ -30,21 +30,16 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.gson.JsonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -58,21 +53,20 @@ import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
-public class UserUpdateProcessor extends BaseUpdateProcessor {
+public class UserProcessor extends BaseProcessor {
 
     private final Lock userCreationLock = new ReentrantLock();
 
     @Autowired
     private UserService userService;
 
-    public ListenableFuture<Void> onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg) {
+    public ListenableFuture<Void> onUserUpdate(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
         switch (userUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -87,47 +81,22 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
                         user.setId(userId);
                         created = true;
                     }
-                    if (userUpdateMsg.getCustomerIdMSB() != 0 && userUpdateMsg.getCustomerIdLSB() != 0) {
-                        CustomerId customerId = new CustomerId(new UUID(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB()));
-                        user.setCustomerId(customerId);
-                    }
                     user.setEmail(userUpdateMsg.getEmail());
                     user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
                     user.setFirstName(userUpdateMsg.getFirstName());
                     user.setLastName(userUpdateMsg.getLastName());
                     user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
+                    safeSetCustomerId(userUpdateMsg, user);
                     User savedUser = userService.saveUser(user, created);
-
-                    if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
-                        if (isFullAccess(savedUser.getAdditionalInfo())) {
-                            EntityGroup edgeTenantAdmins = entityGroupService.findOrCreateEdgeTenantAdminsGroup(savedUser.getTenantId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeTenantAdmins.getId(), savedUser.getId());
-                        } else {
-                            EntityGroup edgeTenantUsers = entityGroupService.findOrCreateEdgeTenantUsersGroup(savedUser.getTenantId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeTenantUsers.getId(), savedUser.getId());
-                        }
-                    } else {
-                        if (isFullAccess(savedUser.getAdditionalInfo())) {
-                            EntityGroup edgeCustomerAdmins = entityGroupService.findOrCreateEdgeCustomerAdminsGroup(savedUser.getTenantId(), savedUser.getCustomerId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCustomerAdmins.getId(), savedUser.getId());
-                        } else {
-                            EntityGroup edgeCustomerUsers = entityGroupService.findOrCreateEdgeCustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
-                            entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCustomerUsers.getId(), savedUser.getId());
-                        }
-                    }
-
-                    if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
-                        EntityGroupId entityGroupId = new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
-                        addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
-                    }
+                    addToEntityGroup(tenantId, userUpdateMsg, cloudType, savedUser);
                 } finally {
                     userCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                if (isNonEmptyGroupId(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB())) {
-                    EntityGroupId entityGroupId =
-                            new EntityGroupId(new UUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB()));
+                UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
+                if (entityGroupUUID != null) {
+                    EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
                     entityGroupService.removeEntityFromEntityGroup(tenantId, entityGroupId, userId);
                 } else {
                     User userToDelete = userService.findUserById(tenantId, userId);
@@ -154,11 +123,29 @@ public class UserUpdateProcessor extends BaseUpdateProcessor {
         return Futures.transform(t, tt -> null, dbCallbackExecutor);
     }
 
-    private boolean isFullAccess(JsonNode additionalInfo) {
-        if (additionalInfo != null && additionalInfo.has("isFullAccess")) {
-            return additionalInfo.get("isFullAccess").asBoolean();
+    private void addToEntityGroup(TenantId tenantId, UserUpdateMsg userUpdateMsg, CloudType cloudType, User savedUser) {
+        if (CloudType.CE.equals(cloudType)) {
+            if (Authority.TENANT_ADMIN.equals(savedUser.getAuthority())) {
+                EntityGroup edgeCETenantAdmins =
+                        entityGroupService.findOrCreateEdgeCETenantAdminsGroup(savedUser.getTenantId());
+                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCETenantAdmins.getId(), savedUser.getId());
+            } else {
+                EntityGroup edgeCECustomerUsers =
+                        entityGroupService.findOrCreateEdgeCECustomerUsersGroup(savedUser.getTenantId(), savedUser.getCustomerId());
+                entityGroupService.addEntityToEntityGroup(savedUser.getTenantId(), edgeCECustomerUsers.getId(), savedUser.getId());
+            }
+        } else {
+            UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(), userUpdateMsg.getEntityGroupIdLSB());
+            if (entityGroupUUID != null) {
+                EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                addEntityToGroup(tenantId, entityGroupId, savedUser.getId());
+            }
         }
-        return false;
+    }
+
+    private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
+        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB());
+        user.setCustomerId(customerId);
     }
 
     public ListenableFuture<Void> onUserCredentialsUpdate(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {
