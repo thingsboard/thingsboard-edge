@@ -131,4 +131,6 @@ public interface EntityGroupService {
     EntityGroup unassignEntityGroupFromEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType);
 
     ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType);
+
+    ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType);
 }

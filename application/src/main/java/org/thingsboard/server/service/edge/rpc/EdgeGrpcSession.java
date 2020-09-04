@@ -32,14 +32,13 @@ package org.thingsboard.server.service.edge.rpc;
 
 import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -48,6 +47,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -76,22 +76,24 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
@@ -112,6 +114,7 @@ import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.ConnectRequestMsg;
 import org.thingsboard.server.gen.edge.ConnectResponseCode;
@@ -126,7 +129,7 @@ import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
-import org.thingsboard.server.gen.edge.EntityGroupEntitiesRequestMsg;
+import org.thingsboard.server.gen.edge.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationRequestMsg;
@@ -153,11 +156,12 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -165,8 +169,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import static org.thingsboard.server.gen.edge.UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
 
 @Slf4j
 @Data
@@ -214,13 +216,14 @@ public final class EdgeGrpcSession implements Closeable {
             public void onNext(RequestMsg requestMsg) {
                 if (!connected && requestMsg.getMsgType().equals(RequestMsgType.CONNECT_RPC_MESSAGE)) {
                     ConnectResponseMsg responseMsg = processConnect(requestMsg.getConnectRequestMsg());
-                    sendResponseMsg(ResponseMsg.newBuilder()
+                    outputStream.onNext(ResponseMsg.newBuilder()
                             .setConnectResponseMsg(responseMsg)
                             .build());
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     }
                     if (ConnectResponseCode.ACCEPTED == responseMsg.getResponseCode()) {
+                        connected = true;
                         ctx.getSyncEdgeService().sync(edge);
                     }
                 }
@@ -241,6 +244,7 @@ public final class EdgeGrpcSession implements Closeable {
 
             @Override
             public void onCompleted() {
+                connected = false;
                 sessionCloseListener.accept(edge.getId());
                 outputStream.onCompleted();
             }
@@ -282,11 +286,17 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private void sendResponseMsg(ResponseMsg responseMsg) {
-        try {
-            responseMsgLock.lock();
-            outputStream.onNext(responseMsg);
-        } finally {
-            responseMsgLock.unlock();
+        if (isConnected()) {
+            try {
+                responseMsgLock.lock();
+                outputStream.onNext(responseMsg);
+            } catch (Exception e) {
+                log.error("Failed to send response message [{}]", responseMsg, e);
+                connected = false;
+                sessionCloseListener.accept(edge.getId());
+            } finally {
+                responseMsgLock.unlock();
+            }
         }
     }
 
@@ -364,10 +374,10 @@ public final class EdgeGrpcSession implements Closeable {
                 switch (edgeEventAction) {
                     case UPDATED:
                     case ADDED:
+                    case DELETED:
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
                     case ASSIGNED_TO_EDGE:
-                    case DELETED:
                     case UNASSIGNED_FROM_EDGE:
                     case ALARM_ACK:
                     case ALARM_CLEAR:
@@ -411,7 +421,7 @@ public final class EdgeGrpcSession implements Closeable {
         ctx.getAttributesService().save(edge.getTenantId(), edge.getId(), DataConstants.SERVER_SCOPE, attributes);
     }
 
-    private DownlinkMsg processTelemetryMessage(EdgeEvent edgeEvent) throws IOException {
+    private DownlinkMsg processTelemetryMessage(EdgeEvent edgeEvent) {
         log.trace("Executing processTelemetryMessage, edgeEvent [{}]", edgeEvent);
         EntityId entityId = null;
         switch (edgeEvent.getEdgeEventType()) {
@@ -432,6 +442,9 @@ public final class EdgeGrpcSession implements Closeable {
                 break;
             case CUSTOMER:
                 entityId = new CustomerId(edgeEvent.getEntityId());
+                break;
+            case ENTITY_GROUP:
+                entityId = new EntityGroupId(edgeEvent.getEntityId());
                 break;
         }
         DownlinkMsg downlinkMsg = null;
@@ -490,6 +503,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return processLoginWhiteLabeling(edgeEvent);
             case CUSTOM_TRANSLATION:
                 return processCustomTranslation(edgeEvent);
+            case ROLE:
+                return processRole(edgeEvent, msgType);
+            case GROUP_PERMISSION:
+                return processGroupPermission(edgeEvent, msgType);
             default:
                 log.warn("Unsupported edge event type [{}]", edgeEvent);
                 return null;
@@ -710,18 +727,6 @@ public final class EdgeGrpcSession implements Closeable {
                 User user = ctx.getUserService().findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
-
-                    try {
-                        MergedUserPermissions mergedPermissions = ctx.getUserPermissionsService().getMergedPermissions(user, false);
-                        boolean fullAccess = false;
-                        if (mergedPermissions.hasGenericPermission(Resource.DEVICE, Operation.WRITE)) {
-                            fullAccess = true;
-                        }
-                        setFullAccess(user, fullAccess);
-                    } catch (Exception e) {
-                        log.error("Can't get merged permissions, user [{}]", user, e);
-                    }
-
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .addAllUserUpdateMsg(Collections.singletonList(ctx.getUserUpdateMsgConstructor().constructUserUpdatedMsg(msgType, user, entityGroupId)))
                             .build();
@@ -745,15 +750,6 @@ public final class EdgeGrpcSession implements Closeable {
                 }
         }
         return downlinkMsg;
-    }
-
-    private void setFullAccess(User user, boolean isFullAccess) {
-        JsonNode additionalInfo = user.getAdditionalInfo();
-        if (additionalInfo == null || additionalInfo instanceof NullNode) {
-            additionalInfo = mapper.createObjectNode();
-        }
-        ((ObjectNode) additionalInfo).put("isFullAccess", isFullAccess);
-        user.setAdditionalInfo(additionalInfo);
     }
 
     private DownlinkMsg processRelation(EdgeEvent edgeEvent, UpdateMsgType msgType) {
@@ -824,9 +820,9 @@ public final class EdgeGrpcSession implements Closeable {
             case DELETED:
                 WidgetTypeUpdateMsg widgetTypeUpdateMsg =
                         ctx.getWidgetTypeUpdateMsgConstructor().constructWidgetTypeDeleteMsg(widgetTypeId);
-               downlinkMsg = DownlinkMsg.newBuilder()
-                       .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
-                       .build();
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllWidgetTypeUpdateMsg(Collections.singletonList(widgetTypeUpdateMsg))
+                        .build();
                 break;
         }
         return downlinkMsg;
@@ -903,6 +899,54 @@ public final class EdgeGrpcSession implements Closeable {
                 .build();
     }
 
+    private DownlinkMsg processRole(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        RoleId roleId = new RoleId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Role role = ctx.getRoleService().findRoleById(edgeEvent.getTenantId(), roleId);
+                if (role != null) {
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .addAllRoleMsg(Collections.singletonList(ctx.getRoleProtoConstructor().constructRoleProto(msgType, role)))
+                            .build();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllRoleMsg(Collections.singletonList(ctx.getRoleProtoConstructor().constructRoleDeleteMsg(roleId)))
+                        .build();
+                break;
+        }
+        return downlinkMsg;
+    }
+
+    private DownlinkMsg processGroupPermission(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                GroupPermission groupPermission = ctx.getGroupPermissionService().findGroupPermissionById(edgeEvent.getTenantId(), groupPermissionId);
+                if (groupPermission != null) {
+                    downlinkMsg = DownlinkMsg.newBuilder()
+                            .addAllGroupPermissionMsg(
+                                    Collections.singletonList(
+                                            ctx.getGroupPermissionProtoConstructor().constructGroupPermissionProto(msgType, groupPermission)))
+                            .build();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .addAllGroupPermissionMsg(
+                                Collections.singletonList(
+                                        ctx.getGroupPermissionProtoConstructor().constructGroupPermissionDeleteMsg(groupPermissionId)))
+                        .build();
+                break;
+        }
+        return downlinkMsg;
+    }
+
     private DownlinkMsg processAdminSettings(EdgeEvent edgeEvent) {
         AdminSettings adminSettings = mapper.convertValue(edgeEvent.getEntityBody(), AdminSettings.class);
         AdminSettingsUpdateMsg t = ctx.getAdminSettingsUpdateMsgConstructor().constructAdminSettingsUpdateMsg(adminSettings);
@@ -915,12 +959,14 @@ public final class EdgeGrpcSession implements Closeable {
         switch (actionType) {
             case UPDATED:
             case CREDENTIALS_UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case ASSIGNED_TO_EDGE:
             case RELATION_ADD_OR_UPDATE:
-                return ENTITY_CREATED_RPC_MESSAGE;
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
             case DELETED:
             case UNASSIGNED_FROM_EDGE:
             case RELATION_DELETED:
@@ -959,6 +1005,9 @@ public final class EdgeGrpcSession implements Closeable {
                             result.add(processPostTelemetry(entityId, entityData.getPostTelemetryMsg(), metaData));
                         }
                     }
+                    if (entityData.hasAttributeDeleteMsg()) {
+                        result.add(processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType()));
+                    }
                 }
             }
 
@@ -978,8 +1027,8 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
             if (uplinkMsg.getRelationUpdateMsgList() != null && !uplinkMsg.getRelationUpdateMsgList().isEmpty()) {
-                for (RelationUpdateMsg relationUpdateMsg: uplinkMsg.getRelationUpdateMsgList()) {
-                    onRelationUpdate(relationUpdateMsg);
+                for (RelationUpdateMsg relationUpdateMsg : uplinkMsg.getRelationUpdateMsgList()) {
+                    result.add(onRelationUpdate(relationUpdateMsg));
                 }
             }
             if (uplinkMsg.getRuleChainMetadataRequestMsgList() != null && !uplinkMsg.getRuleChainMetadataRequestMsgList().isEmpty()) {
@@ -1008,8 +1057,13 @@ public final class EdgeGrpcSession implements Closeable {
                 }
             }
             if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
-                for (EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
-                    ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg);
+                for (EntityGroupRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
+                    result.add(ctx.getSyncEdgeService().processEntityGroupEntitiesRequest(edge, entityGroupEntitiesRequestMsg));
+                }
+            }
+            if (uplinkMsg.getEntityGroupPermissionsRequestMsgList() != null && !uplinkMsg.getEntityGroupPermissionsRequestMsgList().isEmpty()) {
+                for (EntityGroupRequestMsg userGroupPermissionsRequestMsg : uplinkMsg.getEntityGroupPermissionsRequestMsgList()) {
+                    result.add(ctx.getSyncEdgeService().processEntityGroupPermissionsRequest(edge, userGroupPermissionsRequestMsg));
                 }
             }
         } catch (Exception e) {
@@ -1042,6 +1096,13 @@ public final class EdgeGrpcSession implements Closeable {
                     metaData.putValue("entityViewType", entityView.getType());
                 }
                 break;
+            case ENTITY_GROUP:
+                EntityGroup entityGroup = ctx.getEntityGroupService().findEntityGroupById(edge.getTenantId(), new EntityGroupId(entityId.getId()));
+                if (entityGroup != null) {
+                    metaData.putValue("entityGroupName", entityGroup.getName());
+                    metaData.putValue("entityGroupType", entityGroup.getType().name());
+                }
+                break;
             default:
                 log.debug("Using empty metadata for entityId [{}]", entityId);
                 break;
@@ -1064,6 +1125,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case CUSTOMER:
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case USER:
+                return new UserId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case ENTITY_GROUP:
+                return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;
@@ -1071,22 +1136,71 @@ public final class EdgeGrpcSession implements Closeable {
     }
 
     private ListenableFuture<Void> processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
             metaData.putValue("ts", tsKv.getTs() + "");
             TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
-            // TODO: voba - verify that null callback is OK
-            ctx.getTbClusterService().pushMsgToRuleEngine(edge.getTenantId(), tbMsg.getOriginator(), tbMsg, null);
+            ctx.getTbClusterService().pushMsgToRuleEngine(edge.getTenantId(), tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't process post telemetry [{}]", msg, t);
+                    futureToSet.setException(t);
+                }
+            });
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
-        // TODO: voba - verify that null callback is OK
-        ctx.getTbClusterService().pushMsgToRuleEngine(edge.getTenantId(), tbMsg.getOriginator(), tbMsg, null);
-        return Futures.immediateFuture(null);
+        ctx.getTbClusterService().pushMsgToRuleEngine(edge.getTenantId(), tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
+                futureToSet.set(null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Can't process post attributes [{}]", msg, t);
+                futureToSet.setException(t);
+            }
+        });
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        String scope = attributeDeleteMsg.getScope();
+        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
+        ctx.getAttributesService().removeAll(edge.getTenantId(), entityId, scope, attributeNames);
+        if (EntityType.DEVICE.name().equals(entityType)) {
+            Set<AttributeKey> attributeKeys = new HashSet<>();
+            for (String attributeName : attributeNames) {
+                attributeKeys.add(new AttributeKey(scope, attributeName));
+            }
+            ctx.getTbClusterService().pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
+                    edge.getTenantId(), (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, t);
+                    futureToSet.setException(t);
+                }
+            });
+        }
+        return futureToSet;
     }
 
     private ListenableFuture<Void> onDeviceUpdate(DeviceUpdateMsg deviceUpdateMsg) {
@@ -1269,11 +1383,13 @@ public final class EdgeGrpcSession implements Closeable {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
                     // TODO: voba - handle success
+                    log.debug("Successfully send ENTITY_CREATED EVENT to rule engine [{}]", device);
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
                     // TODO: voba - handle failure
+                    log.debug("Failed to send ENTITY_CREATED EVENT to rule engine [{}]", device, t);
                 }
             });
         } catch (JsonProcessingException | IllegalArgumentException e) {
@@ -1400,12 +1516,12 @@ public final class EdgeGrpcSession implements Closeable {
             }
             return Futures.immediateFuture(null);
         } catch (Exception e) {
-            log.error("Error during finding existent alarm", e);
-            return Futures.immediateFailedFuture(new RuntimeException("Error during finding existent alarm", e));
+            log.error("Failed to process alarm update msg [{}]", alarmUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Failed to process alarm update msg", e));
         }
     }
 
-    private void onRelationUpdate(RelationUpdateMsg relationUpdateMsg) {
+    private ListenableFuture<Void> onRelationUpdate(RelationUpdateMsg relationUpdateMsg) {
         log.info("onRelationUpdate {}", relationUpdateMsg);
         try {
             EntityRelation entityRelation = new EntityRelation();
@@ -1435,8 +1551,10 @@ public final class EdgeGrpcSession implements Closeable {
                 case UNRECOGNIZED:
                     log.error("Unsupported msg type");
             }
+            return Futures.immediateFuture(null);
         } catch (Exception e) {
-            log.error("Error during relation update msg", e);
+            log.error("Failed to process relation update msg [{}]", relationUpdateMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException("Failed to process relation update msg", e));
         }
     }
 
@@ -1465,7 +1583,6 @@ public final class EdgeGrpcSession implements Closeable {
             edge = optional.get();
             try {
                 if (edge.getSecret().equals(request.getEdgeSecret())) {
-                    connected = true;
                     sessionOpenListener.accept(edge.getId(), this);
                     return ConnectResponseMsg.newBuilder()
                             .setResponseCode(ConnectResponseCode.ACCEPTED)

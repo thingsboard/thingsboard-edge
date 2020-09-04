@@ -56,6 +56,10 @@ public class AssetUpdateMsgConstructor {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
+        if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(asset.getCustomerId().getId().getLeastSignificantBits());
+        }
         return builder.build();
     }
 

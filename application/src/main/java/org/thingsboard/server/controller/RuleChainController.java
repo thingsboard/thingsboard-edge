@@ -160,8 +160,9 @@ public class RuleChainController extends BaseController {
                     created ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (RuleChainType.EDGE.equals(savedRuleChain.getType())) {
-                sendNotificationMsgToEdgeService(savedRuleChain.getTenantId(), savedRuleChain.getId(),
-                        created ? ActionType.ADDED : ActionType.UPDATED);
+                if (!created) {
+                    sendNotificationMsgToEdgeService(savedRuleChain.getTenantId(), savedRuleChain.getId(), ActionType.UPDATED);
+                }
             }
 
             return savedRuleChain;

@@ -121,9 +121,6 @@ public class DeviceController extends BaseController {
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
 
-            sendNotificationMsgToEdgeService(savedDevice.getTenantId(), savedDevice.getId(),
-                    device.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
-
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);
             } else {

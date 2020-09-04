@@ -56,6 +56,10 @@
            ng-if="'dashboardGroup' | hasGenericPermission:'read'"
            ng-show="!hideManageDashboards && !isEdit"
            class="md-raised md-primary">{{ 'customer.manage-dashboard-groups' | translate }}</md-button>
+<md-button ng-click="onManageEdges({event: $event})"
+		   ng-if="'edgeGroup' | hasGenericPermission:'read'"
+		   ng-show="!hideManageEdges && !isEdit"
+		   class="md-raised md-primary">{{ 'customer.manage-edge-groups' | translate }}</md-button>
 <md-button ng-click="onDeleteCustomer({event: $event})"
            ng-if="entityGroup | hasGroupEntityPermission:'delete'"
            ng-show="!hideDelete && !isEdit && !isPublic"

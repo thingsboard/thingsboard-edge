@@ -775,6 +775,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return relationsToEntityGroups(tenantId, relations);
     }
 
+    @Override
+    public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
+        log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
+        validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        return relationService.checkRelation(tenantId, edgeId, entityGroupId,
+                EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
+                , RelationTypeGroup.EDGE);
+    }
+
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
         ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
                 EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -180,6 +181,13 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
         log.debug("Try to find edges by tenantId [{}], entityGroupId [{}]", tenantId, entityGroupId);
         String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new EntityGroupId(entityGroupId), relationType, RelationTypeGroup.EDGE);
+        return transformFromRelationToEdge(tenantId, relations);
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId) {
+        log.debug("Try to find edges by tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new DashboardId(dashboardId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
         return transformFromRelationToEdge(tenantId, relations);
     }
 

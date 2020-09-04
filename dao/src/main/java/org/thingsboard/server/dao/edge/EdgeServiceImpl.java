@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -66,7 +67,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -81,8 +81,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
@@ -115,9 +117,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
 
     @Autowired
     private CacheManager cacheManager;
-
-    @Autowired
-    private DashboardService dashboardService;
 
     @Autowired
     private RuleChainService ruleChainService;
@@ -190,11 +189,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
 
         Edge edge = edgeDao.findById(tenantId, edgeId.getId());
-
-        // TODO: voba - properly handle edge remove
-        // dashboardService.unassignEdgeDashboards(tenantId, edgeId);
-        // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
-        ruleChainService.unassignEdgeRuleChains(tenantId, edgeId);
 
         List<Object> list = new ArrayList<>();
         list.add(edge.getTenantId());
@@ -396,6 +390,14 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         return edgeDao.findEdgesByTenantIdAndEntityGroupId(tenantId.getId(), entityGroupId.getId(), groupType);
     }
 
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(TenantId tenantId, DashboardId dashboardId) {
+        log.trace("Executing findEdgesByTenantIdAndDashboardId, tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(dashboardId, "Incorrect dashboardId " + dashboardId);
+        return edgeDao.findEdgesByTenantIdAndDashboardId(tenantId.getId(), dashboardId.getId());
+    }
+
     private DataValidator<Edge> edgeValidator =
             new DataValidator<Edge>() {
 
@@ -497,5 +499,64 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             unassignEdgeFromCustomer(tenantId, new EdgeId(entity.getUuidId()));
         }
     };
+
+    @Override
+    public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {
+        switch (entityId.getEntityType()) {
+            case USER:
+            case DEVICE:
+            case ASSET:
+            case ENTITY_VIEW:
+            case DASHBOARD:
+                ListenableFuture<List<EntityGroupId>> entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                ListenableFuture<List<List<Edge>>> mergedFuture = Futures.transformAsync(entityGroupsForEntity, entityGroupIds -> {
+                    List<ListenableFuture<List<Edge>>> futures = new ArrayList<>();
+                    if (entityGroupIds != null && !entityGroupIds.isEmpty()) {
+                        for (EntityGroupId entityGroupId : entityGroupIds) {
+                            futures.add(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, entityId.getEntityType()));
+                        }
+                    }
+                    return Futures.successfulAsList(futures);
+                }, MoreExecutors.directExecutor());
+                return Futures.transform(mergedFuture, listOfEdges -> {
+                    Set<EdgeId> result = new HashSet<>();
+                    if (listOfEdges != null && !listOfEdges.isEmpty()) {
+                        for (List<Edge> edges : listOfEdges) {
+                            if (edges != null && !edges.isEmpty()) {
+                                for (Edge edge : edges) {
+                                    result.add(edge.getId());
+                                }
+                            }
+                        }
+                    }
+                    return new ArrayList<>(result);
+                }, MoreExecutors.directExecutor());
+            case RULE_CHAIN:
+                return convertToEdgeIds(findEdgesByTenantIdAndRuleChainId(tenantId, new RuleChainId(entityId.getId())));
+            case SCHEDULER_EVENT:
+                return convertToEdgeIds(findEdgesByTenantIdAndSchedulerEventId(tenantId, new SchedulerEventId(entityId.getId())));
+            case ENTITY_GROUP:
+                EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
+                EntityType groupType;
+                if (groupTypeStr != null) {
+                    groupType = EntityType.valueOf(groupTypeStr);
+                } else {
+                    groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
+                }
+                return convertToEdgeIds(findEdgesByTenantIdAndEntityGroupId(tenantId, entityGroupId, groupType));
+            default:
+                return Futures.immediateFuture(Collections.emptyList());
+        }
+    }
+
+    private ListenableFuture<List<EdgeId>> convertToEdgeIds(ListenableFuture<List<Edge>> future) {
+        return Futures.transform(future, edges -> {
+            if (edges != null && !edges.isEmpty()) {
+                return edges.stream().map(IdBased::getId).collect(Collectors.toList());
+            } else {
+                return Collections.emptyList();
+            }
+        }, MoreExecutors.directExecutor());
+    }
 
 }

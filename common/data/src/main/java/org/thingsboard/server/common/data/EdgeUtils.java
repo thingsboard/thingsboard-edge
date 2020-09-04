@@ -39,6 +39,8 @@ public final class EdgeUtils {
 
     public static EdgeEventType getEdgeEventTypeByEntityType(EntityType entityType) {
         switch (entityType) {
+            case EDGE:
+                return EdgeEventType.EDGE;
             case DEVICE:
                 return EdgeEventType.DEVICE;
             case ASSET:
@@ -65,6 +67,10 @@ public final class EdgeUtils {
                 return EdgeEventType.ENTITY_GROUP;
             case SCHEDULER_EVENT:
                 return EdgeEventType.SCHEDULER_EVENT;
+            case ROLE:
+                return EdgeEventType.ROLE;
+            case GROUP_PERMISSION:
+                return EdgeEventType.GROUP_PERMISSION;
             default:
                 return null;
         }

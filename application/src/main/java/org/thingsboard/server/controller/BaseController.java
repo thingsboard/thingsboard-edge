@@ -1132,6 +1132,18 @@ public abstract class BaseController {
         }
     }
 
+    protected void sendChangeOwnerNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
+        try {
+            EdgeEventType edgeEventType = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
+            if (edgeEventType != null) {
+                sendNotificationMsgToEdgeService(tenantId, null, entityId,
+                        json.writeValueAsString(previousOwnerId), edgeEventType, ActionType.CHANGE_OWNER, null, null);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
+        }
+    }
+
     private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String entityBody,
                                                   EdgeEventType edgeEventType, ActionType edgeEventAction,
                                                   EntityType entityGroupType, EntityGroupId entityGroupId) {

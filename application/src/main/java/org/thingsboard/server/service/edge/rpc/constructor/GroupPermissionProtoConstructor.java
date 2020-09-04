@@ -32,35 +32,37 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.common.data.id.GroupPermissionId;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.gen.edge.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class EntityGroupUpdateMsgConstructor {
+public class GroupPermissionProtoConstructor {
 
-    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
-        EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
+    public GroupPermissionProto constructGroupPermissionProto(UpdateMsgType msgType, GroupPermission groupPermission) {
+        GroupPermissionProto.Builder builder = GroupPermissionProto.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
-                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits())
-                .setName(entityGroup.getName())
-                .setType(entityGroup.getType().name())
-                .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
-                .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
-                .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
-                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
-                .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
+                .setIdMSB(groupPermission.getId().getId().getMostSignificantBits())
+                .setIdLSB(groupPermission.getId().getId().getLeastSignificantBits())
+                .setUserGroupIdMSB(groupPermission.getUserGroupId().getId().getMostSignificantBits())
+                .setUserGroupIdLSB(groupPermission.getUserGroupId().getId().getLeastSignificantBits())
+                .setRoleIdMSB(groupPermission.getRoleId().getId().getMostSignificantBits())
+                .setRoleIdLSB(groupPermission.getRoleId().getId().getLeastSignificantBits())
+                .setIsPublic(groupPermission.isPublic());
+        if (groupPermission.getEntityGroupId() != null) {
+            builder.setEntityGroupIdMSB(groupPermission.getEntityGroupId().getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(groupPermission.getEntityGroupId().getId().getLeastSignificantBits())
+                    .setEntityGroupType(groupPermission.getEntityGroupType().name());
+        }
         return builder.build();
     }
 
-    public EntityGroupUpdateMsg constructEntityGroupDeleteMsg(EntityGroupId entityGroupId) {
-        return EntityGroupUpdateMsg.newBuilder()
+    public GroupPermissionProto constructGroupPermissionDeleteMsg(GroupPermissionId groupPermissionId) {
+        return GroupPermissionProto.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(entityGroupId.getId().getMostSignificantBits())
-                .setIdLSB(entityGroupId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(groupPermissionId.getId().getMostSignificantBits())
+                .setIdLSB(groupPermissionId.getId().getLeastSignificantBits()).build();
     }
 }

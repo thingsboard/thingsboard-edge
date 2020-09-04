@@ -32,35 +32,39 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.RoleProto;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class EntityGroupUpdateMsgConstructor {
+public class RoleProtoConstructor {
 
-    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
-        EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
+    public RoleProto constructRoleProto(UpdateMsgType msgType, Role role) {
+        RoleProto.Builder builder = RoleProto.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
-                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits())
-                .setName(entityGroup.getName())
-                .setType(entityGroup.getType().name())
-                .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
-                .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
-                .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
-                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
-                .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
+                .setIdMSB(role.getId().getId().getMostSignificantBits())
+                .setIdLSB(role.getId().getId().getLeastSignificantBits())
+                .setTenantIdMSB(role.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(role.getTenantId().getId().getLeastSignificantBits())
+                .setName(role.getName())
+                .setType(role.getType().name())
+                .setAdditionalInfo(JacksonUtil.toString(role.getAdditionalInfo()))
+                .setPermissions(JacksonUtil.toString(role.getPermissions()));
+        if (role.getCustomerId() != null && !role.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(role.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(role.getCustomerId().getId().getLeastSignificantBits());
+        }
+
         return builder.build();
     }
 
-    public EntityGroupUpdateMsg constructEntityGroupDeleteMsg(EntityGroupId entityGroupId) {
-        return EntityGroupUpdateMsg.newBuilder()
+    public RoleProto constructRoleDeleteMsg(RoleId roleId) {
+        return RoleProto.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(entityGroupId.getId().getMostSignificantBits())
-                .setIdLSB(entityGroupId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(roleId.getId().getMostSignificantBits())
+                .setIdLSB(roleId.getId().getLeastSignificantBits()).build();
     }
 }

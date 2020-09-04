@@ -58,14 +58,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
 import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -228,6 +225,7 @@ public class TbMsgPushToEdgeNode implements TbNode {
             case DASHBOARD:
             case TENANT:
             case CUSTOMER:
+            case ENTITY_GROUP:
                 return true;
             default:
                 return false;
@@ -247,14 +245,7 @@ public class TbMsgPushToEdgeNode implements TbNode {
             TextPageData<Edge> edgesByTenantId = ctx.getEdgeService().findEdgesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
             return Futures.immediateFuture(edgesByTenantId.getData().stream().map(IdBased::getId).collect(Collectors.toList()));
         } else {
-            ListenableFuture<List<EntityRelation>> future = ctx.getRelationService().findByToAndTypeAsync(tenantId, originatorId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
-            return Futures.transform(future, relations -> {
-                List<EdgeId> result = new ArrayList<>();
-                if (relations != null && relations.size() > 0) {
-                    result.add(new EdgeId(relations.get(0).getFrom().getId()));
-                }
-                return result;
-            }, ctx.getDbCallbackExecutor());
+            return ctx.getEdgeService().findRelatedEdgeIdsByEntityId(tenantId, originatorId, null);
         }
     }
 

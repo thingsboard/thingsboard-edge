@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -134,6 +135,13 @@ public class CassandraEdgeDao extends CassandraAbstractSearchTextDao<EdgeEntity,
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndSchedulerEventId(UUID tenantId, UUID schedulerEventId) {
         log.debug("Try to find edges by tenantId [{}], schedulerEventId [{}]", tenantId, schedulerEventId);
         ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new SchedulerEventId(schedulerEventId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
+        return transformFromRelationToEdge(tenantId, relations);
+    }
+
+    @Override
+    public ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(UUID tenantId, UUID dashboardId) {
+        log.debug("Try to find edges by tenantId [{}], dashboardId [{}]", tenantId, dashboardId);
+        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(new TenantId(tenantId), new DashboardId(dashboardId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
         return transformFromRelationToEdge(tenantId, relations);
     }
 

@@ -114,8 +114,10 @@ public class SchedulerEventController extends BaseController {
                     savedSchedulerEvent.getCustomerId(),
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(),
-                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            if (schedulerEvent.getId() != null) {
+                sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(),
+                        ActionType.UPDATED);
+            }
 
             if (schedulerEvent.getId() == null) {
                 schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
@@ -266,7 +268,7 @@ public class SchedulerEventController extends BaseController {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
             SchedulerEventInfo schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.UNASSIGN_FROM_EDGE);
 
-            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId, false));
+            SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
             logEntityAction(schedulerEventId, schedulerEvent,
                     null,

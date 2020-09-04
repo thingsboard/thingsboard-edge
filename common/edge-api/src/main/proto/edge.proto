@@ -169,21 +169,25 @@ message DashboardUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string title = 4;
-  string configuration = 5;
-  int64 entityGroupIdMSB = 6;
-  int64 entityGroupIdLSB = 7;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string title = 6;
+  string configuration = 7;
+  int64 entityGroupIdMSB = 8;
+  int64 entityGroupIdLSB = 9;
 }
 
 message DeviceUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4;
-  string type = 5;
-  string label = 6;
-  int64 entityGroupIdMSB = 7;
-  int64 entityGroupIdLSB = 8;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string label = 8;
+  int64 entityGroupIdMSB = 9;
+  int64 entityGroupIdLSB = 10;
 }
 
 message DeviceCredentialsUpdateMsg {
@@ -198,25 +202,28 @@ message AssetUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4;
-  string type = 5;
-  string label = 6;
-  int64 entityGroupIdMSB = 7;
-  int64 entityGroupIdLSB = 8;
-
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string label = 8;
+  int64 entityGroupIdMSB = 9;
+  int64 entityGroupIdLSB = 10;
 }
 
 message EntityViewUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4;
-  string type = 5;
-  int64 entityIdMSB = 6;
-  int64 entityIdLSB = 7;
-  EdgeEntityType entityType = 8;
-  int64 entityGroupIdMSB = 9;
-  int64 entityGroupIdLSB = 10;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  int64 entityIdMSB = 8;
+  int64 entityIdLSB = 9;
+  EdgeEntityType entityType = 10;
+  int64 entityGroupIdMSB = 11;
+  int64 entityGroupIdLSB = 12;
 }
 
 message AlarmUpdateMsg {
@@ -340,7 +347,7 @@ message DeviceCredentialsRequestMsg {
   int64 deviceIdLSB = 2;
 }
 
-message EntityGroupEntitiesRequestMsg {
+message EntityGroupRequestMsg {
   int64 entityGroupIdMSB = 1;
   int64 entityGroupIdLSB = 2;
   string type = 3;
@@ -350,10 +357,12 @@ message SchedulerEventUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
   int64 idLSB = 3;
-  string name = 4;
-  string type = 5;
-  string schedule = 6;
-  string configuration = 7;
+  int64 customerIdMSB = 4;
+  int64 customerIdLSB = 5;
+  string name = 6;
+  string type = 7;
+  string schedule = 8;
+  string configuration = 9;
 }
 
 message EntityGroupUpdateMsg {
@@ -364,8 +373,9 @@ message EntityGroupUpdateMsg {
   string type = 5;
   int64 ownerIdMSB = 6;
   int64 ownerIdLSB = 7;
-  string additionalInfo = 8;
-  string configuration = 9;
+  string ownerEntityType = 8;
+  string additionalInfo = 9;
+  string configuration = 10;
 }
 
 enum EdgeEntityType {
@@ -428,6 +438,33 @@ message CustomTranslationProto {
   map<string, string> translationMap = 1;
 }
 
+message RoleProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  int64 customerIdMSB = 6;
+  int64 customerIdLSB = 7;
+  string name = 8;
+  string type = 9;
+  string additionalInfo = 10;
+  string permissions = 11;
+}
+
+message GroupPermissionProto {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  int64 userGroupIdMSB = 4;
+  int64 userGroupIdLSB = 5;
+  int64 roleIdMSB = 6;
+  int64 roleIdLSB = 7;
+  int64 entityGroupIdMSB = 8;
+  int64 entityGroupIdLSB = 9;
+  string entityGroupType = 10;
+  bool isPublic = 11;
+}
 
 /**
  * Main Messages;
@@ -445,7 +482,8 @@ message UplinkMsg {
   repeated RelationRequestMsg relationRequestMsg = 9;
   repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
   repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
-  repeated EntityGroupEntitiesRequestMsg entityGroupEntitiesRequestMsg = 12;
+  repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 12;
+  repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 13;
 }
 
 message UplinkResponseMsg {
@@ -482,4 +520,6 @@ message DownlinkMsg {
   repeated CustomTranslationProto customTranslationMsg = 21;
   repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 22;
   repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 23;
+  repeated RoleProto roleMsg = 24;
+  repeated GroupPermissionProto groupPermissionMsg = 25;
 }
