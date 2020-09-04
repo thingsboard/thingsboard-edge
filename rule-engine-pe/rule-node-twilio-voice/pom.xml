@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -30,37 +31,74 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
         <version>3.1.1PE-SNAPSHOT</version>
-        <artifactId>thingsboard</artifactId>
+        <artifactId>rule-engine-pe</artifactId>
     </parent>
-    <artifactId>rule-engine-pe</artifactId>
-    <packaging>pom</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.thingsboard.rule-engine-pe</groupId>
+    <artifactId>rule-node-twilio-voice</artifactId>
+    <packaging>jar</packaging>
 
-    <name>Thingsboard PE Professional Rule Engine Components</name>
+    <name>Thingsboard PE Twilio Voice Rule Node</name>
     <url>https://thingsboard.io</url>
 
     <properties>
-        <main.dir>${basedir}/..</main.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <main.dir>${basedir}/../..</main.dir>
+        <twilio.version>7.54.2</twilio.version>
     </properties>
 
-    <modules>
-        <module>rule-node-twilio-sms</module>
-        <module>rule-node-twilio-voice</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>data</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>util</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>message</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.rule-engine</groupId>
+            <artifactId>rule-engine-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>${twilio.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
+                <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <skip>true</skip>
+                    <descriptors>
+                        <descriptor>src/assembly/rule-node.xml</descriptor>
+                    </descriptors>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
