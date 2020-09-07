@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.sql.group;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.type.UUIDCharType;
 import org.springframework.stereotype.Repository;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,7 +53,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
 public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
 
     private static final Map<EntityType, String> entityTableMap = new HashMap<>();
+
     static {
         entityTableMap.put(EntityType.ASSET, "asset");
         entityTableMap.put(EntityType.DEVICE, "device");
@@ -87,7 +89,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
         String countQuery = String.format("select count(entity0_.id) from %s as entity0_, relation as relation1_ where %s",
                 entityTableMap.get(entityType), this.buildWhere(mappings, entityType, groupId, pageLink.getTextSearch()));
 
-        int totalElements = ((BigInteger)entityManager.createNativeQuery(countQuery)
+        int totalElements = ((BigInteger) entityManager.createNativeQuery(countQuery)
                 .getSingleResult()).intValue();
 
         int aliasCounter = 0;
@@ -142,8 +144,15 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
             criteriaQuery = String.format("%s limit %s offset %s", criteriaQuery, pageLink.getPageSize(), startIndex);
         }
 
-        List result = entityManager.createNativeQuery(criteriaQuery).getResultList();
-        int totalPages = pageLink.getPageSize() > 0 ? (int)Math.ceil((float)totalElements / pageLink.getPageSize()) : 1;
+        List result = entityManager.createNativeQuery(criteriaQuery)
+                .unwrap(NativeQuery.class)
+                .addScalar("alias0", UUIDCharType.INSTANCE)
+                .addScalar("alias1")
+                .addScalar("alias2")
+                .addScalar("alias3")
+                .getResultList();
+
+        int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
         boolean hasNext = pageLink.getPageSize() > 0 && totalElements > startIndex + result.size();
         List<ShortEntityView> entityViews = convertListToShortEntityView(result, entityType, mappings);
         return new PageData<>(entityViews, totalPages, totalElements, hasNext);
@@ -184,7 +193,12 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 this.buildSingleEntityGroupRelationQuery(entityId, groupId));
 
         try {
-            Object result = entityManager.createNativeQuery(criteriaQuery).getSingleResult();
+            Object result = entityManager.createNativeQuery(criteriaQuery).unwrap(NativeQuery.class)
+                    .addScalar("alias0", UUIDCharType.INSTANCE)
+                    .addScalar("alias1")
+                    .addScalar("alias2")
+                    .addScalar("alias3")
+                    .getSingleResult();
             return toShortEntityView(result, entityId.getEntityType(), mappings);
         } catch (NoResultException e) {
             return null;
@@ -203,11 +217,11 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
 
     private String buildGroupRelationQuery(EntityType entityType, UUID groupId) {
         return String.format("entity0_.id=relation1_.to_id" +
-                " and relation1_.to_type='%s'" +
-                " and relation1_.relation_type_group='%s'" +
-                " and relation1_.relation_type='Contains'" +
-                " and relation1_.from_type='%s'" +
-                " and relation1_.from_id='%s'",
+                        " and relation1_.to_type='%s'" +
+                        " and relation1_.relation_type_group='%s'" +
+                        " and relation1_.relation_type='Contains'" +
+                        " and relation1_.from_type='%s'" +
+                        " and relation1_.from_id='%s'",
                 entityType.name(),
                 RelationTypeGroup.FROM_ENTITY_GROUP.name(),
                 EntityType.ENTITY_GROUP.name(),
@@ -296,9 +310,8 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
     }
 
     private ShortEntityView toShortEntityView(Object obj, EntityType entityType, List<ColumnMapping> columns) {
-        byte[] idBytes = obj instanceof byte[] ? (byte[])obj : (byte[])((Object[]) obj)[0];
-        ByteBuffer idBytesBuf = ByteBuffer.wrap(idBytes);
-        EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, new UUID(idBytesBuf.getLong(), idBytesBuf.getLong()));
+        UUID id = obj instanceof UUID ? (UUID) obj : (UUID) ((Object[]) obj)[0];
+        EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, id);
         ShortEntityView entity = new ShortEntityView(entityId);
         for (ColumnMapping column : columns) {
             if (column.column.getType() == ColumnType.ENTITY_FIELD && column.entityField == EntityField.CREATED_TIME) {
@@ -346,7 +359,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
         List<ColumnMapping> columnMappings = new ArrayList<>();
         int index = 0;
         Set<String> uniqueProperties = new HashSet<>();
-        for (ColumnConfiguration column: columns) {
+        for (ColumnConfiguration column : columns) {
             ColumnMapping mapping = toColumnMapping(column);
             if (mapping != null) {
                 if (uniqueProperties.add(mapping.propertyName)) {
@@ -359,7 +372,7 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 }
             }
         }
-       return columnMappings;
+        return columnMappings;
     }
 
     private ColumnMapping toColumnMapping(ColumnConfiguration column) {
@@ -383,18 +396,18 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
             String attributeScope = type.getAttributeScope();
             switch (attributeScope) {
                 case DataConstants.CLIENT_SCOPE:
-                    mapping.propertyName = "client_"+column.getKey();
+                    mapping.propertyName = "client_" + column.getKey();
                     break;
                 case DataConstants.SHARED_SCOPE:
-                    mapping.propertyName = "shared_"+column.getKey();
+                    mapping.propertyName = "shared_" + column.getKey();
                     break;
                 case DataConstants.SERVER_SCOPE:
-                    mapping.propertyName = "server_"+column.getKey();
+                    mapping.propertyName = "server_" + column.getKey();
                     break;
             }
             mapping.searchable = true;
         } else {
-            mapping.propertyName = "timeseries_"+column.getKey();
+            mapping.propertyName = "timeseries_" + column.getKey();
             mapping.searchable = true;
         }
         return mapping;
