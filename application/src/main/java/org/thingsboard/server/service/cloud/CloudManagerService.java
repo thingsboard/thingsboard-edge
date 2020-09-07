@@ -37,10 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.SettableFuture;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,16 +46,12 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
-import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -75,7 +68,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -89,9 +81,6 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -113,7 +102,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
-import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
@@ -146,9 +134,6 @@ import org.thingsboard.server.gen.edge.UserUpdateMsg;
 import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.cloud.constructor.AlarmUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.DeviceUpdateMsgConstructor;
 import org.thingsboard.server.service.cloud.constructor.EntityDataMsgConstructor;
@@ -166,6 +151,7 @@ import org.thingsboard.server.service.cloud.processor.RelationProcessor;
 import org.thingsboard.server.service.cloud.processor.RoleProcessor;
 import org.thingsboard.server.service.cloud.processor.RuleChainProcessor;
 import org.thingsboard.server.service.cloud.processor.SchedulerEventProcessor;
+import org.thingsboard.server.service.cloud.processor.TelemetryProcessor;
 import org.thingsboard.server.service.cloud.processor.UserProcessor;
 import org.thingsboard.server.service.cloud.processor.WhiteLabelingProcessor;
 import org.thingsboard.server.service.cloud.processor.WidgetTypeProcessor;
@@ -176,16 +162,13 @@ import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
-import org.thingsboard.server.service.user.UserLoaderService;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -201,8 +184,6 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class CloudManagerService {
-
-    private final Gson gson = new Gson();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -284,7 +265,10 @@ public class CloudManagerService {
     private RuleChainProcessor ruleChainProcessor;
 
     @Autowired
-    private DeviceProcessor deviceUpdateProcessor;
+    private TelemetryProcessor telemetryProcessor;
+
+    @Autowired
+    private DeviceProcessor deviceProcessor;
 
     @Autowired
     private AssetProcessor assetProcessor;
@@ -935,21 +919,7 @@ public class CloudManagerService {
             log.debug("onDownlink {}", downlinkMsg);
             if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    EntityId entityId = constructEntityId(entityData);
-                    if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg()) && entityId != null) {
-                        TbMsgMetaData metaData = constructBaseMsgMetadata(entityId);
-                        metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
-                        if (entityData.hasPostAttributesMsg()) {
-                            metaData.putValue("scope", entityData.getPostAttributeScope());
-                            result.add(processPostAttributes(entityId, entityData.getPostAttributesMsg(), metaData));
-                        }
-                        if (entityData.hasPostTelemetryMsg()) {
-                            result.add(processPostTelemetry(entityId, entityData.getPostTelemetryMsg(), metaData));
-                        }
-                    }
-                    if (entityData.hasAttributeDeleteMsg()) {
-                        result.add(processAttributeDeleteMsg(entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType()));
-                    }
+                    result.addAll(telemetryProcessor.onTelemetryUpdate(tenantId, entityData));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
@@ -959,12 +929,12 @@ public class CloudManagerService {
             }
             if (downlinkMsg.getDeviceUpdateMsgList() != null && !downlinkMsg.getDeviceUpdateMsgList().isEmpty()) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceUpdateProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, edgeSettings.getCloudType()));
+                    result.add(deviceProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgList() != null && !downlinkMsg.getDeviceCredentialsUpdateMsgList().isEmpty()) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
-                    result.add(deviceUpdateProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
+                    result.add(deviceProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
             if (downlinkMsg.getAssetUpdateMsgList() != null && !downlinkMsg.getAssetUpdateMsgList().isEmpty()) {
@@ -1124,134 +1094,7 @@ public class CloudManagerService {
         return cloudEventService.saveAsync(cloudEvent);
     }
 
-    private TbMsgMetaData constructBaseMsgMetadata(EntityId entityId) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        switch (entityId.getEntityType()) {
-            case DEVICE:
-                Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
-                if (device != null) {
-                    metaData.putValue("deviceName", device.getName());
-                    metaData.putValue("deviceType", device.getType());
-                }
-                break;
-            case ASSET:
-                Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
-                if (asset != null) {
-                    metaData.putValue("assetName", asset.getName());
-                    metaData.putValue("assetType", asset.getType());
-                }
-                break;
-            case ENTITY_VIEW:
-                EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
-                if (entityView != null) {
-                    metaData.putValue("entityViewName", entityView.getName());
-                    metaData.putValue("entityViewType", entityView.getType());
-                }
-                break;
-            case ENTITY_GROUP:
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
-                if (entityGroup != null) {
-                    metaData.putValue("entityGroupName", entityGroup.getName());
-                    metaData.putValue("entityGroupType", entityGroup.getType().name());
-                }
-                break;
-            default:
-                log.debug("Using empty metadata for entityId [{}]", entityId);
-                break;
-        }
-        return metaData;
-    }
 
-    private EntityId constructEntityId(EntityDataProto entityData) {
-        EntityType entityType = EntityType.valueOf(entityData.getEntityType());
-        switch (entityType) {
-            case DEVICE:
-                return new DeviceId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ASSET:
-                return new AssetId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ENTITY_VIEW:
-                return new EntityViewId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case DASHBOARD:
-                return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case TENANT:
-                return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case CUSTOMER:
-                return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ENTITY_GROUP:
-                return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            default:
-                log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
-                return null;
-        }
-    }
-
-    private ListenableFuture<Void> processPostTelemetry(EntityId entityId, TransportProtos.PostTelemetryMsg msg, TbMsgMetaData metaData) {
-        SettableFuture<Void> futureToSet = SettableFuture.create();
-        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
-            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-            metaData.putValue("ts", tsKv.getTs() + "");
-            TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData, gson.toJson(json));
-            tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
-                @Override
-                public void onSuccess(TbQueueMsgMetadata metadata) {
-                    futureToSet.set(null);
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("Can't process post telemetry [{}]", msg, t);
-                    futureToSet.setException(t);
-                }
-            });
-        }
-        return futureToSet;
-    }
-
-    private ListenableFuture<Void> processPostAttributes(EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
-        SettableFuture<Void> futureToSet = SettableFuture.create();
-        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-        TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
-        tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
-            @Override
-            public void onSuccess(TbQueueMsgMetadata metadata) {
-                futureToSet.set(null);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                log.error("Can't process post attributes [{}]", msg, t);
-                futureToSet.setException(t);
-            }
-        });
-        return futureToSet;
-    }
-
-    private ListenableFuture<Void> processAttributeDeleteMsg(EntityId entityId, AttributeDeleteMsg attributeDeleteMsg, String entityType) {
-        SettableFuture<Void> futureToSet = SettableFuture.create();
-        String scope = attributeDeleteMsg.getScope();
-        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
-        attributesService.removeAll(tenantId, entityId, scope, attributeNames);
-        if (EntityType.DEVICE.name().equals(entityType)) {
-            Set<AttributeKey> attributeKeys = new HashSet<>();
-            for (String attributeName : attributeNames) {
-                attributeKeys.add(new AttributeKey(scope, attributeName));
-            }
-            tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
-                    tenantId, (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
-                @Override
-                public void onSuccess(TbQueueMsgMetadata metadata) {
-                    futureToSet.set(null);
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, t);
-                    futureToSet.setException(t);
-                }
-            });
-        }
-        return futureToSet;
-    }
 
     private void scheduleReconnect(Exception e) {
         initialized = false;
