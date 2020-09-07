@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityField;
@@ -133,4 +134,6 @@ public interface EntityGroupService {
     ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType);
 
     ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType);
+
+    ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType);
 }

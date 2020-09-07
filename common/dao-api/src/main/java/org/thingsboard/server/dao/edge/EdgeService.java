@@ -105,6 +105,8 @@ public interface EdgeService {
     ListenableFuture<List<Edge>> findEdgesByTenantIdAndDashboardId(TenantId tenantId, DashboardId dashboardId);
 
     ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr);
+
+    void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
 }
 
 

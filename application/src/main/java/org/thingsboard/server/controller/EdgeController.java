@@ -106,6 +106,14 @@ public class EdgeController extends BaseController {
                 }
             }
 
+            String oldEdgeName = null;
+            if (!created) {
+                Edge edgeById = edgeService.findEdgeById(tenantId, edge.getId());
+                if (edgeById != null) {
+                    oldEdgeName = edgeById.getName();
+                }
+            }
+
             EntityGroupId entityGroupId = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
                 entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -126,6 +134,10 @@ public class EdgeController extends BaseController {
                 ruleChainService.assignRuleChainToEdge(tenantId, defaultRootEdgeRuleChain.getId(), savedEdge.getId());
                 edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, defaultRootEdgeRuleChain.getId());
                 edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
+            }
+
+            if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
+                edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
             }
 
             tbClusterService.onEntityStateChange(savedEdge.getTenantId(), savedEdge.getId(),

@@ -30,40 +30,37 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.WidgetsBundleId;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
-import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 
 @Component
 @Slf4j
-public class WidgetsBundleUpdateMsgConstructor {
+public class EntityGroupMsgConstructor {
 
-    public WidgetsBundleUpdateMsg constructWidgetsBundleUpdateMsg(UpdateMsgType msgType, WidgetsBundle widgetsBundle) {
-        WidgetsBundleUpdateMsg.Builder builder = WidgetsBundleUpdateMsg.newBuilder()
+    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
+        EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(widgetsBundle.getId().getId().getMostSignificantBits())
-                .setIdLSB(widgetsBundle.getId().getId().getLeastSignificantBits())
-                .setTitle(widgetsBundle.getTitle())
-                .setAlias(widgetsBundle.getAlias());
-        if (widgetsBundle.getImage() != null) {
-            builder.setImage(ByteString.copyFrom(widgetsBundle.getImage()));
-        }
-        if (widgetsBundle.getTenantId().equals(TenantId.SYS_TENANT_ID)) {
-            builder.setIsSystem(true);
-        }
+                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
+                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits())
+                .setName(entityGroup.getName())
+                .setType(entityGroup.getType().name())
+                .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
+                .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
+                .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
+                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
+                .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
         return builder.build();
     }
 
-    public WidgetsBundleUpdateMsg constructWidgetsBundleDeleteMsg(WidgetsBundleId widgetsBundleId) {
-        return WidgetsBundleUpdateMsg.newBuilder()
+    public EntityGroupUpdateMsg constructEntityGroupDeleteMsg(EntityGroupId entityGroupId) {
+        return EntityGroupUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(widgetsBundleId.getId().getMostSignificantBits())
-                .setIdLSB(widgetsBundleId.getId().getLeastSignificantBits())
-                .build();
+                .setIdMSB(entityGroupId.getId().getMostSignificantBits())
+                .setIdLSB(entityGroupId.getId().getLeastSignificantBits()).build();
     }
 }

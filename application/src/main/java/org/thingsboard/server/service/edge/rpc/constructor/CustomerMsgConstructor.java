@@ -32,35 +32,56 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class EntityGroupUpdateMsgConstructor {
+public class CustomerMsgConstructor {
 
-    public EntityGroupUpdateMsg constructEntityGroupUpdatedMsg(UpdateMsgType msgType, EntityGroup entityGroup) {
-        EntityGroupUpdateMsg.Builder builder = EntityGroupUpdateMsg.newBuilder()
+    public CustomerUpdateMsg constructCustomerUpdatedMsg(UpdateMsgType msgType, Customer customer) {
+        CustomerUpdateMsg.Builder builder = CustomerUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(entityGroup.getId().getId().getMostSignificantBits())
-                .setIdLSB(entityGroup.getId().getId().getLeastSignificantBits())
-                .setName(entityGroup.getName())
-                .setType(entityGroup.getType().name())
-                .setOwnerIdMSB(entityGroup.getOwnerId().getId().getMostSignificantBits())
-                .setOwnerIdLSB(entityGroup.getOwnerId().getId().getLeastSignificantBits())
-                .setOwnerEntityType(entityGroup.getOwnerId().getEntityType().name())
-                .setAdditionalInfo(JacksonUtil.toString(entityGroup.getAdditionalInfo()))
-                .setConfiguration(JacksonUtil.toString(entityGroup.getConfiguration()));
+                .setIdMSB(customer.getId().getId().getMostSignificantBits())
+                .setIdLSB(customer.getId().getId().getLeastSignificantBits())
+                .setTitle(customer.getTitle());
+        if (customer.getCountry() != null) {
+            builder.setCountry(customer.getCountry());
+        }
+        if (customer.getState() != null) {
+            builder.setState(customer.getState());
+        }
+        if (customer.getCity() != null) {
+            builder.setCity(customer.getCity());
+        }
+        if (customer.getAddress() != null) {
+            builder.setAddress(customer.getAddress());
+        }
+        if (customer.getAddress2() != null) {
+            builder.setAddress2(customer.getAddress2());
+        }
+        if (customer.getZip() != null) {
+            builder.setZip(customer.getZip());
+        }
+        if (customer.getPhone() != null) {
+            builder.setPhone(customer.getPhone());
+        }
+        if (customer.getEmail() != null) {
+            builder.setEmail(customer.getEmail());
+        }
+        if (customer.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(customer.getAdditionalInfo()));
+        }
         return builder.build();
     }
 
-    public EntityGroupUpdateMsg constructEntityGroupDeleteMsg(EntityGroupId entityGroupId) {
-        return EntityGroupUpdateMsg.newBuilder()
+    public CustomerUpdateMsg constructCustomerDeleteMsg(CustomerId customerId) {
+        return CustomerUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(entityGroupId.getId().getMostSignificantBits())
-                .setIdLSB(entityGroupId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(customerId.getId().getMostSignificantBits())
+                .setIdLSB(customerId.getId().getLeastSignificantBits()).build();
     }
 }

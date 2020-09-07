@@ -32,53 +32,57 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.gen.edge.EdgeEntityType;
-import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
 @Component
 @Slf4j
-public class EntityViewUpdateMsgConstructor {
+public class DeviceMsgConstructor {
 
-    public EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EntityGroupId entityGroupId) {
-        EdgeEntityType entityType;
-        switch (entityView.getEntityId().getEntityType()) {
-            case DEVICE:
-                entityType = EdgeEntityType.DEVICE;
-                break;
-            case ASSET:
-                entityType = EdgeEntityType.ASSET;
-                break;
-            default:
-                throw new RuntimeException("Unsupported entity type [" + entityView.getEntityId().getEntityType() + "]");
-        }
-        EntityViewUpdateMsg.Builder builder = EntityViewUpdateMsg.newBuilder()
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, EntityGroupId entityGroupId) {
+        DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(entityView.getId().getId().getMostSignificantBits())
-                .setIdLSB(entityView.getId().getId().getLeastSignificantBits())
-                .setName(entityView.getName())
-                .setType(entityView.getType())
-                .setEntityIdMSB(entityView.getEntityId().getId().getMostSignificantBits())
-                .setEntityIdLSB(entityView.getEntityId().getId().getLeastSignificantBits())
-                .setEntityType(entityType);
+                .setIdMSB(device.getId().getId().getMostSignificantBits())
+                .setIdLSB(device.getId().getId().getLeastSignificantBits())
+                .setName(device.getName())
+                .setType(device.getType());
+        if (device.getLabel() != null) {
+            builder.setLabel(device.getLabel());
+        }
         if (entityGroupId != null) {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (entityView.getCustomerId() != null && !entityView.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
+                    .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
     }
 
-    public EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId) {
-        return EntityViewUpdateMsg.newBuilder()
+    public DeviceCredentialsUpdateMsg constructDeviceCredentialsUpdatedMsg(DeviceCredentials deviceCredentials) {
+        DeviceCredentialsUpdateMsg.Builder builder = DeviceCredentialsUpdateMsg.newBuilder()
+                .setDeviceIdMSB(deviceCredentials.getDeviceId().getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceCredentials.getDeviceId().getId().getLeastSignificantBits());
+        if (deviceCredentials.getCredentialsType() != null) {
+            builder.setCredentialsType(deviceCredentials.getCredentialsType().name())
+                    .setCredentialsId(deviceCredentials.getCredentialsId());
+        }
+        if (deviceCredentials.getCredentialsValue() != null) {
+            builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
+        }
+        return builder.build();
+    }
+
+    public DeviceUpdateMsg constructDeviceDeleteMsg(DeviceId deviceId) {
+        return DeviceUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
-                .setIdMSB(entityViewId.getId().getMostSignificantBits())
-                .setIdLSB(entityViewId.getId().getLeastSignificantBits()).build();
+                .setIdMSB(deviceId.getId().getMostSignificantBits())
+                .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
     }
 }

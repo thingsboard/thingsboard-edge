@@ -32,28 +32,20 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
-import org.thingsboard.server.gen.edge.RelationUpdateMsg;
-import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 
-@Component
 @Slf4j
-public class RelationUpdateMsgConstructor {
+@Component
+public class AdminSettingsMsgConstructor {
 
-    public RelationUpdateMsg constructRelationUpdatedMsg(UpdateMsgType msgType, EntityRelation entityRelation) {
-        RelationUpdateMsg.Builder builder = RelationUpdateMsg.newBuilder()
-                .setMsgType(msgType)
-                .setFromIdMSB(entityRelation.getFrom().getId().getMostSignificantBits())
-                .setFromIdLSB(entityRelation.getFrom().getId().getLeastSignificantBits())
-                .setFromEntityType(entityRelation.getFrom().getEntityType().name())
-                .setToIdMSB(entityRelation.getTo().getId().getMostSignificantBits())
-                .setToIdLSB(entityRelation.getTo().getId().getLeastSignificantBits())
-                .setToEntityType(entityRelation.getTo().getEntityType().name())
-                .setType(entityRelation.getType())
-                .setAdditionalInfo(JacksonUtil.toString(entityRelation.getAdditionalInfo()));
-        if (entityRelation.getTypeGroup() != null) {
-            builder.setTypeGroup(entityRelation.getTypeGroup().name());
+    public AdminSettingsUpdateMsg constructAdminSettingsUpdateMsg(AdminSettings adminSettings) {
+        AdminSettingsUpdateMsg.Builder builder = AdminSettingsUpdateMsg.newBuilder()
+                .setKey(adminSettings.getKey())
+                .setJsonValue(JacksonUtil.toString(adminSettings.getJsonValue()));
+        if (adminSettings.getId() != null) {
+            builder.setIsSystem(true);
         }
         return builder.build();
     }

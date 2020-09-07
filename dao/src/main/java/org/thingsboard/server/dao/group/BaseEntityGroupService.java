@@ -40,6 +40,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.BaseData;
@@ -189,7 +190,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
             relationService.saveRelation(tenantId, entityRelation);
         }
-//        dashboardService.updateEdgeDashboards(savedEdge.getTenantId(), savedEdge.getId());
         return savedEntityGroup;
     }
 
@@ -482,7 +482,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
-
 
 //        dashboardService.unassignEdgeDashboards(tenantId, edgeId);
 //        // TODO: validate that rule chains are removed by deleteEntityRelations(tenantId, edgeId); call
@@ -782,6 +781,48 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return relationService.checkRelation(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.EDGE);
+    }
+
+    @Override
+    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
+        String entityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
+        ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
+                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+        return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
+            if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
+                return Futures.immediateFuture(optionalEntityGroup.get());
+            } else {
+                try {
+                    ListenableFuture<Optional<EntityGroup>> currentEntityGroupFuture = entityGroupService
+                            .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+                    return Futures.transformAsync(currentEntityGroupFuture, currentEntityGroup -> {
+                        if (currentEntityGroup != null) {
+                            if (!currentEntityGroup.isPresent()) {
+                                EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
+                                entityGroupService.assignEntityGroupToEdge(tenantId, entityGroup.getId(),
+                                        edge.getId(), EntityType.DEVICE);
+                                return Futures.immediateFuture(entityGroup);
+                            } else {
+                                return Futures.immediateFuture(currentEntityGroup.get());
+                            }
+                        } else {
+                            return Futures.immediateFailedFuture(new RuntimeException("Failed to find entity group by type and name"));
+                        }
+                    }, MoreExecutors.directExecutor());
+                } catch (Exception e) {
+                    log.error("[{}] Can't get entity group by name edge owner id [{}], groupType [{}], entityGroupName [{}]",
+                            tenantId, edge.getOwnerId(), groupType, entityGroupName, e);
+                    throw new RuntimeException(e);
+                }
+            }
+        }, MoreExecutors.directExecutor());
+    }
+
+    private EntityGroup createEntityGroup(String entityGroupName, EntityId parentEntityId, TenantId tenantId) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName(entityGroupName);
+        entityGroup.setType(EntityType.DEVICE);
+        return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
