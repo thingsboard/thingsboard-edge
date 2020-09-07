@@ -144,13 +144,15 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
             criteriaQuery = String.format("%s limit %s offset %s", criteriaQuery, pageLink.getPageSize(), startIndex);
         }
 
-        List result = entityManager.createNativeQuery(criteriaQuery)
+        NativeQuery nativeQuery = entityManager.createNativeQuery(criteriaQuery)
                 .unwrap(NativeQuery.class)
-                .addScalar("alias0", UUIDCharType.INSTANCE)
-                .addScalar("alias1")
-                .addScalar("alias2")
-                .addScalar("alias3")
-                .getResultList();
+                .addScalar("alias0", UUIDCharType.INSTANCE);
+
+        for (int i = 1; i < aliasCounter; i++) {
+            nativeQuery.addScalar(String.format("alias%s", i));
+        }
+
+        List result = nativeQuery.getResultList();
 
         int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
         boolean hasNext = pageLink.getPageSize() > 0 && totalElements > startIndex + result.size();
@@ -193,12 +195,15 @@ public class DefaultGroupEntitiesRepository implements GroupEntitiesRepository {
                 this.buildSingleEntityGroupRelationQuery(entityId, groupId));
 
         try {
-            Object result = entityManager.createNativeQuery(criteriaQuery).unwrap(NativeQuery.class)
-                    .addScalar("alias0", UUIDCharType.INSTANCE)
-                    .addScalar("alias1")
-                    .addScalar("alias2")
-                    .addScalar("alias3")
-                    .getSingleResult();
+            NativeQuery nativeQuery = entityManager.createNativeQuery(criteriaQuery)
+                    .unwrap(NativeQuery.class)
+                    .addScalar("alias0", UUIDCharType.INSTANCE);
+
+            for (int i = 1; i < aliasCounter; i++) {
+                nativeQuery.addScalar(String.format("alias%s", i));
+            }
+
+            Object result = nativeQuery.getSingleResult();
             return toShortEntityView(result, entityId.getEntityType(), mappings);
         } catch (NoResultException e) {
             return null;
