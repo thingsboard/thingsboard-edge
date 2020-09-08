@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($scope, $filter, $q, $http, $translate, userPermissionsService, securityTypes, attributeService, edgeService, types, userService) {
+export default function EdgeController($log, $scope, $filter, $translate, userPermissionsService, securityTypes, attributeService, edgeService, types, userService) {
 
     var vm = this;
 
@@ -39,8 +39,7 @@ export default function EdgeController($scope, $filter, $q, $http, $translate, u
     vm.lastDisconnectTime = '';
     vm.edgeSettings = {};
     vm.activeStatus = '';
-
-    vm.isGroupDetailsReadOnly = userPermissionsService.hasReadGenericPermission(securityTypes.resource.all);
+    vm.hasEdgeInfoPermission = userPermissionsService.hasReadGenericPermission(securityTypes.resource.all);
 
     var params = {
         entityType: types.entityType.tenant,
@@ -56,27 +55,12 @@ export default function EdgeController($scope, $filter, $q, $http, $translate, u
         }
     };
 
-    if (vm.isGroupDetailsReadOnly) {
+    loadPermissionsInfo();
+
+    if (vm.hasEdgeInfoPermission) {
         loadEdgeInfo();
-        loadPermissionsInfo();
     } else {
         loadEdgeName();
-        loadPermissionsInfo();
-    }
-
-    function loadPermissionsInfo() {
-        var deferred = $q.defer();
-        var url = '/api/permissions/allowedPermissions';
-        $http.get(url).then(function success(response) {
-            response.data.allowedResources;
-            response.data.userPermissions;
-            response.data.userOwnerId;
-            deferred.resolve();
-        }, function fail() {
-            deferred.reject();
-        });
-
-        return deferred.promise;
     }
 
     function loadEdgeName() {

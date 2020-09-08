@@ -35,7 +35,7 @@
         <md-card-title>
             <md-card-title-text>
                 <span translate class="md-headline">{{ vm.edgeSettings.name }}</span>
-                <span ng-if="vm.isGroupDetailsReadOnly" translate ng-style="vm.active == 'true' ? {'color': '#008000'} : {'color': '#f00'}" class="md-subhead">{{vm.activeStatus}}</span>
+                <span ng-if="vm.hasEdgeInfoPermission" translate ng-style="vm.active == 'true' ? {'color': '#008000'} : {'color': '#f00'}" class="md-subhead">{{vm.activeStatus}}</span>
             </md-card-title-text>
         </md-card-title>
         <md-card-content>
@@ -57,14 +57,16 @@
                         <label translate>edge.cloud-type</label>
                         <input ng-model="vm.edgeSettings.cloudType">
                     </md-input-container>
-                    <md-input-container class="md-block" ng-if="vm.isGroupDetailsReadOnly">
-                        <label translate>edge.last-connect-time</label>
-                        <input ng-model="vm.lastConnectTime">
-                    </md-input-container>
-                    <md-input-container class="md-block" ng-if="vm.isGroupDetailsReadOnly">
-                        <label translate>edge.last-disconnect-time</label>
-                        <input ng-model="vm.lastDisconnectTime">
-                    </md-input-container>
+                    <ng-container ng-if="vm.hasEdgeInfoPermission">
+                        <md-input-container class="md-block">
+                            <label translate>edge.last-connect-time</label>
+                            <input ng-model="vm.lastConnectTime">
+                        </md-input-container>
+                        <md-input-container class="md-block">
+                            <label translate>edge.last-disconnect-time</label>
+                            <input ng-model="vm.lastDisconnectTime">
+                        </md-input-container>
+                    </ng-container>
                 </form>
             </fieldset>
         </md-card-content>
