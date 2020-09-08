@@ -1165,6 +1165,7 @@
             "created-time": "Created time",
             "name": "Name",
             "type": "Type",
+            "device_profile": "Device profile",
             "assigned_customer": "Assigned Customer",
             "authority": "Authority",
             "first_name": "First name",
