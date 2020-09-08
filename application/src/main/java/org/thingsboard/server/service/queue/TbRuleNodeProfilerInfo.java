@@ -28,54 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ttl;
+package org.thingsboard.server.service.queue;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.thingsboard.server.dao.util.PsqlDao;
+import lombok.Getter;
+import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.Statement;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
+public class TbRuleNodeProfilerInfo {
+    @Getter
+    private final UUID ruleNodeId;
+    @Getter
+    private final String label;
+    private AtomicInteger executionCount = new AtomicInteger(0);
+    private AtomicLong executionTime = new AtomicLong(0);
+    private AtomicLong maxExecutionTime = new AtomicLong(0);
 
-@Slf4j
-public abstract class AbstractCleanUpService {
-
-    @Value("${spring.datasource.url}")
-    protected String dbUrl;
-
-    @Value("${spring.datasource.username}")
-    protected String dbUserName;
-
-    @Value("${spring.datasource.password}")
-    protected String dbPassword;
-
-    protected long executeQuery(Connection conn, String query) throws SQLException {
-        try (Statement statement = conn.createStatement()) {
-            ResultSet resultSet = statement.executeQuery(query);
-            if (log.isDebugEnabled()) {
-                getWarnings(statement);
-            }
-            resultSet.next();
-            return resultSet.getLong(1);
-        }
+    public TbRuleNodeProfilerInfo(RuleNodeInfo ruleNodeInfo) {
+        this.ruleNodeId = ruleNodeInfo.getRuleNodeId().getId();
+        this.label = ruleNodeInfo.toString();
     }
 
-    private void getWarnings(Statement statement) throws SQLException {
-        SQLWarning warnings = statement.getWarnings();
-        if (warnings != null) {
-            log.debug("{}", warnings.getMessage());
-            SQLWarning nextWarning = warnings.getNextWarning();
-            while (nextWarning != null) {
-                log.debug("{}", nextWarning.getMessage());
-                nextWarning = nextWarning.getNextWarning();
+    public TbRuleNodeProfilerInfo(UUID ruleNodeId) {
+        this.ruleNodeId = ruleNodeId;
+        this.label = "";
+    }
+
+    public void record(long processingTime) {
+        executionCount.incrementAndGet();
+        executionTime.addAndGet(processingTime);
+        while (true) {
+            long value = maxExecutionTime.get();
+            if (value >= processingTime) {
+                break;
+            }
+            if (maxExecutionTime.compareAndSet(value, processingTime)) {
+                break;
             }
         }
     }
 
-    protected abstract void doCleanUp(Connection connection) throws SQLException;
+    int getExecutionCount() {
+        return executionCount.get();
+    }
+
+    long getMaxExecutionTime() {
+        return maxExecutionTime.get();
+    }
+
+    double getAvgExecutionTime() {
+        double executionCnt = (double) executionCount.get();
+        if (executionCnt > 0) {
+            return executionTime.get() / executionCnt;
+        } else {
+            return 0.0;
+        }
+    }
 
 }
