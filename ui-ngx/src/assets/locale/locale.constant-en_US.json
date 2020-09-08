@@ -961,7 +961,6 @@
         "rpc-response-topic-filter": "RPC response topic filter",
         "rpc-response-topic-filter-required": "RPC response topic filter is required.",
         "not-valid-pattern-topic-filter": "Not valid pattern topic filter"
->>>>>>> upstream/develop/3.2
     },
     "dialog": {
         "close": "Close dialog"
@@ -2443,11 +2442,13 @@
                 "ADMIN_SETTINGS": "Admin Settings",
                 "ALARM": "Alarm",
                 "DEVICE": "Device",
+                "DEVICE_PROFILE": "Device Profile",
                 "ASSET": "Asset",
                 "CUSTOMER": "Customer",
                 "DASHBOARD": "Dashboard",
                 "ENTITY_VIEW": "Entity View",
                 "TENANT": "Tenant",
+                "TENANT_PROFILE": "Tenant Profile",
                 "RULE_CHAIN": "Rule Chain",
                 "USER": "User",
                 "WIDGETS_BUNDLE": "Widgets Bundle",

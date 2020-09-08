@@ -35,7 +35,7 @@ import { Resolve, Router } from '@angular/router';
 
 import { TenantInfo } from '@shared/models/tenant.model';
 import {
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -106,7 +106,7 @@ export class TenantsTableConfigResolver implements Resolve<EntityTableConfig<Ten
 
   resolve(): EntityTableConfig<TenantInfo> {
     this.config.tableTitle = this.translate.instant('tenant.tenants');
-
+    defaultEntityTablePermissions(this.userPermissionService, this.config);
     return this.config;
   }
 

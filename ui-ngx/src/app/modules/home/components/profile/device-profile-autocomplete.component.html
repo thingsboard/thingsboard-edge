@@ -45,7 +45,8 @@
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
-  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && editProfileEnabled"
+  <button *ngIf="selectDeviceProfileFormGroup.get('deviceProfile').value && !disabled && editProfileEnabled &&
+               resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE"
           type="button"
           matSuffix mat-button mat-icon-button aria-label="Edit"
           matTooltip="{{ 'device-profile.edit' | translate }}"
@@ -72,7 +73,7 @@
             {entity: truncate.transform(searchText, true, 6, &apos;...&apos;)}) | async }}
           </span>
         </ng-template>
-        <span>
+        <span *ngIf="resource.DEVICE_PROFILE | hasGenericPermission: operation.CREATE">
           <a translate (click)="createDeviceProfile($event, searchText)">device-profile.create-new-device-profile</a>
         </span>
       </div>

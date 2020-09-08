@@ -64,6 +64,7 @@ import {
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfileDialogComponent, DeviceProfileDialogData } from './device-profile-dialog.component';
 import { MatAutocomplete } from '@angular/material/autocomplete';
+import { Operation, Resource } from '../../../../shared/models/security.models';
 
 @Component({
   selector: 'tb-device-profile-autocomplete',
@@ -76,6 +77,10 @@ import { MatAutocomplete } from '@angular/material/autocomplete';
   }]
 })
 export class DeviceProfileAutocompleteComponent implements ControlValueAccessor, OnInit {
+
+  resource = Resource;
+
+  operation = Operation;
 
   selectDeviceProfileFormGroup: FormGroup;
 

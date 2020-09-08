@@ -34,6 +34,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setDefault')"
+          *ngIf="resource.DEVICE_PROFILE | hasGenericPermission: operation.WRITE"
           [fxShow]="!isEdit && !entity?.default">
     {{'device-profile.set-default' | translate }}
   </button>

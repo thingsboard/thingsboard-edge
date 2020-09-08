@@ -34,7 +34,7 @@ import { Resolve } from '@angular/router';
 import { TenantProfile } from '@shared/models/tenant.model';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -46,6 +46,9 @@ import { TenantProfileService } from '@core/http/tenant-profile.service';
 import { TenantProfileComponent } from '../../components/profile/tenant-profile.component';
 import { TenantProfileTabsComponent } from './tenant-profile-tabs.component';
 import { DialogService } from '@core/services/dialog.service';
+import { UserPermissionsService } from '../../../../core/http/user-permissions.service';
+import { UtilsService } from '../../../../core/services/utils.service';
+import { Operation, Resource } from '../../../../shared/models/security.models';
 
 @Injectable()
 export class TenantProfilesTableConfigResolver implements Resolve<EntityTableConfig<TenantProfile>> {
@@ -55,13 +58,18 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
   constructor(private tenantProfileService: TenantProfileService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private dialogService: DialogService) {
+              private dialogService: DialogService,
+              private utils: UtilsService,
+              private userPermissionService: UserPermissionsService) {
 
     this.config.entityType = EntityType.TENANT_PROFILE;
     this.config.entityComponent = TenantProfileComponent;
     this.config.entityTabsComponent = TenantProfileTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.TENANT_PROFILE);
     this.config.entityResources = entityTypeResources.get(EntityType.TENANT_PROFILE);
+
+    this.config.entityTitle = (tenantProfile) => tenantProfile ?
+      this.utils.customTranslation(tenantProfile.name, tenantProfile.name) : '';
 
     this.config.columns.push(
       new DateEntityTableColumn<TenantProfile>('createdTime', 'common.created-time', this.datePipe, '150px'),
@@ -77,7 +85,8 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
       {
         name: this.translate.instant('tenant-profile.set-default'),
         icon: 'flag',
-        isEnabled: (tenantProfile) => !tenantProfile.default,
+        isEnabled: (tenantProfile) => !tenantProfile.default &&
+          this.userPermissionService.hasGenericPermission(Resource.TENANT_PROFILE, Operation.WRITE),
         onAction: ($event, entity) => this.setDefaultTenantProfile($event, entity)
       }
     );
@@ -99,7 +108,7 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
 
   resolve(): EntityTableConfig<TenantProfile> {
     this.config.tableTitle = this.translate.instant('tenant-profile.tenant-profiles');
-
+    defaultEntityTablePermissions(this.userPermissionService, this.config);
     return this.config;
   }
 
