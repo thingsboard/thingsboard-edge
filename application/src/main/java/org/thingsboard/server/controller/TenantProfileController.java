@@ -47,9 +47,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 
 @RestController
 @TbCoreComponent
@@ -100,6 +100,7 @@ public class TenantProfileController extends BaseController {
     public TenantProfile saveTenantProfile(@RequestBody TenantProfile tenantProfile) throws ThingsboardException {
         try {
             boolean newTenantProfile = tenantProfile.getId() == null;
+
             if (newTenantProfile) {
                 accessControlService
                         .checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);

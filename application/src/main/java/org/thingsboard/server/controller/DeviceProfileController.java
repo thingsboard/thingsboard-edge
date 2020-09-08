@@ -49,9 +49,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 
 @RestController
 @TbCoreComponent
@@ -103,7 +103,7 @@ public class DeviceProfileController extends BaseController {
         try {
             deviceProfile.setTenantId(getTenantId());
 
-            checkEntity(deviceProfile.getId(), deviceProfile, Resource.DEVICE_PROFILE);
+            checkEntity(deviceProfile.getId(), deviceProfile, Resource.DEVICE_PROFILE, null);
 
             DeviceProfile savedDeviceProfile = checkNotNull(deviceProfileService.saveDeviceProfile(deviceProfile));
 
