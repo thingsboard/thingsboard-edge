@@ -28,23 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.queue;
+package org.thingsboard.server.service.queue;
 
 import lombok.Getter;
-import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
 
-public class RuleNodeInfo {
-    private final String label;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class TbRuleNodeProfilerInfo {
     @Getter
-    private final RuleNodeId ruleNodeId;
+    private final UUID ruleNodeId;
+    @Getter
+    private final String label;
+    private AtomicInteger executionCount = new AtomicInteger(0);
+    private AtomicLong executionTime = new AtomicLong(0);
+    private AtomicLong maxExecutionTime = new AtomicLong(0);
 
-    public RuleNodeInfo(RuleNodeId id, String ruleChainName, String ruleNodeName) {
-        this.ruleNodeId = id;
-        this.label = "[RuleChain: " + ruleChainName + "|RuleNode: " + ruleNodeName + "(" + id + ")]";
+    public TbRuleNodeProfilerInfo(RuleNodeInfo ruleNodeInfo) {
+        this.ruleNodeId = ruleNodeInfo.getRuleNodeId().getId();
+        this.label = ruleNodeInfo.toString();
     }
 
-    @Override
-    public String toString() {
-        return label;
+    public TbRuleNodeProfilerInfo(UUID ruleNodeId) {
+        this.ruleNodeId = ruleNodeId;
+        this.label = "";
     }
+
+    public void record(long processingTime) {
+        executionCount.incrementAndGet();
+        executionTime.addAndGet(processingTime);
+        while (true) {
+            long value = maxExecutionTime.get();
+            if (value >= processingTime) {
+                break;
+            }
+            if (maxExecutionTime.compareAndSet(value, processingTime)) {
+                break;
+            }
+        }
+    }
+
+    int getExecutionCount() {
+        return executionCount.get();
+    }
+
+    long getMaxExecutionTime() {
+        return maxExecutionTime.get();
+    }
+
+    double getAvgExecutionTime() {
+        double executionCnt = (double) executionCount.get();
+        if (executionCnt > 0) {
+            return executionTime.get() / executionCnt;
+        } else {
+            return 0.0;
+        }
+    }
+
 }
