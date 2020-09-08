@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 /*@ngInject*/
-export default function EdgeController($log, $scope, $filter, $translate, userPermissionsService, securityTypes, attributeService, edgeService, types, userService) {
+export default function EdgeController($scope, $filter, $translate, attributeService, edgeService, types, userService, securityTypes, userPermissionsService) {
 
     var vm = this;
 
@@ -54,8 +54,6 @@ export default function EdgeController($log, $scope, $filter, $translate, userPe
             search: null
         }
     };
-
-    loadPermissionsInfo();
 
     if (vm.hasEdgeInfoPermission) {
         loadEdgeInfo();
