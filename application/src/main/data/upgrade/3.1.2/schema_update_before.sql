@@ -1,0 +1,96 @@
+--
+-- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+--
+-- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+--
+-- NOTICE: All information contained herein is, and remains
+-- the property of ThingsBoard, Inc. and its suppliers,
+-- if any.  The intellectual and technical concepts contained
+-- herein are proprietary to ThingsBoard, Inc.
+-- and its suppliers and may be covered by U.S. and Foreign Patents,
+-- patents in process, and are protected by trade secret or copyright law.
+--
+-- Dissemination of this information or reproduction of this material is strictly forbidden
+-- unless prior written permission is obtained from COMPANY.
+--
+-- Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+-- managers or contractors who have executed Confidentiality and Non-disclosure agreements
+-- explicitly covering such access.
+--
+-- The copyright notice above does not evidence any actual or intended publication
+-- or disclosure  of  this source code, which includes
+-- information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+-- ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+-- OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+-- THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+-- AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+-- THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+-- DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+-- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+--
+
+CREATE TABLE IF NOT EXISTS device_profile (
+    id uuid NOT NULL CONSTRAINT device_profile_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    name varchar(255),
+    type varchar(255),
+    transport_type varchar(255),
+    profile_data jsonb,
+    description varchar,
+    search_text varchar(255),
+    is_default boolean,
+    tenant_id uuid,
+    default_rule_chain_id uuid,
+    CONSTRAINT device_profile_name_unq_key UNIQUE (tenant_id, name),
+    CONSTRAINT fk_default_rule_chain_device_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id)
+);
+
+CREATE TABLE IF NOT EXISTS tenant_profile (
+    id uuid NOT NULL CONSTRAINT tenant_profile_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    name varchar(255),
+    profile_data jsonb,
+    description varchar,
+    search_text varchar(255),
+    is_default boolean,
+    isolated_tb_core boolean,
+    isolated_tb_rule_engine boolean,
+    CONSTRAINT tenant_profile_name_unq_key UNIQUE (name)
+);
+
+CREATE OR REPLACE PROCEDURE update_tenant_profiles()
+    LANGUAGE plpgsql AS
+$$
+BEGIN
+    UPDATE tenant as t SET tenant_profile_id = p.id
+    FROM
+        (SELECT id from tenant_profile WHERE isolated_tb_core = false AND isolated_tb_rule_engine = false) as p
+    WHERE t.tenant_profile_id IS NULL AND t.isolated_tb_core = false AND t.isolated_tb_rule_engine = false;
+
+    UPDATE tenant as t SET tenant_profile_id = p.id
+    FROM
+        (SELECT id from tenant_profile WHERE isolated_tb_core = true AND isolated_tb_rule_engine = false) as p
+    WHERE t.tenant_profile_id IS NULL AND t.isolated_tb_core = true AND t.isolated_tb_rule_engine = false;
+
+    UPDATE tenant as t SET tenant_profile_id = p.id
+    FROM
+        (SELECT id from tenant_profile WHERE isolated_tb_core = false AND isolated_tb_rule_engine = true) as p
+    WHERE t.tenant_profile_id IS NULL AND t.isolated_tb_core = false AND t.isolated_tb_rule_engine = true;
+
+    UPDATE tenant as t SET tenant_profile_id = p.id
+    FROM
+        (SELECT id from tenant_profile WHERE isolated_tb_core = true AND isolated_tb_rule_engine = true) as p
+    WHERE t.tenant_profile_id IS NULL AND t.isolated_tb_core = true AND t.isolated_tb_rule_engine = true;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE update_device_profiles()
+    LANGUAGE plpgsql AS
+$$
+BEGIN
+    UPDATE device as d SET device_profile_id = p.id, device_data = '{"configuration":{"type":"DEFAULT"}, "transportConfiguration":{"type":"DEFAULT"}}'
+        FROM
+           (SELECT id, tenant_id, name from device_profile) as p
+                WHERE d.device_profile_id IS NULL AND p.tenant_id = d.tenant_id AND d.type = p.name;
+END;
+$$;

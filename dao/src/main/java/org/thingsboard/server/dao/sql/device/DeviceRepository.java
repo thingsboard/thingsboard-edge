@@ -53,6 +53,14 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
 
+    @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
+            "AND d.deviceProfileId = :profileId " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DeviceEntity> findByTenantIdAndProfileId(@Param("tenantId") UUID tenantId,
+                                                   @Param("profileId") UUID profileId,
+                                                   @Param("searchText") String searchText,
+                                                   Pageable pageable);
+
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId")
     Page<DeviceEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                       Pageable pageable);
@@ -63,7 +71,6 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                       @Param("textSearch") String textSearch,
                                       Pageable pageable);
 
-
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.type = :type " +
             "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
@@ -71,7 +78,6 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                              @Param("type") String type,
                                              @Param("textSearch") String textSearch,
                                              Pageable pageable);
-
 
     @Query("SELECT d FROM DeviceEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +
@@ -121,7 +127,6 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
                                                    @Param("textSearch") String textSearch,
                                                    Pageable pageable);
 
-
     DeviceEntity findByTenantIdAndName(UUID tenantId, String name);
 
     List<DeviceEntity> findDevicesByTenantIdAndCustomerIdAndIdIn(UUID tenantId, UUID customerId, List<UUID> deviceIds);
@@ -129,5 +134,7 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     List<DeviceEntity> findDevicesByTenantIdAndIdIn(UUID tenantId, List<UUID> deviceIds);
 
     DeviceEntity findByTenantIdAndId(UUID tenantId, UUID id);
+
+    Long countByDeviceProfileId(UUID deviceProfileId);
 
 }

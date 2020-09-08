@@ -56,6 +56,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.WIDGETS_BUNDLE, systemEntityPermissionChecker);
         put(Resource.WIDGET_TYPE, systemEntityPermissionChecker);
         put(Resource.WHITE_LABELING, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.TENANT_PROFILE, PermissionChecker.allowAllPermissionChecker);
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {

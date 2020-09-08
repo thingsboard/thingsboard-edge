@@ -119,6 +119,20 @@ import { UserFilterDialogComponent } from '@home/components/filter/user-filter-d
 import { FilterUserInfoComponent } from './filter/filter-user-info.component';
 import { FilterUserInfoDialogComponent } from './filter/filter-user-info-dialog.component';
 import { FilterPredicateValueComponent } from './filter/filter-predicate-value.component';
+import { TenantProfileAutocompleteComponent } from './profile/tenant-profile-autocomplete.component';
+import { TenantProfileComponent } from './profile/tenant-profile.component';
+import { TenantProfileDialogComponent } from './profile/tenant-profile-dialog.component';
+import { TenantProfileDataComponent } from './profile/tenant-profile-data.component';
+import { DefaultDeviceProfileConfigurationComponent } from './profile/device/default-device-profile-configuration.component';
+import { DeviceProfileConfigurationComponent } from './profile/device/device-profile-configuration.component';
+import { DeviceProfileDataComponent } from './profile/device-profile-data.component';
+import { DeviceProfileComponent } from './profile/device-profile.component';
+import { DefaultDeviceProfileTransportConfigurationComponent } from './profile/device/default-device-profile-transport-configuration.component';
+import { DeviceProfileTransportConfigurationComponent } from './profile/device/device-profile-transport-configuration.component';
+import { DeviceProfileDialogComponent } from './profile/device-profile-dialog.component';
+import { DeviceProfileAutocompleteComponent } from './profile/device-profile-autocomplete.component';
+import { MqttDeviceProfileTransportConfigurationComponent } from './profile/device/mqtt-device-profile-transport-configuration.component';
+import { Lwm2mDeviceProfileTransportConfigurationComponent } from './profile/device/lwm2m-device-profile-transport-configuration.component';
 
 @NgModule({
   declarations:
@@ -201,7 +215,21 @@ import { FilterPredicateValueComponent } from './filter/filter-predicate-value.c
       UserFilterDialogComponent,
       FilterUserInfoComponent,
       FilterUserInfoDialogComponent,
-      FilterPredicateValueComponent
+      FilterPredicateValueComponent,
+      TenantProfileAutocompleteComponent,
+      TenantProfileDataComponent,
+      TenantProfileComponent,
+      TenantProfileDialogComponent,
+      DeviceProfileAutocompleteComponent,
+      DefaultDeviceProfileConfigurationComponent,
+      DeviceProfileConfigurationComponent,
+      DefaultDeviceProfileTransportConfigurationComponent,
+      MqttDeviceProfileTransportConfigurationComponent,
+      Lwm2mDeviceProfileTransportConfigurationComponent,
+      DeviceProfileTransportConfigurationComponent,
+      DeviceProfileDataComponent,
+      DeviceProfileComponent,
+      DeviceProfileDialogComponent
     ],
   imports: [
     CommonModule,
@@ -275,7 +303,21 @@ import { FilterPredicateValueComponent } from './filter/filter-predicate-value.c
     FiltersDialogComponent,
     FilterSelectComponent,
     FiltersEditComponent,
-    UserFilterDialogComponent
+    UserFilterDialogComponent,
+    TenantProfileAutocompleteComponent,
+    TenantProfileDataComponent,
+    TenantProfileComponent,
+    TenantProfileDialogComponent,
+    DeviceProfileAutocompleteComponent,
+    DefaultDeviceProfileConfigurationComponent,
+    DeviceProfileConfigurationComponent,
+    DefaultDeviceProfileTransportConfigurationComponent,
+    MqttDeviceProfileTransportConfigurationComponent,
+    Lwm2mDeviceProfileTransportConfigurationComponent,
+    DeviceProfileTransportConfigurationComponent,
+    DeviceProfileDataComponent,
+    DeviceProfileComponent,
+    DeviceProfileDialogComponent
   ],
   providers: [
     WidgetComponentService,

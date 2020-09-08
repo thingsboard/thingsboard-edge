@@ -37,6 +37,8 @@ public interface SystemDataLoaderService {
 
     void createSysAdmin() throws Exception;
 
+    void createDefaultTenantProfiles() throws Exception;
+
     void createAdminSettings() throws Exception;
 
     void loadMailTemplates() throws Exception;

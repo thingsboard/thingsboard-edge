@@ -199,12 +199,15 @@ public class ThingsboardInstallService {
                             if (databaseTsUpgradeService != null) {
                                 databaseTsUpgradeService.upgradeDatabase("3.1.1");
                             }
-                        case "3.1.2": // to 3.1.2PE
-                            log.info("Upgrading ThingsBoard from version 3.1.2 to 3.1.2PE ...");
-
+                        case "3.1.2":
+                            log.info("Upgrading ThingsBoard from version 3.1.2 to 3.2.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.1.2");
+                        case "3.2.0": // to 3.2.0PE
+                            log.info("Upgrading ThingsBoard from version 3.2.0 to 3.2.0PE ...");
 
-                            dataUpdateService.updateData("3.1.2");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.0");
+
+                            dataUpdateService.updateData("3.2.0");
 
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
@@ -237,6 +240,7 @@ public class ThingsboardInstallService {
                 componentDiscoveryService.discoverComponents();
 
                 systemDataLoaderService.createSysAdmin();
+                systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.loadSystemWidgets();
 //                systemDataLoaderService.loadSystemPlugins();

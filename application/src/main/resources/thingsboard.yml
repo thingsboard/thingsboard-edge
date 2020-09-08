@@ -447,6 +447,12 @@ caffeine:
     remoteIntegrations:
       timeToLiveInMinutes: 1440
       maxSize: 10000
+    tenantProfiles:
+      timeToLiveInMinutes: 1440
+      maxSize: 0
+    deviceProfiles:
+      timeToLiveInMinutes: 1440
+      maxSize: 0
 
 redis:
   # standalone or cluster
@@ -566,6 +572,7 @@ audit-log:
       "scheduler_event": "${AUDIT_LOG_MASK_SCHEDULER_EVENT:W}"
       "blob_entity": "${AUDIT_LOG_MASK_BLOB_ENTITY:W}"
       "entity_view": "${AUDIT_LOG_MASK_ENTITY_VIEW:W}"
+      "device_profile": "${AUDIT_LOG_MASK_DEVICE_PROFILE:W}"
       "role": "${AUDIT_LOG_MASK_ROLE:W}"
       "group_permission": "${AUDIT_LOG_MASK_GROUP_PERMISSION:W}"
   sink:

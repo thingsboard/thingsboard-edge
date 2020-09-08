@@ -389,4 +389,5 @@ public abstract class BaseDeviceServiceTest extends AbstractBeforeTest {
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
+
 }

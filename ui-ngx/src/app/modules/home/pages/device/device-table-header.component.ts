@@ -35,6 +35,7 @@ import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
 import { Device } from '@app/shared/models/device.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { DeviceProfileId } from '../../../../shared/models/id/device-profile-id';
 
 @Component({
   selector: 'tb-device-table-header',
@@ -49,8 +50,8 @@ export class DeviceTableHeaderComponent extends EntityTableHeaderComponent<Devic
     super(store);
   }
 
-  deviceTypeChanged(deviceType: string) {
-    this.entitiesTableConfig.componentsData.deviceType = deviceType;
+  deviceProfileChanged(deviceProfileId: DeviceProfileId) {
+    this.entitiesTableConfig.componentsData.deviceProfileId = deviceProfileId;
     this.entitiesTableConfig.table.resetSortAndFilter(true);
   }
 

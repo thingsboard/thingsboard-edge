@@ -28,36 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.encoding;
+package org.thingsboard.server.common.data;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.msg.TbActorMsg;
-
-import java.util.Optional;
-
-@Slf4j
-@Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
-
-    private final FSTConfiguration config = FSTConfiguration.createDefaultConfiguration();
-
-    @Override
-    public Optional<TbActorMsg> decode(byte[] byteArray) {
-        try {
-            TbActorMsg msg = (TbActorMsg) config.asObject(byteArray);
-            return Optional.of(msg);
-
-        } catch (IllegalArgumentException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public byte[] encode(TbActorMsg msq) {
-        return config.asByteArray(msq);
-    }
-
+public enum DeviceProfileType {
+    DEFAULT
 }

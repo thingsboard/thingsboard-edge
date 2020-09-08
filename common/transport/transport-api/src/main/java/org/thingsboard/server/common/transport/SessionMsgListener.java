@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.transport;
 
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
@@ -50,4 +51,8 @@ public interface SessionMsgListener {
     void onToDeviceRpcRequest(ToDeviceRpcRequestMsg toDeviceRequest);
 
     void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse);
+
+    default void onProfileUpdate(DeviceProfile deviceProfile) {
+    }
+
 }

@@ -151,6 +151,14 @@ export class MenuService {
         disabled: disabledItems.indexOf('tenants') > -1
       },
       {
+        name: 'tenant-profile.tenant-profiles',
+        type: 'link',
+        path: '/tenantProfiles',
+        icon: 'mdi:alpha-t-box',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('tenant_profiles') > -1
+      },
+      {
         name: 'widget.widget-library',
         type: 'link',
         path: '/widgets-bundles',
@@ -235,6 +243,13 @@ export class MenuService {
             icon: 'supervisor_account',
             path: '/tenants',
             disabled: disabledItems.indexOf('tenants') > -1
+          },
+          {
+            name: 'tenant-profile.tenant-profiles',
+            icon: 'mdi:alpha-t-box',
+            isMdiIcon: true,
+            path: '/tenantProfiles',
+            disabled: disabledItems.indexOf('tenant_profiles') > -1
           }
         ]
       },
@@ -392,6 +407,18 @@ export class MenuService {
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE) && disabledItems.indexOf('device_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DEVICE));
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
+      sections.push(
+        {
+          name: 'device-profile.device-profiles',
+          type: 'link',
+          path: '/deviceProfiles',
+          icon: 'mdi:alpha-d-box',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('device_profiles') > -1
+        }
+      );
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
@@ -611,20 +638,34 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE)) {
-      homeSections.push(
-        {
-          name: 'device.management',
-          places: [
-            {
-              name: 'device.devices',
-              icon: 'devices_other',
-              path: '/deviceGroups',
-              disabled: disabledItems.indexOf('device_groups') > -1
-            }
-          ]
-        }
-      );
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE) ||
+      this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
+      const deviceManagementSection: HomeSection = {
+        name: 'device.management',
+        places: []
+      };
+      homeSections.push(deviceManagementSection);
+      if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE)) {
+        deviceManagementSection.places.push(
+          {
+            name: 'device.devices',
+            icon: 'devices_other',
+            path: '/deviceGroups',
+            disabled: disabledItems.indexOf('device_groups') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
+        deviceManagementSection.places.push(
+          {
+            name: 'device-profile.device-profiles',
+            icon: 'mdi:alpha-d-box',
+            isMdiIcon: true,
+            path: '/deviceProfiles',
+            disabled: disabledItems.indexOf('device_profiles') > -1
+          }
+        );
+      }
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       homeSections.push(

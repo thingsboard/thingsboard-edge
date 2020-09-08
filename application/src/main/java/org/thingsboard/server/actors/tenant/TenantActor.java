@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -98,12 +99,16 @@ public class TenantActor extends RuleChainManagerActor {
                 // This Service may be started for specific tenant only.
                 Optional<TenantId> isolatedTenantId = systemContext.getServiceInfoProvider().getIsolatedTenant();
 
+                // TODO: Tenant Profile from cache
+
+                TenantProfile tenantProfile = systemContext.getTenantProfileService().findTenantProfileById(tenantId, tenant.getTenantProfileId());
+
                 isRuleEngineForCurrentTenant = systemContext.getServiceInfoProvider().isService(ServiceType.TB_RULE_ENGINE);
                 isCore = systemContext.getServiceInfoProvider().isService(ServiceType.TB_CORE);
 
                 if (isRuleEngineForCurrentTenant) {
                     try {
-                        if (isolatedTenantId.map(id -> id.equals(tenantId)).orElseGet(() -> !tenant.isIsolatedTbRuleEngine())) {
+                        if (isolatedTenantId.map(id -> id.equals(tenantId)).orElseGet(() -> !tenantProfile.isIsolatedTbRuleEngine())) {
                             log.info("[{}] Going to init rule chains", tenantId);
                             initRuleChains();
                         } else {
