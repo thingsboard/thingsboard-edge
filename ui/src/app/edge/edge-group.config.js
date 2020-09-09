@@ -337,7 +337,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             );
         }
 
-        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read)) {
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read) && (userService.getCurrentUser().authority === 'TENANT_ADMIN')) {
             groupConfig.actionCellDescriptors.push(
                 {
                     name: $translate.instant('edge.manage-edge-rule-chains'),
