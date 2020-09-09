@@ -899,6 +899,12 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.rule-engine-pe</groupId>
+                <artifactId>rule-node-twilio-voice</artifactId>
+                <classifier>rule-node</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>message</artifactId>
                 <version>${project.version}</version>
