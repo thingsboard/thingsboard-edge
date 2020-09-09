@@ -98,6 +98,7 @@ public interface AlarmRepository extends CrudRepository<AlarmEntity, UUID> {
             "AND re.fromId = :affectedEntityId " +
             "AND re.fromType = :affectedEntityType " +
             "WHERE a.tenantId = :tenantId " +
+            "AND (a.originatorId = :affectedEntityId or re.fromId IS NOT NULL) " +
             "AND (:startTime IS NULL OR a.createdTime >= :startTime) " +
             "AND (:endTime IS NULL OR a.createdTime <= :endTime) " +
             "AND ((:typesList) IS NULL OR a.type in (:typesList)) " +
