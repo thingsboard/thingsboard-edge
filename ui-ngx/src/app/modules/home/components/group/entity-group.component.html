@@ -75,7 +75,7 @@
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
         <mat-label translate>entity-group.name</mat-label>
-        <input matInput formControlName="name" required [readonly]="isAllGroup">
+        <input matInput formControlName="name" required [readonly]="isGroupAll">
         <mat-error *ngIf="entityForm.get('name').hasError('required')">
           {{ 'entity-group.name-required' | translate }}
         </mat-error>
