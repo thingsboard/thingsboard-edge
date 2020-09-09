@@ -51,6 +51,7 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
   isPublic = false;
   makePublicEnabled = false;
   makePrivateEnabled = false;
+  isAllGroup = false;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -112,10 +113,12 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
         this.isPublic = isPublic;
         this.makePublicEnabled = isPublicGroupType && !isPublic && isOwned && isWriteAllowed;
         this.makePrivateEnabled = isPublicGroupType && isPublic && isOwned && isWriteAllowed;
+        this.isAllGroup = entityGroup.groupAll;
       } else {
         this.isPublic = false;
         this.makePublicEnabled = false;
         this.makePrivateEnabled = false;
+        this.isAllGroup = false;
       }
     }
   }
