@@ -78,6 +78,20 @@
             <groupId>com.twilio.sdk</groupId>
             <artifactId>twilio</artifactId>
             <version>${twilio.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-jackson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
