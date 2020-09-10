@@ -309,19 +309,34 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
     function fetchEntityGroups(pageLink) {
         var deferred = $q.defer();
         var fetchPromise;
+        var fetchPromiseTenant;
         if (vm.customerId) {
             fetchPromise = entityGroupService.getEntityGroupsByOwnerId(types.entityType.customer, vm.customerId, vm.groupType);
+            if (vm.edgeId) {
+                fetchPromiseTenant = entityGroupService.getEntityGroups(vm.groupType);
+            }
         } else {
             fetchPromise = entityGroupService.getEntityGroups(vm.groupType);
         }
-        fetchPromise.then(
-            function success(entityGroups) {
-                utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
-            },
-            function fail() {
-                deferred.reject();
-            }
-        );
+        if (vm.edgeId && vm.customerId) {
+            $q.all([fetchPromise, fetchPromiseTenant]).then(
+                function success(entityGroups) {
+                    utils.filterSearchTextEntities(entityGroups[0].concat(entityGroups[1]), 'name', pageLink, deferred);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        } else {
+            fetchPromise.then(
+                function success(entityGroups) {
+                    utils.filterSearchTextEntities(entityGroups, 'name', pageLink, deferred);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        }
         return deferred.promise;
     }
 
