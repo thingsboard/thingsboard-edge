@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.pe.twilio;
+package org.thingsboard.rule.engine.pe.twilio.voice;
 
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Call;
@@ -61,7 +61,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         configClazz = TbTwilioVoiceNodeConfiguration.class,
         nodeDescription = "Sends voice message via Twilio.",
         nodeDetails = "Will send message payload as voice message via Twilio, using Twilio text to speech service.",
-        uiResources = {"static/rulenode/twilio-voice-config.js"},
+        uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbActionNodeTwilioVoiceConfig",
         icon = "phone_in_talk",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-voice-node"

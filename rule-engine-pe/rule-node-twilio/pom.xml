@@ -41,10 +41,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard.rule-engine-pe</groupId>
-    <artifactId>rule-node-twilio-voice</artifactId>
+    <artifactId>rule-node-twilio</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard PE Twilio Voice Rule Node</name>
+    <name>Thingsboard PE Twilio Rule Node</name>
     <url>https://thingsboard.io</url>
 
     <properties>

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.pe.twilio;
+package org.thingsboard.rule.engine.pe.twilio.sms;
 
 import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Message;
@@ -54,7 +54,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         configClazz = TbTwilioSmsNodeConfiguration.class,
         nodeDescription = "Sends SMS message via Twilio.",
         nodeDetails = "Will send message payload as SMS message via Twilio.",
-        uiResources = {"static/rulenode/twilio-sms-config.js"},
+        uiResources = {"static/rulenode/twilio-config.js"},
         configDirective = "tbActionNodeTwilioSmsConfig",
         icon = "sms",
         docUrl = "https://thingsboard.io/docs/user-guide/rule-engine-2-0/external-nodes/#twilio-sms-node"

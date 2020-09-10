@@ -49,8 +49,7 @@
     </properties>
 
     <modules>
-        <module>rule-node-twilio-sms</module>
-        <module>rule-node-twilio-voice</module>
+        <module>rule-node-twilio</module>
     </modules>
 
     <build>
