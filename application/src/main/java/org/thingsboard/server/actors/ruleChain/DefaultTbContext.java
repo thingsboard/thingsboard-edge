@@ -137,6 +137,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (nodeCtx.getSelf().isDebugMode()) {
             relationTypes.forEach(relationType -> mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, relationType, th));
         }
+        msg.getCallback().onProcessingEnd(nodeCtx.getSelf().getId());
         nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), relationTypes, msg, th != null ? th.getMessage() : null));
     }
 
@@ -235,6 +236,7 @@ class DefaultTbContext implements TbContext, TbPeContext {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), tbMsg, "ACK", null);
         }
+        tbMsg.getCallback().onProcessingEnd(nodeCtx.getSelf().getId());
         tbMsg.getCallback().onSuccess();
     }
 

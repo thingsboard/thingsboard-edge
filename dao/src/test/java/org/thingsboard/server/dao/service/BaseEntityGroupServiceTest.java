@@ -100,6 +100,40 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
     }
 
     @Test
+    public void testFindGroupEntityIds() throws ExecutionException, InterruptedException {
+        Tenant tenant = new Tenant();
+        tenant.setTitle("Test tenant");
+        tenant = tenantService.saveTenant(tenant);
+
+        TenantId tenantId = tenant.getId();
+
+        List<Device> devices = new ArrayList<>();
+        for (int i=0;i<97;i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device"+i);
+            device.setType("default");
+            device.setLabel("testLabel"+(int)(Math.random()*1000));
+            devices.add(deviceService.saveDevice(device));
+        }
+
+        Optional<EntityGroup> devicesGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME).get();
+        Assert.assertTrue(devicesGroupOptional.isPresent());
+        EntityGroup devicesGroup = devicesGroupOptional.get();
+
+        PageLink pageLink = new PageLink(Integer.MAX_VALUE);
+        List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, devicesGroup.getId(), pageLink).get();
+        Assert.assertNotNull(entityIds);
+
+        List<EntityId> sortedIds = entityIds.stream().sorted(new EntityIdComparator()).collect(Collectors.toList());
+        List<EntityId> sortedDeviceIds = devices.stream().map(IdBased::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
+        Assert.assertEquals(sortedIds, sortedDeviceIds);
+
+        tenantService.deleteTenant(tenantId);
+    }
+
+    @Test
     public void testFindGroupEntities() throws ExecutionException, InterruptedException {
         Tenant tenant = new Tenant();
         tenant.setTitle("Test tenant");

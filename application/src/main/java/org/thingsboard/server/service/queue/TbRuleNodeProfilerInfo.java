@@ -28,40 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.kv;
+package org.thingsboard.server.service.queue;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import lombok.Getter;
+import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Data
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class BasicAttributeKVMsg implements AttributesKVMsg {
+public class TbRuleNodeProfilerInfo {
+    @Getter
+    private final UUID ruleNodeId;
+    @Getter
+    private final String label;
+    private AtomicInteger executionCount = new AtomicInteger(0);
+    private AtomicLong executionTime = new AtomicLong(0);
+    private AtomicLong maxExecutionTime = new AtomicLong(0);
 
-    private static final long serialVersionUID = 1L;
-
-    private final List<AttributeKvEntry> clientAttributes;
-    private final List<AttributeKvEntry> sharedAttributes;
-    private final List<AttributeKey> deletedAttributes;
-
-    public static BasicAttributeKVMsg fromClient(List<AttributeKvEntry> attributes) {
-        return new BasicAttributeKVMsg(attributes, Collections.emptyList(), Collections.emptyList());
+    public TbRuleNodeProfilerInfo(RuleNodeInfo ruleNodeInfo) {
+        this.ruleNodeId = ruleNodeInfo.getRuleNodeId().getId();
+        this.label = ruleNodeInfo.toString();
     }
 
-    public static BasicAttributeKVMsg fromShared(List<AttributeKvEntry> attributes) {
-        return new BasicAttributeKVMsg(Collections.emptyList(), attributes, Collections.emptyList());
+    public TbRuleNodeProfilerInfo(UUID ruleNodeId) {
+        this.ruleNodeId = ruleNodeId;
+        this.label = "";
     }
 
-    public static BasicAttributeKVMsg from(List<AttributeKvEntry> client, List<AttributeKvEntry> shared) {
-        return new BasicAttributeKVMsg(client, shared, Collections.emptyList());
+    public void record(long processingTime) {
+        executionCount.incrementAndGet();
+        executionTime.addAndGet(processingTime);
+        while (true) {
+            long value = maxExecutionTime.get();
+            if (value >= processingTime) {
+                break;
+            }
+            if (maxExecutionTime.compareAndSet(value, processingTime)) {
+                break;
+            }
+        }
     }
 
-    public static AttributesKVMsg fromDeleted(List<AttributeKey> shared) {
-        return new BasicAttributeKVMsg(Collections.emptyList(), Collections.emptyList(), shared);
+    int getExecutionCount() {
+        return executionCount.get();
     }
+
+    long getMaxExecutionTime() {
+        return maxExecutionTime.get();
+    }
+
+    double getAvgExecutionTime() {
+        double executionCnt = (double) executionCount.get();
+        if (executionCnt > 0) {
+            return executionTime.get() / executionCnt;
+        } else {
+            return 0.0;
+        }
+    }
+
 }

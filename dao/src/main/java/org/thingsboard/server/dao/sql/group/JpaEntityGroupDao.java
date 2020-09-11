@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.sql.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
@@ -39,6 +40,7 @@ import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -50,6 +52,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -122,6 +125,16 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     @Override
     public ShortEntityView findGroupEntity(EntityId entityId, UUID groupId, List<ColumnConfiguration> columns) {
         return groupEntitiesRepository.findGroupEntity(entityId, groupId, columns);
+    }
+
+    @Override
+    public ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink) {
+        return service.submit(() -> {
+            Page<UUID> page = entityGroupRepository.findGroupEntityIds(groupId, entityType.name(), DaoUtil.toPageable(pageLink));
+            List<EntityId> entityIds = page.getContent().stream().map(id ->
+                    EntityIdFactory.getByTypeAndUuid(entityType, id)).collect(Collectors.toList());
+            return new PageData(entityIds, page.getTotalPages(), page.getTotalElements(), page.hasNext());
+        });
     }
 
 }

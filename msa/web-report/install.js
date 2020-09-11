@@ -33,9 +33,9 @@ const fse = require('fs-extra');
 const path = require('path');
 
 const chromium_revision = process.env.PUPPETEER_CHROMIUM_REVISION || process.env.npm_config_puppeteer_chromium_revision
-    || require('puppeteer/package.json').puppeteer.chromium_revision;
+    || require('puppeteer/lib/cjs/puppeteer/revisions').PUPPETEER_REVISIONS.chromium;
 
-const BrowserFetcher = require('puppeteer/lib/BrowserFetcher');
+const BrowserFetcher = require('puppeteer/lib/cjs/puppeteer/node/BrowserFetcher').BrowserFetcher;
 const ProgressBar = require('progress');
 
 let lastDownloadedBytes = 0;

@@ -41,7 +41,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
@@ -50,7 +49,6 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.msg.kv.AttributesKVMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
@@ -286,11 +284,6 @@ public class JsonConverter {
             payload.getSharedAttributeListList().forEach(addToObjectFromProto(attrObject));
             result.add("shared", attrObject);
         }
-        if (payload.getDeletedAttributeKeysCount() > 0) {
-            JsonArray attrObject = new JsonArray();
-            payload.getDeletedAttributeKeysList().forEach(attrObject::add);
-            result.add("deleted", attrObject);
-        }
         return result;
     }
 
@@ -302,31 +295,6 @@ public class JsonConverter {
         if (payload.getSharedDeletedCount() > 0) {
             JsonArray attrObject = new JsonArray();
             payload.getSharedDeletedList().forEach(attrObject::add);
-            result.add("deleted", attrObject);
-        }
-        return result;
-    }
-
-    public static JsonObject toJson(AttributesKVMsg payload, boolean asMap) {
-        JsonObject result = new JsonObject();
-        if (asMap) {
-            if (!payload.getClientAttributes().isEmpty()) {
-                JsonObject attrObject = new JsonObject();
-                payload.getClientAttributes().forEach(addToObject(attrObject));
-                result.add("client", attrObject);
-            }
-            if (!payload.getSharedAttributes().isEmpty()) {
-                JsonObject attrObject = new JsonObject();
-                payload.getSharedAttributes().forEach(addToObject(attrObject));
-                result.add("shared", attrObject);
-            }
-        } else {
-            payload.getClientAttributes().forEach(addToObject(result));
-            payload.getSharedAttributes().forEach(addToObject(result));
-        }
-        if (!payload.getDeletedAttributes().isEmpty()) {
-            JsonArray attrObject = new JsonArray();
-            payload.getDeletedAttributes().forEach(addToObject(attrObject));
             result.add("deleted", attrObject);
         }
         return result;
@@ -385,10 +353,6 @@ public class JsonConverter {
                 json.add(name, JSON_PARSER.parse(entry.getJsonV()));
                 break;
         }
-    }
-
-    private static Consumer<AttributeKey> addToObject(JsonArray result) {
-        return key -> result.add(key.getAttributeKey());
     }
 
     private static Consumer<TsKvProto> addToObjectFromProto(JsonObject result) {

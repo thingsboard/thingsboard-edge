@@ -132,7 +132,7 @@ async function generateDashboardReport(browser, url, type, timezone) {
             isLandscape: false
         });
 
-        await page.emulateMedia('screen');
+        await page.emulateMediaType('screen');
 
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
         if (dashboardLoadResponse._status < 400) {
@@ -144,7 +144,7 @@ async function generateDashboardReport(browser, url, type, timezone) {
         var toEval = "var height = 0;\n" +
             "     var gridsterChild = document.getElementById('gridster-child');\n" +
             "     if (gridsterChild) {\n" +
-            "         height = Number(document.getElementById('gridster-child').offsetHeight);\n" +
+            "         height = Number(document.getElementById('gridster-child').scrollHeight);\n" +
             "         var dashboardTitleElements = document.getElementsByClassName(\"tb-dashboard-title\");\n" +
             "         if (dashboardTitleElements && dashboardTitleElements.length) {\n" +
             "              height += Number(dashboardTitleElements[0].offsetHeight);\n" +

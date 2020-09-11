@@ -191,15 +191,6 @@ public class DefaultReportService implements ReportService {
         }
         String endpointUrl = reportsServerEndpointUrl + "/dashboardReport";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<JsonNode> entity = new HttpEntity<>(dashboardReportRequest, headers);
-
-        ListenableFuture<ResponseEntity<byte[]>> future = httpClient.exchange(
-                endpointUrl, HttpMethod.POST, entity, byte[].class);
-
         org.springframework.util.concurrent.ListenableFuture<ReportData> reportDataFuture = httpClient.execute(endpointUrl, HttpMethod.POST,
                 new ReportRequestCallback(dashboardReportRequest), responseExtractor);
         reportDataFuture.addCallback(new ListenableFutureCallback<ReportData>() {
