@@ -422,12 +422,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.thingsboard.rule-engine-pe</groupId>
-                                    <artifactId>rule-node-twilio-sms</artifactId>
-                                    <classifier>rule-node</classifier>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.thingsboard.rule-engine-pe</groupId>
-                                    <artifactId>rule-node-twilio-voice</artifactId>
+                                    <artifactId>rule-node-twilio</artifactId>
                                     <classifier>rule-node</classifier>
                                 </artifactItem>
                             </artifactItems>

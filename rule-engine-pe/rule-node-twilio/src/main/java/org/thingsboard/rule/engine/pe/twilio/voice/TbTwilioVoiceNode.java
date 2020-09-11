@@ -113,14 +113,10 @@ public class TbTwilioVoiceNode implements TbNode {
             }
         }
 
-        if (!this.config.getPitch().endsWith("%")) { this.config.setPitch(this.config.getPitch()+"%"); }
-        if (!this.config.getRate().endsWith("%")) { this.config.setRate(this.config.getRate()+"%"); }
-        if (!this.config.getVolume().endsWith("dB")) { this.config.setVolume(this.config.getVolume()+"dB"); }
-
         SsmlProsody prosody = new SsmlProsody.Builder(payload)
-                .pitch(config.getPitch())
-                .rate(config.getRate())
-                .volume(config.getVolume())
+                .pitch(config.getPitch().toString() + "%")
+                .rate(config.getRate().toString() + "%")
+                .volume(config.getVolume().toString() + "dB")
                 .build();
 
         Pause startPause = new Pause.Builder().length(config.getStartPause()).build();

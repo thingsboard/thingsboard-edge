@@ -41,11 +41,11 @@ public class TbTwilioVoiceNodeConfiguration implements NodeConfiguration {
     private String language;
     private String voice;
 
-    private String pitch;
-    private String rate;
-    private String volume;
+    private Integer pitch;
+    private Integer rate;
+    private Integer volume;
 
-    private int startPause;
+    private Integer startPause;
 
     private String numbersTo;
     private String numberFrom;
@@ -56,9 +56,9 @@ public class TbTwilioVoiceNodeConfiguration implements NodeConfiguration {
     @Override
     public NodeConfiguration defaultConfiguration() {
         TbTwilioVoiceNodeConfiguration configuration = new TbTwilioVoiceNodeConfiguration();
-        configuration.pitch = "100";
-        configuration.rate = "100";
-        configuration.volume = "0";
+        configuration.pitch = 100;
+        configuration.rate = 100;
+        configuration.volume = 0;
         return configuration;
     }
 }
