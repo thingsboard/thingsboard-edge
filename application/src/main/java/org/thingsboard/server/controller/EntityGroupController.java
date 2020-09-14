@@ -429,7 +429,9 @@ public class EntityGroupController extends BaseController {
             checkEntityGroupType(entityType);
             EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, strEntityId);
             checkEntityId(entityId, Operation.READ);
-            ShortEntityView result = entityGroupService.findGroupEntity(getTenantId(), entityGroupId, entityId);
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            ShortEntityView result = entityGroupService.findGroupEntity(getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, entityGroupId, entityId);
             return checkNotNull(result);
         } catch (Exception e) {
             throw handleException(e);
@@ -454,7 +456,9 @@ public class EntityGroupController extends BaseController {
         checkEntityGroupType(entityType);
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(entityGroupService.findGroupEntities(getTenantId(), entityGroupId, pageLink));
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return checkNotNull(entityGroupService.findGroupEntities(getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

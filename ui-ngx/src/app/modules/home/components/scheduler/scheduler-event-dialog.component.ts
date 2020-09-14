@@ -40,6 +40,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
+import { isObject, isString } from '@core/utils';
 
 export interface SchedulerEventDialogData {
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
@@ -123,11 +124,24 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
     this.submitted = true;
     if (!this.schedulerEventFormGroup.invalid) {
       this.schedulerEvent = {...this.schedulerEvent, ...this.schedulerEventFormGroup.getRawValue()};
-      this.schedulerEventService.saveSchedulerEvent(this.schedulerEvent).subscribe(
+      this.schedulerEventService.saveSchedulerEvent(this.deepTrim(this.schedulerEvent)).subscribe(
         () => {
             this.dialogRef.close(true);
         }
       );
     }
+  }
+
+  private deepTrim<T>(obj: T): T {
+    return Object.keys(obj).reduce((acc, curr) => {
+      if (isString(obj[curr])) {
+        acc[curr] = obj[curr].trim();
+      } else if (isObject(obj[curr])) {
+        acc[curr] = this.deepTrim(obj[curr]);
+      } else {
+        acc[curr] = obj[curr];
+      }
+      return acc;
+    }, Array.isArray(obj) ? [] : {}) as T;
   }
 }
