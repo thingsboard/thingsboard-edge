@@ -79,7 +79,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
-        this.allowCreateDevicesOrAssets = integration.getallowCreateDevicesOrAssets();
+        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -149,9 +149,9 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         isRemote = remote;
     }
 
-    public Boolean getallowCreateDevicesOrAssets() { return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets; }
+    public Boolean isAllowCreateDevicesOrAssets() { return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets; }
 
-    public void setallowCreateDevicesOrAssets(Boolean allow) { allowCreateDevicesOrAssets = allow; }
+    public void setAllowCreateDevicesOrAssets(Boolean allow) { allowCreateDevicesOrAssets = allow; }
 
     public String getSecret() {
         return secret;
