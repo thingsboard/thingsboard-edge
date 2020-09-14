@@ -28,44 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.util;
+package org.thingsboard.server.common.data.device.profile;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import lombok.Data;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 
-import javax.script.ScriptException;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+@Data
+public class DeviceProfileAlarm {
 
-@RunWith(MockitoJUnitRunner.class)
-public class MqttTopicRegexUtilTest {
+    private String id;
+    private String alarmType;
 
-    private static String TEST_STR_1 = "Sensor/Temperature/House/48";
-    private static String TEST_STR_2 = "Sensor/Temperature";
-    private static String TEST_STR_3 = "Sensor/Temperature2/House/48";
+    private Map<AlarmSeverity, AlarmRule> createRules;
+    private AlarmRule clearRule;
 
-    @Test
-    public void metadataCanBeUpdated() throws ScriptException {
-        Pattern filter = MqttTopicRegexUtil.toRegex("Sensor/Temperature/House/+");
-        assertTrue(filter.matcher(TEST_STR_1).matches());
-        assertFalse(filter.matcher(TEST_STR_2).matches());
-
-        filter = MqttTopicRegexUtil.toRegex("Sensor/+/House/#");
-        assertTrue(filter.matcher(TEST_STR_1).matches());
-        assertFalse(filter.matcher(TEST_STR_2).matches());
-
-        filter = MqttTopicRegexUtil.toRegex("Sensor/#");
-        assertTrue(filter.matcher(TEST_STR_1).matches());
-        assertTrue(filter.matcher(TEST_STR_2).matches());
-        assertTrue(filter.matcher(TEST_STR_3).matches());
-
-        filter = MqttTopicRegexUtil.toRegex("Sensor/Temperature/#");
-        assertTrue(filter.matcher(TEST_STR_1).matches());
-        assertTrue(filter.matcher(TEST_STR_2).matches());
-        assertFalse(filter.matcher(TEST_STR_3).matches());
-    }
-
+    // Hidden in advanced settings
+    private boolean propagate;
+    private List<String> propagateRelationTypes;
 }

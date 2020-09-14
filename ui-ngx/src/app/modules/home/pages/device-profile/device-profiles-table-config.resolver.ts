@@ -50,9 +50,15 @@ import {
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfileComponent } from '../../components/profile/device-profile.component';
 import { DeviceProfileTabsComponent } from './device-profile-tabs.component';
-import { UserPermissionsService } from '../../../../core/http/user-permissions.service';
-import { UtilsService } from '../../../../core/services/utils.service';
-import { Operation, Resource } from '../../../../shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { UtilsService } from '@core/services/utils.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { Observable } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  AddDeviceProfileDialogComponent,
+  AddDeviceProfileDialogData
+} from '../../components/profile/add-device-profile-dialog.component';
 
 @Injectable()
 export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableConfig<DeviceProfile>> {
@@ -64,7 +70,8 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
               private translate: TranslateService,
               private datePipe: DatePipe,
               private dialogService: DialogService,
-              private utils: UtilsService) {
+              private utils: UtilsService,
+              private dialog: MatDialog) {
 
     this.config.entityType = EntityType.DEVICE_PROFILE;
     this.config.entityComponent = DeviceProfileComponent;
@@ -72,7 +79,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DEVICE_PROFILE);
     this.config.entityResources = entityTypeResources.get(EntityType.DEVICE_PROFILE);
 
-    this.config.addDialogStyle = {width: '600px'};
+    this.config.addDialogStyle = {width: '1000px'};
 
     this.config.entityTitle = (deviceProfile) => deviceProfile ?
       this.utils.customTranslation(deviceProfile.name, deviceProfile.name) : '';
@@ -118,12 +125,24 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
       this.userPermissionsService.hasGenericPermission(Resource.DEVICE_PROFILE, Operation.DELETE);
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default &&
       this.userPermissionsService.hasGenericPermission(Resource.DEVICE_PROFILE, Operation.DELETE);
+    this.config.addEntity = () => this.addDeviceProfile();
   }
 
   resolve(): EntityTableConfig<DeviceProfile> {
     this.config.tableTitle = this.translate.instant('device-profile.device-profiles');
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
+  }
+
+  addDeviceProfile(): Observable<DeviceProfile> {
+    return this.dialog.open<AddDeviceProfileDialogComponent, AddDeviceProfileDialogData,
+      DeviceProfile>(AddDeviceProfileDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        deviceProfileName: null
+      }
+    }).afterClosed();
   }
 
   setDefaultDeviceProfile($event: Event, deviceProfile: DeviceProfile) {

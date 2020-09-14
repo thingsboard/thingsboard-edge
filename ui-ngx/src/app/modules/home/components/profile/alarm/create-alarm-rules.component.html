@@ -1,0 +1,78 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxFlex fxLayout="column">
+  <div *ngFor="let createAlarmRuleControl of createAlarmRulesFormArray().controls; let $index = index;
+               last as isLast;" fxLayout="row" fxLayoutAlign="start center"
+               fxLayoutGap="8px" style="padding-bottom: 8px;" [formGroup]="createAlarmRuleControl">
+    <div class="create-alarm-rule" fxFlex fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start">
+      <mat-form-field class="severity mat-block" floatLabel="always" hideRequiredMarker>
+        <mat-label translate>alarm.severity</mat-label>
+        <mat-select formControlName="severity"
+                    required
+                    placeholder="{{ 'device-profile.select-alarm-severity' | translate }}">
+          <mat-option *ngFor="let alarmSeverity of alarmSeverities" [value]="alarmSeverity"
+                       [disabled]="isDisabledSeverity(alarmSeverityEnum[alarmSeverity], $index)">
+            {{ alarmSeverityTranslationMap.get(alarmSeverityEnum[alarmSeverity]) | translate }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="createAlarmRuleControl.get('severity').hasError('required')">
+          {{ 'device-profile.alarm-severity-required' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <tb-alarm-rule formControlName="alarmRule" required fxFlex>
+      </tb-alarm-rule>
+    </div>
+    <button *ngIf="!disabled"
+            mat-icon-button color="primary" style="min-width: 40px;"
+            type="button"
+            (click)="removeCreateAlarmRule($index)"
+            matTooltip="{{ 'action.remove' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>remove_circle_outline</mat-icon>
+    </button>
+  </div>
+  <div *ngIf="!createAlarmRulesFormArray().controls.length">
+      <span translate fxLayoutAlign="center center"
+            class="tb-prompt">device-profile.no-create-alarm-rules</span>
+  </div>
+  <div fxLayout="row" *ngIf="!disabled">
+    <button mat-stroked-button color="primary"
+            type="button"
+            (click)="addCreateAlarmRule()"
+            matTooltip="{{ 'device-profile.add-create-alarm-rule' | translate }}"
+            matTooltipPosition="above">
+      <mat-icon>add_circle_outline</mat-icon>
+      {{ 'device-profile.add-create-alarm-rule' | translate }}
+    </button>
+  </div>
+</div>

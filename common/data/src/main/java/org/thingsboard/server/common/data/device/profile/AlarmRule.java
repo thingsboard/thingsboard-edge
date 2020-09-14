@@ -28,22 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.util;
+package org.thingsboard.server.common.data.device.profile;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
-import java.util.regex.Pattern;
+@Data
+public class AlarmRule {
 
-@Slf4j
-public class MqttTopicRegexUtil {
-
-    public static Pattern toRegex(String topicFilter) {
-        String regex = topicFilter
-                .replace("\\", "\\\\")
-                .replace("+", "[^/]+")
-                .replace("/#", "($|/.*)");
-        log.debug("Converting [{}] to [{}]", topicFilter, regex);
-        return Pattern.compile(regex);
-    }
+    private AlarmCondition condition;
+    // Advanced
+    private String alarmDetails;
 
 }

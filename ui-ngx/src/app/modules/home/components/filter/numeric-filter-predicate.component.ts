@@ -55,6 +55,8 @@ export class NumericFilterPredicateComponent implements ControlValueAccessor, On
 
   @Input() disabled: boolean;
 
+  @Input() allowUserDynamicSource = true;
+
   @Input() valueType: EntityKeyValueType;
 
   numericFilterPredicateFormGroup: FormGroup;

@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @RestController
@@ -101,13 +102,17 @@ public class DeviceProfileController extends BaseController {
     @ResponseBody
     public DeviceProfile saveDeviceProfile(@RequestBody DeviceProfile deviceProfile) throws ThingsboardException {
         try {
+            boolean created = deviceProfile.getId() == null;
             deviceProfile.setTenantId(getTenantId());
 
             checkEntity(deviceProfile.getId(), deviceProfile, Resource.DEVICE_PROFILE, null);
 
             DeviceProfile savedDeviceProfile = checkNotNull(deviceProfileService.saveDeviceProfile(deviceProfile));
 
+            deviceProfileCache.put(savedDeviceProfile);
             tbClusterService.onDeviceProfileChange(savedDeviceProfile, null);
+            tbClusterService.onEntityStateChange(deviceProfile.getTenantId(), savedDeviceProfile.getId(),
+                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             logEntityAction(savedDeviceProfile.getId(), savedDeviceProfile,
                     null,
@@ -130,6 +135,10 @@ public class DeviceProfileController extends BaseController {
             DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
             DeviceProfile deviceProfile = checkDeviceProfileId(deviceProfileId, Operation.DELETE);
             deviceProfileService.deleteDeviceProfile(getTenantId(), deviceProfileId);
+            deviceProfileCache.evict(deviceProfileId);
+
+            tbClusterService.onDeviceProfileDelete(deviceProfile, null);
+            tbClusterService.onEntityStateChange(deviceProfile.getTenantId(), deviceProfile.getId(), ComponentLifecycleEvent.DELETED);
 
             logEntityAction(deviceProfileId, deviceProfile,
                     null,
@@ -195,10 +204,10 @@ public class DeviceProfileController extends BaseController {
     @RequestMapping(value = "/deviceProfileInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<DeviceProfileInfo> getDeviceProfileInfos(@RequestParam int pageSize,
-                                                      @RequestParam int page,
-                                                      @RequestParam(required = false) String textSearch,
-                                                      @RequestParam(required = false) String sortProperty,
-                                                      @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+                                                             @RequestParam int page,
+                                                             @RequestParam(required = false) String textSearch,
+                                                             @RequestParam(required = false) String sortProperty,
+                                                             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(deviceProfileService.findDeviceProfileInfos(getTenantId(), pageLink));

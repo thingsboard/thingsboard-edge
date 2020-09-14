@@ -89,4 +89,9 @@ public class DefaultTransportProfileCache implements TransportProfileCache {
             return null;
         }
     }
+
+    @Override
+    public void evict(DeviceProfileId id) {
+        deviceProfiles.remove(id);
+    }
 }

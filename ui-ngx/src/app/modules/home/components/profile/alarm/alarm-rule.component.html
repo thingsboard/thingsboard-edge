@@ -1,0 +1,100 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div fxLayout="column" [formGroup]="alarmRuleFormGroup">
+  <div formGroupName="condition" fxLayout="row" fxLayoutGap="8px" fxFlex>
+    <tb-alarm-rule-condition fxFlex
+                             formControlName="condition">
+    </tb-alarm-rule-condition>
+    <div fxLayout="column">
+      <div fxLayout="row" fxLayoutAlign="start center" style="min-height: 40px;">
+        <div class="tb-small" translate>device-profile.condition-duration</div>
+        <span fxFlex></span>
+        <mat-slide-toggle [disabled]="disabled"
+                          color="primary"
+                          [ngModelOptions]="{standalone: true}"
+                          (ngModelChange)="enableDurationChanged($event)"
+                          [ngModel]="enableDuration">
+        </mat-slide-toggle>
+      </div>
+      <div class="tb-condition-duration" fxFlex fxLayout="row" fxLayoutGap="8px">
+        <span style="min-width: 250px;" *ngIf="!enableDuration"></span>
+        <div style="min-width: 250px;" fxLayout="row" fxLayoutGap="8px" *ngIf="enableDuration">
+          <mat-form-field class="mat-block duration-value-field" hideRequiredMarker floatLabel="always">
+            <mat-label></mat-label>
+            <input type="number"
+                   required
+                   step="1"
+                   min="1" max="2147483647" matInput
+                   placeholder="{{ 'device-profile.condition-duration-value' | translate }}"
+                   formControlName="durationValue">
+            <mat-error *ngIf="alarmRuleFormGroup.get('condition').get('durationValue').hasError('required')">
+              {{ 'device-profile.condition-duration-value-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="alarmRuleFormGroup.get('condition').get('durationValue').hasError('min')">
+              {{ 'device-profile.condition-duration-value-range' | translate }}
+            </mat-error>
+            <mat-error *ngIf="alarmRuleFormGroup.get('condition').get('durationValue').hasError('max')">
+              {{ 'device-profile.condition-duration-value-range' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field class="mat-block duration-unit-field" hideRequiredMarker floatLabel="always">
+            <mat-label></mat-label>
+            <mat-select formControlName="durationUnit"
+                        required
+                        placeholder="{{ 'device-profile.condition-duration-time-unit' | translate }}">
+              <mat-option *ngFor="let timeUnit of timeUnits" [value]="timeUnit">
+                {{ timeUnitTranslations.get(timeUnit) | translate }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="alarmRuleFormGroup.get('condition').get('durationUnit').hasError('required')">
+              {{ 'device-profile.condition-duration-time-unit-required' | translate }}
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </div>
+  <mat-expansion-panel class="advanced-settings" [expanded]="false">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <div fxFlex fxLayout="row" fxLayoutAlign="end center">
+          <div class="tb-small" translate>device-profile.alarm-rule-details</div>
+        </div>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <mat-form-field class="mat-block">
+      <mat-label translate>device-profile.alarm-details</mat-label>
+      <textarea matInput formControlName="alarmDetails" rows="5"></textarea>
+    </mat-form-field>
+  </mat-expansion-panel>
+</div>

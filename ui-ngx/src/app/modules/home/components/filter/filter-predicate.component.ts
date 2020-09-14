@@ -56,6 +56,10 @@ export class FilterPredicateComponent implements ControlValueAccessor, OnInit {
 
   @Input() key: string;
 
+  @Input() displayUserParameters = true;
+
+  @Input() allowUserDynamicSource = true;
+
   filterPredicateFormGroup: FormGroup;
 
   type: FilterPredicateType;

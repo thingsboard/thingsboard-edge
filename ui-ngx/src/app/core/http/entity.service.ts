@@ -95,6 +95,7 @@ import {
   entityInfoFields,
   EntityKey,
   EntityKeyType,
+  EntityKeyValueType,
   FilterPredicateType,
   singleEntityDataPageLink,
   StringOperation
@@ -675,6 +676,7 @@ export class EntityService {
       keyFilters: searchText && searchText.length ? [
         {
           key: nameField,
+          valueType: EntityKeyValueType.STRING,
           predicate: {
             type: FilterPredicateType.STRING,
             operation: StringOperation.STARTS_WITH,
@@ -904,10 +906,10 @@ export class EntityService {
     return entityTypes;
   }
 
-  private getEntityFieldKeys (entityType: EntityType, searchText: string): Array<string> {
+  private getEntityFieldKeys(entityType: EntityType, searchText: string): Array<string> {
     const entityFieldKeys: string[] = [entityFields.createdTime.keyName];
     const query = searchText.toLowerCase();
-    switch(entityType) {
+    switch (entityType) {
       case EntityType.USER:
         entityFieldKeys.push(entityFields.name.keyName);
         entityFieldKeys.push(entityFields.email.keyName);
@@ -1228,7 +1230,7 @@ export class EntityService {
               const tasks: Observable<any>[] = [];
               const result: Device | Asset = entity as (Device | Asset);
               const additionalInfo = result.additionalInfo || {};
-              if(result.label !== entityData.label ||
+              if (result.label !== entityData.label ||
                  result.type !== entityData.type ||
                  additionalInfo.description !== entityData.description ||
                  (result.id.entityType === EntityType.DEVICE && (additionalInfo.gateway !== entityData.gateway)) ) {

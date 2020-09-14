@@ -38,7 +38,6 @@ import java.util.Optional;
 
 public interface TransportProfileCache {
 
-
     DeviceProfile getOrCreate(DeviceProfileId id, ByteString profileBody);
 
     DeviceProfile get(DeviceProfileId id);
@@ -46,5 +45,7 @@ public interface TransportProfileCache {
     void put(DeviceProfile profile);
 
     DeviceProfile put(ByteString profileBody);
+
+    void evict(DeviceProfileId id);
 
 }

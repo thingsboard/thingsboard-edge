@@ -38,6 +38,8 @@ import { EntitySearchQuery } from '@shared/models/relation.models';
 import { DeviceProfileId } from '@shared/models/id/device-profile-id';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { EntityInfoData } from '@shared/models/entity.models';
+import { KeyFilter } from '@shared/models/query/query.models';
+import { TimeUnit } from '@shared/models/time/time.models';
 
 export enum DeviceProfileType {
   DEFAULT = 'DEFAULT'
@@ -123,8 +125,6 @@ export interface DefaultDeviceProfileTransportConfiguration {
 export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
-  deviceRpcRequestTopic?: string;
-  deviceRpcResponseTopic?: string;
   [key: string]: any;
 }
 
@@ -177,9 +177,7 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
       case DeviceTransportType.MQTT:
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
-          deviceAttributesTopic: 'v1/devices/me/attributes',
-          deviceRpcRequestTopic: 'v1/devices/me/rpc/request/',
-          deviceRpcResponseTopic: 'v1/devices/me/rpc/response/'
+          deviceAttributesTopic: 'v1/devices/me/attributes'
         };
         transportConfiguration = {...mqttTransportConfiguration, type: DeviceTransportType.MQTT};
         break;
@@ -213,9 +211,30 @@ export function createDeviceTransportConfiguration(type: DeviceTransportType): D
   return transportConfiguration;
 }
 
+export interface AlarmCondition {
+  condition: Array<KeyFilter>;
+  durationUnit?: TimeUnit;
+  durationValue?: number;
+}
+
+export interface AlarmRule {
+  condition: AlarmCondition;
+  alarmDetails?: string;
+}
+
+export interface DeviceProfileAlarm {
+  id: string;
+  alarmType: string;
+  createRules: {[severity: string]: AlarmRule};
+  clearRule?: AlarmRule;
+  propagate?: boolean;
+  propagateRelationTypes?: Array<string>;
+}
+
 export interface DeviceProfileData {
   configuration: DeviceProfileConfiguration;
   transportConfiguration: DeviceProfileTransportConfiguration;
+  alarms?: Array<DeviceProfileAlarm>;
 }
 
 export interface DeviceProfile extends BaseData<DeviceProfileId> {
@@ -288,13 +307,15 @@ export interface Device extends BaseData<DeviceId> {
 
 export enum DeviceCredentialsType {
   ACCESS_TOKEN = 'ACCESS_TOKEN',
-  X509_CERTIFICATE = 'X509_CERTIFICATE'
+  X509_CERTIFICATE = 'X509_CERTIFICATE',
+  MQTT_BASIC = 'MQTT_BASIC'
 }
 
 export const credentialTypeNames = new Map<DeviceCredentialsType, string>(
   [
     [DeviceCredentialsType.ACCESS_TOKEN, 'Access token'],
-    [DeviceCredentialsType.X509_CERTIFICATE, 'X.509 Certificate'],
+    [DeviceCredentialsType.X509_CERTIFICATE, 'MQTT X.509'],
+    [DeviceCredentialsType.MQTT_BASIC, 'MQTT Basic']
   ]
 );
 
@@ -303,6 +324,12 @@ export interface DeviceCredentials extends BaseData<DeviceCredentialsId> {
   credentialsType: DeviceCredentialsType;
   credentialsId: string;
   credentialsValue: string;
+}
+
+export interface DeviceCredentialMQTTBasic {
+  clientId: string;
+  userName: string;
+  password: string;
 }
 
 export interface DeviceSearchQuery extends EntitySearchQuery {

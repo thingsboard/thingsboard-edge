@@ -64,7 +64,8 @@ import {
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfileDialogComponent, DeviceProfileDialogData } from './device-profile-dialog.component';
 import { MatAutocomplete } from '@angular/material/autocomplete';
-import { Operation, Resource } from '../../../../shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
+import { AddDeviceProfileDialogComponent, AddDeviceProfileDialogData } from './add-device-profile-dialog.component';
 
 @Component({
   selector: 'tb-device-profile-autocomplete',
@@ -299,15 +300,8 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   createDeviceProfile($event: Event, profileName: string) {
     $event.preventDefault();
     const deviceProfile: DeviceProfile = {
-      id: null,
-      name: profileName,
-      type: DeviceProfileType.DEFAULT,
-      transportType: DeviceTransportType.DEFAULT,
-      profileData: {
-        configuration: createDeviceProfileConfiguration(DeviceProfileType.DEFAULT),
-        transportConfiguration: createDeviceProfileTransportConfiguration(DeviceTransportType.DEFAULT)
-      }
-    };
+      name: profileName
+    } as DeviceProfile;
     this.openDeviceProfileDialog(deviceProfile, true);
   }
 
@@ -321,15 +315,28 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   }
 
   openDeviceProfileDialog(deviceProfile: DeviceProfile, isAdd: boolean) {
-    this.dialog.open<DeviceProfileDialogComponent, DeviceProfileDialogData,
-      DeviceProfile>(DeviceProfileDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        isAdd,
-        deviceProfile
-      }
-    }).afterClosed().subscribe(
+    let deviceProfileObservable: Observable<DeviceProfile>;
+    if (!isAdd) {
+      deviceProfileObservable = this.dialog.open<DeviceProfileDialogComponent, DeviceProfileDialogData,
+        DeviceProfile>(DeviceProfileDialogComponent, {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          isAdd: false,
+          deviceProfile
+        }
+      }).afterClosed();
+    } else {
+      deviceProfileObservable = this.dialog.open<AddDeviceProfileDialogComponent, AddDeviceProfileDialogData,
+        DeviceProfile>(AddDeviceProfileDialogComponent, {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          deviceProfileName: deviceProfile.name
+        }
+      }).afterClosed();
+    }
+    deviceProfileObservable.subscribe(
       (savedDeviceProfile) => {
         if (!savedDeviceProfile) {
           setTimeout(() => {

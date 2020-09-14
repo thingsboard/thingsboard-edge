@@ -158,6 +158,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
+import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
@@ -307,6 +308,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityService entityService;
+
+    @Autowired
+    protected TbDeviceProfileCache deviceProfileCache;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
