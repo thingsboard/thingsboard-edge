@@ -99,4 +99,15 @@ public interface EntityGroupRepository extends CrudRepository<EntityGroupEntity,
                                   @Param("groupType") String groupType,
                                   Pageable pageable);
 
+
+    @Query("SELECT CASE WHEN (count(re) = 1) " +
+            "THEN true " +
+            "ELSE false END " +
+            "FROM " +
+            "RelationEntity re " +
+            "WHERE re.fromId = :entityGroupId " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.toId = :entityId")
+    boolean isEntityInGroup(@Param("entityId") UUID entityId,
+                            @Param("entityGroupId") UUID entityGroupId);
 }
