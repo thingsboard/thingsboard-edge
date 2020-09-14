@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
+import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -56,11 +57,21 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataPageLink;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityGroupFilter;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -71,10 +82,13 @@ import org.thingsboard.server.dao.service.Validator;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
@@ -113,6 +127,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private EntityQueryDao entityQueryDao;
 
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
@@ -574,20 +591,46 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+    public ShortEntityView findGroupEntity(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+
+        if (!isEntityInGroup(entityId, entityGroupId)) {
+            throw new IncorrectParameterException(String.format("Entity %s not present in entity group %s.", entityId, entityGroupId));
+        }
+
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
         List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
-        return this.entityGroupDao.findGroupEntity(entityId, entityGroupId.getId(), columns);
+
+        SingleEntityFilter singleEntityFilter = new SingleEntityFilter();
+        singleEntityFilter.setSingleEntity(entityId);
+
+        List<ColumnConfiguration> entityFieldsColumns = new ArrayList<>();
+        List<ColumnConfiguration> latestValuesColumns = new ArrayList<>();
+
+        columns.forEach(column -> {
+            if (column.getType().equals(ColumnType.ENTITY_FIELD)) {
+                entityFieldsColumns.add(column);
+            } else {
+                latestValuesColumns.add(column);
+            }
+        });
+
+        List<EntityKey> entityFields = entityFieldsColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+        List<EntityKey> latestValues = latestValuesColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+
+        EntityDataQuery dataQuery = new EntityDataQuery(singleEntityFilter, new EntityDataPageLink(), entityFields, latestValues, Collections.emptyList());
+        PageData<EntityData> entityDataByQuery = entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, dataQuery);
+
+        return entityDataToShortEntityView(entityDataByQuery.getData().get(0));
     }
 
     @Override
-    public PageData<ShortEntityView> findGroupEntities(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
+    public PageData<ShortEntityView> findGroupEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, PageLink pageLink) {
         log.trace("Executing findGroupEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validatePageLink(pageLink);
@@ -597,7 +640,105 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
         List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
 
-        return this.entityGroupDao.findGroupEntities(entityGroup.getType(), entityGroupId.getId(), columns, pageLink);
+        EntityGroupFilter entityGroupFilter = new EntityGroupFilter();
+        entityGroupFilter.setEntityGroup(entityGroupId.getId().toString());
+        entityGroupFilter.setGroupType(entityGroup.getType());
+
+        List<ColumnConfiguration> entityFieldsColumns = new ArrayList<>();
+        List<ColumnConfiguration> latestValuesColumns = new ArrayList<>();
+
+        columns.forEach(column -> {
+            if (column.getType().equals(ColumnType.ENTITY_FIELD)) {
+                entityFieldsColumns.add(column);
+            } else {
+                latestValuesColumns.add(column);
+            }
+        });
+
+        List<EntityKey> entityFields = entityFieldsColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+        List<EntityKey> latestValues = latestValuesColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+
+        EntityDataSortOrder sortOrder = null;
+        if (pageLink.getSortOrder() != null && !StringUtils.isEmpty(pageLink.getSortOrder().getProperty())) {
+            String property = pageLink.getSortOrder().getProperty();
+            for (ColumnConfiguration column : columns) {
+                if (column.getKey().equals(property)) {
+                    sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(pageLink.getSortOrder().getDirection().name()));
+                    break;
+                }
+            }
+        } else {
+            for (ColumnConfiguration column : columns) {
+                if (column.getSortOrder() != null) {
+                    sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(column.getSortOrder().name()));
+                    break;
+                }
+            }
+        }
+
+        EntityDataPageLink entityDataPageLink = new EntityDataPageLink(pageLink.getPageSize(), pageLink.getPage(), pageLink.getTextSearch(), sortOrder);
+        EntityDataQuery dataQuery = new EntityDataQuery(entityGroupFilter, entityDataPageLink, entityFields, latestValues, Collections.emptyList());
+        PageData<EntityData> entityDataByQuery = entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, dataQuery);
+
+        return new PageData<>(
+                entityDataByQuery.getData().stream().map(this::entityDataToShortEntityView).collect(Collectors.toList()),
+                entityDataByQuery.getTotalPages(),
+                entityDataByQuery.getTotalElements(),
+                entityDataByQuery.hasNext());
+    }
+
+    private ShortEntityView entityDataToShortEntityView(EntityData entityData) {
+        ShortEntityView entityView = new ShortEntityView(entityData.getEntityId());
+        entityData.getLatest().forEach((type, map) -> map.forEach((k, v) -> {
+            String key;
+            switch (type) {
+                case ENTITY_FIELD:
+                    key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    break;
+                case CLIENT_ATTRIBUTE:
+                    key = "client_" + k;
+                    break;
+                case SHARED_ATTRIBUTE:
+                    key = "shared_" + k;
+                    break;
+                case SERVER_ATTRIBUTE:
+                    key = "server_" + k;
+                    break;
+                default:
+                    key = k;
+            }
+            entityView.put(key, v.getValue());
+        }));
+        return entityView;
+    }
+
+    private EntityKey columnToEntityKey(ColumnConfiguration column) {
+        EntityKeyType entityKeyType = EntityKeyType.valueOf(column.getType().name());
+        String key;
+
+        if (entityKeyType.equals(EntityKeyType.ENTITY_FIELD)) {
+            key = columnToEntityKeyMap.getOrDefault(column.getKey(), column.getKey());
+        } else {
+            key = column.getKey();
+        }
+
+        return new EntityKey(entityKeyType, key);
+    }
+
+    private final Map<String, String> entityDataKeyToShortEntityViewKeyMap = new HashMap<>();
+
+    private final Map<String, String> columnToEntityKeyMap = new HashMap<>();
+
+    {
+        columnToEntityKeyMap.put("created_time", "createdTime");
+        columnToEntityKeyMap.put("assigned_customer", "assignedCustomer");
+        columnToEntityKeyMap.put("first_name", "firstName");
+        columnToEntityKeyMap.put("last_name", "lastName");
+
+        entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
+        entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
+        entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
+        entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
     }
 
     @Override
@@ -622,6 +763,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             }
             return entityGroupIds;
         }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
+        return entityGroupDao.isEntityInGroup(entityId, entityGroupId);
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
