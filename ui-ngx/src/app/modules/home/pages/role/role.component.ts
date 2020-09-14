@@ -111,7 +111,7 @@ export class RoleComponent extends EntityComponent<Role> {
   private updateValidators(form: FormGroup) {
     const roleType: RoleType = form.get('type').value;
     form.get('genericPermissions').setValidators([genericRolePermissionsValidator(roleType && roleType === RoleType.GENERIC)]);
-    form.get('groupPermissions').setValidators(roleType && roleType === RoleType.GROUP ? [Validators.required] :[]);
+    form.get('groupPermissions').setValidators(roleType && roleType === RoleType.GROUP ? [Validators.required] : []);
     form.get('genericPermissions').updateValueAndValidity();
     form.get('groupPermissions').updateValueAndValidity();
   }
@@ -134,7 +134,7 @@ export class RoleComponent extends EntityComponent<Role> {
     }
     delete formValue.genericPermissions;
     delete formValue.groupPermissions;
-    return formValue;
+    return super.prepareFormValue(formValue);
   }
 
   onRoleIdCopied($event) {
