@@ -31,10 +31,11 @@
 
 import { Observable } from 'rxjs';
 import { EntityType } from '@shared/models/entity-type.models';
+import { HasUUID } from '@shared/models/id/has-uuid';
 
 export declare type MenuSectionType = 'link' | 'toggle';
 
-export class MenuSection {
+export interface MenuSection extends HasUUID{
   name: string;
   type: MenuSectionType;
   path: string;
@@ -52,12 +53,12 @@ export class MenuSection {
   childStateIds?: {[stateId: string]: boolean};
 }
 
-export class HomeSection {
+export interface HomeSection {
   name: string;
   places: Array<HomeSectionPlace>;
 }
 
-export class HomeSectionPlace {
+export interface HomeSectionPlace {
   name: string;
   icon: string;
   isMdiIcon?: boolean;
