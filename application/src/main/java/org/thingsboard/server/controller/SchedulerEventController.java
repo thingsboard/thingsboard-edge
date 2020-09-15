@@ -242,7 +242,7 @@ public class SchedulerEventController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, ActionType.ASSIGNED_TO_EDGE);
+            sendNotificationMsgToEdgeService(getTenantId(), edgeId, schedulerEventId, ActionType.ASSIGNED_TO_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {
@@ -274,7 +274,7 @@ public class SchedulerEventController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, ActionType.UNASSIGNED_FROM_EDGE);
+            sendNotificationMsgToEdgeService(getTenantId(), edgeId, schedulerEventId, ActionType.UNASSIGNED_FROM_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {
