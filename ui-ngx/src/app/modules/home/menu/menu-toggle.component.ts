@@ -81,4 +81,8 @@ export class MenuToggleComponent implements OnInit {
   sectionActive(): boolean {
     return  this.menuService.sectionActive(this.section);
   }
+
+  trackBySectionPages(index: number, section: MenuSection){
+    return section.id;
+  }
 }
