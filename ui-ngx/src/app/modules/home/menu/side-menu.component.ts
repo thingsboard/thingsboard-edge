@@ -42,19 +42,16 @@ import { map, mergeMap, share } from 'rxjs/operators';
 })
 export class SideMenuComponent implements OnInit {
 
-  menuSections$ = this.menuService.menuSections();
+  menuSections$: Observable<Array<MenuSection>>;
 
   constructor(private menuService: MenuService) {
-  }
-
-  ngOnInit() {
-  }
-
-  sections(): Observable<Array<MenuSection>> {
-    return this.menuSections$.pipe(
+    this.menuSections$ = this.menuService.menuSections().pipe(
       mergeMap((sections) => this.filterSections(sections)),
       share()
     );
+  }
+
+  ngOnInit() {
   }
 
   private filterSections(sections: Array<MenuSection>): Observable<Array<MenuSection>> {
@@ -64,7 +61,7 @@ export class SideMenuComponent implements OnInit {
     return combineLatest(sectionsPagesObservables).pipe(
       map((sectionsPages) => {
         const filteredSections: MenuSection[] = [];
-        for (let i=0;i<enabledSections.length;i++) {
+        for (let i = 0; i < enabledSections.length; i++) {
           const sectionPages = sectionsPages[i];
           const enabledSection = enabledSections[i];
           if (enabledSection.type !== 'toggle' || enabledSection.groupType) {
