@@ -173,6 +173,12 @@ export default function EventRowDirective($compile, $templateCache, $mdDialog, $
             }
         }
 
+        scope.checkEdgeEventType = function (edgeEventType) {
+            return !(edgeEventType === types.edgeEventType.widgetType ||
+                     edgeEventType === types.edgeEventType.adminSettings ||
+                     edgeEventType === types.edgeEventType.widgetsBundle );
+        }
+
         scope.checkTooltip = function($event) {
             var el = $event.target;
             var $el = angular.element(el);
