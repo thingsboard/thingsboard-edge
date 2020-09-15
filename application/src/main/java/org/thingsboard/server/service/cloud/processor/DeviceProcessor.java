@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -37,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -59,15 +62,20 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -293,4 +301,47 @@ public class DeviceProcessor extends BaseProcessor {
             }
         }
     }
+
+    public ListenableFuture<Void> onDeviceRpcRequest(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(deviceRpcRequestMsg.getDeviceIdMSB(), deviceRpcRequestMsg.getDeviceIdLSB()));
+        boolean oneWay = deviceRpcRequestMsg.getOneway();
+        long expTime = deviceRpcRequestMsg.getExpirationTime();
+
+        ToDeviceRpcRequestBody body = new ToDeviceRpcRequestBody(deviceRpcRequestMsg.getRequestMsg().getMethod(),
+                deviceRpcRequestMsg.getRequestMsg().getParams());
+
+        UUID requestUUID = new UUID(deviceRpcRequestMsg.getRequestIdMSB(), deviceRpcRequestMsg.getRequestIdLSB());
+        ToDeviceRpcRequest rpcRequest = new ToDeviceRpcRequest(requestUUID,
+                tenantId,
+                deviceId,
+                oneWay,
+                expTime,
+                body
+        );
+
+        deviceRpcService.processRestApiRpcRequest(rpcRequest,
+                fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcRequestMsg.getOriginServiceId(), fromDeviceRpcResponse));
+        return Futures.immediateFuture(null);
+    }
+
+    public void reply(ToDeviceRpcRequest rpcRequest, String originServiceId, FromDeviceRpcResponse response) {
+        try {
+            Optional<RpcError> rpcError = response.getError();
+            ObjectNode body = mapper.createObjectNode();
+            body.put("requestUUID", rpcRequest.getId().toString());
+            body.put("expirationTime", rpcRequest.getExpirationTime());
+            body.put("oneway", rpcRequest.isOneway());
+            body.put("originServiceId", originServiceId);
+            if (rpcError.isPresent()) {
+                RpcError error = rpcError.get();
+                body.put("error", error.name());
+            } else {
+                body.put("response", response.getResponse().orElse("{}"));
+            }
+            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, ActionType.RPC_CALL, rpcRequest.getDeviceId(), body);
+        } catch (Exception e) {
+            log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response);
+        }
+    }
+
 }

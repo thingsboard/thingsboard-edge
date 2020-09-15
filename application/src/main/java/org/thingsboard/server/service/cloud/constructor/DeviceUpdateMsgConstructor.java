@@ -30,14 +30,19 @@
  */
 package org.thingsboard.server.service.cloud.constructor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.RpcResponseMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -75,5 +80,25 @@ public class DeviceUpdateMsgConstructor {
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(deviceId.getId().getMostSignificantBits())
                 .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+    }
+
+    public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
+        RpcResponseMsg.Builder responseBuilder = RpcResponseMsg.newBuilder();
+        if (body.has("error")) {
+            responseBuilder.setError(body.get("error").asText());
+        } else {
+            responseBuilder.setResponse(body.get("response").asText());
+        }
+        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
+        DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
+                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
+                .setRequestIdMSB(requestUUID.getMostSignificantBits())
+                .setRequestIdLSB(requestUUID.getLeastSignificantBits())
+                .setExpirationTime(body.get("expirationTime").asLong())
+                .setOriginServiceId(body.get("originServiceId").asText())
+                .setOneway(body.get("oneway").asBoolean())
+                .setResponseMsg(responseBuilder.build());
+        return builder.build();
     }
 }

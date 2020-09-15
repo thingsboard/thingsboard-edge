@@ -108,6 +108,7 @@ import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
@@ -474,6 +475,9 @@ public class CloudManagerService {
                     case GROUP_PERMISSIONS_REQUEST:
                         uplinkMsg = processEntityGroupPermissionsRequest(cloudEvent);
                         break;
+                    case RPC_CALL:
+                        uplinkMsg = processRpcCallResponse(cloudEvent);
+                        break;
                 }
                 if (uplinkMsg != null) {
                     result.add(uplinkMsg);
@@ -634,6 +638,7 @@ public class CloudManagerService {
     }
 
     private UplinkMsg processRelation(CloudEvent cloudEvent, UpdateMsgType msgType) {
+        log.trace("Executing processRelation, cloudEvent [{}]", cloudEvent);
         UplinkMsg msg = null;
         try {
             EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
@@ -664,6 +669,20 @@ public class CloudManagerService {
             log.warn("Can't send relation request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
             return null;
         }
+    }
+
+    private UplinkMsg processRpcCallResponse(CloudEvent cloudEvent) {
+        log.trace("Executing processRpcCallResponse, cloudEvent [{}]", cloudEvent);
+        UplinkMsg msg = null;
+        try {
+            DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
+            DeviceRpcCallMsg rpcResponseMsg = deviceUpdateMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
+            msg = UplinkMsg.newBuilder()
+                    .addAllDeviceRpcCallMsg(Collections.singletonList(rpcResponseMsg)).build();
+        } catch (Exception e) {
+            log.error("Can't process RPC response msg [{}]", cloudEvent, e);
+        }
+        return msg;
     }
 
     private UplinkMsg processRuleChainMetadataRequest(CloudEvent cloudEvent) throws IOException {
@@ -920,6 +939,11 @@ public class CloudManagerService {
             if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                     result.addAll(telemetryProcessor.onTelemetryUpdate(tenantId, entityData));
+                }
+            }
+            if (downlinkMsg.getDeviceRpcCallMsgList() != null && !downlinkMsg.getDeviceRpcCallMsgList().isEmpty()) {
+                for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
+                    result.add(deviceProcessor.onDeviceRpcRequest(tenantId, deviceRpcRequestMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {

@@ -83,6 +83,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +105,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected  TbCoreDeviceRpcService deviceRpcService;
 
     @Autowired
     protected AssetService assetService;
