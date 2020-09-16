@@ -36,9 +36,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
-import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.page.PageData;
@@ -60,9 +59,6 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
 
     @Autowired
     EntityGroupRepository entityGroupRepository;
-
-    @Autowired
-    GroupEntitiesRepository groupEntitiesRepository;
 
     @Override
     protected Class<EntityGroupEntity> getEntityClass() {
@@ -110,21 +106,11 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
                                                                                 String relationType, String name) {
         return service.submit(() ->
-            Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
-                    parentEntityId,
-                    parentEntityType.name(),
-                    relationType,
-                    name))));
-    }
-
-    @Override
-    public PageData<ShortEntityView> findGroupEntities(EntityType entityType, UUID groupId, List<ColumnConfiguration> columns, PageLink pageLink) {
-        return groupEntitiesRepository.findGroupEntities(entityType, groupId, columns, pageLink);
-    }
-
-    @Override
-    public ShortEntityView findGroupEntity(EntityId entityId, UUID groupId, List<ColumnConfiguration> columns) {
-        return groupEntitiesRepository.findGroupEntity(entityId, groupId, columns);
+                Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
+                        parentEntityId,
+                        parentEntityType.name(),
+                        relationType,
+                        name))));
     }
 
     @Override
@@ -137,4 +123,8 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
         });
     }
 
+    @Override
+    public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
+        return entityGroupRepository.isEntityInGroup(entityId.getId(), entityGroupId.getId());
+    }
 }

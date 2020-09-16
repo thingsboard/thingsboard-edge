@@ -32,9 +32,8 @@ package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortEntityView;
-import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -64,12 +63,7 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
                                                                          EntityType parentEntityType, String relationType, String name);
 
-    PageData<ShortEntityView> findGroupEntities(EntityType entityType, UUID groupId,
-                                                List<ColumnConfiguration> columns, PageLink pageLink);
-
-    ShortEntityView findGroupEntity(EntityId entityId, UUID groupId,
-                                    List<ColumnConfiguration> columns);
-
     ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
 
+    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 }

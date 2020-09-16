@@ -37,10 +37,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,27 +49,32 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.attributes.AttributesService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -79,6 +82,8 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
     @Autowired
     private AttributesService attributesService;
+
+    private MergedUserPermissions mergedUserPermissions;
 
     class EntityIdComparator implements Comparator<EntityId> {
         @Override
@@ -92,6 +97,9 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
     @Before
     public void beforeRun() {
         tenantId = before();
+        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
+        genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
+        mergedUserPermissions = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
     }
 
     @After
@@ -108,12 +116,12 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         TenantId tenantId = tenant.getId();
 
         List<Device> devices = new ArrayList<>();
-        for (int i=0;i<97;i++) {
+        for (int i = 0; i < 97; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            device.setName("Device"+i);
+            device.setName("Device" + i);
             device.setType("default");
-            device.setLabel("testLabel"+(int)(Math.random()*1000));
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
             devices.add(deviceService.saveDevice(device));
         }
 
@@ -142,12 +150,12 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         TenantId tenantId = tenant.getId();
 
         List<Device> devices = new ArrayList<>();
-        for (int i=0;i<97;i++) {
+        for (int i = 0; i < 97; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            device.setName("Device"+i);
+            device.setName("Device" + i);
             device.setType("default");
-            device.setLabel("testLabel"+(int)(Math.random()*1000));
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
             devices.add(deviceService.saveDevice(device));
         }
 
@@ -157,7 +165,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
         PageLink pageLink = new PageLink(20, 0, "", new SortOrder("label", SortOrder.Direction.DESC));
-        PageData<ShortEntityView> groupEntities = entityGroupService.findGroupEntities(tenantId, devicesGroup.getId(), pageLink);
+        PageData<ShortEntityView> groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, devicesGroup.getId(), pageLink);
         Assert.assertNotNull(groupEntities);
         Assert.assertEquals(97, groupEntities.getTotalElements());
         Assert.assertEquals(5, groupEntities.getTotalPages());
@@ -165,9 +173,9 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(20, groupEntities.getData().size());
         List<ShortEntityView> allGroupEntities = new ArrayList<>();
         allGroupEntities.addAll(groupEntities.getData());
-        while(groupEntities.hasNext()) {
+        while (groupEntities.hasNext()) {
             pageLink = pageLink.nextPageLink();
-            groupEntities = entityGroupService.findGroupEntities(tenantId, devicesGroup.getId(), pageLink);
+            groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, devicesGroup.getId(), pageLink);
             allGroupEntities.addAll(groupEntities.getData());
         }
         Assert.assertEquals(97, allGroupEntities.size());
@@ -176,14 +184,14 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(sortedIds, sortedDeviceIds);
 
         pageLink = new PageLink(20, 0, "device1", new SortOrder("name", SortOrder.Direction.DESC));
-        groupEntities = entityGroupService.findGroupEntities(tenantId, devicesGroup.getId(), pageLink);
+        groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, devicesGroup.getId(), pageLink);
         Assert.assertNotNull(groupEntities);
         Assert.assertEquals(11, groupEntities.getTotalElements());
         Assert.assertEquals(1, groupEntities.getTotalPages());
         Assert.assertEquals(false, groupEntities.hasNext());
         Assert.assertEquals(11, groupEntities.getData().size());
         Assert.assertEquals("Device19", groupEntities.getData().get(0).getName());
-        Assert.assertEquals("Device1", groupEntities.getData().get(groupEntities.getData().size()-1).getName());
+        Assert.assertEquals("Device1", groupEntities.getData().get(groupEntities.getData().size() - 1).getName());
 
         EntityGroup testDevicesGroup = new EntityGroup();
         testDevicesGroup.setType(EntityType.DEVICE);
@@ -193,7 +201,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         EntityGroupConfiguration entityGroupConfiguration = new EntityGroupConfiguration();
 
         entityGroupConfiguration.setColumns(Arrays.asList(
-            new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
+                new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
         ));
 
         ObjectMapper mapper = new ObjectMapper();
@@ -210,7 +218,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
                 testGroupDevices.stream().map(IdBased::getId).collect(Collectors.toList()));
 
         pageLink = new PageLink(20, 0, "", new SortOrder("name", SortOrder.Direction.ASC));
-        groupEntities = entityGroupService.findGroupEntities(tenantId, testDevicesGroup.getId(), pageLink);
+        groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesGroup.getId(), pageLink);
         Assert.assertNotNull(groupEntities);
         Assert.assertEquals(23, groupEntities.getTotalElements());
         Assert.assertEquals(2, groupEntities.getTotalPages());
@@ -219,14 +227,14 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
         allGroupEntities = new ArrayList<>();
         allGroupEntities.addAll(groupEntities.getData());
-        while(groupEntities.hasNext()) {
+        while (groupEntities.hasNext()) {
             pageLink = pageLink.nextPageLink();
-            groupEntities = entityGroupService.findGroupEntities(tenantId, testDevicesGroup.getId(), pageLink);
+            groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesGroup.getId(), pageLink);
             allGroupEntities.addAll(groupEntities.getData());
         }
         Assert.assertEquals(23, allGroupEntities.size());
         Assert.assertEquals("Device0", allGroupEntities.get(0).getName());
-        Assert.assertEquals("Device9", allGroupEntities.get(allGroupEntities.size()-1).getName());
+        Assert.assertEquals("Device9", allGroupEntities.get(allGroupEntities.size() - 1).getName());
 
         sortedIds = allGroupEntities.stream().map(ShortEntityView::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
         sortedDeviceIds = testGroupDevices.stream().map(IdBased::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
@@ -272,17 +280,18 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         testDevicesWithAttributesGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, testDevicesWithAttributesGroup);
 
         List<Device> devices = new ArrayList<>();
-        for (int i=0;i<67;i++) {
+        for (int i = 0; i < 67; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
-            device.setName("Device"+i);
+            device.setName("Device" + i);
             device.setType("default");
-            device.setLabel("testLabel"+(int)(Math.random()*1000));
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
             devices.add(deviceService.saveDevice(device));
+            Thread.sleep(1);
         }
 
         List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
-        for (int i=0;i<devices.size();i++) {
+        for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_" + i, DataConstants.SERVER_SCOPE));
             attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", i, DataConstants.SERVER_SCOPE));
@@ -298,7 +307,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
                 devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 
         PageLink pageLink = new PageLink(20, 0, "", new SortOrder(EntityField.CREATED_TIME.name().toLowerCase(), SortOrder.Direction.ASC));
-        PageData<ShortEntityView> groupEntities = entityGroupService.findGroupEntities(tenantId, testDevicesWithAttributesGroup.getId(), pageLink);
+        PageData<ShortEntityView> groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesWithAttributesGroup.getId(), pageLink);
         Assert.assertNotNull(groupEntities);
         Assert.assertEquals(67, groupEntities.getTotalElements());
         Assert.assertEquals(4, groupEntities.getTotalPages());
@@ -306,17 +315,17 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(20, groupEntities.getData().size());
         List<ShortEntityView> allGroupEntities = new ArrayList<>();
         allGroupEntities.addAll(groupEntities.getData());
-        while(groupEntities.hasNext()) {
+        while (groupEntities.hasNext()) {
             pageLink = pageLink.nextPageLink();
-            groupEntities = entityGroupService.findGroupEntities(tenantId, testDevicesWithAttributesGroup.getId(), pageLink);
+            groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesWithAttributesGroup.getId(), pageLink);
             allGroupEntities.addAll(groupEntities.getData());
         }
         List<EntityId> foundIds = allGroupEntities.stream().map(ShortEntityView::getId).collect(Collectors.toList());
         List<EntityId> deviceIds = devices.stream().map(IdBased::getId).collect(Collectors.toList());
         Assert.assertEquals(foundIds, deviceIds);
 
-        pageLink = new PageLink(20, 0, "serverValue1_1", new SortOrder("server_serverAttr1", SortOrder.Direction.DESC));
-        groupEntities = entityGroupService.findGroupEntities(tenantId, testDevicesWithAttributesGroup.getId(), pageLink);
+        pageLink = new PageLink(20, 0, "serverValue1_1", new SortOrder("serverAttr1", SortOrder.Direction.DESC));
+        groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesWithAttributesGroup.getId(), pageLink);
         Assert.assertNotNull(groupEntities);
         Assert.assertEquals(11, groupEntities.getTotalElements());
         Assert.assertEquals(1, groupEntities.getTotalPages());
@@ -381,10 +390,10 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
         entityGroupService.addEntityToEntityGroup(tenantId, testDevicesWithAttributesGroup.getId(), device.getId());
 
-        ShortEntityView shortEntityView = entityGroupService.findGroupEntity(tenantId, testDevicesWithAttributesGroup.getId(), device.getId());
+        ShortEntityView shortEntityView = entityGroupService.findGroupEntity(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, testDevicesWithAttributesGroup.getId(), device.getId());
         Assert.assertNotNull(shortEntityView);
         Assert.assertEquals(device.getId(), shortEntityView.getId());
-        Assert.assertEquals(device.getCreatedTime()+"", shortEntityView.properties().get(EntityField.CREATED_TIME.name().toLowerCase()));
+        Assert.assertEquals(device.getCreatedTime() + "", shortEntityView.properties().get(EntityField.CREATED_TIME.name().toLowerCase()));
         Assert.assertEquals(device.getName(), shortEntityView.properties().get(EntityField.NAME.name().toLowerCase()));
         Assert.assertEquals(device.getType(), shortEntityView.properties().get(EntityField.TYPE.name().toLowerCase()));
         Assert.assertEquals(device.getLabel(), shortEntityView.properties().get(EntityField.LABEL.name().toLowerCase()));
@@ -394,7 +403,7 @@ public class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals("1", shortEntityView.properties().get("shared_sharedAttr2"));
         Assert.assertEquals("clientValue1_1", shortEntityView.properties().get("client_clientAttr1"));
         Assert.assertEquals("1", shortEntityView.properties().get("client_clientAttr2"));
-        Assert.assertNull(shortEntityView.properties().get("server_emptyAttr"));
+        Assert.assertEquals("", shortEntityView.properties().get("server_emptyAttr"));
 
         tenantService.deleteTenant(tenantId);
     }
