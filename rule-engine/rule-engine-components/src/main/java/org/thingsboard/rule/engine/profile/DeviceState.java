@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.profile;
 import com.google.gson.JsonParser;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
@@ -45,7 +46,6 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.common.transport.adaptor.JsonConverter;
 import org.thingsboard.server.dao.sql.query.EntityKeyMapping;
 
 import java.util.HashSet;
