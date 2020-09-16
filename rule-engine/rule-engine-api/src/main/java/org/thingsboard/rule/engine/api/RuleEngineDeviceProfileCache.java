@@ -28,19 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.rule.engine.api;
 
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
+/**
+ * Created by ashvayka on 02.04.18.
+ */
+public interface RuleEngineDeviceProfileCache {
 
-    void put(DeviceProfile profile);
+    DeviceProfile get(TenantId tenantId, DeviceProfileId deviceProfileId);
 
-    void evict(DeviceProfileId id);
-
-    void evict(DeviceId id);
+    DeviceProfile get(TenantId tenantId, DeviceId deviceId);
 
 }

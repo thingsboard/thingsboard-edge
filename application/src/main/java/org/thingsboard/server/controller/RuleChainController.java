@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -73,6 +74,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
 import java.util.List;
@@ -91,6 +93,9 @@ public class RuleChainController extends BaseController {
     public static final String RULE_NODE_ID = "ruleNodeId";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private InstallScripts installScripts;
 
     @Autowired
     private EventService eventService;
@@ -157,6 +162,29 @@ public class RuleChainController extends BaseController {
             logEntityAction(emptyId(EntityType.RULE_CHAIN), ruleChain,
                     null, ruleChain.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
 
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/device/default", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain saveRuleChain(@RequestBody DefaultRuleChainCreateRequest request) throws ThingsboardException {
+        try {
+            checkNotNull(request);
+            checkNotNull(request.getName());
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.CREATE);
+
+            RuleChain savedRuleChain = installScripts.createDefaultRuleChain(getCurrentUser().getTenantId(), request.getName());
+
+            logEntityAction(savedRuleChain.getId(), savedRuleChain, null, ActionType.ADDED, null);
+
+            return savedRuleChain;
+        } catch (Exception e) {
+            RuleChain ruleChain = new RuleChain();
+            ruleChain.setName(request.getName());
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), ruleChain, null, ActionType.ADDED, e);
             throw handleException(e);
         }
     }

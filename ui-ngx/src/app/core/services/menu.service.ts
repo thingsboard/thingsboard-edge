@@ -430,6 +430,7 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
       sections.push(
         {
+          id: guid(),
           name: 'device-profile.device-profiles',
           type: 'link',
           path: '/deviceProfiles',

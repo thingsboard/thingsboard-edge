@@ -28,19 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.rule.engine.profile;
 
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.query.EntityKey;
 
-public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-    void put(DeviceProfile profile);
+public class DeviceDataSnapshot {
 
-    void evict(DeviceProfileId id);
+    private volatile boolean ready;
+    @Getter @Setter
+    private long ts;
+    private final Map<EntityKey, EntityKeyValue> values = new ConcurrentHashMap<>();
 
-    void evict(DeviceId id);
+    public DeviceDataSnapshot(Set<EntityKey> entityKeySet) {
+        entityKeySet.forEach(key -> values.put(key, new EntityKeyValue()));
+        this.ready = false;
+    }
 
+    void putValue(EntityKey key, EntityKeyValue value) {
+        values.put(key, value);
+    }
+
+    EntityKeyValue getValue(EntityKey key) {
+        return values.get(key);
+    }
+
+    boolean isReady() {
+        return ready;
+    }
 }

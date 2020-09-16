@@ -85,6 +85,7 @@ public class InstallScripts {
     public static final String JSON_DIR = "json";
     public static final String SYSTEM_DIR = "system";
     public static final String TENANT_DIR = "tenant";
+    public static final String DEVICE_PROFILE_DIR = "device_profile";
     public static final String DEMO_DIR = "demo";
     public static final String RULE_CHAINS_DIR = "rule_chains";
     public static final String ROOT_RULE_CHAIN_DIR = "root_rule_chain";
@@ -128,6 +129,9 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
     }
 
+    public Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
+        return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
+    }
 
     public String getDataDir() {
         if (!StringUtils.isEmpty(dataDir)) {
@@ -154,14 +158,17 @@ public class InstallScripts {
         Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
-    }
+   }
 
-    private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId) {
+    private RuleChain loadRuleChain(Path path, JsonNode ruleChainJson, TenantId tenantId, String newRuleChainName) {
         try {
             RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
 
             ruleChain.setTenantId(tenantId);
+            if (!StringUtils.isEmpty(newRuleChainName)) {
+                ruleChain.setName(newRuleChainName);
+            }
             ruleChain = ruleChainService.saveRuleChain(ruleChain);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
@@ -172,6 +179,16 @@ public class InstallScripts {
             throw new RuntimeException("Unable to load rule chain from json", e);
         }
     }
+
+    public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
+        return createRuleChainFromFile(tenantId, getDeviceProfileDefaultRuleChainTemplateFilePath(), ruleChainName);
+    }
+
+    public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
+        JsonNode ruleChainJson = objectMapper.readTree(templateFilePath.toFile());
+        return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
+    }
+
 
     public void loadSystemWidgets() throws Exception {
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
@@ -289,7 +306,7 @@ public class InstallScripts {
             rootRuleChainContent = rootRuleChainContent.replace(key, entry.getValue().toString());
         }
         JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
-        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId);
+        loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
     private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {
@@ -300,7 +317,7 @@ public class InstallScripts {
                         try {
                             JsonNode ruleChainJson = objectMapper.readTree(path.toFile());
 
-                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId);
+                            RuleChain ruleChain = loadRuleChain(path, ruleChainJson, tenantId, null);
                             ruleChainIdMap.put(ruleChain.getName(), ruleChain.getId());
 
                         } catch (Exception e) {

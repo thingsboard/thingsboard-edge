@@ -199,6 +199,8 @@ public interface TbContext {
 
     EntityViewService getEntityViewService();
 
+    RuleEngineDeviceProfileCache getDeviceProfileCache();
+
     ListeningExecutor getJsExecutor();
 
     ListeningExecutor getMailExecutor();

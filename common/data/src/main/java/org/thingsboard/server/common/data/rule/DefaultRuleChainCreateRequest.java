@@ -28,19 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.server.common.data.rule;
 
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
+import java.io.Serializable;
 
-    void put(DeviceProfile profile);
+@Data
+@Slf4j
+public class DefaultRuleChainCreateRequest implements Serializable {
 
-    void evict(DeviceProfileId id);
+    private static final long serialVersionUID = 5600333716030561537L;
 
-    void evict(DeviceId id);
+    private String name;
 
 }

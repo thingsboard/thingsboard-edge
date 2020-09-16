@@ -28,19 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.rule.engine.profile;
 
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.device.profile.AlarmRule;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.KeyFilter;
 
-public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-    void put(DeviceProfile profile);
 
-    void evict(DeviceProfileId id);
+class DeviceProfileState {
 
-    void evict(DeviceId id);
+    private DeviceProfile deviceProfile;
+    @Getter(AccessLevel.PACKAGE)
+    private final List<DeviceProfileAlarm> alarmSettings = new CopyOnWriteArrayList<>();
+    @Getter(AccessLevel.PACKAGE)
+    private final Set<EntityKey> entityKeys = ConcurrentHashMap.newKeySet();
 
+    DeviceProfileState(DeviceProfile deviceProfile) {
+        updateDeviceProfile(deviceProfile);
+    }
+
+    void updateDeviceProfile(DeviceProfile deviceProfile) {
+        this.deviceProfile = deviceProfile;
+        alarmSettings.clear();
+        if (deviceProfile.getProfileData().getAlarms() != null) {
+            alarmSettings.addAll(deviceProfile.getProfileData().getAlarms());
+            for (DeviceProfileAlarm alarm : deviceProfile.getProfileData().getAlarms()) {
+                for (AlarmRule alarmRule : alarm.getCreateRules().values()) {
+                    for (KeyFilter keyFilter : alarmRule.getCondition().getCondition()) {
+                        entityKeys.add(keyFilter.getKey());
+                    }
+                }
+            }
+        }
+    }
 }

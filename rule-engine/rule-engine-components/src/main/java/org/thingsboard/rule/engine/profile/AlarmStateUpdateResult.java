@@ -28,19 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.rule.engine.profile;
 
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
+public enum AlarmStateUpdateResult {
 
-public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
-
-    void put(DeviceProfile profile);
-
-    void evict(DeviceProfileId id);
-
-    void evict(DeviceId id);
+    NONE, CREATED, UPDATED, SEVERITY_UPDATED, CLEARED;
 
 }
