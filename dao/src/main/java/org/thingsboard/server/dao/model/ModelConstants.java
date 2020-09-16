@@ -258,6 +258,7 @@ public class ModelConstants {
     public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String INTEGRATION_ENABLED_PROPERTY = "enabled";
     public static final String INTEGRATION_IS_REMOTE_PROPERTY = "is_remote";
+    public static final String INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS = "allow_create_devices_or_assets";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 

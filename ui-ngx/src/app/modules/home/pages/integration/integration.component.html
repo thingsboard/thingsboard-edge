@@ -65,11 +65,14 @@
         </mat-error>
       </mat-form-field>
       <div fxLayout="row" fxLayout.xs="column">
-        <mat-checkbox fxFlex="50" fxFlex.xs formControlName="enabled">
+        <mat-checkbox fxFlex="33" fxFlex.xs formControlName="enabled">
           {{ 'integration.enabled' | translate }}
         </mat-checkbox>
-        <mat-checkbox fxFlex formControlName="debugMode">
+        <mat-checkbox fxFlex="33" formControlName="debugMode">
           {{ 'integration.debug-mode' | translate }}
+        </mat-checkbox>
+        <mat-checkbox fxFlex formControlName="allowCreateDevicesOrAssets">
+          {{ 'integration.allow-create-devices-or-assets' | translate }}
         </mat-checkbox>
       </div>
       <tb-converter-autocomplete formControlName="defaultConverterId" required [converterType]="converterType.UPLINK"
