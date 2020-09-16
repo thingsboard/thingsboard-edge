@@ -41,16 +41,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard.rule-engine-pe</groupId>
-    <artifactId>rule-node-twilio-sms</artifactId>
+    <artifactId>rule-node-twilio</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard PE Twilio SMS Rule Node</name>
+    <name>Thingsboard PE Twilio Rule Node</name>
     <url>https://thingsboard.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
-        <twilio.version>7.16.0</twilio.version>
+        <twilio.version>7.54.2</twilio.version>
     </properties>
 
     <dependencies>
@@ -78,6 +78,20 @@
             <groupId>com.twilio.sdk</groupId>
             <artifactId>twilio</artifactId>
             <version>${twilio.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-jackson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.jsonwebtoken</groupId>
+                    <artifactId>jjwt-impl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

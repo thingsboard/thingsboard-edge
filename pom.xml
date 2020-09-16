@@ -894,7 +894,7 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.rule-engine-pe</groupId>
-                <artifactId>rule-node-twilio-sms</artifactId>
+                <artifactId>rule-node-twilio</artifactId>
                 <classifier>rule-node</classifier>
                 <version>${project.version}</version>
             </dependency>
