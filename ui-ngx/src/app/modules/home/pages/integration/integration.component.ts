@@ -53,7 +53,7 @@ import {
 } from './integration-forms-templates';
 import _ from 'lodash';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
-import { IntegrationService } from "@core/http/integration.service";
+import { IntegrationService } from '@core/http/integration.service';
 
 @Component({
   selector: 'tb-integration',
@@ -70,7 +70,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationTypes = IntegrationType;
 
-  integrationTypeKeys = Object.keys(IntegrationType)
+  integrationTypeKeys = Object.keys(IntegrationType);
 
   integrationTypeInfos = integrationTypeInfoMap;
 
