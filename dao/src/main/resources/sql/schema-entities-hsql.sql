@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS integration (
     debug_mode boolean,
     enabled boolean,
     is_remote boolean,
+    allow_create_devices_or_assets boolean,
     name varchar(255),
     secret varchar(255),
     converter_id uuid,

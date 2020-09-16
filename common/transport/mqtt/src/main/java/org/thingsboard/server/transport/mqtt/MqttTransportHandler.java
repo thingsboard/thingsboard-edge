@@ -376,7 +376,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     private MqttMessage createUnSubAckMessage(int msgId) {
         MqttFixedHeader mqttFixedHeader =
-                new MqttFixedHeader(UNSUBACK, false, AT_LEAST_ONCE, false, 0);
+                new MqttFixedHeader(UNSUBACK, false, AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMessageIdVariableHeader = MqttMessageIdVariableHeader.from(msgId);
         return new MqttMessage(mqttFixedHeader, mqttMessageIdVariableHeader);
     }
@@ -481,7 +481,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     private static MqttSubAckMessage createSubAckMessage(Integer msgId, List<Integer> grantedQoSList) {
         MqttFixedHeader mqttFixedHeader =
-                new MqttFixedHeader(SUBACK, false, AT_LEAST_ONCE, false, 0);
+                new MqttFixedHeader(SUBACK, false, AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMessageIdVariableHeader = MqttMessageIdVariableHeader.from(msgId);
         MqttSubAckPayload mqttSubAckPayload = new MqttSubAckPayload(grantedQoSList);
         return new MqttSubAckMessage(mqttFixedHeader, mqttMessageIdVariableHeader, mqttSubAckPayload);
@@ -493,7 +493,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     public static MqttPubAckMessage createMqttPubAckMsg(int requestId) {
         MqttFixedHeader mqttFixedHeader =
-                new MqttFixedHeader(PUBACK, false, AT_LEAST_ONCE, false, 0);
+                new MqttFixedHeader(PUBACK, false, AT_MOST_ONCE, false, 0);
         MqttMessageIdVariableHeader mqttMsgIdVariableHeader =
                 MqttMessageIdVariableHeader.from(requestId);
         return new MqttPubAckMessage(mqttFixedHeader, mqttMsgIdVariableHeader);

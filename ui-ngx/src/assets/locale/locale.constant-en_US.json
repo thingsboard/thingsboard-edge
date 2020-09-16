@@ -1861,6 +1861,7 @@
         "delete-integrations-text": "Be careful, after the confirmation all selected integrations will be removed and all related data will become unrecoverable.",
         "events": "Events",
         "enabled": "Enabled",
+        "allow-create-devices-or-assets": "Allow create devices or assets",
         "add": "Add Integration",
         "search": "Search integrations",
         "integration-details": "Integration details",
