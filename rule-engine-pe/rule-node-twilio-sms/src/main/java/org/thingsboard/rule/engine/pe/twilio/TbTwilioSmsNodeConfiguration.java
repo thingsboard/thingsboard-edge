@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.pe.twilio.sms;
+package org.thingsboard.rule.engine.pe.twilio;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
