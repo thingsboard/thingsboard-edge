@@ -12,11 +12,7 @@ if %jver% NEQ 18 GOTO JAVA_NOT_INSTALLED
 :JAVA_INSTALLED
 
 @ECHO Java 1.8 found!
-<<<<<<< HEAD
 @ECHO Installing ThingsBoard Edge ...
-=======
-@ECHO Installing ThingsBoard Edge...
->>>>>>> origin/edge
 
 SET loadDemo=false
 
@@ -27,7 +23,7 @@ if "%1" == "--loadDemo" (
 SET BASE=%~dp0
 SET LOADER_PATH=%BASE%\conf,%BASE%\extensions
 SET SQL_DATA_FOLDER=%BASE%\data\sql
-SET jarfile=%BASE%\lib\tb-edge.jar
+SET jarfile=%BASE%\lib\thingsboard.jar
 SET installDir=%BASE%\data
 
 PUSHD "%BASE%\conf"
@@ -41,15 +37,15 @@ java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplicati
                     org.springframework.boot.loader.PropertiesLauncher
 
 if errorlevel 1 (
-   @echo ThingsBoard Edge installation failed!
+   @echo ThingsBoard installation failed!
    POPD
    exit /b %errorlevel%
 )
 POPD
 
-"%BASE%"tb-edge.exe install
+"%BASE%"thingsboard.exe install
 
-@ECHO ThingsBoard Edge installed successfully!
+@ECHO ThingsBoard installed successfully!
 
 GOTO END
 
