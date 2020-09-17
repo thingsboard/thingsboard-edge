@@ -12,7 +12,11 @@ if %jver% NEQ 18 GOTO JAVA_NOT_INSTALLED
 :JAVA_INSTALLED
 
 @ECHO Java 1.8 found!
+<<<<<<< HEAD
 @ECHO Installing ThingsBoard Edge ...
+=======
+@ECHO Installing ThingsBoard Edge...
+>>>>>>> origin/edge
 
 SET loadDemo=false
 

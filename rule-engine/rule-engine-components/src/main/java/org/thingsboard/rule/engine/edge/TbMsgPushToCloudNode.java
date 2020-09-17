@@ -90,6 +90,7 @@ public class TbMsgPushToCloudNode implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         if (DataConstants.CLOUD_MSG_SOURCE.equalsIgnoreCase(msg.getMetaData().getValue(DataConstants.MSG_SOURCE_KEY))) {
             log.debug("Ignoring msg from the cloud, msg [{}]", msg);
+            ctx.ack(msg);
             return;
         }
         if (isSupportedOriginator(msg.getOriginator().getEntityType())) {

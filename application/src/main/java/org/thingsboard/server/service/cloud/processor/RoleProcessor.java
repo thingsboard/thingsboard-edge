@@ -155,7 +155,7 @@ public class RoleProcessor extends BaseProcessor {
                 }
                 List<Operation> operations;
                 if (originOperations.contains(Operation.ALL)) {
-                    operations = new ArrayList<>(allowedEntityGroupOperations);
+                    operations = new ArrayList<>(allowedGenericOperations);
                 } else {
                     operations = originOperations.stream()
                             .filter(allowedGenericOperations::contains)
