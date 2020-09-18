@@ -849,39 +849,43 @@ public class CloudManagerService {
 
     private void cleanUp() {
         log.debug("Starting clean up procedure");
-        userService.deleteTenantAdmins(tenantId);
-        TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
-        if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
-            for (Customer customer : customers.getData()) {
-                userService.deleteCustomerUsers(tenantId, customer.getId());
+        TextPageData<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE));
+        for (Tenant tenant : tenants.getData()) {
+            log.debug("Removing entities for the tenant [{}][{}]", tenant.getTitle(), tenant.getId());
+            userService.deleteTenantAdmins(tenant.getId());
+            TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenant.getId(), new TextPageLink(Integer.MAX_VALUE));
+            if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
+                for (Customer customer : customers.getData()) {
+                    userService.deleteCustomerUsers(tenant.getId(), customer.getId());
+                }
             }
-        }
-        ruleChainService.deleteRuleChainsByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
-        deviceService.deleteDevicesByTenantId(tenantId);
-        assetService.deleteAssetsByTenantId(tenantId);
-        dashboardService.deleteDashboardsByTenantId(tenantId);
-        adminSettingsService.deleteAdminSettingsByKey(tenantId, "mailTemplates");
-        adminSettingsService.deleteAdminSettingsByKey(tenantId, "mail");
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
-        whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
-        whiteLabelingService.saveTenantWhiteLabelingParams(tenantId, new WhiteLabelingParams());
-        customTranslationService.saveTenantCustomTranslation(tenantId, new CustomTranslation());
+            ruleChainService.deleteRuleChainsByTenantId(tenant.getId());
+            entityViewService.deleteEntityViewsByTenantId(tenant.getId());
+            deviceService.deleteDevicesByTenantId(tenant.getId());
+            assetService.deleteAssetsByTenantId(tenant.getId());
+            dashboardService.deleteDashboardsByTenantId(tenant.getId());
+            adminSettingsService.deleteAdminSettingsByKey(tenant.getId(), "mailTemplates");
+            adminSettingsService.deleteAdminSettingsByKey(tenant.getId(), "mail");
+            widgetsBundleService.deleteWidgetsBundlesByTenantId(tenant.getId());
+            widgetsBundleService.deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
+            whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
+            whiteLabelingService.saveTenantWhiteLabelingParams(tenant.getId(), new WhiteLabelingParams());
+            customTranslationService.saveTenantCustomTranslation(tenant.getId(), new CustomTranslation());
 
-        try {
-            List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenantId, tenantId, DataConstants.SERVER_SCOPE).get();
-            List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys);
-            ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findAllEntityGroups(tenantId, tenantId);
-            List<EntityGroup> entityGroups = entityGroupsFuture.get();
-            entityGroups.stream()
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_TENANT_ADMINS_NAME))
-                    .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_CUSTOMER_USERS_NAME))
-                    .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId()));
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to delete entity groups", e);
+            try {
+                List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenant.getId(), tenant.getId(), DataConstants.SERVER_SCOPE).get();
+                List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
+                attributesService.removeAll(tenant.getId(), tenant.getId(), DataConstants.SERVER_SCOPE, attrKeys);
+                ListenableFuture<List<EntityGroup>> entityGroupsFuture = entityGroupService.findAllEntityGroups(tenant.getId(), tenant.getId());
+                List<EntityGroup> entityGroups = entityGroupsFuture.get();
+                entityGroups.stream()
+                        .filter(e -> !e.getName().equals(EntityGroup.GROUP_ALL_NAME))
+                        .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_TENANT_ADMINS_NAME))
+                        .filter(e -> !e.getName().equals(EntityGroup.GROUP_EDGE_CE_CUSTOMER_USERS_NAME))
+                        .forEach(entityGroup -> entityGroupService.deleteEntityGroup(tenant.getId(), entityGroup.getId()));
+            } catch (InterruptedException | ExecutionException e) {
+                log.error("Unable to delete entity groups", e);
+            }
         }
         log.debug("Clean up procedure successfully finished!");
     }
