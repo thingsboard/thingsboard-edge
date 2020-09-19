@@ -232,6 +232,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
     formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
+    formValue.name = formValue.name.trim();
     delete formValue.metadata;
     return formValue;
   }
