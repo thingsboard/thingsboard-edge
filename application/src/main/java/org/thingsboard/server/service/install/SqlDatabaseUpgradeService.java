@@ -248,9 +248,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
-            case "2.5.1":
+            case "2.5.5":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.1pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.5pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {

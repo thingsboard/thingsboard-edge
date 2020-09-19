@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -953,6 +954,12 @@ public abstract class BaseController {
             case ALARM_CLEAR:
                 msgType = DataConstants.ALARM_CLEAR;
                 break;
+            case ASSIGNED_FROM_TENANT:
+                msgType = DataConstants.ENTITY_ASSIGNED_FROM_TENANT;
+                break;
+            case ASSIGNED_TO_TENANT:
+                msgType = DataConstants.ENTITY_ASSIGNED_TO_TENANT;
+                break;
             case ASSIGNED_TO_EDGE:
                 msgType = DataConstants.ENTITY_ASSIGNED_TO_EDGE;
                 break;
@@ -988,6 +995,16 @@ public abstract class BaseController {
                     String strEntityGroupName = extractParameter(String.class, 2, additionalInfo);
                     metaData.putValue("removedFromEntityGroupId", strEntityGroupId);
                     metaData.putValue("removedFromEntityGroupName", strEntityGroupName);
+                } else if (actionType == ActionType.ASSIGNED_FROM_TENANT) {
+                    String strTenantId = extractParameter(String.class, 0, additionalInfo);
+                    String strTenantName = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("assignedFromTenantId", strTenantId);
+                    metaData.putValue("assignedFromTenantName", strTenantName);
+                } else if (actionType == ActionType.ASSIGNED_TO_TENANT) {
+                    String strTenantId = extractParameter(String.class, 0, additionalInfo);
+                    String strTenantName = extractParameter(String.class, 1, additionalInfo);
+                    metaData.putValue("assignedToTenantId", strTenantId);
+                    metaData.putValue("assignedToTenantName", strTenantName);
                 } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
                     String strEntityId = extractParameter(String.class, 0, additionalInfo);
                     String strEntityName = extractParameter(String.class, 1, additionalInfo);
@@ -1093,6 +1110,15 @@ public abstract class BaseController {
 
         return ownersCacheService.getGroupEntitiesByPageLink(getTenantId(), securityUser, entityType, operation, toIdFunction, toEntitiesFunction,
                 entityFilters, Collections.emptyList(), pageLink);
+    }
+
+    protected <E extends HasName> String entityToStr(E entity) {
+        try {
+            return json.writeValueAsString(json.valueToTree(entity));
+        } catch (JsonProcessingException e) {
+            log.warn("[{}] Failed to convert entity to string!", entity, e);
+        }
+        return null;
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>

@@ -127,7 +127,7 @@ public class GroupPermissionController extends BaseController {
             GroupPermissionId groupPermissionId = new GroupPermissionId(toUUID(strGroupPermissionId));
             GroupPermission groupPermission = checkGroupPermissionId(groupPermissionId, Operation.DELETE);
             if (groupPermission.isPublic()) {
-                permissionDenied();
+                throw permissionDenied();
             }
 
             checkRoleId(groupPermission.getRoleId(), Operation.READ);

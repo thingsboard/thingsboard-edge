@@ -190,6 +190,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-azure-event-hub>
+    <tb-integration-azure-iot-hub
+            ng-if="integration.type == types.integrationType.AZURE_IOT_HUB.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-azure-iot-hub>
     <tb-integration-tcp
             ng-if="integration.type == types.integrationType.TCP.value"
             is-edit="isEdit"
@@ -208,6 +214,12 @@
             ng-model="integration.configuration"
     >
     </tb-integration-kafka>
+    <tb-integration-apache-pulsar
+            ng-if="integration.type == types.integrationType.APACHE_PULSAR.value"
+            is-edit="isEdit"
+            ng-model="integration.configuration"
+    >
+    </tb-integration-apache-pulsar>
     <tb-integration-custom
             ng-if="integration.type == types.integrationType.CUSTOM.value"
             is-edit="isEdit"

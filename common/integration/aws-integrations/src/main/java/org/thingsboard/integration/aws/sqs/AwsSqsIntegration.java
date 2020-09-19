@@ -109,7 +109,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                 taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.trace(e.getMessage(), e);
             persistDebug(context, "Uplink", getUplinkContentType(), e.getMessage(), "ERROR", e);
             taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
         }

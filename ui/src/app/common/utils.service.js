@@ -172,7 +172,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
         groupConfigDefaults: groupConfigDefaults,
         groupSettingsDefaults: groupSettingsDefaults,
         loadImageAspect: loadImageAspect,
-        translateText: translateText
+        translateText: translateText,
+        sortObjectKeys: sortObjectKeys
     }
 
     return service;
@@ -828,4 +829,15 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             return text;
         }
     }
+
+    function sortObjectKeys(obj) {
+        var sortedObj = {};
+        var keys = Object.keys(obj).sort();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            sortedObj[key] = obj[key];
+        }
+        return sortedObj;
+    }
+
 }

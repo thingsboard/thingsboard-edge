@@ -36,7 +36,7 @@ import dashboardTemplate from './dashboard.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function DashboardRoutes($stateProvider) {
+export default function DashboardRoutes($stateProvider, types) {
     $stateProvider
         /*.state('home.dashboards', {
             url: '/dashboards',
@@ -106,9 +106,9 @@ export default function DashboardRoutes($stateProvider) {
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            permissions: {
-                resources: ["dashboard", "widgetsBundle", "widgetType"],
-                operations: ["read"]
+            canActivate: function (hasGenericPermission, userPermissionsService) {
+                return userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard) &&
+                    hasGenericPermission(["widgetsBundle", "widgetType"], "read");
             },
             views: {
                 "content@home": {
@@ -135,9 +135,9 @@ export default function DashboardRoutes($stateProvider) {
             reloadOnSearch: false,
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
-            permissions: {
-                resources: ["dashboard", "widgetsBundle", "widgetType"],
-                operations: ["read"]
+            canActivate: function (hasGenericPermission, userPermissionsService) {
+                return userPermissionsService.hasReadGroupsPermission(types.entityType.dashboard) &&
+                    hasGenericPermission(["widgetsBundle", "widgetType"], "read");
             },
             views: {
                 "@": {

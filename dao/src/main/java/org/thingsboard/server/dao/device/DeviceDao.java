@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -133,12 +132,19 @@ public interface DeviceDao extends Dao<Device> {
     ListenableFuture<List<EntitySubtype>> findTenantDeviceTypesAsync(UUID tenantId);
 
     /**
-     * Find devices by tenantId, edgeId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param edgeId the edgeId
-     * @param pageLink the page link
-     * @return the list of device objects
+     * Find devices by tenantId and device id.
+     * @param tenantId the tenant Id
+     * @param id the device Id
+     * @return the device object
      */
-    ListenableFuture<List<Device>> findDevicesByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
+    Device findDeviceByTenantIdAndId(TenantId tenantId, UUID id);
+
+    /**
+     * Find devices by tenantId and device id.
+     * @param tenantId tenantId the tenantId
+     * @param id the deviceId
+     * @return the device object
+     */
+    ListenableFuture<Device> findDeviceByTenantIdAndIdAsync(TenantId tenantId, UUID id);
+
 }

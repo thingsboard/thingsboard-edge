@@ -28,17 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.kv;
+package org.thingsboard.integration.apache.pulsar.credentials;
 
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import lombok.Setter;
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.impl.auth.AuthenticationToken;
 
-import java.io.Serializable;
-import java.util.List;
+public class TokenPulsarCredentials implements PulsarCredentials {
 
-public interface AttributesKVMsg extends Serializable {
+    @Setter
+    private String token;
 
-    List<AttributeKvEntry> getClientAttributes();
-    List<AttributeKvEntry> getSharedAttributes();
-    List<AttributeKey> getDeletedAttributes();
+    @Override
+    public Authentication getAuthentication() {
+        return new AuthenticationToken(token);
+    }
 }

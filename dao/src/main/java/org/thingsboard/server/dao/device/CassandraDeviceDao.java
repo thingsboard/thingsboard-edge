@@ -40,22 +40,17 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.EntitySubtypeEntity;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.nosql.DeviceEntity;
 import org.thingsboard.server.dao.nosql.CassandraAbstractSearchTextDao;
-import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.util.NoSqlDao;
 
 import javax.annotation.Nullable;
@@ -88,9 +83,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 @Slf4j
 @NoSqlDao
 public class CassandraDeviceDao extends CassandraAbstractSearchTextDao<DeviceEntity, Device> implements DeviceDao {
-
-    @Autowired
-    private RelationDao relationDao;
 
     @Override
     protected Class<DeviceEntity> getColumnFamilyClass() {
@@ -214,17 +206,18 @@ public class CassandraDeviceDao extends CassandraAbstractSearchTextDao<DeviceEnt
     }
 
     @Override
-    public ListenableFuture<List<Device>> findDevicesByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
-        log.debug("Try to find devices by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE, EntityType.DEVICE, pageLink);
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<Device>> deviceFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                deviceFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
-            }
-            return Futures.successfulAsList(deviceFutures);
-        }, MoreExecutors.directExecutor());
+    public Device findDeviceByTenantIdAndId(TenantId tenantId, UUID id) {
+        Select.Where query = select().from(getColumnFamilyName()).where(eq(ModelConstants.TENANT_ID_PROPERTY, tenantId.getId())).and(eq(ModelConstants.ID_PROPERTY, id));
+        log.trace("Execute query {}", query);
+        DeviceEntity entity = findOneByStatement(tenantId, query);
+        return DaoUtil.getData(entity);
     }
 
+    @Override
+    public ListenableFuture<Device> findDeviceByTenantIdAndIdAsync(TenantId tenantId, UUID id) {
+        Select.Where query = select().from(getColumnFamilyName()).where(eq(ModelConstants.TENANT_ID_PROPERTY, tenantId.getId())).and(eq(ModelConstants.ID_PROPERTY, id));
+        log.trace("Execute query {}", query);
+        return findOneByStatementAsync(tenantId, query);
+    }
 
 }
