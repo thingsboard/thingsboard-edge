@@ -347,6 +347,28 @@ message DeviceCredentialsRequestMsg {
   int64 deviceIdLSB = 2;
 }
 
+message DeviceRpcCallMsg {
+  int64 deviceIdMSB = 1;
+  int64 deviceIdLSB = 2;
+  int64 requestIdMSB = 3;
+  int64 requestIdLSB = 4;
+  int64 expirationTime = 5;
+  bool oneway = 6;
+  string originServiceId = 7;
+  RpcRequestMsg requestMsg = 8;
+  RpcResponseMsg responseMsg = 9;
+}
+
+message RpcRequestMsg {
+  string method = 1;
+  string params = 2;
+}
+
+message RpcResponseMsg {
+  string response = 1;
+  string error = 2;
+}
+
 message EntityGroupRequestMsg {
   int64 entityGroupIdMSB = 1;
   int64 entityGroupIdLSB = 2;
@@ -482,8 +504,9 @@ message UplinkMsg {
   repeated RelationRequestMsg relationRequestMsg = 9;
   repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
   repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
-  repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 12;
-  repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 13;
+  repeated DeviceRpcCallMsg deviceRpcCallMsg = 12;
+  repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 13;
+  repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 14;
 }
 
 message UplinkResponseMsg {
@@ -515,11 +538,12 @@ message DownlinkMsg {
   repeated WidgetsBundleUpdateMsg widgetsBundleUpdateMsg = 16;
   repeated WidgetTypeUpdateMsg widgetTypeUpdateMsg = 17;
   repeated AdminSettingsUpdateMsg adminSettingsUpdateMsg = 18;
-  repeated WhiteLabelingParamsProto whiteLabelingParams = 19;
-  repeated LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 20;
-  repeated CustomTranslationProto customTranslationMsg = 21;
-  repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 22;
-  repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 23;
-  repeated RoleProto roleMsg = 24;
-  repeated GroupPermissionProto groupPermissionMsg = 25;
+  repeated DeviceRpcCallMsg deviceRpcCallMsg = 19;
+  repeated WhiteLabelingParamsProto whiteLabelingParams = 20;
+  repeated LoginWhiteLabelingParamsProto loginWhiteLabelingParams = 21;
+  repeated CustomTranslationProto customTranslationMsg = 22;
+  repeated SchedulerEventUpdateMsg schedulerEventUpdateMsg = 23;
+  repeated EntityGroupUpdateMsg entityGroupUpdateMsg = 24;
+  repeated RoleProto roleMsg = 25;
+  repeated GroupPermissionProto groupPermissionMsg = 26;
 }

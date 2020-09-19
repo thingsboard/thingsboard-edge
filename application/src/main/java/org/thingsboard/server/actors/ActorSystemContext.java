@@ -315,6 +315,7 @@ public class ActorSystemContext {
     @Getter
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
@@ -324,9 +325,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter private EdgeService edgeService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private EdgeEventService edgeEventService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private EdgeRpcService edgeRpcService;
 

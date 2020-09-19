@@ -38,6 +38,7 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -75,6 +76,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -513,4 +515,17 @@ public abstract class AbstractControllerTest {
         return jsonPath("$.message", matcher);
     }
 
+    protected Edge constructEdge(String name, String type) {
+        return constructEdge(tenantId, name, type);
+    }
+
+    protected Edge constructEdge(TenantId tenantId, String name, String type) {
+        Edge edge = new Edge();
+        edge.setTenantId(tenantId);
+        edge.setName(name);
+        edge.setType(type);
+        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
+        return edge;
+    }
 }

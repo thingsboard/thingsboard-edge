@@ -1343,7 +1343,7 @@ export default angular.module('thingsboard.types', [])
                 edge: "EDGE"
             },
             edgeGroupTypes: ["ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
-            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "ANALYTICS", "EXTERNAL"],
+            ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "EXTERNAL"],
             ruleChainNodeComponent: {
                 type: 'RULE_CHAIN',
                 name: 'rule chain',

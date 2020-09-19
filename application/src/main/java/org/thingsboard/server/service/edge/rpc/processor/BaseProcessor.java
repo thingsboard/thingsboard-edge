@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 @Slf4j
@@ -109,23 +110,23 @@ public abstract class BaseProcessor {
 
     protected ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
                                                         EdgeId edgeId,
-                                                        EdgeEventType edgeEventType,
-                                                        ActionType edgeEventAction,
+                                                        EdgeEventType type,
+                                                        ActionType action,
                                                         EntityId entityId,
-                                                        JsonNode entityBody) {
-        log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], edgeEventType[{}], " +
-                        "edgeEventAction [{}], entityId [{}], entityBody [{}]",
-                tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody);
+                                                        JsonNode body) {
+        log.debug("Pushing event to edge queue. tenantId [{}], edgeId [{}], type[{}], " +
+                        "action [{}], entityId [{}], body [{}]",
+                tenantId, edgeId, type, action, entityId, body);
 
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setEdgeId(edgeId);
-        edgeEvent.setEdgeEventType(edgeEventType);
-        edgeEvent.setEdgeEventAction(edgeEventAction.name());
+        edgeEvent.setType(type);
+        edgeEvent.setAction(action.name());
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
         }
-        edgeEvent.setEntityBody(entityBody);
+        edgeEvent.setBody(body);
         return edgeEventService.saveAsync(edgeEvent);
     }
 }

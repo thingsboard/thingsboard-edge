@@ -170,6 +170,15 @@ public class ThingsboardInstallService {
 
                         dataUpdateService.updateData("2.5.5");
 
+                    case "2.5.5PE": // to 2.6.0PE
+                        log.info("Upgrading ThingsBoard from version 2.5.5 to 2.6.0PE ...");
+                        if (databaseTsUpgradeService != null) {
+                            databaseTsUpgradeService.upgradeDatabase("2.5.5PE");
+                        }
+                        databaseEntitiesUpgradeService.upgradeDatabase("2.5.5PE");
+
+                        dataUpdateService.updateData("2.5.5PE");
+
                         log.info("Updating system data...");
 
                         systemDataLoaderService.deleteSystemWidgetBundle("charts");

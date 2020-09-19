@@ -65,6 +65,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -168,6 +169,11 @@ public class InstallScripts {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
             throw new RuntimeException("Unable to load rule chain from json", e);
         }
+    }
+
+    public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
+        Path tenantChainsDir = getTenantRuleChainsDir();
+        loadRootRuleChain(tenantId, Collections.emptyMap(), tenantChainsDir.resolve("edge_root_rule_chain.json"));
     }
 
     public void loadSystemWidgets() throws Exception {

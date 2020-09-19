@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -448,12 +449,25 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     @Override
     public ListenableFuture<Void> processRuleChainMetadataRequestMsg(Edge edge, RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         if (ruleChainMetadataRequestMsg.getRuleChainIdMSB() != 0 && ruleChainMetadataRequestMsg.getRuleChainIdLSB() != 0) {
-            RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
+            RuleChainId ruleChainId =
+                    new RuleChainId(new UUID(ruleChainMetadataRequestMsg.getRuleChainIdMSB(), ruleChainMetadataRequestMsg.getRuleChainIdLSB()));
             ListenableFuture<EdgeEvent> future = saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.RULE_CHAIN_METADATA, ActionType.ADDED, ruleChainId, null, null);
-            return Futures.transform(future, edgeEvent -> null, dbCallbackExecutorService);
+            Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
+                @Override
+                public void onSuccess(@Nullable EdgeEvent result) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't save edge event [{}]", ruleChainMetadataRequestMsg, t);
+                    futureToSet.setException(t);
+                }
+            }, dbCallbackExecutorService);
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     @Override
@@ -461,44 +475,54 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(
                 EntityType.valueOf(attributesRequestMsg.getEntityType()),
                 new UUID(attributesRequestMsg.getEntityIdMSB(), attributesRequestMsg.getEntityIdLSB()));
-        final EdgeEventType edgeEventType = getEdgeQueueTypeByEntityType(entityId.getEntityType());
-        if (edgeEventType != null) {
+        final EdgeEventType type = getEdgeQueueTypeByEntityType(entityId.getEntityType());
+        if (type != null) {
+            SettableFuture<Void> futureToSet = SettableFuture.create();
             ListenableFuture<List<AttributeKvEntry>> ssAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.SERVER_SCOPE);
-            return Futures.transform(ssAttrFuture, ssAttributes -> {
-                if (ssAttributes != null && !ssAttributes.isEmpty()) {
-                    try {
-                        Map<String, Object> entityData = new HashMap<>();
-                        ObjectNode attributes = mapper.createObjectNode();
-                        for (AttributeKvEntry attr : ssAttributes) {
-                            if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
-                                attributes.put(attr.getKey(), attr.getBooleanValue().get());
-                            } else if (attr.getDataType() == DataType.DOUBLE && attr.getDoubleValue().isPresent()) {
-                                attributes.put(attr.getKey(), attr.getDoubleValue().get());
-                            } else if (attr.getDataType() == DataType.LONG && attr.getLongValue().isPresent()) {
-                                attributes.put(attr.getKey(), attr.getLongValue().get());
-                            } else {
-                                attributes.put(attr.getKey(), attr.getValueAsString());
+            Futures.addCallback(ssAttrFuture, new FutureCallback<List<AttributeKvEntry>>() {
+                        @Override
+                        public void onSuccess(@Nullable List<AttributeKvEntry> ssAttributes) {
+                            if (ssAttributes != null && !ssAttributes.isEmpty()) {
+                                try {
+                                    Map<String, Object> entityData = new HashMap<>();
+                                    ObjectNode attributes = mapper.createObjectNode();
+                                    for (AttributeKvEntry attr : ssAttributes) {
+                                        if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
+                                            attributes.put(attr.getKey(), attr.getBooleanValue().get());
+                                        } else if (attr.getDataType() == DataType.DOUBLE && attr.getDoubleValue().isPresent()) {
+                                            attributes.put(attr.getKey(), attr.getDoubleValue().get());
+                                        } else if (attr.getDataType() == DataType.LONG && attr.getLongValue().isPresent()) {
+                                            attributes.put(attr.getKey(), attr.getLongValue().get());
+                                        } else {
+                                            attributes.put(attr.getKey(), attr.getValueAsString());
+                                        }
+                                    }
+                                    entityData.put("kv", attributes);
+                                    entityData.put("scope", DataConstants.SERVER_SCOPE);
+                                    JsonNode body = mapper.valueToTree(entityData);
+                                    log.debug("Sending attributes data msg, entityId [{}], attributes [{}]", entityId, body);
+                                    saveEdgeEvent(edge.getTenantId(),
+                                            edge.getId(),
+                                            type,
+                                            ActionType.ATTRIBUTES_UPDATED,
+                                            entityId,
+                                            body,
+                                            null);
+                                } catch (Exception e) {
+                                    log.error("[{}] Failed to send attribute updates to the edge", edge.getName(), e);
+                                    throw new RuntimeException("[" + edge.getName() + "] Failed to send attribute updates to the edge", e);
+                                }
                             }
+                            futureToSet.set(null);
                         }
-                        entityData.put("kv", attributes);
-                        entityData.put("scope", DataConstants.SERVER_SCOPE);
-                        JsonNode entityBody = mapper.valueToTree(entityData);
-                        log.debug("Sending attributes data msg, entityId [{}], attributes [{}]", entityId, entityBody);
-                        saveEdgeEvent(edge.getTenantId(),
-                                edge.getId(),
-                                edgeEventType,
-                                ActionType.ATTRIBUTES_UPDATED,
-                                entityId,
-                                entityBody,
-                                null);
-                    } catch (Exception e) {
-                        log.error("[{}] Failed to send attribute updates to the edge", edge.getName(), e);
-                        throw new RuntimeException("[" + edge.getName() + "] Failed to send attribute updates to the edge", e);
-                    }
-                }
-                return null;
-            }, dbCallbackExecutorService);
 
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("Can't save attributes [{}]", attributesRequestMsg, t);
+                            futureToSet.setException(t);
+                        }
+                    }, dbCallbackExecutorService);
+            return futureToSet;
             // TODO: voba - push shared attributes to edge?
             // ListenableFuture<List<AttributeKvEntry>> shAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.SHARED_SCOPE);
             // ListenableFuture<List<AttributeKvEntry>> clAttrFuture = attributesService.findAll(edge.getTenantId(), entityId, DataConstants.CLIENT_SCOPE);
@@ -569,22 +593,48 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     @Override
     public ListenableFuture<Void> processDeviceCredentialsRequestMsg(Edge edge, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
             DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            ListenableFuture<EdgeEvent> future = saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null, null);
-            return Futures.transform(future, edgeEvent -> null, dbCallbackExecutorService);
+            ListenableFuture<EdgeEvent> future =
+                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null, null);
+            Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
+                @Override
+                public void onSuccess(@Nullable EdgeEvent result) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't save edge event [{}]", deviceCredentialsRequestMsg, t);
+                    futureToSet.setException(t);
+                }
+            }, dbCallbackExecutorService);
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     @Override
     public ListenableFuture<Void> processUserCredentialsRequestMsg(Edge edge, UserCredentialsRequestMsg userCredentialsRequestMsg) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         if (userCredentialsRequestMsg.getUserIdMSB() != 0 && userCredentialsRequestMsg.getUserIdLSB() != 0) {
             UserId userId = new UserId(new UUID(userCredentialsRequestMsg.getUserIdMSB(), userCredentialsRequestMsg.getUserIdLSB()));
-            ListenableFuture<EdgeEvent> future = saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, ActionType.CREDENTIALS_UPDATED, userId, null, null);
-            return Futures.transform(future, edgeEvent -> null, dbCallbackExecutorService);
+            ListenableFuture<EdgeEvent> future =
+                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.USER, ActionType.CREDENTIALS_UPDATED, userId, null, null);
+            Futures.addCallback(future, new FutureCallback<EdgeEvent>() {
+                @Override
+                public void onSuccess(@Nullable EdgeEvent result) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Can't save edge event [{}]", userCredentialsRequestMsg, t);
+                    futureToSet.setException(t);
+                }
+            }, dbCallbackExecutorService);
         }
-        return Futures.immediateFuture(null);
+        return futureToSet;
     }
 
     @Override
@@ -820,27 +870,27 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private ListenableFuture<EdgeEvent> saveEdgeEvent(TenantId tenantId,
-                                                      EdgeId edgeId,
-                                                      EdgeEventType edgeEventType,
-                                                      ActionType edgeEventAction,
-                                                      EntityId entityId,
-                                                      JsonNode entityBody,
-                                                      EntityId entityGroupId) {
-        log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], edgeEventType [{}], edgeEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, edgeId, edgeEventType, edgeEventAction, entityId, entityBody);
+                               EdgeId edgeId,
+                               EdgeEventType type,
+                               ActionType action,
+                               EntityId entityId,
+                               JsonNode body,
+                               EntityId entityGroupId) {
+        log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}]",
+                tenantId, edgeId, type, action, entityId, body);
 
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setEdgeId(edgeId);
-        edgeEvent.setEdgeEventType(edgeEventType);
-        edgeEvent.setEdgeEventAction(edgeEventAction.name());
+        edgeEvent.setType(type);
+        edgeEvent.setAction(action.name());
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
         }
         if (entityGroupId != null) {
             edgeEvent.setEntityGroupId(entityGroupId.getId());
         }
-        edgeEvent.setEntityBody(entityBody);
+        edgeEvent.setBody(body);
         return edgeEventService.saveAsync(edgeEvent);
     }
 }
