@@ -301,7 +301,7 @@ public class EdgeController extends BaseController {
             if (type != null && type.trim().length() > 0) {
                 filters.add((entityView -> entityView.getType().equals(type)));
             }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, entityId -> new EdgeId(entityId.getId()),
+            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.EDGE, Operation.READ, entityId -> new EdgeId(entityId.getId()),
                     (entityIds) -> {
                         try {
                             return edgeService.findEdgesByTenantIdAndIdsAsync(getTenantId(), entityIds).get();

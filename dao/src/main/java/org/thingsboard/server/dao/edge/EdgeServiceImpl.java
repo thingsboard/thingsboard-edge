@@ -171,20 +171,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     }
 
     @Override
-    public Edge assignEdgeToCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
-        Edge edge = findEdgeById(tenantId, edgeId);
-        edge.setCustomerId(customerId);
-        return saveEdge(edge);
-    }
-
-    @Override
-    public Edge unassignEdgeFromCustomer(TenantId tenantId, EdgeId edgeId) {
-        Edge edge = findEdgeById(tenantId, edgeId);
-        edge.setCustomerId(null);
-        return saveEdge(edge);
-    }
-
-    @Override
     public void deleteEdge(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing deleteEdge [{}]", edgeId);
         validateId(edgeId, INCORRECT_EDGE_ID + edgeId);
@@ -265,14 +251,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         validateIds(edgeIds, "Incorrect edgeIds " + edgeIds);
         return edgeDao.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId.getId(),
                 customerId.getId(), toUUIDs(edgeIds));
-    }
-
-    @Override
-    public void unassignCustomerEdges(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing unassignCustomerEdges, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        customerEdgeUnassigner.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -500,19 +478,6 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     deleteEdge(tenantId, new EdgeId(entity.getUuidId()));
                 }
             };
-
-    private PaginatedRemover<CustomerId, Edge> customerEdgeUnassigner = new PaginatedRemover<CustomerId, Edge>() {
-
-        @Override
-        protected List<Edge> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
-            return edgeDao.findEdgesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
-        }
-
-        @Override
-        protected void removeEntity(TenantId tenantId, Edge entity) {
-            unassignEdgeFromCustomer(tenantId, new EdgeId(entity.getUuidId()));
-        }
-    };
 
     @Override
     public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {

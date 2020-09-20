@@ -63,10 +63,6 @@ public interface EdgeService {
 
     Edge saveEdge(Edge edge);
 
-    Edge assignEdgeToCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId);
-
-    Edge unassignEdgeFromCustomer(TenantId tenantId, EdgeId edgeId);
-
     void deleteEdge(TenantId tenantId, EdgeId edgeId);
 
     TextPageData<Edge> findEdgesByTenantId(TenantId tenantId, TextPageLink pageLink);
@@ -82,8 +78,6 @@ public interface EdgeService {
     TextPageData<Edge> findEdgesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, TextPageLink pageLink);
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<EdgeId> edgeIds);
-
-    void unassignCustomerEdges(TenantId tenantId, CustomerId customerId);
 
     ListenableFuture<List<Edge>> findEdgesByQuery(TenantId tenantId, EdgeSearchQuery query);
 
