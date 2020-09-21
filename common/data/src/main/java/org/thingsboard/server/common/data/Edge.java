@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -85,6 +86,7 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         return getName();
     }
 
+    @JsonIgnore
     @Override
     public EntityType getEntityType() {
         return EntityType.EDGE;

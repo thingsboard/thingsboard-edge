@@ -520,8 +520,10 @@ public abstract class BaseController {
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
-                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            if (entityGroup != null && entity.getId() != null) {
+                sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
+                        ActionType.UPDATED);
+            }
 
             return savedEntity;
 

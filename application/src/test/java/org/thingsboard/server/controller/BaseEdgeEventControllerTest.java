@@ -37,18 +37,29 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.Authority;
+import sun.security.krb5.internal.crypto.EType;
 
 import java.util.List;
 
@@ -95,33 +106,65 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
 
+        EntityGroup deviceEntityGroup = constructEntityGroup("TestDevice", EntityType.DEVICE);
+        EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         Device device = constructDevice("TestDevice", "default");
-        Device savedDevice = doPost("/api/device", device, Device.class);
-
-        doPost("/api/edge/" + edge.getId().toString() + "/device/" + savedDevice.getId().toString(), Device.class);
+        Device savedDevice =
+                doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device, Device.class);
         Thread.sleep(1000);
 
+        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedDeviceEntityGroup.getId().toString() + "/DEVICE", EntityGroup.class);
+        Thread.sleep(1000);
+
+        Device device2 = constructDevice("TestDevice2", "default");
+        doPost("/api/device?entityGroupId=" + savedDeviceEntityGroup.getId().getId().toString(), device2, Device.class);
+        EntityGroup assetEntityGroup = constructEntityGroup("TestDevice", EntityType.ASSET);
+        EntityGroup savedAssetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         Asset asset = constructAsset("TestAsset", "default");
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
-
-        doPost("/api/edge/" + edge.getId().toString() + "/asset/" + savedAsset.getId().toString(), Asset.class);
+        Asset savedAsset = doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset, Asset.class);
         Thread.sleep(1000);
 
-        EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
+        doPost("/api/edge/" + edge.getId().toString() + "/entityGroup/" + savedAssetEntityGroup.getId().toString()+ "/ASSET", EntityGroup.class);
+        Thread.sleep(1000);
 
+        Asset asset2 = constructAsset("TestAsset2", "default");
+        doPost("/api/asset?entityGroupId=" + savedAssetEntityGroup.getId().getId().toString(), asset2, Asset.class);
+        EntityRelation relation = new EntityRelation(savedAsset.getId(), savedDevice.getId(), EntityRelation.CONTAINS_TYPE);
         doPost("/api/relation", relation);
         Thread.sleep(1000);
 
         List<EdgeEvent> edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
                 new TypeReference<TimePageData<EdgeEvent>>() {
-                }, new TimePageLink(4)).getData();
+                }, new TimePageLink(10)).getData();
 
         Assert.assertFalse(edgeEvents.isEmpty());
-        Assert.assertEquals(4, edgeEvents.size());
+
+        Assert.assertEquals(6, edgeEvents.size());
+
         Assert.assertEquals(EdgeEventType.RELATION, edgeEvents.get(0).getType());
+        Assert.assertEquals(ActionType.RELATION_ADD_OR_UPDATE.name(), edgeEvents.get(0).getAction());
+
         Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(1).getType());
-        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(2).getType());
-        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(3).getType());
+        Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(1).getAction());
+
+        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(2).getType());
+        Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(2).getAction());
+
+        Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(3).getType());
+        Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(3).getAction());
+
+        Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(4).getType());
+        Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(4).getAction());
+
+        Assert.assertEquals(EdgeEventType.RULE_CHAIN, edgeEvents.get(5).getType());
+        Assert.assertEquals(ActionType.UPDATED.name(), edgeEvents.get(5).getAction());
+    }
+
+    private EntityGroup constructEntityGroup(String name, EntityType type) {
+        EntityGroup result = new EntityGroup();
+        result.setName(name);
+        result.setType(type);
+        return result;
     }
 
     private Device constructDevice(String name, String type) {
@@ -137,5 +180,4 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         asset.setType(type);
         return asset;
     }
-
 }
