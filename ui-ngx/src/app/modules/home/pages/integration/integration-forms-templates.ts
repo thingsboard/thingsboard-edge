@@ -529,7 +529,7 @@ export const templates = {
       bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
       autoCreateTopics: false,
-      otherProperties: ''
+      otherProperties: null
     },
     ignoreNonPrimitiveFields: ['otherProperties'],
     fieldValidators: {
