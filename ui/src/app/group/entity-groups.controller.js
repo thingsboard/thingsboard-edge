@@ -227,7 +227,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                         unassignFromEdge($event, item, vm.edgeId);
                     },
                     name: function() { return $translate.instant('action.unassign') },
-                    details: function() { return $translate.instant('entity-group.unassign-from-edge') },
+                    details: function() { return $translate.instant('edge.unassign-from-edge') },
                     icon: "assignment_return",
                     isEnabled: function (item) {
                         return !item.edgeGroupAll;
