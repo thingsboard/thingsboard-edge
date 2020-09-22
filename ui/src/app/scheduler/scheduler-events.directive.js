@@ -291,7 +291,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 icon: 'add'
             },
             {
-                name: 'scheduler.assign-to-edge',
+                name: 'edge.assign-to-edge',
                 show: true,
                 onAction: function(event) {
                     vm.assignToEdgeSchedulerEvent(event);
@@ -801,7 +801,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     function addSchedulerEventTitle() {
         if (vm.schedulerScope === 'edge') {
-            return $translate.instant('scheduler.assign-to-edge');
+            return $translate.instant('edge.assign-to-edge');
         } else {
             return $translate.instant('scheduler.add-scheduler-event');
         }
@@ -809,7 +809,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     function deleteSchedulerEventTitle() {
         if (vm.schedulerScope === 'edge') {
-            return $translate.instant('scheduler.unassign-from-edge');
+            return $translate.instant('edge.unassign-from-edge');
         } else {
             return $translate.instant('scheduler.delete-scheduler-event');
         }
@@ -817,7 +817,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     function deleteSchedulerEventsTitle() {
         if (vm.schedulerScope === 'edge') {
-            return $translate.instant('scheduler.unassign-from-edge');
+            return $translate.instant('edge.unassign-from-edge');
         } else {
             return $translate.instant('action.delete');
         }
