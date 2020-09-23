@@ -52,10 +52,15 @@ import org.thingsboard.server.dao.service.DataValidator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
+import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Service
 @Slf4j
 public class BaseCloudEventService implements CloudEventService {
+
+    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -90,6 +95,26 @@ public class BaseCloudEventService implements CloudEventService {
         } catch (Exception e) {
             log.error("Exception while fetching edge settings", e);
             throw new RuntimeException("Exception while fetching edge settings", e);
+        }
+    }
+
+    @Override
+    public void deleteCloudEventsByTenantId(TenantId tenantId) {
+        log.trace("Executing deleteCloudEventsByTenantId, tenantId [{}]", tenantId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        TimePageLink pageLink = new TimePageLink(100);
+        boolean hasNext = true;
+        while (hasNext) {
+            TimePageData<CloudEvent> entities = findCloudEvents(tenantId, pageLink);
+            for (CloudEvent entity : entities.getData()) {
+                cloudEventDao.removeById(tenantId, entity.getId().getId());
+            }
+            hasNext = entities.getData().size() == pageLink.getLimit();
+            if (hasNext) {
+                int index = entities.getData().size() - 1;
+                UUID idOffset = entities.getData().get(index).getUuidId();
+                pageLink.setIdOffset(idOffset);
+            }
         }
     }
 

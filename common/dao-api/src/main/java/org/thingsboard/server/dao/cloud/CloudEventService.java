@@ -46,4 +46,6 @@ public interface CloudEventService {
     EdgeSettings findEdgeSettings(TenantId tenantId);
 
     void saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
+
+    void deleteCloudEventsByTenantId(TenantId tenantId);
 }
