@@ -193,7 +193,6 @@ public class TimescaleTsDatabaseUpgradeService extends AbstractSqlTsDatabaseUpgr
                 }
                 break;
             case "2.5.4":
-                break;
             case "2.5.5":
                 break;
             default:

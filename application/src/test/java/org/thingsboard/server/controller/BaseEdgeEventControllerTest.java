@@ -146,12 +146,14 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(EdgeEventType.ASSET, edgeEvents.get(1).getType());
         Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(1).getAction());
+        Assert.assertEquals(savedAssetEntityGroup.getUuidId(), edgeEvents.get(1).getEntityGroupId());
 
         Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(2).getType());
         Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(2).getAction());
 
         Assert.assertEquals(EdgeEventType.DEVICE, edgeEvents.get(3).getType());
         Assert.assertEquals(ActionType.ADDED_TO_ENTITY_GROUP.name(), edgeEvents.get(3).getAction());
+        Assert.assertEquals(savedDeviceEntityGroup.getUuidId(), edgeEvents.get(3).getEntityGroupId());
 
         Assert.assertEquals(EdgeEventType.ENTITY_GROUP, edgeEvents.get(4).getType());
         Assert.assertEquals(ActionType.ASSIGNED_TO_EDGE.name(), edgeEvents.get(4).getAction());

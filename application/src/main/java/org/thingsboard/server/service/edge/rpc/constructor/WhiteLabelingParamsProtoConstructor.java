@@ -68,7 +68,7 @@ public class WhiteLabelingParamsProtoConstructor {
         if (loginWhiteLabelingParams.getLogoImageChecksum() != null) {
             builder.setLogoImageChecksum(loginWhiteLabelingParams.getLogoImageChecksum());
         }
-        if (loginWhiteLabelingParams.getLogoImageChecksum() != null) {
+        if (loginWhiteLabelingParams.getLogoImageHeight() != null) {
             builder.setLogoImageHeight(loginWhiteLabelingParams.getLogoImageHeight());
         }
         if (loginWhiteLabelingParams.getAppTitle() != null) {
@@ -109,7 +109,7 @@ public class WhiteLabelingParamsProtoConstructor {
         if (whiteLabelingParams.getLogoImageChecksum() != null) {
             builder.setLogoImageChecksum(whiteLabelingParams.getLogoImageChecksum());
         }
-        if (whiteLabelingParams.getLogoImageChecksum() != null) {
+        if (whiteLabelingParams.getLogoImageHeight() != null) {
             builder.setLogoImageHeight(whiteLabelingParams.getLogoImageHeight());
         }
         if (whiteLabelingParams.getAppTitle() != null) {

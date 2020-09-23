@@ -107,7 +107,8 @@ public class CassandraEdgeEventDao extends CassandraAbstractSearchTimeDao<EdgeEv
                 .value(ModelConstants.EDGE_EVENT_UID_PROPERTY, entity.getEdgeEventUid())
                 .value(ModelConstants.EDGE_EVENT_ENTITY_ID_PROPERTY, entity.getEntityId())
                 .value(ModelConstants.EDGE_EVENT_ACTION_PROPERTY, entity.getEdgeEventAction())
-                .value(ModelConstants.EDGE_EVENT_BODY_PROPERTY, entity.getBody());
+                .value(ModelConstants.EDGE_EVENT_BODY_PROPERTY, entity.getBody())
+                .value(ModelConstants.EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY, entity.getEntityGroupId());
 
         if (ttl > 0) {
             insert.using(ttl(ttl));

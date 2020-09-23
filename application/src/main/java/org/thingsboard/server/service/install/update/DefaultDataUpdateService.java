@@ -172,7 +172,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
             case "2.5.5":
-                log.info("Updating data from version 2.5.5 to 2.5.5PE ...");
+                log.info("Updating data from version 2.5.5 to 2.6.0 ...");
+                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
+                break;
+            case "2.6.0":
+                log.info("Updating data from version 2.6.0 to 2.6.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -190,10 +194,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-                break;
-            case "2.5.5PE":
-                log.info("Updating data from version 2.5.5PE to 2.6.0PE ...");
-                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -263,7 +263,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW};
+                        EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                         for (EntityType groupType : entityGroupTypes) {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =

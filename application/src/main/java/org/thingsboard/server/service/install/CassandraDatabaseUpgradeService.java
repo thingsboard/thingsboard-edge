@@ -330,8 +330,40 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
                 log.info("Schema updated.");
                 break;
             case "2.5.5":
+
+                log.info("Upgrading Cassandra DataBase from version {} to 2.6.0 ...", fromVersion);
+
+                // Dump rule chains
+
+                cluster.getSession();
+
+                ks = cluster.getCluster().getMetadata().getKeyspace(cluster.getKeyspaceName());
+
+                log.info("Dumping rule chains ...");
+                Path ruleChainsDump = CassandraDbHelper.dumpCfIfExists(ks, cluster.getSession(), RULE_CHAIN,
+                        new String[]{ID, TENANT_ID, NAME, SEARCH_TEXT, "first_rule_node_id", "root", "debug_mode", CONFIGURATION, ADDITIONAL_INFO, TYPE},
+                        new String[]{"", "", "", "", "", "", "", "", "", RuleChainType.CORE.name()},
+                        "tb-rule-chains");
+                log.info("Rule chains dumped.");
+
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.5pe", SCHEMA_UPDATE_CQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.6.0", SCHEMA_UPDATE_CQL);
+                loadCql(schemaUpdateFile);
+                log.info("Schema updated.");
+
+                // Restore rule chains
+
+                log.info("Restoring rule chains ...");
+                if (ruleChainsDump != null) {
+                    CassandraDbHelper.loadCf(ks, cluster.getSession(), RULE_CHAIN,
+                            new String[]{ID, TENANT_ID, NAME, SEARCH_TEXT, "first_rule_node_id", "root", "debug_mode", CONFIGURATION, ADDITIONAL_INFO, TYPE}, ruleChainsDump);
+                    Files.deleteIfExists(ruleChainsDump);
+                }
+                log.info("Rule chains restored.");
+                break;
+            case "2.6.0":
+                log.info("Updating schema ...");
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.6.0pe", SCHEMA_UPDATE_CQL);
                 loadCql(schemaUpdateFile);
 
                 String updateIntegrationTableStmt = "alter table "+INTEGRATION+" add downlink_converter_id timeuuid";
@@ -401,39 +433,6 @@ public class CassandraDatabaseUpgradeService extends AbstractCassandraDatabaseUp
 
                 log.info("Converters updated.");
                 break;
-            case "2.5.5PE":
-
-                log.info("Upgrading Cassandra DataBase from version {} to 2.6.0PE ...", fromVersion);
-
-                // Dump rule chains
-
-                cluster.getSession();
-
-                ks = cluster.getCluster().getMetadata().getKeyspace(cluster.getKeyspaceName());
-
-                log.info("Dumping rule chains ...");
-                Path ruleChainsDump = CassandraDbHelper.dumpCfIfExists(ks, cluster.getSession(), RULE_CHAIN,
-                        new String[]{ID, TENANT_ID, NAME, SEARCH_TEXT, "first_rule_node_id", "root", "debug_mode", CONFIGURATION, ADDITIONAL_INFO, TYPE},
-                        new String[]{"", "", "", "", "", "", "", "", "", RuleChainType.CORE.name()},
-                        "tb-rule-chains");
-                log.info("Rule chains dumped.");
-
-                log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.6.0", SCHEMA_UPDATE_CQL);
-                loadCql(schemaUpdateFile);
-                log.info("Schema updated.");
-
-                // Restore rule chains
-
-                log.info("Restoring rule chains ...");
-                if (ruleChainsDump != null) {
-                    CassandraDbHelper.loadCf(ks, cluster.getSession(), RULE_CHAIN,
-                            new String[]{ID, TENANT_ID, NAME, SEARCH_TEXT, "first_rule_node_id", "root", "debug_mode", CONFIGURATION, ADDITIONAL_INFO, TYPE}, ruleChainsDump);
-                    Files.deleteIfExists(ruleChainsDump);
-                }
-                log.info("Rule chains restored.");
-                break;
-
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);
         }
