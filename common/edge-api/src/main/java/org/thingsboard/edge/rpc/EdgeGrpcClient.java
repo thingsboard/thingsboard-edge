@@ -55,6 +55,7 @@ import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
