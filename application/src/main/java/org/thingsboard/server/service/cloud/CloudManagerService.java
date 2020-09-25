@@ -374,7 +374,7 @@ public class CloudManagerService {
 
     @PreDestroy
     public void destroy() throws InterruptedException {
-        edgeRpcClient.disconnect();
+        edgeRpcClient.disconnect(false);
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -830,6 +830,8 @@ public class CloudManagerService {
                 scheduledFuture = null;
             }
 
+            edgeRpcClient.sendSyncRequestMsg();
+
             UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
             this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 
@@ -1157,7 +1159,7 @@ public class CloudManagerService {
                         this::onEdgeUpdate,
                         this::onDownlink,
                         this::scheduleReconnect);
-            }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+            }, reconnectTimeoutMs, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
     }
 
