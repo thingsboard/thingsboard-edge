@@ -28,33 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.exception;
+package org.thingsboard.server.edge;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import org.cassandraunit.dataset.cql.ClassPathCQLDataSet;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.extensions.cpsuite.ClasspathSuite;
+import org.junit.runner.RunWith;
+import org.thingsboard.server.dao.CustomCassandraCQLUnit;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
 
-public enum ThingsboardErrorCode {
+import java.util.Arrays;
 
-    GENERAL(2),
-    AUTHENTICATION(10),
-    JWT_TOKEN_EXPIRED(11),
-    CREDENTIALS_EXPIRED(15),
-    PERMISSION_DENIED(20),
-    INVALID_ARGUMENTS(30),
-    BAD_REQUEST_PARAMS(31),
-    ITEM_NOT_FOUND(32),
-    TOO_MANY_REQUESTS(33),
-    TOO_MANY_UPDATES(34),
-    SUBSCRIPTION_VIOLATION(40);
+@RunWith(ClasspathSuite.class)
+@ClasspathSuite.ClassnameFilters({
+        "org.thingsboard.server.edge.nosql.*Test"})
+public class EdgeNoSqlTestSuite {
 
-    private int errorCode;
+    @ClassRule
+    public static CustomCassandraCQLUnit cassandraUnit =
+            new CustomCassandraCQLUnit(
+                    Arrays.asList(
+                            new ClassPathCQLDataSet("cassandra/schema-ts.cql", false, false),
+                            new ClassPathCQLDataSet("cassandra/schema-entities.cql", false, false),
+                            new ClassPathCQLDataSet("cassandra/system-data.cql", false, false),
+                            new ClassPathCQLDataSet("cassandra/system-test.cql", false, false)),
+                    "cassandra-test.yaml", 30000l);
 
-    ThingsboardErrorCode(int errorCode) {
-        this.errorCode = errorCode;
+    @BeforeClass
+    public static void cleanupInMemStorage(){
+        InMemoryStorage.getInstance().cleanup();
     }
-
-    @JsonValue
-    public int getErrorCode() {
-        return errorCode;
-    }
-
 }

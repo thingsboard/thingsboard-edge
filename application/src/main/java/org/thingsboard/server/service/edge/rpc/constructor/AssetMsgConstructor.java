@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
@@ -59,6 +60,9 @@ public class AssetMsgConstructor {
         if (asset.getCustomerId() != null && !asset.getCustomerId().isNullUid()) {
             builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(asset.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (asset.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(asset.getAdditionalInfo()));
         }
         return builder.build();
     }

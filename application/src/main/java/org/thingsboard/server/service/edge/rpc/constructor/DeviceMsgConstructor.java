@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
@@ -68,6 +69,9 @@ public class DeviceMsgConstructor {
         if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
             builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (device.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
         return builder.build();
     }

@@ -59,6 +59,8 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private String label;
     private String routingKey;
     private String secret;
+    private String edgeLicenseKey;
+    private String cloudEndpoint;
     private transient JsonNode configuration;
 
     public Edge() {
@@ -77,6 +79,8 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         this.name = edge.getName();
         this.routingKey = edge.getRoutingKey();
         this.secret = edge.getSecret();
+        this.edgeLicenseKey = edge.getEdgeLicenseKey();
+        this.cloudEndpoint = edge.getCloudEndpoint();
         this.configuration = edge.getConfiguration();
         this.rootRuleChainId = edge.getRootRuleChainId();
     }

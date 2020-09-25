@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
@@ -146,6 +147,7 @@ public class DeviceProcessor extends BaseProcessor {
         device.setName(deviceUpdateMsg.getName());
         device.setType(deviceUpdateMsg.getType());
         device.setLabel(deviceUpdateMsg.getLabel());
+        device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
         deviceService.saveDevice(device);
 
         saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
@@ -163,6 +165,7 @@ public class DeviceProcessor extends BaseProcessor {
             device.setName(deviceUpdateMsg.getName());
             device.setType(deviceUpdateMsg.getType());
             device.setLabel(deviceUpdateMsg.getLabel());
+            device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
             device = deviceService.saveDevice(device);
             createDeviceCredentials(device);
             createRelationFromEdge(tenantId, edge.getId(), device.getId());

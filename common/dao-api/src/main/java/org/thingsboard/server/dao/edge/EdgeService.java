@@ -98,4 +98,8 @@ public interface EdgeService {
     ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr);
 
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
+
+    Object checkInstance(Object request);
+
+    Object activateInstance(String licenseSecret, String releaseDate);
 }

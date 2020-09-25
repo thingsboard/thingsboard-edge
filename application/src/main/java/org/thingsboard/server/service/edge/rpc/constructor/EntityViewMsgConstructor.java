@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.EdgeEntityType;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
@@ -71,6 +72,9 @@ public class EntityViewMsgConstructor {
         if (entityView.getCustomerId() != null && !entityView.getCustomerId().isNullUid()) {
             builder.setCustomerIdMSB(entityView.getCustomerId().getId().getMostSignificantBits())
                     .setCustomerIdLSB(entityView.getCustomerId().getId().getLeastSignificantBits());
+        }
+        if (entityView.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(entityView.getAdditionalInfo()));
         }
         return builder.build();
     }

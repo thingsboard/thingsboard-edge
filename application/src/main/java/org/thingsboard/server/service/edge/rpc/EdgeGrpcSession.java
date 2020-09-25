@@ -188,10 +188,10 @@ public final class EdgeGrpcSession implements Closeable {
                     if (ConnectResponseCode.ACCEPTED != responseMsg.getResponseCode()) {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     }
-                    if (ConnectResponseCode.ACCEPTED == responseMsg.getResponseCode()) {
-                        connected = true;
-                        ctx.getSyncEdgeService().sync(edge);
-                    }
+                }
+                if (!connected && requestMsg.getMsgType().equals(RequestMsgType.SYNC_REQUEST_RPC_MESSAGE)) {
+                    connected = true;
+                    ctx.getSyncEdgeService().sync(edge);
                 }
                 if (connected) {
                     if (requestMsg.getMsgType().equals(RequestMsgType.UPLINK_RPC_MESSAGE) && requestMsg.hasUplinkMsg()) {
@@ -211,8 +211,12 @@ public final class EdgeGrpcSession implements Closeable {
             @Override
             public void onCompleted() {
                 connected = false;
-                sessionCloseListener.accept(edge.getId());
-                outputStream.onCompleted();
+                if (edge != null) {
+                    sessionCloseListener.accept(edge.getId());
+                }
+                try {
+                    outputStream.onCompleted();
+                } catch (Exception ignored) {}
             }
         };
     }
@@ -1118,6 +1122,8 @@ public final class EdgeGrpcSession implements Closeable {
                 .setName(edge.getName())
                 .setRoutingKey(edge.getRoutingKey())
                 .setType(edge.getType())
+                .setEdgeLicenseKey(edge.getEdgeLicenseKey())
+                .setCloudEndpoint(edge.getCloudEndpoint())
                 .setCloudType("PE")
                 .build();
     }

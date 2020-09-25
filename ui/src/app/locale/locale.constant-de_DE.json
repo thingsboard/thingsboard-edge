@@ -419,6 +419,7 @@
     "manage-assets": "Objekte verwalten",
     "manage-devices": "Geräte verwalten",
     "manage-dashboards": "Dashboards verwalten",
+    "manage-edges": "Öffentliche Rand",
     "title": "Titel",
     "title-required": "Titel ist erforderlich.",
     "description": "Beschreibung",
@@ -749,6 +750,10 @@
     "delete-edges-text": "Vorsicht, nach Bestätigung werden alle ausgewählten Rand entfernt und alle zugehörigen Daten werden nicht wiederhergestellt.",
     "name": "Name",
     "name-required": "Name ist erforderlich.",
+    "edge-license-key": "Edge Lizenzschlüssel",
+    "edge-license-key-required": "Edge Lizenzschlüssel ist erforderlich.",
+    "cloud-endpoint": "Cloud-Endpunkt",
+    "cloud-endpoint-required": "Cloud-Endpunkt ist erforderlich.",
     "description": "Beschreibung",
     "events": "Ereignisse",
     "details": "Details",
@@ -780,7 +785,7 @@
     "label": "Bezeichnung",
     "assign-new-edge": "Neue Rand zuordnen",
     "manage-edge-dashboards": "Rand-Dashboards verwalten",
-    "unassign-from-edge": "Zuordnung zum Rand aufheben",
+    "unassign-from-edge": "Rand zuweisen",
     "dashboards": "Rand Dashboards",
     "manage-edge-rule-chains": "Randregelkette verwalten",
     "rulechains": "Rand Regelketten",
@@ -825,6 +830,7 @@
     "success": "Bereitgestellt",
     "unassign-edges-text": "Nach der Bestätigung werden alle ausgewählten Kanten nicht zugewiesen und sind für den Kunden nicht zugänglich.",
     "unassign-edges-title": "Sind Sie sicher, dass Sie die Zuordnung aufheben möchten { count, plural, 1 {1 edge} other {# edges} }?"
+    "set-root-rule-chain-to-edges-text": "Die Regelkette zur Wurzel für { count, plural, 1 {1 Rand} other {# Rand} } machen"
   },
   "error": {
     "unable-to-connect": "Es konnte keine Verbindung zum Server hergestellt werden! Bitte überprüfen Sie Ihre Internetverbindung.",
@@ -1196,6 +1202,7 @@
     "type-debug-rule-chain": "Fehlersuche",
     "no-events-prompt": "Keine Ereignisse gefunden",
     "error": "Fehler",
+    "type-edge-event": "Downlink",
     "alarm": "Alarm",
     "event-time": "Ereigniszeit",
     "server": "Server",
