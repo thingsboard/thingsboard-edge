@@ -281,6 +281,7 @@ export const templates = {
     topicFilters: [],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
+      'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.caCertFileName': [Validators.required],
       'clientConfiguration.credentials.caCert': [Validators.required],
