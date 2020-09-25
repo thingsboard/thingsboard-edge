@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 
 import java.util.UUID;
@@ -72,6 +73,7 @@ public class AssetProcessor extends BaseProcessor {
                     asset.setName(assetUpdateMsg.getName());
                     asset.setType(assetUpdateMsg.getType());
                     asset.setLabel(assetUpdateMsg.getLabel());
+                    asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()));
                     CustomerId assetCustomerId = safeSetCustomerId(assetUpdateMsg, cloudType, asset);
                     assetService.saveAsset(asset, created);
                     addToEntityGroup(tenantId, customerId, assetUpdateMsg, cloudType, assetId, assetCustomerId);

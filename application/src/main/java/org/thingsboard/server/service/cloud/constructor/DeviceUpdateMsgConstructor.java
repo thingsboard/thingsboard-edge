@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
@@ -57,6 +58,9 @@ public class DeviceUpdateMsgConstructor {
                 .setType(device.getType());
         if (device.getLabel() != null) {
             builder.setLabel(device.getLabel());
+        }
+        if (device.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
         return builder.build();
     }
