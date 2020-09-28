@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import com.google.common.util.concurrent.FutureCallback;
 import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +64,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -83,6 +84,8 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     private String privateKeyResource;
     @Value("${edges.state.persistToTelemetry:false}")
     private boolean persistToTelemetry;
+    @Value("${edges.rpc.client_max_keep_alive_time_sec}")
+    private int clientMaxKeepAliveTimeSec;
 
     @Autowired
     private EdgeContextComponent ctx;
@@ -97,7 +100,9 @@ public class EdgeGrpcService extends EdgeRpcServiceGrpc.EdgeRpcServiceImplBase i
     @PostConstruct
     public void init() {
         log.info("Initializing Edge RPC service!");
-        ServerBuilder builder = ServerBuilder.forPort(rpcPort).addService(this);
+        NettyServerBuilder builder = NettyServerBuilder.forPort(rpcPort)
+                .permitKeepAliveTime(clientMaxKeepAliveTimeSec, TimeUnit.SECONDS)
+                .addService(this);
         if (sslEnabled) {
             try {
                 File certFile = new File(Resources.getResource(certFileResource).toURI());
