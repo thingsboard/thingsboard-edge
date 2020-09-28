@@ -85,6 +85,7 @@ cloud:
     host: "${CLOUD_PRC_HOST:localhost}"
     port: "${CLOUD_RPC_PORT:7070}"
     timeout: "${CLOUD_RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
+    keep_alive_time_sec: "${CLOUD_RPC_KEEP_ALIVE_TIME_SEC:360}"
     ssl:
       enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
       cert: "${CLOUD_RPC_SSL_CERT:roots.pem}"
