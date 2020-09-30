@@ -46,10 +46,9 @@ public class MqttClientConfiguration {
     private int port;
     private int connectTimeoutSec;
     private String clientId;
+    private Integer maxBytesInMessage;
 
     private boolean cleanSession;
     private boolean ssl;
     private MqttClientCredentials credentials;
-
-    private Integer maxBytesInMessage;
 }
