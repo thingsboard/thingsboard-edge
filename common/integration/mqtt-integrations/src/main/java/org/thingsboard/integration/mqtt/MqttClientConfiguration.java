@@ -51,4 +51,5 @@ public class MqttClientConfiguration {
     private boolean ssl;
     private MqttClientCredentials credentials;
 
+    private Integer maxBytesInMessage;
 }

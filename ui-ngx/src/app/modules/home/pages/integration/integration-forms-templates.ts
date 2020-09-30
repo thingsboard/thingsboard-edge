@@ -192,6 +192,7 @@ export const templates = {
       ssl: false,
       connectTimeoutSec: 10,
       clientId: '',
+      maxBytesInMessage: 8092,
       credentials: {
         type: mqttCredentialTypes.anonymous.value,
         username: '',
@@ -210,6 +211,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required],
       'clientConfiguration.credentials.password': [Validators.required],
