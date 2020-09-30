@@ -192,7 +192,7 @@ export const templates = {
       ssl: false,
       connectTimeoutSec: 10,
       clientId: '',
-      maxBytesInMessage: 8092,
+      maxBytesInMessage: 16184,
       credentials: {
         type: mqttCredentialTypes.anonymous.value,
         username: '',
