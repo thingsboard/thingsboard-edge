@@ -56,7 +56,7 @@ public final class MqttClientConfig {
 
     private boolean reconnect = true;
     private long reconnectDelay = 1L;
-    private int maxBytesInMessage = 16184;
+    private int maxBytesInMessage = 32368;
 
     public MqttClientConfig() {
         this(null);
