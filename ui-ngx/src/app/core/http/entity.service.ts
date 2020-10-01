@@ -170,7 +170,7 @@ export class EntityService {
         break;
       case EntityType.INTEGRATION:
         observable = this.integrationService.getIntegration(entityId, config);
-        break
+        break;
       case EntityType.SCHEDULER_EVENT:
         observable = this.schedulerEventService.getSchedulerEventInfo(entityId, config);
         break;
@@ -552,7 +552,7 @@ export class EntityService {
   }
 
   private getEntityGroupEntitiesByPageLink(entityGroupId: string, pageLink: PageLink, entityGroupType: EntityType,
-                                          config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
+                                           config?: RequestConfig): Observable<Array<BaseData<EntityId>>> {
     const entitiesObservable: Observable<PageData<BaseData<EntityId>>> =
       this.entityGroupService.getEntityGroupEntities(entityGroupId, pageLink, entityGroupType, config);
     if (entitiesObservable) {
@@ -612,7 +612,7 @@ export class EntityService {
           }
           return this.entityGroupService.getEntityGroupsByOwnerId(entityId.entityType as EntityType, entityId.id, entityType, config);
         }),
-        catchError((err) => {
+        catchError(() => {
           return of(null);
         })
       );
@@ -1215,12 +1215,27 @@ export class EntityService {
       catchError(err => {
         if (update) {
           let findEntityObservable: Observable<BaseData<EntityId>>;
+          const authUser = getCurrentAuthUser(this.store);
           switch (entityType) {
             case EntityType.DEVICE:
-              findEntityObservable = this.deviceService.findByName(entityData.name, config);
+              if (authUser.authority === Authority.TENANT_ADMIN) {
+                findEntityObservable = this.deviceService.findByName(entityData.name, config);
+              } else {
+                const pageLink = new PageLink(1, null, entityData.name);
+                findEntityObservable = this.deviceService.getUserDevices(pageLink, '', config).pipe(
+                  map(data => data.data[0])
+                );
+              }
               break;
             case EntityType.ASSET:
-              findEntityObservable = this.assetService.findByName(entityData.name, config);
+              if (authUser.authority === Authority.TENANT_ADMIN) {
+                findEntityObservable = this.assetService.findByName(entityData.name, config);
+              } else {
+                const pageLink = new PageLink(1, null, entityData.name);
+                findEntityObservable = this.assetService.getUserAssets(pageLink, '', config).pipe(
+                  map(data => data.data[0])
+                );
+              }
               break;
           }
           return findEntityObservable.pipe(
