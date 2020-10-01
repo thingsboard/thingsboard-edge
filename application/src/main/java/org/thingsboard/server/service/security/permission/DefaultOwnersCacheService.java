@@ -180,8 +180,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         changeEntityOwner(tenantId, targetOwnerId, user.getId(), user, targetUser -> {
             if (EntityType.CUSTOMER.equals(targetOwnerId.getEntityType())) {
                 targetUser.setAuthority(Authority.CUSTOMER_USER);
-            }
-            if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
+            } else if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
                 targetUser.setAuthority(Authority.TENANT_ADMIN);
             }
             userService.saveUser(targetUser);
