@@ -767,8 +767,8 @@ function Utils($mdColorPalette, $rootScope, $window, $location, $filter, $transl
             if (angular.isUndefined(settings.enableEntityViewsManagement)) {
                 settings.enableEntityViewsManagement = true;
             }
-            if (angular.isUndefined(settings.enableEdgeManagement)) {
-                settings.enableEdgeManagement = true;
+            if (angular.isUndefined(settings.enableEdgesManagement)) {
+                settings.enableEdgesManagement = true;
             }
             if (angular.isUndefined(settings.enableDashboardsManagement)) {
                 settings.enableDashboardsManagement = true;
