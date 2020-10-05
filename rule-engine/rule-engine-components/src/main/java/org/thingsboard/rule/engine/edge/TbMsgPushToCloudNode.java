@@ -136,16 +136,37 @@ public class TbMsgPushToCloudNode implements TbNode {
     }
 
     private CloudEvent buildCloudEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
-        if (DataConstants.ALARM.equals(msg.getType())) {
+        String msgType = msg.getType();
+        if (DataConstants.ALARM.equals(msgType)) {
             return buildCloudEvent(ctx.getTenantId(), ActionType.ADDED, getUUIDFromMsgData(msg), CloudEventType.ALARM, null);
         } else {
             CloudEventType cloudEventTypeByEntityType = CloudUtils.getCloudEventTypeByEntityType(msg.getOriginator().getEntityType());
             if (cloudEventTypeByEntityType == null) {
                 return null;
             }
-            ActionType actionType = getActionTypeByMsgType(msg.getType());
-            JsonNode entityBody = getEntityBody(actionType, msg.getData(), msg.getMetaData().getData());
-            return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, entityBody);
+            ActionType actionType = getActionTypeByMsgType(msgType);
+            Map<String, Object> entityBody = new HashMap<>();
+            Map<String, String> metadata = msg.getMetaData().getData();
+            JsonNode dataJson = json.readTree(msg.getData());
+            switch (actionType) {
+                case ATTRIBUTES_UPDATED:
+                    entityBody.put("kv", dataJson);
+                    entityBody.put("scope", metadata.get("scope"));
+                    if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)) {
+                        entityBody.put("isPostAttributes", true);
+                    }
+                    break;
+                case ATTRIBUTES_DELETED:
+                    List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
+                    entityBody.put("keys", keys);
+                    entityBody.put("scope", metadata.get("scope"));
+                    break;
+                case TIMESERIES_UPDATED:
+                    entityBody.put("data", dataJson);
+                    entityBody.put("ts", metadata.get("ts"));
+                    break;
+            }
+            return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, json.valueToTree(entityBody));
         }
     }
 
@@ -157,27 +178,6 @@ public class TbMsgPushToCloudNode implements TbNode {
         cloudEvent.setCloudEventType(cloudEventType);
         cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
-    }
-
-    private JsonNode getEntityBody(ActionType actionType, String data, Map<String, String> metadata) throws JsonProcessingException {
-        Map<String, Object> entityBody = new HashMap<>();
-        JsonNode dataJson = json.readTree(data);
-        switch (actionType) {
-            case ATTRIBUTES_UPDATED:
-                entityBody.put("kv", dataJson);
-                entityBody.put("scope", metadata.get("scope"));
-                break;
-            case ATTRIBUTES_DELETED:
-                List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
-                entityBody.put("keys", keys);
-                entityBody.put("scope", metadata.get("scope"));
-                break;
-            case TIMESERIES_UPDATED:
-                entityBody.put("data", dataJson);
-                entityBody.put("ts", metadata.get("ts"));
-                break;
-        }
-        return json.valueToTree(entityBody);
     }
 
     private ActionType getActionTypeByMsgType(String msgType) {

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.gen.edge.AttributeDeleteMsg;
 import org.thingsboard.server.gen.edge.EntityDataProto;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.List;
 
@@ -71,7 +72,12 @@ public class EntityDataMsgConstructor {
             case ATTRIBUTES_UPDATED:
                 try {
                     JsonObject data = entityData.getAsJsonObject();
-                    builder.setPostAttributesMsg(JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv")));
+                    TransportProtos.PostAttributeMsg postAttributeMsg = JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv"));
+                    if (data.has("isPostAttributes") && data.getAsJsonPrimitive("isPostAttributes").getAsBoolean()) {
+                        builder.setPostAttributesMsg(postAttributeMsg);
+                    } else {
+                        builder.setAttributesUpdatedMsg(postAttributeMsg);
+                    }
                     builder.setPostAttributeScope(data.getAsJsonPrimitive("scope").getAsString());
                 } catch (Exception e) {
                     log.warn("Can't convert to attributes proto, entityData [{}]", entityData, e);

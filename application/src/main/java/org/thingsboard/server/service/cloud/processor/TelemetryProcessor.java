@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
@@ -37,6 +39,7 @@ import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -53,6 +56,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -63,6 +67,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -78,12 +83,15 @@ public class TelemetryProcessor extends BaseProcessor {
     public List<ListenableFuture<Void>> onTelemetryUpdate(TenantId tenantId, EntityDataProto entityData) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         EntityId entityId = constructEntityId(entityData);
-        if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg()) && entityId != null) {
+        if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg() || entityData.hasAttributesUpdatedMsg()) && entityId != null) {
             TbMsgMetaData metaData = constructBaseMsgMetadata(tenantId, entityId);
             metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
             if (entityData.hasPostAttributesMsg()) {
+                result.add(processPostAttributes(tenantId, entityId, entityData.getPostAttributesMsg(), metaData));
+            }
+            if (entityData.hasAttributesUpdatedMsg()) {
                 metaData.putValue("scope", entityData.getPostAttributeScope());
-                result.add(processPostAttributes(tenantId, entityId, entityData.getPostAttributesMsg(), metaData, entityData.getPostAttributeScope()));
+                result.add(processAttributesUpdate(tenantId, entityId, entityData.getAttributesUpdatedMsg(), metaData));
             }
             if (entityData.hasPostTelemetryMsg()) {
                 result.add(processPostTelemetry(tenantId, entityId, entityData.getPostTelemetryMsg(), metaData));
@@ -182,9 +190,8 @@ public class TelemetryProcessor extends BaseProcessor {
         pushEntityActionToRuleEngine(tenantId, entityId, null, null, ActionType.ATTRIBUTES_UPDATED, scope, attributes);
     }
 
-
     private ListenableFuture<Void> processPostAttributes(TenantId tenantId, EntityId entityId, TransportProtos.PostAttributeMsg msg,
-                                                         TbMsgMetaData metaData, String scope) {
+                                                         TbMsgMetaData metaData) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, metaData, gson.toJson(json));
@@ -192,7 +199,6 @@ public class TelemetryProcessor extends BaseProcessor {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
                 futureToSet.set(null);
-                logAttributesUpdated(tenantId, entityId, scope, gson.toJson(json));
             }
 
             @Override
@@ -201,6 +207,27 @@ public class TelemetryProcessor extends BaseProcessor {
                 futureToSet.setException(t);
             }
         });
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> processAttributesUpdate(TenantId tenantId, EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+        Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(json);
+        ListenableFuture<List<Void>> future = attributesService.save(tenantId, entityId, metaData.getValue("scope"), new ArrayList<>(attributes));
+        Futures.addCallback(future, new FutureCallback<List<Void>>() {
+            @Override
+            public void onSuccess(@Nullable List<Void> voids) {
+                futureToSet.set(null);
+                logAttributesUpdated(tenantId, entityId, metaData.getValue("scope"), gson.toJson(json));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Can't process attributes update [{}]", msg, t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
         return futureToSet;
     }
 

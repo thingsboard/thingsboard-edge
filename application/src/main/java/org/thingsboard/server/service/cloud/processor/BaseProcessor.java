@@ -260,6 +260,7 @@ public abstract class BaseProcessor {
         if (!StringUtils.isEmpty(msgType)) {
             try {
                 TbMsgMetaData metaData = new TbMsgMetaData();
+                metaData.putValue(DataConstants.MSG_SOURCE_KEY, DataConstants.CLOUD_MSG_SOURCE);
                 if (customerId != null && !customerId.isNullUid()) {
                     metaData.putValue("customerId", customerId.toString());
                 }
