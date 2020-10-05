@@ -93,7 +93,8 @@ export default function CustomerDirective($compile, $templateCache, $translate, 
             hideManageAssets: '=',
             hideManageDevices: '=',
             hideManageEntityViews: '=',
-            hideManageDashboards: '='
+            hideManageDashboards: '=',
+            hideManageEdges: '='
         }
     };
 }
