@@ -97,25 +97,21 @@ public abstract class AbstractMqttClaimDeviceTest extends AbstractMqttIntegratio
     }
 
     @Test
-    @Ignore
     public void testClaimingDevice() throws Exception {
         processTestClaimingDevice(false);
     }
 
     @Test
-    @Ignore
     public void testClaimingDeviceWithoutSecretAndDuration() throws Exception {
         processTestClaimingDevice(true);
     }
 
     @Test
-    @Ignore
     public void testGatewayClaimingDevice() throws Exception {
         processTestGatewayClaimingDevice("Test claiming gateway device", false);
     }
 
     @Test
-    @Ignore
     public void testGatewayClaimingDeviceWithoutSecretAndDuration() throws Exception {
         processTestGatewayClaimingDevice("Test claiming gateway device empty payload", true);
     }
@@ -138,8 +134,6 @@ public abstract class AbstractMqttClaimDeviceTest extends AbstractMqttIntegratio
     protected void validateClaimResponse(boolean emptyPayload, MqttAsyncClient client, byte[] payloadBytes, byte[] failurePayloadBytes) throws Exception {
         client.publish(MqttTopics.DEVICE_CLAIM_TOPIC, new MqttMessage(failurePayloadBytes));
 
-        Thread.sleep(2000);
-
         loginUser(customerAdmin.getName(), CUSTOMER_USER_PASSWORD);
         ClaimRequest claimRequest;
         if (!emptyPayload) {
@@ -148,14 +142,21 @@ public abstract class AbstractMqttClaimDeviceTest extends AbstractMqttIntegratio
             claimRequest = new ClaimRequest(null);
         }
 
-        ClaimResponse claimResponse = doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResponse.class, status().isBadRequest());
+        ClaimResponse claimResponse = doExecuteWithRetriesAndInterval(
+                () -> doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResponse.class, status().isBadRequest()),
+                20,
+                100
+        );
+
         assertEquals(claimResponse, ClaimResponse.FAILURE);
 
         client.publish(MqttTopics.DEVICE_CLAIM_TOPIC, new MqttMessage(payloadBytes));
 
-        Thread.sleep(2000);
-
-        ClaimResult claimResult = doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResult.class, status().isOk());
+        ClaimResult claimResult = doExecuteWithRetriesAndInterval(
+                () -> doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResult.class, status().isOk()),
+                20,
+                100
+        );
         assertEquals(claimResult.getResponse(), ClaimResponse.SUCCESS);
         Device claimedDevice = claimResult.getDevice();
         assertNotNull(claimedDevice);
@@ -169,9 +170,12 @@ public abstract class AbstractMqttClaimDeviceTest extends AbstractMqttIntegratio
     protected void validateGatewayClaimResponse(String deviceName, boolean emptyPayload, MqttAsyncClient client, byte[] failurePayloadBytes, byte[] payloadBytes) throws Exception {
         client.publish(MqttTopics.GATEWAY_CLAIM_TOPIC, new MqttMessage(failurePayloadBytes));
 
-        Thread.sleep(2000);
+        Device savedDevice = doExecuteWithRetriesAndInterval(
+                () -> doGet("/api/tenant/devices?deviceName=" + deviceName, Device.class),
+                20,
+                100
+        );
 
-        Device savedDevice = doGet("/api/tenant/devices?deviceName=" + deviceName, Device.class);
         assertNotNull(savedDevice);
 
         loginUser(customerAdmin.getName(), CUSTOMER_USER_PASSWORD);
@@ -187,9 +191,12 @@ public abstract class AbstractMqttClaimDeviceTest extends AbstractMqttIntegratio
 
         client.publish(MqttTopics.GATEWAY_CLAIM_TOPIC, new MqttMessage(payloadBytes));
 
-        Thread.sleep(2000);
+        ClaimResult claimResult = doExecuteWithRetriesAndInterval(
+                () -> doPostClaimAsync("/api/customer/device/" + deviceName + "/claim", claimRequest, ClaimResult.class, status().isOk()),
+                20,
+                100
+        );
 
-        ClaimResult claimResult = doPostClaimAsync("/api/customer/device/" + deviceName + "/claim", claimRequest, ClaimResult.class, status().isOk());
         assertEquals(claimResult.getResponse(), ClaimResponse.SUCCESS);
         Device claimedDevice = claimResult.getDevice();
         assertNotNull(claimedDevice);

@@ -99,7 +99,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
 
         client.subscribe(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC, MqttQoS.AT_MOST_ONCE.value());
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
@@ -124,7 +124,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
         TestMqttCallback callback = new TestMqttCallback(client, latch);
         client.setCallback(callback);
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"26\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
@@ -147,9 +147,11 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
     protected void validateOneWayRpcGatewayResponse(String deviceName, MqttAsyncClient client, byte[] payloadBytes) throws Exception {
         publishMqttMsg(client, payloadBytes, MqttTopics.GATEWAY_CONNECT_TOPIC);
 
-        Thread.sleep(2000);
-
-        Device savedDevice = getDeviceByName(deviceName);
+        Device savedDevice = doExecuteWithRetriesAndInterval(
+                () -> getDeviceByName(deviceName),
+                20,
+                100
+        );
         assertNotNull(savedDevice);
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -158,7 +160,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
 
         client.subscribe(MqttTopics.GATEWAY_RPC_TOPIC, MqttQoS.AT_MOST_ONCE.value());
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         String setGpioRequest = "{\"method\": \"toggle_gpio\", \"params\": {\"pin\":1}}";
         String deviceId = savedDevice.getId().getId().toString();
@@ -171,9 +173,11 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
     protected void validateTwoWayRpcGateway(String deviceName, MqttAsyncClient client, byte[] payloadBytes) throws Exception {
         publishMqttMsg(client, payloadBytes, MqttTopics.GATEWAY_CONNECT_TOPIC);
 
-        Thread.sleep(2000);
-
-        Device savedDevice = getDeviceByName(deviceName);
+        Device savedDevice = doExecuteWithRetriesAndInterval(
+                () -> getDeviceByName(deviceName),
+                20,
+                100
+        );
         assertNotNull(savedDevice);
 
         CountDownLatch latch = new CountDownLatch(1);
@@ -182,7 +186,7 @@ public abstract class AbstractMqttServerSideRpcIntegrationTest extends AbstractM
 
         client.subscribe(MqttTopics.GATEWAY_RPC_TOPIC, MqttQoS.AT_MOST_ONCE.value());
 
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         String setGpioRequest = "{\"method\": \"toggle_gpio\", \"params\": {\"pin\":1}}";
         String deviceId = savedDevice.getId().getId().toString();
