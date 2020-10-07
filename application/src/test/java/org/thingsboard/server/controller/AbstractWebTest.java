@@ -74,6 +74,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -268,7 +270,15 @@ public abstract class AbstractWebTest {
     }
 
     protected User createUser(User user, String password) throws Exception {
-        User savedUser = doPost("/api/user", user, User.class);
+        return createUser(user, password, null);
+    }
+
+    protected User createUser(User user, String password, EntityGroupId entityGroupId) throws Exception {
+        String url = "/api/user";
+        if (entityGroupId != null) {
+            url += "?entityGroupId="+entityGroupId.toString();
+        }
+        User savedUser = doPost(url, user, User.class);
         JsonNode activateRequest = getActivateRequest(password);
         ResultActions resultActions = doPost("/api/noauth/activate", activateRequest);
         resultActions.andExpect(status().isOk());
