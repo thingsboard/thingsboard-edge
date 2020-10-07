@@ -474,7 +474,6 @@ export function createLoadingDiv(loadingText: string): JQuery<HTMLElement> {
           font-size: 16px;
           font-family: Roboto;
           font-weight: 400;
-          text-transform:  uppercase;
         ">
         <span>${loadingText}</span>
     </div>
