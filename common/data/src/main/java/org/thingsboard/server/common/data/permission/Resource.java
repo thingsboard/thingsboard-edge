@@ -55,6 +55,8 @@ public enum Resource {
     USER(EntityType.USER),
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
+    TENANT_PROFILE(EntityType.TENANT_PROFILE),
+    DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
     CONVERTER(EntityType.CONVERTER),
     INTEGRATION(EntityType.INTEGRATION),
     SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
@@ -101,11 +103,13 @@ public enum Resource {
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
                 Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
+        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
@@ -134,6 +138,7 @@ public enum Resource {
                 Resource.DASHBOARD,
                 Resource.ALARM,
                 Resource.TENANT,
+                Resource.TENANT_PROFILE,
                 Resource.USER,
                 Resource.WIDGETS_BUNDLE,
                 Resource.WIDGET_TYPE,
@@ -145,6 +150,7 @@ public enum Resource {
                 Resource.PROFILE,
                 Resource.ALARM,
                 Resource.DEVICE,
+                Resource.DEVICE_PROFILE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
                 Resource.CUSTOMER,

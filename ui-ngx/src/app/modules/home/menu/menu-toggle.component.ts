@@ -31,10 +31,11 @@
 
 import { Component, Input, OnInit } from '@angular/core';
 import { MenuSection } from '@core/services/menu.models';
-import { Observable, of } from 'rxjs';
-import { map, share } from 'rxjs/operators';
+import { Observable, combineLatest } from 'rxjs';
+import { distinctUntilChanged, filter, map, share, startWith } from 'rxjs/operators';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
+import { ActivationEnd, Router } from '@angular/router';
 
 @Component({
   selector: 'tb-menu-toggle',
@@ -45,37 +46,43 @@ export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
 
+  sectionPages$: Observable<Array<MenuSection>>;
+  sectionHeight$: Observable<string>;
+
   constructor(public utils: UtilsService,
-              private menuService: MenuService) {
+              private menuService: MenuService,
+              private router: Router) {
   }
 
   ngOnInit() {
-  }
-
-  sectionActive(): boolean {
-    return this.menuService.sectionActive(this.section);
-  }
-
-  sectionPages(): Observable<Array<MenuSection>> {
-    return this.section.asyncPages.pipe(
+    this.sectionPages$ = this.section.asyncPages.pipe(
       map((pages) => {
           return pages.filter((page) => !page.disabled);
         }
       ),
       share()
     );
+
+    this.sectionHeight$ = combineLatest([
+      this.sectionPages$,
+      this.router.events.pipe(filter(event => event instanceof ActivationEnd), startWith(ActivationEnd))
+    ]).pipe(
+      map((pages) => {
+        if (this.sectionActive()) {
+          return pages[0].length * 40 + 'px';
+        }
+        return '0px';
+      }),
+      distinctUntilChanged(),
+      share()
+    );
   }
 
-  sectionHeight(): Observable<string> {
-    if (this.sectionActive()) {
-      return this.sectionPages().pipe(
-        map((pages) => {
-          return pages.length * 40 + 'px';
-        }),
-        share()
-      );
-    } else {
-      return of('0px');
-    }
+  sectionActive(): boolean {
+    return  this.menuService.sectionActive(this.section);
+  }
+
+  trackBySectionPages(index: number, section: MenuSection){
+    return section.id;
   }
 }

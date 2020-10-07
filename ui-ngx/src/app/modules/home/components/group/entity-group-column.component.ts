@@ -143,7 +143,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         break;
       case EntityType.ASSET:
       case EntityType.DEVICE:
-        entityFieldKeys = ['name', 'type', 'label', 'assigned_customer'];
+        entityFieldKeys = ['name', 'device_profile', 'label', 'assigned_customer'];
         break;
       case EntityType.ENTITY_VIEW:
         entityFieldKeys = ['name', 'type', 'assigned_customer'];

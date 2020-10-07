@@ -60,7 +60,7 @@ export class WidgetService {
   private systemWidgetsBundles: Array<WidgetsBundle>;
   private tenantWidgetsBundles: Array<WidgetsBundle>;
 
-  private widgetsBundleCacheSubject = null;
+  private widgetsBundleCacheSubject: ReplaySubject<any> = null;
 
   constructor(
     private http: HttpClient,
@@ -311,6 +311,7 @@ export class WidgetService {
     this.allWidgetsBundles = undefined;
     this.systemWidgetsBundles = undefined;
     this.tenantWidgetsBundles = undefined;
+    this.widgetsBundleCacheSubject = undefined;
   }
 
 }

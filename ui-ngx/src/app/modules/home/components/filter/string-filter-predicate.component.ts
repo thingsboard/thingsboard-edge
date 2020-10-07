@@ -55,6 +55,8 @@ export class StringFilterPredicateComponent implements ControlValueAccessor, OnI
 
   @Input() disabled: boolean;
 
+  @Input() allowUserDynamicSource = true;
+
   valueTypeEnum = EntityKeyValueType;
 
   stringFilterPredicateFormGroup: FormGroup;

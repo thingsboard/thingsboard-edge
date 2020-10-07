@@ -42,6 +42,8 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> extends AbstractIntegration<T> {
@@ -52,6 +54,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
     protected ExecutorService loopExecutor;
     protected volatile boolean stopped = false;
     protected long pollInterval;
+    protected Lock kafkaLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -100,8 +103,14 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
             loopExecutor.shutdownNow();
         }
         if (kafkaConsumer != null) {
-            kafkaConsumer.unsubscribe();
-            kafkaConsumer.close();
+            kafkaLock.lock();
+            try {
+                kafkaConsumer.unsubscribe();
+                kafkaConsumer.close();
+            } finally {
+                kafkaLock.unlock();
+            }
+
         }
     }
 
@@ -117,7 +126,13 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
             configuration.getOtherProperties().forEach(properties::put);
         }
         kafkaConsumer = new KafkaConsumer<>(properties);
-        kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
+
+        kafkaLock.lock();
+        try {
+            kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
+        } finally {
+            kafkaLock.unlock();
+        }
 
         pollInterval = configuration.getPollInterval();
         stopped = false;

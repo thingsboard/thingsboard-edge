@@ -62,6 +62,12 @@ export class DeviceService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getTenantDeviceInfosByDeviceProfileId(pageLink: PageLink, deviceProfileId: string = '',
+                                               config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    return this.http.get<PageData<DeviceInfo>>(`/api/tenant/deviceInfos${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getCustomerDeviceInfos(customerId: string, pageLink: PageLink, type: string = '',
                                 config?: RequestConfig): Observable<PageData<DeviceInfo>> {
     return this.http.get<PageData<DeviceInfo>>(`/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&type=${type}`,
@@ -79,6 +85,12 @@ export class DeviceService {
     return this.http.get<PageData<Device>>(`/api/customer/${customerId}/devices${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+/*  public getCustomerDeviceInfosByDeviceProfileId(customerId: string, pageLink: PageLink, deviceProfileId: string = '',
+                                                 config?: RequestConfig): Observable<PageData<DeviceInfo>> {
+    return this.http.get<PageData<DeviceInfo>>(`/api/customer/${customerId}/deviceInfos${pageLink.toQuery()}&deviceProfileId=${deviceProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  } */
 
   public getDevice(deviceId: string, config?: RequestConfig): Observable<Device> {
     return this.http.get<Device>(`/api/device/${deviceId}`, defaultHttpOptionsFromConfig(config));

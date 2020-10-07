@@ -53,7 +53,7 @@ import {
 } from './integration-forms-templates';
 import _ from 'lodash';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
-import { IntegrationService } from "@core/http/integration.service";
+import { IntegrationService } from '@core/http/integration.service';
 
 @Component({
   selector: 'tb-integration',
@@ -70,7 +70,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationTypes = IntegrationType;
 
-  integrationTypeKeys = Object.keys(IntegrationType)
+  integrationTypeKeys = Object.keys(IntegrationType);
 
   integrationTypeInfos = integrationTypeInfoMap;
 
@@ -106,6 +106,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
         type: [entity ? entity.type : null, [Validators.required]],
         enabled: [entity && isDefined(entity.enabled) ? entity.enabled : true],
         debugMode: [entity ? entity.debugMode : null],
+        allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
         remote: [entity ? entity.remote : null],
@@ -193,6 +194,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
     this.entityForm.patchValue({ enabled: isDefined(entity.enabled) ? entity.enabled : true });
     this.entityForm.patchValue({ debugMode: entity.debugMode });
+    this.entityForm.patchValue({ allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true});
     this.entityForm.patchValue({ defaultConverterId: entity.defaultConverterId });
     this.entityForm.patchValue({ downlinkConverterId: entity.downlinkConverterId });
     this.entityForm.patchValue({ remote: entity.remote });
@@ -230,6 +232,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
     formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
+    formValue.name = formValue.name.trim();
     delete formValue.metadata;
     return formValue;
   }

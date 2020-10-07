@@ -43,6 +43,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -82,6 +84,7 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -108,6 +111,7 @@ import java.util.function.BiConsumer;
 @Component
 public class AccessValidator {
 
+    public static final String ONLY_SYSTEM_ADMINISTRATOR_IS_ALLOWED_TO_PERFORM_THIS_OPERATION = "Only system administrator is allowed to perform this operation!";
     public static final String CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "Customer user is not allowed to perform this operation!";
     public static final String SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "System administrator is not allowed to perform this operation!";
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
@@ -127,6 +131,9 @@ public class AccessValidator {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected DeviceProfileService deviceProfileService;
 
     @Autowired
     protected AssetService assetService;
@@ -222,6 +229,9 @@ public class AccessValidator {
             case DEVICE:
                 validateDevice(currentUser, operation, entityId, callback);
                 return;
+            case DEVICE_PROFILE:
+                validateDeviceProfile(currentUser, operation, entityId, callback);
+                return;
             case ASSET:
                 validateAsset(currentUser, operation, entityId, callback);
                 return;
@@ -239,6 +249,9 @@ public class AccessValidator {
                 return;
             case INTEGRATION:
                 validateIntegration(currentUser, operation, entityId, callback);
+                return;
+            case TENANT_PROFILE:
+                validateTenantProfile(currentUser, operation, entityId, callback);
                 return;
             case USER:
                 validateUser(currentUser, operation, entityId, callback);
@@ -300,6 +313,24 @@ public class AccessValidator {
                     return ValidationResult.ok(device);
                 }
             }), executor);
+        }
+    }
+
+    private void validateDeviceProfile(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(currentUser.getTenantId(), new DeviceProfileId(entityId.getId()));
+            if (deviceProfile == null) {
+                callback.onSuccess(ValidationResult.entityNotFound("Device profile with requested id wasn't found!"));
+            } else {
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.DEVICE_PROFILE, operation, entityId, deviceProfile);
+                } catch (ThingsboardException e) {
+                    callback.onSuccess(ValidationResult.accessDenied(e.getMessage()));
+                }
+                callback.onSuccess(ValidationResult.ok(deviceProfile));
+            }
         }
     }
 
@@ -429,6 +460,14 @@ public class AccessValidator {
                     return ValidationResult.ok(converter);
                 }
             }), executor);
+        }
+    }
+
+    private void validateTenantProfile(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.ok(null));
+        } else {
+            callback.onSuccess(ValidationResult.accessDenied(ONLY_SYSTEM_ADMINISTRATOR_IS_ALLOWED_TO_PERFORM_THIS_OPERATION));
         }
     }
 

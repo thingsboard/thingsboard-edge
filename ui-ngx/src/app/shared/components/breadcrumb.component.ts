@@ -38,6 +38,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MenuSection } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
+import { guid } from '@core/utils';
 
 @Component({
   selector: 'tb-breadcrumb',
@@ -136,6 +137,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
         }
         const breadcrumb = {
+          id: guid(),
           label,
           labelFunction,
           ignoreTranslate,
@@ -152,5 +154,9 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
       return this.buildBreadCrumbs(route.firstChild, newBreadcrumbs, lastChild);
     }
     return newBreadcrumbs;
+  }
+
+  trackByBreadcrumbs(index: number, breadcrumb: BreadCrumb){
+    return breadcrumb.id;
   }
 }

@@ -42,6 +42,7 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -426,6 +427,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityViewService getEntityViewService() {
         return mainCtx.getEntityViewService();
+    }
+
+    @Override
+    public RuleEngineDeviceProfileCache getDeviceProfileCache() {
+        return mainCtx.getDeviceProfileCache();
     }
 
     @Override

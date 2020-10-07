@@ -99,6 +99,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         sysAdminGenericPermissions.put(Resource.DASHBOARD, new HashSet<>(Arrays.asList(Operation.READ)));
         sysAdminGenericPermissions.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.READ)));
         sysAdminGenericPermissions.put(Resource.TENANT, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.TENANT_PROFILE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.RULE_CHAIN, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.USER, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, new HashSet<>(Arrays.asList(Operation.ALL)));

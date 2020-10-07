@@ -192,6 +192,7 @@ export const templates = {
       ssl: false,
       connectTimeoutSec: 10,
       clientId: '',
+      maxBytesInMessage: 32368,
       credentials: {
         type: mqttCredentialTypes.anonymous.value,
         username: '',
@@ -210,6 +211,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required],
       'clientConfiguration.credentials.password': [Validators.required],
@@ -279,6 +281,7 @@ export const templates = {
     topicFilters: [],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
+      'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.caCertFileName': [Validators.required],
       'clientConfiguration.credentials.caCert': [Validators.required],
@@ -529,7 +532,7 @@ export const templates = {
       bootstrapServers: 'localhost:9092',
       pollInterval: 5000,
       autoCreateTopics: false,
-      otherProperties: ''
+      otherProperties: null
     },
     ignoreNonPrimitiveFields: ['otherProperties'],
     fieldValidators: {

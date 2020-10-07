@@ -62,7 +62,16 @@
                 </mat-form-field>
             </div>
         </div>
-        <mat-form-field class="mat-block">
+      <div fxLayout="row" fxLayoutGap.gt-sm="20px">
+        <mat-form-field class="mat-block" fxFlex>
+          <mat-label translate>integration.port</mat-label>
+          <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
+          <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
+          </mat-error>
+          <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
+          <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
+        </mat-form-field>
+        <mat-form-field class="mat-block" fxFlex>
             <mat-label translate>integration.connect-timeout</mat-label>
             <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
             <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
@@ -74,6 +83,10 @@
                 integration.connect-timeout-range
             </mat-error>
         </mat-form-field>
+      </div>
+      <mat-checkbox class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
+        {{ 'integration.enable-ssl' | translate }}
+      </mat-checkbox>
         <div formGroupName="credentials">
             <div class="tb-panel-title" style="padding-bottom: 15px;">
                 {{ 'integration.application-credentials' | translate }}</div>

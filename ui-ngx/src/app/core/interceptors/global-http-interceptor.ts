@@ -264,7 +264,7 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
       } else {
         this.activeRequests--;
       }
-      if (this.activeRequests === 1) {
+      if (this.activeRequests === 1 && isLoading) {
         this.store.dispatch(new ActionLoadStart());
       } else if (this.activeRequests === 0) {
         this.store.dispatch(new ActionLoadFinish());

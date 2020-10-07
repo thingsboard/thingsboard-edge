@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -292,6 +293,41 @@ public class DashboardController extends BaseController {
         try {
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(dashboardService.findDashboardsByEntityGroupId(entityGroupId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards/import", method = RequestMethod.POST)
+    @ResponseBody
+    public void importGroupDashboards(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @RequestBody List<Dashboard> dashboardList,
+            @RequestParam(required = false, defaultValue = "false", name = "overwrite") boolean overwrite) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            checkEntityGroupId(entityGroupId, Operation.WRITE);
+            dashboardService.importDashboards(tenantId, entityGroupId, dashboardList, overwrite);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards/export", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Dashboard> exportGroupDashboards(
+            @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
+            @RequestParam int limit) throws ThingsboardException {
+        try {
+
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            checkEntityGroupId(entityGroupId, Operation.READ);
+            TimePageLink pageLink = new TimePageLink(limit);
+            return dashboardService.exportDashboards(tenantId, entityGroupId, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

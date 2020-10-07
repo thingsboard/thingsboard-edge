@@ -149,7 +149,7 @@ export class AttributeKeyValueTableComponent extends PageComponent implements Co
     const kvList: {key: string; value: string}[] = this.kvListFormGroup.get('keyVals').value;
     const keyValMap: {[key: string]: string} = {};
     kvList.forEach((entry) => {
-      keyValMap[entry.key] = entry.value;
+      keyValMap[entry.key.trim()] = entry.value;
     });
     this.propagateChange(keyValMap);
   }
@@ -188,5 +188,5 @@ export function attributeKeyValueValidator(required: boolean): ValidatorFn {
       }
     }
     return errors;
-  }
+  };
 }

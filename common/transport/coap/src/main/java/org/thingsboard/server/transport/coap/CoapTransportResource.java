@@ -40,6 +40,7 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.springframework.util.ReflectionUtils;
 import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.security.DeviceTokenCredentials;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -47,9 +48,9 @@ import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportContext;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
-import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProto;
+import org.thingsboard.server.common.transport.auth.SessionInfoCreator;
+import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
@@ -58,9 +59,9 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 
 import java.lang.reflect.Field;
@@ -172,7 +173,7 @@ public class CoapTransportResource extends CoapResource {
             return;
         }
 
-        transportService.process(ValidateDeviceTokenRequestMsg.newBuilder().setToken(credentials.get().getCredentialsId()).build(),
+        transportService.process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(credentials.get().getCredentialsId()).build(),
                 new DeviceAuthCallback(transportContext, exchange, sessionInfo -> {
                     UUID sessionId = new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
                     try {
@@ -324,7 +325,7 @@ public class CoapTransportResource extends CoapResource {
         return this;
     }
 
-    private static class DeviceAuthCallback implements TransportServiceCallback<ValidateDeviceCredentialsResponseMsg> {
+    private static class DeviceAuthCallback implements TransportServiceCallback<ValidateDeviceCredentialsResponse> {
         private final TransportContext transportContext;
         private final CoapExchange exchange;
         private final Consumer<SessionInfoProto> onSuccess;
@@ -336,22 +337,9 @@ public class CoapTransportResource extends CoapResource {
         }
 
         @Override
-        public void onSuccess(ValidateDeviceCredentialsResponseMsg msg) {
+        public void onSuccess(ValidateDeviceCredentialsResponse msg) {
             if (msg.hasDeviceInfo()) {
-                UUID sessionId = UUID.randomUUID();
-                DeviceInfoProto deviceInfoProto = msg.getDeviceInfo();
-                SessionInfoProto sessionInfo = SessionInfoProto.newBuilder()
-                        .setNodeId(transportContext.getNodeId())
-                        .setTenantIdMSB(deviceInfoProto.getTenantIdMSB())
-                        .setTenantIdLSB(deviceInfoProto.getTenantIdLSB())
-                        .setDeviceIdMSB(deviceInfoProto.getDeviceIdMSB())
-                        .setDeviceIdLSB(deviceInfoProto.getDeviceIdLSB())
-                        .setSessionIdMSB(sessionId.getMostSignificantBits())
-                        .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                        .setDeviceName(msg.getDeviceInfo().getDeviceName())
-                        .setDeviceType(msg.getDeviceInfo().getDeviceType())
-                        .build();
-                onSuccess.accept(sessionInfo);
+                onSuccess.accept(SessionInfoCreator.create(msg, transportContext, UUID.randomUUID()));
             } else {
                 exchange.respond(ResponseCode.UNAUTHORIZED);
             }

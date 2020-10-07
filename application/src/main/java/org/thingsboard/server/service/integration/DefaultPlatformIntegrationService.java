@@ -112,6 +112,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -138,7 +139,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -645,7 +645,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
-        if (device == null) {
+        if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
             device.setType(deviceType);
@@ -663,13 +663,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             createRelationFromIntegration(integration, device.getId());
             deviceStateService.onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(integration, device);
+        } else {
+            throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return device;
     }
 
     private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
-        if (asset == null) {
+        if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
             asset.setName(assetName);
             asset.setType(assetType);
@@ -686,6 +688,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
             createRelationFromIntegration(integration, asset.getId());
             pushAssetCreatedEventToRuleEngine(integration, asset);
+        } else {
+            throw new ThingsboardRuntimeException("Creating assets is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return asset;
     }

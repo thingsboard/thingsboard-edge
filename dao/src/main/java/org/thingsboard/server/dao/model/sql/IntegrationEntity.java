@@ -90,6 +90,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
     private Boolean isRemote;
 
+    @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
+    private Boolean allowCreateDevicesOrAssets;
+
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -126,6 +129,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
+        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -164,6 +168,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setDebugMode(debugMode);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
+        integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

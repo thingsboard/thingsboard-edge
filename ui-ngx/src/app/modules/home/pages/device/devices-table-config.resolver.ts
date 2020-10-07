@@ -94,6 +94,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
 
     this.config.entityTitle = (device) => device ?
       this.utils.customTranslation(device.name, device.name) : '';
+    this.config.addDialogStyle = {width: '600px'};
 
     this.config.deleteEntityTitle = device => this.translate.instant('device.delete-device-title', { deviceName: device.name });
     this.config.deleteEntityContent = () => this.translate.instant('device.delete-device-text');
@@ -118,7 +119,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     const routeParams = route.params;
     this.config.componentsData = {
       deviceScope: route.data.devicesType,
-      deviceType: ''
+      deviceProfileId: null
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(

@@ -34,6 +34,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -41,6 +42,7 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class BaseTenantServiceTest extends AbstractServiceTest {
     
@@ -72,6 +74,17 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         Tenant foundTenant = tenantService.findTenantById(savedTenant.getId());
         Assert.assertNotNull(foundTenant);
         Assert.assertEquals(savedTenant, foundTenant);
+        tenantService.deleteTenant(savedTenant.getId());
+    }
+
+    @Test
+    public void testFindTenantInfoById() {
+        Tenant tenant = new Tenant();
+        tenant.setTitle("My tenant");
+        Tenant savedTenant = tenantService.saveTenant(tenant);
+        TenantInfo foundTenant = tenantService.findTenantInfoById(savedTenant.getId());
+        Assert.assertNotNull(foundTenant);
+        Assert.assertEquals(new TenantInfo(savedTenant, "Default"), foundTenant);
         tenantService.deleteTenant(savedTenant.getId());
     }
     
@@ -131,9 +144,7 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         Assert.assertEquals(tenants, loadedTenants);
         
         for (Tenant tenant : loadedTenants) {
-            if (!tenant.getTitle().equals("Tenant")) {
-                tenantService.deleteTenant(tenant.getId());
-            }
+            tenantService.deleteTenant(tenant.getId());
         }
         
         pageLink = new PageLink(17);
@@ -214,5 +225,47 @@ public abstract class BaseTenantServiceTest extends AbstractServiceTest {
         pageData = tenantService.findTenants(pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void testFindTenantInfos() {
+
+        List<TenantInfo> tenants = new ArrayList<>();
+        PageLink pageLink = new PageLink(17);
+        PageData<TenantInfo> pageData = tenantService.findTenantInfos(pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertTrue(pageData.getData().isEmpty());
+        tenants.addAll(pageData.getData());
+
+        for (int i=0;i<156;i++) {
+            Tenant tenant = new Tenant();
+            tenant.setTitle("Tenant"+i);
+            tenants.add(new TenantInfo(tenantService.saveTenant(tenant), "Default"));
+        }
+
+        List<TenantInfo> loadedTenants = new ArrayList<>();
+        pageLink = new PageLink(17);
+        do {
+            pageData = tenantService.findTenantInfos(pageLink);
+            loadedTenants.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(tenants, idComparator);
+        Collections.sort(loadedTenants, idComparator);
+
+        Assert.assertEquals(tenants, loadedTenants);
+
+        for (TenantInfo tenant : loadedTenants) {
+            tenantService.deleteTenant(tenant.getId());
+        }
+
+        pageLink = new PageLink(17);
+        pageData = tenantService.findTenantInfos(pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertTrue(pageData.getData().isEmpty());
+
     }
 }
