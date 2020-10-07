@@ -530,7 +530,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventClick(arg: EventHandlerArg<'eventClick'>) {
-    const schedulerEvent = this.schedulerEvents.find(scheduerEvent => scheduerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
     if (schedulerEvent) {
       this.openSchedulerEventContextMenu(arg.jsEvent, schedulerEvent);
     }
@@ -568,7 +568,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventDrop(arg: EventHandlerArg<'eventDrop'>) {
-    const schedulerEvent = this.schedulerEvents.find(scheduerEvent => scheduerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
     if (schedulerEvent) {
       this.moveEvent(schedulerEvent, arg.delta, arg.revert);
     }
@@ -820,12 +820,15 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
       tap(() => {
         this.selection.clear();
       }),
-      catchError(() => of(emptyPageData<SchedulerEventWithCustomerInfo>())),
+      catchError(() => of([
+        emptyPageData<SchedulerEventWithCustomerInfo>(),
+        emptyPageData<SchedulerEventWithCustomerInfo>()
+      ])),
     ).subscribe(
       (pageData) => {
-        this.entitiesSubject.next(pageData.data);
-        this.pageDataSubject.next(pageData);
-        result.next(pageData);
+        this.entitiesSubject.next(pageData[0].data);
+        this.pageDataSubject.next(pageData[0]);
+        result.next(pageData[1]);
         this.dataLoading = false;
       }
     );
@@ -833,10 +836,12 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
   }
 
   fetchEntities(eventType: string,
-                pageLink: PageLink): Observable<PageData<SchedulerEventWithCustomerInfo>> {
+                pageLink: PageLink): Observable<Array<PageData<SchedulerEventWithCustomerInfo>>> {
+    const allPageLinkData = new PageLink(Number.POSITIVE_INFINITY, 0, pageLink.textSearch);
     return this.getAllEntities(eventType).pipe(
-      map((data) => pageLink.filterData(data))
-    );
+      map((data) => allPageLinkData.filterData(data)),
+      map((data) => [pageLink.filterData(data.data), data])
+    )
   }
 
   getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {

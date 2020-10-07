@@ -49,7 +49,7 @@
     </properties>
 
     <modules>
-        <module>rule-node-twilio</module>
+        <module>rule-node-twilio-sms</module>
     </modules>
 
     <build>

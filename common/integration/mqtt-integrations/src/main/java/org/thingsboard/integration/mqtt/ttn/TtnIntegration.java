@@ -83,7 +83,7 @@ public class TtnIntegration extends BasicMqttIntegration {
                 mqttClientConfiguration.setHost(region + "." + TTI_ENDPOINT);
             }
         }
-        mqttClientConfiguration.setPort(8883);
+//        mqttClientConfiguration.setPort(8883);
     }
 
     @Override

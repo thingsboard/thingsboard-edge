@@ -41,7 +41,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard.rule-engine-pe</groupId>
-    <artifactId>rule-node-twilio</artifactId>
+    <artifactId>rule-node-twilio-sms</artifactId>
     <packaging>jar</packaging>
 
     <name>Thingsboard PE Twilio Rule Node</name>
