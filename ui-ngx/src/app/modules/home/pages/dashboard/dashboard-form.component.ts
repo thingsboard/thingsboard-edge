@@ -120,8 +120,9 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
   }
 
   prepareFormValue(formValue: any): any {
-    formValue.configuration = {...(this.entity.configuration || {}), ...(formValue.configuration || {})};
-    return formValue;
+    const preparedValue = super.prepareFormValue(formValue);
+    preparedValue.configuration = {...(this.entity.configuration || {}), ...(preparedValue.configuration || {})};
+    return preparedValue;
   }
 
   onPublicLinkCopied($event) {

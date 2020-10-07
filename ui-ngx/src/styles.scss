@@ -348,7 +348,6 @@ pre.tb-highlight {
   font-weight: 400;
   line-height: 18px;
   color: rgba(0, 0, 0, .38);
-  text-transform: uppercase;
 }
 
 .tb-fullscreen {
@@ -497,10 +496,6 @@ mat-label {
 
   button {
     pointer-events: all;
-  }
-
-  button:not(.mat-menu-item):not(.mat-sort-header-button) {
-    text-transform: uppercase;
   }
 
   button.mat-menu-item {
@@ -982,17 +977,12 @@ mat-label {
     position: relative;
     display: flex;
     height: calc(100% - 60px);
-    text-transform: uppercase;
     text-align: center;
   }
 
 
   mat-tab-group.tb-headless {
     margin-top: -50px;
-  }
-
-  .mat-tab-label {
-    text-transform: uppercase;
   }
 
   .mat-chip-list.dragging {

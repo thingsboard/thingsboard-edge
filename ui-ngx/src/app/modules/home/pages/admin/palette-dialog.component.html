@@ -45,7 +45,7 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content fxLayout="column">
     <div fxLayout="row" *ngFor="let hue of hues"
-         style="height: 48px; cursor: pointer; font-weight: 500; text-transform: uppercase; outline: none;"
+         style="height: 48px; cursor: pointer; font-weight: 500; outline: none;"
          (click)="editColor(hue)">
       <div fxFlex fxLayout="row" [ngStyle]="hueStyle(hue)" style="padding: 10px;">
         <div fxLayout="row" fxLayoutAlign="start center" style="width: 100px;">

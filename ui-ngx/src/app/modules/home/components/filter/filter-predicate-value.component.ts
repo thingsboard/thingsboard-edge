@@ -65,8 +65,11 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, OnIn
   set allowUserDynamicSource(allow: boolean) {
     this.dynamicValueSourceTypes = [DynamicValueSourceType.CURRENT_TENANT,
       DynamicValueSourceType.CURRENT_CUSTOMER];
+    this.allow = allow;
     if (allow) {
       this.dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_USER);
+    } else {
+      this.dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_DEVICE);
     }
   }
 
@@ -83,6 +86,8 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, OnIn
   filterPredicateValueFormGroup: FormGroup;
 
   dynamicMode = false;
+
+  allow = true;
 
   private propagateChange = null;
 

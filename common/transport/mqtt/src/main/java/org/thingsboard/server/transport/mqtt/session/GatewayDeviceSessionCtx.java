@@ -88,7 +88,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onGetAttributesResponse(GetAttributeResponseMsg response) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), response).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), response).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
@@ -97,7 +97,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onAttributeUpdate(AttributeUpdateNotificationMsg notification) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), notification).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), notification).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
@@ -111,7 +111,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg request) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), request).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), request).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
