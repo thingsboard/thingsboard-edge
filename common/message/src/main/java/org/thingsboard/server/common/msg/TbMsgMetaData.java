@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,6 +45,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @NoArgsConstructor
 public final class TbMsgMetaData implements Serializable {
+
+    public static final TbMsgMetaData EMPTY = new TbMsgMetaData(Collections.emptyMap());
 
     private final Map<String, String> data = new ConcurrentHashMap<>();
 

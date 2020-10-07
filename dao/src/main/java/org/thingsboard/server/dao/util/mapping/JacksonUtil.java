@@ -50,7 +50,7 @@ public class JacksonUtil {
             return fromValue != null ? OBJECT_MAPPER.convertValue(fromValue, toValueType) : null;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("The given object value: "
-                    + fromValue + " cannot be converted to " + toValueType);
+                    + fromValue + " cannot be converted to " + toValueType, e);
         }
     }
 
@@ -59,7 +59,7 @@ public class JacksonUtil {
             return string != null ? OBJECT_MAPPER.readValue(string, clazz) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value: "
-                    + string + " cannot be transformed to Json object");
+                    + string + " cannot be transformed to Json object", e);
         }
     }
 
@@ -77,7 +77,7 @@ public class JacksonUtil {
             return value != null ? OBJECT_MAPPER.writeValueAsString(value) : null;
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
-                    + value + " cannot be transformed to a String");
+                    + value + " cannot be transformed to a String", e);
         }
     }
 
@@ -96,7 +96,7 @@ public class JacksonUtil {
         return fromString(toString(value), (Class<T>) value.getClass());
     }
 
-    public static JsonNode valueToTree(Alarm alarm) {
+    public static <T> JsonNode valueToTree(T alarm) {
         return OBJECT_MAPPER.valueToTree(alarm);
     }
 }

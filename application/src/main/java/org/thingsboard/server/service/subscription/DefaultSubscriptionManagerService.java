@@ -241,11 +241,11 @@ public class DefaultSubscriptionManagerService implements SubscriptionManagerSer
 
     @Override
     public void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, TbCallback callback) {
-        onAttributesUpdate(tenantId, entityId, scope, attributes, callback, true);
+        onAttributesUpdate(tenantId, entityId, scope, attributes, true, callback);
     }
 
     @Override
-    public void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, TbCallback callback, boolean notifyDevice) {
+    public void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, boolean notifyDevice, TbCallback callback) {
         onLocalTelemetrySubUpdate(entityId,
                 s -> {
                     if (TbSubscriptionType.ATTRIBUTES.equals(s.getType())) {

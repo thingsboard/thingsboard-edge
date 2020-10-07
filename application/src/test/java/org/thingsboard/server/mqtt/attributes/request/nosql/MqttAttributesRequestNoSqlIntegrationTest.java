@@ -28,14 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.mqtt.telemetry.nosql;
+package org.thingsboard.server.mqtt.attributes.request.nosql;
 
 import org.thingsboard.server.dao.service.DaoNoSqlTest;
-import org.thingsboard.server.mqtt.telemetry.AbstractMqttTelemetryIntegrationTest;
+import org.thingsboard.server.mqtt.attributes.request.AbstractMqttAttributesRequestIntegrationTest;
 
-/**
- * Created by Valerii Sosliuk on 8/22/2017.
- */
+
 @DaoNoSqlTest
-public class MqttTelemetryNoSqlIntegrationTest extends AbstractMqttTelemetryIntegrationTest {
+public class MqttAttributesRequestNoSqlIntegrationTest extends AbstractMqttAttributesRequestIntegrationTest {
 }

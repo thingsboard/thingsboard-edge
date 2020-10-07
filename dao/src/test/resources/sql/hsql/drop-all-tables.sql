@@ -29,6 +29,7 @@ DROP TABLE IF EXISTS group_permission;
 DROP TABLE IF EXISTS entity_view;
 DROP TABLE IF EXISTS device_profile;
 DROP TABLE IF EXISTS tenant_profile;
+DROP TABLE IF EXISTS rule_node_state;
 DROP TABLE IF EXISTS rule_node;
 DROP TABLE IF EXISTS rule_chain;
 DROP FUNCTION IF EXISTS to_uuid;

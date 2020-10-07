@@ -142,6 +142,7 @@ import { AlarmRuleKeyFiltersDialogComponent } from './profile/alarm/alarm-rule-k
 import { FilterTextComponent } from './filter/filter-text.component';
 import { AddDeviceProfileDialogComponent } from './profile/add-device-profile-dialog.component';
 import { RuleChainAutocompleteComponent } from './rule-chain/rule-chain-autocomplete.component';
+import { AlarmScheduleComponent } from './profile/alarm/alarm-schedule.component';
 
 @NgModule({
   declarations:
@@ -247,7 +248,8 @@ import { RuleChainAutocompleteComponent } from './rule-chain/rule-chain-autocomp
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
-      RuleChainAutocompleteComponent
+      RuleChainAutocompleteComponent,
+      AlarmScheduleComponent
     ],
   imports: [
     CommonModule,
@@ -344,7 +346,8 @@ import { RuleChainAutocompleteComponent } from './rule-chain/rule-chain-autocomp
     DeviceProfileComponent,
     DeviceProfileDialogComponent,
     AddDeviceProfileDialogComponent,
-    RuleChainAutocompleteComponent
+    RuleChainAutocompleteComponent,
+    AlarmScheduleComponent
   ],
   providers: [
     WidgetComponentService,

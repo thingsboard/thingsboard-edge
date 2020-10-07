@@ -91,8 +91,8 @@ public class TbMsgAttributesNode implements TbNode {
                 msg.getOriginator(),
                 scope,
                 new ArrayList<>(attributes),
-                new TelemetryNodeCallback(ctx, msg),
-                config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr)
+                config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr),
+                new TelemetryNodeCallback(ctx, msg)
         );
     }
 

@@ -1584,6 +1584,7 @@ export class AddRuleNodeDialogComponent extends DialogComponent<AddRuleNodeDialo
 
   add(): void {
     this.submitted = true;
+
     this.ruleNodeDetailsComponent.validate();
     if (this.ruleNodeDetailsComponent.ruleNodeFormGroup.valid) {
       this.dialogRef.close(this.ruleNode);
