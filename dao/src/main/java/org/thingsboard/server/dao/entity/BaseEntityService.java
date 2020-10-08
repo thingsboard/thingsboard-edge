@@ -415,7 +415,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             user.setCreatedTime((Long) row.get("created_time"));
             user.setTenantId(new TenantId((UUID) row.get("tenant_id")));
             user.setEmail(row.get("email").toString());
-            user.setAuthority(Authority.valueOf(row.get("email").toString()));
+            user.setAuthority(Authority.valueOf(row.get("authority").toString()));
             Object firstName = row.get("first_name");
             if (firstName != null) {
                 user.setFirstName(firstName.toString());
