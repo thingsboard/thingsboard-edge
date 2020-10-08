@@ -712,7 +712,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 if (groupIdsSet) {
                     fromClause.append("(");
                 }
-                fromClause.append(" e.customer_id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+                fromClause.append(" e.parent_customer_id in ").append(HIERARCHICAL_SUB_CUSTOMERS_QUERY);
                 if (groupIdsSet) {
                     ctx.addUuidListParameter("group_ids", groupIds.stream().map(EntityGroupId::getId).collect(Collectors.toList()));
                     fromClause.append(" OR e.id in ");
