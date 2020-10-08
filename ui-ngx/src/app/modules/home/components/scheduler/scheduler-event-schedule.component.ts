@@ -220,6 +220,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     if (!this.modelValue) {
       this.modelValue = this.createDefaultSchedulerEventScheduleConfig();
       doUpdate = true;
+    } else if (this.modelValue.timezone !== value.timezone) {
+      doUpdate = true;
     }
     this.lastAppliedTimezone = this.modelValue.timezone;
     this.scheduleConfigFormGroup.reset(this.modelValue,{emitEvent: false});
