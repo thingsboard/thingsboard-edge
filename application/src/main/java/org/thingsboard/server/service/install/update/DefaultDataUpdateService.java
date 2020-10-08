@@ -33,6 +33,9 @@ package org.thingsboard.server.service.install.update;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -47,6 +50,8 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
@@ -82,6 +87,8 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -93,6 +100,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
@@ -109,6 +117,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 
 @Service
 @Profile("install")
@@ -186,6 +195,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.0.1 to 3.1.0 ...");
                 tenantsEntityViewsUpdater.updateEntities(null);
                 break;
+            case "3.1.1":
+                log.info("Updating data from version 3.1.1 to 3.2.0 ...");
+                tenantsRootRuleChainUpdater.updateEntities(null);
+                break;
             case "3.2.0":
                 log.info("Updating data from version 3.2.0 to 3.2.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
@@ -230,6 +243,65 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
                         if (ruleChain == null) {
                             installScripts.createDefaultRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
+
+    private PaginatedUpdater<String, Tenant> tenantsRootRuleChainUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants root rule chain updater";
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        RuleChain ruleChain = ruleChainService.getRootTenantRuleChain(tenant.getId());
+                        if (ruleChain == null) {
+                            installScripts.createDefaultRuleChains(tenant.getId());
+                        } else {
+                            RuleChainMetaData md = ruleChainService.loadRuleChainMetaData(tenant.getId(), ruleChain.getId());
+                            int oldIdx = md.getFirstNodeIndex();
+                            int newIdx = md.getNodes().size();
+
+                            if (md.getNodes().size() < oldIdx) {
+                                // Skip invalid rule chains
+                                return;
+                            }
+
+                            RuleNode oldFirstNode = md.getNodes().get(oldIdx);
+                            if (oldFirstNode.getType().equals(TbDeviceProfileNode.class.getName())) {
+                                // No need to update the rule node twice.
+                                return;
+                            }
+
+                            RuleNode ruleNode = new RuleNode();
+                            ruleNode.setRuleChainId(ruleChain.getId());
+                            ruleNode.setName("Device Profile Node");
+                            ruleNode.setType(TbDeviceProfileNode.class.getName());
+                            ruleNode.setDebugMode(false);
+                            TbDeviceProfileNodeConfiguration ruleNodeConfiguration = new TbDeviceProfileNodeConfiguration().defaultConfiguration();
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(ruleNodeConfiguration));
+                            ObjectNode additionalInfo = JacksonUtil.newObjectNode();
+                            additionalInfo.put("description", "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.");
+                            additionalInfo.put("layoutX", 204);
+                            additionalInfo.put("layoutY", 240);
+                            ruleNode.setAdditionalInfo(additionalInfo);
+
+                            md.getNodes().add(ruleNode);
+                            md.setFirstNodeIndex(newIdx);
+                            md.addConnectionInfo(newIdx, oldIdx, "Success");
+                            ruleChainService.saveRuleChainMetaData(tenant.getId(), md);
                         }
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);

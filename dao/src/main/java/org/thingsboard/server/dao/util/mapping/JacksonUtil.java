@@ -34,7 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.thingsboard.server.common.data.alarm.Alarm;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 
@@ -91,12 +91,16 @@ public class JacksonUtil {
             throw new IllegalArgumentException(e);
         }
     }
+    
+    public static ObjectNode newObjectNode(){
+        return OBJECT_MAPPER.createObjectNode();
+    }
 
     public static <T> T clone(T value) {
         return fromString(toString(value), (Class<T>) value.getClass());
     }
 
-    public static <T> JsonNode valueToTree(T alarm) {
-        return OBJECT_MAPPER.valueToTree(alarm);
+    public static <T> JsonNode valueToTree(T value) {
+        return OBJECT_MAPPER.valueToTree(value);
     }
 }
