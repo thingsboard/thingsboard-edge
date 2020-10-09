@@ -154,6 +154,8 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.edge.rpc.EdgeGrpcService;
+import org.thingsboard.server.service.edge.rpc.init.SyncEdgeService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -290,11 +292,17 @@ public abstract class BaseController {
     @Autowired
     protected TbQueueProducerProvider producerProvider;
 
-    @Autowired
+    @Autowired(required = false)
     protected EdgeService edgeService;
 
-    @Autowired
+    @Autowired(required = false)
     protected EdgeNotificationService edgeNotificationService;
+
+    @Autowired(required = false)
+    protected SyncEdgeService syncEdgeService;
+
+    @Autowired(required = false)
+    protected EdgeGrpcService edgeGrpcService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -520,7 +528,7 @@ public abstract class BaseController {
                     savedEntity.getCustomerId(),
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            if (entityGroup != null && entity.getId() != null) {
+            if (entity.getId() != null) {
                 sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
                         ActionType.UPDATED);
             }

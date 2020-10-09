@@ -165,7 +165,7 @@ public class AccessValidator {
     @Autowired
     protected DashboardService dashboardService;
 
-    @Autowired
+    @Autowired(required = false)
     protected EdgeService edgeService;
 
     @Autowired
