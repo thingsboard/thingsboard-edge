@@ -41,6 +41,7 @@
              on-manage-assets="vm.entityGroupConfig.onManageAssets(event, vm.entity)"
              on-manage-devices="vm.entityGroupConfig.onManageDevices(event, vm.entity)"
              on-manage-entity-views="vm.entityGroupConfig.onManageEntityViews(event, vm.entity)"
+             on-manage-edges="!vm.entityGroupConfig.onManageEdges(event, vm.entity)"
              on-manage-dashboards="vm.entityGroupConfig.onManageDashboards(event, vm.entity)"
              hide-delete="!vm.entityGroupConfig.deleteEnabled(vm.entity)"
              hide-manage-users="!vm.entityGroupConfig.manageUsersEnabled(vm.entity)"
@@ -48,6 +49,7 @@
              hide-manage-assets="!vm.entityGroupConfig.manageAssetsEnabled(vm.entity)"
              hide-manage-devices="!vm.entityGroupConfig.manageDevicesEnabled(vm.entity)"
              hide-manage-entity-views="!vm.entityGroupConfig.manageEntityViewsEnabled(vm.entity)"
+             hide-manage-edges="!vm.entityGroupConfig.manageEdgesEnabled(vm.entity)"
              hide-manage-dashboards="!vm.entityGroupConfig.manageDashboardsEnabled(vm.entity)">
 </tb-customer>
 <tb-device ng-if="vm.entityType == vm.types.entityType.device"

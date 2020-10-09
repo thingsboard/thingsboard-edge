@@ -72,6 +72,9 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             manageEntityViewsEnabled: () => {
                 return settings.enableEntityViewsManagement;
             },
+            manageEdgesEnabled: () => {
+                return settings.enableEdgesManagement;
+            },
             manageDashboardsEnabled: () => {
                 return settings.enableDashboardsManagement;
             },
@@ -150,7 +153,7 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
             }
         };
 
-        groupConfig.onManageEdge = (event, entity) => {
+        groupConfig.onManageEdges = (event, entity) => {
             if (event) {
                 event.stopPropagation();
             }
@@ -255,10 +258,10 @@ export default function CustomerGroupConfig($q, $translate, $state, tbDialogs, u
                     name: $translate.instant('customer.manage-customer-edge-groups'),
                     icon: 'router',
                     isEnabled: () => {
-                        return settings.enableEdgeManagement;
+                        return settings.enableEdgesManagement;
                     },
                     onAction: ($event, entity) => {
-                        groupConfig.onManageEdge($event, entity);
+                        groupConfig.onManageEdges($event, entity);
                     }
                 }
             );
