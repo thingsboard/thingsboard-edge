@@ -79,7 +79,7 @@ const defaultImageUrl = 'assets/logo_title_white_pe.svg';
 
 export const defaultWLParams: WhiteLabelingParams = {
   logoImageUrl: defaultImageUrl,
-  logoImageChecksum: 'f4ef3e3d6f868a30946388f299bd8f4a36a89d45',
+  logoImageChecksum: 'ce227e602495446086a0672d3a2f1d899203dd4d',
   logoImageHeight: 36,
   appTitle: 'ThingsBoard PE',
   favicon: {
