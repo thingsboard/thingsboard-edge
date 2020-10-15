@@ -141,6 +141,8 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -159,6 +161,7 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
+import org.thingsboard.server.service.profile.TbTenantProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
@@ -241,6 +244,12 @@ public abstract class BaseController {
     protected DashboardService dashboardService;
 
     @Autowired
+    protected OAuth2Service oAuth2Service;
+
+    @Autowired
+    protected OAuth2ConfigTemplateService oAuth2ConfigTemplateService;
+
+    @Autowired
     protected ComponentDiscoveryService componentDescriptorService;
 
     @Autowired
@@ -308,6 +317,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityService entityService;
+
+    @Autowired
+    protected TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
@@ -1014,6 +1026,12 @@ public abstract class BaseController {
                 break;
             case ASSIGNED_TO_TENANT:
                 msgType = DataConstants.ENTITY_ASSIGNED_TO_TENANT;
+                break;
+            case PROVISION_SUCCESS:
+                msgType = DataConstants.PROVISION_SUCCESS;
+                break;
+            case PROVISION_FAILURE:
+                msgType = DataConstants.PROVISION_FAILURE;
                 break;
         }
         if (!StringUtils.isEmpty(msgType)) {

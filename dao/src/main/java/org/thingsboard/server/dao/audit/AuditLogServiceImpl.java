@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.audit.sink.AuditLogSink;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.io.PrintWriter;
@@ -296,6 +297,13 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("browser", browser);
                 actionData.put("os", os);
                 actionData.put("device", device);
+                break;
+            case PROVISION_SUCCESS:
+            case PROVISION_FAILURE:
+                ProvisionRequest request = extractParameter(ProvisionRequest.class, additionalInfo);
+                if (request != null) {
+                    actionData.set("provisionRequest", objectMapper.valueToTree(request));
+                }
                 break;
         }
         return actionData;

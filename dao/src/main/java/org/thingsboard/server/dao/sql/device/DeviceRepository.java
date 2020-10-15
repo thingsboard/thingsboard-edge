@@ -136,5 +136,4 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     DeviceEntity findByTenantIdAndId(UUID tenantId, UUID id);
 
     Long countByDeviceProfileId(UUID deviceProfileId);
-
 }

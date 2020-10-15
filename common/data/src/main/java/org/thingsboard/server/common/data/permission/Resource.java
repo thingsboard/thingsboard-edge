@@ -55,6 +55,8 @@ public enum Resource {
     USER(EntityType.USER),
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
+    OAUTH2_CONFIGURATION_INFO(),
+    OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
     CONVERTER(EntityType.CONVERTER),
@@ -98,6 +100,8 @@ public enum Resource {
         operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
         operationsByResource.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.WRITE)));
         operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
+        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
         operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
         operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
@@ -143,7 +147,9 @@ public enum Resource {
                 Resource.WIDGETS_BUNDLE,
                 Resource.WIDGET_TYPE,
                 Resource.ROLE,
-                Resource.WHITE_LABELING)));
+                Resource.WHITE_LABELING,
+                Resource.OAUTH2_CONFIGURATION_INFO,
+                Resource.OAUTH2_CONFIGURATION_TEMPLATE)));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,

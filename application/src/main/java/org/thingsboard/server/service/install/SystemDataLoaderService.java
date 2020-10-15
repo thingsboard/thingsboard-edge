@@ -45,6 +45,8 @@ public interface SystemDataLoaderService {
 
     void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
 
+    void createOAuth2Templates() throws Exception;
+
     void loadSystemWidgets() throws Exception;
 
     void updateSystemWidgets() throws Exception;

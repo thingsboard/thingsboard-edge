@@ -47,6 +47,19 @@
             <span style="height: 4px;" *ngIf="!(isLoading$ | async)"></span>
             <div tb-toast fxLayout="column" class="layout-padding">
               <span style="height: 40px;"></span>
+              <div class="oauth-container tb-default" fxLayout="column" fxLayoutGap="16px" *ngIf="oauth2Clients?.length">
+                <ng-container *ngFor="let oauth2Client of oauth2Clients">
+                  <a mat-raised-button class="login-with-button" href="{{ oauth2Client.url }}">
+                    <mat-icon class="icon" svgIcon="{{ oauth2Client.icon }}"></mat-icon>
+                    {{ 'login.login-with' | translate: {name: oauth2Client.name} }}
+                  </a>
+                </ng-container>
+                <div class="container-divider">
+                  <div class="line"><mat-divider></mat-divider></div>
+                  <div class="text mat-typography">{{ "login.or" | translate | uppercase }}</div>
+                  <div class="line"><mat-divider></mat-divider></div>
+                </div>
+              </div>
               <mat-form-field>
                 <mat-label translate>login.username</mat-label>
                 <input id="username-input" matInput type="email" autofocus formControlName="username" email required/>
@@ -67,27 +80,10 @@
               <div fxLayout="column" class="tb-action-button">
                 <button mat-raised-button color="accent" [disabled]="(isLoading$ | async)"
                         type="submit">{{ 'login.login' | translate }}</button>
-                <div *ngIf="selfRegistrationService.signUpParams?.activate" translate
-                     style="padding: 10px 0; text-align: center">login.no-account</div>
-                <button mat-button mat-raised-button type="button" color="primary"
-                        *ngIf="selfRegistrationService.signUpParams?.activate"
-                        [disabled]="(isLoading$ | async)"
-                        routerLink="/signup">
-                  {{ 'login.create-account' | translate }}
-                </button>
-              </div>
-              <div class="oauth-container" fxLayout="column" fxLayoutGap="16px" *ngIf="oauth2Clients?.length">
-                <div class="container-divider">
-                  <div class="line"><mat-divider></mat-divider></div>
-                  <div class="text mat-typography">{{ "login.or" | translate | uppercase }}</div>
-                  <div class="line"><mat-divider></mat-divider></div>
+                <div *ngIf="selfRegistrationService.signUpParams?.activate" fxLayout="row" class="no-account-section">
+                  <span class="no-account-message" translate>login.no-account</span>
+                  <a routerLink="/signup">{{ 'signup.signup' | translate }}</a>
                 </div>
-                <ng-container *ngFor="let oauth2Client of oauth2Clients">
-                  <a mat-raised-button color="warn" class="centered" href="{{ oauth2Client.url }}">
-                    <mat-icon svgIcon="{{ oauth2Client.icon }}"></mat-icon>
-                    {{ 'login.login-with' | translate: {name: oauth2Client.name} }}
-                  </a>
-                </ng-container>
               </div>
             </div>
             <section class="version"

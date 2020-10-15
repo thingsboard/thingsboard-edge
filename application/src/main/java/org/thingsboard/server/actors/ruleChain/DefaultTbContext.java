@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.js.api.JsScriptType;
@@ -54,6 +55,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
@@ -69,13 +71,11 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
-import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
@@ -218,6 +218,9 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     private TopicPartitionInfo resolvePartition(TbMsg tbMsg, String queueName) {
+        if (StringUtils.isEmpty(queueName)) {
+            queueName = ServiceQueue.MAIN;
+        }
         return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, queueName, getTenantId(), tbMsg.getOriginator());
     }
 
@@ -622,6 +625,24 @@ class DefaultTbContext implements TbContext, TbPeContext {
         }
         state.setRuleNodeId(getSelfId());
         return mainCtx.getRuleNodeStateService().save(getTenantId(), state);
+    }
+
+    @Override
+    public void clearRuleNodeStates() {
+        if (log.isDebugEnabled()) {
+            log.debug("[{}][{}] Going to clear rule node states", getTenantId(), getSelfId());
+        }
+        mainCtx.getRuleNodeStateService().removeByRuleNodeId(getTenantId(), getSelfId());
+    }
+
+    @Override
+    public void addProfileListener(Consumer<DeviceProfile> listener) {
+        mainCtx.getDeviceProfileCache().addListener(getTenantId(), getSelfId(), listener);
+    }
+
+    @Override
+    public void removeProfileListener() {
+        mainCtx.getDeviceProfileCache().removeListener(getTenantId(), getSelfId());
     }
 
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {

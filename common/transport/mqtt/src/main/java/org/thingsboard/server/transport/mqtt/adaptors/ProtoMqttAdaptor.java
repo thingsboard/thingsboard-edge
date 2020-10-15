@@ -47,6 +47,7 @@ import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.adaptor.ProtoConverter;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceResponseMsg;
 import org.thingsboard.server.transport.mqtt.session.MqttDeviceAwareSessionContext;
 
 import java.util.Optional;
@@ -124,6 +125,17 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
     }
 
     @Override
+    public TransportProtos.ProvisionDeviceRequestMsg convertToProvisionRequestMsg(MqttDeviceAwareSessionContext ctx, MqttPublishMessage mqttMsg) throws AdaptorException {
+        byte[] bytes = toBytes(mqttMsg.payload());
+        String topicName = mqttMsg.variableHeader().topicName();
+        try {
+            return ProtoConverter.convertToProvisionRequestMsg(bytes);
+        } catch (InvalidProtocolBufferException ex) {
+            throw new AdaptorException(ex);
+        }
+    }
+
+    @Override
     public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.GetAttributeResponseMsg responseMsg) throws AdaptorException {
         if (!StringUtils.isEmpty(responseMsg.getError())) {
             throw new AdaptorException(responseMsg.getError());
@@ -152,6 +164,11 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
     @Override
     public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.AttributeUpdateNotificationMsg notificationMsg) {
         return Optional.of(createMqttPublishMsg(ctx, MqttTopics.DEVICE_ATTRIBUTES_TOPIC, notificationMsg.toByteArray()));
+    }
+
+    @Override
+    public Optional<MqttMessage> convertToPublish(MqttDeviceAwareSessionContext ctx, TransportProtos.ProvisionDeviceResponseMsg provisionResponse) {
+        return Optional.of(createMqttPublishMsg(ctx, MqttTopics.DEVICE_PROVISION_RESPONSE_TOPIC, provisionResponse.toByteArray()));
     }
 
     @Override

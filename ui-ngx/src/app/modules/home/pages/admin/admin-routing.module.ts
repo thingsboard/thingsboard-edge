@@ -52,6 +52,8 @@ import { CustomMenu } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
+import { OAuth2SettingsComponent } from '@home/pages/admin/oauth2-settings.component';
+import { OAuth2Service } from '@core/http/oauth2.service';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -94,6 +96,17 @@ export class CustomMenuResolver implements Resolve<CustomMenu> {
 
   resolve(route: ActivatedRouteSnapshot): Observable<CustomMenu> {
     return this.customMenuService.getCurrentCustomMenu();
+  }
+}
+
+@Injectable()
+export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
+
+  constructor(private oauth2Service: OAuth2Service) {
+  }
+
+  resolve(): Observable<string> {
+    return this.oauth2Service.getLoginProcessingUrl();
   }
 }
 
@@ -233,6 +246,22 @@ const routes: Routes = [
             icon: 'group_add'
           }
         }
+      },
+      {
+        path: 'oauth2',
+        component: OAuth2SettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN],
+          title: 'admin.oauth2.oauth2',
+          breadcrumb: {
+            label: 'admin.oauth2.oauth2',
+            icon: 'security'
+          }
+        },
+        resolve: {
+          loginProcessingUrl: OAuth2LoginProcessingUrlResolver
+        }
       }
     ]
   }
@@ -244,7 +273,8 @@ const routes: Routes = [
   providers: [
     MailTemplateSettingsResolver,
     CustomTranslationResolver,
-    CustomMenuResolver
+    CustomMenuResolver,
+    OAuth2LoginProcessingUrlResolver
   ]
 })
 export class AdminRoutingModule { }

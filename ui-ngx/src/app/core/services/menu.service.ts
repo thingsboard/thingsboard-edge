@@ -228,6 +228,14 @@ export class MenuService {
         path: '/settings/security-settings',
         icon: 'security',
         disabled: disabledItems.indexOf('security_settings') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.oauth2.oauth2',
+        type: 'link',
+        path: '/settings/oauth2',
+        icon: 'security',
+        disabled: disabledItems.indexOf('oauth2') > -1
       }
     ];
 
@@ -297,6 +305,12 @@ export class MenuService {
             icon: 'security',
             path: '/settings/security-settings',
             disabled: disabledItems.indexOf('security_settings') > -1
+          },
+          {
+            name: 'admin.oauth2.oauth2',
+            icon: 'security',
+            path: '/settings/oauth2',
+            disabled: disabledItems.indexOf('oauth2') > -1
           }
         ]
       },

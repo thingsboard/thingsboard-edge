@@ -45,7 +45,7 @@ import {
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { DeviceProfileAlarm } from '@shared/models/device.models';
+import { DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/device.models';
 import { guid } from '@core/utils';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -156,7 +156,7 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
       id: guid(),
       alarmType: '',
       createRules: {
-        empty: {
+        CRITICAL: {
           condition: {
             condition: []
           }
@@ -164,8 +164,11 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
       }
     };
     const alarmsArray = this.deviceProfileAlarmsFormGroup.get('alarms') as FormArray;
-    alarmsArray.push(this.fb.control(alarm, [Validators.required]));
+    alarmsArray.push(this.fb.control(alarm, [deviceProfileAlarmValidator]));
     this.deviceProfileAlarmsFormGroup.updateValueAndValidity();
+    if (!this.deviceProfileAlarmsFormGroup.valid) {
+      this.updateModel();
+    }
   }
 
   public validate(c: FormControl) {

@@ -40,6 +40,8 @@ import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.springframework.util.ReflectionUtils;
 import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.security.DeviceTokenCredentials;
 import org.thingsboard.server.common.msg.session.FeatureType;
@@ -63,6 +65,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProt
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceResponseMsg;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -157,7 +160,22 @@ public class CoapTransportResource extends CoapResource {
                 case CLAIM:
                     processRequest(exchange, SessionMsgType.CLAIM_REQUEST);
                     break;
+                case PROVISION:
+                    processProvision(exchange);
+                    break;
             }
+        }
+    }
+
+    private void processProvision(CoapExchange exchange) {
+        log.trace("Processing {}", exchange.advanced().getRequest());
+        exchange.accept();
+        try {
+            transportService.process(transportContext.getAdaptor().convertToProvisionRequestMsg(UUID.randomUUID(), exchange.advanced().getRequest()),
+                    new DeviceProvisionCallback(exchange));
+        } catch (AdaptorException e) {
+            log.trace("Failed to decode message: ", e);
+            exchange.respond(ResponseCode.BAD_REQUEST);
         }
     }
 
@@ -301,6 +319,8 @@ public class CoapTransportResource extends CoapResource {
         try {
             if (uriPath.size() >= FEATURE_TYPE_POSITION) {
                 return Optional.of(FeatureType.valueOf(uriPath.get(FEATURE_TYPE_POSITION - 1).toUpperCase()));
+            } else if (uriPath.size() == 3 && uriPath.contains(DataConstants.PROVISION)) {
+                return Optional.of(FeatureType.valueOf(DataConstants.PROVISION.toUpperCase()));
             }
         } catch (RuntimeException e) {
             log.warn("Failed to decode feature type: {}", uriPath);
@@ -343,6 +363,25 @@ public class CoapTransportResource extends CoapResource {
             } else {
                 exchange.respond(ResponseCode.UNAUTHORIZED);
             }
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            log.warn("Failed to process request", e);
+            exchange.respond(ResponseCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private static class DeviceProvisionCallback implements TransportServiceCallback<ProvisionDeviceResponseMsg> {
+        private final CoapExchange exchange;
+
+        DeviceProvisionCallback(CoapExchange exchange) {
+            this.exchange = exchange;
+        }
+
+        @Override
+        public void onSuccess(ProvisionDeviceResponseMsg msg) {
+            exchange.respond(JsonConverter.toJson(msg).toString());
         }
 
         @Override

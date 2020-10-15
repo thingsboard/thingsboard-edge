@@ -56,6 +56,8 @@ import { Operation } from '@shared/models/security.models';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
+import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -93,6 +95,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
 
     config.onEntityAction = action => this.onDeviceAction(action);
+    config.addEntity = () => this.deviceWizard(config);
 
     if (config.settings.enableCredentialsManagement) {
       if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ_CREDENTIALS, config.entityGroup) &&
@@ -130,6 +133,17 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
       );
     }
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
+  }
+
+  deviceWizard(config: GroupEntityTableConfig<Device>): Observable<Device> {
+    return this.dialog.open<DeviceWizardDialogComponent, AddGroupEntityDialogData<Device>,
+      Device>(DeviceWizardDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entitiesTableConfig: config
+      }
+    }).afterClosed();
   }
 
   importDevices($event: Event, config: GroupEntityTableConfig<Device>) {

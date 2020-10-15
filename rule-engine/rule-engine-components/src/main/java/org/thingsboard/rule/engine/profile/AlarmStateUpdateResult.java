@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.profile;
 
-public enum AlarmStateUpdateResult {
+enum AlarmStateUpdateResult {
 
     NONE, CREATED, UPDATED, SEVERITY_UPDATED, CLEARED;
 

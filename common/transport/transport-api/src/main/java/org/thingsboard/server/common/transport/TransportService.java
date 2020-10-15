@@ -42,6 +42,8 @@ import org.thingsboard.server.gen.transport.TransportProtos.GetTenantRoutingInfo
 import org.thingsboard.server.gen.transport.TransportProtos.GetTenantRoutingInfoResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
@@ -52,6 +54,8 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMs
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateBasicMqttCredRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceX509CertRequestMsg;
+
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by ashvayka on 04.10.18.
@@ -71,6 +75,9 @@ public interface TransportService {
 
     void process(GetOrCreateDeviceFromGatewayRequestMsg msg,
                  TransportServiceCallback<GetOrCreateDeviceFromGatewayResponse> callback);
+
+    void process(ProvisionDeviceRequestMsg msg,
+                 TransportServiceCallback<ProvisionDeviceResponseMsg> callback);
 
     void getDeviceProfile(DeviceProfileId deviceProfileId, TransportServiceCallback<DeviceProfile> callback);
 
@@ -98,6 +105,8 @@ public interface TransportService {
 
     void process(SessionInfoProto sessionInfo, ClaimDeviceMsg msg, TransportServiceCallback<Void> callback);
 
+    ScheduledExecutorService getSchedulerExecutor();
+
     void registerAsyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener);
 
     void registerSyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener, long timeout);
@@ -105,5 +114,4 @@ public interface TransportService {
     void reportActivity(SessionInfoProto sessionInfo);
 
     void deregisterSession(SessionInfoProto sessionInfo);
-
 }

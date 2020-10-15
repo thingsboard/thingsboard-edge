@@ -261,6 +261,7 @@ public class DefaultTbClusterService implements TbClusterService {
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = new HashSet<>(partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE));
         boolean toCore = msg.getEntityId().getEntityType().equals(EntityType.TENANT) ||
+                msg.getEntityId().getEntityType().equals(EntityType.DEVICE_PROFILE) ||
                 msg.getEntityId().getEntityType().equals(EntityType.CONVERTER) ||
                 msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION);
 

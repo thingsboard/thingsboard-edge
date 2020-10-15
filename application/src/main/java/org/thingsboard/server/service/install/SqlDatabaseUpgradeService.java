@@ -447,6 +447,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN allow_create_devices_or_assets boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_info ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_info ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
                 }
                 log.info("Schema updated.");
                 break;
