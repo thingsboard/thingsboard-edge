@@ -330,6 +330,7 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
 
     this.subscriptions.push(clientRegistrationFormGroup.get('additionalInfo.providerName').valueChanges.subscribe((provider) => {
       (clientRegistrationFormGroup.get('scope') as FormArray).clear();
+      (clientRegistrationFormGroup.get('mapperConfig.basic.userGroupsNamePattern') as FormArray).clear();
       this.setProviderDefaultValue(provider, clientRegistrationFormGroup);
     }));
 
