@@ -91,14 +91,14 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -156,6 +156,7 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.io.Closeable;
@@ -1959,6 +1960,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 userCredentialsEnabled);
     }
 
+    public PageData<User> getUsersByEntityGroupId(EntityGroupId entityGroupId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId.toString());
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/users?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<User>>() {
+                }, params).getBody();
+    }
+
     public Optional<WidgetsBundle> getWidgetsBundleById(WidgetsBundleId widgetsBundleId) {
         try {
             ResponseEntity<WidgetsBundle> widgetsBundle =
@@ -2165,6 +2179,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 params).getBody();
     }
 
+    public PageData<Asset> getAssetsByEntityGroupId(EntityGroupId entityGroupId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId.toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/assets?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Asset>>() {
+                },
+                params).getBody();
+    }
+
     public JsonNode activateUser(JsonNode activateRequest) {
         return restTemplate.postForEntity(baseURL + "/api/noauth/activate/", activateRequest, JsonNode.class).getBody();
     }
@@ -2302,6 +2329,33 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 listIdsToString(converterIds)).getBody();
     }
 
+    public PageData<Customer> getUserCustomers(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/user/customers?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Customer>>() {
+                },
+                params).getBody();
+    }
+
+    public PageData<Customer> getCustomersByEntityGroupId(EntityGroupId entityGroupId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId.toString());
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/customers?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Customer>>() {
+                },
+                params).getBody();
+    }
+
     public Optional<CustomMenu> getCustomMenu() {
         try {
             ResponseEntity<CustomMenu> customMenu = restTemplate.getForEntity(baseURL + "/api/customMenu/customMenu", CustomMenu.class);
@@ -2401,6 +2455,25 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 listIdsToString(dashboardIds)).getBody();
     }
 
+    public void importGroupDashboards(EntityGroupId entityGroupId, List<Dashboard> dashboardList, boolean overwrite) {
+        restTemplate.postForLocation(
+                baseURL + "/api/entityGroup/{entityGroupId}/dashboards/import?overwrite={overwrite}",
+                dashboardList,
+                entityGroupId,
+                overwrite);
+    }
+
+    public List<Dashboard> exportGroupDashboards(EntityGroupId entityGroupId, int limit) {
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/dashboards/export?limit={limit}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<Dashboard>>() {
+                },
+                entityGroupId,
+                limit).getBody();
+    }
+
     public PageData<Device> getUserDevices(String deviceType, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("type", deviceType);
@@ -2431,6 +2504,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         device.setLabel(label);
         device.setCustomerId(customerId);
         return doCreateDevice(device, null);
+    }
+
+    public PageData<Device> getDevicesByEntityGroupId(EntityGroupId entityGroupId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityGroupId", entityGroupId.toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroup/{entityGroupId}/devices?" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Device>>() {
+                },
+                params).getBody();
     }
 
     public Optional<EntityGroupInfo> getEntityGroupById(EntityGroupId entityGroupId) {
@@ -2588,11 +2674,20 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public void makeEntityGroupPublic(EntityGroupId entityGroupId) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/makePublic", null, Object.class, entityGroupId.getId());
+        restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/makePublic", null, entityGroupId.getId());
     }
 
     public void makeEntityGroupPrivate(EntityGroupId entityGroupId) {
-        restTemplate.postForEntity(baseURL + "/api/entityGroup/{entityGroupId}/makePrivate", null, Object.class, entityGroupId);
+        restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/makePrivate", null, entityGroupId);
+    }
+
+    public void shareEntityGroupToChildOwnerUserGroup(EntityGroupId entityGroupId, EntityGroupId userGroupId, RoleId roleId) {
+        restTemplate.postForLocation(
+                baseURL + "/api/entityGroup/{entityGroupId}/{userGroupId}/{roleId}/share",
+                null,
+                entityGroupId,
+                userGroupId,
+                roleId);
     }
 
     public PageData<EntityView> getUserEntityViews(String entityViewType, PageLink pageLink) {
@@ -2621,7 +2716,29 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public Optional<GroupPermission> getGroupPermissionById(GroupPermissionId groupPermissionId) {
         try {
-            ResponseEntity<GroupPermission> groupPermission = restTemplate.getForEntity(baseURL + "/api/groupPermission/{groupPermissionId}", GroupPermission.class, groupPermissionId.getId());
+            ResponseEntity<GroupPermission> groupPermission =
+                    restTemplate.getForEntity(
+                            baseURL + "/api/groupPermission/{groupPermissionId}",
+                            GroupPermission.class,
+                            groupPermissionId.getId());
+            return Optional.ofNullable(groupPermission.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<GroupPermissionInfo> getGroupPermissionInfoById(GroupPermissionId groupPermissionId, boolean isUserGroup) {
+        try {
+            ResponseEntity<GroupPermissionInfo> groupPermission =
+                    restTemplate.getForEntity(
+                            baseURL + "/api/groupPermission/info/{groupPermissionId}?isUserGroup={isUserGroup}",
+                            GroupPermissionInfo.class,
+                            groupPermissionId,
+                            isUserGroup);
             return Optional.ofNullable(groupPermission.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -2648,6 +2765,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 new ParameterizedTypeReference<List<GroupPermissionInfo>>() {
                 },
                 userGroupId.getId()).getBody();
+    }
+
+    public List<GroupPermissionInfo> loadUserGroupPermissionInfos(List<GroupPermission> permissions) {
+        return restTemplate.exchange(
+                baseURL + "/api/userGroup/groupPermissions/info",
+                HttpMethod.POST,
+                new HttpEntity<>(permissions),
+                new ParameterizedTypeReference<List<GroupPermissionInfo>>() {
+                }).getBody();
     }
 
     public List<GroupPermissionInfo> getEntityGroupPermissions(EntityGroupId entityGroupId) {
@@ -2700,6 +2826,10 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<Integration>>() {
                 }, params).getBody();
+    }
+
+    public void checkIntegrationConnection(Integration integration) {
+        restTemplate.postForLocation(baseURL + "/api/integration/check", integration);
     }
 
     public void deleteIntegration(IntegrationId integrationId) {
@@ -3107,15 +3237,23 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public WhiteLabelingParams saveWhiteLabelParams(WhiteLabelingParams whiteLabelingParams) {
-        return restTemplate.postForEntity(baseURL + "/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class).getBody();
+        return restTemplate.postForEntity(baseURL + "/api/whiteLabel/whiteLabelParams",
+                whiteLabelingParams,
+                WhiteLabelingParams.class).getBody();
     }
 
     public LoginWhiteLabelingParams saveLoginWhiteLabelParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
-        return restTemplate.postForEntity(baseURL + "/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class).getBody();
+        return restTemplate.postForEntity(
+                baseURL + "/api/whiteLabel/loginWhiteLabelParams",
+                loginWhiteLabelingParams,
+                LoginWhiteLabelingParams.class).getBody();
     }
 
     public WhiteLabelingParams previewWhiteLabelParams(WhiteLabelingParams whiteLabelingParams) {
-        return restTemplate.postForEntity(baseURL + "/api/whiteLabel/previewWhiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class).getBody();
+        return restTemplate.postForEntity(
+                baseURL + "/api/whiteLabel/previewWhiteLabelParams",
+                whiteLabelingParams,
+                WhiteLabelingParams.class).getBody();
     }
 
     public Boolean isWhiteLabelingAllowed() {
@@ -3123,7 +3261,20 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Boolean isCustomerWhiteLabelingAllowed() {
-        return restTemplate.getForEntity(baseURL + "/api/whiteLabel/isCustomerWhiteLabelingAllowed", Boolean.class).getBody();
+        return restTemplate.getForEntity(
+                baseURL + "/api/whiteLabel/isCustomerWhiteLabelingAllowed",
+                Boolean.class).getBody();
     }
 
+    public String getLoginThemeCss(PaletteSettings paletteSettings, boolean darkForeground) {
+        return restTemplate.postForEntity(
+                baseURL + "/api/whiteLabel/appThemeCss?darkForeground={darkForeground}",
+                paletteSettings, String.class, darkForeground).getBody();
+    }
+
+    public String getAppThemeCss(PaletteSettings paletteSettings) {
+        return restTemplate.postForEntity(
+                baseURL + "/api/whiteLabel/appThemeCss",
+                paletteSettings, String.class).getBody();
+    }
 }
