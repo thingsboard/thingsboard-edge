@@ -88,9 +88,10 @@
                 <button [disabled]="isLoading$ | async" mat-raised-button color="accent" type="submit">
                   {{ 'signup.signup' | translate }}
                 </button>
-                <button [disabled]="isLoading$ | async" mat-button type="button" routerLink="/login">
-                  {{ 'signup.have-account' | translate }}
-                </button>
+                <div fxLayout="row" class="has-account-section">
+                  <span class="has-account-message" translate>signup.have-account</span>
+                  <a routerLink="/login">{{ 'signup.signin' | translate }}</a>
+                </div>
               </div>
             </div>
           </div>

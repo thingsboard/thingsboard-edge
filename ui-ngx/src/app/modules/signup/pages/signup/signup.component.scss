@@ -63,6 +63,23 @@
           outline: none;
         }
       }
+
+      .has-account-section {
+        padding: 10px 0;
+        span.has-account-message {
+          font-size: 14px;
+          opacity: .8;
+        }
+        a {
+          font-size: 14px;
+          color: white;
+          margin-left: 10px;
+          font-weight: 500;
+          &:hover {
+            border-bottom-color: white;
+          }
+        }
+      }
     }
   }
 }
