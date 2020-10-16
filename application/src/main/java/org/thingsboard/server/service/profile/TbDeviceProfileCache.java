@@ -44,4 +44,7 @@ public interface TbDeviceProfileCache extends RuleEngineDeviceProfileCache {
 
     void evict(DeviceId id);
 
+    DeviceProfile find(DeviceProfileId deviceProfileId);
+
+    DeviceProfile findOrCreateDeviceProfile(TenantId tenantId, String deviceType);
 }

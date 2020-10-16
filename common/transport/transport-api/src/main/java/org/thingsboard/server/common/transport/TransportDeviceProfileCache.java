@@ -36,7 +36,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 
 import java.util.Optional;
 
-public interface TransportProfileCache {
+public interface TransportDeviceProfileCache {
 
     DeviceProfile getOrCreate(DeviceProfileId id, ByteString profileBody);
 
