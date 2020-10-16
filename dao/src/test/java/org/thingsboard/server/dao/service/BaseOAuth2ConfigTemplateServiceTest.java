@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 public class BaseOAuth2ConfigTemplateServiceTest extends AbstractServiceTest {
@@ -131,6 +132,7 @@ public class BaseOAuth2ConfigTemplateServiceTest extends AbstractServiceTest {
                         .tenantNamePattern("tenant")
                         .defaultDashboardName("Test")
                         .alwaysFullScreen(true)
+                        .userGroupsNamePattern(Collections.singletonList("Tenant Administrators"))
                         .build()
                 )
                 .build());
