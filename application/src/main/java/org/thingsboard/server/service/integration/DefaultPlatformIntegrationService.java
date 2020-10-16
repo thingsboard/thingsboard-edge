@@ -112,6 +112,9 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.common.transport.limits.TransportRateLimit;
+import org.thingsboard.server.common.transport.limits.TransportRateLimitService;
+import org.thingsboard.server.common.transport.limits.TransportRateLimitType;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -234,14 +237,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DbCallbackExecutorService callbackExecutorService;
 
-    @Value("${transport.rate_limits.enabled}")
-    private boolean rateLimitEnabled;
-
-    @Value("${transport.rate_limits.tenant}")
-    private String perTenantLimitsConf;
-
-    @Value("${transport.rate_limits.tenant}")
-    private String perDevicesLimitsConf;
+    @Autowired
+    private TransportRateLimitService rateLimitService;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -837,12 +834,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", toId(sessionInfo), msg);
         }
-        if (!rateLimitEnabled) {
-            return true;
-        }
         TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
-        TbRateLimits rateLimits = perTenantLimits.computeIfAbsent(tenantId, id -> new TbRateLimits(perTenantLimitsConf));
-        if (!rateLimits.tryConsume()) {
+
+        TransportRateLimit tenantRateLimit = rateLimitService.getRateLimit(tenantId, TransportRateLimitType.TENANT_MAX_MSGS);
+        if (!tenantRateLimit.tryConsume()) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.TENANT));
             }
@@ -852,8 +847,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             return false;
         }
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-        rateLimits = perDeviceLimits.computeIfAbsent(deviceId, id -> new TbRateLimits(perDevicesLimitsConf));
-        if (!rateLimits.tryConsume()) {
+        TransportRateLimit deviceRateLimit = rateLimitService.getRateLimit(tenantId, deviceId, TransportRateLimitType.DEVICE_MAX_MSGS);
+        if (!deviceRateLimit.tryConsume()) {
             if (callback != null) {
                 callback.onError(new TbRateLimitsException(EntityType.DEVICE));
             }
