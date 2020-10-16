@@ -39,6 +39,7 @@ import { isEqual, isUndefinedOrNull } from '@core/utils';
 import { Customer } from '@shared/models/customer.model';
 import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
 import { PageLink } from '@shared/models/page/page-link';
+import { RoleId } from '@shared/models/id/role-id';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -473,6 +474,14 @@ export interface EntityGroupParams {
   nodeId?: string;
   internalId?: string;
   hierarchyCallbacks?: HierarchyCallbacks;
+}
+
+export interface ShareGroupRequest {
+  ownerId: EntityId;
+  isAllUserGroup: boolean;
+  userGroupId?: EntityGroupId;
+  readElseWrite: boolean;
+  roleIds?: RoleId[];
 }
 
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {

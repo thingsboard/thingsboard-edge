@@ -29,6 +29,7 @@
         "unassign": "Unassign",
         "share": "Share",
         "make-private": "Make private",
+        "make-public": "Make public",
         "apply": "Apply",
         "apply-changes": "Apply changes",
         "edit-mode": "Edit mode",
@@ -164,6 +165,8 @@
           "client-secret-required": "Client secret is required.",
           "custom-setting": "Custom settings",
           "customer-name-pattern": "Customer name pattern",
+          "parent-customer-name-pattern": "Parent customer name pattern",
+          "user-groups-name-pattern": "User groups name pattern",
           "default-dashboard-name": "Default dashboard name",
           "delete-domain-text": "Be careful, after the confirmation a domain and all provider data will be unavailable.",
           "delete-domain-title": "Are you sure you want to delete settings the domain '{{domainName}}'?",
@@ -1414,9 +1417,11 @@
         "make-public-entity-group-text": "After the confirmation the entity group and all its entities will be made public and accessible by others.",
         "make-private-entity-group-title": "Are you sure you want to make the entity group '{{entityGroupName}}' private?",
         "make-private-entity-group-text": "After the confirmation the entity group and all its entities will be made private and won't be accessible by others.",
+        "share": "Share entity group",
         "copyId": "Copy entity group Id",
         "idCopiedMessage": "Entity group Id has been copied to clipboard",
-        "entity-group-name": "Entity group name"
+        "entity-group-name": "Entity group name",
+        "all-users": "All users"
     },
     "entity-field": {
         "created-time": "Created time",
@@ -2576,6 +2581,7 @@
         "idCopiedMessage": "Role Id has been copied to clipboard",
         "permissions": "Permissions",
         "role-required": "Role required",
+        "roles-required": "Roles required",
         "display-type": {
             "GENERIC": "Generic",
             "GROUP": "Group"
@@ -2613,6 +2619,7 @@
         "permissions-required": "At least one permission entry should be specified.",
         "remove-permission": "Remove permission entry",
         "add-permission": "Add permission entry",
+        "other": "Other",
         "resource": {
             "resource": "Resource",
             "select-resource": "Select resource",

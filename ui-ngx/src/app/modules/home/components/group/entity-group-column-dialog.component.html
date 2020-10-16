@@ -116,18 +116,17 @@
   </div>
   <div mat-dialog-actions fxLayout="row">
     <span fxFlex></span>
+    <button mat-button color="primary"
+            type="button"
+            [disabled]="(isLoading$ | async)"
+            (click)="cancel()" cdkFocusInitial>
+      {{ (isReadOnly ? 'action.close' : 'action.cancel') | translate }}
+    </button>
     <button *ngIf="!isReadOnly" mat-button mat-raised-button color="primary"
             type="submit"
             [disabled]="(isLoading$ | async) || columnFormGroup.invalid
             || !columnFormGroup.dirty">
       {{ 'action.save' | translate }}
-    </button>
-    <button mat-button color="primary"
-            style="margin-right: 20px;"
-            type="button"
-            [disabled]="(isLoading$ | async)"
-            (click)="cancel()" cdkFocusInitial>
-      {{ (isReadOnly ? 'action.close' : 'action.cancel') | translate }}
     </button>
   </div>
 </form>

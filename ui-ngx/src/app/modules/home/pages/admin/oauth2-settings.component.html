@@ -318,14 +318,14 @@
                                             <mat-label translate>admin.oauth2.scope</mat-label>
                                             <mat-chip-list #scopeList>
                                               <mat-chip *ngFor="let scope of registration.get('scope').value; let k = index; trackBy: trackByParams"
-                                                removable (removed)="removeScope(k, registration)">
+                                                removable (removed)="removeChipValue(k, registration, 'scope')">
                                                 {{scope}}
                                                 <mat-icon matChipRemove>cancel</mat-icon>
                                               </mat-chip>
                                               <input [matChipInputFor]="scopeList"
                                                      [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                                                      matChipInputAddOnBlur
-                                                     (matChipInputTokenEnd)="addScope($event, registration)">
+                                                     (matChipInputTokenEnd)="addChipValue($event, registration, 'scope')">
                                             </mat-chip-list>
                                             <mat-error *ngIf="registration.get('scope').hasError('required')">
                                               {{ 'admin.oauth2.scope-required' | translate }}
@@ -420,8 +420,25 @@
                                                   {{ 'admin.oauth2.always-fullscreen' | translate}}
                                                 </mat-checkbox>
                                               </div>
+                                              <mat-form-field fxFlex class="mat-block">
+                                                <mat-label translate>admin.oauth2.parent-customer-name-pattern</mat-label>
+                                                <input matInput formControlName="parentCustomerNamePattern">
+                                              </mat-form-field>
+                                              <mat-form-field fxFlex class="mat-block">
+                                                <mat-label translate>admin.oauth2.user-groups-name-pattern</mat-label>
+                                                <mat-chip-list #userGroupsNamePatternList>
+                                                  <mat-chip *ngFor="let userGroupNamePattern of registration.get('mapperConfig.basic.userGroupsNamePattern').value; let k = index; trackBy: trackByParams"
+                                                            removable (removed)="removeChipValue(k, registration, 'mapperConfig.basic.userGroupsNamePattern')">
+                                                    {{userGroupNamePattern}}
+                                                    <mat-icon matChipRemove>cancel</mat-icon>
+                                                  </mat-chip>
+                                                  <input [matChipInputFor]="userGroupsNamePatternList"
+                                                         [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                                                         matChipInputAddOnBlur
+                                                         (matChipInputTokenEnd)="addChipValue($event, registration, 'mapperConfig.basic.userGroupsNamePattern')">
+                                                </mat-chip-list>
+                                              </mat-form-field>
                                             </section>
-
                                             <section formGroupName="custom"
                                                      *ngIf="registration.get('mapperConfig.type').value === mapperConfigType.CUSTOM">
                                               <mat-form-field class="mat-block">

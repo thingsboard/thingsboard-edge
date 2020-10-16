@@ -120,7 +120,7 @@ export interface MapperConfigBasic {
   defaultDashboardName?: string;
   alwaysFullScreen?: boolean;
   parentCustomerNamePattern?: string;
-  userGroupsNamePattern?: string;
+  userGroupsNamePattern?: string[];
 }
 
 export interface MapperConfigCustom {

@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="selectEntityGroupFormGroup" (ngSubmit)="selectEntityGroup()" style="width: 800px;">
+<form (ngSubmit)="share()" style="width: 500px;">
   <mat-toolbar color="primary">
-    <h2>{{ selectEntityGroupTitle | translate }}</h2>
+    <h2 translate>entity-group.share</h2>
     <span fxFlex></span>
-    <button mat-button mat-icon-button
+    <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
@@ -43,52 +43,23 @@
   <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
-  <div mat-dialog-content>
-    <fieldset [disabled]="isLoading$ | async">
-      <mat-radio-group formControlName="addToGroupType" color="primary">
-        <mat-radio-button [value]="0" color="primary">
-          <section fxLayout="column">
-            <span translate style="padding-bottom: 10px;">entity-group.select-existing</span>
-            <tb-entity-group-autocomplete
-              formControlName="targetEntityGroupId"
-              required
-              [ownerId]="ownerId"
-              [groupType]="targetGroupType"
-              [excludeGroupIds]="excludeGroupIds"
-              [excludeGroupAll]="true"
-              placeholderText="{{placeholderText}}"
-              notFoundText="{{notFoundText}}"
-              requiredText="{{requiredText}}">
-            </tb-entity-group-autocomplete>
-          </section>
-        </mat-radio-button>
-        <mat-radio-button *ngIf="createEnabled" [value]="1" color="primary">
-          <section fxLayout="column">
-            <span translate>entity-group.create-new</span>
-            <mat-form-field class="mat-block">
-              <mat-label translate>entity-group.new-entity-group-name</mat-label>
-              <input required matInput formControlName="newEntityGroupName">
-              <mat-error *ngIf="selectEntityGroupFormGroup.get('newEntityGroupName').hasError('required')">
-                {{ 'entity-group.name-required' | translate }}
-              </mat-error>
-            </mat-form-field>
-          </section>
-        </mat-radio-button>
-      </mat-radio-group>
-    </fieldset>
+  <div mat-dialog-content [formGroup]="shareEntityGroupFormGroup">
+    <tb-share-entity-group
+      formControlName="shareGroupRequest">
+    </tb-share-entity-group>
   </div>
-  <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
+  <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary"
             type="button"
+            cdkFocusInitial
             [disabled]="(isLoading$ | async)"
-            (click)="cancel()" cdkFocusInitial>
+            (click)="cancel()">
       {{ 'action.cancel' | translate }}
     </button>
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || selectEntityGroupFormGroup.invalid
-            || !selectEntityGroupFormGroup.dirty">
-      {{ confirmSelectTitle | translate }}
+            [disabled]="(isLoading$ | async) || shareEntityGroupFormGroup.invalid || !shareEntityGroupFormGroup.dirty">
+      {{ 'action.share' | translate }}
     </button>
   </div>
 </form>

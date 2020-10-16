@@ -70,6 +70,8 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Operation.READ_TELEMETRY
     );
 
+    public static final List<Operation> WRITE_GROUP_PERMISSIONS = Collections.singletonList(Operation.ALL);
+
     public static final Map<Resource, List<Operation>> READ_ONLY_USER_PERMISSIONS = new HashMap<>();
     static {
         READ_ONLY_USER_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);

@@ -147,7 +147,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
   }
 
   @Output()
-  registrationPermissionsChanged = new EventEmitter();
+  permissionsChanged = new EventEmitter();
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -317,12 +317,13 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
           const index = this.registrationPermissionsValue.indexOf(groupPermission.sourceGroupPermission);
           if (index > -1) {
             this.registrationPermissionsValue.splice(index, 1);
-            this.registrationPermissionsChanged.emit();
+            this.permissionsChanged.emit();
             this.reloadGroupPermissions();
           }
         } else {
           this.roleService.deleteGroupPermission(groupPermission.id.id).subscribe(
             () => {
+              this.permissionsChanged.emit();
               this.reloadGroupPermissions();
             }
           );
@@ -355,7 +356,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
                 this.registrationPermissionsValue.splice(index, 1);
               }
             });
-            this.registrationPermissionsChanged.emit();
+            this.permissionsChanged.emit();
             this.reloadGroupPermissions();
           } else {
             const tasks: Observable<any>[] = [];
@@ -364,6 +365,7 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
             });
             forkJoin(tasks).subscribe(
               () => {
+                this.permissionsChanged.emit();
                 this.reloadGroupPermissions();
               }
             );
@@ -420,8 +422,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
             } else {
               this.registrationPermissionsValue[index] = res as GroupPermission;
             }
-            this.registrationPermissionsChanged.emit();
           }
+          this.permissionsChanged.emit();
           this.reloadGroupPermissions();
         }
       }

@@ -62,6 +62,8 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { Customer } from '@shared/models/customer.model';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-device-wizard',
@@ -73,6 +75,10 @@ export class DeviceWizardDialogComponent extends
   DialogComponent<DeviceWizardDialogComponent, Device> implements OnDestroy, ErrorStateMatcher {
 
   @ViewChild('addDeviceWizardStepper', {static: true}) addDeviceWizardStepper: MatHorizontalStepper;
+
+  resource = Resource;
+
+  operation = Operation;
 
   selectedIndex = 0;
 
@@ -99,8 +105,6 @@ export class DeviceWizardDialogComponent extends
 
   credentialsFormGroup: FormGroup;
 
-//  customerFormGroup: FormGroup;
-
   labelPosition = 'end';
 
   entitiesTableConfig = this.data.entitiesTableConfig;
@@ -116,6 +120,7 @@ export class DeviceWizardDialogComponent extends
               public dialogRef: MatDialogRef<DeviceWizardDialogComponent, Device>,
               private deviceProfileService: DeviceProfileService,
               private deviceService: DeviceService,
+              private userPermissionService: UserPermissionsService,
               private breakpointObserver: BreakpointObserver,
               private fb: FormBuilder) {
     super(store, router, dialogRef);
@@ -190,11 +195,6 @@ export class DeviceWizardDialogComponent extends
       }
     }));
 
-   /* this.customerFormGroup = this.fb.group({
-        customerId: [null]
-      }
-    ); */
-
     this.labelPosition = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']) ? 'end' : 'bottom';
 
     this.subscriptions.push(this.breakpointObserver
@@ -251,8 +251,6 @@ export class DeviceWizardDialogComponent extends
         return 'device-profile.device-provisioning';
       case 4:
         return 'device.credentials';
-      // case 5:
-      //  return 'customer.customer';
     }
   }
 
@@ -328,13 +326,6 @@ export class DeviceWizardDialogComponent extends
     }
     const entityGroupId = !this.entityGroup.groupAll ? this.entityGroup.id.id : null;
     return this.deviceService.saveDevice(device, entityGroupId);
-/*    if (this.customerFormGroup.get('customerId').value) {
-      device.customerId = {
-        entityType: EntityType.CUSTOMER,
-        id: this.customerFormGroup.get('customerId').value
-      };
-    }
-    return this.data.entitiesTableConfig.saveEntity(device);*/
   }
 
   private saveCredentials(device: Device): Observable<Device> {

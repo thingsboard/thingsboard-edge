@@ -50,6 +50,10 @@ import {
   SelectEntityGroupDialogData,
   SelectEntityGroupDialogResult
 } from '@home/dialogs/select-entity-group-dialog.component';
+import {
+  ShareEntityGroupDialogComponent,
+  ShareEntityGroupDialogData
+} from '@home/dialogs/share-entity-group-dialog.component';
 
 @Injectable()
 export class HomeDialogsService {
@@ -77,10 +81,24 @@ export class HomeDialogsService {
   public importEntities(customerId: CustomerId, entityType: EntityType, entityGroupId: string): Observable<boolean> {
     switch (entityType) {
       case EntityType.DEVICE:
-        return this.openImportDialogCSV(customerId, entityType, entityGroupId,'device.import', 'device.device-file');
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'device.import', 'device.device-file');
       case EntityType.ASSET:
-        return this.openImportDialogCSV(customerId, entityType, entityGroupId,'asset.import', 'asset.asset-file');
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'asset.import', 'asset.asset-file');
     }
+  }
+
+  public shareEntityGroup($event: Event, entityGroup: EntityGroupInfo): Observable<boolean> {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<ShareEntityGroupDialogComponent, ShareEntityGroupDialogData,
+      boolean>(ShareEntityGroupDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entityGroupId: entityGroup.id
+      }
+    }).afterClosed();
   }
 
   public makeEntityGroupPublic($event: Event, entityGroup: EntityGroupInfo): Observable<boolean> {

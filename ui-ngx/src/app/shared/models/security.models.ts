@@ -147,6 +147,16 @@ export const groupResourceByGroupType = new Map<EntityType, Resource>(
   ]
 );
 
+export const sharableGroupTypes = new Set<EntityType>(
+  [
+    EntityType.CUSTOMER,
+    EntityType.ASSET,
+    EntityType.DEVICE,
+    EntityType.ENTITY_VIEW,
+    EntityType.DASHBOARD
+  ]
+);
+
 export const publicGroupTypes = new Set<EntityType>(
   [
     EntityType.ASSET,

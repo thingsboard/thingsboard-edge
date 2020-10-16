@@ -67,6 +67,7 @@
 <mat-tab *ngIf="entity && entity.type !== entityTypes.USER && !isEdit && (resource.GROUP_PERMISSION | hasGenericPermission: operation.READ)"
          label="{{ 'entity-group.permissions' | translate }}" #entityGroupPermissionsTab="matTab">
   <tb-group-permissions
+    (permissionsChanged)="onPermissionsChanged()"
     [entityGroup]="entity"
     [active]="entityGroupPermissionsTab.isActive"></tb-group-permissions>
 </mat-tab>

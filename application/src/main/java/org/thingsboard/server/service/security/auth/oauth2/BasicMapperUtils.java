@@ -71,8 +71,8 @@ public class BasicMapperUtils {
             String parentCustomerName = sub.replace(config.getBasic().getParentCustomerNamePattern());
             oauth2User.setParentCustomerName(parentCustomerName);
         }
-        if (!StringUtils.isEmpty(config.getBasic().getUserGroupsNamePattern())) {
-            String[] userGroupNamePatterns = config.getBasic().getUserGroupsNamePattern().split(",");
+        if (config.getBasic().getUserGroupsNamePattern() != null && !config.getBasic().getUserGroupsNamePattern().isEmpty()) {
+            List<String> userGroupNamePatterns = config.getBasic().getUserGroupsNamePattern();
             List<String> userGroups = new ArrayList<>();
             for (String userGroupNamePattern : userGroupNamePatterns) {
                 StrSubstitutor sub = new StrSubstitutor(attributes, START_PLACEHOLDER_PREFIX, END_PLACEHOLDER_PREFIX);

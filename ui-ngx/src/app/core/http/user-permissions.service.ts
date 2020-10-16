@@ -162,6 +162,14 @@ export class UserPermissionsService {
     return this.userOwnerId;
   }
 
+  public isDirectOwner(ownerId: EntityId): boolean {
+    if (this.userOwnerId && ownerId) {
+      return this.idsEqual(this.userOwnerId, ownerId);
+    } else {
+      return false;
+    }
+  }
+
   public hasResourcesGenericPermission(resource: Resource | Resource[], operation: Operation | Operation[]): boolean {
     if (isArray(resource)) {
       return this.hasGenericResourcesPermission(resource as Resource[], operation);

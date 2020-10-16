@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplat
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 @Data
@@ -142,7 +143,8 @@ public class OAuth2ClientRegistrationTemplateEntity extends BaseSqlEntity<OAuth2
                 this.defaultDashboardName = basicConfig.getDefaultDashboardName();
                 this.alwaysFullScreen = basicConfig.isAlwaysFullScreen();
                 this.parentCustomerNamePattern = basicConfig.getParentCustomerNamePattern();
-                this.userGroupsNamePattern = basicConfig.getUserGroupsNamePattern();
+                this.userGroupsNamePattern = basicConfig.getUserGroupsNamePattern() != null ?
+                        basicConfig.getUserGroupsNamePattern().stream().reduce((result, element) -> result + "," + element).orElse("") : "";
             }
         }
     }
@@ -168,7 +170,7 @@ public class OAuth2ClientRegistrationTemplateEntity extends BaseSqlEntity<OAuth2
                                 .defaultDashboardName(defaultDashboardName)
                                 .alwaysFullScreen(alwaysFullScreen)
                                 .parentCustomerNamePattern(parentCustomerNamePattern)
-                                .userGroupsNamePattern(userGroupsNamePattern)
+                                .userGroupsNamePattern(userGroupsNamePattern != null ? Arrays.asList(userGroupsNamePattern.split(",")) : Collections.emptyList())
                                 .build()
                         )
                         .build()

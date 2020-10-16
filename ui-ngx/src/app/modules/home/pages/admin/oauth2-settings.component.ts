@@ -163,7 +163,9 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
       tenantNamePattern: [tenantNamePattern, Validators.required],
       customerNamePattern: [mapperConfigBasic?.customerNamePattern ? mapperConfigBasic.customerNamePattern : null],
       defaultDashboardName: [mapperConfigBasic?.defaultDashboardName ? mapperConfigBasic.defaultDashboardName : null],
-      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false]
+      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false],
+      parentCustomerNamePattern: [mapperConfigBasic?.parentCustomerNamePattern ? mapperConfigBasic.parentCustomerNamePattern : null],
+      userGroupsNamePattern: this.fb.array(mapperConfigBasic?.userGroupsNamePattern ? mapperConfigBasic.userGroupsNamePattern : [])
     });
 
     if (MapperConfigType.GITHUB !== type) {
@@ -358,6 +360,11 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
       template.scope.forEach(() => {
         (clientRegistration.get('scope') as FormArray).push(this.fb.control(''));
       });
+      if (template.mapperConfig && template.mapperConfig.basic && isDefinedAndNotNull(template.mapperConfig.basic.userGroupsNamePattern)) {
+        template.mapperConfig.basic.userGroupsNamePattern.forEach(() => {
+          (clientRegistration.get('mapperConfig.basic.userGroupsNamePattern') as FormArray).push(this.fb.control(''));
+        });
+      }
       clientRegistration.get('accessTokenUri').disable();
       clientRegistration.get('authorizationUri').disable();
       clientRegistration.get('jwkSetUri').disable();
@@ -397,10 +404,10 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
     return this.oauth2SettingsForm;
   }
 
-  addScope(event: MatChipInputEvent, control: AbstractControl): void {
+  addChipValue(event: MatChipInputEvent, control: AbstractControl, fieldName: string): void {
     const input = event.input;
     const value = event.value;
-    const controller = control.get('scope') as FormArray;
+    const controller = control.get(fieldName) as FormArray;
     if ((value.trim() !== '')) {
       controller.push(this.fb.control(value.trim()));
       controller.markAsDirty();
@@ -411,8 +418,8 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
     }
   }
 
-  removeScope(i: number, control: AbstractControl): void {
-    const controller = control.get('scope') as FormArray;
+  removeChipValue(i: number, control: AbstractControl, fieldName: string): void {
+    const controller = control.get(fieldName) as FormArray;
     controller.removeAt(i);
     controller.markAsTouched();
     controller.markAsDirty();

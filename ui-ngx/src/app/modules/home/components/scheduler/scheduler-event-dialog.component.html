@@ -81,17 +81,16 @@
   </div>
   <div mat-dialog-actions fxLayout="row">
     <span fxFlex></span>
-    <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
-            type="submit"
-            [disabled]="(isLoading$ | async) || schedulerEventFormGroup.invalid || !schedulerEventFormGroup.dirty">
-      {{ (isAdd  ? 'action.create' : 'action.save') | translate }}
-    </button>
     <button mat-button color="primary"
-            style="margin-right: 20px;"
             type="button"
             [disabled]="(isLoading$ | async)"
             (click)="cancel()" cdkFocusInitial>
       {{ (readonly  ? 'action.close' : 'action.cancel') | translate }}
+    </button>
+    <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+            type="submit"
+            [disabled]="(isLoading$ | async) || schedulerEventFormGroup.invalid || !schedulerEventFormGroup.dirty">
+      {{ (isAdd  ? 'action.create' : 'action.save') | translate }}
     </button>
   </div>
 </form>

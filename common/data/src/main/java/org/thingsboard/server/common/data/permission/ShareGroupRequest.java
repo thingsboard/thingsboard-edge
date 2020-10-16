@@ -28,25 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.oauth2;
+package org.thingsboard.server.common.data.permission;
 
-import lombok.*;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 
 import java.util.List;
 
-@Builder(toBuilder = true)
-@EqualsAndHashCode
 @Data
-@ToString
-public class OAuth2BasicMapperConfig {
-    private final String emailAttributeKey;
-    private final String firstNameAttributeKey;
-    private final String lastNameAttributeKey;
-    private final TenantNameStrategyType tenantNameStrategy;
-    private final String tenantNamePattern;
-    private final String customerNamePattern;
-    private final String defaultDashboardName;
-    private final boolean alwaysFullScreen;
-    private final String parentCustomerNamePattern;
-    private final List<String> userGroupsNamePattern;
+public class ShareGroupRequest {
+
+    private final EntityId ownerId;
+    private final boolean isAllUserGroup;
+    private final EntityGroupId userGroupId;
+    private final boolean readElseWrite;
+    private final List<RoleId> roleIds;
+
 }

@@ -40,7 +40,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import {
   EntityGroup,
   EntityGroupInfo,
-  prepareEntityGroupConfiguration,
+  prepareEntityGroupConfiguration, ShareGroupRequest,
   ShortEntityView
 } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -86,6 +86,10 @@ export class EntityGroupService {
 
   public makeEntityGroupPrivate(entityGroupId: string, config?: RequestConfig): Observable<any> {
     return this.http.post(`/api/entityGroup/${entityGroupId}/makePrivate`, null, defaultHttpOptionsFromConfig(config));
+  }
+
+  public shareEntityGroup(entityGroupId: string, shareGroupRequest: ShareGroupRequest, config?: RequestConfig): Observable<any> {
+    return this.http.post(`/api/entityGroup/${entityGroupId}/share`, shareGroupRequest, defaultHttpOptionsFromConfig(config));
   }
 
   public getEntityGroups(groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {

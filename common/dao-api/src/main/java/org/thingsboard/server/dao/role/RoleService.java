@@ -85,6 +85,8 @@ public interface RoleService {
 
     Role findOrCreateReadOnlyEntityGroupRole(TenantId tenantId, CustomerId customerId);
 
+    Role findOrCreateWriteEntityGroupRole(TenantId tenantId, CustomerId customerId);
+
     PageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     PageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, PageLink pageLink);

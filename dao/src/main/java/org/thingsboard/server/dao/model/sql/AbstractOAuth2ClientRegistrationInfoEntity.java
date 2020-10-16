@@ -43,6 +43,7 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.*;
 import java.util.Arrays;
+import java.util.Collections;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -153,7 +154,8 @@ public abstract class AbstractOAuth2ClientRegistrationInfoEntity<T extends OAuth
                 this.defaultDashboardName = basicConfig.getDefaultDashboardName();
                 this.alwaysFullScreen = basicConfig.isAlwaysFullScreen();
                 this.parentCustomerNamePattern = basicConfig.getParentCustomerNamePattern();
-                this.userGroupsNamePattern = basicConfig.getUserGroupsNamePattern();
+                this.userGroupsNamePattern = basicConfig.getUserGroupsNamePattern() != null ?
+                        basicConfig.getUserGroupsNamePattern().stream().reduce((result, element) -> result + "," + element).orElse("") : "";
             }
             OAuth2CustomMapperConfig customConfig = mapperConfig.getCustom();
             if (customConfig != null) {
@@ -224,7 +226,7 @@ public abstract class AbstractOAuth2ClientRegistrationInfoEntity<T extends OAuth
                                                 .defaultDashboardName(defaultDashboardName)
                                                 .alwaysFullScreen(alwaysFullScreen)
                                                 .parentCustomerNamePattern(parentCustomerNamePattern)
-                                                .userGroupsNamePattern(userGroupsNamePattern)
+                                                .userGroupsNamePattern(userGroupsNamePattern != null ? Arrays.asList(userGroupsNamePattern.split(",")) : Collections.emptyList())
                                                 .build()
                                         : null
                         )

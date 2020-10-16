@@ -40,7 +40,7 @@
       {{entity.name}}
       <mat-icon matChipRemove *ngIf="!disabled">close</mat-icon>
     </mat-chip>
-    <input matInput type="text" placeholder="{{ !disabled ? ('entity.entity-list' | translate) : '' }}"
+    <input matInput type="text" placeholder="{{ !disabled ? (entityListText | translate) : '' }}"
            style="max-width: 200px;"
            #entityInput
            (focusin)="onFocus()"
@@ -59,11 +59,11 @@
     </mat-option>
     <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
       <span>
-          {{ translate.get('entity.no-entities-matching', {entity: searchText}) | async }}
+          {{ translate.get(noEntitiesText, {entity: searchText}) | async }}
       </span>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="entityListFormGroup.get('entities').hasError('required')">
-    {{ 'entity.entity-list-empty' | translate }}
+    {{ entitiesRequiredText | translate }}
   </mat-error>
 </mat-form-field>

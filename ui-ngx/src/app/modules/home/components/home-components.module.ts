@@ -148,6 +148,7 @@ import { AlarmScheduleInfoComponent } from './profile/alarm/alarm-schedule-info.
 import { AlarmScheduleDialogComponent } from '@home/components/profile/alarm/alarm-schedule-dialog.component';
 import { EditAlarmDetailsDialogComponent } from './profile/alarm/edit-alarm-details-dialog.component';
 import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
+import { EntityGroupWizardDialogComponent } from './wizard/entity-group-wizard-dialog.component';
 
 @NgModule({
   declarations:
@@ -259,7 +260,8 @@ import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alar
       DeviceWizardDialogComponent,
       DeviceCredentialsComponent,
       AlarmScheduleDialogComponent,
-      EditAlarmDetailsDialogComponent
+      EditAlarmDetailsDialogComponent,
+      EntityGroupWizardDialogComponent
     ],
   imports: [
     CommonModule,
@@ -363,7 +365,8 @@ import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alar
     AlarmScheduleDialogComponent,
     EditAlarmDetailsDialogComponent,
     DeviceProfileProvisionConfigurationComponent,
-    AlarmScheduleComponent
+    AlarmScheduleComponent,
+    EntityGroupWizardDialogComponent
   ],
   providers: [
     WidgetComponentService,

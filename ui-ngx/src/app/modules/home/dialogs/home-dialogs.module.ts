@@ -35,12 +35,14 @@ import { SharedModule } from '@app/shared/shared.module';
 import { HomeDialogsService } from './home-dialogs.service';
 import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.component';
 import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-group-dialog.component';
+import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-group-dialog.component';
 
 @NgModule({
   declarations:
   [
     SelectOwnerDialogComponent,
-    SelectEntityGroupDialogComponent
+    SelectEntityGroupDialogComponent,
+    ShareEntityGroupDialogComponent
   ],
   imports: [
     CommonModule,
@@ -48,7 +50,8 @@ import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-gr
   ],
   exports: [
     SelectOwnerDialogComponent,
-    SelectEntityGroupDialogComponent
+    SelectEntityGroupDialogComponent,
+    ShareEntityGroupDialogComponent
   ],
   providers: [
     HomeDialogsService

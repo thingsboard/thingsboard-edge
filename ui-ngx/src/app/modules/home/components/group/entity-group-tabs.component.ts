@@ -35,13 +35,15 @@ import { AppState } from '@core/core.state';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
 import { entityGroupActionSources, entityGroupActionTypes, EntityGroupInfo } from '@shared/models/entity-group.models';
 import { WidgetActionsData } from '@home/components/widget/action/manage-widget-actions.component.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 
 @Component({
   selector: 'tb-entity-group-tabs',
   templateUrl: './entity-group-tabs.component.html',
   styleUrls: []
 })
-export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInfo> {
+export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInfo, PageLink, EntityGroupInfo, EntityGroupsTableConfig> {
 
   actionsData: WidgetActionsData;
 
@@ -57,7 +59,11 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
 
   validateAndMark() {
     this.validate();
-    this.detailsForm.markAsDirty()
+    this.detailsForm.markAsDirty();
+  }
+
+  onPermissionsChanged() {
+    this.entitiesTableConfig.onGroupUpdated();
   }
 
   private validate() {
@@ -82,6 +88,6 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
     this.actionsData = {
       actionsMap: (entity && entity.configuration ? entity.configuration.actions : {}) || {},
       actionSources: entityGroupActionSources
-    }
+    };
   }
 }

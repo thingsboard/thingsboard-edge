@@ -44,6 +44,7 @@ import { BroadcastService } from '@core/services/broadcast.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupsTableConfig } from './entity-groups-table-config';
+import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTableConfig> {
@@ -57,6 +58,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
               private utils: UtilsService,
               private route: ActivatedRoute,
               private router: Router,
+              private dialog: MatDialog,
               private homeDialogs: HomeDialogsService) {
   }
 
@@ -77,6 +79,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
       this.utils,
       this.route,
       this.router,
+      this.dialog,
       this.homeDialogs,
       params
     );

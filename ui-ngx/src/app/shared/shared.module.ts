@@ -167,6 +167,7 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
 import { ContactComponent } from '@shared/components/contact.component';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
+import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
 
 @NgModule({
   providers: [
@@ -273,6 +274,7 @@ import { GroupPermissionDialogComponent } from '@shared/components/role/group-pe
     ContactComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
+    ShareEntityGroupComponent
   ],
   imports: [
     CommonModule,
@@ -454,6 +456,7 @@ import { GroupPermissionDialogComponent } from '@shared/components/role/group-pe
     ContactComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
+    ShareEntityGroupComponent
   ]
 })
 export class SharedModule { }
