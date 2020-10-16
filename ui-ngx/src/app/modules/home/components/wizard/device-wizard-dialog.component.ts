@@ -38,15 +38,18 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import {
   createDeviceProfileConfiguration,
-  createDeviceProfileTransportConfiguration, Device,
+  createDeviceProfileTransportConfiguration,
+  Device,
   DeviceProfile,
-  DeviceProfileType, DeviceProvisionConfiguration, DeviceProvisionType,
-  DeviceTransportType, deviceTransportTypeConfigurationInfoMap, deviceTransportTypeHintMap,
+  DeviceProfileType,
+  DeviceProvisionConfiguration,
+  DeviceProvisionType,
+  DeviceTransportType,
+  deviceTransportTypeConfigurationInfoMap,
+  deviceTransportTypeHintMap,
   deviceTransportTypeTranslationMap
 } from '@shared/models/device.models';
 import { MatHorizontalStepper } from '@angular/material/stepper';
-import { AddEntityDialogData } from '@home/models/entity/entity-component.models';
-import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityType } from '@shared/models/entity-type.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { EntityId } from '@shared/models/id/entity-id';
@@ -58,12 +61,10 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
-import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
-import { Customer } from '@shared/models/customer.model';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { RuleChainId } from '@shared/models/id/rule-chain-id';
 
 @Component({
   selector: 'tb-device-wizard',
@@ -132,6 +133,7 @@ export class DeviceWizardDialogComponent extends
         addProfileType: [0],
         deviceProfileId: [null, Validators.required],
         newDeviceProfileTitle: [{value: null, disabled: true}],
+        defaultRuleChainId: [{value: null, disabled: true}],
         description: ['']
       }
     );
@@ -143,6 +145,7 @@ export class DeviceWizardDialogComponent extends
           this.deviceWizardFormGroup.get('deviceProfileId').enable();
           this.deviceWizardFormGroup.get('newDeviceProfileTitle').setValidators(null);
           this.deviceWizardFormGroup.get('newDeviceProfileTitle').disable();
+          this.deviceWizardFormGroup.get('defaultRuleChainId').disable();
           this.deviceWizardFormGroup.updateValueAndValidity();
           this.createProfile = false;
           this.createTransportConfiguration = false;
@@ -151,6 +154,7 @@ export class DeviceWizardDialogComponent extends
           this.deviceWizardFormGroup.get('deviceProfileId').disable();
           this.deviceWizardFormGroup.get('newDeviceProfileTitle').setValidators([Validators.required]);
           this.deviceWizardFormGroup.get('newDeviceProfileTitle').enable();
+          this.deviceWizardFormGroup.get('defaultRuleChainId').enable();
           this.deviceWizardFormGroup.updateValueAndValidity();
           this.createProfile = true;
           this.createTransportConfiguration = this.deviceWizardFormGroup.get('transportType').value &&
@@ -296,6 +300,9 @@ export class DeviceWizardDialogComponent extends
           provisionConfiguration: deviceProvisionConfiguration
         }
       };
+      if (this.deviceWizardFormGroup.get('defaultRuleChainId').value) {
+        deviceProfile.defaultRuleChainId = new RuleChainId(this.deviceWizardFormGroup.get('defaultRuleChainId').value);
+      }
       return this.deviceProfileService.saveDeviceProfile(deviceProfile).pipe(
         map(profile => profile.id),
         tap((profileId) => {

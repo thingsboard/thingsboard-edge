@@ -106,6 +106,12 @@
                   </mat-error>
                 </mat-form-field>
               </div>
+              <div *ngIf="resource.DEVICE_PROFILE | hasGenericPermission:operation.CREATE" fxLayout="column" fxLayoutAlign="flex-end start">
+                <tb-rule-chain-autocomplete
+                  labelText="device-profile.default-rule-chain"
+                  formControlName="defaultRuleChainId">
+                </tb-rule-chain-autocomplete>
+              </div>
             </div>
             <mat-checkbox formControlName="gateway" style="padding-bottom: 16px;">
               {{ 'device.is-gateway' | translate }}
