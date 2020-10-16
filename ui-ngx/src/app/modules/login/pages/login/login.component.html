@@ -77,7 +77,7 @@
                 <button class="tb-reset-password" mat-button type="button" routerLink="/login/resetPasswordRequest">{{ 'login.forgot-password' | translate }}
                 </button>
               </div>
-              <div fxLayout="column" class="tb-action-button">
+              <div fxLayout="column" class="tb-action-button" fxLayoutGap="16px">
                 <button mat-raised-button color="accent" [disabled]="(isLoading$ | async)"
                         type="submit">{{ 'login.login' | translate }}</button>
                 <div *ngIf="selfRegistrationService.signUpParams?.activate" fxLayout="row" class="no-account-section">
