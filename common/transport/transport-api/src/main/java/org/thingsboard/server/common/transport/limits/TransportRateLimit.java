@@ -36,4 +36,6 @@ public interface TransportRateLimit {
 
     boolean tryConsume();
 
+    boolean tryConsume(long number);
+
 }

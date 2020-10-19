@@ -46,4 +46,8 @@ public class SimpleTransportRateLimit implements TransportRateLimit {
         return rateLimit.tryConsume();
     }
 
+    @Override
+    public boolean tryConsume(long number) {
+        return number <= 0 || rateLimit.tryConsume(number);
+    }
 }
