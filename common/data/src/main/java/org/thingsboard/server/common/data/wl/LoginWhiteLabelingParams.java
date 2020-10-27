@@ -41,6 +41,8 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
     private String pageBackgroundColor;
     private boolean darkForeground;
     private String domainName;
+    private String baseUrl;
+    private boolean prohibitDifferentUrl;
     private String adminSettingsId;
     private Boolean showNameBottom;
 

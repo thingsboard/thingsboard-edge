@@ -34,7 +34,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.utils.MiscUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,13 +49,15 @@ import java.nio.charset.StandardCharsets;
 
 @Component(value = "oauth2AuthenticationFailureHandler")
 @ConditionalOnProperty(prefix = "security.oauth2", value = "enabled", havingValue = "true")
-public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler  {
+public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    private SystemSecurityService systemSecurityService;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
-        String baseUrl = MiscUtils.constructBaseUrl(request);
+        String baseUrl = systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
         getRedirectStrategy().sendRedirect(request, response, baseUrl + "/login?loginError=" +
                 URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8.toString()));
     }
