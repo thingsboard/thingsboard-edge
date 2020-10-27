@@ -48,10 +48,9 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationFormCompone
   }
 
   ngOnInit(): void {
-    this.form.get('credentials.username').valueChanges.subscribe(() => {
-      const username = this.form.get('credentials.username').value;
+    this.form.get('credentials.username').valueChanges.subscribe((username) => {
       const host = username.split('-')[1] + '.messaging.internetofthings.ibmcloud.com';
-      this.form.get('host').patchValue(host);
+      this.form.get('host').patchValue(host, {emitEvent: false});
     });
   }
 
