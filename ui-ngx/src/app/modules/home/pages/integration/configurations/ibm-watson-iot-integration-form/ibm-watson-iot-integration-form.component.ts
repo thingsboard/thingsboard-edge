@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
@@ -38,13 +38,21 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
   templateUrl: './ibm-watson-iot-integration-form.component.html',
   styleUrls: ['./ibm-watson-iot-integration-form.component.scss']
 })
-export class IbmWatsonIotIntegrationFormComponent extends IntegrationFormComponent {
+export class IbmWatsonIotIntegrationFormComponent extends IntegrationFormComponent implements OnInit{
 
   @Input() topicFilters: FormGroup;
   @Input() downlinkTopicPattern: FormControl;
 
   constructor() {
     super();
+  }
+
+  ngOnInit(): void {
+    this.form.get('credentials.username').valueChanges.subscribe(() => {
+      const username = this.form.get('credentials.username').value;
+      const host = username.split('-')[1] + '.messaging.internetofthings.ibmcloud.com';
+      this.form.get('host').patchValue(host);
+    });
   }
 
 }

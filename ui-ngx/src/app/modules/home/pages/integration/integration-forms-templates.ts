@@ -352,7 +352,7 @@ export const templates = {
     downlinkTopicPattern: 'iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}',
     fieldValidators: {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
-      'clientConfiguration.credentials.username': [Validators.required],
+      'clientConfiguration.credentials.username': [Validators.required, Validators.pattern(/^a-\w+-\w+$/)],
       'clientConfiguration.credentials.password': [Validators.required],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
