@@ -57,13 +57,16 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.utils.MiscUtils;
 
@@ -93,6 +96,9 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     @Resource
     private SystemSecurityService self;
@@ -215,18 +221,43 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     }
 
     @Override
-    public String getBaseUrl(TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest) {
+    public String getBaseUrl(Authority authority, TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest) {
         String baseUrl;
-        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+        LoginWhiteLabelingParams loginWhiteLabelingParams = null;
+        if (Authority.CUSTOMER_USER.equals(authority)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getCustomerLoginWhiteLabelingParams(tenantId, customerId);
+            } catch (Exception e) {
+                log.warn("Failed to fetch CustomerLoginWhiteLabelingParams.");
+            }
+        }
 
-        JsonNode prohibitDifferentUrl = generalSettings.getJsonValue().get("prohibitDifferentUrl");
+        if ((!isBaseUrlSet(loginWhiteLabelingParams) && Authority.CUSTOMER_USER.equals(authority)) || Authority.TENANT_ADMIN.equals(authority)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getTenantLoginWhiteLabelingParams(tenantId);
+            } catch (Exception e) {
+                log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
+            }
+        }
 
-        if (prohibitDifferentUrl != null && prohibitDifferentUrl.asBoolean()) {
-            baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+        if (!isBaseUrlSet(loginWhiteLabelingParams)) {
+            try {
+                loginWhiteLabelingParams = whiteLabelingService.getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
+            } catch (Exception e) {
+                log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
+            }
+        }
+
+        if (isBaseUrlSet(loginWhiteLabelingParams) && loginWhiteLabelingParams.isProhibitDifferentUrl()) {
+            baseUrl = loginWhiteLabelingParams.getBaseUrl();
         } else {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
         return baseUrl;
+    }
+
+    private boolean isBaseUrlSet(LoginWhiteLabelingParams loginWhiteLabelingParams) {
+        return loginWhiteLabelingParams != null && StringUtils.isNoneEmpty(loginWhiteLabelingParams.getBaseUrl());
     }
 
     private static boolean isPositiveInteger(Integer val) {

@@ -54,6 +54,23 @@
                             </div>
                         </div>
                     </md-input-container>
+                    <div ng-if="vm.isLoginWl">
+                        <md-input-container class="md-block">
+                            <label translate>white-labeling.base-url</label>
+                            <input required name="baseUrl" ng-model="vm.whiteLabelingParams.baseUrl">
+                            <div ng-messages="vm.whiteLabelForm.baseUrl.$error">
+                                <div translate ng-message="required">white-labeling.base-url-required</div>
+                            </div>
+                        </md-input-container>
+                        <md-checkbox class="md-block"
+                                     aria-label="{{ 'white-labeling.prohibit-different-url' | translate }}"
+                                     ng-model="vm.whiteLabelingParams.prohibitDifferentUrl">
+                            {{ 'white-labeling.prohibit-different-url' | translate }}
+                        </md-checkbox>
+                        <div translate class="tb-hint">
+                            white-labeling.prohibit-different-url-hint
+                        </div>
+                    </div>
                     <md-input-container flex class="md-block">
                         <label translate>white-labeling.app-title</label>
                         <input ng-model="vm.whiteLabelingParams.appTitle">

@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.oauth2.OAuth2Client;
 import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
@@ -80,7 +81,7 @@ public class Oauth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-        String baseUrl = systemSecurityService.getBaseUrl(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
+        String baseUrl = systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
         try {
             OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
 

@@ -218,7 +218,7 @@ public class UserController extends BaseController {
             if (sendEmail) {
                 SecurityUser authUser = getCurrentUser();
                 UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
-                String baseUrl = systemSecurityService.getBaseUrl(getTenantId(), getCurrentUser().getCustomerId(), request);
+                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 String email = savedUser.getEmail();
@@ -260,7 +260,7 @@ public class UserController extends BaseController {
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
             if (!userCredentials.isEnabled()) {
-                String baseUrl = systemSecurityService.getBaseUrl(getTenantId(), getCurrentUser().getCustomerId(), request);
+                String baseUrl = systemSecurityService.getBaseUrl(getCurrentUser().getAuthority(), getTenantId(), getCurrentUser().getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 mailService.sendActivationEmail(getTenantId(), activateUrl, email);
@@ -285,7 +285,7 @@ public class UserController extends BaseController {
             SecurityUser authUser = getCurrentUser();
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), user.getId());
             if (!userCredentials.isEnabled()) {
-                String baseUrl = systemSecurityService.getBaseUrl(getTenantId(), getCurrentUser().getCustomerId(), request);
+                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 return activateUrl;

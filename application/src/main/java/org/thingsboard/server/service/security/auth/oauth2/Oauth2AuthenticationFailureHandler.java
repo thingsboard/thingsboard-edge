@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.ServletException;
@@ -56,7 +57,7 @@ public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
-        String baseUrl = systemSecurityService.getBaseUrl(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
+        String baseUrl = systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
         getRedirectStrategy().sendRedirect(request, response, baseUrl + "/login?loginError=" +
                 URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8.toString()));
     }
