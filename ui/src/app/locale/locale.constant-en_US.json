@@ -1746,6 +1746,7 @@
         "application-credentials": "Application Credentials",
         "api-key": "API Key",
         "api-key-required": "API Key is required.",
+        "api-key-format": "Invalid API Key format.",
         "auth-token": "Authentication Token",
         "auth-token-required": "Authentication Token is required.",
         "region": "Region",

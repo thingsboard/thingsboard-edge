@@ -45,9 +45,11 @@
         <div class="tb-panel-title" style="padding-bottom: 15px;">{{ 'integration.application-credentials' | translate }}</div>
         <md-input-container class="md-block">
             <label translate>integration.api-key</label>
-            <input required name="apiKey" ng-model="configuration.clientConfiguration.credentials.username">
+            <input required name="apiKey" ng-model="configuration.clientConfiguration.credentials.username"
+                   ng-pattern="/^a-\w+-\w+$/" ng-change="onApiKeyChange()">
             <div ng-messages="ibmWatsonIotIntegrationForm.apiKey.$error">
                 <div translate ng-message="required">integration.api-key-required</div>
+                <div translate ng-message="pattern">integration.api-key-format</div>
             </div>
         </md-input-container>
         <md-input-container class="md-block">

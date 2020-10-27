@@ -42,6 +42,7 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
         element.html(template);
 
         scope.types = types;
+        scope.onApiKeyChange = onApiKeyChange;
 
         scope.$watch('configuration', function (newConfiguration, oldConfiguration) {
             if (!angular.equals(newConfiguration, oldConfiguration)) {
@@ -77,6 +78,11 @@ export default function IntegrationIbmWatsonIotDirective($compile, $templateCach
             if (!scope.configuration.downlinkTopicPattern) {
                 scope.configuration.downlinkTopicPattern = "iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}";
             }
+        }
+
+        function onApiKeyChange() {
+            scope.configuration.clientConfiguration.host =
+                scope.configuration.clientConfiguration.credentials.username.split('-')[1] + '.messaging.internetofthings.ibmcloud.com';
         }
 
         $compile(element.contents())(scope);
