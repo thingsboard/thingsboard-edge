@@ -142,6 +142,16 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
       platformName: [null, []],
       platformVersion: [null, []]
     });
+
+    if (this.isLoginWl) {
+      this.wlSettings.addControl('baseUrl',
+        this.fb.control('', [Validators.required])
+      );
+      this.wlSettings.addControl('prohibitDifferentUrl',
+        this.fb.control('', [])
+      );
+    }
+
     if (this.isLoginWl && !this.isSysAdmin) {
       this.wlSettings.addControl('domainName',
         this.fb.control('', [Validators.required, Validators.pattern('((?![:/]).)*$')])
