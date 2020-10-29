@@ -189,12 +189,18 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
   }
 
+  get isRemoteIntegration(): boolean {
+    return this.entityForm ? this.entityForm.value.remote : false;
+  }
+
   updateForm(entity: Integration) {
     this.entityForm.patchValue({ name: entity.name });
     this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
     this.entityForm.patchValue({ enabled: isDefined(entity.enabled) ? entity.enabled : true });
     this.entityForm.patchValue({ debugMode: entity.debugMode });
-    this.entityForm.patchValue({ allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true});
+    this.entityForm.patchValue(
+      {allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true}
+    );
     this.entityForm.patchValue({ defaultConverterId: entity.defaultConverterId });
     this.entityForm.patchValue({ downlinkConverterId: entity.downlinkConverterId });
     this.entityForm.patchValue({ remote: entity.remote });
@@ -223,7 +229,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
     return this.fb.group(
       template
-    )
+    );
   }
 
   prepareFormValue(formValue: any): any {
@@ -232,7 +238,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
     formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
-    formValue.name = formValue.name.trim();
+    formValue.name = formValue.name ? formValue.name.trim() : formValue.name;
     delete formValue.metadata;
     return formValue;
   }

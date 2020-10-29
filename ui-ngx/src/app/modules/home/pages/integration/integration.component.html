@@ -121,7 +121,7 @@
           [topicFilters]="integrationForm.get('topicFilters')"
           [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
-        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -155,7 +155,7 @@
                                  [topicFilters]="integrationForm.get('topicFilters')"
                                  [integrationType]="integrationType">
         </tb-ttn-integration-form>
-        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
