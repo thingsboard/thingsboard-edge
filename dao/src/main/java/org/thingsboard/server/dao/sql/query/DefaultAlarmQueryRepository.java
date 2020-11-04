@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataPageLink;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
@@ -55,6 +56,8 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.dao.model.ModelConstants;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -233,7 +236,6 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
                 Set<AlarmStatus> statusSet = toStatusSet(pageLink.getStatusList());
                 if (!statusSet.isEmpty()) {
                     addAndIfNeeded(wherePart, addAnd);
-                    addAnd = true;
                     ctx.addStringListParameter("alarmStatuses", statusSet.stream().map(AlarmStatus::name).collect(Collectors.toList()));
                     wherePart.append(" a.status in (:alarmStatuses)");
                 }
@@ -293,7 +295,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
 
     private String buildPermissionsQuery(TenantId tenantId, CustomerId customerId, QueryContext ctx, MergedUserPermissions mergedUserPermissions) {
         StringBuilder permissionsQuery = new StringBuilder();
-        ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
+            ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
         permissionsQuery.append(" a.tenant_id = :permissions_tenant_id ");
         if (customerId != null && !customerId.isNullUid()) {
             ctx.addUuidParameter("permissions_customer_id", customerId.getId());
@@ -313,30 +315,85 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
             permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal())
                     .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and (cc.id in ")
                     .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.CUSTOMER, "cc",ctx, mergedUserPermissions, permissionsQuery);
+            addGroupPermissionsIfAny(EntityType.CUSTOMER, "cc", ctx, mergedUserPermissions, permissionsQuery);
             permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal())
                     .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and (cu.customer_id in ")
                     .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.USER,"cu", ctx, mergedUserPermissions, permissionsQuery);
+            addGroupPermissionsIfAny(EntityType.USER, "cu", ctx, mergedUserPermissions, permissionsQuery);
             permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal())
                     .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and (cv.customer_id in")
                     .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
-            addGroupPermissionsIfAny(EntityType.ENTITY_VIEW,"cv", ctx, mergedUserPermissions, permissionsQuery);
+            addGroupPermissionsIfAny(EntityType.ENTITY_VIEW, "cv", ctx, mergedUserPermissions, permissionsQuery);
             permissionsQuery.append(")))");
+            permissionsQuery.append(")");
+        } else if (!mergedUserPermissions.hasGenericPermission(Resource.ALL, Operation.READ)) {
+            permissionsQuery.append(" and (");
+            boolean atLeastOne = false;
+            if (addTenantPermissionsCheck(EntityType.DEVICE, ModelConstants.DEVICE_FAMILY_NAME, "td", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+                atLeastOne = true;
+            }
+            if (addTenantPermissionsCheck(EntityType.ASSET, ModelConstants.ASSET_COLUMN_FAMILY_NAME, "ta", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+                atLeastOne = true;
+            }
+            if (addTenantPermissionsCheck(EntityType.CUSTOMER, ModelConstants.CUSTOMER_COLUMN_FAMILY_NAME, "tc", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+                atLeastOne = true;
+            }
+            if (addTenantPermissionsCheck(EntityType.USER, ModelConstants.USER_PG_HIBERNATE_COLUMN_FAMILY_NAME, "tu", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+                atLeastOne = true;
+            }
+            if (addTenantPermissionsCheck(EntityType.ENTITY_VIEW, ModelConstants.ENTITY_VIEW_TABLE_FAMILY_NAME, "tev", ctx, mergedUserPermissions, permissionsQuery, atLeastOne)) {
+                atLeastOne = true;
+            }
+            if (!atLeastOne) {
+                permissionsQuery.append(" false");
+            }
             permissionsQuery.append(")");
         }
         return permissionsQuery.toString();
+    }
+
+    private boolean addTenantPermissionsCheck(EntityType entityType, String tableName, String alias, QueryContext ctx,
+                                              MergedUserPermissions mergedUserPermissions, StringBuilder permissionsQuery,
+                                              boolean addOr) {
+        if (mergedUserPermissions.hasGenericPermission(Resource.resourceFromEntityType(entityType), Operation.READ)) {
+            if (addOr) {
+                permissionsQuery.append(" or ");
+            }
+            permissionsQuery.append(" a.originator_type = '").append(entityType.ordinal()).append("'");
+            return true;
+        } else {
+            return addTenantGroupPermissionsCheck(entityType, tableName, alias, ctx, mergedUserPermissions, permissionsQuery, addOr);
+        }
+    }
+
+    private boolean addTenantGroupPermissionsCheck(EntityType entityType, String tableName, String alias, QueryContext ctx, MergedUserPermissions mergedUserPermissions, StringBuilder permissionsQuery, boolean addOr) {
+        MergedGroupTypePermissionInfo entityGroupPermissions = mergedUserPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, Operation.READ);
+        if (entityGroupPermissions.getEntityGroupIds() != null && !entityGroupPermissions.getEntityGroupIds().isEmpty()) {
+            if (addOr) {
+                permissionsQuery.append(" or ");
+            }
+            permissionsQuery.append("exists (select 1 from ").append(tableName).append(" ").append(alias).append(" where ").append(alias).append(".id = a.originator_id and ");
+            String queryParamName = entityType.name().toLowerCase() + "GroupPermissions";
+            permissionsQuery.append(alias).append(".id in (select to_id from relation where from_type = 'ENTITY_GROUP' ")
+                    .append("and to_type = '").append(entityType.name()).append("' and relation_type_group = 'FROM_ENTITY_GROUP' and from_id in (:").append(queryParamName).append("))");
+            ctx.addUuidListParameter(queryParamName, entityGroupPermissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
+            permissionsQuery.append(")");
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void addGroupPermissionsIfAny(EntityType entityType, String alias, QueryContext ctx, MergedUserPermissions mergedUserPermissions, StringBuilder permissionsQuery) {
         MergedGroupTypePermissionInfo entityGroupPermissions = mergedUserPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, Operation.READ);
         if (entityGroupPermissions.getEntityGroupIds() != null && !entityGroupPermissions.getEntityGroupIds().isEmpty()) {
             String queryParamName = entityType.name().toLowerCase() + "GroupPermissions";
-            permissionsQuery.append(" OR ").append(alias).append(".id in (select to_id from relation where from_type = 'ENTITY_GROUP' ")
+            permissionsQuery.append(" OR ");
+            permissionsQuery.append(alias).append(".id in (select to_id from relation where from_type = 'ENTITY_GROUP' ")
                     .append("and to_type = '").append(entityType.name()).append("' and relation_type_group = 'FROM_ENTITY_GROUP' and from_id in (:").append(queryParamName).append("))");
             ctx.addUuidListParameter(queryParamName, entityGroupPermissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
         }
