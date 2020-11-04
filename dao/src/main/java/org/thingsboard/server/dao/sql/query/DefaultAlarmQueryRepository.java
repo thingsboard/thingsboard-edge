@@ -32,22 +32,21 @@ package org.thingsboard.server.dao.sql.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataPageLink;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
@@ -56,8 +55,6 @@ import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -155,7 +152,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
             if (pageLink.isSearchPropagatedAlarms()) {
                 selectPart.append(" CASE WHEN r.from_id IS NULL THEN a.originator_id ELSE r.from_id END as entity_id ");
                 fromPart.append(JOIN_RELATIONS);
-                wherePart.append(buildPermissionsQuery(tenantId, customerId, ctx));
+                wherePart.append(buildPermissionsQuery(tenantId, customerId, ctx, mergedUserPermissions));
                 addAnd = true;
             } else {
                 selectPart.append(" a.originator_id as entity_id ");
@@ -294,7 +291,7 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
         }
     }
 
-    private String buildPermissionsQuery(TenantId tenantId, CustomerId customerId, QueryContext ctx) {
+    private String buildPermissionsQuery(TenantId tenantId, CustomerId customerId, QueryContext ctx, MergedUserPermissions mergedUserPermissions) {
         StringBuilder permissionsQuery = new StringBuilder();
         ctx.addUuidParameter("permissions_tenant_id", tenantId.getId());
         permissionsQuery.append(" a.tenant_id = :permissions_tenant_id ");
@@ -302,27 +299,47 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
             ctx.addUuidParameter("permissions_customer_id", customerId.getId());
             permissionsQuery.append(" and (");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.DEVICE.ordinal())
-                    .append("' and exists (select 1 from device cd where cd.id = a.originator_id and cd.customer_id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
+                    .append("' and exists (select 1 from device cd where cd.id = a.originator_id and ")
+                    .append("(cd.customer_id in ").append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+            addGroupPermissionsIfAny(EntityType.DEVICE, "cd", ctx, mergedUserPermissions, permissionsQuery);
+            permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.ASSET.ordinal())
-                    .append("' and exists (select 1 from asset ca where ca.id = a.originator_id and ca.customer_id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
+                    .append("' and exists (select 1 from asset ca where ca.id = a.originator_id and (ca.customer_id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+            addGroupPermissionsIfAny(EntityType.ASSET, "ca", ctx, mergedUserPermissions, permissionsQuery);
+            permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.CUSTOMER.ordinal())
-                    .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and cc.id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
+                    .append("' and exists (select 1 from customer cc where cc.id = a.originator_id and (cc.id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+            addGroupPermissionsIfAny(EntityType.CUSTOMER, "cc",ctx, mergedUserPermissions, permissionsQuery);
+            permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.USER.ordinal())
-                    .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and cu.customer_id in ")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
+                    .append("' and exists (select 1 from tb_user cu where cu.id = a.originator_id and (cu.customer_id in ")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+            addGroupPermissionsIfAny(EntityType.USER,"cu", ctx, mergedUserPermissions, permissionsQuery);
+            permissionsQuery.append(")))");
             permissionsQuery.append(" or ");
             permissionsQuery.append("(a.originator_type = '").append(EntityType.ENTITY_VIEW.ordinal())
-                    .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and cv.customer_id in")
-                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY).append("))");
+                    .append("' and exists (select 1 from entity_view cv where cv.id = a.originator_id and (cv.customer_id in")
+                    .append(DefaultEntityQueryRepository.HIERARCHICAL_SUB_CUSTOMERS_QUERY);
+            addGroupPermissionsIfAny(EntityType.ENTITY_VIEW,"cv", ctx, mergedUserPermissions, permissionsQuery);
+            permissionsQuery.append(")))");
             permissionsQuery.append(")");
         }
         return permissionsQuery.toString();
+    }
+
+    private void addGroupPermissionsIfAny(EntityType entityType, String alias, QueryContext ctx, MergedUserPermissions mergedUserPermissions, StringBuilder permissionsQuery) {
+        MergedGroupTypePermissionInfo entityGroupPermissions = mergedUserPermissions.getGroupPermissionsByEntityTypeAndOperation(entityType, Operation.READ);
+        if (entityGroupPermissions.getEntityGroupIds() != null && !entityGroupPermissions.getEntityGroupIds().isEmpty()) {
+            String queryParamName = entityType.name().toLowerCase() + "GroupPermissions";
+            permissionsQuery.append(" OR ").append(alias).append(".id in (select to_id from relation where from_type = 'ENTITY_GROUP' ")
+                    .append("and to_type = '").append(entityType.name()).append("' and relation_type_group = 'FROM_ENTITY_GROUP' and from_id in (:").append(queryParamName).append("))");
+            ctx.addUuidListParameter(queryParamName, entityGroupPermissions.getEntityGroupIds().stream().map(EntityGroupId::getId).collect(Collectors.toList()));
+        }
     }
 
     private Set<AlarmStatus> toStatusSet(List<AlarmSearchStatus> statusList) {
