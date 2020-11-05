@@ -28,29 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.rabbitmq;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false), RABBITMQ(false, false),
-    AZURE_IOT_HUB(true), APACHE_PULSAR(false);
+import java.util.List;
+import java.util.Map;
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class RabbitMQConsumerConfiguration {
 
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+    private String exchangeName;
+    private String host;
+    private int port;
+    private String virtualHost;
+    private String username;
+    private String password;
+    private String downlinkTopic;
+    private String queues;
+    private String topics;
+    private int connectionTimeout;
+    private int handshakeTimeout;
+    private long pollPeriod;
 }
