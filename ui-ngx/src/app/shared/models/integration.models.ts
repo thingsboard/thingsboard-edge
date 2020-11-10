@@ -39,6 +39,7 @@ export enum IntegrationType {
   OCEANCONNECT = 'OCEANCONNECT',
   SIGFOX = 'SIGFOX',
   THINGPARK = 'THINGPARK',
+  LORIOT = 'LORIOT',
   TPE = 'TPE',
   TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
   MQTT = 'MQTT',
@@ -90,6 +91,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
     [
       IntegrationType.TMOBILE_IOT_CDP,
       { name: 'integration.type-tmobile-iot-cdp', http: true }
+    ],
+    [
+      IntegrationType.LORIOT,
+      { name: 'integration.type-loriot', http: true }
     ],
     [
       IntegrationType.MQTT,

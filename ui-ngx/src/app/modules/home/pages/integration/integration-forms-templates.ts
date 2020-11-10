@@ -77,6 +77,19 @@ export const opcSecurityTypes = {
   None: 'None'
 }
 
+export type loriotCredentialType = 'basic' | 'token';
+
+export const loriotCredentialTypes = {
+  basic: {
+    value: 'basic',
+    name: 'extension.basic'
+  },
+  'token': {
+    value: 'token',
+    name: 'extension.token'
+  }
+}
+
 export type mqttCredentialType = 'anonymous' | 'basic' | 'cert.PEM';
 
 export const mqttCredentialTypes = {
@@ -164,6 +177,11 @@ export const templates = {
     replaceNoContentToOk: '',
     enableSecurity: false,
     downlinkUrl: 'https://api.thingpark.com/thingpark/lrc/rest/downlink',
+    loriotDownlinkUrl: 'https://eu1.loriot.io/1/rest',
+    createLoriotOutput: false,
+    sendDownlink: false,
+    server: 'eu1',
+    appId: '',
     enableSecurityNew: false,
     asId: '',
     asIdNew: '',
@@ -174,6 +192,13 @@ export const templates = {
     httpEndpoint: '',
     headersFilter: {},
     ignoreNonPrimitiveFields: ['headersFilter'],
+    token:'',
+    credentials: {
+      type: loriotCredentialTypes.basic.value,
+      email: '',
+      password: '',
+      token: ''
+    },
     fieldValidators: {
       baseUrl: [Validators.required],
       asId: [Validators.required],
@@ -181,7 +206,14 @@ export const templates = {
       asKey: [Validators.required],
       clientIdNew: [Validators.required],
       clientSecret: [Validators.required],
-      maxTimeDiffInSeconds: [Validators.required, Validators.min(0)]
+      maxTimeDiffInSeconds: [Validators.required, Validators.min(0)],
+      loriotDownlinkUrl: [Validators.required],
+      server: [Validators.required],
+      appId: [Validators.required],
+      token: [Validators.required],
+      'credentials.email': [Validators.required],
+      'credentials.password': [Validators.required],
+      'credentials.token': [Validators.required]
     }
   },
   [IntegrationType.MQTT]: {
@@ -564,6 +596,19 @@ export const templates = {
       'clientConfiguration.maxNumMessages': [Validators.required],
       'clientConfiguration.maxNumBytes': [Validators.required],
       'clientConfiguration.timeoutInMs': [Validators.required],
+    }
+  },
+
+  [IntegrationType.LORIOT]: {
+    clientConfiguration: {
+      serviceUrl: '',
+      credentials: {
+        type: apachePulsarCredentialsTypes.anonymous.value,
+        token: ''
+      }
+    },
+    fieldValidators: {
+      'clientConfiguration.serviceUrl': [Validators.required],
     }
   },
 

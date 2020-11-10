@@ -338,6 +338,8 @@ public class RemoteIntegrationManagerService {
         switch (IntegrationType.valueOf(type)) {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
+            case LORIOT:
+                return newInstance("org.thingsboard.integration.http.basic.LoriotIntegration");
             case SIGFOX:
                 return newInstance("org.thingsboard.integration.http.sigfox.SigFoxIntegration");
             case OCEANCONNECT:

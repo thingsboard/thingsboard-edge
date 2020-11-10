@@ -32,7 +32,7 @@
 import { FormGroup } from '@angular/forms';
 import {
   apachePulsarCredentialsType,
-  azureIotHubCredentialsType,
+  azureIotHubCredentialsType, loriotCredentialType,
   mqttCredentialType
 } from '@home/pages/integration/integration-forms-templates';
 
@@ -89,6 +89,24 @@ export function changeRequiredApachePulsarCredentialsFields(form: FormGroup, cre
       break;
     case 'token':
       enabled = [...token];
+      break;
+  }
+
+  disableFields(form, disabled);
+  enableFields(form, enabled);
+}
+
+export function changeRequiredLoriotCredentialsFields(form: FormGroup, credentialType: loriotCredentialType) {
+  let disabled = [];
+  let enabled = [];
+  switch (credentialType) {
+    case 'basic':
+      disabled = token;
+      enabled = basic;
+      break;
+    case 'token':
+      disabled = basic;
+      enabled = token;
       break;
   }
 
