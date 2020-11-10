@@ -75,7 +75,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
     protected ExecutorService loopExecutor;
     protected ListeningExecutorService producerExecutor;
     protected List<String> queues;
-    protected List<String> topics;
+    protected List<String> routingKeys;
     protected volatile boolean stopped = false;
     protected Lock rabbitMQLock = new ReentrantLock();
 
@@ -88,8 +88,8 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         rabbitMQConsumerConfiguration = mapper.readValue(
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 RabbitMQConsumerConfiguration.class);
-        topics = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getTopics().trim().split(",")));
-        queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getTopics().trim().split(",")));
+        routingKeys = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getRoutingKeys().trim().split(",")));
+        queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getQueues().trim().split(",")));
         createConnection();
     }
 
@@ -210,7 +210,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         rabbitMQConsumer = new DefaultConsumer(channel);
         rabbitMQLock.lock();
         try {
-            topics.forEach( (topic) -> {
+            routingKeys.forEach( (topic) -> {
                 createTopicIfNotExists(topic, null);
             });
         } finally {

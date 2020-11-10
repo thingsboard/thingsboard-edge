@@ -49,7 +49,7 @@ public class RabbitMQConsumerConfiguration {
     private String password;
     private String downlinkTopic;
     private String queues;
-    private String topics;
+    private String routingKeys;
     private int connectionTimeout;
     private int handshakeTimeout;
     private long pollPeriod;

@@ -2063,6 +2063,8 @@
         "group-id-required": "Group ID is required.",
         "topics": "Topics",
         "topics-required": "Topic is required.",
+        "routing-keys": "Routing keys",
+        "routing-keys-required": "Routing key is required.",
         "queues": "Queues",
         "queues-required": "Queue name is required.",
         "exchange-name": "Exchange name",
