@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -80,6 +81,8 @@ public class TbMsgPushToCloudNode implements TbNode {
     private EmptyNodeConfiguration config;
 
     private static final ObjectMapper json = new ObjectMapper();
+
+    private static final String SCOPE = "scope";
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -151,7 +154,7 @@ public class TbMsgPushToCloudNode implements TbNode {
             switch (actionType) {
                 case ATTRIBUTES_UPDATED:
                     entityBody.put("kv", dataJson);
-                    entityBody.put("scope", metadata.get("scope"));
+                    entityBody.put(SCOPE, getScope(metadata));
                     if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)) {
                         entityBody.put("isPostAttributes", true);
                     }
@@ -159,7 +162,7 @@ public class TbMsgPushToCloudNode implements TbNode {
                 case ATTRIBUTES_DELETED:
                     List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
                     entityBody.put("keys", keys);
-                    entityBody.put("scope", metadata.get("scope"));
+                    entityBody.put(SCOPE, getScope(metadata));
                     break;
                 case TIMESERIES_UPDATED:
                     entityBody.put("data", dataJson);
@@ -168,6 +171,15 @@ public class TbMsgPushToCloudNode implements TbNode {
             }
             return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, json.valueToTree(entityBody));
         }
+    }
+
+    private String getScope(Map<String, String> metadata) {
+        String scope = metadata.get(SCOPE);
+        if (StringUtils.isEmpty(scope)) {
+            // TODO: voba - move this to configuration of the node or some other place
+            scope = DataConstants.SERVER_SCOPE;
+        }
+        return scope;
     }
 
     private CloudEvent buildCloudEvent(TenantId tenantId, ActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, JsonNode entityBody) {
