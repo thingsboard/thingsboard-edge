@@ -1711,6 +1711,102 @@ export default angular.module('thingsboard.types', [])
             translate: {
                 customTranslationsPrefix: "custom.",
                 i18nPrefix: "i18n"
-            }
+            },
+            cloudEventMode: {
+                tenant: "tenant",
+                entity: "entity",
+                user: "user",
+                customer: "customer"
+            },
+            cloudEventActionStatus: {
+                "SUCCESS": {
+                    value: "SUCCESS",
+                    name: "audit-log.status-success"
+                },
+                "FAILURE": {
+                    value: "FAILURE",
+                    name: "audit-log.status-failure"
+                }
+            },
+            cloudEventActionType: {
+                "ADDED": {
+                    name: "audit-log.type-added"
+                },
+                "DELETED": {
+                    name: "audit-log.type-deleted"
+                },
+                "UPDATED": {
+                    name: "audit-log.type-updated"
+                },
+                "ATTRIBUTES_UPDATED": {
+                    name: "audit-log.type-attributes-updated"
+                },
+                "ATTRIBUTES_DELETED": {
+                    name: "audit-log.type-attributes-deleted"
+                },
+                "RPC_CALL": {
+                    name: "audit-log.type-rpc-call"
+                },
+                "CREDENTIALS_UPDATED": {
+                    name: "audit-log.type-credentials-updated"
+                },
+                "ASSIGNED_TO_CUSTOMER": {
+                    name: "audit-log.type-assigned-to-customer"
+                },
+                "UNASSIGNED_FROM_CUSTOMER": {
+                    name: "audit-log.type-unassigned-from-customer"
+                },
+                "ACTIVATED": {
+                    name: "audit-log.type-activated"
+                },
+                "SUSPENDED": {
+                    name: "audit-log.type-suspended"
+                },
+                "CREDENTIALS_READ": {
+                    name: "audit-log.type-credentials-read"
+                },
+                "ATTRIBUTES_READ": {
+                    name: "audit-log.type-attributes-read"
+                },
+                "ADDED_TO_ENTITY_GROUP": {
+                    name: "audit-log.type-added-to-entity-group"
+                },
+                "REMOVED_FROM_ENTITY_GROUP": {
+                    name: "audit-log.type-removed-from-entity-group"
+                },
+                "RELATION_ADD_OR_UPDATE": {
+                    name: "audit-log.type-relation-add-or-update"
+                },
+                "RELATION_DELETED": {
+                    name: "audit-log.type-relation-delete"
+                },
+                "RELATIONS_DELETED": {
+                    name: "audit-log.type-relations-delete"
+                },
+                "ALARM_ACK": {
+                    name: "audit-log.type-alarm-ack"
+                },
+                "ALARM_CLEAR": {
+                    name: "audit-log.type-alarm-clear"
+                },
+                "REST_API_RULE_ENGINE_CALL": {
+                    name: "audit-log.type-rest-api-rule-engine-call"
+                },
+                "MADE_PUBLIC": {
+                    name: "audit-log.type-made-public"
+                },
+                "MADE_PRIVATE": {
+                    name: "audit-log.type-made-private"
+                },
+                "LOGIN": {
+                    name: "audit-log.type-login"
+                },
+                "LOGOUT": {
+                    name: "audit-log.type-logout"
+                },
+                "LOCKOUT": {
+                    name: "audit-log.type-lockout"
+                }
+            },
         }
     ).name;
