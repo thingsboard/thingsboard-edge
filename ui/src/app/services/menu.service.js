@@ -381,14 +381,14 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             {
                                 name: 'edge.information',
                                 type: 'link',
-                                state: 'home.edge',
+                                state: 'home.edge.information',
                                 icon: 'info',
                                 disabled: false
                             },
                             {
                                 name: 'edge.cloud-events',
                                 type: 'link',
-                                state: 'home.cloudEvents',
+                                state: 'home.edge.cloudEvents',
                                 icon: 'date_range',
                                 disabled: false
                             }

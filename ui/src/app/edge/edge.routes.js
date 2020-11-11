@@ -41,18 +41,27 @@ export default function EdgeRoutes($stateProvider) {
             url: '/edge',
             module: 'private',
             auth: ['TENANT_ADMIN'],
-            views: {
-                "content@home": {
-                    templateUrl: edgeTemplate,
-                    controller: 'EdgeController',
-                    controllerAs: 'vm'
-                }
-            },
-            data: {
-                pageTitle: 'edge.info'
-            },
+            redirectTo: 'home.information',
             ncyBreadcrumb: {
                 label: '{"icon": "router", "label": "edge.info"}'
             }
-        });
+        })
+        .state('home.edge.information', {
+        url: '/information',
+        module: 'private',
+        auth: ['TENANT_ADMIN'],
+        views: {
+            "content@home": {
+                templateUrl: edgeTemplate,
+                controller: 'EdgeController',
+                controllerAs: 'vm'
+            }
+        },
+        data: {
+            pageTitle: 'edge.info'
+        },
+        ncyBreadcrumb: {
+            label: '{"icon": "router", "label": "edge.info"}'
+        }
+    })
 }

@@ -923,7 +923,7 @@
         "group-permissions-request": "Group permissions request",
         "success": "Deployed",
         "failed": "Pending",
-        "load-entity-error": "Entity not found. Failed to load info"
+        "load-entity-error": "Failed to load data. Entity not found ohas been deleted."
     },
     "cloud-event": {
       "created-time": "Created time",

@@ -86,7 +86,7 @@ export default function CloudEventRowDirective($compile, $templateCache, types, 
                         });
                     break;
                 default:
-                    content = entityService.getEntity(scope.cloudEvent.cloudEventType, scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+                    content = entityService.getEntity(scope.cloudEvent.cloudEventType.toUpperCase(), scope.cloudEvent.entityId, {ignoreErrors: true}).then(
                         function success(info) {
                             showDialog();
                             return angular.toJson(info);

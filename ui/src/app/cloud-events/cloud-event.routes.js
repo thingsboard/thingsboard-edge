@@ -37,7 +37,7 @@ import cloudEventsTemplate from './cloud-events.tpl.html';
 /*@ngInject*/
 export default function CloudEventRoutes($stateProvider) {
     $stateProvider
-        .state('home.cloudEvents', {
+        .state('home.edge.cloudEvents', {
             url: '/cloudEvents',
             module: 'private',
             auth: ['TENANT_ADMIN'],
