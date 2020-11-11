@@ -114,6 +114,9 @@ public class QuerySecurityContext {
         EntityType entityType;
         if (entityFilter != null) {
             switch (entityFilter.getType()) {
+                case ENTITY_GROUP_NAME:
+                    entityType = ((EntityGroupNameFilter) entityFilter).getGroupType();
+                    break;
                 case ENTITIES_BY_GROUP_NAME:
                     entityType = ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
                     break;
