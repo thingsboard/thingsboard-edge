@@ -30,38 +30,30 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import edgeTemplate from './edge.tpl.html';
+import cloudEventsTemplate from './cloud-events.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EdgeRoutes($stateProvider) {
+export default function CloudEventRoutes($stateProvider) {
     $stateProvider
-        .state('home.edge', {
-            url: '/edge',
+        .state('home.edge.cloudEvents', {
+            url: '/cloudEvents',
             module: 'private',
             auth: ['TENANT_ADMIN'],
-            redirectTo: 'home.information',
+            views: {
+                "content@home": {
+                    templateUrl: cloudEventsTemplate,
+                    controller: 'CloudEventsController',
+                    controllerAs: 'vm'
+                }
+            },
+            data: {
+                searchEnabled: false,
+                pageTitle: 'edge.cloud-events'
+            },
             ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
+                label: '{"icon": "date_range", "label": "edge.cloud-events"}'
             }
-        })
-        .state('home.edge.information', {
-        url: '/information',
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: edgeTemplate,
-                controller: 'EdgeController',
-                controllerAs: 'vm'
-            }
-        },
-        data: {
-            pageTitle: 'edge.info'
-        },
-        ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
-        }
-    })
+        });
 }

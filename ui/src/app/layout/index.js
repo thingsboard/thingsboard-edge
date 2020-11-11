@@ -69,6 +69,7 @@ import thingsboardAsset from '../asset';
 import thingsboardDevice from '../device';
 import thingsboardEntityView from '../entity-view';
 import thingsboardEdge from '../edge';
+import thingsboardCloudEvents from '../cloud-events';
 import thingsboardWidgetLibrary from '../widget';
 import thingsboardDashboard from '../dashboard';
 import thingsboardEntityGroup from '../group';
@@ -135,7 +136,8 @@ export default angular.module('thingsboard.home', [
     thingsboardGatewayForm,
     thingsboardJsonObjectEdit,
     thingsboardJsonContent,
-    thingsboardTimezoneSelect
+    thingsboardTimezoneSelect,
+    thingsboardCloudEvents
 ])
     .config(HomeRoutes)
     .controller('HomeController', HomeController)

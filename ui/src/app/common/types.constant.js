@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+import { grey300, grey900 } from 'material-ui/styles/colors';
+
 export default angular.module('thingsboard.types', [])
     .constant('types',
         {
@@ -1711,6 +1713,93 @@ export default angular.module('thingsboard.types', [])
             translate: {
                 customTranslationsPrefix: "custom.",
                 i18nPrefix: "i18n"
-            }
+            },
+            cloudEventActionType: {
+                "ADDED": {
+                    name: "audit-log.type-added"
+                },
+                "DELETED": {
+                    name: "audit-log.type-deleted"
+                },
+                "UPDATED": {
+                    name: "audit-log.type-updated"
+                },
+                "ATTRIBUTES_UPDATED": {
+                    name: "audit-log.type-attributes-updated"
+                },
+                "ATTRIBUTES_DELETED": {
+                    name: "audit-log.type-attributes-deleted"
+                },
+                "RPC_CALL": {
+                    name: "audit-log.type-rpc-call"
+                },
+                "CREDENTIALS_UPDATED": {
+                    name: "audit-log.type-credentials-updated"
+                },
+                "RELATION_ADD_OR_UPDATE": {
+                    name: "audit-log.type-relation-add-or-update"
+                },
+                "RELATION_DELETED": {
+                    name: "audit-log.type-relation-delete"
+                },
+                "ALARM_ACK": {
+                    name: "audit-log.type-alarm-ack"
+                },
+                "ALARM_CLEAR": {
+                    name: "audit-log.type-alarm-clear"
+                },
+                "CREDENTIALS_REQUEST": {
+                    name: "edge.credentials-request"
+                },
+                "ATTRIBUTES_REQUEST": {
+                    name: "edge.attributes-request"
+                },
+                "TIMESERIES_UPDATED": {
+                    name: "edge.timeseries-updated"
+                },
+                "RELATION_REQUEST": {
+                    name: "edge.relation-request"
+                },
+                "RULE_CHAIN_METADATA_REQUEST": {
+                    name: "edge.rule-chain-metadata-request"
+                },
+                "GROUP_ENTITIES_REQUEST": {
+                    name: "edge.group_entities_request"
+                },
+                "GROUP_PERMISSIONS_REQUEST": {
+                    name: "edge.group-permissions-request"
+                }
+            },
+            cloudEventStatus: {
+                "DEPLOYED": {
+                    name: "edge.deployed",
+                    color: grey900
+                },
+                "PENDING": {
+                    name: "edge.pending",
+                    color: grey300
+                }
+            },
+            cloudEventType:{
+                dashboard: "DASHBOARD",
+                asset: "ASSET",
+                device: "DEVICE",
+                entityView: "ENTITY_VIEW",
+                alarm: "ALARM",
+                rulechain: "RULE_CHAIN",
+                ruleChainMetaData: "RULE_CHAIN_METADATA",
+                edge: "EDGE",
+                user: "USER",
+                customer: "CUSTOMER",
+                relation: "RELATION",
+                entityGroup: "ENTITY_GROUP",
+                schedulerEvent: "SCHEDULER_EVENT",
+                whiteLabeling: "WHITE_LABELING",
+                loginWhiteLabeling: "LOGIN_WHITE_LABELING",
+                customTranslation: "CUSTOM_TRANSLATION",
+                widgetsBundle: "WIDGETS_BUNDLE",
+                widgetType: "WIDGET_TYPE",
+                adminSettings: "ADMIN_SETTINGS"
+            },
         }
     ).name;

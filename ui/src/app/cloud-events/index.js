@@ -28,40 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
+import CloudEventRoutes from './cloud-event.routes';
+import CloudEventsController from './cloud-events.controller';
+import CloudEventDetailsDialogController from './cloud-event-details-dialog.controller';
+import CloudEventHeaderDirective from './cloud-event-header.directive';
+import CloudEventRowDirective from './cloud-event-row.directive';
+import CloudEventTableDirective from './cloud-event-table.directive';
 
-import edgeTemplate from './edge.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
-
-/*@ngInject*/
-export default function EdgeRoutes($stateProvider) {
-    $stateProvider
-        .state('home.edge', {
-            url: '/edge',
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            redirectTo: 'home.information',
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
-            }
-        })
-        .state('home.edge.information', {
-        url: '/information',
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: edgeTemplate,
-                controller: 'EdgeController',
-                controllerAs: 'vm'
-            }
-        },
-        data: {
-            pageTitle: 'edge.info'
-        },
-        ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
-        }
-    })
-}
+export default angular.module('thingsboard.cloudEvent', [])
+    .config(CloudEventRoutes)
+    .controller('CloudEventsController', CloudEventsController)
+    .controller('CloudEventDetailsDialogController', CloudEventDetailsDialogController)
+    .directive('tbCloudEventHeader', CloudEventHeaderDirective)
+    .directive('tbCloudEventRow', CloudEventRowDirective)
+    .directive('tbCloudEventTable', CloudEventTableDirective)
+    .name;
