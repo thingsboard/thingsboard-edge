@@ -36,7 +36,8 @@ import cloudEventRowTemplate from './cloud-event-row.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CloudEventRowDirective($compile, $templateCache, types, $mdDialog, $document, utils) {
+export default function CloudEventRowDirective($compile, $templateCache, types, $mdDialog, $document, utils, $translate,
+                                               ruleChainService, entityService, toast) {
 
     var linker = function (scope, element, attrs) {
 
@@ -44,30 +45,80 @@ export default function CloudEventRowDirective($compile, $templateCache, types, 
         element.html(template);
 
         scope.cloudEvent = attrs.cloudEvent;
-        scope.cloudEventMode = attrs.cloudEventMode;
         scope.types = types;
         scope.utils = utils;
+
+        scope.updateStatus = function(eventCreatedTime) {
+            var status;
+            if (eventCreatedTime < scope.queueStartTs) {
+                status = $translate.instant('edge.success');
+                scope.statusColor = '#000';
+            } else {
+                status = $translate.instant('edge.failed');
+                scope.statusColor = 'rgba(0, 0, 0, .38)';
+            }
+            return status;
+        }
+
+        scope.checkCloudEventType = function (cloudEventType) {
+            return !(cloudEventType === types.cloudEventType.widgetType ||
+                cloudEventType === types.cloudEventType.adminSettings ||
+                cloudEventType === types.cloudEventType.widgetsBundle );
+        }
 
         scope.showCloudEventDetails = function($event) {
             var onShowingCallback = {
                 onShowing: function(){}
             }
-            $mdDialog.show({
-                controller: 'CloudEventDetailsDialogController',
-                controllerAs: 'vm',
-                templateUrl: cloudEventDetailsDialogTemplate,
-                locals: {
-                    cloudEvent: scope.cloudEvent,
-                    showingCallback: onShowingCallback
-                },
-                parent: angular.element($document[0].body),
-                targetEvent: $event,
-                fullscreen: true,
-                multiple: true,
-                onShowing: function(scope, element) {
-                    onShowingCallback.onShowing(scope, element);
-                }
-            });
+            var content = '';
+
+            switch(scope.cloudEvent.cloudEventType) {
+                case types.cloudEventType.relation:
+                    content = angular.toJson(scope.cloudEvent.body);
+                    break;
+                case types.cloudEventType.ruleChainMetaData:
+                    content = ruleChainService.getRuleChainMetaData(scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+                        function success(info) {
+                            showDialog();
+                            return angular.toJson(info);
+                        }, function fail() {
+                            showError();
+                        });
+                    break;
+                default:
+                    content = entityService.getEntity(scope.cloudEvent.cloudEventType, scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+                        function success(info) {
+                            showDialog();
+                            return angular.toJson(info);
+                        }, function fail() {
+                            showError();
+                        });
+                    break;
+            }
+
+            function showDialog() {
+                $mdDialog.show({
+                    controller: 'CloudEventDetailsDialogController',
+                    controllerAs: 'vm',
+                    templateUrl: cloudEventDetailsDialogTemplate,
+                    locals: {
+                        content: content,
+                        contentType: 'JSON',
+                        showingCallback: onShowingCallback
+                    },
+                    parent: angular.element($document[0].body),
+                    fullscreen: true,
+                    targetEvent: $event,
+                    multiple: true,
+                    onShowing: function(scope, element) {
+                        onShowingCallback.onShowing(scope, element);
+                    }
+                });
+            }
+
+            function showError() {
+                toast.showError($translate.instant('edge.load-entity-error'));
+            }
         }
 
         $compile(element.contents())(scope);

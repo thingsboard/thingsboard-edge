@@ -37,11 +37,10 @@ import cloudEventHeaderTemplate from './cloud-event-header.tpl.html';
 /*@ngInject*/
 export default function CloudEventHeaderDirective($compile, $templateCache, types) {
 
-    var linker = function (scope, element, attrs) {
+    var linker = function (scope, element) {
 
         var template = $templateCache.get(cloudEventHeaderTemplate);
         element.html(template);
-        scope.cloudEventMode = attrs.cloudEventMode;
         scope.types = types;
         $compile(element.contents())(scope);
 

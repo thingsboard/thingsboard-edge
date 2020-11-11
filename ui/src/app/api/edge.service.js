@@ -38,7 +38,8 @@ export default angular.module('thingsboard.api.edge', [thingsboardTypes])
 function EdgeService($q, $http) {
 
     var service = {
-        getEdgeSetting: getEdgeSetting
+        getEdgeSetting: getEdgeSetting,
+        getCloudEvents: getCloudEvents
     }
 
     return service;
@@ -50,6 +51,26 @@ function EdgeService($q, $http) {
             deferred.resolve(response);
         }, function fail() {
             deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getCloudEvents(pageLink) {
+        var deferred = $q.defer();
+        var url = '/api/edge/events' + '?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.startTime) && pageLink.startTime != null) {
+            url += '&startTime=' + pageLink.startTime;
+        }
+        if (angular.isDefined(pageLink.endTime) && pageLink.endTime != null) {
+            url += '&endTime=' + pageLink.endTime;
+        }
+        if (angular.isDefined(pageLink.idOffset) && pageLink.idOffset != null) {
+            url += '&offset=' + pageLink.idOffset;
+        }
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail(response) {
+            deferred.reject(response.data);
         });
         return deferred.promise;
     }

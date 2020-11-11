@@ -37,7 +37,8 @@ import cloudEventTableTemplate from './cloud-event-table.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CloudEventTableDirective($compile, $templateCache, $rootScope, $filter, $translate, types, auditLogService) {
+export default function CloudEventTableDirective($compile, $templateCache, $rootScope, $filter, $translate, types, auditLogService,
+                                                 edgeService, attributeService, userService) {
 
     var linker = function (scope, element) {
 
@@ -80,6 +81,8 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
             fetchMoreItems_: function () {
                 if (scope.cloudEvents.hasNext && !scope.cloudEvents.pending) {
                     var promise = getCloudEventsPromise(scope.cloudEvents.nextPageLink);
+                    scope.loadEdgeName();
+                    scope.loadEdgeInfo();
                     if (promise) {
                         scope.cloudEvents.pending = true;
                         promise.then(
@@ -107,13 +110,57 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
         function prepareCloudEventsData(data) {
             data.forEach(
                 cloudEvent => {
-                    cloudEvent.entityTypeText = $translate.instant(types.entityTypeTranslations[cloudEvent.entityId.entityType].type);
-                    cloudEvent.actionTypeText = $translate.instant(types.cloudEventActionType[cloudEvent.actionType].name);
-                    cloudEvent.actionStatusText = $translate.instant(types.cloudEventActionStatus[cloudEvent.actionStatus].name);
-                    cloudEvent.actionDataText = cloudEvent.actionData ? angular.toJson(cloudEvent.actionData, true) : '';
+                    cloudEvent.cloudEventType = $translate.instant(types.entityTypeTranslations[cloudEvent.cloudEventType].type);
                 }
             );
             return data;
+        }
+
+        scope.loadEdgeName = function() {
+            edgeService.getEdgeSetting().then(
+                function success(edgeSettings) {
+                    scope.edgeId = edgeSettings.data.edgeId;
+                },
+                function fail() {
+                }
+            );
+        }
+
+        scope.subscriptionId = null;
+
+        scope.loadEdgeInfo = function() {
+            attributeService.getEntityAttributesValues(
+                types.entityType.tenant,
+                userService.getCurrentUser().tenantId,
+                types.attributesScope.server.value,
+                [types.edgeAttributeKeys.queueStartTs],
+                null).then(
+                function success(attributes) {
+                    attributes.length > 0 ? scope.onEdgeAttributesUpdate(attributes) : scope.queueStartTs = 0;
+                });
+            scope.checkSubscription();
+        }
+
+        scope.onEdgeAttributesUpdate = function(attributes) {
+            let edgeAttributes = attributes.reduce(function (map, attribute) {
+                map[attribute.key] = attribute;
+                return map;
+            }, {});
+            if (edgeAttributes.queueStartTs) {
+                scope.queueStartTs = edgeAttributes.queueStartTs.lastUpdateTs;
+            }
+        }
+
+        scope.checkSubscription = function() {
+            var newSubscriptionId = null;
+            if (scope.entityId && scope.entityType && types.attributesScope.server.value) {
+                newSubscriptionId =
+                    attributeService.subscribeForEntityAttributes(scope.entityType, scope.entityId, types.attributesScope.server.value);
+            }
+            if (scope.subscriptionId && scope.subscriptionId != newSubscriptionId) {
+                attributeService.unsubscribeForEntityAttributes(scope.subscriptionId);
+            }
+            scope.subscriptionId = newSubscriptionId;
         }
 
         scope.$watch("entityId", function(newVal, prevVal) {
@@ -138,29 +185,7 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
         });
 
         function getCloudEventsPromise(pageLink) {
-            switch(scope.cloudEventMode) {
-                case types.cloudEventMode.tenant:
-                    return auditLogService.getAuditLogs(pageLink);
-                case types.cloudEventMode.entity:
-                    if (scope.entityType && scope.entityId) {
-                        return auditLogService.getAuditLogsByEntityId(scope.entityType, scope.entityId,
-                            pageLink);
-                    } else {
-                        return null;
-                    }
-                case types.cloudEventMode.user:
-                    if (scope.userId) {
-                        return auditLogService.getAuditLogsByUserId(scope.userId, pageLink);
-                    } else {
-                        return null;
-                    }
-                case types.cloudEventMode.customer:
-                    if (scope.customerId) {
-                        return auditLogService.getAuditLogsByCustomerId(scope.customerId, pageLink);
-                    } else {
-                        return null;
-                    }
-            }
+            return edgeService.getCloudEvents(pageLink);
         }
 
         function destroyWatchers() {
@@ -270,7 +295,6 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
             entityId: '=?',
             userId: '=?',
             customerId: '=?',
-            cloudEventMode: '@',
             pageMode: '@?'
         }
     };

@@ -42,16 +42,9 @@
     </md-toolbar>
     <md-dialog-content>
         <div class="md-dialog-content" layout="column">
-            <label translate class="tb-title no-padding">audit-log.action-data</label>
-            <div flex id="tb-cloud-event-action-data" readonly
-                 ui-ace="vm.actionDataContentOptions"
-                 ng-model="vm.actionData">
-            </div>
-            <span style="height: 30px;"></span>
-            <label ng-show="vm.displayFailureDetails" translate class="tb-title no-padding">audit-log.failure-details</label>
-            <div ng-show="vm.displayFailureDetails" flex id="tb-cloud-event-failure-details" readonly
-                 ui-ace="vm.failureDetailsContentOptions"
-                 ng-model="vm.actionFailureDetails">
+            <div flex id="tb-cloud-event-content" readonly
+                 ui-ace="vm.contentOptions"
+                 ng-model="vm.content">
             </div>
         </div>
     </md-dialog-content>

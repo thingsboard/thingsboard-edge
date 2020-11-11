@@ -30,18 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-cell" flex="30">{{ cloudEvent.createdTime | date :  'yyyy-MM-dd HH:mm:ss' }}</div>
-<div ng-if="cloudEventMode != types.cloudEventMode.entity" class="tb-cell" flex="10">{{ cloudEvent.entityTypeText }}</div>
-<div ng-if="cloudEventMode != types.cloudEventMode.entity" class="tb-cell" flex="30">{{ utils.customTranslation(cloudEvent.entityName, cloudEvent.entityName)}}</div>
-<div ng-if="cloudEventMode != types.cloudEventMode.user" class="tb-cell" flex="30">{{ cloudEvent.userName }}</div>
-<div class="tb-cell" flex="15">{{ cloudEvent.actionTypeText }}</div>
-<div class="tb-cell" flex="15">{{ cloudEvent.actionStatusText }}</div>
+<div class="tb-cell" flex="20">{{ cloudEvent.createdTime | date :  'yyyy-MM-dd HH:mm:ss' }}</div>
+<div class="tb-cell" flex="20">{{ cloudEvent.cloudEventAction }}</div>
+<div class="tb-cell" flex="20">{{ cloudEvent.cloudEventType }}</div>
+<div class="tb-cell" flex="20">{{ cloudEvent.entityId }}</div>
+<div class="tb-cell" flex="10" ng-style="{'color': statusColor}">{{ updateStatus(cloudEvent.createdTime) | translate }}</div>
 <div class="tb-cell" flex="10">
     <md-button class="md-icon-button md-primary"
+               ng-if="checkCloudEventType(cloudEvent.cloudEventType)"
                ng-click="showCloudEventDetails($event)"
                aria-label="{{ 'action.view' | translate }}">
         <md-tooltip md-direction="top">
-            {{ 'audit-log.details' | translate }}
+            {{ 'cloud-event.details' | translate }}
         </md-tooltip>
         <md-icon aria-label="{{ 'action.view' | translate }}"
                  class="material-icons">

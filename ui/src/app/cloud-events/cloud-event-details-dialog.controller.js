@@ -33,34 +33,29 @@ import 'brace/ext/language_tools';
 import 'brace/ext/searchbox';
 import 'brace/mode/java';
 import 'brace/theme/github';
+import beautify from 'js-beautify';
 
 /* eslint-disable angular/angularelement */
 
 import './cloud-event-details-dialog.scss';
+const js_beautify = beautify.js;
 
 /*@ngInject*/
-export default function CloudEventDetailsDialogController($mdDialog, types, cloudEvent, showingCallback) {
+export default function CloudEventDetailsDialogController($mdDialog, types, showingCallback, contentType, content) {
 
     var vm = this;
 
     showingCallback.onShowing = function(scope, element) {
-        updateEditorSize(element, vm.actionData, 'tb-cloud-event-action-data');
-        vm.actionDataEditor.resize();
-        if (vm.displayFailureDetails) {
-            updateEditorSize(element, vm.actionFailureDetails, 'tb-cloud-event-failure-details');
-            vm.failureDetailsEditor.resize();
-        }
-    };
+        vm.editor.resize();
+        updateEditorSize(element);
+    }
 
-    vm.types = types;
-    vm.cloudEvent = cloudEvent;
-    vm.displayFailureDetails = cloudEvent.actionStatus == types.cloudEventActionStatus.FAILURE.value;
-    vm.actionData = cloudEvent.actionDataText;
-    vm.actionFailureDetails = cloudEvent.actionFailureDetails;
+    vm.content = content;
+    vm.content = js_beautify(vm.content, {indent_size: 4});
 
-    vm.actionDataContentOptions = {
+    vm.contentOptions = {
         useWrapMode: false,
-        mode: 'java',
+        mode: types.contentType[contentType].code,
         showGutter: false,
         showPrintMargin: false,
         theme: 'github',
@@ -70,42 +65,27 @@ export default function CloudEventDetailsDialogController($mdDialog, types, clou
             enableLiveAutocompletion: false
         },
         onLoad: function (_ace) {
-            vm.actionDataEditor = _ace;
+            vm.editor = _ace;
         }
     };
 
-    vm.failureDetailsContentOptions = {
-        useWrapMode: false,
-        mode: 'java',
-        showGutter: false,
-        showPrintMargin: false,
-        theme: 'github',
-        advanced: {
-            enableSnippets: false,
-            enableBasicAutocompletion: false,
-            enableLiveAutocompletion: false
-        },
-        onLoad: function (_ace) {
-            vm.failureDetailsEditor = _ace;
-        }
-    };
-
-    function updateEditorSize(element, content, editorId) {
-        var newHeight = 200;
-        var newWidth = 600;
-        if (content && content.length > 0) {
-            var lines = content.split('\n');
+    function updateEditorSize(element) {
+        var newHeight = 400;
+        var newWidth = 650;
+        if (vm.content && vm.content.length > 0) {
+            var lines = vm.content.split('\n');
             newHeight = 16 * lines.length + 16;
             var maxLineLength = 0;
-            for (var i in lines) {
+            for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].replace(/\t/g, '    ').replace(/\n/g, '');
                 var lineLength = line.length;
                 maxLineLength = Math.max(maxLineLength, lineLength);
             }
             newWidth = 8 * maxLineLength + 16;
         }
-        $('#'+editorId, element).height(newHeight.toString() + "px").css('min-height', newHeight.toString() + "px")
+        $('#tb-cloud-event-content', element).height(newHeight.toString() + "px").css('min-height', newHeight.toString() + "px")
             .width(newWidth.toString() + "px");
+        vm.editor.resize();
     }
 
     vm.close = close;

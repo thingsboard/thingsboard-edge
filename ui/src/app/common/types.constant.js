@@ -1718,16 +1718,6 @@ export default angular.module('thingsboard.types', [])
                 user: "user",
                 customer: "customer"
             },
-            cloudEventActionStatus: {
-                "SUCCESS": {
-                    value: "SUCCESS",
-                    name: "audit-log.status-success"
-                },
-                "FAILURE": {
-                    value: "FAILURE",
-                    name: "audit-log.status-failure"
-                }
-            },
             cloudEventActionType: {
                 "ADDED": {
                     name: "audit-log.type-added"
@@ -1750,38 +1740,11 @@ export default angular.module('thingsboard.types', [])
                 "CREDENTIALS_UPDATED": {
                     name: "audit-log.type-credentials-updated"
                 },
-                "ASSIGNED_TO_CUSTOMER": {
-                    name: "audit-log.type-assigned-to-customer"
-                },
-                "UNASSIGNED_FROM_CUSTOMER": {
-                    name: "audit-log.type-unassigned-from-customer"
-                },
-                "ACTIVATED": {
-                    name: "audit-log.type-activated"
-                },
-                "SUSPENDED": {
-                    name: "audit-log.type-suspended"
-                },
-                "CREDENTIALS_READ": {
-                    name: "audit-log.type-credentials-read"
-                },
-                "ATTRIBUTES_READ": {
-                    name: "audit-log.type-attributes-read"
-                },
-                "ADDED_TO_ENTITY_GROUP": {
-                    name: "audit-log.type-added-to-entity-group"
-                },
-                "REMOVED_FROM_ENTITY_GROUP": {
-                    name: "audit-log.type-removed-from-entity-group"
-                },
-                "RELATION_ADD_OR_UPDATE": {
+                                "RELATION_ADD_OR_UPDATE": {
                     name: "audit-log.type-relation-add-or-update"
                 },
                 "RELATION_DELETED": {
                     name: "audit-log.type-relation-delete"
-                },
-                "RELATIONS_DELETED": {
-                    name: "audit-log.type-relations-delete"
                 },
                 "ALARM_ACK": {
                     name: "audit-log.type-alarm-ack"
@@ -1789,24 +1752,48 @@ export default angular.module('thingsboard.types', [])
                 "ALARM_CLEAR": {
                     name: "audit-log.type-alarm-clear"
                 },
-                "REST_API_RULE_ENGINE_CALL": {
-                    name: "audit-log.type-rest-api-rule-engine-call"
+                "CREDENTIALS_REQUEST": {
+                    name: "edge.credentials-request"
                 },
-                "MADE_PUBLIC": {
-                    name: "audit-log.type-made-public"
+                "ATTRIBUTES_REQUEST": {
+                    name: "edge.attributes-request"
                 },
-                "MADE_PRIVATE": {
-                    name: "audit-log.type-made-private"
+                "TIMESERIES_UPDATED": {
+                    name: "edge.timeseries-updated"
                 },
-                "LOGIN": {
-                    name: "audit-log.type-login"
+                "RELATION_REQUEST": {
+                    name: "edge.relation-request"
                 },
-                "LOGOUT": {
-                    name: "audit-log.type-logout"
+                "RULE_CHAIN_METADATA_REQUEST": {
+                    name: "edge.rule-chain-metadata-request"
                 },
-                "LOCKOUT": {
-                    name: "audit-log.type-lockout"
+                "GROUP_ENTITIES_REQUEST": {
+                    name: "edge.group_entities_request"
+                },
+                "GROUP_PERMISSIONS_REQUEST": {
+                    name: "edge.group-permissions-request"
                 }
             },
+            cloudEventType:{
+                dashboard: "Dashboard",
+                asset: "Asset",
+                device: "Device",
+                entityView: "Entity_view",
+                alarm: "Alarm",
+                rulechain: "Rule_chain",
+                ruleChainMetaData: "Rule_chain_metadata",
+                edge: "Edge",
+                user: "User",
+                customer: "Customer",
+                relation: "Relation",
+                entityGroup: "Entity_group",
+                schedulerEvent: "Scheduler_event",
+                whiteLabeling: "White_labeling",
+                loginWhiteLabeling: "Login_white_labeling",
+                customTranslation: "Custom_translation",
+                widgetsBundle: "Widgets_bundle",
+                widgetType: "Widget_type",
+                adminSettings: "Admin_settings"
+            }, //TODO: remove PE features
         }
     ).name;
