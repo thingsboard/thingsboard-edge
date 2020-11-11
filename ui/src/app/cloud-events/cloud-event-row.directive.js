@@ -51,11 +51,11 @@ export default function CloudEventRowDirective($compile, $templateCache, types, 
         scope.updateStatus = function(eventCreatedTime) {
             var status;
             if (eventCreatedTime < scope.queueStartTs) {
-                status = $translate.instant('edge.success');
-                scope.statusColor = '#000';
+                status = $translate.instant(types.cloudEventStatus.DEPLOYED.name);
+                scope.statusColor = types.cloudEventStatus.DEPLOYED.color;
             } else {
-                status = $translate.instant('edge.failed');
-                scope.statusColor = 'rgba(0, 0, 0, .38)';
+                status = $translate.instant(types.cloudEventStatus.PENDING.name);
+                scope.statusColor = types.cloudEventStatus.PENDING.color;
             }
             return status;
         }
@@ -86,7 +86,7 @@ export default function CloudEventRowDirective($compile, $templateCache, types, 
                         });
                     break;
                 default:
-                    content = entityService.getEntity(scope.cloudEvent.cloudEventType.toUpperCase(), scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+                    content = entityService.getEntity(scope.cloudEvent.cloudEventType, scope.cloudEvent.entityId, {ignoreErrors: true}).then(
                         function success(info) {
                             showDialog();
                             return angular.toJson(info);

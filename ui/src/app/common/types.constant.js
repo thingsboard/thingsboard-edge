@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+import { grey300, grey900 } from 'material-ui/styles/colors';
+
 export default angular.module('thingsboard.types', [])
     .constant('types',
         {
@@ -1712,12 +1714,6 @@ export default angular.module('thingsboard.types', [])
                 customTranslationsPrefix: "custom.",
                 i18nPrefix: "i18n"
             },
-            cloudEventMode: {
-                tenant: "tenant",
-                entity: "entity",
-                user: "user",
-                customer: "customer"
-            },
             cloudEventActionType: {
                 "ADDED": {
                     name: "audit-log.type-added"
@@ -1740,7 +1736,7 @@ export default angular.module('thingsboard.types', [])
                 "CREDENTIALS_UPDATED": {
                     name: "audit-log.type-credentials-updated"
                 },
-                                "RELATION_ADD_OR_UPDATE": {
+                "RELATION_ADD_OR_UPDATE": {
                     name: "audit-log.type-relation-add-or-update"
                 },
                 "RELATION_DELETED": {
@@ -1774,26 +1770,36 @@ export default angular.module('thingsboard.types', [])
                     name: "edge.group-permissions-request"
                 }
             },
+            cloudEventStatus: {
+                "DEPLOYED": {
+                    name: "edge.deployed",
+                    color: grey900
+                },
+                "PENDING": {
+                    name: "edge.pending",
+                    color: grey300
+                }
+            },
             cloudEventType:{
-                dashboard: "Dashboard",
-                asset: "Asset",
-                device: "Device",
-                entityView: "Entity_view",
-                alarm: "Alarm",
-                rulechain: "Rule_chain",
-                ruleChainMetaData: "Rule_chain_metadata",
-                edge: "Edge",
-                user: "User",
-                customer: "Customer",
-                relation: "Relation",
-                entityGroup: "Entity_group",
-                schedulerEvent: "Scheduler_event",
-                whiteLabeling: "White_labeling",
-                loginWhiteLabeling: "Login_white_labeling",
-                customTranslation: "Custom_translation",
-                widgetsBundle: "Widgets_bundle",
-                widgetType: "Widget_type",
-                adminSettings: "Admin_settings"
-            }, //TODO: remove PE features
+                dashboard: "DASHBOARD",
+                asset: "ASSET",
+                device: "DEVICE",
+                entityView: "ENTITY_VIEW",
+                alarm: "ALARM",
+                rulechain: "RULE_CHAIN",
+                ruleChainMetaData: "RULE_CHAIN_METADATA",
+                edge: "EDGE",
+                user: "USER",
+                customer: "CUSTOMER",
+                relation: "RELATION",
+                entityGroup: "ENTITY_GROUP",
+                schedulerEvent: "SCHEDULER_EVENT",
+                whiteLabeling: "WHITE_LABELING",
+                loginWhiteLabeling: "LOGIN_WHITE_LABELING",
+                customTranslation: "CUSTOM_TRANSLATION",
+                widgetsBundle: "WIDGETS_BUNDLE",
+                widgetType: "WIDGET_TYPE",
+                adminSettings: "ADMIN_SETTINGS"
+            },
         }
     ).name;

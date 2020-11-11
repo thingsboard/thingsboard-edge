@@ -34,7 +34,7 @@
 <div class="tb-cell" flex="20">{{ cloudEvent.cloudEventAction }}</div>
 <div class="tb-cell" flex="20">{{ cloudEvent.cloudEventType }}</div>
 <div class="tb-cell" flex="20">{{ cloudEvent.entityId }}</div>
-<div class="tb-cell" flex="10" ng-style="{'color': statusColor}">{{ updateStatus(cloudEvent.createdTime) | translate }}</div>
+<div class="tb-cell" flex="10" ng-style="{'color': statusColor}">{{ updateStatus(cloudEvent.createdTime) }}</div>
 <div class="tb-cell" flex="10">
     <md-button class="md-icon-button md-primary"
                ng-if="checkCloudEventType(cloudEvent.cloudEventType)"

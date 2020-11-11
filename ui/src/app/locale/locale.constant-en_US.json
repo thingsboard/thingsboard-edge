@@ -921,9 +921,9 @@
         "rule-chain-metadata-request": "Rule chain metadata request",
         "group_entities_request": "Group entities request",
         "group-permissions-request": "Group permissions request",
-        "success": "Deployed",
-        "failed": "Pending",
-        "load-entity-error": "Failed to load data. Entity not found ohas been deleted."
+        "deployed": "Deployed",
+        "pending": "Pending",
+        "load-entity-error": "Failed to load data. Entity not found or has been deleted."
     },
     "cloud-event": {
       "created-time": "Created time",

@@ -87,7 +87,7 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
                         scope.cloudEvents.pending = true;
                         promise.then(
                             function success(cloudEvents) {
-                                scope.cloudEvents.data = scope.cloudEvents.data.concat(prepareCloudEventsData(cloudEvents.data));
+                                scope.cloudEvents.data = scope.cloudEvents.data.concat(cloudEvents.data);
                                 scope.cloudEvents.filtered = $filter('filter')(scope.cloudEvents.data, {$: scope.searchText});
                                 scope.cloudEvents.nextPageLink = cloudEvents.nextPageLink;
                                 scope.cloudEvents.hasNext = cloudEvents.hasNext;
@@ -106,15 +106,6 @@ export default function CloudEventTableDirective($compile, $templateCache, $root
                 }
             }
         };
-
-        function prepareCloudEventsData(data) {
-            data.forEach(
-                cloudEvent => {
-                    cloudEvent.cloudEventType = $translate.instant(types.entityTypeTranslations[cloudEvent.cloudEventType].type);
-                }
-            );
-            return data;
-        }
 
         scope.loadEdgeName = function() {
             edgeService.getEdgeSetting().then(
