@@ -96,24 +96,6 @@ export function changeRequiredApachePulsarCredentialsFields(form: FormGroup, cre
   enableFields(form, enabled);
 }
 
-export function changeRequiredLoriotCredentialsFields(form: FormGroup, credentialType: loriotCredentialType) {
-  let disabled = [];
-  let enabled = [];
-  switch (credentialType) {
-    case 'basic':
-      disabled = token;
-      enabled = basic;
-      break;
-    case 'token':
-      disabled = basic;
-      enabled = token;
-      break;
-  }
-
-  disableFields(form, disabled);
-  enableFields(form, enabled);
-}
-
 export function disableFields(form: FormGroup, fields: string[], clear = true) {
     fields.forEach(key => {
         const field = form.get(key);

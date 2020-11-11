@@ -29,20 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {ChangeDetectorRef, Component, Input, SimpleChanges} from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
-import {
-  changeRequiredLoriotCredentialsFields,
-  disableFields,
-  enableFields
-} from '../../integration-utils';
+import { disableFields, enableFields } from '../../integration-utils';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
-import { loriotCredentialType, loriotCredentialTypes} from '@home/pages/integration/integration-forms-templates';
-import {FormGroup, Validators} from '@angular/forms';
+import { loriotCredentialType, loriotCredentialTypes } from '@home/pages/integration/integration-forms-templates';
+import { FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'tb-http-integration-form',
@@ -50,8 +46,6 @@ import {FormGroup, Validators} from '@angular/forms';
   styleUrls: ['./http-integration-form.component.scss']
 })
 export class HttpIntegrationFormComponent extends IntegrationFormComponent {
-
-
 
   @Input() integrationType: IntegrationType;
   @Input() routingKey;
@@ -72,7 +66,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     return this.integrationType === IntegrationType.LORIOT;
   }
 
-  constructor(protected store: Store<AppState>, private translate: TranslateService, private cd: ChangeDetectorRef) {
+  constructor(protected store: Store<AppState>, private translate: TranslateService) {
     super();
   }
 
@@ -106,12 +100,16 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       this.form.get('server').valueChanges.subscribe((val) => {
         this.form.get('loriotDownlinkUrl').setValue(`https://${val}.loriot.io/1/rest`);
       });
-      this.form.get('sendDownlink').valueChanges.subscribe((val) => {
+      this.form.get('sendDownlink').valueChanges.subscribe(() => {
         this.loriotEnableFields();
       });
-      this.form.get('createLoriotOutput').valueChanges.subscribe((val) => {
+      this.form.get('createLoriotOutput').valueChanges.subscribe(() => {
         this.loriotEnableFields();
       });
+      this.form.get('credentials.type').valueChanges.subscribe((type) => {
+        this.loriotCredentialsTypeChanged(type);
+      });
+      this.loriotCredentialsTypeChanged(this.form.get('credentials.type').value);
     }
     this.resetFields();
   }
@@ -132,7 +130,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     } else {
       headersFilter.patchValue({});
     }
-  };
+  }
 
   thingparkEnableSecurityChanged = () => {
     const fields = ['asId', 'asKey', 'maxTimeDiffInSeconds'];
@@ -142,7 +140,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     } else {
       enableFields(this.form, fields);
     }
-  };
+  }
 
   thingparkEnableSecurityNewChanged = () => {
     const fields = [ 'clientIdNew', 'asIdNew', 'clientSecret'];
@@ -155,7 +153,7 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       enableFields(this.form, fields);
       disableFields(this.form, ['asId'], false);
     }
-  };
+  }
 
   loriotEnableFields() {
     const fields = ['appId',  'server'];
@@ -164,27 +162,14 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
 
     const createLoriotOutput = this.form.get('createLoriotOutput').value;
     const sendDownlink = this.form.get('sendDownlink').value;
-    if (createLoriotOutput && sendDownlink) {
+    if (createLoriotOutput || sendDownlink) {
       enableFields(this.form, fields);
-      this.loriotCredentialsTypeChanged();
-      enableFields(this.form, downlinkFields);
-      console.log("ENABLE ALL")
-    } else if (createLoriotOutput) {
-      enableFields(this.form, fields);
-      this.loriotCredentialsTypeChanged();
-      disableFields(this.form, downlinkFields);
-      console.log("CREATE OUTPUT")
-    } else if (sendDownlink) {
-      enableFields(this.form, fields);
-      enableFields(this.form, downlinkFields);
-      disableFields(this.form, createAppFields);
-      console.log("ENABLE DOWNLINK")
     } else {
       disableFields(this.form, fields);
-      disableFields(this.form, downlinkFields);
-      disableFields(this.form, createAppFields);
-      console.log("DISABLE ALL")
     }
+
+    createLoriotOutput ? enableFields(this.form, createAppFields) : disableFields(this.form, createAppFields);
+    sendDownlink ? enableFields(this.form, downlinkFields) : disableFields(this.form, downlinkFields);
   }
 
   onHttpEndpointCopied() {
@@ -204,12 +189,21 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     const key = this.routingKey || '';
     url += `/api/v1/integrations/${type}/${key}`;
     this.form.get('httpEndpoint').patchValue(url);
-  };
-
-  loriotCredentialsTypeChanged() {
-    const form = this.form.get('credentials') as FormGroup;
-    const type: loriotCredentialType = form.get('type').value;
-    changeRequiredLoriotCredentialsFields(form, type)
   }
 
+  loriotCredentialsTypeChanged(type: loriotCredentialType) {
+    const form = this.form.get('credentials') as FormGroup;
+    const token = ['token'];
+    const basic = ['email', 'password'];
+    switch (type) {
+      case 'basic':
+        disableFields(form, token);
+        enableFields(form, basic);
+        break;
+      case 'token':
+        disableFields(form, basic);
+        enableFields(form, token);
+        break;
+    }
+  }
 }
