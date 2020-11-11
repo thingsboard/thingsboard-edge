@@ -57,7 +57,7 @@ public class QuerySecurityContext {
     private final TenantId tenantId;
     @Getter
     private final CustomerId customerId;
-    @Getter
+
     private final EntityType entityType;
 
     private final MergedUserPermissions userPermissions;
@@ -114,9 +114,6 @@ public class QuerySecurityContext {
         EntityType entityType;
         if (entityFilter != null) {
             switch (entityFilter.getType()) {
-                case ENTITY_GROUP_NAME:
-                    entityType = ((EntityGroupNameFilter) entityFilter).getGroupType();
-                    break;
                 case ENTITIES_BY_GROUP_NAME:
                     entityType = ((EntitiesByGroupNameFilter) entityFilter).getGroupType();
                     break;
