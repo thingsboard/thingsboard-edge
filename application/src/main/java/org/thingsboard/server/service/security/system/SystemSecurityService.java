@@ -33,9 +33,12 @@ package org.thingsboard.server.service.security.system;
 import org.springframework.security.core.AuthenticationException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
+import org.thingsboard.server.dao.exception.DataValidationException;
+
+import javax.servlet.http.HttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -49,6 +52,5 @@ public interface SystemSecurityService {
 
     void validatePassword(TenantId tenantId, String password, UserCredentials userCredentials) throws DataValidationException;
 
-    String getBaseUrl(TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest);
-
+    String getBaseUrl(Authority authority, TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest);
 }
