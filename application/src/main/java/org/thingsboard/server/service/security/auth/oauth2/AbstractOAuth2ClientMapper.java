@@ -59,15 +59,18 @@ import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
@@ -112,6 +115,12 @@ public abstract class AbstractOAuth2ClientMapper {
 
     @Autowired
     private InstallScripts installScripts;
+
+    @Autowired
+    protected TbTenantProfileCache tenantProfileCache;
+
+    @Autowired
+    protected TbClusterService tbClusterService;
 
     private final Lock userCreationLock = new ReentrantLock();
 
@@ -282,6 +291,10 @@ public abstract class AbstractOAuth2ClientMapper {
             tenant.setTitle(tenantName);
             tenant = tenantService.saveTenant(tenant);
             installScripts.createDefaultRuleChains(tenant.getId());
+            tenantProfileCache.evict(tenant.getId());
+            tbClusterService.onTenantChange(tenant, null);
+            tbClusterService.onEntityStateChange(tenant.getId(), tenant.getId(),
+                    ComponentLifecycleEvent.CREATED);
         } else {
             tenant = tenants.get(0);
         }

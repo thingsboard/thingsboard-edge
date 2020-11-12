@@ -55,7 +55,7 @@ public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     private final SystemSecurityService systemSecurityService;
 
     @Autowired
-    public Oauth2AuthenticationFailureHandler(SystemSecurityService systemSecurityService) {
+    public Oauth2AuthenticationFailureHandler(final SystemSecurityService systemSecurityService) {
         this.systemSecurityService = systemSecurityService;
     }
 
@@ -63,7 +63,7 @@ public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
-        String baseUrl = systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
+        String baseUrl = this.systemSecurityService.getBaseUrl(Authority.SYS_ADMIN, TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
         getRedirectStrategy().sendRedirect(request, response, baseUrl + "/login?loginError=" +
                 URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8.toString()));
     }
