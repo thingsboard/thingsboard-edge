@@ -78,6 +78,7 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
+import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -996,6 +997,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case RABBITMQ:
+                return new BasicRabbitMQIntegration();
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
             case CUSTOM:

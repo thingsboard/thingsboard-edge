@@ -576,6 +576,29 @@ export const templates = {
       'clientConfiguration.pollInterval': [Validators.required]
     }
   },
+  [IntegrationType.RABBITMQ]: {
+    clientConfiguration: {
+      exchangeName: '',
+      host: '',
+      port: 5672,
+      virtualHost: '',
+      username: '',
+      password: '',
+      downlinkTopic: '',
+      queues: 'my-queue',
+      routingKeys: 'my-routing-key',
+      connectionTimeout: 60000,
+      handshakeTimeout: 10000,
+      pollPeriod: 5000,
+    },
+    ignoreNonPrimitiveFields: ['otherProperties'],
+    fieldValidators: {
+      'clientConfiguration.host': [Validators.required],
+      'clientConfiguration.port': [Validators.required],
+      'clientConfiguration.queues': [Validators.required],
+      'clientConfiguration.topics': [Validators.required]
+    }
+  },
 
   [IntegrationType.APACHE_PULSAR]: {
     clientConfiguration: {
