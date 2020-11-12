@@ -28,28 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.http.loriot.credentials;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.support.HttpRequestWrapper;
+import org.springframework.web.client.RestTemplate;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false), AZURE_IOT_HUB(true), APACHE_PULSAR(false), LORIOT(false);
+@Data
+public class LoriotTokenCredentials implements LoriotCredentials {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
+    private String token;
+
+    @Override
+    public void setInterceptor(RestTemplate restTemplate, String baseUrl) {
+        restTemplate.getInterceptors().add((request, body, execution) -> {
+            HttpRequest wrapper = new HttpRequestWrapper(request);
+            wrapper.getHeaders().setBearerAuth(token);
+            return execution.execute(wrapper, body);
+        });
     }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
 }

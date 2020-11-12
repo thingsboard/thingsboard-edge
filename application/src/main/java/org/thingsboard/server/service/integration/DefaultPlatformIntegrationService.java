@@ -65,6 +65,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
@@ -962,6 +963,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         switch (integration.getType()) {
             case HTTP:
                 return new BasicHttpIntegration();
+            case LORIOT:
+                return new LoriotIntegration();
             case SIGFOX:
                 return new SigFoxIntegration();
             case OCEANCONNECT:

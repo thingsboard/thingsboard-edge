@@ -114,6 +114,115 @@
                     integration.max-time-diff-in-seconds-required</mat-error>
             </mat-form-field>
         </section>
+
+      <section *ngIf="integrationType === integrationTypes.LORIOT">
+        <section class="security">
+          <mat-checkbox [aria-label]="'integration.enable-security' | translate" formControlName="enableSecurity">
+            {{ 'integration.enable-security' | translate }}
+          </mat-checkbox>
+          <mat-accordion [fxShow]="form.get('enableSecurity').value" class="tb-integration-panel-group header-filters">
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title translate>integration.headers-filter</mat-panel-title>
+              </mat-expansion-panel-header>
+              <tb-key-val-map noDataText="integration.no-headers-filter" keyPlaceholderText="integration.header"
+                              formControlName="headersFilter" singlePredefinedKey="Authorization"></tb-key-val-map>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </section>
+        <div fxLayout="row" fxLayout.xs="column">
+          <mat-checkbox fxFlex formControlName="createLoriotOutput">
+            {{ 'integration.create-loriot-output' | translate }}
+          </mat-checkbox>
+          <mat-checkbox fxFlex formControlName="sendDownlink">
+            {{ 'integration.send-downlink' | translate }}
+          </mat-checkbox>
+        </div>
+        <div *ngIf="form.get('createLoriotOutput').value || form.get('sendDownlink').value">
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.server</mat-label>
+            <input required matInput formControlName="server">
+            <mat-error translate *ngIf="form.get('server').hasError('required')">
+              integration.server-required
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.app-id</mat-label>
+            <input required matInput formControlName="appId">
+            <mat-error translate *ngIf="form.get('appId').hasError('required')">
+              integration.app-id-required
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <div *ngIf="form.get('createLoriotOutput').value">
+          <mat-accordion class="tb-integration-panel-group">
+            <mat-expansion-panel id="expansion-panel">
+              <mat-expansion-panel-header fxFlex>
+                <mat-panel-title translate>integration.credentials</mat-panel-title>
+                <mat-panel-description>
+                  {{ loriotCredentialTypes[form.get('credentials.type').value]?.name | translate }}
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <div formGroupName="credentials">
+                <mat-form-field class="mat-block">
+                  <mat-label translate>integration.credentials-type</mat-label>
+                  <mat-select required formControlName="type">
+                    <mat-option *ngFor="let credentialsType of loriotCredentialTypes | keyvalue"
+                                [value]="credentialsType?.value.value">
+                      {{credentialsType?.value.name | translate}}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error translate *ngIf="form.get('credentials.type')?.hasError('required')">
+                    integration.credentials-type-required</mat-error>
+                </mat-form-field>
+                <section *ngIf="form.get('credentials.type').value === loriotCredentialTypes.basic.value">
+                  <mat-form-field class="mat-block">
+                    <mat-label translate>integration.email</mat-label>
+                    <input matInput required formControlName="email">
+                    <mat-error translate *ngIf="form.get('credentials.email').hasError('required')">
+                      integration.email-required</mat-error>
+                  </mat-form-field>
+                  <mat-form-field class="mat-block">
+                    <mat-label translate>integration.password</mat-label>
+                    <input matInput type="password" required formControlName="password" autocomplete="new-password">
+                    <mat-error translate *ngIf="form.get('credentials.password').hasError('required')">
+                      integration.password-required
+                    </mat-error>
+                  </mat-form-field>
+                </section>
+                <section
+                  *ngIf="form.get('credentials.type').value === loriotCredentialTypes.token.value"
+                  class="dropdown-section">
+                  <mat-form-field class="mat-block">
+                    <mat-label translate>integration.token</mat-label>
+                    <input required matInput type="password" formControlName="token" autocomplete="new-password">
+                    <mat-error translate *ngIf="form.get('credentials.token').hasError('required')">
+                      integration.token-required
+                    </mat-error>
+                  </mat-form-field>
+                </section>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+        <div *ngIf="form.get('sendDownlink').value">
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.downlink-url</mat-label>
+            <input required matInput formControlName="loriotDownlinkUrl">
+            <mat-error translate *ngIf="form.get('loriotDownlinkUrl').hasError('required')">
+              integration.downlink-url-required
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.app-token</mat-label>
+            <input required matInput formControlName="token" type="password" autocomplete="new-password" >
+            <mat-error translate *ngIf="form.get('token').hasError('required')">
+              integration.token-required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </section>
+
     </fieldset>
     <div fxLayout="row" fxLayoutGap="8px">
         <mat-form-field class="mat-block" fxFlex>

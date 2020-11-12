@@ -28,28 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.integration.http.loriot.credentials;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.springframework.web.client.RestTemplate;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false), AZURE_IOT_HUB(true), APACHE_PULSAR(false), LORIOT(false);
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = LoriotBasicCredentials.class, name = "basic"),
+        @JsonSubTypes.Type(value = LoriotTokenCredentials.class, name = "token")})
+@JsonIgnoreProperties(ignoreUnknown = true)
+public interface LoriotCredentials {
+    String AUTH_HEADER_PARAM = "Authorization";
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+    void setInterceptor(RestTemplate restTemplate, String baseUrl);
 }
