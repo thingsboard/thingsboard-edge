@@ -477,6 +477,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String entityTypeStr;
             if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
                 entityTypeStr = "e.entity_type";
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
+                entityTypeStr = "'ENTITY_GROUP'";
             } else {
                 entityTypeStr = "'" + ctx.getEntityType().name() + "'";
             }

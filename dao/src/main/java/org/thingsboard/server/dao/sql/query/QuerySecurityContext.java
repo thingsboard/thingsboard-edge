@@ -57,7 +57,7 @@ public class QuerySecurityContext {
     private final TenantId tenantId;
     @Getter
     private final CustomerId customerId;
-    @Getter
+
     private final EntityType entityType;
 
     private final MergedUserPermissions userPermissions;
