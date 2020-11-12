@@ -175,6 +175,14 @@ export class MenuService {
     const pages: Array<MenuSection> = [
       {
         id: guid(),
+        name: 'admin.general',
+        type: 'link',
+        path: '/settings/general',
+        icon: 'settings_applications',
+        disabled: disabledItems.indexOf('general') > -1
+      },
+      {
+        id: guid(),
         name: 'admin.outgoing-mail',
         type: 'link',
         path: '/settings/outgoing-mail',
@@ -288,6 +296,12 @@ export class MenuService {
       {
         name: 'admin.system-settings',
         places: [
+          {
+            name: 'admin.general',
+            icon: 'settings_applications',
+            path: '/settings/general',
+            disabled: disabledItems.indexOf('general') > -1
+          },
           {
             name: 'admin.outgoing-mail',
             icon: 'mail',
