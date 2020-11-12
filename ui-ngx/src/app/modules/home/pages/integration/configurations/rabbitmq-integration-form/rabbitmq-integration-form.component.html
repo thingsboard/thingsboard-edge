@@ -31,70 +31,73 @@
 
 -->
 <section [formGroup]="form" fxLayout="column">
-    <fieldset>
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex="60" class="mat-block">
-          <mat-label translate>integration.host</mat-label>
-          <input matInput required formControlName="host">
-          <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field fxFlex="40" class="mat-block">
-          <mat-label translate>integration.port</mat-label>
-          <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
-          <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
-          </mat-error>
-          <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
-          <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
-        </mat-form-field>
-      </div>
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex="60" class="mat-block">
-          <mat-label translate>integration.username</mat-label>
-          <input matInput formControlName="username">
-        </mat-form-field>
-        <mat-form-field fxFlex="40" class="mat-block">
-          <mat-label translate>integration.password</mat-label>
-          <input matInput formControlName="password" type="password" autocomplete="new-password">
-        </mat-form-field>
-      </div>
-        <mat-form-field class="mat-block">
-          <mat-label translate>integration.queues</mat-label>
-          <input matInput formControlName="queues" required>
-          <mat-error translate *ngIf="form.get('queues').hasError('required')">integration.queues-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field class="mat-block">
-          <mat-label translate>integration.routing-keys</mat-label>
-          <input matInput formControlName="routingKeys" required>
-          <mat-error translate *ngIf="form.get('routingKeys').hasError('required')">integration.routing-keys-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field class="mat-block">
-          <mat-label translate>integration.downlink-topic</mat-label>
-          <input matInput formControlName="downlinkTopic">
-        </mat-form-field>
+  <fieldset>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-form-field fxFlex="60" class="mat-block">
+        <mat-label translate>integration.host</mat-label>
+        <input matInput required formControlName="host">
+        <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex="40" class="mat-block">
+        <mat-label translate>integration.port</mat-label>
+        <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
+        <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
+        </mat-error>
+        <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
+        <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
+      </mat-form-field>
+    </div>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-form-field fxFlex="60" class="mat-block">
+        <mat-label translate>integration.username</mat-label>
+        <input matInput formControlName="username" autocomplete="new-username">
+      </mat-form-field>
+      <mat-form-field fxFlex="40" class="mat-block">
+        <mat-label translate>integration.password</mat-label>
+        <input matInput formControlName="password" type="password" autocomplete="new-password">
+      </mat-form-field>
+    </div>
       <mat-form-field class="mat-block">
-        <mat-label translate>integration.exchange-name</mat-label>
-        <input matInput formControlName="exchangeName">
+        <mat-label translate>integration.queues</mat-label>
+        <input matInput formControlName="queues" required>
+        <mat-error translate *ngIf="form.get('queues').hasError('required')">integration.queues-required
+        </mat-error>
       </mat-form-field>
       <mat-form-field class="mat-block">
-        <mat-label translate>integration.virtual-host</mat-label>
-        <input matInput formControlName="virtualHost">
+        <mat-label translate>integration.routing-keys</mat-label>
+        <input matInput formControlName="routingKeys" required>
+        <mat-error translate *ngIf="form.get('routingKeys').hasError('required')">integration.routing-keys-required
+        </mat-error>
       </mat-form-field>
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex="40"  class="mat-block">
-            <mat-label translate>integration.connection-timeout</mat-label>
-            <input matInput type="number" formControlName="connectionTimeout" step="1" min="0">
-        </mat-form-field>
-        <mat-form-field fxFlex="40" class="mat-block">
-            <mat-label translate>integration.handshake-timeout</mat-label>
-            <input matInput type="number" formControlName="handshakeTimeout" step="1" min ="0">
-        </mat-form-field>
-        <mat-form-field fxFlex="40" class="mat-block">
-          <mat-label translate>integration.poll-interval</mat-label>
-          <input matInput type="number" formControlName="pollPeriod" step="1" min="0">
-        </mat-form-field>
-      </div>
-    </fieldset>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.downlink-topic</mat-label>
+        <input matInput formControlName="downlinkTopic">
+      </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.exchange-name</mat-label>
+      <input matInput formControlName="exchangeName">
+    </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.virtual-host</mat-label>
+      <input matInput formControlName="virtualHost">
+    </mat-form-field>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-form-field fxFlex="40"  class="mat-block">
+          <mat-label translate>integration.connection-timeout</mat-label>
+          <input matInput type="number" formControlName="connectionTimeout" step="1" min="0">
+          <mat-error translate *ngIf="form.get('connectionTimeout').hasError('min')">integration.connection-timeout-min</mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex="40" class="mat-block">
+          <mat-label translate>integration.handshake-timeout</mat-label>
+          <input matInput type="number" formControlName="handshakeTimeout" step="1" min ="0">
+          <mat-error translate *ngIf="form.get('handshakeTimeout').hasError('min')">integration.handshake-timeout-min</mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex="40" class="mat-block">
+        <mat-label translate>integration.rabbit-mq-poll-interval</mat-label>
+        <input matInput type="number" formControlName="pollPeriod" step="1" min="0">
+        <mat-error translate *ngIf="form.get('pollPeriod').hasError('min')">integration.rabbit-mq-poll-interval-min</mat-error>
+      </mat-form-field>
+    </div>
+  </fieldset>
 </section>
