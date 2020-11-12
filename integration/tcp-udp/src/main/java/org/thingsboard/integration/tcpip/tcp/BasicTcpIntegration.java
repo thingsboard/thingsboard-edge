@@ -45,14 +45,23 @@ import io.netty.handler.codec.json.JsonObjectDecoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.DownlinkData;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
+import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j

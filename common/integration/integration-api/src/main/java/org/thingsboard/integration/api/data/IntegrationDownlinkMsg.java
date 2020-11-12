@@ -50,4 +50,6 @@ public interface IntegrationDownlinkMsg extends Serializable {
 
     TbMsg getTbMsg();
 
+    String getEntityName();
+
 }
