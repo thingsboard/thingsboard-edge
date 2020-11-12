@@ -181,6 +181,10 @@
         <tb-kafka-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-kafka-integration-form>
       </section>
+      <section *ngIf="integrationType === integrationTypes.RABBITMQ">
+        <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        </tb-rabbitmq-integration-form>
+      </section>
       <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
         <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-pulsar-integration-form>
