@@ -594,9 +594,9 @@ export const templates = {
     ignoreNonPrimitiveFields: ['otherProperties'],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
-      'clientConfiguration.port': [Validators.required],
+      'clientConfiguration.port': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.queues': [Validators.required],
-      'clientConfiguration.topics': [Validators.required]
+      'clientConfiguration.routingKeys': [Validators.required]
     }
   },
 
