@@ -30,48 +30,61 @@
  */
 package org.thingsboard.server.service.queue;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.RuleNodeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.RuleEngineException;
+import lombok.Getter;
 import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
-import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Slf4j
-public class TbMsgPackCallback implements TbMsgCallback {
-    private final UUID id;
-    private final TenantId tenantId;
-    private final TbMsgPackProcessingContext ctx;
+public class TbRuleNodeProfilerInfo {
+    @Getter
+    private final UUID ruleNodeId;
+    @Getter
+    private final String label;
+    private AtomicInteger executionCount = new AtomicInteger(0);
+    private AtomicLong executionTime = new AtomicLong(0);
+    private AtomicLong maxExecutionTime = new AtomicLong(0);
 
-    public TbMsgPackCallback(UUID id, TenantId tenantId, TbMsgPackProcessingContext ctx) {
-        this.id = id;
-        this.tenantId = tenantId;
-        this.ctx = ctx;
+    public TbRuleNodeProfilerInfo(RuleNodeInfo ruleNodeInfo) {
+        this.ruleNodeId = ruleNodeInfo.getRuleNodeId().getId();
+        this.label = ruleNodeInfo.toString();
     }
 
-    @Override
-    public void onSuccess() {
-        log.trace("[{}] ON SUCCESS", id);
-        ctx.onSuccess(id);
+    public TbRuleNodeProfilerInfo(UUID ruleNodeId) {
+        this.ruleNodeId = ruleNodeId;
+        this.label = "";
     }
 
-    @Override
-    public void onFailure(RuleEngineException e) {
-        log.trace("[{}] ON FAILURE", id, e);
-        ctx.onFailure(tenantId, id, e);
+    public void record(long processingTime) {
+        executionCount.incrementAndGet();
+        executionTime.addAndGet(processingTime);
+        while (true) {
+            long value = maxExecutionTime.get();
+            if (value >= processingTime) {
+                break;
+            }
+            if (maxExecutionTime.compareAndSet(value, processingTime)) {
+                break;
+            }
+        }
     }
 
-    @Override
-    public void onProcessingStart(RuleNodeInfo ruleNodeInfo) {
-        log.trace("[{}] ON PROCESSING START: {}", id, ruleNodeInfo);
-        ctx.onProcessingStart(id, ruleNodeInfo);
+    int getExecutionCount() {
+        return executionCount.get();
     }
 
-    @Override
-    public void onProcessingEnd(RuleNodeId ruleNodeId) {
-        log.trace("[{}] ON PROCESSING END: {}", id, ruleNodeId);
-        ctx.onProcessingEnd(id, ruleNodeId);
+    long getMaxExecutionTime() {
+        return maxExecutionTime.get();
     }
+
+    double getAvgExecutionTime() {
+        double executionCnt = (double) executionCount.get();
+        if (executionCnt > 0) {
+            return executionTime.get() / executionCnt;
+        } else {
+            return 0.0;
+        }
+    }
+
 }

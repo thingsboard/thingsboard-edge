@@ -188,7 +188,6 @@ public abstract class AbstractControllerTest {
                     .apply(springSecurity()).build();
         }
         loginSysAdmin();
-
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_TENANT_NAME);
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);

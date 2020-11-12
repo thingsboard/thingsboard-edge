@@ -142,7 +142,13 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         log.trace("[{}] Processing msg: {}", sessionId, msg);
         try {
             if (msg instanceof MqttMessage) {
-                processMqttMsg(ctx, (MqttMessage) msg);
+                MqttMessage message = (MqttMessage) msg;
+                if (message.decoderResult().isSuccess()) {
+                    processMqttMsg(ctx, message);
+                } else {
+                    log.error("[{}] Message processing failed: {}", sessionId, message.decoderResult().cause().getMessage());
+                    ctx.close();
+                }
             } else {
                 ctx.close();
             }
@@ -410,6 +416,9 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     private void processX509CertConnect(ChannelHandlerContext ctx, X509Certificate cert) {
         try {
+            if(!context.isSkipValidityCheckForClientCert()){
+                cert.checkValidity();
+            }
             String strCert = SslUtil.getX509CertificateString(cert);
             String sha3Hash = EncryptionUtil.getSha3Hash(strCert);
             transportService.process(ValidateDeviceX509CertRequestMsg.newBuilder().setHash(sha3Hash).build(),

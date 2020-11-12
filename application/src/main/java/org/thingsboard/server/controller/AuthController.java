@@ -200,7 +200,7 @@ public class AuthController extends BaseController {
             accessControlService.checkPermission(securityUser, Resource.PROFILE, Operation.WRITE);
 
             userCredentials = userService.requestPasswordReset(TenantId.SYS_TENANT_ID, email);
-            String baseUrl = MiscUtils.constructBaseUrl(request);
+            String baseUrl = systemSecurityService.getBaseUrl(user.getTenantId(), user.getCustomerId(), request);
             String resetUrl = String.format("%s/api/noauth/resetPassword?resetToken=%s", baseUrl,
                     userCredentials.getResetToken());
             mailService.sendResetPasswordEmail(user.getTenantId(), resetUrl, email);
@@ -247,7 +247,7 @@ public class AuthController extends BaseController {
             User user = userService.findUserById(TenantId.SYS_TENANT_ID, credentials.getUserId());
             UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, getMergedUserPermissions(user, false));
-            String baseUrl = MiscUtils.constructBaseUrl(request);
+            String baseUrl = systemSecurityService.getBaseUrl(user.getTenantId(), user.getCustomerId(), request);
             String loginUrl = String.format("%s/login", baseUrl);
             String email = user.getEmail();
 
@@ -294,7 +294,7 @@ public class AuthController extends BaseController {
                 User user = userService.findUserById(TenantId.SYS_TENANT_ID, userCredentials.getUserId());
                 UserPrincipal principal = new UserPrincipal(UserPrincipal.Type.USER_NAME, user.getEmail());
                 SecurityUser securityUser = new SecurityUser(user, userCredentials.isEnabled(), principal, getMergedUserPermissions(user, false));
-                String baseUrl = MiscUtils.constructBaseUrl(request);
+                String baseUrl = systemSecurityService.getBaseUrl(user.getTenantId(), user.getCustomerId(), request);
                 String loginUrl = String.format("%s/login", baseUrl);
                 String email = user.getEmail();
                 mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
