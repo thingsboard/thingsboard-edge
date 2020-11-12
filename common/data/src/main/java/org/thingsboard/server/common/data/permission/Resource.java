@@ -72,7 +72,8 @@ public enum Resource {
     ROLE(EntityType.ROLE),
     GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     WHITE_LABELING(),
-    AUDIT_LOG();
+    AUDIT_LOG(),
+    API_USAGE_STATE(EntityType.API_USAGE_STATE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -114,6 +115,7 @@ public enum Resource {
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.API_USAGE_STATE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
@@ -157,6 +159,7 @@ public enum Resource {
                 Resource.ALARM,
                 Resource.DEVICE,
                 Resource.DEVICE_PROFILE,
+                Resource.API_USAGE_STATE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
                 Resource.CUSTOMER,

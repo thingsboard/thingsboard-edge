@@ -109,7 +109,7 @@ export class Marker {
     }
 
     updateMarkerPosition(position: L.LatLng) {
-      if (!this.location.equals(position)) {
+      if (!this.leafletMarker.getLatLng().equals(position)) {
         this.location = position;
         this.leafletMarker.setLatLng(position);
       }

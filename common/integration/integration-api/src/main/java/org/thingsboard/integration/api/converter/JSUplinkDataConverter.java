@@ -50,7 +50,7 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         String decoder = configuration.getConfiguration().get("decoder").asText();
-        this.evaluator = new JSUplinkEvaluator(jsInvokeService,  configuration.getId(), decoder);
+        this.evaluator = new JSUplinkEvaluator(configuration.getTenantId(), jsInvokeService,  configuration.getId(), decoder);
     }
 
     @Override

@@ -41,18 +41,19 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -80,6 +81,10 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
 
     @Value("${js.local.js_thread_pool_size:50}")
     private int jsExecutorThreadPoolSize;
+
+    public AbstractNashornJsInvokeService(Optional<TbApiUsageStateClient> apiUsageStateClient, Optional<TbApiUsageReportClient> apiUsageReportClient) {
+        super(apiUsageStateClient, apiUsageReportClient);
+    }
 
     @Scheduled(fixedDelayString = "${js.local.stats.print_interval_ms:10000}")
     public void printStats() {

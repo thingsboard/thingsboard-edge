@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.common.msg.EncryptionUtil;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.transport.SessionMsgListener;
 import org.thingsboard.server.common.transport.TransportService;
 import org.thingsboard.server.common.transport.TransportServiceCallback;
@@ -86,6 +87,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMs
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateBasicMqttCredRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceX509CertRequestMsg;
+import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.transport.mqtt.adaptors.MqttTransportAdaptor;
 import org.thingsboard.server.transport.mqtt.session.DeviceSessionCtx;
 import org.thingsboard.server.transport.mqtt.session.GatewaySessionHandler;
@@ -126,6 +128,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     private final UUID sessionId;
     private final MqttTransportContext context;
     private final TransportService transportService;
+    private final SchedulerComponent scheduler;
     private final SslHandler sslHandler;
     private final ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap;
 
@@ -137,6 +140,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         this.sessionId = UUID.randomUUID();
         this.context = context;
         this.transportService = context.getTransportService();
+        this.scheduler = context.getScheduler();
         this.sslHandler = sslHandler;
         this.mqttQoSMap = new ConcurrentHashMap<>();
         this.deviceSessionCtx = new DeviceSessionCtx(sessionId, mqttQoSMap, context);
@@ -147,7 +151,13 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         log.trace("[{}] Processing msg: {}", sessionId, msg);
         try {
             if (msg instanceof MqttMessage) {
-                processMqttMsg(ctx, (MqttMessage) msg);
+                MqttMessage message = (MqttMessage) msg;
+                if (message.decoderResult().isSuccess()) {
+                    processMqttMsg(ctx, message);
+                } else {
+                    log.error("[{}] Message processing failed: {}", sessionId, message.decoderResult().cause().getMessage());
+                    ctx.close();
+                }
             } else {
                 ctx.close();
             }
@@ -362,7 +372,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 } else {
                     deviceSessionCtx.getContext().getProtoMqttAdaptor().convertToPublish(deviceSessionCtx, provisionResponseMsg).ifPresent(deviceSessionCtx.getChannel()::writeAndFlush);
                 }
-                transportService.getSchedulerExecutor().schedule(() -> processDisconnect(ctx), 60, TimeUnit.SECONDS);
+                scheduler.schedule(() -> processDisconnect(ctx), 60, TimeUnit.SECONDS);
             } catch (Exception e) {
                 log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
             }
@@ -489,8 +499,10 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
         String userName = msg.payload().userName();
         log.info("[{}] Processing connect msg for client with user name: {}!", sessionId, userName);
         ValidateBasicMqttCredRequestMsg.Builder request = ValidateBasicMqttCredRequestMsg.newBuilder()
-                .setClientId(msg.payload().clientIdentifier())
-                .setUserName(userName);
+                .setClientId(msg.payload().clientIdentifier());
+        if (userName != null) {
+            request.setUserName(userName);
+        }
         String password = msg.payload().password();
         if (password != null) {
             request.setPassword(password);
@@ -656,7 +668,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
                 @Override
                 public void onError(Throwable e) {
-                    log.warn("[{}] Failed to submit session event", sessionId, e);
+                    if (e instanceof TbRateLimitsException) {
+                        log.trace("[{}] Failed to submit session event", sessionId, e);
+                    } else {
+                        log.warn("[{}] Failed to submit session event", sessionId, e);
+                    }
                     ctx.writeAndFlush(createMqttConnAckMsg(MqttConnectReturnCode.CONNECTION_REFUSED_SERVER_UNAVAILABLE));
                     ctx.close();
                 }

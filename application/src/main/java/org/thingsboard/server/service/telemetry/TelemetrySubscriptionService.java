@@ -37,6 +37,6 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 /**
  * Created by ashvayka on 27.03.18.
  */
-public interface TelemetrySubscriptionService extends RuleEngineTelemetryService, ApplicationListener<PartitionChangeEvent> {
+public interface TelemetrySubscriptionService extends InternalTelemetryService, ApplicationListener<PartitionChangeEvent> {
 
 }

@@ -28,62 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-web-camera {
-  height: 100%;
+package org.thingsboard.server.queue.common;
 
-  &__last-photo {
-    width: 100%;
-    margin: 5px 0;
-    text-align: center;
-    border: solid 1px;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 
-    &_text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-top: -.625em;
-      transform: translate(-50%, -50%);
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class MultipleTbQueueCallbackWrapper implements TbQueueCallback {
+
+    private final AtomicInteger tbQueueCallbackCount;
+    private final TbQueueCallback callback;
+
+    public MultipleTbQueueCallbackWrapper(int tbQueueCallbackCount, TbQueueCallback callback) {
+        this.tbQueueCallbackCount = new AtomicInteger(tbQueueCallbackCount);
+        this.callback = callback;
     }
 
-    &_img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-  }
-
-  .camera-container{
-    height: 100%;
-  }
-
-  .camera {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-
-    .camera-stream {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+    @Override
+    public void onSuccess(TbQueueMsgMetadata metadata) {
+        if (tbQueueCallbackCount.decrementAndGet() <= 0) {
+            callback.onSuccess(metadata);
+        }
     }
 
-    .camera-controls {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      padding: 0 5px 5px;
-
-      .mat-button-base{
-        margin: 6px 8px;
-      }
+    @Override
+    public void onFailure(Throwable t) {
+        callback.onFailure(new RuleEngineException(t.getMessage()));
     }
-  }
-
-  .message-text {
-    font-size: 18px;
-    color: #a0a0a0;
-    text-align: center;
-  }
 }

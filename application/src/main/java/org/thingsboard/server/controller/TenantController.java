@@ -113,6 +113,8 @@ public class TenantController extends BaseController {
             }
             tenantProfileCache.evict(tenant.getId());
             tbClusterService.onTenantChange(tenant, null);
+            tbClusterService.onEntityStateChange(tenant.getId(), tenant.getId(),
+                    newTenant ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return tenant;
         } catch (Exception e) {
             throw handleException(e);

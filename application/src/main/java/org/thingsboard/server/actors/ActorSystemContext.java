@@ -49,7 +49,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.DataConstants;
@@ -88,6 +87,8 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
@@ -97,7 +98,7 @@ import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.profile.TbTenantProfileCache;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
@@ -132,6 +133,14 @@ public class ActorSystemContext {
     public ConcurrentMap<TenantId, DebugTbRateLimits> getDebugPerTenantLimits() {
         return debugPerTenantLimits;
     }
+
+    @Autowired
+    @Getter
+    private TbApiUsageStateService apiUsageStateService;
+
+    @Autowired
+    @Getter
+    private TbApiUsageReportClient apiUsageClient;
 
     @Autowired
     @Getter

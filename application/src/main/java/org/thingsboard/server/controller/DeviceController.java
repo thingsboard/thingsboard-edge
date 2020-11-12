@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -122,6 +123,8 @@ public class DeviceController extends BaseController {
 
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
+            tbClusterService.onEntityStateChange(savedDevice.getTenantId(), savedDevice.getId(),
+                    device.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
             if (device.getId() == null) {
                 deviceStateService.onDeviceAdded(savedDevice);

@@ -30,28 +30,12 @@
  */
 package org.thingsboard.server.common.data;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+public enum ApiUsageStateValue {
 
-import java.util.HashMap;
-import java.util.Map;
+    ENABLED, WARNING, DISABLED;
 
-@Data
-public class TenantProfileData {
 
-    @JsonIgnore
-    private Map<String, Object> properties = new HashMap<>();
-
-    @JsonAnyGetter
-    public Map<String, Object> properties() {
-        return this.properties;
+    public static ApiUsageStateValue toMoreRestricted(ApiUsageStateValue a, ApiUsageStateValue b) {
+        return a.ordinal() > b.ordinal() ? a : b;
     }
-
-    @JsonAnySetter
-    public void put(String name, Object value) {
-        this.properties.put(name, value);
-    }
-
 }

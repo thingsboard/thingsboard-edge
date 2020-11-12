@@ -28,47 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.script;
+package org.thingsboard.server.queue.provider;
 
-import org.thingsboard.js.api.AbstractNashornJsInvokeService;
+import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-public class TestNashornJsInvokeService extends AbstractNashornJsInvokeService {
+public interface TbUsageStatsClientQueueFactory {
 
-    private boolean useJsSandbox;
-    private final int monitorThreadPoolSize;
-    private final long maxCpuTime;
-    private final int maxErrors;
+    TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer();
 
-    public TestNashornJsInvokeService(boolean useJsSandbox, int monitorThreadPoolSize, long maxCpuTime, int maxErrors) {
-        this.useJsSandbox = useJsSandbox;
-        this.monitorThreadPoolSize = monitorThreadPoolSize;
-        this.maxCpuTime = maxCpuTime;
-        this.maxErrors = maxErrors;
-        init();
-    }
-
-    @Override
-    protected boolean useJsSandbox() {
-        return useJsSandbox;
-    }
-
-    @Override
-    protected int getMonitorThreadPoolSize() {
-        return monitorThreadPoolSize;
-    }
-
-    @Override
-    protected long getMaxCpuTime() {
-        return maxCpuTime;
-    }
-
-    @Override
-    protected int getMaxErrors() {
-        return maxErrors;
-    }
-
-    @Override
-    protected long getMaxBlacklistDuration() {
-        return 100000;
-    }
 }

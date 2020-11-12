@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.security.auth.oauth2;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -51,7 +52,12 @@ import java.nio.charset.StandardCharsets;
 @ConditionalOnProperty(prefix = "security.oauth2", value = "enabled", havingValue = "true")
 public class Oauth2AuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    private SystemSecurityService systemSecurityService;
+    private final SystemSecurityService systemSecurityService;
+
+    @Autowired
+    public Oauth2AuthenticationFailureHandler(SystemSecurityService systemSecurityService) {
+        this.systemSecurityService = systemSecurityService;
+    }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,

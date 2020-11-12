@@ -28,35 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.limits;
+package org.thingsboard.server.common.data.query;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@Slf4j
-@Component
-public class DefaultTransportRateLimitFactory implements TransportRateLimitFactory {
-
-    private static final DummyTransportRateLimit ALWAYS_TRUE = new DummyTransportRateLimit();
-
+@Data
+public class ApiUsageStateFilter implements EntityFilter {
     @Override
-    public TransportRateLimit create(TransportRateLimitType type, Object configuration) {
-        if (!StringUtils.isEmpty(configuration)) {
-            try {
-                return new SimpleTransportRateLimit(new TbRateLimits(configuration.toString()), configuration.toString());
-            } catch (Exception e) {
-                log.warn("[{}] Failed to init rate limit with configuration: {}", type, configuration, e);
-                return ALWAYS_TRUE;
-            }
-        } else {
-            return ALWAYS_TRUE;
-        }
+    public EntityFilterType getType() {
+        return EntityFilterType.API_USAGE_STATE;
     }
 
-    @Override
-    public TransportRateLimit createDefault(TransportRateLimitType type) {
-        return ALWAYS_TRUE;
-    }
 }

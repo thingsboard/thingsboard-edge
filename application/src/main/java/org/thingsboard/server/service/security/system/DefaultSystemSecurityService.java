@@ -251,7 +251,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         if (isBaseUrlSet(loginWhiteLabelingParams) && loginWhiteLabelingParams.isProhibitDifferentUrl()) {
             baseUrl = loginWhiteLabelingParams.getBaseUrl();
         } else {
-            baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
+            return getBaseUrl(tenantId, customerId, httpServletRequest);
         }
         return baseUrl;
     }
@@ -260,7 +260,22 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         return loginWhiteLabelingParams != null && StringUtils.isNoneEmpty(loginWhiteLabelingParams.getBaseUrl());
     }
 
+    @Override
+    public String getBaseUrl(TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest) {
+        String baseUrl;
+        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+
+        JsonNode prohibitDifferentUrl = generalSettings.getJsonValue().get("prohibitDifferentUrl");
+
+        if (prohibitDifferentUrl != null && prohibitDifferentUrl.asBoolean()) {
+            baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+        } else {
+            baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
+        }
+        return baseUrl;
+    }
+
     private static boolean isPositiveInteger(Integer val) {
-        return val != null && val.intValue() > 0;
+        return val != null && val > 0;
     }
 }

@@ -28,35 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.limits;
+package org.thingsboard.server.common.stats;
 
-import lombok.Getter;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public enum TransportRateLimitType {
+public interface TbApiUsageStateClient {
 
-    TENANT_MAX_MSGS("transport.tenant.msg", true, true),
-    TENANT_TELEMETRY_MSGS("transport.tenant.telemetry", true, true),
-    TENANT_MAX_DATA_POINTS("transport.tenant.dataPoints", true, false),
-    DEVICE_MAX_MSGS("transport.device.msg", false, true),
-    DEVICE_TELEMETRY_MSGS("transport.device.telemetry", false, true),
-    DEVICE_MAX_DATA_POINTS("transport.device.dataPoints", false, false);
+    ApiUsageState getApiUsageState(TenantId tenantId);
 
-    @Getter
-    private final String configurationKey;
-    @Getter
-    private final boolean tenantLevel;
-    @Getter
-    private final boolean deviceLevel;
-    @Getter
-    private final boolean messageLevel;
-    @Getter
-    private final boolean dataPointLevel;
-
-    TransportRateLimitType(String configurationKey, boolean tenantLevel, boolean messageLevel) {
-        this.configurationKey = configurationKey;
-        this.tenantLevel = tenantLevel;
-        this.deviceLevel = !tenantLevel;
-        this.messageLevel = messageLevel;
-        this.dataPointLevel = !messageLevel;
-    }
 }

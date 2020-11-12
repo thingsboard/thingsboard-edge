@@ -28,22 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.profile;
+package org.thingsboard.server.common.data.tenant.profile;
 
-import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
+import lombok.Data;
 
-public interface TbTenantProfileCache {
+@Data
+public class TenantProfileData {
 
-    TenantProfile get(TenantId tenantId);
-
-    TenantProfile get(TenantProfileId tenantProfileId);
-
-    void put(TenantProfile profile);
-
-    void evict(TenantProfileId id);
-
-    void evict(TenantId id);
+    private TenantProfileConfiguration configuration;
 
 }

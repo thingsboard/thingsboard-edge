@@ -55,7 +55,7 @@ import { Observable } from 'rxjs';
 import { isString } from '@core/utils';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
-interface WebCameraInputWidgetSettings {
+interface PhotoCameraInputWidgetSettings {
   widgetTitle: string;
   imageQuality: number;
   imageFormat: string;
@@ -65,12 +65,12 @@ interface WebCameraInputWidgetSettings {
 
 // @dynamic
 @Component({
-  selector: 'tb-web-camera-widget',
-  templateUrl: './web-camera-input.component.html',
-  styleUrls: ['./web-camera-input.component.scss'],
+  selector: 'tb-photo-camera-widget',
+  templateUrl: './photo-camera-input.component.html',
+  styleUrls: ['./photo-camera-input.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class WebCameraInputWidgetComponent extends PageComponent implements OnInit, OnDestroy {
+export class PhotoCameraInputWidgetComponent extends PageComponent implements OnInit, OnDestroy {
 
   constructor(@Inject(WINDOW) private window: Window,
               protected store: Store<AppState>,
@@ -108,11 +108,11 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
   @Input()
   ctx: WidgetContext;
 
-  @ViewChild('videoStream', {static: true}) videoStreamRef: ElementRef<HTMLVideoElement>;
-  @ViewChild('canvas', {static: true}) canvasRef: ElementRef<HTMLCanvasElement>;
+  @ViewChild('videoStream', {static: false}) videoStreamRef: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvas', {static: false}) canvasRef: ElementRef<HTMLCanvasElement>;
 
   private videoInputsIndex = 0;
-  private settings: WebCameraInputWidgetSettings;
+  private settings: PhotoCameraInputWidgetSettings;
   private datasource: Datasource;
   private width = 640;
   private height = 480;
@@ -121,10 +121,13 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
 
   isEntityDetected = false;
   dataKeyDetected = false;
+  isProtocolHttps = false;
   isCameraSupport = false;
   isDeviceDetect = false;
   isShowCamera = false;
   isPreviewPhoto = false;
+  isHavePermissionCamera = true;
+  isLoading = false;
   singleDevice = true;
   updatePhoto = false;
   previewPhoto: SafeUrl;
@@ -147,7 +150,8 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
   }
 
   ngOnInit(): void {
-    this.ctx.$scope.webCameraInputWidget = this;
+    this.ctx.$scope.photoCameraInputWidget = this;
+    this.isLoading = true;
     this.settings = this.ctx.settings;
     this.datasource = this.ctx.datasources[0];
 
@@ -183,25 +187,33 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
   }
 
   public onDataUpdated() {
-    this.ngZone.run(() => {
-      this.updateWidgetData(this.ctx.defaultSubscription.data);
-      this.ctx.detectChanges();
-    });
+    this.updateWidgetData(this.ctx.defaultSubscription.data);
+    this.ctx.detectChanges();
   }
 
 
   private detectAvailableDevices(): void {
-    if (WebCameraInputWidgetComponent.hasGetUserMedia()) {
-      this.isCameraSupport = true;
-      WebCameraInputWidgetComponent.getAvailableVideoInputs().then((devices) => {
-          this.isDeviceDetect = !!devices.length;
-          this.singleDevice = devices.length < 2;
-          this.availableVideoInputs = devices;
-          this.ctx.detectChanges();
-        }, () => {
-          this.availableVideoInputs = [];
-        }
-      )
+    if (this.window.location.protocol === 'https:' || this.window.location.hostname === 'localhost') {
+      this.isProtocolHttps = true;
+
+      if (PhotoCameraInputWidgetComponent.hasGetUserMedia()) {
+        this.isCameraSupport = true;
+        PhotoCameraInputWidgetComponent.getAvailableVideoInputs().then((devices) => {
+            this.isLoading = false;
+            this.isDeviceDetect = !!devices.length;
+            this.singleDevice = devices.length < 2;
+            this.availableVideoInputs = devices;
+            this.ctx.detectChanges();
+          }, () => {
+            this.isLoading = false;
+            this.availableVideoInputs = [];
+          }
+        );
+      } else {
+        this.isLoading = false;
+      }
+    } else {
+      this.isLoading = false;
     }
   }
 
@@ -221,8 +233,7 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
   }
 
   takePhoto() {
-    this.isShowCamera = true;
-    this.initWebCamera(this.availableVideoInputs[this.videoInputsIndex].deviceId);
+    this.inititedVideoStream(this.availableVideoInputs[this.videoInputsIndex].deviceId, true);
   }
 
   closeCamera() {
@@ -258,13 +269,13 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
       this.closeCamera();
     }, () => {
       this.updatePhoto = false;
-    })
+    });
   }
 
   switchWebCamera() {
     this.videoInputsIndex = (this.videoInputsIndex + 1) % this.availableVideoInputs.length;
     this.stopMediaTracks();
-    this.initWebCamera(this.availableVideoInputs[this.videoInputsIndex].deviceId)
+    this.inititedVideoStream(this.availableVideoInputs[this.videoInputsIndex].deviceId);
   }
 
   createPhoto() {
@@ -272,22 +283,53 @@ export class WebCameraInputWidgetComponent extends PageComponent implements OnIn
     this.canvasElement.height = this.videoHeight;
     this.canvasElement.getContext('2d').drawImage(this.videoElement, 0, 0, this.videoWidth, this.videoHeight);
 
-    const mimeType: string = this.settings.imageFormat ? this.settings.imageFormat : WebCameraInputWidgetComponent.DEFAULT_IMAGE_TYPE;
-    const quality: number = this.settings.imageQuality ? this.settings.imageQuality : WebCameraInputWidgetComponent.DEFAULT_IMAGE_QUALITY;
-    this.previewPhoto = this.sanitizer.bypassSecurityTrustUrl(this.canvasElement.toDataURL(mimeType, quality));
+    const mimeType: string = this.settings.imageFormat ? this.settings.imageFormat : PhotoCameraInputWidgetComponent.DEFAULT_IMAGE_TYPE;
+    const quality: number = this.settings.imageQuality ? this.settings.imageQuality : PhotoCameraInputWidgetComponent.DEFAULT_IMAGE_QUALITY;
+    this.previewPhoto = this.canvasElement.toDataURL(mimeType, quality);
     this.isPreviewPhoto = true;
   }
 
-  private initWebCamera(deviceId?: string) {
+  private inititedVideoStream(deviceId?: string, init = false) {
     if (window.navigator.mediaDevices && window.navigator.mediaDevices.getUserMedia) {
       const videoTrackConstraints = {
         video: {deviceId: deviceId !== '' ? {exact: deviceId} : undefined}
       };
 
       window.navigator.mediaDevices.getUserMedia(videoTrackConstraints).then((stream: MediaStream) => {
+        if (init) {
+          this.isShowCamera = true;
+        }
         this.mediaStream = stream;
         this.videoElement.srcObject = stream;
-      })
+        this.ctx.detectChanges();
+      }, () => {
+        this.isHavePermissionCamera = false;
+      });
     }
+  }
+
+  get textMessage() {
+    if (this.isLoading) {
+      return '';
+    }
+    if (!this.isProtocolHttps) {
+      return 'widgets.input-widgets.enable-https-use-widget';
+    }
+    if (!this.isCameraSupport) {
+      return 'widgets.input-widgets.no-support-web-camera';
+    }
+    if (!this.isEntityDetected) {
+      return 'widgets.input-widgets.no-entity-selected';
+    }
+    if (!this.dataKeyDetected) {
+      return 'widgets.input-widgets.no-datakey-selected';
+    }
+    if (!this.isDeviceDetect) {
+      return 'widgets.input-widgets.no-found-your-camera';
+    }
+    if (!this.isHavePermissionCamera) {
+      return 'widgets.input-widgets.no-permission-camera';
+    }
+    return null;
   }
 }
