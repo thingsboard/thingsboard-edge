@@ -6,6 +6,15 @@ This project provides the build for the ThingsBoard Edge single docker images.
 
 ## Running
 
+Before starting Docker container run following command to create a directory for storing data and change its owner to docker container user.
+To be able to change user, **chown** command is used, which requires sudo permissions (command will request password for a sudo access):
+
+`
+$ mkdir -p ~/.mytb-data && sudo chown -R 799:799 ~/.mytb-data
+` 
+
+**NOTE**: replace directory `~/.mytb-data` with directory you're planning to use on container creation. 
+
 Execute the following command to run this docker directly:
 
 ` 
@@ -27,7 +36,7 @@ TODO: voba - VERIFY FOR WINDOWS
 
 > **NOTE**: **Windows** users should use docker managed volume instead of host's dir. Create docker volume (for ex. `mytb-data`) before executing `docker run` command:
 > ```
-> $ docker create volume mytb-data
+> $ docker volume create mytb-data
 > ```
 > After you can execute docker run command using `mytb-data` volume instead of `~/.mytb-data`.
 > In order to get access to necessary resources from external IP/Host on **Windows** machine, please execute the following commands:

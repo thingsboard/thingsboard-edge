@@ -48,7 +48,7 @@ import java.util.Arrays;
         "org.thingsboard.server.dao",
         "org.thingsboard.js",
         "org.thingsboard.integration",
-        "org.thingsboard.storage"})
+        "org.thingsboard.server.common.stats"})
 public class TbEdgeInstallApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";

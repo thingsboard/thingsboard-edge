@@ -55,7 +55,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 @Component
 @Slf4j
 @PsqlDao

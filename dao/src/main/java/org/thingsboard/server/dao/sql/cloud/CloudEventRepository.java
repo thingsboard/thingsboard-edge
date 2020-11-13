@@ -30,10 +30,28 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
+import org.thingsboard.server.dao.model.sql.EventEntity;
 
-public interface CloudEventRepository extends CrudRepository<CloudEventEntity, String>, JpaSpecificationExecutor<CloudEventEntity> {
+import java.util.UUID;
 
+public interface CloudEventRepository extends PagingAndSortingRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
+
+    @Query("SELECT e FROM CloudEventEntity e WHERE " +
+            "e.tenantId = :tenantId " +
+            "AND (:startTime IS NULL OR e.createdTime >= :startTime) " +
+            "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
+    )
+    Page<CloudEventEntity> findEventsByTenantId(@Param("tenantId") UUID tenantId,
+                                                @Param("startTime") Long startTime,
+                                                @Param("endTime") Long endTime,
+                                                Pageable pageable);
 }

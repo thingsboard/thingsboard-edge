@@ -30,21 +30,21 @@
  */
 package org.thingsboard.server.service.queue;
 
-import lombok.Data;
+import io.micrometer.core.instrument.DistributionSummary;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.service.queue.processing.TbRuleEngineProcessingResult;
-import org.thingsboard.server.service.stats.StatsCounter;
-import org.thingsboard.server.service.stats.StatsCounterFactory;
-import org.thingsboard.server.service.stats.StatsType;
+import org.thingsboard.server.common.stats.StatsCounter;
+import org.thingsboard.server.common.stats.StatsType;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class TbRuleEngineConsumerStats {
@@ -57,6 +57,8 @@ public class TbRuleEngineConsumerStats {
     public static final String FAILED_MSGS = "failedMsgs";
     public static final String SUCCESSFUL_ITERATIONS = "successfulIterations";
     public static final String FAILED_ITERATIONS = "failedIterations";
+
+    private final StatsFactory statsFactory;
 
     private final StatsCounter totalMsgCounter;
     private final StatsCounter successMsgCounter;
@@ -71,22 +73,24 @@ public class TbRuleEngineConsumerStats {
 
     private final List<StatsCounter> counters = new ArrayList<>();
     private final ConcurrentMap<UUID, TbTenantRuleEngineStats> tenantStats = new ConcurrentHashMap<>();
+    private final ConcurrentMap<TenantId, Timer> tenantMsgProcessTimers = new ConcurrentHashMap<>();
     private final ConcurrentMap<TenantId, RuleEngineException> tenantExceptions = new ConcurrentHashMap<>();
 
     private final String queueName;
 
-    public TbRuleEngineConsumerStats(String queueName, StatsCounterFactory counterFactory) {
+    public TbRuleEngineConsumerStats(String queueName, StatsFactory statsFactory) {
         this.queueName = queueName;
+        this.statsFactory = statsFactory;
 
         String statsKey = StatsType.RULE_ENGINE.getName() + "." + queueName;
-        this.totalMsgCounter = counterFactory.createStatsCounter(statsKey, TOTAL_MSGS);
-        this.successMsgCounter = counterFactory.createStatsCounter(statsKey, SUCCESSFUL_MSGS);
-        this.timeoutMsgCounter = counterFactory.createStatsCounter(statsKey, TIMEOUT_MSGS);
-        this.failedMsgCounter = counterFactory.createStatsCounter(statsKey, FAILED_MSGS);
-        this.tmpTimeoutMsgCounter = counterFactory.createStatsCounter(statsKey, TMP_TIMEOUT);
-        this.tmpFailedMsgCounter = counterFactory.createStatsCounter(statsKey, TMP_FAILED);
-        this.successIterationsCounter = counterFactory.createStatsCounter(statsKey, SUCCESSFUL_ITERATIONS);
-        this.failedIterationsCounter = counterFactory.createStatsCounter(statsKey, FAILED_ITERATIONS);
+        this.totalMsgCounter = statsFactory.createStatsCounter(statsKey, TOTAL_MSGS);
+        this.successMsgCounter = statsFactory.createStatsCounter(statsKey, SUCCESSFUL_MSGS);
+        this.timeoutMsgCounter = statsFactory.createStatsCounter(statsKey, TIMEOUT_MSGS);
+        this.failedMsgCounter = statsFactory.createStatsCounter(statsKey, FAILED_MSGS);
+        this.tmpTimeoutMsgCounter = statsFactory.createStatsCounter(statsKey, TMP_TIMEOUT);
+        this.tmpFailedMsgCounter = statsFactory.createStatsCounter(statsKey, TMP_FAILED);
+        this.successIterationsCounter = statsFactory.createStatsCounter(statsKey, SUCCESSFUL_ITERATIONS);
+        this.failedIterationsCounter = statsFactory.createStatsCounter(statsKey, FAILED_ITERATIONS);
 
         counters.add(totalMsgCounter);
         counters.add(successMsgCounter);
@@ -97,6 +101,14 @@ public class TbRuleEngineConsumerStats {
         counters.add(tmpFailedMsgCounter);
         counters.add(successIterationsCounter);
         counters.add(failedIterationsCounter);
+    }
+
+    public Timer getTimer(TenantId tenantId, String status){
+        return tenantMsgProcessTimers.computeIfAbsent(tenantId,
+                id -> statsFactory.createTimer(StatsType.RULE_ENGINE.getName() + "." + queueName,
+                        "tenantId", tenantId.getId().toString(),
+                        "status", status
+                ));
     }
 
     public void log(TbRuleEngineProcessingResult msg, boolean finalIterationForPack) {

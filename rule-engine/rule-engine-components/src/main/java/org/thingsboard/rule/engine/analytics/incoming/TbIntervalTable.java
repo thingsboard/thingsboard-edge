@@ -57,7 +57,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -86,14 +85,16 @@ class TbIntervalTable {
         this.ctx = ctx;
         this.gsonParser = gson;
         this.aggIntervalType = config.getAggIntervalType() == null ? AggIntervalType.CUSTOM : config.getAggIntervalType();
-        this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
+        long tmpIntervalDuration;
         if (this.aggIntervalType == AggIntervalType.CUSTOM) {
             this.tz = ZoneId.systemDefault();
-            this.intervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
+            tmpIntervalDuration = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue());
         } else {
             this.tz = ZoneId.of(config.getTimeZoneId());
-            this.intervalDuration = 0L;
+            tmpIntervalDuration = getDefaultIntervalDurationByAggType();
         }
+        this.intervalDuration = Math.max(tmpIntervalDuration, TimeUnit.MINUTES.toMillis(1));
+        this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
         this.function = MathFunction.valueOf(config.getMathFunction());
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
@@ -265,6 +266,22 @@ class TbIntervalTable {
                 default:
                     return (ts / intervalDuration) * intervalDuration;
             }
+        }
+    }
+
+    private long getDefaultIntervalDurationByAggType() {
+        switch (aggIntervalType) {
+            case HOUR:
+                return TimeUnit.HOURS.toMillis(1);
+            case DAY:
+                return TimeUnit.DAYS.toMillis(1);
+            case WEEK:
+                return TimeUnit.DAYS.toMillis(7);
+            case MONTH:
+                return TimeUnit.DAYS.toMillis(30);
+            case YEAR:
+            default:
+                return TimeUnit.HOURS.toMillis(365);
         }
     }
 

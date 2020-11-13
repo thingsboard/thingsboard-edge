@@ -56,7 +56,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -158,7 +158,7 @@ public abstract class BaseProcessor {
     protected DbCallbackExecutorService dbCallbackExecutor;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
-        TimePageData<AuditLog> auditLogs = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, new TimePageLink(Integer.MAX_VALUE));
+        PageData<AuditLog> auditLogs = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, new TimePageLink(Integer.MAX_VALUE));
         if (auditLogs != null && auditLogs.getData() != null && !auditLogs.getData().isEmpty()) {
             for (AuditLog auditLogEntry : auditLogs.getData()) {
                 auditLogEntry.setEntityId(destination.getId());
@@ -182,7 +182,7 @@ public abstract class BaseProcessor {
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
-        TimePageData<Event> events = eventService.findEvents(tenantId, origin.getId(), new TimePageLink(Integer.MAX_VALUE));
+        PageData<Event> events = eventService.findEvents(tenantId, origin.getId(), new TimePageLink(Integer.MAX_VALUE));
         if (events != null && events.getData() != null && !events.getData().isEmpty()) {
             for (Event event : events.getData()) {
                 event.setEntityId(destination.getId());

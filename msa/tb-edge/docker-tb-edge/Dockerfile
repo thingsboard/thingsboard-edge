@@ -77,9 +77,11 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-db.sh /usr/bin \
     && mv /tmp/stop-db.sh /usr/bin
 
-RUN dpkg -i /tmp/tb-web-report.deb
-
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
+
+RUN yes | dpkg -i /tmp/tb-web-report.deb
+RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
+RUN rm /tmp/${pkg.name}.deb /tmp/tb-web-report.deb
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
@@ -95,6 +97,18 @@ ENV SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/thingsboard_edge
 ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
+
+RUN chown -R ${pkg.user}:${pkg.user} /tmp
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+
+RUN mkdir -p /data
+RUN chown -R ${pkg.user}:${pkg.user} /data
+
+RUN chown -R ${pkg.user}:${pkg.user} /var/log/${pkg.name}
+
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+
+USER ${pkg.user}
 
 EXPOSE 8080
 EXPOSE 1883

@@ -44,14 +44,19 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
-import org.thingsboard.server.common.data.group.EntityField;
-import org.thingsboard.server.common.data.id.*;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.dao.customer.CustomerDao;
@@ -68,14 +73,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.CacheConstants.ENTITY_VIEW_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 /**
  * Created by Victor Basanets on 8/28/2017.
@@ -147,22 +153,20 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     }
 
     @Override
-    public TextPageData<EntityView> findEntityViewByTenantId(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<EntityView> findEntityViewByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findEntityViewsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(entityViews, pageLink);
+        validatePageLink(pageLink);
+        return entityViewDao.findEntityViewsByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
-    public TextPageData<EntityView> findEntityViewByTenantIdAndType(TenantId tenantId, TextPageLink pageLink, String type) {
+    public PageData<EntityView> findEntityViewByTenantIdAndType(TenantId tenantId, PageLink pageLink, String type) {
         log.trace("Executing findEntityViewByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validatePageLink(pageLink);
         validateString(type, "Incorrect type " + type);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
-        return new TextPageData<>(entityViews, pageLink);
+        return entityViewDao.findEntityViewsByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
 
     @Override
@@ -174,29 +178,27 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     }
 
     @Override
-    public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId,
-                                                                           TextPageLink pageLink) {
+    public PageData<EntityView> findEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId,
+                                                                       PageLink pageLink) {
         log.trace("Executing findEntityViewByTenantIdAndCustomerId, tenantId [{}], customerId [{}]," +
                 " pageLink [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(),
+        validatePageLink(pageLink);
+        return entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(),
                 customerId.getId(), pageLink);
-        return new TextPageData<>(entityViews, pageLink);
     }
 
     @Override
-    public TextPageData<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, TextPageLink pageLink, String type) {
+    public PageData<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, PageLink pageLink, String type) {
         log.trace("Executing findEntityViewsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}]," +
                 " pageLink [{}], type [{}]", tenantId, customerId, pageLink, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
+        validatePageLink(pageLink);
         validateString(type, "Incorrect type " + type);
-        List<EntityView> entityViews = entityViewDao.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId.getId(),
+        return entityViewDao.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId.getId(),
                 customerId.getId(), type, pageLink);
-        return new TextPageData<>(entityViews, pageLink);
     }
 
     @Override
@@ -304,53 +306,28 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     }
 
     @Override
-    public ShortEntityView findGroupEntityView(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupEntityView, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
-                (entityViewEntityId) -> new EntityViewId(entityViewEntityId.getId()),
-                (entityViewId) -> findEntityViewById(tenantId, entityViewId),
-                new EntityViewViewFunction());
+    public PageData<EntityView> findEntityViewsByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findEntityViewsByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return entityViewDao.findEntityViewsByEntityGroupId(groupId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findEntityViewsByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findEntityViewsByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new EntityViewId(entityId.getId()),
-                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds),
-                new EntityViewViewFunction());
+    public PageData<EntityView> findEntityViewsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findEntityViewsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return entityViewDao.findEntityViewsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
 
     @Override
-    public ListenableFuture<TimePageData<EntityView>> findEntityViewEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findEntityViewEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new EntityViewId(entityId.getId()),
-                (entityIds) -> findEntityViewsByTenantIdAndIdsAsync(tenantId, entityIds));
-    }
-
-    class EntityViewViewFunction implements BiFunction<EntityView, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(EntityView entityView, List<EntityField> entityFields) {
-            ShortEntityView shortEntityView = new ShortEntityView(entityView.getId());
-            shortEntityView.put(EntityField.NAME.name().toLowerCase(), entityView.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case TYPE:
-                        shortEntityView.put(key, entityView.getType());
-                        break;
-                }
-            }
-            return shortEntityView;
-        }
+    public PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
+        log.trace("Executing findEntityViewsByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateString(type, "Incorrect type " + type);
+        validatePageLink(pageLink);
+        return entityViewDao.findEntityViewsByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
 
     private DataValidator<EntityView> entityViewValidator =
@@ -406,7 +383,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
     private PaginatedRemover<TenantId, EntityView> tenantEntityViewsRemover = new PaginatedRemover<TenantId, EntityView>() {
         @Override
-        protected List<EntityView> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+        protected PageData<EntityView> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantId(id.getId(), pageLink);
         }
 
@@ -418,7 +395,7 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
     private PaginatedRemover<CustomerId, EntityView> customerEntityViewsRemover = new PaginatedRemover<CustomerId, EntityView>() {
         @Override
-        protected List<EntityView> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
+        protected PageData<EntityView> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
         }
 

@@ -39,9 +39,6 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -58,7 +55,7 @@ import java.util.Set;
         configClazz = TbMsgAttributesNodeConfiguration.class,
         nodeDescription = "Saves attributes data",
         nodeDetails = "Saves entity attributes based on configurable scope parameter. Expects messages with 'POST_ATTRIBUTES_REQUEST' message type",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeAttributesConfig",
         icon = "file_upload"
 )
@@ -71,6 +68,9 @@ public class TbMsgAttributesNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgAttributesNodeConfiguration.class);
+        if (config.getNotifyDevice() == null) {
+            config.setNotifyDevice(true);
+        }
     }
 
     @Override
@@ -80,10 +80,20 @@ public class TbMsgAttributesNode implements TbNode {
             return;
         }
         String src = msg.getData();
+        String scope = msg.getMetaData().getValue(SCOPE);
+        if (StringUtils.isEmpty(scope)) {
+            scope = config.getScope();
+        }
         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(src));
-        msg.getMetaData().putValue(SCOPE, config.getScope());
-        ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(), config.getScope(),
-                new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
+        String notifyDeviceStr = msg.getMetaData().getValue("notifyDevice");
+        ctx.getTelemetryService().saveAndNotify(
+                ctx.getTenantId(),
+                msg.getOriginator(),
+                scope,
+                new ArrayList<>(attributes),
+                config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr),
+                new TelemetryNodeCallback(ctx, msg)
+        );
     }
 
     @Override

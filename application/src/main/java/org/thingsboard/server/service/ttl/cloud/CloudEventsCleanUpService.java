@@ -64,7 +64,7 @@ public class CloudEventsCleanUpService extends AbstractCleanUpService {
     }
 
     @Override
-    protected void doCleanUp(Connection connection) {
+    protected void doCleanUp(Connection connection) throws SQLException {
         long totalCloudEventsRemoved = executeQuery(connection, "call cleanup_cloud_events_by_ttl(" + ttl + ", 0);");
         log.info("Total cloud events removed by TTL: [{}]", totalCloudEventsRemoved);
     }

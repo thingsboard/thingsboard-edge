@@ -54,17 +54,16 @@ import java.util.Optional;
 public class TtnIntegration extends BasicMqttIntegration {
 
     private static final String TTN_ENDPOINT = "thethings.network";
-    private static final String TTN_DOWNLINK_TOPIC = "/devices/${devId}/down";
-
-    private String appId;
+    private static final String TTI_ENDPOINT = "thethings.industries";
 
     @Override
     protected String getDownlinkTopicPattern() {
-        return this.appId + TTN_DOWNLINK_TOPIC;
+        return this.configuration.getConfiguration().get("downlinkTopicPattern").asText();
     }
 
     @Override
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
+        String integrationType = this.configuration.getType().name();
         mqttClientConfiguration.setCleanSession(true);
         MqttClientCredentials credentials = mqttClientConfiguration.getCredentials();
         if (credentials == null || !(credentials instanceof BasicCredentials)) {
@@ -76,15 +75,15 @@ public class TtnIntegration extends BasicMqttIntegration {
             throw new RuntimeException("Can't setup TheThingsNetwork integration. Required TheThingsNetwork Application Credentials values are missing!");
         }
 
-        this.appId = basicCredentials.getUsername();
-
         if (!mqttClientConfiguration.isCustomHost()) {
             String region = mqttClientConfiguration.getHost();
-            if (!region.endsWith(TTN_ENDPOINT)) {
+            if (integrationType.equals("TTN") && !region.endsWith(TTN_ENDPOINT)){
                 mqttClientConfiguration.setHost(region + "." + TTN_ENDPOINT);
+            } else if (integrationType.equals("TTI") && !region.endsWith(TTI_ENDPOINT)) {
+                mqttClientConfiguration.setHost(region + "." + TTI_ENDPOINT);
             }
         }
-        mqttClientConfiguration.setPort(8883);
+//        mqttClientConfiguration.setPort(8883);
     }
 
     @Override

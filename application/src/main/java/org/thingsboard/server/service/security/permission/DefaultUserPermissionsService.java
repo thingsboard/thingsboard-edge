@@ -50,7 +50,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedGroupPermissionInfo;
@@ -98,6 +99,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         sysAdminGenericPermissions.put(Resource.DASHBOARD, new HashSet<>(Arrays.asList(Operation.READ)));
         sysAdminGenericPermissions.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.READ)));
         sysAdminGenericPermissions.put(Resource.TENANT, new HashSet<>(Arrays.asList(Operation.ALL)));
+        sysAdminGenericPermissions.put(Resource.TENANT_PROFILE, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.RULE_CHAIN, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.USER, new HashSet<>(Arrays.asList(Operation.ALL)));
         sysAdminGenericPermissions.put(Resource.WIDGETS_BUNDLE, new HashSet<>(Arrays.asList(Operation.ALL)));
@@ -123,7 +125,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Override
     public MergedUserPermissions getMergedPermissions(User user, boolean isPublic) throws ThingsboardException {
-        if (user.getAuthority() == Authority.SYS_ADMIN) {
+        if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
             return sysAdminPermissions;
         }
         MergedUserPermissions result = getMergedPermissionsFromCache(user.getTenantId(), user.getCustomerId(), user.getId());
@@ -154,8 +156,8 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Override
     public void onRoleUpdated(Role role) throws ThingsboardException {
-        TimePageData<GroupPermission> groupPermissions =
-                groupPermissionService.findGroupPermissionByTenantIdAndRoleId(role.getTenantId(), role.getId(), new TimePageLink(Integer.MAX_VALUE));
+        PageData<GroupPermission> groupPermissions =
+                groupPermissionService.findGroupPermissionByTenantIdAndRoleId(role.getTenantId(), role.getId(), new PageLink(Integer.MAX_VALUE));
         Set<EntityGroupId> uniqueUserGroups = new HashSet<>();
         for (GroupPermission gpe : groupPermissions.getData()) {
             uniqueUserGroups.add(gpe.getUserGroupId());
@@ -187,7 +189,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
                 if (isPublic) {
                     entityIds = Collections.singletonList(new UserId(EntityId.NULL_UUID));
                 } else {
-                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new TimePageLink(Integer.MAX_VALUE)).get();
+                    entityIds = entityGroupService.findAllEntityIds(tenantId, userGroupId, new PageLink(Integer.MAX_VALUE)).get();
                 }
                 usersByOwnerMap.computeIfAbsent(userGroup.getOwnerId(), ownerId -> new HashSet<>()).addAll(entityIds);
             } catch (InterruptedException | ExecutionException e) {

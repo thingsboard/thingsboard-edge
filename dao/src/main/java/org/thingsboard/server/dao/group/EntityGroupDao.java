@@ -31,10 +31,16 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface EntityGroupDao extends Dao<EntityGroup> {
@@ -46,4 +52,18 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
      * @return the list of entity group objects
      */
     ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
+
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType);
+
+    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
+            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, PageLink pageLink);
+
+    ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
+
+    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
+                                                                         EntityType parentEntityType, String relationType, String name);
+
+    ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
+
+    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 }

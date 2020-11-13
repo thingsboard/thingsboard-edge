@@ -31,6 +31,7 @@
 package org.thingsboard.integration.opcua;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
  */
 @Data
 @Slf4j
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DeviceMapping {
 
     public static final Pattern TAG_PATTERN = Pattern.compile("\\$\\{(.*?)\\}");

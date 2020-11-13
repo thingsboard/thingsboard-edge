@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
@@ -72,9 +72,8 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -389,8 +388,11 @@ public class CloudManagerService {
                 try {
                     if (initialized) {
                         Long queueStartTs = getQueueStartTs().get();
-                        TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(), queueStartTs, null, true);
-                        TimePageData<CloudEvent> pageData;
+                        TimePageLink pageLink =
+                                new TimePageLink(new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount()),
+                                        queueStartTs,
+                                        System.currentTimeMillis());
+                        PageData<CloudEvent> pageData;
                         UUID ifOffset = null;
                         boolean success = true;
                         do {
@@ -418,13 +420,13 @@ public class CloudManagerService {
                                     log.error("Error during sleep between batches", e);
                                 }
                                 if (success) {
-                                    pageLink = pageData.getNextPageLink();
+                                    pageLink = pageLink.nextPageLink();
                                 }
                             }
                         } while (initialized && (!success || pageData.hasNext()));
 
                         if (ifOffset != null) {
-                            Long newStartTs = UUIDs.unixTimestamp(ifOffset);
+                            Long newStartTs = Uuids.unixTimestamp(ifOffset);
                             updateQueueStartTs(newStartTs);
                         }
                         try {
@@ -859,7 +861,7 @@ public class CloudManagerService {
 
     private void cleanUp() {
         log.debug("Starting clean up procedure");
-        TextPageData<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE));
+        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
         for (Tenant tenant : tenants.getData()) {
             cleanUpTenant(tenant);
         }
@@ -875,7 +877,7 @@ public class CloudManagerService {
     private void cleanUpTenant(Tenant tenant) {
         log.debug("Removing entities for the tenant [{}][{}]", tenant.getTitle(), tenant.getId());
         userService.deleteTenantAdmins(tenant.getId());
-        TextPageData<Customer> customers = customerService.findCustomersByTenantId(tenant.getId(), new TextPageLink(Integer.MAX_VALUE));
+        PageData<Customer> customers = customerService.findCustomersByTenantId(tenant.getId(), new PageLink(Integer.MAX_VALUE));
         if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
             for (Customer customer : customers.getData()) {
                 userService.deleteCustomerUsers(tenant.getId(), customer.getId());

@@ -31,9 +31,10 @@
 package org.thingsboard.server.transport.mqtt.session;
 
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.transport.SessionMsgListener;
+import org.thingsboard.server.common.transport.auth.TransportDeviceInfo;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.DeviceInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
@@ -50,25 +51,28 @@ import java.util.concurrent.ConcurrentMap;
 public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext implements SessionMsgListener {
 
     private final GatewaySessionHandler parent;
-    private final SessionInfoProto sessionInfo;
 
-    public GatewayDeviceSessionCtx(GatewaySessionHandler parent, DeviceInfoProto deviceInfo, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
+    public GatewayDeviceSessionCtx(GatewaySessionHandler parent, TransportDeviceInfo deviceInfo,
+                                   DeviceProfile deviceProfile, ConcurrentMap<MqttTopicMatcher, Integer> mqttQoSMap) {
         super(UUID.randomUUID(), mqttQoSMap);
         this.parent = parent;
-        this.sessionInfo = SessionInfoProto.newBuilder()
+        setSessionInfo(SessionInfoProto.newBuilder()
                 .setNodeId(parent.getNodeId())
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                .setDeviceIdMSB(deviceInfo.getDeviceIdMSB())
-                .setDeviceIdLSB(deviceInfo.getDeviceIdLSB())
-                .setTenantIdMSB(deviceInfo.getTenantIdMSB())
-                .setTenantIdLSB(deviceInfo.getTenantIdLSB())
+                .setDeviceIdMSB(deviceInfo.getDeviceId().getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceInfo.getDeviceId().getId().getLeastSignificantBits())
+                .setTenantIdMSB(deviceInfo.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(deviceInfo.getTenantId().getId().getLeastSignificantBits())
                 .setDeviceName(deviceInfo.getDeviceName())
                 .setDeviceType(deviceInfo.getDeviceType())
                 .setGwSessionIdMSB(parent.getSessionId().getMostSignificantBits())
                 .setGwSessionIdLSB(parent.getSessionId().getLeastSignificantBits())
-                .build();
+                .setDeviceProfileIdMSB(deviceInfo.getDeviceProfileId().getId().getMostSignificantBits())
+                .setDeviceProfileIdLSB(deviceInfo.getDeviceProfileId().getId().getLeastSignificantBits())
+                .build());
         setDeviceInfo(deviceInfo);
+        setDeviceProfile(deviceProfile);
     }
 
     @Override
@@ -81,14 +85,10 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
         return parent.nextMsgId();
     }
 
-    SessionInfoProto getSessionInfo() {
-        return sessionInfo;
-    }
-
     @Override
     public void onGetAttributesResponse(GetAttributeResponseMsg response) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), response).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), response).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
@@ -97,7 +97,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onAttributeUpdate(AttributeUpdateNotificationMsg notification) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), notification).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), notification).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }
@@ -111,7 +111,7 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     @Override
     public void onToDeviceRpcRequest(ToDeviceRpcRequestMsg request) {
         try {
-            parent.getAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), request).ifPresent(parent::writeAndFlush);
+            parent.getPayloadAdaptor().convertToGatewayPublish(this, getDeviceInfo().getDeviceName(), request).ifPresent(parent::writeAndFlush);
         } catch (Exception e) {
             log.trace("[{}] Failed to convert device attributes response to MQTT msg", sessionId, e);
         }

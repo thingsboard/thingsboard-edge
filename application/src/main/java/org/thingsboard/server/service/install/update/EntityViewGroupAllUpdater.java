@@ -61,4 +61,10 @@ class EntityViewGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EntityVie
         entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
         entityViewService.saveEntityView(entity);
     }
+
+    @Override
+    protected String getName() {
+        return "Entity views group all updater";
+    }
+
 }

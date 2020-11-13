@@ -31,12 +31,21 @@
 package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId> {
 
@@ -47,6 +56,10 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
     private String name;
     private String type;
     private String label;
+    private DeviceProfileId deviceProfileId;
+    private transient DeviceData deviceData;
+    @JsonIgnore
+    private byte[] deviceDataBytes;
 
     public Device() {
         super();
@@ -63,6 +76,8 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.name = device.getName();
         this.type = device.getType();
         this.label = device.getLabel();
+        this.deviceProfileId = device.getDeviceProfileId();
+        this.setDeviceData(device.getDeviceData());
     }
 
     public TenantId getTenantId() {
@@ -120,6 +135,41 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.label = label;
     }
 
+    public DeviceProfileId getDeviceProfileId() {
+        return deviceProfileId;
+    }
+
+    public void setDeviceProfileId(DeviceProfileId deviceProfileId) {
+        this.deviceProfileId = deviceProfileId;
+    }
+
+    public DeviceData getDeviceData() {
+        if (deviceData != null) {
+            return deviceData;
+        } else {
+            if (deviceDataBytes != null) {
+                try {
+                    deviceData = mapper.readValue(new ByteArrayInputStream(deviceDataBytes), DeviceData.class);
+                } catch (IOException e) {
+                    log.warn("Can't deserialize device data: ", e);
+                    return null;
+                }
+                return deviceData;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public void setDeviceData(DeviceData data) {
+        this.deviceData = data;
+        try {
+            this.deviceDataBytes = data != null ? mapper.writeValueAsBytes(data) : null;
+        } catch (JsonProcessingException e) {
+            log.warn("Can't serialize device data: ", e);
+        }
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -138,6 +188,10 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         builder.append(type);
         builder.append(", label=");
         builder.append(label);
+        builder.append(", deviceProfileId=");
+        builder.append(deviceProfileId);
+        builder.append(", deviceData=");
+        builder.append(deviceData);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());
         builder.append(", createdTime=");

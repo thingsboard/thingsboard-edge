@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -71,10 +70,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseEntity<CloudEvent> {
 
     @Column(name = CLOUD_EVENT_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = CLOUD_EVENT_ENTITY_ID_PROPERTY)
-    private String entityId;
+    private UUID entityId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = CLOUD_EVENT_TYPE_PROPERTY)
@@ -88,7 +87,7 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
     private JsonNode entityBody;
 
     @Column(name = CLOUD_EVENT_ENTITY_GROUP_ID_PROPERTY)
-    private String entityGroupId;
+    private UUID entityGroupId;
 
     @Column(name = TS_COLUMN)
     private long ts;
@@ -100,14 +99,15 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
         } else {
             this.ts = System.currentTimeMillis();
         }
+        this.setCreatedTime(cloudEvent.getCreatedTime());
         if (cloudEvent.getTenantId() != null) {
-            this.tenantId = toString(cloudEvent.getTenantId().getId());
+            this.tenantId = cloudEvent.getTenantId().getId();
         }
         if (cloudEvent.getEntityId() != null) {
-            this.entityId = toString(cloudEvent.getEntityId());
+            this.entityId = cloudEvent.getEntityId();
         }
         if (cloudEvent.getEntityGroupId() != null) {
-            this.entityGroupId = toString(cloudEvent.getEntityGroupId());
+            this.entityGroupId = cloudEvent.getEntityGroupId();
         }
         this.cloudEventType = cloudEvent.getCloudEventType();
         this.cloudEventAction = cloudEvent.getCloudEventAction();
@@ -117,13 +117,13 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
     @Override
     public CloudEvent toData() {
         CloudEvent cloudEvent = new CloudEvent(new CloudEventId(this.getUuid()));
-        cloudEvent.setCreatedTime(UUIDs.unixTimestamp(this.getUuid()));
-        cloudEvent.setTenantId(new TenantId(toUUID(tenantId)));
+        cloudEvent.setCreatedTime(createdTime);
+        cloudEvent.setTenantId(new TenantId(tenantId));
         if (entityId != null) {
-            cloudEvent.setEntityId(toUUID(entityId));
+            cloudEvent.setEntityId(entityId);
         }
         if (entityGroupId != null) {
-            cloudEvent.setEntityGroupId(toUUID(entityGroupId));
+            cloudEvent.setEntityGroupId(entityGroupId);
         }
         cloudEvent.setCloudEventType(cloudEventType);
         cloudEvent.setCloudEventAction(cloudEventAction);

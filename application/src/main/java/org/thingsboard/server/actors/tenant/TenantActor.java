@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -69,6 +70,7 @@ import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -98,12 +100,14 @@ public class TenantActor extends RuleChainManagerActor {
                 // This Service may be started for specific tenant only.
                 Optional<TenantId> isolatedTenantId = systemContext.getServiceInfoProvider().getIsolatedTenant();
 
+                TenantProfile tenantProfile = systemContext.getTenantProfileCache().get(tenant.getTenantProfileId());
+
                 isRuleEngineForCurrentTenant = systemContext.getServiceInfoProvider().isService(ServiceType.TB_RULE_ENGINE);
                 isCore = systemContext.getServiceInfoProvider().isService(ServiceType.TB_CORE);
 
                 if (isRuleEngineForCurrentTenant) {
                     try {
-                        if (isolatedTenantId.map(id -> id.equals(tenantId)).orElseGet(() -> !tenant.isIsolatedTbRuleEngine())) {
+                        if (isolatedTenantId.map(id -> id.equals(tenantId)).orElseGet(() -> !tenantProfile.isIsolatedTbRuleEngine())) {
                             log.info("[{}] Going to init rule chains", tenantId);
                             initRuleChains();
                         } else {
@@ -135,6 +139,9 @@ public class TenantActor extends RuleChainManagerActor {
             if (msg.getMsgType().equals(MsgType.QUEUE_TO_RULE_ENGINE_MSG)) {
                 QueueToRuleEngineMsg queueMsg = (QueueToRuleEngineMsg) msg;
                 queueMsg.getTbMsg().getCallback().onSuccess();
+            } else if (msg.getMsgType().equals(MsgType.TRANSPORT_TO_DEVICE_ACTOR_MSG)){
+                TransportToDeviceActorMsgWrapper transportMsg = (TransportToDeviceActorMsgWrapper) msg;
+                transportMsg.getCallback().onSuccess();
             }
             return true;
         }

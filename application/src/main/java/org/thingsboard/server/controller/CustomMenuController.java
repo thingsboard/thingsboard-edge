@@ -63,11 +63,11 @@ public class CustomMenuController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             CustomMenu customMenu = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 customMenu = customMenuService.getMergedTenantCustomMenu(getCurrentUser().getTenantId());
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
             }
             if (customMenu == null) {
@@ -87,11 +87,11 @@ public class CustomMenuController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.READ);
             CustomMenu customMenu = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 customMenu = customMenuService.getTenantCustomMenu(getTenantId());
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 customMenu = customMenuService.getCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId());
             }
             return customMenu;
@@ -108,11 +108,11 @@ public class CustomMenuController extends BaseController {
             Authority authority = getCurrentUser().getAuthority();
             checkWhiteLabelingPermissions(Operation.WRITE);
             CustomMenu savedCustomMenu = null;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 savedCustomMenu = customMenuService.saveSystemCustomMenu(customMenu);
-            } else if (authority == Authority.TENANT_ADMIN) {
+            } else if (Authority.TENANT_ADMIN.equals(authority)) {
                 savedCustomMenu = customMenuService.saveTenantCustomMenu(getCurrentUser().getTenantId(), customMenu);
-            } else if (authority == Authority.CUSTOMER_USER) {
+            } else if (Authority.CUSTOMER_USER.equals(authority)) {
                 savedCustomMenu = customMenuService.saveCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId(), customMenu);
             }
             return savedCustomMenu;

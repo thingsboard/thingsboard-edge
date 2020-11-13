@@ -34,8 +34,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,7 +54,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -60,25 +61,28 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
 /**
@@ -91,6 +95,9 @@ import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GRO
 public class EntityViewController extends BaseController {
 
     public static final String ENTITY_VIEW_ID = "entityViewId";
+
+    @Autowired
+    private TimeseriesService tsService;
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView/{entityViewId}", method = RequestMethod.GET)
@@ -110,14 +117,32 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(@RequestBody EntityView entityView,
                                      @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
-            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, entityViewService::saveEntityView);
-            List<ListenableFuture<List<Void>>> futures = new ArrayList<>();
-            if (savedEntityView.getKeys() != null && savedEntityView.getKeys().getAttributes() != null) {
-                futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
-                futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.SERVER_SCOPE, savedEntityView.getKeys().getAttributes().getSs(), getCurrentUser()));
-                futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.SHARED_SCOPE, savedEntityView.getKeys().getAttributes().getSh(), getCurrentUser()));
+            List<ListenableFuture<?>> futures = new ArrayList<>();
+
+            if (entityView.getId() != null) {
+                EntityView existingEntityView = checkEntityViewId(entityView.getId(), Operation.WRITE);
+                if (existingEntityView.getKeys() != null) {
+                    if (existingEntityView.getKeys().getAttributes() != null) {
+                        futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.CLIENT_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
+                        futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.SERVER_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
+                        futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.SHARED_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
+                    }
+                }
+                List<String> tsKeys = existingEntityView.getKeys() != null && existingEntityView.getKeys().getTimeseries() != null ?
+                        existingEntityView.getKeys().getTimeseries() : Collections.emptyList();
+                futures.add(deleteLatestFromEntityView(existingEntityView, tsKeys, getCurrentUser()));
             }
-            for (ListenableFuture<List<Void>> future : futures) {
+
+            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, entityViewService::saveEntityView);
+            if (savedEntityView.getKeys() != null) {
+                if (savedEntityView.getKeys().getAttributes() != null) {
+                    futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));
+                    futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.SERVER_SCOPE, savedEntityView.getKeys().getAttributes().getSs(), getCurrentUser()));
+                    futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.SHARED_SCOPE, savedEntityView.getKeys().getAttributes().getSh(), getCurrentUser()));
+                }
+                futures.add(copyLatestFromEntityToEntityView(savedEntityView, getCurrentUser()));
+            }
+            for (ListenableFuture<?> future : futures) {
                 try {
                     future.get();
                 } catch (InterruptedException | ExecutionException e) {
@@ -128,6 +153,125 @@ public class EntityViewController extends BaseController {
         } catch (Exception e) {
             throw handleException(e);
         }
+    }
+
+    private ListenableFuture<Void> deleteLatestFromEntityView(EntityView entityView, List<String> keys, SecurityUser user) {
+        EntityViewId entityId = entityView.getId();
+        SettableFuture<Void> resultFuture = SettableFuture.create();
+        if (keys != null && !keys.isEmpty()) {
+            tsSubService.deleteLatest(entityView.getTenantId(), entityId, keys, new FutureCallback<Void>() {
+                @Override
+                public void onSuccess(@Nullable Void tmp) {
+                    try {
+                        logTimeseriesDeleted(user, entityId, keys, null);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log timeseries delete", e);
+                    }
+                    resultFuture.set(tmp);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    try {
+                        logTimeseriesDeleted(user, entityId, keys, t);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log timeseries delete", e);
+                    }
+                    resultFuture.setException(t);
+                }
+            });
+        } else {
+            tsSubService.deleteAllLatest(entityView.getTenantId(), entityId, new FutureCallback<Collection<String>>() {
+                @Override
+                public void onSuccess(@Nullable Collection<String> keys) {
+                    try {
+                        logTimeseriesDeleted(user, entityId, new ArrayList<>(keys), null);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log timeseries delete", e);
+                    }
+                    resultFuture.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    try {
+                        logTimeseriesDeleted(user, entityId, Collections.emptyList(), t);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log timeseries delete", e);
+                    }
+                    resultFuture.setException(t);
+                }
+            });
+        }
+        return resultFuture;
+    }
+
+    private ListenableFuture<Void> deleteAttributesFromEntityView(EntityView entityView, String scope, List<String> keys, SecurityUser user) {
+        EntityViewId entityId = entityView.getId();
+        SettableFuture<Void> resultFuture = SettableFuture.create();
+        if (keys != null && !keys.isEmpty()) {
+            tsSubService.deleteAndNotify(entityView.getTenantId(), entityId, scope, keys, new FutureCallback<Void>() {
+                @Override
+                public void onSuccess(@Nullable Void tmp) {
+                    try {
+                        logAttributesDeleted(user, entityId, scope, keys, null);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log attribute delete", e);
+                    }
+                    resultFuture.set(tmp);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    try {
+                        logAttributesDeleted(user, entityId, scope, keys, t);
+                    } catch (ThingsboardException e) {
+                        log.error("Failed to log attribute delete", e);
+                    }
+                    resultFuture.setException(t);
+                }
+            });
+        } else {
+            resultFuture.set(null);
+        }
+        return resultFuture;
+    }
+
+    private ListenableFuture<List<Void>> copyLatestFromEntityToEntityView(EntityView entityView, SecurityUser user) {
+        EntityViewId entityId = entityView.getId();
+        List<String> keys = entityView.getKeys() != null && entityView.getKeys().getTimeseries() != null ?
+             entityView.getKeys().getTimeseries() : Collections.emptyList();
+        long startTs = entityView.getStartTimeMs();
+        long endTs = entityView.getEndTimeMs() == 0 ? Long.MAX_VALUE : entityView.getEndTimeMs();
+        ListenableFuture<List<String>> keysFuture;
+        if (keys.isEmpty()) {
+            keysFuture = Futures.transform(tsService.findAllLatest(user.getTenantId(),
+                    entityView.getEntityId()), latest -> latest.stream().map(TsKvEntry::getKey).collect(Collectors.toList()), MoreExecutors.directExecutor());
+        } else {
+            keysFuture = Futures.immediateFuture(keys);
+        }
+        ListenableFuture<List<TsKvEntry>> latestFuture = Futures.transformAsync(keysFuture, fetchKeys -> {
+            List<ReadTsKvQuery> queries = fetchKeys.stream().filter(key -> !isBlank(key)).map(key -> new BaseReadTsKvQuery(key, startTs, endTs, 1, "DESC")).collect(Collectors.toList());
+            if (!queries.isEmpty()) {
+                return tsService.findAll(user.getTenantId(), entityView.getEntityId(), queries);
+            } else {
+                return Futures.immediateFuture(null);
+            }
+        }, MoreExecutors.directExecutor());
+        return Futures.transform(latestFuture, latestValues -> {
+            if (latestValues != null && !latestValues.isEmpty()) {
+                tsSubService.saveLatestAndNotify(entityView.getTenantId(), entityId, latestValues, new FutureCallback<Void>() {
+                    @Override
+                    public void onSuccess(@Nullable Void tmp) {
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                    }
+                });
+            }
+            return null;
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<List<Void>> copyAttributesFromEntityToEntityView(EntityView entityView, String scope, Collection<String> keys, SecurityUser user) throws ThingsboardException {
@@ -176,8 +320,18 @@ public class EntityViewController extends BaseController {
     }
 
     private void logAttributesUpdated(SecurityUser user, EntityId entityId, String scope, List<AttributeKvEntry> attributes, Throwable e) throws ThingsboardException {
-        logEntityAction(user, (UUIDBased & EntityId) entityId, null, null, ActionType.ATTRIBUTES_UPDATED, toException(e),
+        logEntityAction(user, entityId, null, null, ActionType.ATTRIBUTES_UPDATED, toException(e),
                 scope, attributes);
+    }
+
+    private void logAttributesDeleted(SecurityUser user, EntityId entityId, String scope, List<String> keys, Throwable e) throws ThingsboardException {
+        logEntityAction(user, entityId, null, null, ActionType.ATTRIBUTES_DELETED, toException(e),
+                scope, keys);
+    }
+
+    private void logTimeseriesDeleted(SecurityUser user, EntityId entityId, List<String> keys, Throwable e) throws ThingsboardException {
+        logEntityAction(user, entityId, null, null, ActionType.TIMESERIES_DELETED, toException(e),
+                keys);
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -215,22 +369,23 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getCustomerEntityViews(
+    public PageData<EntityView> getCustomerEntityViews(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewsByTenantIdAndCustomerIdAndType(tenantId, customerId, pageLink, type));
             } else {
@@ -242,18 +397,19 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getTenantEntityViews(
-            @RequestParam int limit,
+    public PageData<EntityView> getTenantEntityViews(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.ENTITY_VIEW, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(entityViewService.findEntityViewByTenantIdAndType(tenantId, pageLink, type));
@@ -266,30 +422,21 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/entityViews", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<EntityView> getUserEntityViews(
-            @RequestParam int limit,
+    public PageData<EntityView> getUserEntityViews(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<EntityView>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((entityView -> entityView.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.ENTITY_VIEW, Operation.READ, entityId -> new EntityViewId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return entityViewService.findEntityViewsByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    filters,
-                    pageLink);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ENTITY_VIEW,
+                    Operation.READ, type, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -332,15 +479,15 @@ public class EntityViewController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", method = RequestMethod.GET)
+    @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<EntityView> getEntityViewsByEntityGroupId(
+    public PageData<EntityView> getEntityViewsByEntityGroupId(
             @PathVariable(ENTITY_GROUP_ID) String strEntityGroupId,
-            @ApiParam(value = "Page link limit", required = true, allowableValues = "range[1, infinity]") @RequestParam int limit,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset
+            @ApiParam(value = "Page size", required = true, allowableValues = "range[1, infinity]") @RequestParam int pageSize,
+            @ApiParam(value = "Page", required = true, allowableValues = "range[0, infinity]") @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder
     ) throws ThingsboardException {
         checkParameter(ENTITY_GROUP_ID, strEntityGroupId);
         EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
@@ -348,14 +495,8 @@ public class EntityViewController extends BaseController {
         EntityType entityType = entityGroup.getType();
         checkEntityGroupType(entityType);
         try {
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            ListenableFuture<TimePageData<EntityView>> asyncResult = entityViewService.findEntityViewEntitiesByEntityGroupId(getTenantId(), entityGroupId, pageLink);
-            checkNotNull(asyncResult);
-            if (asyncResult != null) {
-                return checkNotNull(asyncResult.get());
-            } else {
-                throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
-            }
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(entityViewService.findEntityViewsByEntityGroupId(entityGroupId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

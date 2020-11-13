@@ -51,6 +51,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -71,6 +72,7 @@ import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
+import org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
@@ -110,6 +112,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -136,7 +139,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -318,6 +320,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
             platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
         }
+    }
+
+    @Override
+    public void checkIntegrationConnection(Integration integration) throws Exception {
+        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
     }
 
     @Override
@@ -637,7 +645,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
-        if (device == null) {
+        if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
             device.setType(deviceType);
@@ -655,13 +663,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             createRelationFromIntegration(integration, device.getId());
             deviceStateService.onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(integration, device);
+        } else {
+            throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return device;
     }
 
     private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
-        if (asset == null) {
+        if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
             asset.setName(assetName);
             asset.setType(assetType);
@@ -678,6 +688,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
             createRelationFromIntegration(integration, asset.getId());
             pushAssetCreatedEventToRuleEngine(integration, asset);
+        } else {
+            throw new ThingsboardRuntimeException("Creating assets is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return asset;
     }
@@ -969,15 +981,20 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:
+            case TTI:
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
+            case AZURE_IOT_HUB:
+                return new AzureIotHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
             case AWS_KINESIS:
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case APACHE_PULSAR:
+                return new BasicPulsarIntegration();
             case CUSTOM:
             case TCP:
             case UDP:

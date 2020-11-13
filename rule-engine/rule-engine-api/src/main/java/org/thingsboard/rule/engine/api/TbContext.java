@@ -35,14 +35,17 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
@@ -183,7 +186,7 @@ public interface TbContext {
 
     DashboardService getDashboardService();
 
-    AlarmService getAlarmService();
+    RuleEngineAlarmService getAlarmService();
 
     RuleChainService getRuleChainService();
 
@@ -196,6 +199,8 @@ public interface TbContext {
     RelationService getRelationService();
 
     EntityViewService getEntityViewService();
+
+    RuleEngineDeviceProfileCache getDeviceProfileCache();
 
     CloudEventService getCloudEventService();
 
@@ -229,4 +234,16 @@ public interface TbContext {
 
     @Deprecated
     RedisTemplate<String, Object> getRedisTemplate();
+
+    PageData<RuleNodeState> findRuleNodeStates(PageLink pageLink);
+
+    RuleNodeState findRuleNodeStateForEntity(EntityId entityId);
+
+    RuleNodeState saveRuleNodeState(RuleNodeState state);
+
+    void clearRuleNodeStates();
+
+    void addProfileListener(Consumer<DeviceProfile> listener);
+
+    void removeProfileListener();
 }

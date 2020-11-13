@@ -32,12 +32,11 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
@@ -48,10 +47,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
-
 @Component
 public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, Converter> implements ConverterDao {
 
@@ -59,24 +54,23 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     private ConverterRepository converterRepository;
 
     @Override
-    public List<Converter> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(converterRepository
-                .findByTenantIdAndPageLink(
-                        fromTimeUUID(tenantId),
+    public PageData<Converter> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                converterRepository.findByTenantId(
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
-        Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(fromTimeUUID(tenantId), name));
+        Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(tenantId, name));
         return Optional.ofNullable(converter);
     }
 
     @Override
     public ListenableFuture<List<Converter>> findConvertersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> converterIds) {
-        return service.submit(() -> DaoUtil.convertDataList(converterRepository.findConvertersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(converterIds))));
+        return service.submit(() -> DaoUtil.convertDataList(converterRepository.findConvertersByTenantIdAndIdIn(tenantId, converterIds)));
     }
 
     @Override
@@ -85,7 +79,7 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    protected CrudRepository<ConverterEntity, String> getCrudRepository() {
+    protected CrudRepository<ConverterEntity, UUID> getCrudRepository() {
         return converterRepository;
     }
 

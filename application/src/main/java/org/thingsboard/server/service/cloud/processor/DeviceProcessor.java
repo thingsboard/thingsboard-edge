@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.RpcError;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -56,7 +55,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -232,7 +231,8 @@ public class DeviceProcessor extends BaseProcessor {
     }
 
     private ListenableFuture<Void> updateAlarms(TenantId tenantId, Device origin, Device destination) {
-        ListenableFuture<TimePageData<AlarmInfo>> alarmsFuture = alarmService.findAlarms(tenantId, new AlarmQuery(origin.getId(), new TimePageLink(Integer.MAX_VALUE), null, null, false));
+        ListenableFuture<PageData<AlarmInfo>> alarmsFuture =
+                alarmService.findAlarms(tenantId, new AlarmQuery(origin.getId(), new TimePageLink(Integer.MAX_VALUE), null, null, false, null));
         return Futures.transform(alarmsFuture, alarms -> {
             if (alarms != null && alarms.getData() != null && !alarms.getData().isEmpty()) {
                 for (AlarmInfo alarm : alarms.getData()) {

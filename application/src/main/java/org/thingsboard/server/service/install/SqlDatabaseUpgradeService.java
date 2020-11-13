@@ -36,34 +36,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.service.install.sql.SqlDbHelper;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLSyntaxErrorException;
-
-import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
-import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
-import static org.thingsboard.server.service.install.DatabaseHelper.CONFIGURATION;
-import static org.thingsboard.server.service.install.DatabaseHelper.CUSTOMER_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.DASHBOARD;
-import static org.thingsboard.server.service.install.DatabaseHelper.END_TS;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_TYPE;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEW;
-import static org.thingsboard.server.service.install.DatabaseHelper.ENTITY_VIEWS;
-import static org.thingsboard.server.service.install.DatabaseHelper.ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.KEYS;
-import static org.thingsboard.server.service.install.DatabaseHelper.NAME;
-import static org.thingsboard.server.service.install.DatabaseHelper.SEARCH_TEXT;
-import static org.thingsboard.server.service.install.DatabaseHelper.START_TS;
-import static org.thingsboard.server.service.install.DatabaseHelper.TENANT_ID;
-import static org.thingsboard.server.service.install.DatabaseHelper.TITLE;
-import static org.thingsboard.server.service.install.DatabaseHelper.TYPE;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 @Service
 @Profile("install")
@@ -87,6 +70,19 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Autowired
     private InstallScripts installScripts;
 
+    @Autowired
+    private SystemDataLoaderService systemDataLoaderService;
+
+    @Autowired
+    private TenantService tenantService;
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
+
+
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
@@ -99,5 +95,25 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         String sql = new String(Files.readAllBytes(sqlFile), Charset.forName("UTF-8"));
         conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
         Thread.sleep(5000);
+    }
+
+    protected boolean isOldSchema(Connection conn, long fromVersion) {
+        boolean isOldSchema = true;
+        try {
+            Statement statement = conn.createStatement();
+            statement.execute("CREATE TABLE IF NOT EXISTS tb_schema_settings ( schema_version bigint NOT NULL, CONSTRAINT tb_schema_settings_pkey PRIMARY KEY (schema_version));");
+            Thread.sleep(1000);
+            ResultSet resultSet = statement.executeQuery("SELECT schema_version FROM tb_schema_settings;");
+            if (resultSet.next()) {
+                isOldSchema = resultSet.getLong(1) <= fromVersion;
+            } else {
+                resultSet.close();
+                statement.execute("INSERT INTO tb_schema_settings (schema_version) VALUES (" + fromVersion + ")");
+            }
+            statement.close();
+        } catch (InterruptedException | SQLException e) {
+            log.info("Failed to check current PostgreSQL schema due to: {}", e.getMessage());
+        }
+        return isOldSchema;
     }
 }

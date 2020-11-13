@@ -30,7 +30,7 @@
  */
 package org.thingsboard.integration.api;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +44,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -117,6 +118,16 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
+    public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException{
+        if (integration == null || integration.getConfiguration() == null) {
+            throw new IllegalArgumentException("Integration configuration is empty!");
+        }
+        if (!integration.isRemote()) {
+            doCheckConnection(integration, ctx);
+        }
+    }
+
+    @Override
     public void destroy() {
 
     }
@@ -134,6 +145,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+
+    }
+
+    protected void doCheckConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
 
     }
 
@@ -212,7 +227,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, UUIDs.timeBased().toString(), node, new DebugEventCallback());
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, Uuids.timeBased().toString(), node, new DebugEventCallback());
     }
 
     private String toString(Exception e) {

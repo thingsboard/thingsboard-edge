@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -52,7 +52,6 @@ import org.thingsboard.server.dao.service.DataValidator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -77,9 +76,8 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
-        List<CloudEvent> events = cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
-        return new TimePageData<>(events, pageLink);
+    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
+        return cloudEventDao.findCloudEvents(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -103,19 +101,16 @@ public class BaseCloudEventService implements CloudEventService {
         log.trace("Executing deleteCloudEventsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         TimePageLink pageLink = new TimePageLink(100);
-        boolean hasNext = true;
-        while (hasNext) {
-            TimePageData<CloudEvent> entities = findCloudEvents(tenantId, pageLink);
-            for (CloudEvent entity : entities.getData()) {
+        PageData<CloudEvent> pageData;
+        do {
+            pageData = findCloudEvents(tenantId, pageLink);
+            for (CloudEvent entity : pageData.getData()) {
                 cloudEventDao.removeById(tenantId, entity.getId().getId());
             }
-            hasNext = entities.getData().size() == pageLink.getLimit();
-            if (hasNext) {
-                int index = entities.getData().size() - 1;
-                UUID idOffset = entities.getData().get(index).getUuidId();
-                pageLink.setIdOffset(idOffset);
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
             }
-        }
+        } while (pageData.hasNext());
     }
 
     @Override

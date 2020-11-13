@@ -30,10 +30,17 @@
  */
 package org.thingsboard.server.dao;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.model.ToData;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 
@@ -41,17 +48,49 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-
 public abstract class DaoUtil {
     private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
 
     private DaoUtil() {
+    }
+
+    public static <T> PageData<T> toPageData(Page<? extends ToData<T>> page) {
+        List<T> data = convertDataList(page.getContent());
+        return new PageData(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
+    }
+
+    public static <T> PageData<T> pageToPageData(Page<T> page) {
+        return new PageData(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
+    }
+
+    public static Pageable toPageable(PageLink pageLink) {
+        return toPageable(pageLink, Collections.emptyMap());
+    }
+
+    public static Pageable toPageable(PageLink pageLink, Map<String,String> columnMap) {
+        return PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), toSort(pageLink.getSortOrder(), columnMap));
+    }
+
+    public static Sort toSort(SortOrder sortOrder) {
+        return toSort(sortOrder, Collections.emptyMap());
+    }
+
+    public static Sort toSort(SortOrder sortOrder, Map<String,String> columnMap) {
+        if (sortOrder == null) {
+            return Sort.unsorted();
+        } else {
+            String property = sortOrder.getProperty();
+            if (columnMap.containsKey(property)) {
+                property = columnMap.get(property);
+            }
+            return Sort.by(Sort.Direction.fromString(sortOrder.getDirection().name()), property);
+        }
     }
 
     public static <T> List<T> convertDataList(Collection<? extends ToData<T>> toDataList) {
@@ -100,7 +139,7 @@ public abstract class DaoUtil {
     }
 
     public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds,
-                                                                             Function<List<String>, Collection<? extends ToData<T>>> daoConsumer,
+                                                                             Function<List<UUID>, Collection<? extends ToData<T>>> daoConsumer,
                                                                              JpaExecutorService service) {
         int size = entityIds.size();
         List<ListenableFuture<List<T>>> resultList = new ArrayList<>();
@@ -112,7 +151,7 @@ public abstract class DaoUtil {
                 currentSize = Math.min(size - startIndex, MAX_IN_VALUE);
 
                 List<UUID> currentEntityIds = entityIds.subList(startIndex, startIndex + currentSize);
-                resultList.add(service.submit(() -> convertDataList(daoConsumer.apply(fromTimeUUIDs(currentEntityIds)))));
+                resultList.add(service.submit(() -> convertDataList(daoConsumer.apply(currentEntityIds))));
             }
             return Futures.transform(Futures.allAsList(resultList), list -> {
                 if (!CollectionUtils.isEmpty(list)) {
@@ -123,7 +162,7 @@ public abstract class DaoUtil {
             }, service);
 
         } else {
-            return service.submit(() -> convertDataList(daoConsumer.apply(fromTimeUUIDs(entityIds))));
+            return service.submit(() -> convertDataList(daoConsumer.apply(entityIds)));
         }
     }
 }

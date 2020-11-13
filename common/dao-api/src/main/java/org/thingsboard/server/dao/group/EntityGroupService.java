@@ -31,25 +31,21 @@
 package org.thingsboard.server.dao.group;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public interface EntityGroupService {
 
@@ -98,6 +94,9 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroup>> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType);
 
+    ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
+                                                                              EntityType groupType, PageLink pageLink);
+
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
     void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
@@ -110,23 +109,15 @@ public interface EntityGroupService {
 
     void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds);
 
-    <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                             Function<EntityId, I> toIdFunction,
-                                                                             Function<I, E> toEntityFunction,
-                                                                             BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    ShortEntityView findGroupEntity(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, EntityId entityId);
 
-    <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                                          Function<EntityId, I> toIdFunction,
-                                                                                                          Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                                                                                                          BiFunction<E, List<EntityField>, ShortEntityView> transformFunction);
+    PageData<ShortEntityView> findGroupEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, PageLink pageLink);
 
-    <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>> findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                                                                                            Function<EntityId, I> toIdFunction,
-                                                                                            Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction);
-
-    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
+    ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
+
+    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
     EntityGroup findOrCreateEdgeCETenantAdminsGroup(TenantId tenantId);
 

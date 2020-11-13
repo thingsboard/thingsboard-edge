@@ -30,7 +30,9 @@
  */
 package org.thingsboard.integration.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 
 /**
@@ -41,6 +43,8 @@ public interface ThingsboardPlatformIntegration<T> {
     Integration getConfiguration();
 
     void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts);
+
+    void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException;
 
     void init(TbIntegrationInitParams params) throws Exception;
 

@@ -32,24 +32,22 @@ package org.thingsboard.server.dao.sql.tenant;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.TenantEntity;
+import org.thingsboard.server.dao.model.sql.TenantInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 /**
  * Created by Valerii Sosliuk on 4/30/2017.
@@ -66,22 +64,35 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     }
 
     @Override
-    protected CrudRepository<TenantEntity, String> getCrudRepository() {
+    protected CrudRepository<TenantEntity, UUID> getCrudRepository() {
         return tenantRepository;
     }
 
     @Override
-    public List<Tenant> findTenantsByRegion(TenantId tenantId, String region, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(tenantRepository
+    public TenantInfo findTenantInfoById(TenantId tenantId, UUID id) {
+        return DaoUtil.getData(tenantRepository.findTenantInfoById(id));
+    }
+
+    @Override
+    public PageData<Tenant> findTenantsByRegion(TenantId tenantId, String region, PageLink pageLink) {
+        return DaoUtil.toPageData(tenantRepository
                 .findByRegionNextPage(
                         region,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds) {
-        return service.submit(() -> DaoUtil.convertDataList(tenantRepository.findTenantsByIdIn(fromTimeUUIDs(tenantIds))));
+        return service.submit(() -> DaoUtil.convertDataList(tenantRepository.findTenantsByIdIn(tenantIds)));
+    }
+
+    @Override
+    public PageData<TenantInfo> findTenantInfosByRegion(TenantId tenantId, String region, PageLink pageLink) {
+        return DaoUtil.toPageData(tenantRepository
+                .findTenantInfoByRegionNextPage(
+                        region,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink, TenantInfoEntity.tenantInfoColumnMap)));
     }
 }

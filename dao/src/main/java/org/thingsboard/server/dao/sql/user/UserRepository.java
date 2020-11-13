@@ -30,45 +30,69 @@
  */
 package org.thingsboard.server.dao.sql.user;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Valerii Sosliuk
  */
-public interface UserRepository extends CrudRepository<UserEntity, String> {
+public interface UserRepository extends PagingAndSortingRepository<UserEntity, UUID> {
 
     UserEntity findByEmail(String email);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.customerId = :customerId AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))" +
-            "AND u.id > :idOffset ORDER BY u.id")
-    List<UserEntity> findUsersByAuthority(@Param("tenantId") String tenantId,
-                                          @Param("customerId") String customerId,
-                                          @Param("idOffset") String idOffset,
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<UserEntity> findUsersByAuthority(@Param("tenantId") UUID tenantId,
+                                          @Param("customerId") UUID customerId,
                                           @Param("searchText") String searchText,
                                           @Param("authority") Authority authority,
                                           Pageable pageable);
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
             "AND u.authority = :authority " +
-            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))" +
-            "AND u.id > :idOffset ORDER BY u.id")
-    List<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") String tenantId,
-                                          @Param("idOffset") String idOffset,
-                                          @Param("searchText") String searchText,
-                                          @Param("authority") Authority authority,
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<UserEntity> findAllTenantUsersByAuthority(@Param("tenantId") UUID tenantId,
+                                                   @Param("searchText") String searchText,
+                                                   @Param("authority") Authority authority,
+                                                   Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u, " +
+            "RelationEntity re " +
+            "WHERE u.id = re.toId AND re.toType = 'USER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<UserEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
+                                         @Param("textSearch") String textSearch,
+                                         Pageable pageable);
+
+    @Query("SELECT u FROM UserEntity u, " +
+            "RelationEntity re " +
+            "WHERE u.id = re.toId AND re.toType = 'USER' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<UserEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                          @Param("textSearch") String textSearch,
                                           Pageable pageable);
 
-    List<UserEntity> findUsersByTenantIdAndIdIn(String tenantId, List<String> userIds);
+    List<UserEntity> findUsersByTenantIdAndIdIn(UUID tenantId, List<UUID> userIds);
 
-    List<UserEntity> findUsersByTenantId(String tenantId, Pageable pageable);
+    @Query("SELECT u FROM UserEntity u WHERE u.tenantId = :tenantId " +
+            "AND LOWER(u.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<UserEntity> findByTenantId(@Param("tenantId") UUID tenantId,
+                                    @Param("searchText") String searchText,
+                                    Pageable pageable);
 
 }

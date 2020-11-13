@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -47,6 +47,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.*;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
@@ -58,7 +60,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 public class IntegrationEntity extends BaseSqlEntity<Integration> implements SearchTextEntity<Integration> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = INTEGRATION_NAME_PROPERTY)
     private String name;
@@ -67,10 +69,10 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     private String secret;
 
     @Column(name = INTEGRATION_CONVERTER_ID_PROPERTY)
-    private String converterId;
+    private UUID converterId;
 
     @Column(name = INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY)
-    private String downlinkConverterId;
+    private UUID downlinkConverterId;
 
     @Column(name = INTEGRATION_ROUTING_KEY_PROPERTY)
     private String routingKey;
@@ -88,6 +90,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = INTEGRATION_IS_REMOTE_PROPERTY)
     private Boolean isRemote;
 
+    @Column(name = INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS)
+    private Boolean allowCreateDevicesOrAssets;
+
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
@@ -104,17 +109,18 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     }
 
     public IntegrationEntity(Integration integration) {
+        this.createdTime = integration.getCreatedTime();
         if (integration.getId() != null) {
             this.setUuid(integration.getId().getId());
         }
         if (integration.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(integration.getTenantId().getId());
+            this.tenantId = integration.getTenantId().getId();
         }
         if (integration.getDefaultConverterId() != null) {
-            this.converterId = UUIDConverter.fromTimeUUID(integration.getDefaultConverterId().getId());
+            this.converterId = integration.getDefaultConverterId().getId();
         }
         if (integration.getDownlinkConverterId() != null) {
-            this.downlinkConverterId = UUIDConverter.fromTimeUUID(integration.getDownlinkConverterId().getId());
+            this.downlinkConverterId = integration.getDownlinkConverterId().getId();
         }
         this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
@@ -123,6 +129,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
+        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
     }
@@ -143,16 +150,16 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
 
     @Override
     public Integration toData() {
-        Integration integration = new Integration(new IntegrationId(UUIDConverter.fromString(id)));
-        integration.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        Integration integration = new Integration(new IntegrationId(id));
+        integration.setCreatedTime(this.createdTime);
         if (tenantId != null) {
-            integration.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            integration.setTenantId(new TenantId(tenantId));
         }
         if (converterId != null) {
-            integration.setDefaultConverterId(new ConverterId(UUIDConverter.fromString(converterId)));
+            integration.setDefaultConverterId(new ConverterId(converterId));
         }
         if (downlinkConverterId != null) {
-            integration.setDownlinkConverterId(new ConverterId(UUIDConverter.fromString(downlinkConverterId)));
+            integration.setDownlinkConverterId(new ConverterId(downlinkConverterId));
         }
         integration.setName(name);
         integration.setRoutingKey(routingKey);
@@ -161,6 +168,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setDebugMode(debugMode);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
+        integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
         return integration;

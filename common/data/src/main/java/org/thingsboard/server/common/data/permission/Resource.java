@@ -55,6 +55,10 @@ public enum Resource {
     USER(EntityType.USER),
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
+    OAUTH2_CONFIGURATION_INFO(),
+    OAUTH2_CONFIGURATION_TEMPLATE(),
+    TENANT_PROFILE(EntityType.TENANT_PROFILE),
+    DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
     CONVERTER(EntityType.CONVERTER),
     INTEGRATION(EntityType.INTEGRATION),
     SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
@@ -96,16 +100,20 @@ public enum Resource {
         operationsByResource.put(Resource.ALL, new HashSet<>(Arrays.asList(Operation.values())));
         operationsByResource.put(Resource.PROFILE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.WRITE)));
         operationsByResource.put(Resource.ADMIN_SETTINGS, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
+        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
+        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
         operationsByResource.put(Resource.ALARM, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE)));
         operationsByResource.put(Resource.DEVICE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE,
                 Operation.CREATE, Operation.DELETE, Operation.RPC_CALL, Operation.READ_CREDENTIALS, Operation.WRITE_CREDENTIALS,
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
-                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER)));
+                Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
+        operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.DASHBOARD, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
@@ -134,17 +142,21 @@ public enum Resource {
                 Resource.DASHBOARD,
                 Resource.ALARM,
                 Resource.TENANT,
+                Resource.TENANT_PROFILE,
                 Resource.USER,
                 Resource.WIDGETS_BUNDLE,
                 Resource.WIDGET_TYPE,
                 Resource.ROLE,
-                Resource.WHITE_LABELING)));
+                Resource.WHITE_LABELING,
+                Resource.OAUTH2_CONFIGURATION_INFO,
+                Resource.OAUTH2_CONFIGURATION_TEMPLATE)));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
                 Resource.PROFILE,
                 Resource.ALARM,
                 Resource.DEVICE,
+                Resource.DEVICE_PROFILE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
                 Resource.CUSTOMER,

@@ -30,12 +30,14 @@
  */
 package org.thingsboard.integration.opcua;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 /**
  * Created by ashvayka on 16.01.17.
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class KeystoreConfiguration {
 
     private String type;

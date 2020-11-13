@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.queue.TbCallback;
@@ -94,7 +94,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
     @Override
-    public TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
+    public PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
         return cloudEventService.findCloudEvents(tenantId, pageLink);
     }
 

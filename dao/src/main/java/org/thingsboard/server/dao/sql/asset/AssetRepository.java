@@ -30,65 +30,96 @@
  */
 package org.thingsboard.server.dao.sql.asset;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-public interface AssetRepository extends CrudRepository<AssetEntity, String> {
+public interface AssetRepository extends PagingAndSortingRepository<AssetEntity, UUID> {
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<AssetEntity> findByTenantId(@Param("tenantId") String tenantId,
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                      @Param("textSearch") String textSearch,
-                                     @Param("idOffset") String idOffset,
                                      Pageable pageable);
+
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<AssetEntity> findByTenantIdAndCustomerId(@Param("tenantId") String tenantId,
-                                                  @Param("customerId") String customerId,
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                  @Param("customerId") UUID customerId,
                                                   @Param("textSearch") String textSearch,
-                                                  @Param("idOffset") String idOffset,
                                                   Pageable pageable);
 
-    List<AssetEntity> findByTenantIdAndIdIn(String tenantId, List<String> assetIds);
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupId(@Param("groupId") UUID groupId,
+                                          @Param("textSearch") String textSearch,
+                                          Pageable pageable);
 
-    List<AssetEntity> findByTenantIdAndCustomerIdAndIdIn(String tenantId, String customerId, List<String> assetIds);
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIds(@Param("groupIds") List<UUID> groupIds,
+                                           @Param("textSearch") String textSearch,
+                                           Pageable pageable);
 
-    AssetEntity findByTenantIdAndName(String tenantId, String name);
+    @Query("SELECT a FROM AssetEntity a, " +
+            "RelationEntity re " +
+            "WHERE a.id = re.toId AND re.toType = 'ASSET' " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId in :groupIds AND re.fromType = 'ENTITY_GROUP' " +
+            "AND a.type = :type " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByEntityGroupIdsAndType(@Param("groupIds") List<UUID> groupIds,
+                                                  @Param("type") String type,
+                                                  @Param("textSearch") String textSearch,
+                                                  Pageable pageable);
+
+    List<AssetEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> assetIds);
+
+    List<AssetEntity> findByTenantIdAndCustomerIdAndIdIn(UUID tenantId, UUID customerId, List<UUID> assetIds);
+
+    AssetEntity findByTenantIdAndName(UUID tenantId, String name);
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<AssetEntity> findByTenantIdAndType(@Param("tenantId") String tenantId,
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                             @Param("type") String type,
                                             @Param("textSearch") String textSearch,
-                                            @Param("idOffset") String idOffset,
                                             Pageable pageable);
+
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId AND a.type = :type " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<AssetEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") String tenantId,
-                                                         @Param("customerId") String customerId,
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%'))")
+    Page<AssetEntity> findByTenantIdAndCustomerIdAndType(@Param("tenantId") UUID tenantId,
+                                                         @Param("customerId") UUID customerId,
                                                          @Param("type") String type,
                                                          @Param("textSearch") String textSearch,
-                                                         @Param("idOffset") String idOffset,
                                                          Pageable pageable);
 
     @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
-    List<String> findTenantAssetTypes(@Param("tenantId") String tenantId);
+    List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
 
 }

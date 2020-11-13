@@ -38,6 +38,8 @@ import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
+import java.util.UUID;
+
 @Component
 public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
 
@@ -50,7 +52,7 @@ public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity,
     }
 
     @Override
-    protected CrudRepository<BlobEntityEntity, String> getCrudRepository() {
+    protected CrudRepository<BlobEntityEntity, UUID> getCrudRepository() {
         return blobEntityRepository;
     }
 }

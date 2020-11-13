@@ -41,8 +41,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -128,12 +128,11 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    public TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findByTenantIdAndPageLink(tenantId.getId(), pageLink);
-        return new TextPageData<>(integrations, pageLink);
+        validatePageLink(pageLink);
+        return integrationDao.findByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -211,8 +210,8 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
             new PaginatedRemover<TenantId, Integration>() {
 
                 @Override
-                protected List<Integration> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
-                    return integrationDao.findByTenantIdAndPageLink(id.getId(), pageLink);
+                protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                    return integrationDao.findByTenantId(id.getId(), pageLink);
                 }
 
                 @Override

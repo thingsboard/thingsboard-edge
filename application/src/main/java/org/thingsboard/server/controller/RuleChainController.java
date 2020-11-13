@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,12 +61,15 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainData;
+import org.thingsboard.server.common.data.rule.RuleChainImportResult;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -73,6 +77,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
 import java.util.List;
@@ -91,6 +96,9 @@ public class RuleChainController extends BaseController {
     public static final String RULE_NODE_ID = "ruleNodeId";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Autowired
+    private InstallScripts installScripts;
 
     @Autowired
     private EventService eventService;
@@ -157,6 +165,31 @@ public class RuleChainController extends BaseController {
             logEntityAction(emptyId(EntityType.RULE_CHAIN), ruleChain,
                     null, ruleChain.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
 
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChain/device/default", method = RequestMethod.POST)
+    @ResponseBody
+    public RuleChain saveRuleChain(@RequestBody DefaultRuleChainCreateRequest request) throws ThingsboardException {
+        try {
+            checkNotNull(request);
+            checkNotNull(request.getName());
+
+            accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.CREATE);
+
+            RuleChain savedRuleChain = installScripts.createDefaultRuleChain(getCurrentUser().getTenantId(), request.getName());
+
+            tbClusterService.onEntityStateChange(savedRuleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
+
+            logEntityAction(savedRuleChain.getId(), savedRuleChain, null, ActionType.ADDED, null);
+
+            return savedRuleChain;
+        } catch (Exception e) {
+            RuleChain ruleChain = new RuleChain();
+            ruleChain.setName(request.getName());
+            logEntityAction(emptyId(EntityType.RULE_CHAIN), ruleChain, null, ActionType.ADDED, e);
             throw handleException(e);
         }
     }
@@ -234,17 +267,18 @@ public class RuleChainController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/ruleChains", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/ruleChains", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<RuleChain> getRuleChains(
-            @RequestParam int limit,
+    public PageData<RuleChain> getRuleChains(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.RULE_CHAIN, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(ruleChainService.findTenantRuleChains(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -370,6 +404,36 @@ public class RuleChainController extends BaseController {
             result.put("output", output);
             result.put("error", errorText);
             return result;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChains/export", params = {"limit"}, method = RequestMethod.GET)
+    @ResponseBody
+    public RuleChainData exportRuleChains(@RequestParam("limit") int limit) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            PageLink pageLink = new PageLink(limit);
+            return checkNotNull(ruleChainService.exportTenantRuleChains(tenantId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/ruleChains/import", method = RequestMethod.POST)
+    @ResponseBody
+    public void importRuleChains(@RequestBody RuleChainData ruleChainData, @RequestParam(required = false, defaultValue = "false") boolean overwrite) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            List<RuleChainImportResult> importResults = ruleChainService.importTenantRuleChains(tenantId, ruleChainData, overwrite);
+            if (!CollectionUtils.isEmpty(importResults)) {
+                for (RuleChainImportResult importResult : importResults) {
+                    tbClusterService.onEntityStateChange(importResult.getTenantId(), importResult.getRuleChainId(), importResult.getLifecycleEvent());
+                }
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

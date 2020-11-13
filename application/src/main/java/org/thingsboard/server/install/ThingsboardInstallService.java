@@ -43,6 +43,8 @@ import org.thingsboard.server.service.install.DatabaseTsUpgradeService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
+import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
+import org.thingsboard.server.service.install.update.DataUpdateService;
 
 @Service
 @Profile("install")
@@ -55,11 +57,17 @@ public class ThingsboardInstallService {
     @Value("${install.upgrade.from_version:1.3.0}")
     private String upgradeFromVersion;
 
+    @Value("${install.load_demo:false}")
+    private Boolean loadDemo;
+
     @Autowired
     private EntityDatabaseSchemaService entityDatabaseSchemaService;
 
     @Autowired
     private TsDatabaseSchemaService tsDatabaseSchemaService;
+
+    @Autowired(required = false)
+    private TsLatestDatabaseSchemaService tsLatestDatabaseSchemaService;
 
     @Autowired
     private DatabaseEntitiesUpgradeService databaseEntitiesUpgradeService;
@@ -75,6 +83,9 @@ public class ThingsboardInstallService {
 
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
+
+    @Autowired
+    private DataUpdateService dataUpdateService;
 
     public void performInstall() {
         try {
@@ -121,16 +132,29 @@ public class ThingsboardInstallService {
 
                 tsDatabaseSchemaService.createDatabaseSchema();
 
+                if (tsLatestDatabaseSchemaService != null) {
+                    tsLatestDatabaseSchemaService.createDatabaseSchema();
+                }
+
                 log.info("Loading system data...");
 
                 componentDiscoveryService.discoverComponents();
 
-                //systemDataLoaderService.createSysAdmin();
+//                systemDataLoaderService.createSysAdmin();
+                systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
-                //systemDataLoaderService.loadSystemWidgets();
+//                systemDataLoaderService.loadSystemWidgets();
+//                systemDataLoaderService.createOAuth2Templates();
+//                systemDataLoaderService.loadSystemPlugins();
+//                systemDataLoaderService.loadSystemRules();
 
+                if (loadDemo) {
+                    log.info("Loading demo data...");
+                    systemDataLoaderService.loadDemoData();
+                }
                 log.info("Installation finished successfully!");
             }
+
 
         } catch (Exception e) {
             log.error("Unexpected error during ThingsBoard installation!", e);

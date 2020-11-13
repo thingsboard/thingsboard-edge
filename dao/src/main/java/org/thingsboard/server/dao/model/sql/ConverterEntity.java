@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -52,6 +52,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
@@ -67,7 +69,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPER
 public final class ConverterEntity extends BaseSqlEntity<Converter> implements SearchTextEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = CONVERTER_NAME_PROPERTY)
     private String name;
@@ -95,11 +97,12 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     }
 
     public ConverterEntity(Converter converter) {
+        this.createdTime = converter.getCreatedTime();
         if (converter.getId() != null) {
             this.setUuid(converter.getId().getId());
         }
         if (converter.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(converter.getTenantId().getId());
+            this.tenantId = converter.getTenantId().getId();
         }
         this.name = converter.getName();
         this.type = converter.getType();
@@ -124,10 +127,10 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
 
     @Override
     public Converter toData() {
-        Converter converter = new Converter(new ConverterId(UUIDConverter.fromString(id)));
-        converter.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        Converter converter = new Converter(new ConverterId(id));
+        converter.setCreatedTime(createdTime);
         if (tenantId != null) {
-            converter.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            converter.setTenantId(new TenantId(tenantId));
         }
         converter.setName(name);
         converter.setType(type);

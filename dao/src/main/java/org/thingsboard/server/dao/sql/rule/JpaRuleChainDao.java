@@ -32,22 +32,18 @@ package org.thingsboard.server.dao.sql.rule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Slf4j
 @Component
@@ -67,13 +63,12 @@ public class JpaRuleChainDao extends JpaAbstractSearchTextDao<RuleChainEntity, R
     }
 
     @Override
-    public List<RuleChain> findRuleChainsByTenantId(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(ruleChainRepository
+    public PageData<RuleChain> findRuleChainsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(ruleChainRepository
                 .findByTenantId(
-                        UUIDConverter.fromTimeUUID(tenantId),
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
 }

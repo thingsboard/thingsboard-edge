@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -189,7 +189,7 @@ public class DefaultSchedulerService implements SchedulerService {
             addedPartitions.forEach(tpi -> partitionedTenants.computeIfAbsent(tpi, key -> ConcurrentHashMap.newKeySet()));
 
             long ts = System.currentTimeMillis();
-            List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
+            List<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
             for (Tenant tenant : tenants) {
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), tenant.getId());
                 if (addedPartitions.contains(tpi)) {

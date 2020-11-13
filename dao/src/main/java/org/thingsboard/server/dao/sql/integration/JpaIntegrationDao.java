@@ -32,12 +32,11 @@ package org.thingsboard.server.dao.sql.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
@@ -48,9 +47,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
 
 @Component
 public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
@@ -59,13 +55,12 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     private IntegrationRepository integrationRepository;
 
     @Override
-    public List<Integration> findByTenantIdAndPageLink(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(integrationRepository
-                .findByTenantIdAndPageLink(
-                        fromTimeUUID(tenantId),
+    public PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findByTenantId(
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
@@ -76,12 +71,12 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
 
     @Override
     public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
-        return DaoUtil.convertDataList(integrationRepository.findByConverterId(fromTimeUUID(converterId)));
+        return DaoUtil.convertDataList(integrationRepository.findByConverterId(converterId));
     }
 
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
-        return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(integrationIds))));
+        return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(tenantId, integrationIds)));
     }
 
     @Override
@@ -90,7 +85,7 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
-    protected CrudRepository<IntegrationEntity, String> getCrudRepository() {
+    protected CrudRepository<IntegrationEntity, UUID> getCrudRepository() {
         return integrationRepository;
     }
 

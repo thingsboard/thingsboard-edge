@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -52,6 +52,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
@@ -63,16 +65,16 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
 
     @Column(name = GROUP_PERMISSION_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = GROUP_PERMISSION_USER_GROUP_ID_PROPERTY)
-    private String userGroupId;
+    private UUID userGroupId;
 
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_ID_PROPERTY)
-    private String entityGroupId;
+    private UUID entityGroupId;
 
     @Column(name = GROUP_PERMISSION_ROLE_ID_PROPERTY)
-    private String roleId;
+    private UUID roleId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = GROUP_PERMISSION_ENTITY_GROUP_TYPE_PROPERTY)
@@ -88,20 +90,21 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     }
 
     public GroupPermissionEntity(GroupPermission groupPermission) {
+        this.createdTime = groupPermission.getCreatedTime();
         if (groupPermission.getId() != null) {
             this.setUuid(groupPermission.getId().getId());
         }
         if (groupPermission.getTenantId() != null) {
-            this.tenantId = toString(groupPermission.getTenantId().getId());
+            this.tenantId = groupPermission.getTenantId().getId();
         }
         if (groupPermission.getRoleId() != null) {
-            this.roleId = toString(groupPermission.getRoleId().getId());
+            this.roleId = groupPermission.getRoleId().getId();
         }
         if (groupPermission.getUserGroupId() != null) {
-            this.userGroupId = toString(groupPermission.getUserGroupId().getId());
+            this.userGroupId = groupPermission.getUserGroupId().getId();
         }
         if (groupPermission.getEntityGroupId() != null) {
-            this.entityGroupId = toString(groupPermission.getEntityGroupId().getId());
+            this.entityGroupId = groupPermission.getEntityGroupId().getId();
             this.entityGroupType = groupPermission.getEntityGroupType();
         }
         this.isPublic = groupPermission.isPublic();
@@ -110,18 +113,18 @@ public class GroupPermissionEntity extends BaseSqlEntity<GroupPermission> {
     @Override
     public GroupPermission toData() {
         GroupPermission groupPermission = new GroupPermission(new GroupPermissionId(getUuid()));
-        groupPermission.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
+        groupPermission.setCreatedTime(this.createdTime);
         if (tenantId != null) {
-            groupPermission.setTenantId(new TenantId(toUUID(tenantId)));
+            groupPermission.setTenantId(new TenantId(tenantId));
         }
         if (roleId != null) {
-            groupPermission.setRoleId(new RoleId(toUUID(roleId)));
+            groupPermission.setRoleId(new RoleId(roleId));
         }
         if (userGroupId != null) {
-            groupPermission.setUserGroupId(new EntityGroupId(toUUID(userGroupId)));
+            groupPermission.setUserGroupId(new EntityGroupId(userGroupId));
         }
         if (entityGroupId != null && entityGroupType != null) {
-            groupPermission.setEntityGroupId(new EntityGroupId(toUUID(entityGroupId)));
+            groupPermission.setEntityGroupId(new EntityGroupId(entityGroupId));
             groupPermission.setEntityGroupType(entityGroupType);
         }
         groupPermission.setPublic(isPublic);

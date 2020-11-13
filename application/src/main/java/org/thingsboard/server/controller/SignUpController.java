@@ -151,7 +151,6 @@ public class SignUpController extends BaseController {
 
             //Verify email
             DataValidator.validateEmail(signUpRequest.getEmail());
-
             User existingUser = userService.findUserByEmail(tenantId, signUpRequest.getEmail());
             if (existingUser != null) {
                 UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, existingUser.getId());

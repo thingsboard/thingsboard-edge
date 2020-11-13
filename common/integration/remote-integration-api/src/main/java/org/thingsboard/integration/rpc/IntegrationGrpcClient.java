@@ -120,6 +120,11 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
                         onIntegrationUpdate.accept(connectResponseMsg.getConfiguration());
                     } else {
                         log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", integrationKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());
+                        try {
+                            IntegrationGrpcClient.this.disconnect();
+                        } catch (InterruptedException e) {
+                            log.error("[{}] Got interruption during disconnect!", integrationKey, e);
+                        }
                         onError.accept(new IntegrationConnectionException("Failed to establish the connection! Response code: " + connectResponseMsg.getResponseCode().name()));
                     }
                 } else if (responseMsg.hasUplinkResponseMsg()) {
@@ -157,7 +162,10 @@ public class IntegrationGrpcClient implements IntegrationRpcClient {
 
     @Override
     public void disconnect() throws InterruptedException {
-        inputStream.onCompleted();
+        try {
+            inputStream.onCompleted();
+        } catch (Exception e) {
+        }
         if (channel != null) {
             channel.shutdown().awaitTermination(timeoutSecs, TimeUnit.SECONDS);
         }

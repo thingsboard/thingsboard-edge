@@ -30,37 +30,29 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.CloudEventId;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTimeDao;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
-import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @Slf4j
 @Component
-public class JpaBaseCloudEventDao extends JpaAbstractSearchTimeDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
+public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
 
     private final UUID systemTenantId = NULL_UUID;
 
@@ -73,7 +65,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractSearchTimeDao<CloudEventEnt
     }
 
     @Override
-    protected CrudRepository<CloudEventEntity, String> getCrudRepository() {
+    protected CrudRepository<CloudEventEntity, UUID> getCrudRepository() {
         return cloudEventRepository;
     }
 
@@ -81,40 +73,44 @@ public class JpaBaseCloudEventDao extends JpaAbstractSearchTimeDao<CloudEventEnt
     public ListenableFuture<CloudEvent> saveAsync(CloudEvent cloudEvent) {
         log.debug("Save cloud event [{}] ", cloudEvent);
         if (cloudEvent.getId() == null) {
-            cloudEvent.setId(new CloudEventId(UUIDs.timeBased()));
+            UUID timeBased = Uuids.timeBased();
+            cloudEvent.setId(new CloudEventId(timeBased));
+            cloudEvent.setCreatedTime(Uuids.unixTimestamp(timeBased));
+        } else if (cloudEvent.getCreatedTime() == 0L) {
+            UUID eventId = cloudEvent.getId().getId();
+            if (eventId.version() == 1) {
+                cloudEvent.setCreatedTime(Uuids.unixTimestamp(eventId));
+            } else {
+                cloudEvent.setCreatedTime(System.currentTimeMillis());
+            }
         }
+
         return service.submit(() -> save(new CloudEventEntity(cloudEvent)).orElse(null));
     }
 
     @Override
-    public List<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
-        Specification<CloudEventEntity> timeSearchSpec = JpaAbstractSearchTimeDao.getTimeSearchPageSpec(pageLink, "id");
-        Specification<CloudEventEntity> fieldsSpec = getEntityFieldsSpec(tenantId);
-        Sort.Direction sortDirection = pageLink.isAscOrder() ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(0, pageLink.getLimit(), sortDirection, ID_PROPERTY);
-        return DaoUtil.convertDataList(cloudEventRepository.findAll(Specification.where(timeSearchSpec).and(fieldsSpec), pageable).getContent());
+    public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
+        return DaoUtil.toPageData(
+                cloudEventRepository
+                        .findEventsByTenantId(
+                                tenantId,
+                                pageLink.getStartTime(),
+                                pageLink.getEndTime(),
+                                DaoUtil.toPageable(pageLink)));
+
     }
 
     public Optional<CloudEvent> save(CloudEventEntity entity) {
         log.debug("Save cloud event [{}] ", entity);
         if (entity.getTenantId() == null) {
             log.trace("Save system cloud event with predefined id {}", systemTenantId);
-            entity.setTenantId(UUIDConverter.fromTimeUUID(systemTenantId));
+            entity.setTenantId(systemTenantId);
         }
         if (entity.getUuid() == null) {
-            entity.setUuid(UUIDs.timeBased());
+            UUID timeBased = Uuids.timeBased();
+            entity.setUuid(timeBased);
         }
-        return Optional.of(DaoUtil.getData(cloudEventRepository.save(entity)));
-    }
 
-    private Specification<CloudEventEntity> getEntityFieldsSpec(UUID tenantId) {
-        return (root, criteriaQuery, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            if (tenantId != null) {
-                Predicate tenantIdPredicate = criteriaBuilder.equal(root.get("tenantId"), UUIDConverter.fromTimeUUID(tenantId));
-                predicates.add(tenantIdPredicate);
-            }
-            return criteriaBuilder.and(predicates.toArray(new Predicate[]{}));
-        };
+        return Optional.of(DaoUtil.getData(cloudEventRepository.save(entity)));
     }
 }

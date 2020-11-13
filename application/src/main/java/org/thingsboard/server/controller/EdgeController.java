@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -67,15 +67,17 @@ public class EdgeController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<CloudEvent> getCloudEvents(
-            @RequestParam int limit,
+    public PageData<CloudEvent> getCloudEvents(
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
+            @RequestParam(required = false) Long endTime) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);

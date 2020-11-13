@@ -70,11 +70,16 @@ public class SelfRegistrationController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public SelfRegistrationParams saveSelfRegistrationParams(@RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         try {
-            Authority authority = getCurrentUser().getAuthority();
+            SecurityUser securityUser = getCurrentUser();
+            Authority authority = securityUser.getAuthority();
             checkSelfRegistrationPermissions(Operation.WRITE);
             SelfRegistrationParams savedSelfRegistrationParams = null;
-            if (authority == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(authority)) {
                 savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
+                JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
             }
             return savedSelfRegistrationParams;
         } catch (Exception e) {
@@ -90,7 +95,7 @@ public class SelfRegistrationController extends BaseController {
             SecurityUser securityUser = getCurrentUser();
             checkSelfRegistrationPermissions(Operation.READ);
             SelfRegistrationParams selfRegistrationParams = null;
-            if (securityUser.getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
                 selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
                 JsonNode privacyPolicyNode = MAPPER.readTree(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
                 if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {

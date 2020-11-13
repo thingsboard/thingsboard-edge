@@ -30,14 +30,22 @@
  */
 package org.thingsboard.server.common.transport;
 
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+import org.thingsboard.server.common.transport.auth.ValidateDeviceCredentialsResponse;
+import org.thingsboard.server.common.transport.limits.TransportRateLimitType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetOrCreateDeviceFromGatewayResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetTenantRoutingInfoRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetTenantRoutingInfoResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetEntityProfileRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.GetEntityProfileResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEventMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToAttributeUpdatesMsg;
@@ -45,27 +53,39 @@ import org.thingsboard.server.gen.transport.TransportProtos.SubscribeToRPCMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionInfoProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceCredentialsResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ValidateBasicMqttCredRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceTokenRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ValidateDeviceX509CertRequestMsg;
+
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by ashvayka on 04.10.18.
  */
 public interface TransportService {
 
-    GetTenantRoutingInfoResponseMsg getRoutingInfo(GetTenantRoutingInfoRequestMsg msg);
+    GetEntityProfileResponseMsg getRoutingInfo(GetEntityProfileRequestMsg msg);
 
-    void process(ValidateDeviceTokenRequestMsg msg,
-                 TransportServiceCallback<ValidateDeviceCredentialsResponseMsg> callback);
+    void process(DeviceTransportType transportType, ValidateDeviceTokenRequestMsg msg,
+                 TransportServiceCallback<ValidateDeviceCredentialsResponse> callback);
 
-    void process(ValidateDeviceX509CertRequestMsg msg,
-                 TransportServiceCallback<ValidateDeviceCredentialsResponseMsg> callback);
+    void process(DeviceTransportType transportType, ValidateBasicMqttCredRequestMsg msg,
+                 TransportServiceCallback<ValidateDeviceCredentialsResponse> callback);
+
+    void process(DeviceTransportType transportType, ValidateDeviceX509CertRequestMsg msg,
+                 TransportServiceCallback<ValidateDeviceCredentialsResponse> callback);
 
     void process(GetOrCreateDeviceFromGatewayRequestMsg msg,
-                 TransportServiceCallback<GetOrCreateDeviceFromGatewayResponseMsg> callback);
+                 TransportServiceCallback<GetOrCreateDeviceFromGatewayResponse> callback);
+
+    void process(ProvisionDeviceRequestMsg msg,
+                 TransportServiceCallback<ProvisionDeviceResponseMsg> callback);
+
+    void onProfileUpdate(DeviceProfile deviceProfile);
 
     boolean checkLimits(SessionInfoProto sessionInfo, Object msg, TransportServiceCallback<Void> callback);
+
+    boolean checkLimits(SessionInfoProto sessionInfo, Object msg, TransportServiceCallback<Void> callback, int dataPoints, TransportRateLimitType... limits);
 
     void process(SessionInfoProto sessionInfo, SessionEventMsg msg, TransportServiceCallback<Void> callback);
 
@@ -87,6 +107,8 @@ public interface TransportService {
 
     void process(SessionInfoProto sessionInfo, ClaimDeviceMsg msg, TransportServiceCallback<Void> callback);
 
+    ScheduledExecutorService getSchedulerExecutor();
+
     void registerAsyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener);
 
     void registerSyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener, long timeout);
@@ -94,5 +116,4 @@ public interface TransportService {
     void reportActivity(SessionInfoProto sessionInfo);
 
     void deregisterSession(SessionInfoProto sessionInfo);
-
 }

@@ -65,4 +65,8 @@ public class TbRateLimits {
         return bucket.tryConsume(1);
     }
 
+    public boolean tryConsume(long number) {
+        return bucket.tryConsume(number);
+    }
+
 }

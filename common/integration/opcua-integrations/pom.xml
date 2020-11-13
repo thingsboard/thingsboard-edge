@@ -68,6 +68,10 @@
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
