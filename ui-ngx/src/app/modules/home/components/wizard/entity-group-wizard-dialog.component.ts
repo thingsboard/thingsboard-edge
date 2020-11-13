@@ -194,9 +194,9 @@ export class EntityGroupWizardDialogComponent extends
 
   private createEntityGroup(): Observable<EntityGroupInfo> {
     const entityGroup = {
-      name: this.entityGroupWizardFormGroup.get('name').value,
+      name: this.entityGroupWizardFormGroup.get('name').value.trim(),
       additionalInfo: {
-        description: this.entityGroupWizardFormGroup.get('description').value
+        description: this.entityGroupWizardFormGroup.get('description').value.trim()
       },
       customerId: null
     } as EntityGroupInfo;
