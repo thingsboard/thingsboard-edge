@@ -115,7 +115,7 @@ public enum Resource {
         operationsByResource.put(Resource.ENTITY_VIEW, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.TENANT_PROFILE, Operation.defaultEntityOperations);
-        operationsByResource.put(Resource.API_USAGE_STATE, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.API_USAGE_STATE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.READ_TELEMETRY)));
         operationsByResource.put(Resource.RULE_CHAIN, Operation.defaultEntityOperations);
         Set<Operation> userOperations = new HashSet<>(Operation.defaultEntityOperations);
         userOperations.add(Operation.IMPERSONATE);
