@@ -2690,7 +2690,8 @@
                 "ROLE": "Role",
                 "GROUP_PERMISSION": "Group Permission",
                 "WHITE_LABELING": "White Labeling",
-                "AUDIT_LOG": "Audit Log"
+                "AUDIT_LOG": "Audit Log",
+                "API_USAGE_STATE": "API Usage State"
             }
         },
         "operation": {
