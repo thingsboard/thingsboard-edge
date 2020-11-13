@@ -28,44 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.entity;
+package org.thingsboard.server.dao;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.relation.RelationService;
 
-import java.util.Optional;
+public interface TenantEntityDao {
 
-@Slf4j
-public abstract class AbstractEntityService {
-
-    @Autowired
-    protected RelationService relationService;
-
-    @Autowired
-    protected EntityGroupService entityGroupService;
-
-    protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
-        log.trace("Executing deleteEntityRelations [{}]", entityId);
-        relationService.deleteEntityRelations(tenantId, entityId);
-    }
-
-    protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {
-        log.trace("Executing deleteEntityGroups [{}]", entityId);
-        entityGroupService.deleteAllEntityGroups(tenantId, entityId);
-    }
-
-    protected Optional<ConstraintViolationException> extractConstraintViolationException(Exception t) {
-        if (t instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) t);
-        } else if (t.getCause() instanceof ConstraintViolationException) {
-            return Optional.of((ConstraintViolationException) (t.getCause()));
-        } else {
-            return Optional.empty();
-        }
-    }
+    Long countByTenantId(TenantId tenantId);
 }

@@ -144,4 +144,9 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
+
+    @Override
+    public Long countByTenantId(TenantId tenantId) {
+        return userRepository.countByTenantId(tenantId.getId());
+    }
 }
