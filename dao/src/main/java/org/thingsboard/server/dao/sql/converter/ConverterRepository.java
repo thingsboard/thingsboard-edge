@@ -52,4 +52,5 @@ public interface ConverterRepository extends CrudRepository<ConverterEntity, UUI
 
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
+    Long countByTenantId(UUID tenantId);
 }

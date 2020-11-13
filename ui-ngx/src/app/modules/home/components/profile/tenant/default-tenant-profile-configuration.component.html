@@ -104,6 +104,42 @@
     </mat-error>
   </mat-form-field>
   <mat-form-field class="mat-block">
+    <mat-label translate>tenant-profile.maximum-integrations</mat-label>
+    <input matInput required min="0" step="1"
+           formControlName="maxIntegrations"
+           type="number">
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxIntegrations').hasError('required')">
+      {{ 'tenant-profile.maximum-integrations-required' | translate}}
+    </mat-error>
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxIntegrations').hasError('min')">
+      {{ 'tenant-profile.maximum-integrations-range' | translate}}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>tenant-profile.maximum-converters</mat-label>
+    <input matInput required min="0" step="1"
+           formControlName="maxConverters"
+           type="number">
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxConverters').hasError('required')">
+      {{ 'tenant-profile.maximum-converters-required' | translate}}
+    </mat-error>
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxConverters').hasError('min')">
+      {{ 'tenant-profile.maximum-converters-range' | translate}}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field class="mat-block">
+    <mat-label translate>tenant-profile.maximum-scheduler-events</mat-label>
+    <input matInput required min="0" step="1"
+           formControlName="maxSchedulerEvents"
+           type="number">
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSchedulerEvents').hasError('required')">
+      {{ 'tenant-profile.maximum-scheduler-events-required' | translate}}
+    </mat-error>
+    <mat-error *ngIf="defaultTenantProfileConfigurationFormGroup.get('maxSchedulerEvents').hasError('min')">
+      {{ 'tenant-profile.maximum-scheduler-events-range' | translate}}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field class="mat-block">
     <mat-label translate>tenant-profile.max-transport-messages</mat-label>
     <input matInput required min="0" step="1"
            formControlName="maxTransportMessages"

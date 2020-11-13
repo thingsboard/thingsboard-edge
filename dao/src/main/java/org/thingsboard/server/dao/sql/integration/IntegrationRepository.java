@@ -54,4 +54,6 @@ public interface IntegrationRepository extends CrudRepository<IntegrationEntity,
 
     List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);
 
+    Long countByTenantId(UUID tenantId);
+
 }
