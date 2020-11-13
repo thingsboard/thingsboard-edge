@@ -591,12 +591,14 @@ export const templates = {
       handshakeTimeout: 10000,
       pollPeriod: 5000,
     },
-    ignoreNonPrimitiveFields: ['otherProperties'],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
-      'clientConfiguration.port': [Validators.required],
+      'clientConfiguration.port': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.queues': [Validators.required],
-      'clientConfiguration.topics': [Validators.required]
+      'clientConfiguration.routingKeys': [Validators.required],
+      'clientConfiguration.connectionTimeout': [Validators.min(0)],
+      'clientConfiguration.handshakeTimeout': [Validators.min(0)],
+      'clientConfiguration.pollPeriod': [Validators.min(0)]
     }
   },
 
