@@ -2172,7 +2172,7 @@
         "accept": "Accept",
         "accept-privacy-policy": "Accept Privacy Policy",
         "account-activated": "Account successfully activated!",
-        "account-activated-text": "Congratulations!</br>Your account has been activated.</br>Now you can login to your ThingsBoard space.",
+        "account-activated-text": "Congratulations!</br>Your account has been activated.",
         "account-activation-title": "Account activation",
         "activating-account": "Activating account...",
         "activating-account-text": "Your account is currently activating. Please wait...",
