@@ -1706,7 +1706,7 @@
     "email-verification-message": "email ar verifikācijas informāciju ir nosūtīts uz adresi.</br>Lūdzu sekot instrukcijām, kas norādītas sūtījumā.",
     "account-activation-title": "Konts aktivizēts",
     "account-activated": "Konts sekmīgi aktivizēts!",
-    "account-activated-text": "Apsveicam!</br>Jūsu konts ir aktivizēts.</br>Tagad varat ieiet jūsu IoT portālā.",
+    "account-activated-text": "Apsveicam!</br>Jūsu konts ir aktivizēts.",
     "resend": "Atkārtoti nosūtīt",
     "inactive-user-exists-title": "Neaktīvs lietotājs jau eksistē",
     "inactive-user-exists-text": "Jau ir reģistrēts lietotājs ar nepārbaudītu email adresi.</br>Klikšķiniet 'Atkārtoti nosūtīt' pogu, ja vēlaties atkal nosūtīt pārbaudes email.",

@@ -2126,7 +2126,7 @@
     "email-verification-message": "Um e-mail com detalhes de verificação foi enviado para o endereço de e-mail especificado.<br>Siga as instruções fornecidas no e-mail, para completar seu processo de inscrição.<br>Observação: Se não tiver recebido o e-mail, verifique a pasta de 'spam' ou tente enviar o e-mail novamente clicando no botão 'Reenviar'.",
     "account-activation-title": "Ativação de conta",
     "account-activated": "Conta ativada corretamente!",
-    "account-activated-text": "Parabéns!<br>Sua conta do ThingsBoard Professional Edition foi ativada.<br>Agora você pode fazer login no espaço do ThingsBoard.",
+    "account-activated-text": "Parabéns!<br>Sua conta do foi ativada.",
     "resend": "Reenviar",
     "inactive-user-exists-title": "Este usuário inativo já existe",
     "inactive-user-exists-text": "Já existe um usuário registrado com endereço de e-mail não verificado.<br>Se quiser reenviar o e-mail de verificação, clique no botão 'Reenviar'.",

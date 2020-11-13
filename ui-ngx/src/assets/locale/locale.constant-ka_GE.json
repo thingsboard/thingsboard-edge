@@ -1879,7 +1879,7 @@
     "email-verification-message": "ელ.ფოსტის შემოწმება-გაგზავნა",
     "account-activation-title": "ანგარიშის აქტივაცია",
     "account-activated": "გილოცავთ ანგარიში გააქტიურებულია",
-    "account-activated-text": "გილოცავთ ! ანგარიშის გააქტიურებული ტესტი წარმატებით დასრულდა",
+    "account-activated-text": "გილოცავთ!<br/> თქვენი ანგარიში გააქტიურებულია",
     "resend": "ხელახლა გაგზავნა",
     "inactive-user-exists-title": "არააქტიური-მომხმარებლი უკვე არსებობს",
     "inactive-user-exists-text": "არააქტიური-მომხმარებლის-ტექსტი",
