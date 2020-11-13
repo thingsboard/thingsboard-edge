@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.sql.scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
@@ -54,5 +55,10 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
     @Override
     protected CrudRepository<SchedulerEventEntity, UUID> getCrudRepository() {
         return schedulerEventRepository;
+    }
+
+    @Override
+    public Long countByTenantId(TenantId tenantId) {
+        return schedulerEventRepository.countByTenantId(tenantId.getId());
     }
 }

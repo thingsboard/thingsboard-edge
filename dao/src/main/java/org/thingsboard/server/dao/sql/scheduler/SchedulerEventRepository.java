@@ -36,4 +36,7 @@ import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
 import java.util.UUID;
 
 public interface SchedulerEventRepository extends CrudRepository<SchedulerEventEntity, UUID> {
+
+    Long countByTenantId(UUID tenantId);
+
 }

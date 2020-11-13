@@ -45,6 +45,9 @@ export interface DefaultTenantProfileConfiguration {
   maxUsers: number;
   maxDashboards: number;
   maxRuleChains: number;
+  maxIntegrations;
+  maxConverters;
+  maxSchedulerEvents;
 
   transportTenantMsgRateLimit?: string;
   transportTenantTelemetryMsgRateLimit?: string;
@@ -79,6 +82,9 @@ export function createTenantProfileConfiguration(type: TenantProfileType): Tenan
           maxUsers: 0,
           maxDashboards: 0,
           maxRuleChains: 0,
+          maxIntegrations: 0,
+          maxConverters: 0,
+          maxSchedulerEvents: 0,
           maxTransportMessages: 0,
           maxTransportDataPoints: 0,
           maxREExecutions: 0,
