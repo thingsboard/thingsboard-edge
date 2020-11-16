@@ -149,6 +149,8 @@ import { AlarmScheduleDialogComponent } from '@home/components/profile/alarm/ala
 import { EditAlarmDetailsDialogComponent } from './profile/alarm/edit-alarm-details-dialog.component';
 import { AlarmRuleConditionDialogComponent } from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
 import { EntityGroupWizardDialogComponent } from './wizard/entity-group-wizard-dialog.component';
+import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
+import { CloudEventDetailsDialogComponent } from "@home/components/cloud-event/cloud-event-details-dialog.component";
 
 @NgModule({
   declarations:
@@ -261,7 +263,9 @@ import { EntityGroupWizardDialogComponent } from './wizard/entity-group-wizard-d
       DeviceCredentialsComponent,
       AlarmScheduleDialogComponent,
       EditAlarmDetailsDialogComponent,
-      EntityGroupWizardDialogComponent
+      EntityGroupWizardDialogComponent,
+      CloudEventTableComponent,
+      CloudEventDetailsDialogComponent
     ],
   imports: [
     CommonModule,
@@ -366,7 +370,9 @@ import { EntityGroupWizardDialogComponent } from './wizard/entity-group-wizard-d
     EditAlarmDetailsDialogComponent,
     DeviceProfileProvisionConfigurationComponent,
     AlarmScheduleComponent,
-    EntityGroupWizardDialogComponent
+    EntityGroupWizardDialogComponent,
+    CloudEventTableComponent,
+    CloudEventDetailsDialogComponent
   ],
   providers: [
     WidgetComponentService,

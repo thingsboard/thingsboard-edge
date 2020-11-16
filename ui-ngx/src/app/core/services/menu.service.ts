@@ -359,7 +359,34 @@ export class MenuService {
 
   private buildTenantAdminMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
+    const pages: Array<MenuSection> = [
+      {
+        id: guid(),
+        name: 'edge.information',
+        type: 'link',
+        path: '/edge/information',
+        icon: 'info',
+        disabled: false
+      },
+      {
+        id: guid(),
+        name: 'edge.cloud-events',
+        type: 'link',
+        path: '/edge/cloudEvents',
+        icon: 'date_range',
+        disabled: false
+      }
+    ];
     sections.push(
+      {
+        id: guid(),
+        name: 'edge.info',
+        type: 'toggle',
+        path: '/edge',
+        icon: 'router',
+        pages: pages,
+        asyncPages: of(pages)
+      },
       {
         id: guid(),
         name: 'home.home',
