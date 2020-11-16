@@ -381,54 +381,54 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'converter.converters',
-          type: 'link',
-          path: '/converters',
-          icon: 'transform',
-          disabled: disabledItems.indexOf('converters') > -1
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'integration.integrations',
-          type: 'link',
-          path: '/integrations',
-          icon: 'input',
-          disabled: disabledItems.indexOf('integrations') > -1
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'role.roles',
-          type: 'link',
-          path: '/roles',
-          icon: 'security',
-          disabled: disabledItems.indexOf('roles') > -1
-        }
-      );
-    }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'customers-hierarchy.customers-hierarchy',
-          type: 'link',
-          path: '/customersHierarchy',
-          icon: 'sort',
-          disabled: disabledItems.indexOf('customers_hierarchy') > -1
-        }
-      );
-    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'converter.converters',
+    //       type: 'link',
+    //       path: '/converters',
+    //       icon: 'transform',
+    //       disabled: disabledItems.indexOf('converters') > -1
+    //     }
+    //   );
+    // }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'integration.integrations',
+    //       type: 'link',
+    //       path: '/integrations',
+    //       icon: 'input',
+    //       disabled: disabledItems.indexOf('integrations') > -1
+    //     }
+    //   );
+    // }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'role.roles',
+    //       type: 'link',
+    //       path: '/roles',
+    //       icon: 'security',
+    //       disabled: disabledItems.indexOf('roles') > -1
+    //     }
+    //   );
+    // }
+    // if (this.userPermissionsService.hasReadGroupsPermission(EntityType.CUSTOMER)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'customers-hierarchy.customers-hierarchy',
+    //       type: 'link',
+    //       path: '/customersHierarchy',
+    //       icon: 'sort',
+    //       disabled: disabledItems.indexOf('customers_hierarchy') > -1
+    //     }
+    //   );
+    // }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.USER) && disabledItems.indexOf('user_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.USER));
     }
@@ -441,19 +441,19 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE) && disabledItems.indexOf('device_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DEVICE));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'device-profile.device-profiles',
-          type: 'link',
-          path: '/deviceProfiles',
-          icon: 'mdi:alpha-d-box',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('device_profiles') > -1
-        }
-      );
-    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'device-profile.device-profiles',
+    //       type: 'link',
+    //       path: '/deviceProfiles',
+    //       icon: 'mdi:alpha-d-box',
+    //       isMdiIcon: true,
+    //       disabled: disabledItems.indexOf('device_profiles') > -1
+    //     }
+    //   );
+    // }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
@@ -472,89 +472,89 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'scheduler.scheduler',
-          type: 'link',
-          path: '/scheduler',
-          icon: 'schedule',
-          disabled: disabledItems.indexOf('scheduler') > -1
-        }
-      );
-    }
-    if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
-      const pages: Array<MenuSection> = [
-        {
-          id: guid(),
-          name: 'admin.outgoing-mail',
-          type: 'link',
-          path: '/settings/outgoing-mail',
-          icon: 'mail',
-          disabled: disabledItems.indexOf('mail_server') > -1
-        },
-        {
-          id: guid(),
-          name: 'admin.mail-templates',
-          type: 'link',
-          path: '/settings/mail-template',
-          icon: 'format_shapes',
-          disabled: disabledItems.indexOf('mail_templates') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-translation.custom-translation',
-          type: 'link',
-          path: '/settings/customTranslation',
-          icon: 'language',
-          disabled: disabledItems.indexOf('custom_translation') > -1
-        },
-        {
-          id: guid(),
-          name: 'custom-menu.custom-menu',
-          type: 'link',
-          path: '/settings/customMenu',
-          icon: 'list',
-          disabled: disabledItems.indexOf('custom_menu') > -1
-        },
-        {
-          id: guid(),
-          name: 'white-labeling.white-labeling',
-          type: 'link',
-          path: '/settings/whiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('white_labeling') > -1
-        },
-        {
-          id: guid(),
-          name: 'white-labeling.login-white-labeling',
-          type: 'link',
-          path: '/settings/loginWhiteLabel',
-          icon: 'format_paint',
-          disabled: disabledItems.indexOf('login_white_labeling') > -1
-        },
-        {
-          id: guid(),
-          name: 'self-registration.self-registration',
-          type: 'link',
-          path: '/settings/selfRegistration',
-          icon: 'group_add',
-          disabled: disabledItems.indexOf('self_registration') > -1
-        }
-      ];
-      sections.push(
-        {
-          id: guid(),
-          name: 'white-labeling.white-labeling',
-          type: 'toggle',
-          path: '/settings',
-          icon: 'format_paint',
-          pages,
-          asyncPages: of(pages)
-        }
-      );
-    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'scheduler.scheduler',
+    //       type: 'link',
+    //       path: '/scheduler',
+    //       icon: 'schedule',
+    //       disabled: disabledItems.indexOf('scheduler') > -1
+    //     }
+    //   );
+    // }
+    // if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
+    //   const pages: Array<MenuSection> = [
+    //     {
+    //       id: guid(),
+    //       name: 'admin.outgoing-mail',
+    //       type: 'link',
+    //       path: '/settings/outgoing-mail',
+    //       icon: 'mail',
+    //       disabled: disabledItems.indexOf('mail_server') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'admin.mail-templates',
+    //       type: 'link',
+    //       path: '/settings/mail-template',
+    //       icon: 'format_shapes',
+    //       disabled: disabledItems.indexOf('mail_templates') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'custom-translation.custom-translation',
+    //       type: 'link',
+    //       path: '/settings/customTranslation',
+    //       icon: 'language',
+    //       disabled: disabledItems.indexOf('custom_translation') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'custom-menu.custom-menu',
+    //       type: 'link',
+    //       path: '/settings/customMenu',
+    //       icon: 'list',
+    //       disabled: disabledItems.indexOf('custom_menu') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'white-labeling.white-labeling',
+    //       type: 'link',
+    //       path: '/settings/whiteLabel',
+    //       icon: 'format_paint',
+    //       disabled: disabledItems.indexOf('white_labeling') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'white-labeling.login-white-labeling',
+    //       type: 'link',
+    //       path: '/settings/loginWhiteLabel',
+    //       icon: 'format_paint',
+    //       disabled: disabledItems.indexOf('login_white_labeling') > -1
+    //     },
+    //     {
+    //       id: guid(),
+    //       name: 'self-registration.self-registration',
+    //       type: 'link',
+    //       path: '/settings/selfRegistration',
+    //       icon: 'group_add',
+    //       disabled: disabledItems.indexOf('self_registration') > -1
+    //     }
+    //   ];
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'white-labeling.white-labeling',
+    //       type: 'toggle',
+    //       path: '/settings',
+    //       icon: 'format_paint',
+    //       pages,
+    //       asyncPages: of(pages)
+    //     }
+    //   );
+    // }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       sections.push(
         {
