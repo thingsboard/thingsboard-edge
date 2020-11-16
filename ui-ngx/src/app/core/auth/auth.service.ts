@@ -29,42 +29,44 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgZone } from '@angular/core';
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { HttpClient } from '@angular/common/http';
+import {Injectable, NgZone} from '@angular/core';
+import {JwtHelperService} from '@auth0/angular-jwt';
+import {HttpClient} from '@angular/common/http';
 
-import { forkJoin, Observable, of, ReplaySubject, throwError } from 'rxjs';
-import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import {forkJoin, Observable, of, ReplaySubject, throwError} from 'rxjs';
+import {catchError, map, mergeMap, tap} from 'rxjs/operators';
 
-import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
-import { ActivatedRoute, Router, UrlTree } from '@angular/router';
-import { defaultHttpOptions } from '../http/http-utils';
-import { UserService } from '../http/user.service';
-import { Store } from '@ngrx/store';
-import { AppState } from '../core.state';
-import { ActionAuthAuthenticated, ActionAuthLoadUser, ActionAuthUnauthenticated } from './auth.actions';
-import { getCurrentAuthState, getCurrentAuthUser } from './auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
-import { ActionSettingsChangeLanguage } from '@app/core/settings/settings.actions';
-import { AuthPayload, AuthState, SysParamsState } from '@core/auth/auth.models';
-import { TranslateService } from '@ngx-translate/core';
-import { AuthUser } from '@shared/models/user.model';
-import { TimeService } from '@core/services/time.service';
-import { UtilsService } from '@core/services/utils.service';
-import { DashboardService } from '@core/http/dashboard.service';
-import { PageLink } from '@shared/models/page/page-link';
-import { DashboardInfo } from '@shared/models/dashboard.models';
-import { PageData } from '@app/shared/models/page/page-data';
-import { AdminService } from '@core/http/admin.service';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { WhiteLabelingService } from '@core/http/white-labeling.service';
-import { CustomMenuService } from '@core/http/custom-menu.service';
-import { CustomTranslationService } from '@core/http/custom-translation.service';
-import { ReportService } from '@core/http/report.service';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
-import { OAuth2ClientInfo } from '@shared/models/oauth2.models';
+import {LoginRequest, LoginResponse, PublicLoginRequest} from '@shared/models/login.models';
+import {ActivatedRoute, Router, UrlTree} from '@angular/router';
+import {defaultHttpOptions} from '../http/http-utils';
+import {UserService} from '../http/user.service';
+import {Store} from '@ngrx/store';
+import {AppState} from '../core.state';
+import {ActionAuthAuthenticated, ActionAuthLoadUser, ActionAuthUnauthenticated} from './auth.actions';
+import {getCurrentAuthState, getCurrentAuthUser} from './auth.selectors';
+import {Authority} from '@shared/models/authority.enum';
+import {ActionSettingsChangeLanguage} from '@app/core/settings/settings.actions';
+import {AuthPayload, AuthState, SysParamsState} from '@core/auth/auth.models';
+import {TranslateService} from '@ngx-translate/core';
+import {AuthUser} from '@shared/models/user.model';
+import {TimeService} from '@core/services/time.service';
+import {UtilsService} from '@core/services/utils.service';
+import {DashboardService} from '@core/http/dashboard.service';
+import {PageLink} from '@shared/models/page/page-link';
+import {DashboardInfo} from '@shared/models/dashboard.models';
+import {PageData} from '@app/shared/models/page/page-data';
+import {AdminService} from '@core/http/admin.service';
+import {ActionNotificationShow} from '@core/notification/notification.actions';
+import {WhiteLabelingService} from '@core/http/white-labeling.service';
+import {CustomMenuService} from '@core/http/custom-menu.service';
+import {CustomTranslationService} from '@core/http/custom-translation.service';
+import {ReportService} from '@core/http/report.service';
+import {UserPermissionsService} from '@core/http/user-permissions.service';
+import {MatDialog, MatDialogConfig} from '@angular/material/dialog';
+import {AlertDialogComponent} from '@shared/components/dialog/alert-dialog.component';
+import {OAuth2ClientInfo} from '@shared/models/oauth2.models';
+import {CloudType} from "@shared/models/edge.models";
+import {EdgeService} from "@core/http/edge.service";
 
 @Injectable({
     providedIn: 'root'
@@ -81,6 +83,7 @@ export class AuthService {
     private userPermissionsService: UserPermissionsService,
     private reportService: ReportService,
     private timeService: TimeService,
+    private edgeService: EdgeService,
     private router: Router,
     private route: ActivatedRoute,
     private zone: NgZone,
@@ -121,6 +124,8 @@ export class AuthService {
   public static getJwtToken() {
     return AuthService._storeGet('jwt_token');
   }
+
+  public peMenuAllowed: boolean = false;
 
   public reloadUser() {
     this.loadUser(true).subscribe(
@@ -483,12 +488,14 @@ export class AuthService {
                      this.customMenuService.loadCustomMenu(),
                      this.customTranslationService.updateCustomTranslations(true),
                      this.userPermissionsService.loadPermissionsInfo(),
-                     this.timeService.loadMaxDatapointsLimit()];
+                     this.timeService.loadMaxDatapointsLimit(),
+                     this.edgeService.getEdgeSettings()];
     return forkJoin(sources)
       .pipe(map((data) => {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
         const whiteLabelingAllowedInfo = data[2] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        this.peMenuAllowed = data[8].cloudType == CloudType.PE;
         return {userTokenAccessEnabled, allowedDashboardIds, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
@@ -663,4 +670,9 @@ export class AuthService {
       return of([]);
     }
   }
+
+  public isPEMenuAllowed(): boolean {
+    return this.peMenuAllowed;
+  }
+
 }

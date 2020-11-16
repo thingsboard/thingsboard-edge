@@ -37,5 +37,3 @@ state_file.txt
 data_*.txt
 .run
 .run/**
-ui-ngx/package.json
-ui-ngx/yarn.lock
