@@ -39,24 +39,22 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -64,15 +62,14 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -109,6 +106,10 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     @Autowired
     private CustomerDao customerDao;
+
+    @Autowired
+    @Lazy
+    private TbTenantProfileCache tenantProfileCache;
 
     @Override
     public User findUserByEmail(TenantId tenantId, String email) {
@@ -257,21 +258,19 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public TextPageData<User> findTenantAdmins(TenantId tenantId, TextPageLink pageLink) {
-        log.trace("Executing findTenantAdmins, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findUsersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<User> users = userDao.findTenantAdmins(tenantId.getId(), pageLink);
-        return new TextPageData<>(users, pageLink);
+        validatePageLink(pageLink);
+        return userDao.findByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
-    public TextPageData<User> findUsersByTenantId(TenantId tenantId, TextPageLink pageLink) {
-        log.trace("Executing findUsersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantAdmins, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<User> users = userDao.findUsersByTenantId(tenantId.getId(), pageLink);
-        return new TextPageData<>(users, pageLink);
+        validatePageLink(pageLink);
+        return userDao.findTenantAdmins(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -282,22 +281,20 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public TextPageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, TextPageLink pageLink) {
+    public PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findCustomerUsers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, "Incorrect customerId " + customerId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<User> users = userDao.findCustomerUsers(tenantId.getId(), customerId.getId(), pageLink);
-        return new TextPageData<>(users, pageLink);
+        validatePageLink(pageLink);
+        return userDao.findCustomerUsers(tenantId.getId(), customerId.getId(), pageLink);
     }
 
     @Override
-    public TextPageData<User> findAllCustomerUsers(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findAllCustomerUsers, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        List<User> users = userDao.findAllCustomerUsers(tenantId.getId(), pageLink);
-        return new TextPageData<>(users, pageLink);
+        validatePageLink(pageLink);
+        return userDao.findAllCustomerUsers(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -309,62 +306,19 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
-    public ShortEntityView findGroupUser(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing findGroupUser, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validateEntityId(entityId, "Incorrect entityId " + entityId);
-        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
-                (userEntityId) -> new UserId(userEntityId.getId()),
-                (userId) -> findUserById(tenantId, userId),
-                new UserViewFunction());
+    public PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
+        log.trace("Executing findUsersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
+        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validatePageLink(pageLink);
+        return userDao.findUsersByEntityGroupId(groupId.getId(), pageLink);
     }
 
     @Override
-    public ListenableFuture<TimePageData<ShortEntityView>> findUsersByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findUsersByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new UserId(entityId.getId()),
-                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds),
-                new UserViewFunction());
-    }
-
-    @Override
-    public ListenableFuture<TimePageData<User>> findUserEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
-        log.trace("Executing findUserEntitiesByEntityGroupId, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        return entityGroupService.findEntities(tenantId, entityGroupId, pageLink,
-                (entityId) -> new UserId(entityId.getId()),
-                (entityIds) -> findUsersByTenantIdAndIdsAsync(tenantId, entityIds));
-    }
-
-    class UserViewFunction implements BiFunction<User, List<EntityField>, ShortEntityView> {
-
-        @Override
-        public ShortEntityView apply(User user, List<EntityField> entityFields) {
-            ShortEntityView entityView = new ShortEntityView(user.getId());
-            entityView.put(EntityField.NAME.name().toLowerCase(), user.getName());
-            for (EntityField field : entityFields) {
-                String key = field.name().toLowerCase();
-                switch (field) {
-                    case AUTHORITY:
-                        entityView.put(key, user.getAuthority().name());
-                        break;
-                    case FIRST_NAME:
-                        entityView.put(key, user.getFirstName());
-                        break;
-                    case LAST_NAME:
-                        entityView.put(key, user.getLastName());
-                        break;
-                    case EMAIL:
-                        entityView.put(key, user.getEmail());
-                        break;
-                }
-            }
-            return entityView;
-        }
+    public PageData<User> findUsersByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
+        log.trace("Executing findUsersByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
+        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validatePageLink(pageLink);
+        return userDao.findUsersByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
 
     @Override
@@ -473,6 +427,16 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private DataValidator<User> userValidator =
             new DataValidator<User>() {
                 @Override
+                protected void validateCreate(TenantId tenantId, User user) {
+                    if (!user.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
+                        DefaultTenantProfileConfiguration profileConfiguration =
+                                (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
+                        long maxUsers = profileConfiguration.getMaxUsers();
+                        validateNumberOfEntitiesPerTenant(tenantId, userDao, maxUsers, EntityType.USER);
+                    }
+                }
+
+                @Override
                 protected void validateDataImpl(TenantId requestTenantId, User user) {
                     if (StringUtils.isEmpty(user.getEmail())) {
                         throw new DataValidationException("User email should be specified!");
@@ -575,7 +539,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     private PaginatedRemover<TenantId, User> tenantAdminsRemover = new PaginatedRemover<TenantId, User>() {
         @Override
-        protected List<User> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
+        protected PageData<User> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
             return userDao.findTenantAdmins(id.getId(), pageLink);
         }
 
@@ -587,7 +551,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
 
     private PaginatedRemover<CustomerId, User> customerUsersRemover = new PaginatedRemover<CustomerId, User>() {
         @Override
-        protected List<User> findEntities(TenantId tenantId, CustomerId id, TextPageLink pageLink) {
+        protected PageData<User> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
             return userDao.findCustomerUsers(tenantId.getId(), id.getId(), pageLink);
 
         }

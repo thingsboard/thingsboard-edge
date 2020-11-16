@@ -61,8 +61,8 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -135,17 +135,18 @@ public class ConverterController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/converters", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Converter> getConverters(
-            @RequestParam int limit,
+    public PageData<Converter> getConverters(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
@@ -253,7 +254,7 @@ public class ConverterController extends BaseController {
             String errorText = "";
             JSUplinkEvaluator jsUplinkEvaluator = null;
             try {
-                jsUplinkEvaluator = new JSUplinkEvaluator(jsSandboxService, getCurrentUser().getId(), decoder);
+                jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
                 output = jsUplinkEvaluator.execute(payload, uplinkMetaData);
             } catch (Exception e) {
                 log.error("Error evaluating JS UpLink Converter function", e);
@@ -295,7 +296,7 @@ public class ConverterController extends BaseController {
             JSDownlinkEvaluator jsDownlinkEvaluator = null;
             try {
                 TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
-                jsDownlinkEvaluator = new JSDownlinkEvaluator(jsSandboxService, getCurrentUser().getId(), encoder);
+                jsDownlinkEvaluator = new JSDownlinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), encoder);
                 output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
                 validateDownLinkOutput(output);
             } catch (Exception e) {

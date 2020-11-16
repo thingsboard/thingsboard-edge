@@ -55,8 +55,8 @@ import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -354,13 +354,13 @@ public class DefaultDeviceStateService implements DeviceStateService {
 
             //TODO 3.0: replace this dummy search with new functionality to search by partitions using SQL capabilities.
             // Adding only devices that are in new partitions
-            List<Tenant> tenants = tenantService.findTenants(new TextPageLink(Integer.MAX_VALUE)).getData();
+            List<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE)).getData();
             for (Tenant tenant : tenants) {
-                TextPageLink pageLink = new TextPageLink(initFetchPackSize);
+                PageLink pageLink = new PageLink(initFetchPackSize);
                 while (pageLink != null) {
                     List<ListenableFuture<Void>> fetchFutures = new ArrayList<>();
-                    TextPageData<Device> page = deviceService.findDevicesByTenantId(tenant.getId(), pageLink);
-                    pageLink = page.getNextPageLink();
+                    PageData<Device> page = deviceService.findDevicesByTenantId(tenant.getId(), pageLink);
+                    pageLink = page.hasNext() ? pageLink.nextPageLink() : null;
                     for (Device device : page.getData()) {
                         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenant.getId(), device.getId());
                         if (addedPartitions.contains(tpi)) {
@@ -407,7 +407,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
             if (stateData != null) {
                 DeviceState state = stateData.getState();
                 state.setActive(ts < state.getLastActivityTime() + state.getInactivityTimeout());
-                if (!state.isActive() && (state.getLastInactivityAlarmTime() == 0L || state.getLastInactivityAlarmTime() < state.getLastActivityTime())) {
+                if (!state.isActive() && (state.getLastInactivityAlarmTime() == 0L || state.getLastInactivityAlarmTime() < state.getLastActivityTime()) && stateData.getDeviceCreationTime() + state.getInactivityTimeout() < ts) {
                     state.setLastInactivityAlarmTime(ts);
                     pushRuleEngineMessage(stateData, INACTIVITY_EVENT);
                     save(deviceId, INACTIVITY_ALARM_TIME, ts);
@@ -494,6 +494,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
                     return DeviceStateData.builder()
                             .tenantId(device.getTenantId())
                             .deviceId(device.getId())
+                            .deviceCreationTime(device.getCreatedTime())
                             .metaData(md)
                             .state(deviceState).build();
                 } catch (Exception e) {

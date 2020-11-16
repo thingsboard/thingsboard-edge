@@ -54,11 +54,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.util.UUID;
 
 @RestController
 @TbCoreComponent
@@ -103,7 +105,7 @@ public class AlarmController extends BaseController {
             checkEntity(alarm.getId(), alarm, Resource.ALARM, null);
 
             Alarm savedAlarm = checkNotNull(alarmService.createOrUpdateAlarm(alarm));
-            logEntityAction(savedAlarm.getId(), savedAlarm,
+            logEntityAction(savedAlarm.getOriginator(), savedAlarm,
                     getCurrentUser().getCustomerId(),
                     alarm.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
@@ -146,7 +148,8 @@ public class AlarmController extends BaseController {
             long ackTs = System.currentTimeMillis();
             alarmService.ackAlarm(getCurrentUser().getTenantId(), alarmId, ackTs).get();
             alarm.setAckTs(ackTs);
-            logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_ACK, null);
+            alarm.setStatus(alarm.getStatus().isCleared() ? AlarmStatus.CLEARED_ACK : AlarmStatus.ACTIVE_ACK);
+            logEntityAction(alarm.getOriginator(), alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_ACK, null);
 
             sendNotificationMsgToEdgeService(getTenantId(), alarmId, ActionType.ALARM_ACK);
         } catch (Exception e) {
@@ -165,7 +168,8 @@ public class AlarmController extends BaseController {
             long clearTs = System.currentTimeMillis();
             alarmService.clearAlarm(getCurrentUser().getTenantId(), alarmId, null, clearTs).get();
             alarm.setClearTs(clearTs);
-            logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_CLEAR, null);
+            alarm.setStatus(alarm.getStatus().isAck() ? AlarmStatus.CLEARED_ACK : AlarmStatus.CLEARED_UNACK);
+            logEntityAction(alarm.getOriginator(), alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_CLEAR, null);
 
             sendNotificationMsgToEdgeService(getTenantId(), alarmId, ActionType.ALARM_CLEAR);
         } catch (Exception e) {
@@ -176,15 +180,18 @@ public class AlarmController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/alarm/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<AlarmInfo> getAlarms(
+    public PageData<AlarmInfo> getAlarms(
             @PathVariable("entityType") String strEntityType,
             @PathVariable("entityId") String strEntityId,
             @RequestParam(required = false) String searchStatus,
             @RequestParam(required = false) String status,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
             @RequestParam(required = false) String offset,
             @RequestParam(required = false) Boolean fetchOriginator
     ) throws ThingsboardException {
@@ -199,9 +206,13 @@ public class AlarmController extends BaseController {
         }
         accessControlService.checkPermission(getCurrentUser(), Resource.ALARM, Operation.READ);
         checkEntityId(entityId, Operation.READ);
+        TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+        UUID idOffsetUuid = null;
+        if (StringUtils.isNotEmpty(offset)) {
+            idOffsetUuid = toUUID(offset);
+        }
         try {
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator)).get());
+            return checkNotNull(alarmService.findAlarms(getCurrentUser().getTenantId(), new AlarmQuery(entityId, pageLink, alarmSearchStatus, alarmStatus, fetchOriginator, idOffsetUuid)).get());
         } catch (Exception e) {
             throw handleException(e);
         }

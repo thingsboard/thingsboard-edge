@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.entity;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -41,7 +40,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -59,16 +57,6 @@ public abstract class AbstractEntityService {
 
     @Autowired(required = false)
     protected EdgeService edgeService;
-
-    @Value("${database.entities.type:sql}")
-    private String databaseType;
-
-    protected boolean sqlDatabaseUsed;
-
-    @PostConstruct
-    public void init() {
-        sqlDatabaseUsed = "sql".equalsIgnoreCase(databaseType);
-    }
 
     protected void createRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
         log.debug("Creating relation: {}", relation);

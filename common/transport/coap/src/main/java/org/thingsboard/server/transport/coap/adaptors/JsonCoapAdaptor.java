@@ -54,6 +54,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMs
 import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
 import java.util.Arrays;
@@ -146,6 +147,16 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
         JsonElement result = JsonConverter.toJson(msg);
         response.setPayload(result.toString());
         return response;
+    }
+
+    @Override
+    public ProvisionDeviceRequestMsg convertToProvisionRequestMsg(UUID sessionId, Request inbound) throws AdaptorException {
+        String payload = validatePayload(sessionId, inbound, false);
+        try {
+            return JsonConverter.convertToProvisionRequestMsg(payload);
+        } catch (IllegalStateException | JsonSyntaxException ex) {
+            throw new AdaptorException(ex);
+        }
     }
 
     @Override

@@ -34,8 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -62,7 +62,7 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @param pageLink the page link
      * @return the list of entity view objects
      */
-    List<EntityView> findEntityViewsByTenantId(UUID tenantId, TextPageLink pageLink);
+    PageData<EntityView> findEntityViewsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find entity views by tenantId, type and page link.
@@ -72,7 +72,7 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @param pageLink the page link
      * @return the list of entity view objects
      */
-    List<EntityView> findEntityViewsByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink);
+    PageData<EntityView> findEntityViewsByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
 
     /**
      * Find entity views by tenantId and entity view name.
@@ -91,9 +91,9 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @param pageLink the page link
      * @return the list of entity view objects
      */
-    List<EntityView> findEntityViewsByTenantIdAndCustomerId(UUID tenantId,
+    PageData<EntityView> findEntityViewsByTenantIdAndCustomerId(UUID tenantId,
                                                             UUID customerId,
-                                                            TextPageLink pageLink);
+                                                            PageLink pageLink);
 
     /**
      * Find entity views by tenantId, customerId, type and page link.
@@ -104,10 +104,10 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @param pageLink the page link
      * @return the list of entity view objects
      */
-    List<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(UUID tenantId,
+    PageData<EntityView> findEntityViewsByTenantIdAndCustomerIdAndType(UUID tenantId,
                                                                    UUID customerId,
                                                                    String type,
-                                                                   TextPageLink pageLink);
+                                                                   PageLink pageLink);
 
     ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(UUID tenantId, UUID entityId);
 
@@ -119,6 +119,12 @@ public interface EntityViewDao extends Dao<EntityView> {
      * @return the list of entity view objects
      */
     ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> entityViewIds);
+
+    PageData<EntityView> findEntityViewsByEntityGroupId(UUID groupId, PageLink pageLink);
+
+    PageData<EntityView> findEntityViewsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
+
+    PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<UUID> groupIds, String type, PageLink pageLink);
 
     /**
      * Find tenants entity view types.

@@ -70,6 +70,8 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Operation.READ_TELEMETRY
     );
 
+    public static final List<Operation> WRITE_GROUP_PERMISSIONS = Collections.singletonList(Operation.ALL);
+
     public static final Map<Resource, List<Operation>> READ_ONLY_USER_PERMISSIONS = new HashMap<>();
     static {
         READ_ONLY_USER_PERMISSIONS.put(Resource.ALL, READ_ONLY_GROUP_PERMISSIONS);
@@ -129,9 +131,9 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
     @Override
     public String getName() {
         if (entityGroupId != null && entityGroupType != null) {
-            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId.toString(), roleId.toString(), entityGroupId.toString(), entityGroupType.name());
+            return String.format("GROUP_[%s]_[%s]_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString(), entityGroupId.toString(), entityGroupType.name());
         } else {
-            return String.format("GENERIC_[%s]_[%s]", userGroupId.toString(), roleId.toString());
+            return String.format("GENERIC_[%s]_[%s]", userGroupId != null ?  userGroupId.toString() : "", roleId.toString());
         }
     }
 

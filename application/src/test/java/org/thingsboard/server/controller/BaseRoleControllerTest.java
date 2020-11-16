@@ -36,11 +36,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 
@@ -135,7 +135,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         for (int i = 0; i < 178; i++) {
             roles.add(getNewSavedRole("Test role " + i));
         }
-        List<Role> loadedRoles = loadListOf(new TextPageLink(23), "/api/roles?");
+        List<Role> loadedRoles = loadListOf(new PageLink(23), "/api/roles?");
 
         Collections.sort(roles, idComparator);
         Collections.sort(loadedRoles, idComparator);
@@ -147,14 +147,14 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     public void testGetRolesByName() throws Exception {
         String name1 = "Entity role1";
         List<Role> namesOfRole1 = fillListOf(143, name1);
-        List<Role> loadedNamesOfRole1 = loadListOf(new TextPageLink(15, name1), "/api/roles?");
+        List<Role> loadedNamesOfRole1 = loadListOf(new PageLink(15, 0, name1), "/api/roles?");
         Collections.sort(namesOfRole1, idComparator);
         Collections.sort(loadedNamesOfRole1, idComparator);
         assertEquals(namesOfRole1, loadedNamesOfRole1);
 
         String name2 = "Entity role2";
         List<Role> namesOfRole2 = fillListOf(75, name2);
-        List<Role> loadedNamesOfRole2 = loadListOf(new TextPageLink(4, name2), "/api/roles?");
+        List<Role> loadedNamesOfRole2 = loadListOf(new PageLink(4, 0, name2), "/api/roles?");
         Collections.sort(namesOfRole2, idComparator);
         Collections.sort(loadedNamesOfRole2, idComparator);
         assertEquals(namesOfRole2, loadedNamesOfRole2);
@@ -162,17 +162,17 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         for (Role role : loadedNamesOfRole1) {
             doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
         }
-        TextPageData<Role> pageData = doGetTypedWithPageLink("/api/roles?",
-                new TypeReference<TextPageData<Role>>() {
-                }, new TextPageLink(4, name1));
+        PageData<Role> pageData = doGetTypedWithPageLink("/api/roles?",
+                new TypeReference<PageData<Role>>() {
+                }, new PageLink(4, 0, name1));
         Assert.assertFalse(pageData.hasNext());
         assertEquals(0, pageData.getData().size());
 
         for (Role role : loadedNamesOfRole2) {
             doDelete("/api/role/" + role.getId().getId().toString()).andExpect(status().isOk());
         }
-        pageData = doGetTypedWithPageLink("/api/roles?", new TypeReference<TextPageData<Role>>() {
-        }, new TextPageLink(4, name2));
+        pageData = doGetTypedWithPageLink("/api/roles?", new TypeReference<PageData<Role>>() {
+        }, new PageLink(4, 0, name2));
         Assert.assertFalse(pageData.hasNext());
         assertEquals(0, pageData.getData().size());
     }
@@ -207,15 +207,15 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         return roleNames;
     }
 
-    private List<Role> loadListOf(TextPageLink pageLink, String urlTemplate) throws Exception {
+    private List<Role> loadListOf(PageLink pageLink, String urlTemplate) throws Exception {
         List<Role> loadedItems = new ArrayList<>();
-        TextPageData<Role> pageData;
+        PageData<Role> pageData;
         do {
-            pageData = doGetTypedWithPageLink(urlTemplate, new TypeReference<TextPageData<Role>>() {
+            pageData = doGetTypedWithPageLink(urlTemplate, new TypeReference<PageData<Role>>() {
             }, pageLink);
             loadedItems.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 

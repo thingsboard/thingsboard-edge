@@ -30,7 +30,6 @@
  */
 package org.thingsboard.rule.engine.analytics.latest;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;

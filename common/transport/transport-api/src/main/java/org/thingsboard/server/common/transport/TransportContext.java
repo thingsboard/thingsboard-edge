@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -50,7 +51,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 @Data
 @Service
-@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || '${service.type:null}'=='monolith'")
+@ConditionalOnExpression("'${service.type:null}'=='tb-transport' || ('${service.type:null}'=='monolith' && '${transport.api_enabled:true}'=='true')")
 public abstract class TransportContext {
 
     protected final ObjectMapper mapper = new ObjectMapper();
@@ -59,6 +60,8 @@ public abstract class TransportContext {
     private TransportService transportService;
     @Autowired
     private TbServiceInfoProvider serviceInfoProvider;
+    @Autowired
+    private SchedulerComponent scheduler;
 
     @Getter
     private ExecutorService executor;

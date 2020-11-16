@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
@@ -220,7 +220,7 @@ public class TbAggLatestTelemetryNodeTest {
         EntityTypeFilter entityTypeFilter = new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
         relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
 
-        rootEntityId = new TenantId(UUIDs.timeBased());
+        rootEntityId = new TenantId(Uuids.timeBased());
 
         ParentEntitiesRelationsQuery parentEntitiesRelationsQuery = new ParentEntitiesRelationsQuery();
         parentEntitiesRelationsQuery.setRootEntityId(rootEntityId);
@@ -271,7 +271,7 @@ public class TbAggLatestTelemetryNodeTest {
         int parentCount = 10 + (int) (Math.random() * 20);
 
         for (int i = 0; i < parentCount; i++) {
-            EntityId parentEntityId = new AssetId(UUIDs.timeBased());
+            EntityId parentEntityId = new AssetId(Uuids.timeBased());
             parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
 
             List<EntityRelation> childRelations = new ArrayList<>();
@@ -282,7 +282,7 @@ public class TbAggLatestTelemetryNodeTest {
             int expectedDeviceCount = 0;
 
             for (int c = 0; c < childCount; c++) {
-                EntityId childEntityId = new DeviceId(UUIDs.timeBased());
+                EntityId childEntityId = new DeviceId(Uuids.timeBased());
                 childRelations.add(createEntityRelation(parentEntityId, childEntityId));
 
                 TsKvEntry kvEntry = null;
@@ -337,7 +337,7 @@ public class TbAggLatestTelemetryNodeTest {
         Map<EntityId, String> invalidValueMap = new HashMap<>();
 
         for (int i = 0; i < parentCount; i++) {
-            EntityId parentEntityId = new AssetId(UUIDs.timeBased());
+            EntityId parentEntityId = new AssetId(Uuids.timeBased());
             parentEntityRelations.add(createEntityRelation(rootEntityId, parentEntityId));
 
             List<EntityRelation> childRelations = new ArrayList<>();
@@ -356,7 +356,7 @@ public class TbAggLatestTelemetryNodeTest {
             }
 
             for (int c = 0; c < childCount; c++) {
-                EntityId childEntityId = new DeviceId(UUIDs.timeBased());
+                EntityId childEntityId = new DeviceId(Uuids.timeBased());
                 childRelations.add(createEntityRelation(parentEntityId, childEntityId));
                 double temperature = 17 + Math.random() * 10;
 

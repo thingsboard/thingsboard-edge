@@ -44,13 +44,18 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
@@ -65,10 +70,13 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -103,6 +111,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private TenantService tenantService;
 
     @Autowired
+    private TenantProfileService tenantProfileService;
+
+    @Autowired
     private CustomerService customerService;
 
     @Autowired
@@ -113,6 +124,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
 
     @Autowired
     private AttributesService attributesService;
@@ -134,11 +148,61 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
+    public void createDefaultTenantProfiles() throws Exception {
+        tenantProfileService.findOrCreateDefaultTenantProfile(TenantId.SYS_TENANT_ID);
+
+        TenantProfileData tenantProfileData = new TenantProfileData();
+        tenantProfileData.setConfiguration(new DefaultTenantProfileConfiguration());
+
+        TenantProfile isolatedTbCoreProfile = new TenantProfile();
+        isolatedTbCoreProfile.setDefault(false);
+        isolatedTbCoreProfile.setName("Isolated TB Core");
+        isolatedTbCoreProfile.setDescription("Isolated TB Core tenant profile");
+        isolatedTbCoreProfile.setIsolatedTbCore(true);
+        isolatedTbCoreProfile.setIsolatedTbRuleEngine(false);
+        isolatedTbCoreProfile.setProfileData(tenantProfileData);
+        try {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbCoreProfile);
+        } catch (DataValidationException e) {
+            log.warn(e.getMessage());
+        }
+
+        TenantProfile isolatedTbRuleEngineProfile = new TenantProfile();
+        isolatedTbRuleEngineProfile.setDefault(false);
+        isolatedTbRuleEngineProfile.setName("Isolated TB Rule Engine");
+        isolatedTbRuleEngineProfile.setDescription("Isolated TB Rule Engine tenant profile");
+        isolatedTbRuleEngineProfile.setIsolatedTbCore(false);
+        isolatedTbRuleEngineProfile.setIsolatedTbRuleEngine(true);
+        isolatedTbRuleEngineProfile.setProfileData(tenantProfileData);
+
+        try {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbRuleEngineProfile);
+        } catch (DataValidationException e) {
+            log.warn(e.getMessage());
+        }
+
+        TenantProfile isolatedTbCoreAndTbRuleEngineProfile = new TenantProfile();
+        isolatedTbCoreAndTbRuleEngineProfile.setDefault(false);
+        isolatedTbCoreAndTbRuleEngineProfile.setName("Isolated TB Core and TB Rule Engine");
+        isolatedTbCoreAndTbRuleEngineProfile.setDescription("Isolated TB Core and TB Rule Engine tenant profile");
+        isolatedTbCoreAndTbRuleEngineProfile.setIsolatedTbCore(true);
+        isolatedTbCoreAndTbRuleEngineProfile.setIsolatedTbRuleEngine(true);
+        isolatedTbCoreAndTbRuleEngineProfile.setProfileData(tenantProfileData);
+
+        try {
+            tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbCoreAndTbRuleEngineProfile);
+        } catch (DataValidationException e) {
+            log.warn(e.getMessage());
+        }
+    }
+
+    @Override
     public void createAdminSettings() throws Exception {
         AdminSettings generalSettings = new AdminSettings();
         generalSettings.setKey("general");
         ObjectNode node = objectMapper.createObjectNode();
         node.put("baseUrl", "http://localhost:8080");
+        node.put("prohibitDifferentUrl", true);
         generalSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, generalSettings);
 
@@ -172,6 +236,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     }
 
     @Override
+    public void createOAuth2Templates() throws Exception {
+        installScripts.createOAuth2Templates();
+    }
+
+    @Override
     public void loadDemoData() throws Exception {
         Tenant demoTenant = new Tenant();
         demoTenant.setRegion("Global");
@@ -197,16 +266,18 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerB.getId(), "customerB@thingsboard.org", CUSTOMER_CRED);
         createUser(Authority.CUSTOMER_USER, demoTenant.getId(), customerC.getId(), "customerC@thingsboard.org", CUSTOMER_CRED);
 
-        createDevice(demoTenant.getId(), customerA.getId(), DEFAULT_DEVICE_TYPE, "Test Device A1", "A1_TEST_TOKEN", null);
-        createDevice(demoTenant.getId(), customerA.getId(), DEFAULT_DEVICE_TYPE, "Test Device A2", "A2_TEST_TOKEN", null);
-        createDevice(demoTenant.getId(), customerA.getId(), DEFAULT_DEVICE_TYPE, "Test Device A3", "A3_TEST_TOKEN", null);
-        createDevice(demoTenant.getId(), customerB.getId(), DEFAULT_DEVICE_TYPE, "Test Device B1", "B1_TEST_TOKEN", null);
-        createDevice(demoTenant.getId(), customerC.getId(), DEFAULT_DEVICE_TYPE, "Test Device C1", "C1_TEST_TOKEN", null);
+        DeviceProfile defaultDeviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(demoTenant.getId(), DEFAULT_DEVICE_TYPE);
 
-        createDevice(demoTenant.getId(), null, DEFAULT_DEVICE_TYPE, "DHT11 Demo Device", "DHT11_DEMO_TOKEN", "Demo device that is used in sample " +
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A1", "A1_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A2", "A2_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerA.getId(), defaultDeviceProfile.getId(), "Test Device A3", "A3_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerB.getId(), defaultDeviceProfile.getId(), "Test Device B1", "B1_TEST_TOKEN", null);
+        createDevice(demoTenant.getId(), customerC.getId(), defaultDeviceProfile.getId(), "Test Device C1", "C1_TEST_TOKEN", null);
+
+        createDevice(demoTenant.getId(), null, defaultDeviceProfile.getId(), "DHT11 Demo Device", "DHT11_DEMO_TOKEN", "Demo device that is used in sample " +
                 "applications that upload data from DHT11 temperature and humidity sensor");
 
-        createDevice(demoTenant.getId(), null, DEFAULT_DEVICE_TYPE, "Raspberry Pi Demo Device", "RASPBERRY_PI_DEMO_TOKEN", "Demo device that is used in " +
+        createDevice(demoTenant.getId(), null, defaultDeviceProfile.getId(), "Raspberry Pi Demo Device", "RASPBERRY_PI_DEMO_TOKEN", "Demo device that is used in " +
                 "Raspberry Pi GPIO control sample application");
 
         Asset thermostatAlarms = new Asset();
@@ -215,8 +286,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         thermostatAlarms.setType("AlarmPropagationAsset");
         thermostatAlarms = assetService.saveAsset(thermostatAlarms);
 
-        DeviceId t1Id = createDevice(demoTenant.getId(), null, "thermostat", "Thermostat T1", "T1_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
-        DeviceId t2Id = createDevice(demoTenant.getId(), null, "thermostat", "Thermostat T2", "T2_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
+        DeviceProfile thermostatDeviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(demoTenant.getId(), "thermostat");
+
+        DeviceId t1Id = createDevice(demoTenant.getId(), null, thermostatDeviceProfile.getId(), "Thermostat T1", "T1_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
+        DeviceId t2Id = createDevice(demoTenant.getId(), null, thermostatDeviceProfile.getId(), "Thermostat T2", "T2_TEST_TOKEN", "Demo device for Thermostats dashboard").getId();
 
         relationService.saveRelation(thermostatAlarms.getTenantId(), new EntityRelation(thermostatAlarms.getId(), t1Id, "ToAlarmPropagationAsset"));
         relationService.saveRelation(thermostatAlarms.getTenantId(), new EntityRelation(thermostatAlarms.getId(), t2Id, "ToAlarmPropagationAsset"));
@@ -253,6 +326,26 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         installScripts.loadSystemWidgets();
     }
 
+    @Override
+    public void updateSystemWidgets() throws Exception {
+        this.deleteSystemWidgetBundle("charts");
+        this.deleteSystemWidgetBundle("cards");
+        this.deleteSystemWidgetBundle("maps");
+        this.deleteSystemWidgetBundle("analogue_gauges");
+        this.deleteSystemWidgetBundle("digital_gauges");
+        this.deleteSystemWidgetBundle("gpio_widgets");
+        this.deleteSystemWidgetBundle("alarm_widgets");
+        this.deleteSystemWidgetBundle("control_widgets");
+        this.deleteSystemWidgetBundle("maps_v2");
+        this.deleteSystemWidgetBundle("gateway_widgets");
+        this.deleteSystemWidgetBundle("scheduling");
+        this.deleteSystemWidgetBundle("files");
+        this.deleteSystemWidgetBundle("input_widgets");
+        this.deleteSystemWidgetBundle("date");
+        this.deleteSystemWidgetBundle("entity_admin_widgets");
+        installScripts.loadSystemWidgets();
+    }
+
     private User createUser(Authority authority,
                             TenantId tenantId,
                             CustomerId customerId,
@@ -269,10 +362,10 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         userCredentials.setEnabled(true);
         userCredentials.setActivateToken(null);
         userService.saveUserCredentials(TenantId.SYS_TENANT_ID, userCredentials);
-        if (authority == Authority.TENANT_ADMIN) {
+        if (Authority.TENANT_ADMIN.equals(authority)) {
             EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(user.getTenantId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), user.getId());
-        } else if (authority == Authority.CUSTOMER_USER) {
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
             EntityGroup users = entityGroupService.findOrCreateCustomerUsersGroup(user.getTenantId(), user.getCustomerId(), null);
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, users.getId(), user.getId());
         }
@@ -281,13 +374,13 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     private Device createDevice(TenantId tenantId,
                                 CustomerId customerId,
-                                String type,
+                                DeviceProfileId deviceProfileId,
                                 String name,
                                 String accessToken,
                                 String description) {
         Device device = new Device();
         device.setTenantId(tenantId);
-        device.setType(type);
+        device.setDeviceProfileId(deviceProfileId);
         device.setName(name);
         if (description != null) {
             ObjectNode additionalInfo = objectMapper.createObjectNode();

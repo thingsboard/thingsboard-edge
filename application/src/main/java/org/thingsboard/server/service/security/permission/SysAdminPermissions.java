@@ -56,6 +56,9 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.WIDGETS_BUNDLE, systemEntityPermissionChecker);
         put(Resource.WIDGET_TYPE, systemEntityPermissionChecker);
         put(Resource.WHITE_LABELING, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.OAUTH2_CONFIGURATION_INFO, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.TENANT_PROFILE, PermissionChecker.allowAllPermissionChecker);
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
@@ -84,7 +87,7 @@ public class SysAdminPermissions extends AbstractPermissions {
 
         @Override
         public boolean hasPermission(SecurityUser user, Operation operation, UserId userId, User userEntity, EntityGroupId entityGroupId) {
-            if (userEntity.getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(userEntity.getAuthority())) {
                 return false;
             }
             return true;

@@ -30,8 +30,6 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
-
 identity=tb-web-report
 CONF_FOLDER=/usr/tb-web-report/usr/share/tb-web-report/conf
 configfile=tb-web-report.conf
@@ -57,6 +55,3 @@ java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardS
                     -Dspring.jpa.hibernate.ddl-auto=none \
                     -Dlogging.config=${CONF_FOLDER}/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher
-
-
-stop-db.sh

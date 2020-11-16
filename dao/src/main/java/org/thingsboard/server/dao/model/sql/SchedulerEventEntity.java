@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -49,8 +48,14 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -60,10 +65,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> implements SearchTextEntity<SchedulerEvent> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = SCHEDULER_EVENT_NAME_PROPERTY)
     private String name;
@@ -91,14 +96,15 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     }
 
     public SchedulerEventEntity(SchedulerEvent schedulerEvent) {
+        this.createdTime = schedulerEvent.getCreatedTime();
         if (schedulerEvent.getId() != null) {
             this.setUuid(schedulerEvent.getId().getId());
         }
         if (schedulerEvent.getTenantId() != null) {
-            this.tenantId = UUIDConverter.fromTimeUUID(schedulerEvent.getTenantId().getId());
+            this.tenantId = schedulerEvent.getTenantId().getId();
         }
         if (schedulerEvent.getCustomerId() != null) {
-            this.customerId = UUIDConverter.fromTimeUUID(schedulerEvent.getCustomerId().getId());
+            this.customerId = schedulerEvent.getCustomerId().getId();
         }
         this.name = schedulerEvent.getName();
         this.type = schedulerEvent.getType();
@@ -123,13 +129,13 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
 
     @Override
     public SchedulerEvent toData() {
-        SchedulerEvent schedulerEvent = new SchedulerEvent(new SchedulerEventId(UUIDConverter.fromString(id)));
-        schedulerEvent.setCreatedTime(UUIDs.unixTimestamp(UUIDConverter.fromString(id)));
+        SchedulerEvent schedulerEvent = new SchedulerEvent(new SchedulerEventId(id));
+        schedulerEvent.setCreatedTime(createdTime);
         if (tenantId != null) {
-            schedulerEvent.setTenantId(new TenantId(UUIDConverter.fromString(tenantId)));
+            schedulerEvent.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            schedulerEvent.setCustomerId(new CustomerId(UUIDConverter.fromString(customerId)));
+            schedulerEvent.setCustomerId(new CustomerId(customerId));
         }
         schedulerEvent.setName(name);
         schedulerEvent.setType(type);

@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data.kv;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Represents time series KV data entry
  * 
@@ -39,5 +41,8 @@ package org.thingsboard.server.common.data.kv;
 public interface TsKvEntry extends KvEntry {
 
     long getTs();
+
+    @JsonIgnore
+    int getDataPoints();
 
 }

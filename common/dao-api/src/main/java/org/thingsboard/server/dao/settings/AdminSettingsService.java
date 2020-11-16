@@ -43,5 +43,5 @@ public interface AdminSettingsService {
     void deleteAdminSettingsByKey(TenantId tenantId, String key);
 
     AdminSettings saveAdminSettings(TenantId tenantId, AdminSettings adminSettings);
-    
+
 }

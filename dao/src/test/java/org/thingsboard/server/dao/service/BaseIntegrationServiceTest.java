@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,8 +46,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -147,7 +147,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integration.setDefaultConverterId(converterId);
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
-        integration.setTenantId(new TenantId(UUIDs.timeBased()));
+        integration.setTenantId(new TenantId(Uuids.timeBased()));
         integrationService.saveIntegration(integration);
     }
 
@@ -218,13 +218,13 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<Integration> loadedIntegrations = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Integration> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Integration> pageData = null;
         do {
             pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
             loadedIntegrations.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -235,7 +235,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
         integrationService.deleteIntegrationsByTenantId(tenantId);
 
-        pageLink = new TextPageLink(33);
+        pageLink = new PageLink(33);
         pageData = integrationService.findTenantIntegrations(tenantId, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());

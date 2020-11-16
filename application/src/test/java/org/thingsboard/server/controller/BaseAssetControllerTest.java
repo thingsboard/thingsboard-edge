@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
 
@@ -206,15 +206,14 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
             assets.add(doPost("/api/asset", asset, Asset.class));
         }
         List<Asset> loadedAssets = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Asset> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Asset> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/assets?",
-                    new TypeReference<TextPageData<Asset>>() {
-                    }, pageLink);
+                    new TypeReference<PageData<Asset>>(){}, pageLink);
             loadedAssets.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -252,15 +251,14 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         }
 
         List<Asset> loadedAssetsTitle1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Asset> pageData = null;
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Asset> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/assets?",
-                    new TypeReference<TextPageData<Asset>>() {
-                    }, pageLink);
+                    new TypeReference<PageData<Asset>>(){}, pageLink);
             loadedAssetsTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -270,14 +268,13 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Assert.assertEquals(assetsTitle1, loadedAssetsTitle1);
 
         List<Asset> loadedAssetsTitle2 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/assets?",
-                    new TypeReference<TextPageData<Asset>>() {
-                    }, pageLink);
+                    new TypeReference<PageData<Asset>>(){}, pageLink);
             loadedAssetsTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -291,10 +288,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title1);
+        pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/assets?",
-                new TypeReference<TextPageData<Asset>>() {
-                }, pageLink);
+                new TypeReference<PageData<Asset>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -303,10 +299,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenant/assets?",
-                new TypeReference<TextPageData<Asset>>() {
-                }, pageLink);
+                new TypeReference<PageData<Asset>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
@@ -339,15 +334,14 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         }
 
         List<Asset> loadedAssetsType1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Asset> pageData = null;
+        PageLink pageLink = new PageLink(15);
+        PageData<Asset> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/assets?type={type}&",
-                    new TypeReference<TextPageData<Asset>>() {
-                    }, pageLink, type1);
+                    new TypeReference<PageData<Asset>>(){}, pageLink, type1);
             loadedAssetsType1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -357,14 +351,13 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Assert.assertEquals(assetsType1, loadedAssetsType1);
 
         List<Asset> loadedAssetsType2 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/assets?type={type}&",
-                    new TypeReference<TextPageData<Asset>>() {
-                    }, pageLink, type2);
+                    new TypeReference<PageData<Asset>>(){}, pageLink, type2);
             loadedAssetsType2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -378,10 +371,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/assets?type={type}&",
-                new TypeReference<TextPageData<Asset>>() {
-                }, pageLink, type1);
+                new TypeReference<PageData<Asset>>(){}, pageLink, type1);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
@@ -390,10 +382,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/assets?type={type}&",
-                new TypeReference<TextPageData<Asset>>() {
-                }, pageLink, type2);
+                new TypeReference<PageData<Asset>>(){}, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }

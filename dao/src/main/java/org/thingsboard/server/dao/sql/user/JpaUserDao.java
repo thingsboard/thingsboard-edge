@@ -33,33 +33,28 @@ package org.thingsboard.server.dao.sql.user;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.user.UserDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
+import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 /**
  * @author Valerii Sosliuk
  */
 @Component
-@SqlDao
 @Slf4j
 public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> implements UserDao {
 
@@ -72,7 +67,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
-    protected CrudRepository<UserEntity, String> getCrudRepository() {
+    protected CrudRepository<UserEntity, UUID> getCrudRepository() {
         return userRepository;
     }
 
@@ -82,55 +77,77 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
-    public List<User> findTenantAdmins(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<User> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                userRepository
+                        .findByTenantId(
+                                tenantId,
+                                Objects.toString(pageLink.getTextSearch(), ""),
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
+    }
+
+    @Override
+    public PageData<User> findTenantAdmins(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 userRepository
                         .findUsersByAuthority(
-                                fromTimeUUID(tenantId),
-                                NULL_UUID_STR,
-                                pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
+                                tenantId,
+                                NULL_UUID,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 Authority.TENANT_ADMIN,
-                                PageRequest.of(0, pageLink.getLimit())));
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
-    @Override
-    public List<User> findUsersByTenantId(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
-                userRepository
-                        .findUsersByTenantId(
-                                fromTimeUUID(tenantId),
-                                PageRequest.of(0, pageLink.getLimit())));
-    }
 
     @Override
-    public List<User> findCustomerUsers(UUID tenantId, UUID customerId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
-                userRepository
-                        .findUsersByAuthority(
-                                fromTimeUUID(tenantId),
-                                fromTimeUUID(customerId),
-                                pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                                Objects.toString(pageLink.getTextSearch(), ""),
-                                Authority.CUSTOMER_USER,
-                                PageRequest.of(0, pageLink.getLimit())));
+    public PageData<User> findCustomerUsers(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+            userRepository
+                    .findUsersByAuthority(
+                            tenantId,
+                            customerId,
+                            Objects.toString(pageLink.getTextSearch(), ""),
+                            Authority.CUSTOMER_USER,
+                            DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
 
     }
 
     @Override
-    public List<User> findAllCustomerUsers(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<User> findAllCustomerUsers(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 userRepository
                         .findAllTenantUsersByAuthority(
-                                fromTimeUUID(tenantId),
-                                pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
+                                tenantId,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 Authority.CUSTOMER_USER,
-                                PageRequest.of(0, pageLink.getLimit())));
+                                DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
     }
 
     @Override
     public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(UUID tenantId, List<UUID> userIds) {
-        return service.submit(() -> DaoUtil.convertDataList(userRepository.findUsersByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(userIds))));
+        return service.submit(() -> DaoUtil.convertDataList(userRepository.findUsersByTenantIdAndIdIn(tenantId, userIds)));
+    }
+
+    @Override
+    public PageData<User> findUsersByEntityGroupId(UUID groupId, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository
+                .findByEntityGroupId(
+                        groupId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
+    }
+
+    @Override
+    public PageData<User> findUsersByEntityGroupIds(List<UUID> groupIds, PageLink pageLink) {
+        return DaoUtil.toPageData(userRepository
+                .findByEntityGroupIds(
+                        groupIds,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink, UserEntity.userColumnMap)));
+    }
+
+    @Override
+    public Long countByTenantId(TenantId tenantId) {
+        return userRepository.countByTenantId(tenantId.getId());
     }
 }

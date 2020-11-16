@@ -98,10 +98,10 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.TEST);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.TEST, model);
+        String message = body(mailTemplates, MailTemplates.TEST, model);
 
         sendMail(testMailSender, mailFrom, email, subject, message);
     }
@@ -112,11 +112,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACTIVATION);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("activationLink", activationLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACTIVATION, model);
+        String message = body(mailTemplates, MailTemplates.ACTIVATION, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -127,11 +127,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("loginLink", loginLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
+        String message = body(mailTemplates, MailTemplates.ACCOUNT_ACTIVATED, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -142,11 +142,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.RESET_PASSWORD);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("passwordResetLink", passwordResetLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
+        String message = body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -157,11 +157,11 @@ public class DefaultMailService implements MailService {
         JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put("loginLink", loginLink);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
+        String message = body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -176,7 +176,7 @@ public class DefaultMailService implements MailService {
         model.put("userEmail", userEmail);
         model.put(TARGET_EMAIL, targetEmail);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
+        String message = body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
 
         sendMail(tenantId, targetEmail, subject, message);
     }
@@ -191,7 +191,7 @@ public class DefaultMailService implements MailService {
         model.put("userEmail", userEmail);
         model.put(TARGET_EMAIL, targetEmail);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.USER_REGISTERED, model);
+        String message = body(mailTemplates, MailTemplates.USER_REGISTERED, model);
 
         sendMail(tenantId, targetEmail, subject, message);
     }
@@ -247,7 +247,7 @@ public class DefaultMailService implements MailService {
         model.put("maxFailedLoginAttempts", maxFailedLoginAttempts);
         model.put(TARGET_EMAIL, email);
 
-        String message = MailTemplates.body(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT, model);
+        String message = body(mailTemplates, MailTemplates.ACCOUNT_LOCKOUT, model);
 
         sendMail(tenantId, email, subject, message);
     }
@@ -295,8 +295,11 @@ public class DefaultMailService implements MailService {
             }
         }
         javaMailProperties.put(MAIL_PROP + protocol + ".starttls.enable", enableTls);
-        if (enableTls && jsonConfig.has("tlsVersion") && StringUtils.isNoneEmpty(jsonConfig.get("tlsVersion").asText())) {
-            javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", jsonConfig.get("tlsVersion").asText());
+        if (enableTls && jsonConfig.has("tlsVersion") && !jsonConfig.get("tlsVersion").isNull()) {
+            String tlsVersion = jsonConfig.get("tlsVersion").asText();
+            if (StringUtils.isNoneEmpty(tlsVersion)) {
+                javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
+            }
         }
         
         boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
@@ -381,6 +384,14 @@ public class DefaultMailService implements MailService {
             return kvEntry.getValueAsString();
         } else {
             return "";
+        }
+    }
+
+    private String body(JsonNode mailTemplates, String template, Map<String, Object> model) throws ThingsboardException {
+        try {
+            return MailTemplates.body(mailTemplates, template, model);
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 

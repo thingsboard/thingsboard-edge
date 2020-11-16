@@ -33,23 +33,26 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
@@ -77,6 +80,10 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     @Autowired
     private ConverterDao converterDao;
+
+    @Autowired
+    @Lazy
+    private TbTenantProfileCache tenantProfileCache;
 
     @Override
     public Integration saveIntegration(Integration integration) {
@@ -128,12 +135,11 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    public TextPageData<Integration> findTenantIntegrations(TenantId tenantId, TextPageLink pageLink) {
+    public PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validatePageLink(pageLink, INCORRECT_PAGE_LINK + pageLink);
-        List<Integration> integrations = integrationDao.findByTenantIdAndPageLink(tenantId.getId(), pageLink);
-        return new TextPageData<>(integrations, pageLink);
+        validatePageLink(pageLink);
+        return integrationDao.findByTenantId(tenantId.getId(), pageLink);
     }
 
     @Override
@@ -156,6 +162,10 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void validateCreate(TenantId tenantId, Integration integration) {
+                    DefaultTenantProfileConfiguration profileConfiguration =
+                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
+                    long maxIntegrations = profileConfiguration.getMaxIntegrations();
+                    validateNumberOfEntitiesPerTenant(tenantId, integrationDao, maxIntegrations, EntityType.INTEGRATION);
                     integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
                             d -> {
                                 throw new DataValidationException("Integration with such routing key already exists!");
@@ -211,8 +221,8 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
             new PaginatedRemover<TenantId, Integration>() {
 
                 @Override
-                protected List<Integration> findEntities(TenantId tenantId, TenantId id, TextPageLink pageLink) {
-                    return integrationDao.findByTenantIdAndPageLink(id.getId(), pageLink);
+                protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+                    return integrationDao.findByTenantId(id.getId(), pageLink);
                 }
 
                 @Override

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.event;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,17 +39,20 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Slf4j
 public class BaseEventService implements EventService {
+
+    private static final int MAX_DEBUG_EVENT_SYMBOLS = 4 * 1024;
 
     @Autowired
     public EventDao eventDao;
@@ -62,6 +66,7 @@ public class BaseEventService implements EventService {
     @Override
     public ListenableFuture<Event> saveAsync(Event event) {
         eventValidator.validate(event, Event::getTenantId);
+        checkAndTruncateDebugEvent(event);
         return eventDao.saveAsync(event);
     }
 
@@ -71,7 +76,19 @@ public class BaseEventService implements EventService {
         if (StringUtils.isEmpty(event.getUid())) {
             throw new DataValidationException("Event uid should be specified!");
         }
+        checkAndTruncateDebugEvent(event);
         return eventDao.saveIfNotExists(event);
+    }
+
+    private void checkAndTruncateDebugEvent(Event event) {
+        if (event.getType().startsWith("DEBUG") && event.getBody() != null && event.getBody().has("data")) {
+            String dataStr = event.getBody().get("data").asText();
+            int length = dataStr.length();
+            if (length > MAX_DEBUG_EVENT_SYMBOLS) {
+                ((ObjectNode) event.getBody()).put("data", dataStr.substring(0, MAX_DEBUG_EVENT_SYMBOLS) + "...[truncated " + (length - MAX_DEBUG_EVENT_SYMBOLS) + " symbols]");
+                log.trace("[{}] Event was truncated: {}", event.getId(), dataStr);
+            }
+        }
     }
 
     @Override
@@ -93,15 +110,13 @@ public class BaseEventService implements EventService {
     }
 
     @Override
-    public TimePageData<Event> findEvents(TenantId tenantId, EntityId entityId, TimePageLink pageLink) {
-        List<Event> events = eventDao.findEvents(tenantId.getId(), entityId, pageLink);
-        return new TimePageData<>(events, pageLink);
+    public PageData<Event> findEvents(TenantId tenantId, EntityId entityId, TimePageLink pageLink) {
+        return eventDao.findEvents(tenantId.getId(), entityId, pageLink);
     }
 
     @Override
-    public TimePageData<Event> findEvents(TenantId tenantId, EntityId entityId, String eventType, TimePageLink pageLink) {
-        List<Event> events = eventDao.findEvents(tenantId.getId(), entityId, eventType, pageLink);
-        return new TimePageData<>(events, pageLink);
+    public PageData<Event> findEvents(TenantId tenantId, EntityId entityId, String eventType, TimePageLink pageLink) {
+        return eventDao.findEvents(tenantId.getId(), entityId, eventType, pageLink);
     }
 
     @Override
@@ -111,7 +126,7 @@ public class BaseEventService implements EventService {
 
     @Override
     public void removeEvents(TenantId tenantId, EntityId entityId) {
-        TimePageData<Event> eventPageData;
+        PageData<Event> eventPageData;
         TimePageLink eventPageLink = new TimePageLink(1000);
         do {
             eventPageData = findEvents(tenantId, entityId, eventPageLink);
@@ -119,7 +134,7 @@ public class BaseEventService implements EventService {
                 eventDao.removeById(tenantId, event.getUuidId());
             }
             if (eventPageData.hasNext()) {
-                eventPageLink = eventPageData.getNextPageLink();
+                eventPageLink = eventPageLink.nextPageLink();
             }
         } while (eventPageData.hasNext());
     }

@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -54,6 +54,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import java.util.UUID;
+
 import static org.thingsboard.server.dao.model.ModelConstants.*;
 
 @Data
@@ -65,10 +67,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.*;
 public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<Role> {
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
-    private String tenantId;
+    private UUID tenantId;
 
     @Column(name = ROLE_CUSTOMER_ID_PROPERTY)
-    private String customerId;
+    private UUID customerId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = ROLE_TYPE_PROPERTY)
@@ -98,11 +100,12 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         if (role.getId() != null) {
             this.setUuid(role.getId().getId());
         }
+        this.createdTime = role.getCreatedTime();
         if (role.getTenantId() != null) {
-            this.tenantId = toString(role.getTenantId().getId());
+            this.tenantId = role.getTenantId().getId();
         }
         if (role.getCustomerId() != null) {
-            this.customerId = toString(role.getCustomerId().getId());
+            this.customerId = role.getCustomerId().getId();
         }
         this.type = role.getType();
         this.name = role.getName();
@@ -124,13 +127,13 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Override
     public Role toData() {
         Role role = new Role(new RoleId(getUuid()));
-        role.setCreatedTime(UUIDs.unixTimestamp(getUuid()));
+        role.setCreatedTime(createdTime);
 
         if (tenantId != null) {
-            role.setTenantId(new TenantId(toUUID(tenantId)));
+            role.setTenantId(new TenantId(tenantId));
         }
         if (customerId != null) {
-            role.setCustomerId(new CustomerId(toUUID(customerId)));
+            role.setCustomerId(new CustomerId(customerId));
         }
         role.setType(type);
         role.setName(name);

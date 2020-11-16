@@ -40,9 +40,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -52,12 +54,14 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -84,15 +88,18 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
@@ -111,6 +118,7 @@ import java.util.function.BiConsumer;
 @Component
 public class AccessValidator {
 
+    public static final String ONLY_SYSTEM_ADMINISTRATOR_IS_ALLOWED_TO_PERFORM_THIS_OPERATION = "Only system administrator is allowed to perform this operation!";
     public static final String CUSTOMER_USER_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "Customer user is not allowed to perform this operation!";
     public static final String SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION = "System administrator is not allowed to perform this operation!";
     public static final String DEVICE_WITH_REQUESTED_ID_NOT_FOUND = "Device with requested id wasn't found!";
@@ -131,6 +139,9 @@ public class AccessValidator {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected DeviceProfileService deviceProfileService;
 
     @Autowired
     protected AssetService assetService;
@@ -170,6 +181,9 @@ public class AccessValidator {
 
     @Autowired
     protected AccessControlService accessControlService;
+
+    @Autowired
+    protected ApiUsageStateService apiUsageStateService;
 
     private ExecutorService executor;
 
@@ -212,7 +226,11 @@ public class AccessValidator {
                 new FutureCallback<DeferredResult<ResponseEntity>>() {
                     @Override
                     public void onSuccess(@Nullable DeferredResult<ResponseEntity> result) {
-                        onSuccess.accept(response, currentUser.getTenantId(), entityId);
+                        try {
+                            onSuccess.accept(response, currentUser.getTenantId(), entityId);
+                        } catch (Exception e) {
+                            onFailure(e);
+                        }
                     }
 
                     @Override
@@ -228,6 +246,9 @@ public class AccessValidator {
         switch (entityId.getEntityType()) {
             case DEVICE:
                 validateDevice(currentUser, operation, entityId, callback);
+                return;
+            case DEVICE_PROFILE:
+                validateDeviceProfile(currentUser, operation, entityId, callback);
                 return;
             case ASSET:
                 validateAsset(currentUser, operation, entityId, callback);
@@ -246,6 +267,9 @@ public class AccessValidator {
                 return;
             case INTEGRATION:
                 validateIntegration(currentUser, operation, entityId, callback);
+                return;
+            case TENANT_PROFILE:
+                validateTenantProfile(currentUser, operation, entityId, callback);
                 return;
             case USER:
                 validateUser(currentUser, operation, entityId, callback);
@@ -270,6 +294,9 @@ public class AccessValidator {
                 return;
             case EDGE:
                 validateEdge(currentUser, operation, entityId, callback);
+                return;
+            case API_USAGE_STATE:
+                validateApiUsageState(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -310,6 +337,45 @@ public class AccessValidator {
                     return ValidationResult.ok(device);
                 }
             }), executor);
+        }
+    }
+
+    private void validateDeviceProfile(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(currentUser.getTenantId(), new DeviceProfileId(entityId.getId()));
+            if (deviceProfile == null) {
+                callback.onSuccess(ValidationResult.entityNotFound("Device profile with requested id wasn't found!"));
+            } else {
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.DEVICE_PROFILE, operation, entityId, deviceProfile);
+                } catch (ThingsboardException e) {
+                    callback.onSuccess(ValidationResult.accessDenied(e.getMessage()));
+                }
+                callback.onSuccess(ValidationResult.ok(deviceProfile));
+            }
+        }
+    }
+
+    private void validateApiUsageState(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            if (!operation.equals(Operation.READ_TELEMETRY)) {
+                callback.onSuccess(ValidationResult.accessDenied("Allowed only READ_TELEMETRY operation!"));
+            }
+            ApiUsageState apiUsageState = apiUsageStateService.findApiUsageStateById(currentUser.getTenantId(), new ApiUsageStateId(entityId.getId()));
+            if (apiUsageState == null) {
+                callback.onSuccess(ValidationResult.entityNotFound("Api Usage State with requested id wasn't found!"));
+            } else {
+                try {
+                    accessControlService.checkPermission(currentUser, Resource.API_USAGE_STATE, operation, entityId, apiUsageState);
+                } catch (ThingsboardException e) {
+                    callback.onSuccess(ValidationResult.accessDenied(e.getMessage()));
+                }
+                callback.onSuccess(ValidationResult.ok(apiUsageState));
+            }
         }
     }
 
@@ -439,6 +505,14 @@ public class AccessValidator {
                     return ValidationResult.ok(converter);
                 }
             }), executor);
+        }
+    }
+
+    private void validateTenantProfile(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.ok(null));
+        } else {
+            callback.onSuccess(ValidationResult.accessDenied(ONLY_SYSTEM_ADMINISTRATOR_IS_ALLOWED_TO_PERFORM_THIS_OPERATION));
         }
     }
 
@@ -623,9 +697,9 @@ public class AccessValidator {
 
     public static void handleError(Throwable e, final DeferredResult<ResponseEntity> response, HttpStatus defaultErrorStatus) {
         ResponseEntity responseEntity;
-        if (e != null && e instanceof ToErrorResponseEntity) {
+        if (e instanceof ToErrorResponseEntity) {
             responseEntity = ((ToErrorResponseEntity) e).toErrorResponseEntity();
-        } else if (e != null && e instanceof IllegalArgumentException) {
+        } else if (e instanceof IllegalArgumentException || e instanceof IncorrectParameterException) {
             responseEntity = new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } else {
             responseEntity = new ResponseEntity<>(defaultErrorStatus);

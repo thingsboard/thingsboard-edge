@@ -31,19 +31,20 @@
 package org.thingsboard.server.dao.rule;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
  * Created by igor on 3/12/18.
  */
-public interface RuleChainDao extends Dao<RuleChain> {
+public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao {
 
     /**
      * Find rule chains by tenantId and page link.
@@ -52,7 +53,7 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    List<RuleChain> findRuleChainsByTenantId(UUID tenantId, TextPageLink pageLink);
+    PageData<RuleChain> findRuleChainsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find rule chains by tenantId, type and page link.
@@ -62,7 +63,7 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    List<RuleChain> findRuleChainsByTenantIdAndType(UUID tenantId, RuleChainType type, TextPageLink pageLink);
+    PageData<RuleChain> findRuleChainsByTenantIdAndType(UUID tenantId, RuleChainType type, PageLink pageLink);
 
     /**
      * Find rule chains by tenantId, edgeId and page link.
@@ -72,7 +73,7 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
+    ListenableFuture<PageData<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
 
     /**
      * Find default edge rule chains by tenantId.
@@ -80,5 +81,5 @@ public interface RuleChainDao extends Dao<RuleChain> {
      * @param tenantId the tenantId
      * @return the list of rule chain objects
      */
-    ListenableFuture<List<RuleChain>> findDefaultEdgeRuleChainsByTenantId(UUID tenantId);
+    ListenableFuture<PageData<RuleChain>> findDefaultEdgeRuleChainsByTenantId(UUID tenantId);
 }

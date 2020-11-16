@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>2.6.0PE-SNAPSHOT</version>
+        <version>3.2.0PE-SNAPSHOT</version>
         <artifactId>common</artifactId>
     </parent>
     <groupId>org.thingsboard.common</groupId>
@@ -57,6 +57,7 @@
         <module>aws-integrations</module>
         <module>opcua-integrations</module>
         <module>kafka-integrations</module>
+        <module>rabbitmq-integrations</module>
         <module>remote-integration-api</module>
         <module>apache-pulsar</module>
     </modules>

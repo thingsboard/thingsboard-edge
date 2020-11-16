@@ -30,31 +30,30 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
-@SqlDao
-public interface IntegrationRepository extends CrudRepository<IntegrationEntity, String> {
+public interface IntegrationRepository extends CrudRepository<IntegrationEntity, UUID> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:textSearch, '%')) " +
-            "AND a.id > :idOffset ORDER BY a.id")
-    List<IntegrationEntity> findByTenantIdAndPageLink(@Param("tenantId") String tenantId,
-                                     @Param("textSearch") String textSearch,
-                                     @Param("idOffset") String idOffset,
-                                     Pageable pageable);
-
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<IntegrationEntity> findByTenantId(@Param("tenantId") UUID tenantId,
+                                                      @Param("searchText") String searchText,
+                                                      Pageable pageable);
 
     IntegrationEntity findByRoutingKey(String routingKey);
 
-    List<IntegrationEntity> findByConverterId(String converterId);
+    List<IntegrationEntity> findByConverterId(UUID converterId);
 
-    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(String tenantId, List<String> integrationIds);
+    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);
+
+    Long countByTenantId(UUID tenantId);
 
 }

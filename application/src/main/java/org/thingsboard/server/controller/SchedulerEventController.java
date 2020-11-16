@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -73,7 +74,7 @@ public class SchedulerEventController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/info/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
-    public SchedulerEventInfo getSchedulerEventInfoById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
+    public SchedulerEventWithCustomerInfo getSchedulerEventInfoById(@PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         try {
             SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -102,7 +103,7 @@ public class SchedulerEventController extends BaseController {
     public SchedulerEvent saveSchedulerEvent(@RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
         try {
             schedulerEvent.setTenantId(getCurrentUser().getTenantId());
-            if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 schedulerEvent.setCustomerId(getCurrentUser().getCustomerId());
             }
 
@@ -165,16 +166,16 @@ public class SchedulerEventController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvents", method = RequestMethod.GET)
     @ResponseBody
-    public List<SchedulerEventInfo> getSchedulerEvents(
+    public List<SchedulerEventWithCustomerInfo> getSchedulerEvents(
             @RequestParam(required = false) String type) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            if (getCurrentUser().getAuthority() == Authority.TENANT_ADMIN) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
                 if (type != null && type.trim().length() > 0) {
                     return checkNotNull(schedulerEventService.findSchedulerEventsByTenantIdAndType(tenantId, type));
                 } else {
-                    return checkNotNull(schedulerEventService.findSchedulerEventsByTenantId(tenantId));
+                    return checkNotNull(schedulerEventService.findSchedulerEventsWithCustomerInfoByTenantId(tenantId));
                 }
             } else { //CUSTOMER_USER
                 CustomerId customerId = getCurrentUser().getCustomerId();

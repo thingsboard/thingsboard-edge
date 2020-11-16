@@ -1,0 +1,98 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div [formGroup]="columnFormGroup" class="tb-entity-group-column" fxFlex fxLayout="row" fxLayoutAlign="start center"
+     style="padding: 0 0 0 10px; margin: 5px;">
+  <mat-form-field floatLabel="always" hideRequiredMarker fxFlex.xs
+                  [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
+                  [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}">
+    <mat-label></mat-label>
+    <mat-select matInput required formControlName="type">
+      <mat-option *ngFor="let type of columnTypes" [value]="type">
+        {{ entityGroupColumnTypeTranslations.get(type) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div fxFlex.xs style="padding-left: 5px;"
+       [ngStyle]="{minWidth: 'initial', maxWidth: '90px'}"
+       [ngStyle.gt-xs]="{minWidth: '130px', maxWidth: '130px'}"
+       fxLayout="column">
+    <mat-form-field floatLabel="always" hideRequiredMarker fxFlex
+                    *ngIf="columnFormGroup.get('type').value === columnType.ENTITY_FIELD">
+      <mat-label></mat-label>
+      <mat-select matInput required formControlName="key">
+        <mat-option *ngFor="let field of entityFieldKeys" [value]="field">
+          {{ entityFields[field].name | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field floatLabel="always" hideRequiredMarker *ngIf="columnFormGroup.get('type').value !== columnType.ENTITY_FIELD">
+      <mat-label></mat-label>
+      <input matInput required
+             formControlName="key"
+             placeholder="{{ 'entity-group.column-value' | translate }}"/>
+    </mat-form-field>
+  </div>
+  <div fxHide.xs fxFlex style="padding-left: 5px;" fxLayout="column">
+    <mat-form-field floatLabel="always" hideRequiredMarker>
+      <mat-label></mat-label>
+      <input matInput
+             formControlName="title"
+             placeholder="{{ 'entity-group.column-title' | translate }}"/>
+    </mat-form-field>
+  </div>
+  <mat-form-field floatLabel="always" hideRequiredMarker fxHide.xs
+                  style="padding-left: 5px; min-width: 120px; max-width: 120px;">
+    <mat-label></mat-label>
+    <mat-select matInput required formControlName="sortOrder">
+      <mat-option *ngFor="let sortOrder of sortOrders" [value]="sortOrder">
+        {{ entityGroupSortOrderTranslations.get(sortOrder) | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <div fxHide.xs style="padding-left: 5px; min-width: 40px; max-width: 40px;" fxLayout="column" fxLayoutAlign="start center">
+    <mat-checkbox formControlName="mobileHide"></mat-checkbox>
+  </div>
+  <span *ngIf="disabled" style="padding-left: 5px; min-width: 40px; min-height: 40px;">&nbsp;</span>
+  <button mat-icon-button color="primary" style="min-width: 40px;"
+          (click)="openColumn($event)"
+          matTooltip="{{ (disabled ? 'action.view' : 'action.edit') | translate }}"
+          matTooltipPosition="above">
+    <mat-icon>{{ disabled ? 'more_vert' : 'edit' }}</mat-icon>
+  </button>
+  <button *ngIf="!disabled" mat-icon-button color="primary" style="min-width: 40px;"
+          (click)="removeColumn.emit()"
+          matTooltip="{{ 'action.remove' | translate }}"
+          matTooltipPosition="above">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

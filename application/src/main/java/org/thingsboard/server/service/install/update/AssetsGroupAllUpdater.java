@@ -61,4 +61,10 @@ class AssetsGroupAllUpdater extends EntityGroupAllPaginatedUpdater<AssetId, Asse
         assetService.saveAsset(entity);
     }
 
+    @Override
+    protected String getName() {
+        return "Assets group all updater";
+    }
+
+
 }

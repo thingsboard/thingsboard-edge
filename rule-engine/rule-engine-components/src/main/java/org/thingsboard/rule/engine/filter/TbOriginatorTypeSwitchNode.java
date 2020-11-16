@@ -47,7 +47,7 @@ import org.thingsboard.server.common.msg.TbMsg;
         type = ComponentType.FILTER,
         name = "originator type switch",
         configClazz = EmptyNodeConfiguration.class,
-        relationTypes = {"Device", "Asset", "Entity View", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
+        relationTypes = {"Device", "Asset", "Alarm", "Entity View", "Tenant", "Customer", "User", "Dashboard", "Rule chain",
                 "Rule node", "Entity Group", "Data converter", "Integration", "Scheduler event", "Blob entity"},
         nodeDescription = "Route incoming messages by Message Originator Type",
         nodeDetails = "Routes messages to chain according to the originator type ('Device', 'Asset', etc.).",
@@ -111,6 +111,9 @@ public class TbOriginatorTypeSwitchNode implements TbNode {
                 break;
             case BLOB_ENTITY:
                 relationType = "Blob entity";
+                break;
+            case ALARM:
+                relationType = "Alarm";
                 break;
             default:
                 throw new TbNodeException("Unsupported originator type: " + originatorType);

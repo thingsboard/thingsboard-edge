@@ -34,15 +34,19 @@ import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.rule.engine.api.*;
+import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
+import org.thingsboard.rule.engine.api.TbNodeConfiguration;
+import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 /**
  * Created by igor on 5/25/18.
@@ -91,7 +95,7 @@ public class TbTwilioSmsNode implements TbNode {
             Message.creator(
                     new PhoneNumber(numberTo.trim()),
                     new PhoneNumber(numberFrom.trim()),
-                    msg.getData()
+                    msg.getData().replaceAll("^\"|\"$", "").replaceAll("\\\\n", "\n")
             ).create(this.twilioRestClient);
         }
     }

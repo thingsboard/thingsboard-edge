@@ -44,19 +44,16 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.model.sql.SchedulerEventEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Component
-@SqlDao
 @Slf4j
 public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEventEntity, SchedulerEvent> implements SchedulerEventDao {
 
@@ -72,7 +69,7 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
     }
 
     @Override
-    protected CrudRepository<SchedulerEventEntity, String> getCrudRepository() {
+    protected CrudRepository<SchedulerEventEntity, UUID> getCrudRepository() {
         return schedulerEventRepository;
     }
 
@@ -87,5 +84,10 @@ public class JpaSchedulerEventDao extends JpaAbstractSearchTextDao<SchedulerEven
             }
             return Futures.successfulAsList(schedulerEventFutures);
         }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public Long countByTenantId(TenantId tenantId) {
+        return schedulerEventRepository.countByTenantId(tenantId.getId());
     }
 }

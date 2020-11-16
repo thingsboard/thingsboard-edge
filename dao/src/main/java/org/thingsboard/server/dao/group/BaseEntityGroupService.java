@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.datastax.driver.core.utils.UUIDs;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,40 +38,42 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataPageLink;
+import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.query.EntityDataSortOrder;
+import org.thingsboard.server.common.data.query.EntityGroupFilter;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -80,19 +81,15 @@ import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -126,12 +123,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private RelationDao relationDao;
 
     @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private TimeseriesService timeseriesService;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
@@ -139,6 +130,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private EntityQueryDao entityQueryDao;
 
     @Autowired
     private EdgeService edgeService;
@@ -181,7 +175,17 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             jsonConfiguration.putObject("actions");
             entityGroup.setConfiguration(jsonConfiguration);
         }
-        EntityGroup savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
+        EntityGroup savedEntityGroup;
+        try {
+            savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
+        } catch (Exception t) {
+            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
+            if (e != null && "group_name_per_owner_unq_key".equalsIgnoreCase(e.getConstraintName())) {
+                throw new DataValidationException("Entity Group with such name, type and owner already exists!");
+            } else {
+                throw t;
+            }
+        }
         if (entityGroup.getId() == null) {
             EntityRelation entityRelation = new EntityRelation();
             entityRelation.setFrom(parentEntityId);
@@ -444,7 +448,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private GroupPermission findOrCreateUserGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId) {
         List<GroupPermission> userGroupPermissions =
                 groupPermissionService.findGroupPermissionByTenantIdAndUserGroupIdAndRoleId(tenantId,
-                        userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+                        userGroupId, roleId, new PageLink(Integer.MAX_VALUE)).getData();
         if (userGroupPermissions.isEmpty()) {
             GroupPermission userGroupPermission = new GroupPermission();
             userGroupPermission.setTenantId(tenantId);
@@ -461,7 +465,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                                                               EntityGroupId userGroupId, RoleId roleId, boolean isPublic) {
         List<GroupPermission> entityGroupPermissions =
                 groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(tenantId,
-                        entityGroupId, userGroupId, roleId, new TimePageLink(Integer.MAX_VALUE)).getData();
+                        entityGroupId, userGroupId, roleId, new PageLink(Integer.MAX_VALUE)).getData();
         if (entityGroupPermissions.isEmpty()) {
             GroupPermission entityGroupPermission = new GroupPermission();
             entityGroupPermission.setTenantId(tenantId);
@@ -495,8 +499,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing findAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFrom(tenantId, parentEntityId, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(tenantId, relations);
+        return this.entityGroupDao.findAllEntityGroups(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType());
     }
 
     @Override
@@ -520,19 +523,21 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(tenantId, parentEntityId, relationType, RelationTypeGroup.TO_ENTITY_GROUP);
-        return relationsToEntityGroups(tenantId, relations);
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), relationType);
     }
 
-    private ListenableFuture<List<EntityGroup>> relationsToEntityGroups(TenantId tenantId, ListenableFuture<List<EntityRelation>> relations) {
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<EntityGroup>> entityGroupFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                entityGroupFutures.add(entityGroupDao.findByIdAsync(tenantId, relation.getTo().getId()));
-            }
-            return Futures.transform(Futures.successfulAsList(entityGroupFutures), entityGroups ->
-                    entityGroups.stream().filter(entityGroup -> entityGroup != null).collect(Collectors.toList()), MoreExecutors.directExecutor());
-        }, MoreExecutors.directExecutor());
+    @Override
+    public ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
+                                                                                     EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupsByTypeAndPageLink, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
+        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), relationType, pageLink);
     }
 
     @Override
@@ -543,15 +548,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validateString(name, "Incorrect name " + name);
-        ListenableFuture<List<EntityGroup>> entityGroups = findEntityGroupsByType(tenantId, parentEntityId, groupType);
-        return Futures.transform(entityGroups, input -> {
-            for (EntityGroup entityGroup : input) {
-                if (entityGroup.getName().equals(name)) {
-                    return Optional.of(entityGroup);
-                }
-            }
-            return Optional.empty();
-        }, MoreExecutors.directExecutor());
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), relationType, name);
     }
 
     @Override
@@ -607,104 +606,158 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public <E extends BaseData, I extends EntityId> ShortEntityView findGroupEntity(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId,
-                                                                                    java.util.function.Function<EntityId, I> toIdFunction,
-                                                                                    java.util.function.Function<I, E> toEntityFunction,
-                                                                                    BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
+    public ShortEntityView findGroupEntity(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
 
-        try {
-            if (!relationService.checkRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP).get()) {
-                return null;
-            }
-        } catch (InterruptedException | ExecutionException e) {
+        if (!isEntityInGroup(entityId, entityGroupId)) {
+            throw new IncorrectParameterException(String.format("Entity %s not present in entity group %s.", entityId, entityGroupId));
         }
 
-        if (transformFunction == null) {
-            throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
-        }
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
-        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
 
-        E entity = toEntityFunction.apply(toIdFunction.apply(entityId));
+        SingleEntityFilter singleEntityFilter = new SingleEntityFilter();
+        singleEntityFilter.setSingleEntity(entityId);
 
-        return toEntityView(tenantId, entity, columnsInfo, transformFunction);
+        List<ColumnConfiguration> entityFieldsColumns = new ArrayList<>();
+        List<ColumnConfiguration> latestValuesColumns = new ArrayList<>();
+
+        columns.forEach(column -> {
+            if (column.getType().equals(ColumnType.ENTITY_FIELD)) {
+                entityFieldsColumns.add(column);
+            } else {
+                latestValuesColumns.add(column);
+            }
+        });
+
+        List<EntityKey> entityFields = entityFieldsColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+        List<EntityKey> latestValues = latestValuesColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+
+        EntityDataQuery dataQuery = new EntityDataQuery(singleEntityFilter, new EntityDataPageLink(), entityFields, latestValues, Collections.emptyList());
+        PageData<EntityData> entityDataByQuery = entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, dataQuery);
+
+        return entityDataToShortEntityView(entityDataByQuery.getData().get(0));
     }
 
     @Override
-    public <E extends BaseData, I extends EntityId> ListenableFuture<TimePageData<ShortEntityView>>
-    findEntities(TenantId tenantId, EntityGroupId entityGroupId,
-                 TimePageLink pageLink,
-                 java.util.function.Function<EntityId, I> toIdFunction,
-                 java.util.function.Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction,
-                 BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+    public PageData<ShortEntityView> findGroupEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, PageLink pageLink) {
+        log.trace("Executing findGroupEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        if (transformFunction == null) {
-            throw new IncorrectParameterException("Incorrect transformFunction " + transformFunction);
-        }
+        validatePageLink(pageLink);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
         }
-        EntityGroupColumnsInfo columnsInfo = getEntityGroupColumnsInfo(entityGroup);
-        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transformAsync(entityIdsFuture, entityIds -> {
-            ListenableFuture<List<E>> entitiesFuture;
-            List<I> ids = new ArrayList<>();
-            if (entityIds != null) {
-                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
+        List<ColumnConfiguration> columns = getEntityGroupColumns(entityGroup);
+
+        EntityGroupFilter entityGroupFilter = new EntityGroupFilter();
+        entityGroupFilter.setEntityGroup(entityGroupId.getId().toString());
+        entityGroupFilter.setGroupType(entityGroup.getType());
+
+        List<ColumnConfiguration> entityFieldsColumns = new ArrayList<>();
+        List<ColumnConfiguration> latestValuesColumns = new ArrayList<>();
+
+        columns.forEach(column -> {
+            if (column.getType().equals(ColumnType.ENTITY_FIELD)) {
+                entityFieldsColumns.add(column);
+            } else {
+                latestValuesColumns.add(column);
             }
-            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
+        });
 
-            return Futures.transform(entitiesFuture, entities -> {
-                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
-                List<ShortEntityView> views = new ArrayList<>();
-                entities.forEach(entity -> views.add(toEntityView(tenantId, entity, columnsInfo, transformFunction)));
-                TimePageData<ShortEntityView> result = new TimePageData<>(ids, views, pageLink);
-                result.getData().removeIf(ShortEntityView::isSkipEntity);
-                return result;
-            }, MoreExecutors.directExecutor());
-        }, MoreExecutors.directExecutor());
-    }
+        List<EntityKey> entityFields = entityFieldsColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
+        List<EntityKey> latestValues = latestValuesColumns.stream().map(this::columnToEntityKey).collect(Collectors.toList());
 
-    @Override
-    public <E extends HasId<I>, I extends EntityId> ListenableFuture<TimePageData<E>>
-    findEntities(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink,
-                 Function<EntityId, I> toIdFunction,
-                 Function<List<I>, ListenableFuture<List<E>>> toEntitiesFunction) {
-        log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
-        if (entityGroup == null) {
-            throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
+        EntityDataSortOrder sortOrder = null;
+        if (pageLink.getSortOrder() != null && !StringUtils.isEmpty(pageLink.getSortOrder().getProperty())) {
+            String property = pageLink.getSortOrder().getProperty();
+            for (ColumnConfiguration column : columns) {
+                if (column.getKey().equals(property)) {
+                    sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(pageLink.getSortOrder().getDirection().name()));
+                    break;
+                }
+            }
+        } else {
+            for (ColumnConfiguration column : columns) {
+                if (column.getSortOrder() != null) {
+                    sortOrder = new EntityDataSortOrder(columnToEntityKey(column), EntityDataSortOrder.Direction.valueOf(column.getSortOrder().name()));
+                    break;
+                }
+            }
         }
-        ListenableFuture<List<EntityId>> entityIdsFuture = findEntityIds(tenantId, entityGroupId, entityGroup.getType(), pageLink);
-        return Futures.transformAsync(entityIdsFuture, entityIds -> {
-            ListenableFuture<List<E>> entitiesFuture;
-            List<I> ids = new ArrayList<>();
-            if (entityIds != null) {
-                entityIds.forEach(entityId -> ids.add(toIdFunction.apply(entityId)));
-            }
-            entitiesFuture = !ids.isEmpty() ? toEntitiesFunction.apply(ids) : Futures.immediateFuture(Collections.emptyList());
 
-            return Futures.transform(entitiesFuture, entities -> {
-                entities.sort(Comparator.comparingInt(e -> ids.indexOf(e.getId())));
-                TimePageData<E> result = new TimePageData<>(ids, entities, pageLink);
-                return result;
-            }, MoreExecutors.directExecutor());
-        }, MoreExecutors.directExecutor());
+        EntityDataPageLink entityDataPageLink = new EntityDataPageLink(pageLink.getPageSize(), pageLink.getPage(), pageLink.getTextSearch(), sortOrder);
+        EntityDataQuery dataQuery = new EntityDataQuery(entityGroupFilter, entityDataPageLink, entityFields, latestValues, Collections.emptyList());
+        PageData<EntityData> entityDataByQuery = entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, dataQuery);
+
+        return new PageData<>(
+                entityDataByQuery.getData().stream().map(this::entityDataToShortEntityView).collect(Collectors.toList()),
+                entityDataByQuery.getTotalPages(),
+                entityDataByQuery.getTotalElements(),
+                entityDataByQuery.hasNext());
+    }
+
+    private ShortEntityView entityDataToShortEntityView(EntityData entityData) {
+        ShortEntityView entityView = new ShortEntityView(entityData.getEntityId());
+        entityData.getLatest().forEach((type, map) -> map.forEach((k, v) -> {
+            String key;
+            switch (type) {
+                case ENTITY_FIELD:
+                    key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
+                    break;
+                case CLIENT_ATTRIBUTE:
+                    key = "client_" + k;
+                    break;
+                case SHARED_ATTRIBUTE:
+                    key = "shared_" + k;
+                    break;
+                case SERVER_ATTRIBUTE:
+                    key = "server_" + k;
+                    break;
+                default:
+                    key = k;
+            }
+            entityView.put(key, v.getValue());
+        }));
+        return entityView;
+    }
+
+    private EntityKey columnToEntityKey(ColumnConfiguration column) {
+        EntityKeyType entityKeyType = EntityKeyType.valueOf(column.getType().name());
+        String key;
+
+        if (entityKeyType.equals(EntityKeyType.ENTITY_FIELD)) {
+            key = columnToEntityKeyMap.getOrDefault(column.getKey(), column.getKey());
+        } else {
+            key = column.getKey();
+        }
+
+        return new EntityKey(entityKeyType, key);
+    }
+
+    private final Map<String, String> entityDataKeyToShortEntityViewKeyMap = new HashMap<>();
+
+    private final Map<String, String> columnToEntityKeyMap = new HashMap<>();
+
+    {
+        columnToEntityKeyMap.put("created_time", "createdTime");
+        columnToEntityKeyMap.put("assigned_customer", "assignedCustomer");
+        columnToEntityKeyMap.put("first_name", "firstName");
+        columnToEntityKeyMap.put("last_name", "lastName");
+
+        entityDataKeyToShortEntityViewKeyMap.put("createdTime", "created_time");
+        entityDataKeyToShortEntityViewKeyMap.put("assignedCustomer", "assigned_customer");
+        entityDataKeyToShortEntityViewKeyMap.put("firstName", "first_name");
+        entityDataKeyToShortEntityViewKeyMap.put("lastName", "last_name");
     }
 
     @Override
-    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink) {
+    public ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
         log.trace("Executing findEntities, entityGroupId [{}], pageLink [{}]", entityGroupId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
@@ -825,19 +878,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
-    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, TimePageLink pageLink) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(tenantId, entityGroupId,
-                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP, groupType, pageLink);
-        return Futures.transform(relations, input -> {
-            List<EntityId> entityIds = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                entityIds.add(relation.getTo());
-            }
-            return entityIds;
-        }, MoreExecutors.directExecutor());
+    @Override
+    public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
+        return entityGroupDao.isEntityInGroup(entityId, entityGroupId);
     }
 
-    private EntityGroupColumnsInfo getEntityGroupColumnsInfo(EntityGroup entityGroup) {
+    private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
+                                                           EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
+        ListenableFuture<PageData<EntityId>> pageData = entityGroupDao.findGroupEntityIds(groupType, entityGroupId.getId(), pageLink);
+        return Futures.transform(pageData, input -> input.getData(), MoreExecutors.directExecutor());
+    }
+
+    private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {
         JsonNode jsonConfiguration = entityGroup.getConfiguration();
         List<ColumnConfiguration> columns = null;
         if (jsonConfiguration != null) {
@@ -853,90 +905,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (columns == null) {
             columns = Collections.emptyList();
         }
-        EntityGroupColumnsInfo columnsInfo = new EntityGroupColumnsInfo();
-        columns.forEach(column -> {
-            if (column.getType() == ColumnType.ENTITY_FIELD) {
-                processEntityFieldColumnInfo(column, columnsInfo);
-            } else if (column.getType().isAttribute()) {
-                processAttributeColumnInfo(column, columnsInfo);
-            } else if (column.getType() == ColumnType.TIMESERIES) {
-                columnsInfo.timeseriesKeys.add(column.getKey());
-            }
-        });
-        return columnsInfo;
-    }
-
-    private void processEntityFieldColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
-        EntityField entityField = null;
-        try {
-            entityField = EntityField.valueOf(column.getKey().toUpperCase());
-        } catch (Exception e) {
-        }
-        if (entityField != null) {
-            if (entityField == EntityField.CREATED_TIME) {
-                columnsInfo.commonEntityFields.add(entityField);
-            } else {
-                columnsInfo.entityFields.add(entityField);
-            }
-        }
-    }
-
-    private void processAttributeColumnInfo(ColumnConfiguration column, EntityGroupColumnsInfo columnsInfo) {
-        String scope = column.getType().getAttributeScope();
-        List<String> keys = columnsInfo.attributeScopeToKeysMap.get(scope);
-        if (keys == null) {
-            keys = new ArrayList<>();
-            columnsInfo.attributeScopeToKeysMap.put(scope, keys);
-        }
-        keys.add(column.getKey());
-    }
-
-    private <E extends BaseData> ShortEntityView toEntityView(TenantId tenantId, E entity, EntityGroupColumnsInfo columnsInfo,
-                                                              BiFunction<E, List<EntityField>, ShortEntityView> transformFunction) {
-        ShortEntityView entityView = transformFunction.apply(entity, columnsInfo.entityFields);
-        for (EntityField entityField : columnsInfo.commonEntityFields) {
-            if (entityField == EntityField.CREATED_TIME) {
-                long timestamp = UUIDs.unixTimestamp(entity.getId().getId());
-                entityView.put(EntityField.CREATED_TIME.name().toLowerCase(), timestamp + "");
-            }
-        }
-        if (!entityView.isSkipEntity()) {
-            fetchEntityAttributes(tenantId, entityView, columnsInfo.attributeScopeToKeysMap, columnsInfo.timeseriesKeys);
-        }
-        return entityView;
-    }
-
-    private void fetchEntityAttributes(TenantId tenantId, ShortEntityView entityView,
-                                       Map<String, List<String>> attributeScopeToKeysMap,
-                                       List<String> timeseriesKeys) {
-        EntityId entityId = entityView.getId();
-        attributeScopeToKeysMap.forEach((scope, attributeKeys) -> {
-            try {
-                List<AttributeKvEntry> attributeKvEntries = attributesService.find(tenantId, entityId, scope, attributeKeys).get();
-                attributeKvEntries.forEach(attributeKvEntry -> {
-                    entityView.put(attributeKvEntry.getKey(), attributeKvEntry.getValueAsString());
-                });
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity attributes", e);
-            }
-        });
-        if (!timeseriesKeys.isEmpty()) {
-            try {
-                List<TsKvEntry> tsKvEntries = timeseriesService.findLatest(tenantId, entityId, timeseriesKeys).get();
-                tsKvEntries.forEach(tsKvEntry -> {
-                    entityView.put(tsKvEntry.getKey(), tsKvEntry.getValueAsString());
-                });
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to fetch entity telemetry timeseries", e);
-            }
-        }
-    }
-
-    private class EntityGroupColumnsInfo {
-        List<EntityField> commonEntityFields = new ArrayList<>();
-        List<EntityField> entityFields = new ArrayList<>();
-        Map<String, List<String>> attributeScopeToKeysMap = new HashMap<>();
-        List<String> timeseriesKeys = new ArrayList<>();
+        return columns;
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

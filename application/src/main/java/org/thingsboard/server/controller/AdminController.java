@@ -98,7 +98,7 @@ public class AdminController extends BaseController {
         try {
             Authority authority = getCurrentUser().getAuthority();
             AdminSettings adminSettings;
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
                 adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
@@ -119,7 +119,7 @@ public class AdminController extends BaseController {
     public AdminSettings saveAdminSettings(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
                 adminSettings = checkNotNull(adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminSettings));
             } else {
@@ -164,7 +164,7 @@ public class AdminController extends BaseController {
     public void sendTestMail(@RequestBody AdminSettings adminSettings) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
-            if (authority == Authority.SYS_ADMIN) {
+            if (Authority.SYS_ADMIN.equals(authority)) {
                 accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
             } else {
                 accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);

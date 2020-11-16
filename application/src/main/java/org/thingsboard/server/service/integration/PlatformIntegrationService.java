@@ -55,6 +55,8 @@ public interface PlatformIntegrationService extends ApplicationListener<Partitio
 
     void validateIntegrationConfiguration(Integration integration);
 
+    void checkIntegrationConnection(Integration integration) throws Exception;
+
     ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
 
     ListenableFuture<ThingsboardPlatformIntegration> updateIntegration(Integration integration);

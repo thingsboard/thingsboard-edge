@@ -158,6 +158,11 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
         return builder.build();
     }
 
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer() {
+        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, coreSettings.getUsageStatsTopic());
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -173,4 +178,5 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
             notificationAdmin.destroy();
         }
     }
+
 }

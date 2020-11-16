@@ -65,6 +65,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
@@ -77,7 +78,9 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
+import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -112,6 +115,10 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
+import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -138,7 +145,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -234,6 +240,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired
     private DbCallbackExecutorService callbackExecutorService;
 
+    @Autowired
+    private TbApiUsageReportClient apiUsageReportClient;
+
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
 
@@ -320,6 +329,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
             platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
         }
+    }
+
+    @Override
+    public void checkIntegrationConnection(Integration integration) throws Exception {
+        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
+        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
     }
 
     @Override
@@ -426,7 +441,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         try {
             TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
             IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY));
+            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
             Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
             if (integration == null) {
                 boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
@@ -546,7 +561,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             reportActivity(sessionInfo);
             TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
             DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), callback);
+            int dataPoints = 0;
+            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+                dataPoints += tsKv.getKvCount();
+            }
+            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, dataPoints, callback));
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -570,13 +589,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
             TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, metaData, gson.toJson(json));
-            sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(callback));
+            sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
         }
     }
 
     @Override
     public void process(TenantId tenantId, TbMsg tbMsg, IntegrationCallback<Void> callback) {
-        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(callback));
+        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, 1, callback)));
     }
 
 
@@ -639,7 +658,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
-        if (device == null) {
+        if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
             device.setType(deviceType);
@@ -657,13 +676,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             createRelationFromIntegration(integration, device.getId());
             deviceStateService.onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(integration, device);
+        } else {
+            throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return device;
     }
 
     private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
-        if (asset == null) {
+        if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
             asset.setName(assetName);
             asset.setType(assetType);
@@ -680,6 +701,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
             createRelationFromIntegration(integration, asset.getId());
             pushAssetCreatedEventToRuleEngine(integration, asset);
+        } else {
+            throw new ThingsboardRuntimeException("Creating assets is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return asset;
     }
@@ -952,6 +975,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         switch (integration.getType()) {
             case HTTP:
                 return new BasicHttpIntegration();
+            case LORIOT:
+                return new LoriotIntegration();
             case SIGFOX:
                 return new SigFoxIntegration();
             case OCEANCONNECT:
@@ -971,6 +996,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case IBM_WATSON_IOT:
                 return new IbmWatsonIotIntegration();
             case TTN:
+            case TTI:
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
@@ -982,6 +1008,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case RABBITMQ:
+                return new BasicRabbitMQIntegration();
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
             case CUSTOM:
@@ -1040,6 +1068,33 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             if (callback != null) {
                 callback.onError(t);
             }
+        }
+    }
+
+    private class ApiStatsProxyCallback<T> implements IntegrationCallback<T> {
+        private final TenantId tenantId;
+        private final int dataPoints;
+        private final IntegrationCallback<T> callback;
+
+        public ApiStatsProxyCallback(TenantId tenantId, int dataPoints, IntegrationCallback<T> callback) {
+            this.tenantId = tenantId;
+            this.dataPoints = dataPoints;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onSuccess(T msg) {
+            try {
+                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
+                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
+            } finally {
+                callback.onSuccess(msg);
+            }
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            callback.onError(e);
         }
     }
 

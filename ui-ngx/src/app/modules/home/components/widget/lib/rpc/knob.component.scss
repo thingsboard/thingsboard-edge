@@ -1,0 +1,180 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$knob-img: url("./svg/knob.svg") !default;
+
+$bars-margin-pct: percentage(.033) !default;
+$background-margin-pct: percentage(.05) !default;
+$value-container-margin-pct: percentage(.35) !default;
+$error-height: percentage(.05) !default;
+$title-height: percentage(.066) !default;
+$title-container-margin-pct: percentage(.2) !default;
+$title-container-margin-bottom-pct: percentage(.05) !default;
+$minmax-height: percentage(.04) !default;
+$minmax-container-margin-pct: percentage(.18) !default;
+$minmax-container-margin-bottom-pct: percentage(.12) !default;
+
+:host {
+  .tb-knob {
+    width: 100%;
+    height: 100%;
+
+    .knob {
+      position: relative;
+
+      &[draggable] {
+        user-select: none;
+      }
+
+      #canvasBar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 2;
+      }
+
+      .canvas-background {
+        position: absolute;
+        top: $background-margin-pct;
+        right: $background-margin-pct;
+        bottom: $background-margin-pct;
+        left: $background-margin-pct;
+        z-index: 2;
+        background: #3f4346;
+        border-radius: 50%;
+      }
+
+      .value-container {
+        position: absolute;
+        top: $value-container-margin-pct;
+        right: $value-container-margin-pct;
+        bottom: $value-container-margin-pct;
+        left: $value-container-margin-pct;
+        z-index: 4;
+
+        .knob-value {
+          font-weight: 500;
+          color: #fff;
+          white-space: nowrap;
+        }
+      }
+
+      .error-container {
+        position: absolute;
+        top: 1%;
+        right: 0;
+        left: 0;
+        z-index: 4;
+        height: $error-height;
+
+        .knob-error {
+          color: #ff3315;
+          white-space: nowrap;
+        }
+      }
+
+      .title-container {
+        position: absolute;
+        right: $title-container-margin-pct;
+        bottom: $title-container-margin-bottom-pct;
+        left: $title-container-margin-pct;
+        z-index: 4;
+        height: $title-height;
+
+        .knob-title {
+          font-weight: 500;
+          color: #757575;
+          white-space: nowrap;
+        }
+      }
+
+      .minmax-container {
+        position: absolute;
+        right: $minmax-container-margin-pct;
+        bottom: $minmax-container-margin-bottom-pct;
+        left: $minmax-container-margin-pct;
+        z-index: 4;
+        height: $minmax-height;
+
+        .minmax-label {
+          font-weight: 500;
+          color: #757575;
+          white-space: nowrap;
+        }
+      }
+
+      .top-pointer-container {
+        position: absolute;
+        top: $bars-margin-pct;
+        right: $bars-margin-pct;
+        bottom: $bars-margin-pct;
+        left: $bars-margin-pct;
+        z-index: 3;
+        cursor: pointer !important;
+
+        .top-pointer {
+          position: absolute;
+          top: 50%;
+          left: 22%;
+          width: 5%;
+          height: 5%;
+          margin-top: -2.5%;
+          cursor: pointer !important;
+          content: "";
+          background-color: #b5b5b5;
+          border-radius: 50%;
+          box-shadow: 1px 0 2px #040404;
+        }
+      }
+
+      .top {
+        position: absolute;
+        top: $bars-margin-pct;
+        right: $bars-margin-pct;
+        bottom: $bars-margin-pct;
+        left: $bars-margin-pct;
+        z-index: 2;
+        cursor: pointer !important;
+        background: $knob-img no-repeat;
+        background-size: contain;
+      }
+
+      #text-measure {
+        position: absolute;
+        width: auto;
+        height: auto;
+        white-space: nowrap;
+        visibility: hidden;
+      }
+    }
+  }
+}

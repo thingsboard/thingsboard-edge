@@ -30,7 +30,7 @@
  */
 package org.thingsboard.integration.service;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -258,7 +258,8 @@ public class RemoteIntegrationManagerService {
         DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
                 integration.getConfiguration().getTenantId(),
                 integration.getConfiguration().getId(),
-                TbMsg.fromBytes(ServiceQueue.MAIN, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY));
+                TbMsg.fromBytes(ServiceQueue.MAIN, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY),
+                deviceDownlinkDataProto.getDeviceName());
 
         integration.onDownlinkMsg(downlinkMsg);
     }
@@ -338,6 +339,8 @@ public class RemoteIntegrationManagerService {
         switch (IntegrationType.valueOf(type)) {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
+            case LORIOT:
+                return newInstance("org.thingsboard.integration.http.basic.LoriotIntegration");
             case SIGFOX:
                 return newInstance("org.thingsboard.integration.http.sigfox.SigFoxIntegration");
             case OCEANCONNECT:
@@ -354,6 +357,7 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
             case IBM_WATSON_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
+            case TTI:
             case TTN:
                 return newInstance("org.thingsboard.integration.mqtt.ttn.TtnIntegration");
             case AZURE_EVENT_HUB:
@@ -372,6 +376,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.kinesis.AwsKinesisIntegration");
             case KAFKA:
                 return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
+            case RABBITMQ:
+                return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
             case CUSTOM:
@@ -411,7 +417,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.STATS)
-                            .setUid(UUIDs.timeBased().toString())
+                            .setUid(Uuids.timeBased().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())
@@ -449,7 +455,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.LC_EVENT)
-                            .setUid(UUIDs.timeBased().toString())
+                            .setUid(Uuids.timeBased().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())

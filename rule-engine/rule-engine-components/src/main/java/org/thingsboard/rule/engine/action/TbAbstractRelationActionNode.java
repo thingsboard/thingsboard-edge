@@ -51,11 +51,12 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -66,6 +67,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.user.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -267,13 +269,20 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     break;
                 case DASHBOARD:
                     DashboardService dashboardService = ctx.getDashboardService();
-                    TextPageData<DashboardInfo> dashboardInfoTextPageData = dashboardService.findDashboardsByTenantId(ctx.getTenantId(), new TextPageLink(200, entitykey.getEntityName()));
+                    PageData<DashboardInfo> dashboardInfoTextPageData = dashboardService.findDashboardsByTenantId(ctx.getTenantId(), new PageLink(200, 0, entitykey.getEntityName()));
                     for (DashboardInfo dashboardInfo : dashboardInfoTextPageData.getData()) {
                         if (dashboardInfo.getTitle().equals(entitykey.getEntityName())) {
                             targetEntity.setEntityId(dashboardInfo.getId());
                         }
                     }
                     break;
+                case USER:
+                    UserService userService = ctx.getUserService();
+                    User user = userService.findUserByEmail(ctx.getTenantId(), entitykey.getEntityName());
+                    if(user != null){
+                        targetEntity.setEntityId(user.getId());
+                    }
+                    break;    
                 default:
                     return targetEntity;
             }

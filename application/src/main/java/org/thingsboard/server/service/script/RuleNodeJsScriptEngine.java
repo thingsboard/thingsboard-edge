@@ -43,6 +43,8 @@ import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.js.api.RuleNodeScriptFactory;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -61,19 +63,19 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private final JsInvokeService sandboxService;
 
     private final UUID scriptId;
+    private final TenantId tenantId;
     private final EntityId entityId;
 
-    public RuleNodeJsScriptEngine(JsInvokeService sandboxService, EntityId entityId, String script,
-                                  String... argNames) {
-        this(sandboxService, entityId, JsScriptType.RULE_NODE_SCRIPT, script, argNames);
+    public RuleNodeJsScriptEngine(TenantId tenantId, JsInvokeService sandboxService, EntityId entityId, String script, String... argNames) {
+        this(tenantId, sandboxService, entityId, JsScriptType.RULE_NODE_SCRIPT, script, argNames);
     }
 
-    public RuleNodeJsScriptEngine(JsInvokeService sandboxService, EntityId entityId, JsScriptType scriptType, String script,
-                                  String... argNames) {
+    public RuleNodeJsScriptEngine(TenantId tenantId, JsInvokeService sandboxService, EntityId entityId, JsScriptType scriptType, String script, String... argNames) {
+        this.tenantId = tenantId;
         this.sandboxService = sandboxService;
         this.entityId = entityId;
         try {
-            this.scriptId = this.sandboxService.eval(scriptType, script, argNames).get();
+            this.scriptId = this.sandboxService.eval(tenantId, scriptType, script, argNames).get();
         } catch (Exception e) {
             Throwable t = e;
             if (e instanceof ExecutionException) {
@@ -237,7 +239,7 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     private JsonNode executeScript(TbMsg msg) throws ScriptException {
         try {
             String[] inArgs = prepareArgs(msg);
-            String eval = sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2]).get().toString();
+            String eval = sandboxService.invokeFunction(tenantId, this.scriptId, inArgs[0], inArgs[1], inArgs[2]).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {
@@ -253,10 +255,10 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
     }
 
 
-    private JsonNode executeAttributesScript(Map<String,String> attributes) throws ScriptException {
+    private JsonNode executeAttributesScript(Map<String, String> attributes) throws ScriptException {
         try {
             String attributesStr = mapper.writeValueAsString(attributes);
-            String eval = sandboxService.invokeFunction(this.scriptId, attributesStr).get().toString();
+            String eval = sandboxService.invokeFunction(this.tenantId, this.scriptId, attributesStr).get().toString();
             return mapper.readTree(eval);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof ScriptException) {
@@ -271,7 +273,7 @@ public class RuleNodeJsScriptEngine implements org.thingsboard.rule.engine.api.S
 
     private ListenableFuture<JsonNode> executeScriptAsync(TbMsg msg) {
         String[] inArgs = prepareArgs(msg);
-        return Futures.transformAsync(sandboxService.invokeFunction(this.scriptId, inArgs[0], inArgs[1], inArgs[2]),
+        return Futures.transformAsync(sandboxService.invokeFunction(tenantId, this.scriptId, inArgs[0], inArgs[1], inArgs[2]),
                 o -> {
                     try {
                         return Futures.immediateFuture(mapper.readTree(o.toString()));

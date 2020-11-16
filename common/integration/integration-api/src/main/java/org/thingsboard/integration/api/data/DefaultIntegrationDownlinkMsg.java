@@ -46,6 +46,7 @@ public class DefaultIntegrationDownlinkMsg implements IntegrationDownlinkMsg {
     private final TenantId tenantId;
     private final IntegrationId integrationId;
     private final TbMsg tbMsg;
+    private final String entityName;
 
     @Override
     public EntityId getEntityId() {
