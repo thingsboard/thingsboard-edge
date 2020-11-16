@@ -114,6 +114,14 @@ export const ruleChainBreadcumbLabelFunction: BreadCrumbLabelFunction<RuleChainP
   if (component.ruleChain.root) {
     label += ` (${translate.instant('rulechain.root')})`;
   }
+
+  // TODO: voba - deaflynx plz verify these changes
+  // <div ng-if="(vm.parentCtl.ruleChainsScope === 'tenant' && item && item.root) ||
+  //  (vm.parentCtl.ruleChainsScope === 'edge' && vm.parentCtl.isRootRuleChain(item)) ||
+  //  (vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isRootRuleChain(item))" translate>rulechain.root </div>
+  //
+  // <div ng-if="(vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isDefaultEdgeRuleChain(item))" translate>rulechain.default </div>
+
   return label;
 });
 

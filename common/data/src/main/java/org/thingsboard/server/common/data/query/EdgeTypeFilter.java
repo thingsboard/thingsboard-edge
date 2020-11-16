@@ -33,15 +33,15 @@ package org.thingsboard.server.common.data.query;
 import lombok.Data;
 
 @Data
-public class EntityViewTypeFilter implements EntityFilter {
+public class EdgeTypeFilter implements EntityFilter {
 
     @Override
     public EntityFilterType getType() {
-        return EntityFilterType.ENTITY_VIEW_TYPE;
+        return EntityFilterType.EDGE_TYPE;
     }
 
-    private String entityViewType;
+    private String edgeType;
 
-    private String entityViewNameFilter;
+    private String edgeNameFilter;
 
 }

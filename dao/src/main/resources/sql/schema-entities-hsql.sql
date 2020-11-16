@@ -547,7 +547,7 @@ CREATE TABLE IF NOT EXISTS edge (
     edge_license_key varchar(30),
     cloud_endpoint varchar(255),
     search_text varchar(255),
-    tenant_id varchar(31),
+    tenant_id uuid,
     CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
 );

@@ -39,6 +39,7 @@ import lombok.ToString;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -47,7 +48,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Getter
 @Setter
 public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
-        implements HasName, TenantEntity, HasTenantId, HasCustomerId, HasOwnerId {
+        implements GroupEntity<EdgeId>  {
 
     private static final long serialVersionUID = 4934987555236873728L;
 
@@ -61,7 +62,7 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private String secret;
     private String edgeLicenseKey;
     private String cloudEndpoint;
-    private transient JsonNode configuration;
+    private transient JsonNode configuration;BaseEdgeTest.
 
     public Edge() {
         super();

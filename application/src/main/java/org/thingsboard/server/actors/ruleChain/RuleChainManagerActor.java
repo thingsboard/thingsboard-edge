@@ -81,7 +81,7 @@ public abstract class RuleChainManagerActor extends ContextAwareActor {
     }
 
     protected void destroyRuleChains() {
-        for (RuleChain ruleChain : new PageDataIterable<>(link -> ruleChainService.findTenantRuleChains(tenantId, link), ContextAwareActor.ENTITY_PACK_LIMIT)) {
+        for (RuleChain ruleChain : new PageDataIterable<>(link -> ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, link), ContextAwareActor.ENTITY_PACK_LIMIT)) {
             ctx.stop(new TbEntityActorId(ruleChain.getId()));
         }
     }

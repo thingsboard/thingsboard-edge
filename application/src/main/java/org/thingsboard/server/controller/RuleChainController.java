@@ -58,20 +58,15 @@ import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.DefaultRuleChainCreateRequest;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -463,7 +458,7 @@ public class RuleChainController extends BaseController {
     public void importRuleChains(@RequestBody RuleChainData ruleChainData, @RequestParam(required = false, defaultValue = "false") boolean overwrite) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
-            List<RuleChainImportResult> importResults = ruleChainService.importTenantRuleChains(tenantId, ruleChainData, overwrite);
+            List<RuleChainImportResult> importResults = ruleChainService.importTenantRuleChains(tenantId, ruleChainData, overwrite, RuleChainType.CORE);
             if (!CollectionUtils.isEmpty(importResults)) {
                 for (RuleChainImportResult importResult : importResults) {
                     tbClusterService.onEntityStateChange(importResult.getTenantId(), importResult.getRuleChainId(), importResult.getLifecycleEvent());
@@ -551,22 +546,22 @@ public class RuleChainController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/{edgeId}/ruleChains", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/edge/{edgeId}/ruleChains", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<RuleChain> getEdgeRuleChains(
             @PathVariable("edgeId") String strEdgeId,
-            @RequestParam int limit,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink).get());
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

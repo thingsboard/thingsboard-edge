@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,19 +38,16 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
@@ -192,7 +189,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
-        doPost("/api/customer/" + UUIDs.timeBased().toString()
+        doPost("/api/customer/" + Uuids.timeBased().toString()
                 + "/edge/" + savedEdge.getId().getId().toString())
                 .andExpect(status().isNotFound());
     }
@@ -205,15 +202,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
             edges.add(doPost("/api/edge", edge, Edge.class));
         }
         List<Edge> loadedEdges = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(23);
-        TextPageData<Edge> pageData = null;
+        PageLink pageLink = new PageLink(23);
+        PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<TextPageData<Edge>>() {
+                    new TypeReference<PageData<Edge>>() {
                     }, pageLink);
             loadedEdges.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -245,15 +242,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         }
 
         List<Edge> loadedEdgesTitle1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15, title1);
-        TextPageData<Edge> pageData = null;
+        PageLink pageLink = new PageLink(15, 0, title1);
+        PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<TextPageData<Edge>>() {
+                    new TypeReference<PageData<Edge>>() {
                     }, pageLink);
             loadedEdgesTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -263,14 +260,14 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edgesTitle1, loadedEdgesTitle1);
 
         List<Edge> loadedEdgesTitle2 = new ArrayList<>();
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<TextPageData<Edge>>() {
+                    new TypeReference<PageData<Edge>>() {
                     }, pageLink);
             loadedEdgesTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -284,9 +281,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title1);
+        pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                new TypeReference<TextPageData<Edge>>() {
+                new TypeReference<PageData<Edge>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -296,9 +293,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4, title2);
+        pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                new TypeReference<TextPageData<Edge>>() {
+                new TypeReference<PageData<Edge>>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -328,15 +325,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         }
 
         List<Edge> loadedEdgesType1 = new ArrayList<>();
-        TextPageLink pageLink = new TextPageLink(15);
-        TextPageData<Edge> pageData = null;
+        PageLink pageLink = new PageLink(15);
+        PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                    new TypeReference<TextPageData<Edge>>() {
+                    new TypeReference<PageData<Edge>>() {
                     }, pageLink, type1);
             loadedEdgesType1.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -346,14 +343,14 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edgesType1, loadedEdgesType1);
 
         List<Edge> loadedEdgesType2 = new ArrayList<>();
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                    new TypeReference<TextPageData<Edge>>() {
+                    new TypeReference<PageData<Edge>>() {
                     }, pageLink, type2);
             loadedEdgesType2.addAll(pageData.getData());
             if (pageData.hasNext()) {
-                pageLink = pageData.getNextPageLink();
+                pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
 
@@ -367,9 +364,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                new TypeReference<TextPageData<Edge>>() {
+                new TypeReference<PageData<Edge>>() {
                 }, pageLink, type1);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -379,9 +376,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                     .andExpect(status().isOk());
         }
 
-        pageLink = new TextPageLink(4);
+        pageLink = new PageLink(4);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?type={type}&",
-                new TypeReference<TextPageData<Edge>>() {
+                new TypeReference<PageData<Edge>>() {
                 }, pageLink, type2);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

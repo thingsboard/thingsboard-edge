@@ -42,6 +42,7 @@ public enum EntityFilterType {
     ASSET_TYPE("assetType"),
     DEVICE_TYPE("deviceType"),
     ENTITY_VIEW_TYPE("entityViewType"),
+    EDGE_TYPE("edgeType"),
     RELATIONS_QUERY("relationsQuery"),
     ASSET_SEARCH_QUERY("assetSearchQuery"),
     DEVICE_SEARCH_QUERY("deviceSearchQuery"),

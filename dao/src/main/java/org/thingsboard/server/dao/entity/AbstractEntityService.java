@@ -58,12 +58,12 @@ public abstract class AbstractEntityService {
     @Autowired(required = false)
     protected EdgeService edgeService;
 
-    protected void createRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
+    protected void createRelation(TenantId tenantId, EntityRelation relation) {
         log.debug("Creating relation: {}", relation);
         relationService.saveRelation(tenantId, relation);
     }
 
-    protected void deleteRelation(TenantId tenantId, EntityRelation relation) throws ExecutionException, InterruptedException {
+    protected void deleteRelation(TenantId tenantId, EntityRelation relation) {
         log.debug("Deleting relation: {}", relation);
         relationService.deleteRelation(tenantId, relation);
     }

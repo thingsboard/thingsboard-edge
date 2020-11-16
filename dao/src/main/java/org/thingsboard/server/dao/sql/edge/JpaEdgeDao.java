@@ -35,19 +35,18 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.DaoUtil;
@@ -56,7 +55,6 @@ import org.thingsboard.server.dao.group.BaseEntityGroupService;
 import org.thingsboard.server.dao.model.sql.EdgeEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -65,12 +63,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUID;
-import static org.thingsboard.server.common.data.UUIDConverter.fromTimeUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID_STR;
-
 @Component
-@SqlDao
 @Slf4j
 public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> implements EdgeDao {
 
@@ -86,74 +79,70 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     }
 
     @Override
-    protected CrudRepository<EdgeEntity, String> getCrudRepository() {
+    protected CrudRepository<EdgeEntity, UUID> getCrudRepository() {
         return edgeRepository;
     }
 
     @Override
-    public List<Edge> findEdgesByTenantId(UUID tenantId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Edge> findEdgesByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 edgeRepository.findByTenantId(
-                        fromTimeUUID(tenantId),
+                        tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> edgeIds) {
-        return service.submit(() -> DaoUtil.convertDataList(edgeRepository.findEdgesByTenantIdAndIdIn(UUIDConverter.fromTimeUUID(tenantId), fromTimeUUIDs(edgeIds))));
+        return service.submit(() -> DaoUtil.convertDataList(edgeRepository.findEdgesByTenantIdAndIdIn(tenantId, edgeIds)));
     }
 
     @Override
-    public List<Edge> findEdgesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Edge> findEdgesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 edgeRepository.findByTenantIdAndCustomerId(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public ListenableFuture<List<Edge>> findEdgesByTenantIdCustomerIdAndIdsAsync(UUID tenantId, UUID customerId, List<UUID> edgeIds) {
         return service.submit(() -> DaoUtil.convertDataList(
-                edgeRepository.findEdgesByTenantIdAndCustomerIdAndIdIn(fromTimeUUID(tenantId), fromTimeUUID(customerId), fromTimeUUIDs(edgeIds))));
+                edgeRepository.findEdgesByTenantIdAndCustomerIdAndIdIn(tenantId, customerId, edgeIds)));
     }
 
     @Override
     public Optional<Edge> findEdgeByTenantIdAndName(UUID tenantId, String name) {
-        Edge edge = DaoUtil.getData(edgeRepository.findByTenantIdAndName(fromTimeUUID(tenantId), name));
+        Edge edge = DaoUtil.getData(edgeRepository.findByTenantIdAndName(tenantId, name));
         return Optional.ofNullable(edge);
     }
 
     @Override
-    public List<Edge> findEdgesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Edge> findEdgesByTenantIdAndType(UUID tenantId, String type, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 edgeRepository.findByTenantIdAndType(
-                        fromTimeUUID(tenantId),
+                        tenantId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public List<Edge> findEdgesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink) {
-        return DaoUtil.convertDataList(
+    public PageData<Edge> findEdgesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink) {
+        return DaoUtil.toPageData(
                 edgeRepository.findByTenantIdAndCustomerIdAndType(
-                        fromTimeUUID(tenantId),
-                        fromTimeUUID(customerId),
+                        tenantId,
+                        customerId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public ListenableFuture<List<EntitySubtype>> findTenantEdgeTypesAsync(UUID tenantId) {
-        return service.submit(() -> convertTenantEdgeTypesToDto(tenantId, edgeRepository.findTenantEdgeTypes(fromTimeUUID(tenantId))));
+        return service.submit(() -> convertTenantEdgeTypesToDto(tenantId, edgeRepository.findTenantEdgeTypes(tenantId)));
     }
 
     @Override

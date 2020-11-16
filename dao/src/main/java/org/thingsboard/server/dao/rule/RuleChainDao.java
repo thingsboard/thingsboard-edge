@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -73,7 +74,7 @@ public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao {
      * @param pageLink the page link
      * @return the list of rule chain objects
      */
-    ListenableFuture<PageData<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
+    PageData<RuleChain> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 
     /**
      * Find default edge rule chains by tenantId.
@@ -81,5 +82,5 @@ public interface RuleChainDao extends Dao<RuleChain>, TenantEntityDao {
      * @param tenantId the tenantId
      * @return the list of rule chain objects
      */
-    ListenableFuture<PageData<RuleChain>> findDefaultEdgeRuleChainsByTenantId(UUID tenantId);
+    ListenableFuture<List<RuleChain>> findDefaultEdgeRuleChainsByTenantId(UUID tenantId);
 }

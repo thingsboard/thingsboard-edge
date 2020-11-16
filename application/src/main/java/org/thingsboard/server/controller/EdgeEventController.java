@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.edge.EdgeEventService;
@@ -61,21 +61,23 @@ public class EdgeEventController extends BaseController {
     public static final String EDGE_ID = "edgeId";
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/{edgeId}/events", method = RequestMethod.GET)
+    @RequestMapping(value = "/edge/{edgeId}/events", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TimePageData<EdgeEvent> getEdgeEvents(
+    public PageData<EdgeEvent> getEdgeEvents(
             @PathVariable(EDGE_ID) String strEdgeId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
+            @RequestParam(required = false) Long endTime) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             checkEdgeId(edgeId, Operation.READ);
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             return checkNotNull(edgeEventService.findEdgeEvents(tenantId, edgeId, pageLink, false));
         } catch (Exception e) {
             throw handleException(e);

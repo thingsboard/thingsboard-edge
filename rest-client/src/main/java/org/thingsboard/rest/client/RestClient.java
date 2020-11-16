@@ -2105,13 +2105,13 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public TextPageData<Edge> getEdges(TextPageLink pageLink) {
+    public PageData<Edge> getEdges(PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
                 baseURL + "/api/edges?" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TextPageData<Edge>>() {
+                new ParameterizedTypeReference<PageData<Edge>>() {
                 }, params).getBody();
     }
 
@@ -2141,14 +2141,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public TimePageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, TimePageLink pageLink) {
+    public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.getId().toString());
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
                 baseURL + "/api/edge/{edgeId}/ruleChains?" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TimePageData<RuleChain>>() {
+                new ParameterizedTypeReference<PageData<RuleChain>>() {
                 }, params).getBody();
     }
 
@@ -2199,14 +2199,14 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public TextPageData<Edge> getTenantEdges(String type, TextPageLink pageLink) {
+    public PageData<Edge> getTenantEdges(String type, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("type", type);
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
                 baseURL + "/api/tenant/edges?type={type}&" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TextPageData<Edge>>() {
+                new ParameterizedTypeReference<PageData<Edge>>() {
                 }, params).getBody();
     }
 
@@ -2235,7 +2235,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }).getBody();
     }
 
-    public TimePageData<EdgeEvent> getEdgeEvents(EdgeId edgeId, TimePageLink pageLink) {
+    public PageData<EdgeEvent> getEdgeEvents(EdgeId edgeId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.toString());
         addPageLinkToParam(params, pageLink);
@@ -2243,7 +2243,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/edge/{edgeId}/events?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TimePageData<EdgeEvent>>() {
+                new ParameterizedTypeReference<PageData<EdgeEvent>>() {
                 },
                 params).getBody();
     }

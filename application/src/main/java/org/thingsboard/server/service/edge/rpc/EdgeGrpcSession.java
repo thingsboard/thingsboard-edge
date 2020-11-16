@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
@@ -76,7 +76,8 @@ import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -287,8 +288,14 @@ public final class EdgeGrpcSession implements Closeable {
     void processHandleMessages() throws ExecutionException, InterruptedException {
         if (isConnected()) {
             Long queueStartTs = getQueueStartTs().get();
-            TimePageLink pageLink = new TimePageLink(ctx.getEdgeEventStorageSettings().getMaxReadRecordsCount(), queueStartTs, null, true);
-            TimePageData<EdgeEvent> pageData;
+            TimePageLink pageLink = new TimePageLink(
+                    ctx.getEdgeEventStorageSettings().getMaxReadRecordsCount(),
+                    0,
+                    null,
+                    new SortOrder("createdTime", SortOrder.Direction.ASC),
+                    queueStartTs,
+                    null);
+            PageData<EdgeEvent> pageData;
             UUID ifOffset = null;
             boolean success = true;
             do {
@@ -319,13 +326,13 @@ public final class EdgeGrpcSession implements Closeable {
                         log.error("Error during sleep between batches", e);
                     }
                     if (success) {
-                        pageLink = pageData.getNextPageLink();
+                        pageLink = pageLink.nextPageLink();
                     }
                 }
             } while (isConnected() && (!success || pageData.hasNext()));
 
             if (ifOffset != null) {
-                Long newStartTs = UUIDs.unixTimestamp(ifOffset);
+                Long newStartTs = Uuids.unixTimestamp(ifOffset);
                 updateQueueStartTs(newStartTs);
             }
             try {

@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -54,8 +55,9 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -183,14 +185,15 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edges", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Edge> getEdges(@RequestParam int limit,
-                                       @RequestParam(required = false) String textSearch,
-                                       @RequestParam(required = false) String idOffset,
-                                       @RequestParam(required = false) String textOffset) throws ThingsboardException {
+    public PageData<Edge> getEdges(@RequestParam int pageSize,
+                                   @RequestParam int page,
+                                   @RequestParam(required = false) String textSearch,
+                                   @RequestParam(required = false) String sortProperty,
+                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             TenantId tenantId = getCurrentUser().getTenantId();
             return checkNotNull(edgeService.findEdgesByTenantId(tenantId, pageLink));
         } catch (Exception e) {
@@ -199,17 +202,18 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/tenant/edges", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/tenant/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Edge> getTenantEdges(
-            @RequestParam int limit,
+    public PageData<Edge> getTenantEdges(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(edgeService.findEdgesByTenantIdAndType(tenantId, type, pageLink));
             } else {
@@ -263,21 +267,22 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customer/{customerId}/edges", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/customer/{customerId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Edge> getCustomerEdges(
+    public PageData<Edge> getCustomerEdges(
             @PathVariable("customerId") String strCustomerId,
-            @RequestParam int limit,
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("customerId", strCustomerId);
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             if (type != null && type.trim().length() > 0) {
                 return checkNotNull(edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink));
             } else {
@@ -289,30 +294,21 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/edges", params = {"limit"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/user/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public TextPageData<Edge> getUserEdges(
-            @RequestParam int limit,
+    public PageData<Edge> getUserEdges(
+            @RequestParam int pageSize,
+            @RequestParam int page,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String idOffset,
-            @RequestParam(required = false) String textOffset) throws ThingsboardException {
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
-            TextPageLink pageLink = createPageLink(limit, textSearch, idOffset, textOffset);
-            List<Predicate<Edge>> filters = new ArrayList<>();
-            if (type != null && type.trim().length() > 0) {
-                filters.add((entityView -> entityView.getType().equals(type)));
-            }
-            return getGroupEntitiesByPageLink(getCurrentUser(), EntityType.EDGE, Operation.READ, entityId -> new EdgeId(entityId.getId()),
-                    (entityIds) -> {
-                        try {
-                            return edgeService.findEdgesByTenantIdAndIdsAsync(getTenantId(), entityIds).get();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    filters,
-                    pageLink);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            SecurityUser currentUser = getCurrentUser();
+            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
+            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.EDGE,
+                    Operation.READ, type, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }

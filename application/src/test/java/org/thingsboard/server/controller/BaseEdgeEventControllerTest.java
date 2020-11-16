@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.Authority;
@@ -125,7 +125,7 @@ public class BaseEdgeEventControllerTest extends AbstractControllerTest {
         Thread.sleep(1000);
 
         List<EdgeEvent> edgeEvents = doGetTypedWithTimePageLink("/api/edge/" + edge.getId().toString() + "/events?",
-                new TypeReference<TimePageData<EdgeEvent>>() {
+                new TypeReference<PageData<EdgeEvent>>() {
                 }, new TimePageLink(10)).getData();
 
         Assert.assertFalse(edgeEvents.isEmpty());

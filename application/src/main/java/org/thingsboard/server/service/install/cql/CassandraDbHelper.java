@@ -195,8 +195,8 @@ public class CassandraDbHelper {
                     str = new Float(row.getFloat(index)).toString();
                 } else if (type.getProtocolCode() == ProtocolConstants.DataType.TIMESTAMP) {
                     str = ""+row.getInstant(index).toEpochMilli();
-                } else if (type == DataType.cboolean()) {
-                    str = ""+ row.getBool(index);
+                } else if (type.getProtocolCode() == ProtocolConstants.DataType.BOOLEAN) {
+                    str = new Boolean(row.getBoolean(index)).toString();
                 } else {
                     str = row.getString(index);
                 }
@@ -245,8 +245,8 @@ public class CassandraDbHelper {
             boundStatementBuilder.setFloat(column, Float.valueOf(value));
         } else if (type.getProtocolCode() == ProtocolConstants.DataType.TIMESTAMP) {
             boundStatementBuilder.setInstant(column, Instant.ofEpochMilli(Long.valueOf(value)));
-        } else if (type == DataType.cboolean()) {
-            boundStatement.setBool(column, Boolean.valueOf(value));
+        } else if (type.getProtocolCode() == ProtocolConstants.DataType.BOOLEAN) {
+            boundStatementBuilder.setBoolean(column, Boolean.valueOf(value));
         } else {
             boundStatementBuilder.setString(column, value);
         }

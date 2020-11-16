@@ -31,11 +31,12 @@
 package org.thingsboard.server.dao.edge;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TextPageLink;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
@@ -63,7 +64,7 @@ public interface EdgeDao extends Dao<Edge> {
      * @param pageLink the page link
      * @return the list of edge objects
      */
-    List<Edge> findEdgesByTenantId(UUID tenantId, TextPageLink pageLink);
+    PageData<Edge> findEdgesByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find edges by tenantId, type and page link.
@@ -73,7 +74,7 @@ public interface EdgeDao extends Dao<Edge> {
      * @param pageLink the page link
      * @return the list of edge objects
      */
-    List<Edge> findEdgesByTenantIdAndType(UUID tenantId, String type, TextPageLink pageLink);
+    PageData<Edge> findEdgesByTenantIdAndType(UUID tenantId, String type, PageLink pageLink);
 
     /**
      * Find edges by tenantId and edges Ids.
@@ -92,7 +93,7 @@ public interface EdgeDao extends Dao<Edge> {
      * @param pageLink the page link
      * @return the list of edge objects
      */
-    List<Edge> findEdgesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, TextPageLink pageLink);
+    PageData<Edge> findEdgesByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 
     /**
      * Find edges by tenantId, customerId, type and page link.
@@ -103,7 +104,7 @@ public interface EdgeDao extends Dao<Edge> {
      * @param pageLink the page link
      * @return the list of edge objects
      */
-    List<Edge> findEdgesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, TextPageLink pageLink);
+    PageData<Edge> findEdgesByTenantIdAndCustomerIdAndType(UUID tenantId, UUID customerId, String type, PageLink pageLink);
 
 
     /**

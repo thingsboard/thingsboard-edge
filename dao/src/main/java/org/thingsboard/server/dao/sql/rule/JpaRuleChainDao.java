@@ -35,16 +35,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.UUIDConverter;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -56,6 +51,7 @@ import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -91,40 +87,42 @@ public class JpaRuleChainDao extends JpaAbstractSearchTextDao<RuleChainEntity, R
     }
 
     @Override
-    public List<RuleChain> findRuleChainsByTenantIdAndType(UUID tenantId, RuleChainType type, PageLink pageLink) {
+    public PageData<RuleChain> findRuleChainsByTenantIdAndType(UUID tenantId, RuleChainType type, PageLink pageLink) {
         log.debug("Try to find rule chains by tenantId [{}], type [{}] and pageLink [{}]", tenantId, type, pageLink);
-        return DaoUtil.convertDataList(ruleChainRepository
+        return DaoUtil.toPageData(ruleChainRepository
                 .findByTenantIdAndType(
-                        UUIDConverter.fromTimeUUID(tenantId),
+                        tenantId,
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        pageLink.getIdOffset() == null ? NULL_UUID_STR : UUIDConverter.fromTimeUUID(pageLink.getIdOffset()),
-                        PageRequest.of(0, pageLink.getLimit())));
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
-    public ListenableFuture<List<RuleChain>> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
+    public PageData<RuleChain> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
         log.debug("Try to find rule chains by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE, EntityType.RULE_CHAIN, pageLink);
-        return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<RuleChain>> ruleChainFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                ruleChainFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
-            }
-            return Futures.successfulAsList(ruleChainFutures);
-        }, MoreExecutors.directExecutor());
+        return DaoUtil.toPageData(ruleChainRepository
+                .findByTenantIdAndEdgeId(
+                        tenantId,
+                        edgeId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override
     public ListenableFuture<List<RuleChain>> findDefaultEdgeRuleChainsByTenantId(UUID tenantId) {
         log.debug("Try to find default edge rule chains by tenantId [{}]", tenantId);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(new TenantId(tenantId), new TenantId(tenantId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_DEFAULT_RULE_CHAIN);
+        ListenableFuture<List<EntityRelation>> relations =
+                relationDao.findAllByFromAndType(new TenantId(tenantId), new TenantId(tenantId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_DEFAULT_RULE_CHAIN);
         return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<RuleChain>> ruleChainsFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                ruleChainsFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
+            if (input != null && !input.isEmpty()) {
+                List<ListenableFuture<RuleChain>> ruleChainsFutures = new ArrayList<>(input.size());
+                for (EntityRelation relation : input) {
+                    ruleChainsFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
+                }
+                return Futures.successfulAsList(ruleChainsFutures);
+            } else {
+                return Futures.immediateFuture(Collections.emptyList());
             }
-            return Futures.successfulAsList(ruleChainsFutures);
         }, MoreExecutors.directExecutor());
     }
 

@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.edge;
 
-import com.datastax.driver.core.utils.UUIDs;
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -64,8 +64,8 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -106,9 +106,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-;
-
 
 @Slf4j
 abstract public class BaseEdgeTest extends AbstractControllerTest {
@@ -196,7 +193,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Device device = doGet("/api/device/" + deviceUUID.toString(), Device.class);
         Assert.assertNotNull(device);
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Assert.assertTrue(edgeDevices.contains(device));
 
         Optional<AssetUpdateMsg> optionalMsg2 = edgeImitator.findMessageByType(AssetUpdateMsg.class);
@@ -207,7 +204,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Asset asset = doGet("/api/asset/" + assetUUID.toString(), Asset.class);
         Assert.assertNotNull(asset);
         List<Asset> edgeAssets = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/assets?",
-                new TypeReference<TimePageData<Asset>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Asset>>() {}, new PageLink(100)).getData();
         Assert.assertTrue(edgeAssets.contains(asset));
 
         Optional<RuleChainUpdateMsg> optionalMsg3 = edgeImitator.findMessageByType(RuleChainUpdateMsg.class);
@@ -218,7 +215,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         RuleChain ruleChain = doGet("/api/ruleChain/" + ruleChainUUID.toString(), RuleChain.class);
         Assert.assertNotNull(ruleChain);
         List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/ruleChains?",
-                new TypeReference<TimePageData<RuleChain>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<RuleChain>>() {}, new PageLink(100)).getData();
         Assert.assertTrue(edgeRuleChains.contains(ruleChain));
 
         log.info("Received data checked");
@@ -429,9 +426,9 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void testRelations() throws Exception {
         log.info("Testing Relations");
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         List<Asset> edgeAssets = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/assets?",
-                new TypeReference<TimePageData<Asset>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Asset>>() {}, new PageLink(100)).getData();
 
         Assert.assertEquals(1, edgeDevices.size());
         Assert.assertEquals(1, edgeAssets.size());
@@ -492,7 +489,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void testAlarms() throws Exception {
         log.info("Testing Alarms");
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Assert.assertEquals(1, edgeDevices.size());
         Device device = edgeDevices.get(0);
         Assert.assertEquals("Edge Device 1", device.getName());
@@ -551,7 +548,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void testEntityView() throws Exception {
         log.info("Testing EntityView");
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Assert.assertEquals(1, edgeDevices.size());
         Device device = edgeDevices.get(0);
         Assert.assertEquals("Edge Device 1", device.getName());
@@ -722,7 +719,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void testTimeseries() throws Exception {
         log.info("Testing timeseries");
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Assert.assertEquals(1, edgeDevices.size());
         Device device = edgeDevices.get(0);
         Assert.assertEquals("Edge Device 1", device.getName());
@@ -756,7 +753,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void testAttributes() throws Exception {
         log.info("Testing attributes");
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Assert.assertEquals(1, edgeDevices.size());
         Device device = edgeDevices.get(0);
         Assert.assertEquals("Edge Device 1", device.getName());
@@ -821,7 +818,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     private void sendDevice() throws Exception {
-        UUID uuid = UUIDs.timeBased();
+        UUID uuid = Uuids.timeBased();
 
         UplinkMsg.Builder builder =  UplinkMsg.newBuilder();
         DeviceUpdateMsg.Builder deviceUpdateMsgBuilder = DeviceUpdateMsg.newBuilder();
@@ -842,7 +839,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void sendAlarm() throws Exception {
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Optional<Device> foundDevice = edgeDevices.stream().filter(device1 -> device1.getName().equals("Edge Device 2")).findAny();
         Assert.assertTrue(foundDevice.isPresent());
         Device device = foundDevice.get();
@@ -861,8 +858,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
 
         List<AlarmInfo> alarms = doGetTypedWithPageLink("/api/alarm/{entityType}/{entityId}?",
-                new TypeReference<TimePageData<AlarmInfo>>() {},
-                new TextPageLink(100), device.getId().getEntityType().name(), device.getId().getId().toString())
+                new TypeReference<PageData<AlarmInfo>>() {},
+                new PageLink(100), device.getId().getEntityType().name(), device.getId().getId().toString())
                 .getData();
         Optional<AlarmInfo> foundAlarm = alarms.stream().filter(alarm -> alarm.getType().equals("alarm from edge")).findAny();
         Assert.assertTrue(foundAlarm.isPresent());
@@ -874,7 +871,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void sendRelation() throws Exception {
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Optional<Device> foundDevice1 = edgeDevices.stream().filter(device1 -> device1.getName().equals("Edge Device 1")).findAny();
         Assert.assertTrue(foundDevice1.isPresent());
         Device device1 = foundDevice1.get();
@@ -911,7 +908,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void sendTelemetry() throws Exception {
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Optional<Device> foundDevice = edgeDevices.stream().filter(device1 -> device1.getName().equals("Edge Device 2")).findAny();
         Assert.assertTrue(foundDevice.isPresent());
         Device device = foundDevice.get();
@@ -1003,7 +1000,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void sendDeviceCredentialsRequest() throws Exception {
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Optional<Device> foundDevice = edgeDevices.stream().filter(device1 -> device1.getName().equals("Edge Device 1")).findAny();
         Assert.assertTrue(foundDevice.isPresent());
         Device device = foundDevice.get();
@@ -1033,7 +1030,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void sendDeleteDeviceOnEdge() throws Exception {
         List<Device> edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {}, new PageLink(100)).getData();
         Optional<Device> foundDevice = edgeDevices.stream().filter(device1 -> device1.getName().equals("Edge Device 2")).findAny();
         Assert.assertTrue(foundDevice.isPresent());
         Device device = foundDevice.get();
@@ -1049,8 +1046,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         device = doGet("/api/device/" + device.getId().getId().toString(), Device.class);
         Assert.assertNotNull(device);
         edgeDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {
-                }, new TextPageLink(100)).getData();
+                new TypeReference<PageData<Device>>() {
+                }, new PageLink(100)).getData();
         Assert.assertFalse(edgeDevices.contains(device));
     }
 
@@ -1074,15 +1071,15 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     private void uninstallation() throws Exception {
 
-        TimePageData<Device> pageDataDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
-                new TypeReference<TimePageData<Device>>() {}, new TextPageLink(100));
+        PageData<Device> pageDataDevices = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/devices?",
+                new TypeReference<PageData<Device>>() {}, new PageLink(100));
         for (Device device: pageDataDevices.getData()) {
             doDelete("/api/device/" + device.getId().getId().toString())
                     .andExpect(status().isOk());
         }
 
-        TimePageData<Asset> pageDataAssets = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/assets?",
-                new TypeReference<TimePageData<Asset>>() {}, new TextPageLink(100));
+        PageData<Asset> pageDataAssets = doGetTypedWithPageLink("/api/edge/" + edge.getId().getId().toString() + "/assets?",
+                new TypeReference<PageData<Asset>>() {}, new PageLink(100));
         for (Asset asset: pageDataAssets.getData()) {
             doDelete("/api/asset/" + asset.getId().getId().toString())
                     .andExpect(status().isOk());

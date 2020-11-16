@@ -51,6 +51,7 @@ import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
@@ -448,7 +449,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 
-    private void forwardToEdgeNotificationService(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
+    private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(edgeNotificationMsg);
         }

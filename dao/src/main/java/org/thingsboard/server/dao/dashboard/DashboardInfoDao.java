@@ -65,15 +65,4 @@ public interface DashboardInfoDao extends Dao<DashboardInfo> {
     PageData<DashboardInfo> findDashboardsByEntityGroupId(UUID groupId, PageLink pageLink);
 
     PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<UUID> groupIds, PageLink pageLink);
-
-
-//    /**
-//     * Find dashboards by tenantId, edgeId and page link.
-//     *
-//     * @param tenantId the tenantId
-//     * @param edgeId the edgeId
-//     * @param pageLink the page link
-//     * @return the list of dashboard objects
-//     */
-//    ListenableFuture<List<DashboardInfo>> findDashboardsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink);
 }

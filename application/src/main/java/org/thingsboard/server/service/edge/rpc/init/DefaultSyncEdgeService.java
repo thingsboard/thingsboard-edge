@@ -69,9 +69,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -209,8 +208,8 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private void processRolesData(TenantId tenantId, Edge edge) {
-        TextPageData<Role> rolesData =
-                roleService.findRolesByTenantId(tenantId, new TextPageLink(Integer.MAX_VALUE));
+        PageData<Role> rolesData =
+                roleService.findRolesByTenantId(tenantId, new PageLink(Integer.MAX_VALUE));
         if (!rolesData.getData().isEmpty()) {
             for (Role role : rolesData.getData()) {
                 saveEdgeEvent(edge.getTenantId(), edge.getId(),
@@ -224,9 +223,9 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
             saveEdgeEvent(edge.getTenantId(), edge.getId(),
                     EdgeEventType.CUSTOMER, ActionType.ADDED, edge.getOwnerId(), null, null);
-            TextPageData<Role> rolesData =
+            PageData<Role> rolesData =
                     roleService.findRolesByTenantIdAndCustomerId(edge.getTenantId(),
-                            new CustomerId(edge.getOwnerId().getId()), new TextPageLink(Integer.MAX_VALUE));
+                            new CustomerId(edge.getOwnerId().getId()), new PageLink(Integer.MAX_VALUE));
             if (!rolesData.getData().isEmpty()) {
                 for (Role role : rolesData.getData()) {
                     saveEdgeEvent(edge.getTenantId(), edge.getId(),
@@ -238,24 +237,14 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private void syncRuleChains(Edge edge) {
         try {
-            ListenableFuture<TimePageData<RuleChain>> future =
+            PageData<RuleChain> pageData =
                     ruleChainService.findRuleChainsByTenantIdAndEdgeId(edge.getTenantId(), edge.getId(), new TimePageLink(Integer.MAX_VALUE));
-            Futures.addCallback(future, new FutureCallback<TimePageData<RuleChain>>() {
-                @Override
-                public void onSuccess(@Nullable TimePageData<RuleChain> pageData) {
-                    if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                        log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-                        for (RuleChain ruleChain : pageData.getData()) {
-                            saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.RULE_CHAIN, ActionType.ADDED, ruleChain.getId(), null, null);
-                        }
-                    }
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                log.trace("[{}] [{}] rule chains(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
+                for (RuleChain ruleChain : pageData.getData()) {
+                    saveEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.RULE_CHAIN, ActionType.ADDED, ruleChain.getId(), null, null);
                 }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    log.error("Exception during loading edge rule chain(s) on sync!", t);
-                }
-            }, dbCallbackExecutorService);
+            }
         } catch (Exception e) {
             log.error("Exception during loading edge rule chain(s) on sync!", e);
         }
@@ -685,7 +674,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private ListenableFuture<Void> processUserGroupPermissionsRequest(Edge edge, EntityGroupId userGroupId) {
-        TimePageData<GroupPermission> groupPermissionsData =
+        PageData<GroupPermission> groupPermissionsData =
                 groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new TimePageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
@@ -724,7 +713,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     }
 
     private ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType) {
-        TimePageData<GroupPermission> groupPermissionsData =
+        PageData<GroupPermission> groupPermissionsData =
                 groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();

@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -790,7 +791,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         try {
             String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
             createRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to create entity group relation. Edge Id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
@@ -807,7 +808,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         try {
             String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX +  groupType.name();
             deleteRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
             throw new RuntimeException(e);
         }
@@ -816,15 +817,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public ListenableFuture<List<EntityGroup>> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType) {
-        log.trace("Executing findEdgeEntityGroupsByType, tenantId [{}], edgeId [{}], groupType [{}]", tenantId, edgeId, groupType);
+        log.trace("[{}] Executing findEdgeEntityGroupsByType, edgeId [{}], groupType [{}]", tenantId, edgeId, groupType);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByFromAndType(tenantId, edgeId, relationType, RelationTypeGroup.EDGE);
-        return relationsToEntityGroups(tenantId, relations);
+        return this.entityGroupDao.findEdgeEntityGroupsByType(tenantId.getId(), edgeId.getId(), relationType);
     }
 
     @Override

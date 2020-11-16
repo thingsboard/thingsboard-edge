@@ -33,10 +33,7 @@ package org.thingsboard.server.dao.rule;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Function;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,10 +53,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.page.TextPageData;
-import org.thingsboard.server.common.data.page.TextPageLink;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
@@ -68,7 +61,6 @@ import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChainData;
 import org.thingsboard.server.common.data.rule.RuleChainImportResult;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
@@ -80,7 +72,6 @@ import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,10 +81,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import static org.thingsboard.server.dao.service.Validator.validateId;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
+import static org.thingsboard.server.dao.service.Validator.validateId;
 
 /**
  * Created by igor on 3/12/18.
@@ -126,7 +117,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             try {
                 createRelation(ruleChain.getTenantId(), new EntityRelation(savedRuleChain.getTenantId(), savedRuleChain.getId(),
                         EntityRelation.CONTAINS_TYPE, RelationTypeGroup.RULE_CHAIN));
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (Exception e) {
                 log.warn("[{}] Failed to create tenant to root rule chain relation. from: [{}], to: [{}]",
                         savedRuleChain.getTenantId(), savedRuleChain.getId());
                 throw new RuntimeException(e);
@@ -210,7 +201,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             try {
                 createRelation(tenantId, new EntityRelation(ruleChainMetaData.getRuleChainId(), savedNode.getId(),
                         EntityRelation.CONTAINS_TYPE, RelationTypeGroup.RULE_CHAIN));
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (Exception e) {
                 log.warn("[{}] Failed to create rule chain to rule node relation. from: [{}], to: [{}]",
                         ruleChainMetaData.getRuleChainId(), savedNode.getId());
                 throw new RuntimeException(e);
@@ -238,7 +229,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 String type = nodeConnection.getType();
                 try {
                     createRelation(tenantId, new EntityRelation(from, to, type, RelationTypeGroup.RULE_NODE));
-                } catch (ExecutionException | InterruptedException e) {
+                } catch (Exception e) {
                     log.warn("[{}] Failed to create rule node relation. from: [{}], to: [{}]", from, to);
                     throw new RuntimeException(e);
                 }
@@ -251,7 +242,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 String type = nodeToRuleChainConnection.getType();
                 try {
                     createRelation(tenantId, new EntityRelation(from, to, type, RelationTypeGroup.RULE_NODE, nodeToRuleChainConnection.getAdditionalInfo()));
-                } catch (ExecutionException | InterruptedException e) {
+                } catch (Exception e) {
                     log.warn("[{}] Failed to create rule node to rule chain relation. from: [{}], to: [{}]", from, to);
                     throw new RuntimeException(e);
                 }
@@ -480,13 +471,13 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     }
 
     @Override
-    public List<RuleChainImportResult> importTenantRuleChains(TenantId tenantId, RuleChainData ruleChainData, boolean overwrite) {
+    public List<RuleChainImportResult> importTenantRuleChains(TenantId tenantId, RuleChainData ruleChainData, boolean overwrite, RuleChainType type) {
         List<RuleChainImportResult> importResults = new ArrayList<>();
         setRandomRuleChainIds(ruleChainData);
         resetRuleNodeIds(ruleChainData.getMetadata());
         resetRuleChainMetadataTenantIds(tenantId, ruleChainData.getMetadata());
         if (overwrite) {
-            List<RuleChain> persistentRuleChains = findAllTenantRuleChains(tenantId);
+            List<RuleChain> persistentRuleChains = findAllTenantRuleChains(tenantId, type);
             for (RuleChain ruleChain : ruleChainData.getRuleChains()) {
                 ComponentLifecycleEvent lifecycleEvent;
                 Optional<RuleChain> persistentRuleChainOpt = persistentRuleChains.stream().filter(rc -> rc.getName().equals(ruleChain.getName())).findFirst();
@@ -566,19 +557,19 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         }
     }
 
-    private List<RuleChain> findAllTenantRuleChains(TenantId tenantId) {
+    private List<RuleChain> findAllTenantRuleChains(TenantId tenantId, RuleChainType type) {
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        return findAllTenantRuleChainsRecursive(tenantId, new ArrayList<>(), pageLink);
+        return findAllTenantRuleChainsRecursive(tenantId, new ArrayList<>(), type, pageLink);
     }
 
-    private List<RuleChain> findAllTenantRuleChainsRecursive(TenantId tenantId, List<RuleChain> accumulator, PageLink pageLink) {
-        PageData<RuleChain> persistentRuleChainData = findTenantRuleChains(tenantId, pageLink);
+    private List<RuleChain> findAllTenantRuleChainsRecursive(TenantId tenantId, List<RuleChain> accumulator, RuleChainType type, PageLink pageLink) {
+        PageData<RuleChain> persistentRuleChainData = findTenantRuleChainsByType(tenantId,  type, pageLink);
         List<RuleChain> ruleChains = persistentRuleChainData.getData();
         if (!CollectionUtils.isEmpty(ruleChains)) {
             accumulator.addAll(ruleChains);
         }
         if (persistentRuleChainData.hasNext()) {
-            return findAllTenantRuleChainsRecursive(tenantId, accumulator, pageLink.nextPageLink());
+            return findAllTenantRuleChainsRecursive(tenantId, accumulator, type, pageLink.nextPageLink());
         }
         return accumulator;
     }
@@ -611,7 +602,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         }
         try {
             createRelation(tenantId, new EntityRelation(edgeId, ruleChainId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to create ruleChain relation. Edge Id: [{}]", ruleChainId, edgeId);
             throw new RuntimeException(e);
         }
@@ -630,7 +621,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         }
         try {
             deleteRelation(tenantId, new EntityRelation(edgeId, ruleChainId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to delete rule chain relation. Edge Id: [{}]", ruleChainId, edgeId);
             throw new RuntimeException(e);
         }
@@ -638,20 +629,12 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     }
 
     @Override
-    public ListenableFuture<TimePageData<RuleChain>> findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, TimePageLink pageLink) {
+    public PageData<RuleChain> findRuleChainsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findRuleChainsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
-        Validator.validatePageLink(pageLink, "Incorrect page link " + pageLink);
-        ListenableFuture<List<RuleChain>> ruleChains = ruleChainDao.findRuleChainsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
-
-        return Futures.transform(ruleChains, new Function<List<RuleChain>, TimePageData<RuleChain>>() {
-            @Nullable
-            @Override
-            public TimePageData<RuleChain> apply(@Nullable List<RuleChain> ruleChains) {
-                return new TimePageData<>(ruleChains, pageLink);
-            }
-        }, MoreExecutors.directExecutor());
+        Validator.validatePageLink(pageLink);
+        return ruleChainDao.findRuleChainsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
     @Override
@@ -676,7 +659,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 ruleChain.setRoot(true);
                 ruleChainDao.save(tenantId, ruleChain);
                 return true;
-            } catch (ExecutionException | InterruptedException e) {
+            } catch (Exception e) {
                 log.warn("Failed to set default root edge rule chain, ruleChainId: [{}]", ruleChainId, e);
                 throw new RuntimeException(e);
             }
@@ -690,7 +673,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             createRelation(tenantId, new EntityRelation(tenantId, ruleChainId,
                     EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_DEFAULT_RULE_CHAIN));
             return true;
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("Failed to add default edge rule chain, ruleChainId: [{}]", ruleChainId, e);
             throw new RuntimeException(e);
         }
@@ -702,7 +685,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             deleteRelation(tenantId, new EntityRelation(tenantId, ruleChainId,
                     EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE_DEFAULT_RULE_CHAIN));
             return true;
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("Failed to remove default edge rule chain, ruleChainId: [{}]", ruleChainId, e);
             throw new RuntimeException(e);
         }

@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.UUIDConverter;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -129,15 +131,26 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractSearchTextDao<Scheduler
     }
 
     @Override
-    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, TimePageLink pageLink) {
+    public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfosByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
         log.debug("Try to find scheduler event infos by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findRelations(new TenantId(tenantId), new EdgeId(edgeId), EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE, EntityType.SCHEDULER_EVENT, pageLink);
+        ListenableFuture<PageData<EntityRelation>> relations =
+                relationDao.findRelations(
+                        new TenantId(tenantId),
+                        new EdgeId(edgeId),
+                        EntityRelation.CONTAINS_TYPE,
+                        RelationTypeGroup.EDGE,
+                        EntityType.SCHEDULER_EVENT,
+                        pageLink);
         return Futures.transformAsync(relations, input -> {
-            List<ListenableFuture<SchedulerEventInfo>> schedulerEventFutures = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
-                schedulerEventFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
+            if (input != null && input.getData() != null) {
+                List<ListenableFuture<SchedulerEventInfo>> schedulerEventFutures = new ArrayList<>(input.getData().size());
+                for (EntityRelation relation : input.getData()) {
+                    schedulerEventFutures.add(findByIdAsync(new TenantId(tenantId), relation.getTo().getId()));
+                }
+                return Futures.successfulAsList(schedulerEventFutures);
+            } else {
+                return Futures.immediateFuture(new ArrayList<>());
             }
-            return Futures.successfulAsList(schedulerEventFutures);
         }, MoreExecutors.directExecutor());
     }
 }

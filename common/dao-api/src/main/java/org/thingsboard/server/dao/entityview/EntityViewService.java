@@ -87,6 +87,4 @@ public interface EntityViewService {
     PageData<EntityView> findEntityViewsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink);
 
     PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
-
-    ListenableFuture<PageData<EntityView>> findEntityViewEntitiesByEntityGroupId(TenantId tenantId, EntityGroupId entityGroupId, TimePageLink pageLink);
 }

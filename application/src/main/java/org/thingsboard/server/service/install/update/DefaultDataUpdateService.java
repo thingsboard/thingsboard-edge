@@ -33,9 +33,7 @@ package org.thingsboard.server.service.install.update;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -44,14 +42,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
+import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
-import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
@@ -78,6 +76,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
@@ -87,8 +87,6 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -100,8 +98,8 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
@@ -118,7 +116,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.thingsboard.server.service.install.DatabaseHelper.objectMapper;
 
 @Service
 @Profile("install")
@@ -1024,6 +1021,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants default edge rule chain updater";
+                }
 
                 @Override
                 protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
