@@ -45,9 +45,9 @@ export interface DefaultTenantProfileConfiguration {
   maxUsers: number;
   maxDashboards: number;
   maxRuleChains: number;
-  maxIntegrations;
-  maxConverters;
-  maxSchedulerEvents;
+  maxIntegrations: number;
+  maxConverters: number;
+  maxSchedulerEvents: number;
 
   transportTenantMsgRateLimit?: string;
   transportTenantTelemetryMsgRateLimit?: string;
