@@ -32,7 +32,6 @@
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntitySearchDirection, EntityTypeFilter } from '@shared/models/relation.models';
-import { EntityInfo } from './entity.models';
 import { EntityFilter } from '@shared/models/query/query.models';
 
 export enum AliasFilterType {
@@ -47,11 +46,13 @@ export enum AliasFilterType {
   stateEntityOwner = 'stateEntityOwner',
   assetType = 'assetType',
   deviceType = 'deviceType',
+  edgeType = 'edgeType',
   entityViewType = 'entityViewType',
   apiUsageState = 'apiUsageState',
   relationsQuery = 'relationsQuery',
   assetSearchQuery = 'assetSearchQuery',
   deviceSearchQuery = 'deviceSearchQuery',
+  edgeSearchQuery = 'edgeSearchQuery',
   entityViewSearchQuery = 'entityViewSearchQuery'
 }
 
@@ -68,11 +69,13 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.stateEntityOwner, 'alias.filter-type-state-entity-owner' ],
     [ AliasFilterType.assetType, 'alias.filter-type-asset-type' ],
     [ AliasFilterType.deviceType, 'alias.filter-type-device-type' ],
+    [ AliasFilterType.edgeType, 'alias.filter-type-edge-type' ],
     [ AliasFilterType.entityViewType, 'alias.filter-type-entity-view-type' ],
     [ AliasFilterType.apiUsageState, 'alias.filter-type-apiUsageState' ],
     [ AliasFilterType.relationsQuery, 'alias.filter-type-relations-query' ],
     [ AliasFilterType.assetSearchQuery, 'alias.filter-type-asset-search-query' ],
     [ AliasFilterType.deviceSearchQuery, 'alias.filter-type-device-search-query' ],
+    [ AliasFilterType.edgeSearchQuery, 'alias.filter-type-edge-search-query' ],
     [ AliasFilterType.entityViewSearchQuery, 'alias.filter-type-entity-view-search-query' ]
   ]
 );
@@ -137,6 +140,11 @@ export interface DeviceTypeFilter {
   deviceNameFilter?: string;
 }
 
+export interface EdgeTypeFilter {
+  edgeType?: string;
+  edgeNameFilter?: string;
+}
+
 export interface EntityViewFilter {
   entityViewType?: string;
   entityViewNameFilter?: string;
@@ -176,6 +184,10 @@ export interface DeviceSearchQueryFilter extends EntitySearchQueryFilter {
   deviceTypes?: string[];
 }
 
+export interface EdgeSearchQueryFilter extends EntitySearchQueryFilter {
+  edgeTypes?: string[];
+}
+
 export interface EntityViewSearchQueryFilter extends EntitySearchQueryFilter {
   entityViewTypes?: string[];
 }
@@ -192,10 +204,12 @@ export type EntityFilters =
   StateEntityOwnerFilter &
   AssetTypeFilter &
   DeviceTypeFilter &
+  EdgeTypeFilter &
   EntityViewFilter &
   RelationsQueryFilter &
   AssetSearchQueryFilter &
   DeviceSearchQueryFilter &
+  EdgeSearchQueryFilter &
   EntityViewSearchQueryFilter &
   EntitySearchQueryFilter;
 

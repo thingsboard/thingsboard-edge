@@ -565,6 +565,7 @@ CREATE TABLE IF NOT EXISTS api_usage_state (
 
 CREATE TABLE IF NOT EXISTS edge (
     id uuid NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     customer_id uuid,
     root_rule_chain_id uuid,
@@ -584,6 +585,7 @@ CREATE TABLE IF NOT EXISTS edge (
 
 CREATE TABLE IF NOT EXISTS edge_event (
     id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     edge_id uuid,
     edge_event_type varchar(255),
     edge_event_uid varchar(255),

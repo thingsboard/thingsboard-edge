@@ -83,8 +83,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeCustomTableConfig",
         icon = "file_upload",
-        ruleChainTypes = RuleChainType.CORE
-)
+        ruleChainTypes = RuleChainType.CORE)
 public class TbSaveToCustomCassandraTableNode implements TbNode {
 
     private static final String TABLE_PREFIX = "cs_tb_";

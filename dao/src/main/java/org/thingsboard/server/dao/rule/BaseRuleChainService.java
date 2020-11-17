@@ -53,6 +53,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
@@ -85,6 +87,10 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.DataConstants.TENANT;
+import static org.thingsboard.server.dao.service.Validator.validateId;
 
 /**
  * Created by igor on 3/12/18.
@@ -94,6 +100,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public class BaseRuleChainService extends AbstractEntityService implements RuleChainService {
 
     private static final int DEFAULT_PAGE_SIZE = 1000;
+
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     @Autowired

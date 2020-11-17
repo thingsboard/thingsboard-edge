@@ -30,152 +30,34 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.Edge;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_CLOUD_ENDPOINT_KEY_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EDGE_COLUMN_FAMILY_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_CUSTOMER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_LABEL_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_LICENSE_KEY_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_NAME_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_ROOT_RULE_CHAIN_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_ROUTING_KEY_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_SECRET_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_TENANT_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.EDGE_TYPE_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = EDGE_COLUMN_FAMILY_NAME)
-public class EdgeEntity extends BaseSqlEntity<Edge> implements SearchTextEntity<Edge> {
-
-    @Column(name = EDGE_TENANT_ID_PROPERTY)
-    private UUID tenantId;
-
-    @Column(name = EDGE_CUSTOMER_ID_PROPERTY)
-    private UUID customerId;
-
-    @Column(name = EDGE_ROOT_RULE_CHAIN_ID_PROPERTY)
-    private UUID rootRuleChainId;
-
-    @Column(name = EDGE_TYPE_PROPERTY)
-    private String type;
-
-    @Column(name = EDGE_NAME_PROPERTY)
-    private String name;
-
-    @Column(name = EDGE_LABEL_PROPERTY)
-    private String label;
-
-    @Column(name = SEARCH_TEXT_PROPERTY)
-    private String searchText;
-
-    @Column(name = EDGE_ROUTING_KEY_PROPERTY)
-    private String routingKey;
-
-    @Column(name = EDGE_SECRET_PROPERTY)
-    private String secret;
-
-    @Column(name = EDGE_LICENSE_KEY_PROPERTY)
-    private String edgeLicenseKey;
-
-    @Column(name = EDGE_CLOUD_ENDPOINT_KEY_PROPERTY)
-    private String cloudEndpoint;
-
-    @Type(type = "json")
-    @Column(name = ModelConstants.EDGE_CONFIGURATION_PROPERTY)
-    private JsonNode configuration;
-
-    @Type(type = "json")
-    @Column(name = ModelConstants.EDGE_ADDITIONAL_INFO_PROPERTY)
-    private JsonNode additionalInfo;
+public class EdgeEntity extends AbstractEdgeEntity<Edge> {
 
     public EdgeEntity() {
         super();
     }
 
     public EdgeEntity(Edge edge) {
-        if (edge.getId() != null) {
-            this.setUuid(edge.getId().getId());
-        }
-        this.setCreatedTime(edge.getCreatedTime());
-        if (edge.getTenantId() != null) {
-            this.tenantId = edge.getTenantId().getId();
-        }
-        if (edge.getCustomerId() != null) {
-            this.customerId = edge.getCustomerId().getId();
-        }
-        if (edge.getRootRuleChainId() != null) {
-            this.rootRuleChainId = edge.getRootRuleChainId().getId();
-        }
-        this.type = edge.getType();
-        this.name = edge.getName();
-        this.label = edge.getLabel();
-        this.routingKey = edge.getRoutingKey();
-        this.secret = edge.getSecret();
-        this.edgeLicenseKey = edge.getEdgeLicenseKey();
-        this.cloudEndpoint = edge.getCloudEndpoint();
-        this.configuration = edge.getConfiguration();
-        this.additionalInfo = edge.getAdditionalInfo();
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    @Override
-    public String getSearchTextSource() {
-        return name;
-    }
-
-    @Override
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
+        super(edge);
     }
 
     @Override
     public Edge toData() {
-        Edge edge = new Edge(new EdgeId(id));
-        edge.setCreatedTime(this.createdTime);
-        if (tenantId != null) {
-            edge.setTenantId(new TenantId(tenantId));
-        }
-        if (customerId != null) {
-            edge.setCustomerId(new CustomerId(customerId));
-        }
-        if (rootRuleChainId != null) {
-            edge.setRootRuleChainId(new RuleChainId(rootRuleChainId));
-        }
-        edge.setType(type);
-        edge.setName(name);
-        edge.setLabel(label);
-        edge.setRoutingKey(routingKey);
-        edge.setSecret(secret);
-        edge.setEdgeLicenseKey(edgeLicenseKey);
-        edge.setCloudEndpoint(cloudEndpoint);
-        edge.setConfiguration(configuration);
-        edge.setAdditionalInfo(additionalInfo);
-        return edge;
+        return super.toEdge();
     }
 }

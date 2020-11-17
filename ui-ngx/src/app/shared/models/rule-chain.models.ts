@@ -42,8 +42,10 @@ export interface RuleChain extends BaseData<RuleChainId> {
   firstRuleNodeId: RuleNodeId;
   root: boolean;
   debugMode: boolean;
+  type: string;
   configuration?: any;
   additionalInfo?: any;
+  isDefault?: boolean;
 }
 
 export interface RuleChainMetaData {
@@ -126,3 +128,10 @@ export const inputNodeComponent: RuleNodeComponentDescriptor = {
   name: 'Input',
   clazz: 'tb.internal.Input'
 };
+
+export declare type RuleChainType = 'CORE' | 'EDGE';
+
+export enum ruleChainType {
+  core = 'CORE',
+  edge = 'EDGE'
+}

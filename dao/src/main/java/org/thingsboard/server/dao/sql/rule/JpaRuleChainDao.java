@@ -40,6 +40,13 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.UUIDConverter;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -100,6 +107,7 @@ public class JpaRuleChainDao extends JpaAbstractSearchTextDao<RuleChainEntity, R
     @Override
     public PageData<RuleChain> findRuleChainsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
         log.debug("Try to find rule chains by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+
         return DaoUtil.toPageData(ruleChainRepository
                 .findByTenantIdAndEdgeId(
                         tenantId,

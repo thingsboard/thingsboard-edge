@@ -70,7 +70,6 @@ import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -104,7 +103,6 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
-import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -115,7 +113,6 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class EdgeServiceImpl extends AbstractEntityService implements EdgeService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
 

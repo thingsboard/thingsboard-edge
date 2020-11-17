@@ -127,5 +127,21 @@ export class AssetService {
   public findByName(assetName: string, config?: RequestConfig): Observable<Asset> {
     return this.http.get<Asset>(`/api/tenant/assets?assetName=${assetName}`, defaultHttpOptionsFromConfig(config));
   }
+  /*
+  public assignAssetToEdge(edgeId: string, assetId: string, config?: RequestConfig): Observable<Asset> {
+    return this.http.post<Asset>(`/api/edge/${edgeId}/asset/${assetId}`, null,
+      defaultHttpOptionsFromConfig(config));
+  }
 
+  public unassignAssetFromEdge(edgeId: string, assetId: string,
+                               config?: RequestConfig) {
+    return this.http.delete(`/api/edge/${edgeId}/asset/${assetId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEdgeAssets(edgeId, pageLink: PageLink, type: string = '',
+                       config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    return this.http.get<PageData<AssetInfo>>(`/api/edge/${edgeId}/assets${pageLink.toQuery()}&type=${type}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+  */
 }

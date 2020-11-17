@@ -205,6 +205,8 @@ public class ThingsboardInstallService {
 
                             dataUpdateService.updateData("2.6.0");
 
+                            // log.info("Upgrading ThingsBoard from version 2.6.0 to 3.0.0 ...");
+
                          // TODO: voba - verify TB update
 
                         case "3.0.1":

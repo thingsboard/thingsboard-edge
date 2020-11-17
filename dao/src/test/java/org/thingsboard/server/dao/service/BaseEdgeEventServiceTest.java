@@ -43,6 +43,8 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.io.IOException;
@@ -98,7 +100,7 @@ public abstract class BaseEdgeEventServiceTest extends AbstractServiceTest {
         EdgeEvent savedEdgeEvent3 = saveEdgeEventWithProvidedTime(eventTime + 2, edgeId, deviceId, tenantId);
         saveEdgeEventWithProvidedTime(timeAfterEndTime, edgeId, deviceId, tenantId);
 
-        TimePageLink pageLink = new TimePageLink(2, 0, null, null, startTime, endTime);
+        TimePageLink pageLink = new TimePageLink(2, 0, "", new SortOrder("createdTime", SortOrder.Direction.DESC), startTime, endTime);
         PageData<EdgeEvent> edgeEvents = edgeEventService.findEdgeEvents(tenantId, edgeId, pageLink, true);
 
         Assert.assertNotNull(edgeEvents.getData());
@@ -114,7 +116,6 @@ public abstract class BaseEdgeEventServiceTest extends AbstractServiceTest {
         Assert.assertTrue(edgeEvents.getData().size() == 1);
         Assert.assertTrue(edgeEvents.getData().get(0).getUuidId().equals(savedEdgeEvent.getUuidId()));
         Assert.assertFalse(edgeEvents.hasNext());
-        Assert.assertNull(pageLink.nextPageLink());
     }
 
     @Test

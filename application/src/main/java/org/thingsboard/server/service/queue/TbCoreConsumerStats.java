@@ -35,10 +35,10 @@ import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SubscriptionMgrMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +72,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter toCoreNotificationsCounter;
-    private final StatsCounter edgeNotificationMsgCounter;
+    private final StatsCounter edgeNotificationsCounter;
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
@@ -91,7 +91,7 @@ public class TbCoreConsumerStats {
         this.subscriptionMsgCounter = statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS);
         this.toCoreNotificationsCounter = statsFactory.createStatsCounter(statsKey, TO_CORE_NOTIFICATIONS);
         this.schedulerMsgCounter = statsFactory.createStatsCounter(statsKey, SCHEDULER);
-        this.edgeNotificationMsgCounter = statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS);
+        this.edgeNotificationsCounter = statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS);
 
         counters.add(totalCounter);
         counters.add(sessionEventCounter);
@@ -105,7 +105,7 @@ public class TbCoreConsumerStats {
         counters.add(subscriptionMsgCounter);
         counters.add(toCoreNotificationsCounter);
         counters.add(schedulerMsgCounter);
-        counters.add(edgeNotificationMsgCounter);
+        counters.add(edgeNotificationsCounter);
     }
 
     public void log(TransportToDeviceActorMsg msg) {
@@ -145,7 +145,7 @@ public class TbCoreConsumerStats {
 
     public void log(TransportProtos.EdgeNotificationMsgProto msg) {
         totalCounter.increment();
-        edgeNotificationMsgCounter.increment();
+        edgeNotificationsCounter.increment();
     }
 
     public void log(SchedulerServiceMsgProto schedulerServiceMsg) {

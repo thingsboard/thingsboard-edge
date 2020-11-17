@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.rule.RuleChainService;
 
 import java.util.function.Function;

@@ -39,6 +39,8 @@ import { EventTableConfig } from './event-table-config';
 import { EventService } from '@core/http/event.service';
 import { DialogService } from '@core/services/dialog.service';
 import { DebugEventType, EventType } from '@shared/models/event.models';
+import { RuleChainService } from "@core/http/rule-chain.service";
+import { AttributeService } from "@core/http/attribute.service";
 
 @Component({
   selector: 'tb-event-table',
@@ -94,6 +96,8 @@ export class EventTableComponent implements OnInit {
   constructor(private eventService: EventService,
               private dialogService: DialogService,
               private translate: TranslateService,
+              private attributeService: AttributeService,
+              private ruleChainService: RuleChainService,
               private datePipe: DatePipe,
               private dialog: MatDialog) {
   }
@@ -104,6 +108,8 @@ export class EventTableComponent implements OnInit {
       this.eventService,
       this.dialogService,
       this.translate,
+      this.ruleChainService,
+      this.attributeService,
       this.datePipe,
       this.dialog,
       this.entityIdValue,

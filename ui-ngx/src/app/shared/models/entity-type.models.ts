@@ -65,6 +65,7 @@ export enum EntityType {
   RULE_NODE = 'RULE_NODE',
   SCHEDULER_EVENT = 'SCHEDULER_EVENT',
   BLOB_ENTITY = 'BLOB_ENTITY',
+  EDGE = 'EDGE',
   ENTITY_VIEW = 'ENTITY_VIEW',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
   WIDGET_TYPE = 'WIDGET_TYPE',
@@ -225,6 +226,20 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         group: 'asset.group',
         groupList: 'asset.list-of-groups',
         groupNameStartsWith: 'asset.group-name-starts-with'
+      }
+    ],
+    [
+      EntityType.EDGE,
+      {
+        type: 'entity.type-edge',
+        typePlural: 'entity.type-edges',
+        list: 'entity.list-of-edges',
+        nameStartsWith: 'entity.edge-name-starts-with',
+        details: 'edge.edge-details',
+        add: 'edge.add',
+        noEntities: 'edge.no-edges-text',
+        search: 'edge.search',
+        selectedEntities: 'edge.selected-edges'
       }
     ],
     [
@@ -469,6 +484,12 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       EntityType.ASSET,
       {
         helpLinkId: 'assets'
+      }
+    ],
+    [
+      EntityType.EDGE,
+      {
+        helpLinkId: 'edges'
       }
     ],
     [

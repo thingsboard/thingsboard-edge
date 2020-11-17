@@ -41,7 +41,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public abstract class AbstractEntityService {

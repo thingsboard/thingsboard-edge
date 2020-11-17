@@ -375,10 +375,7 @@ caffeine:
       maxSize: 100000
     entityViews:
       timeToLiveInMinutes: 1440
-      maxSize: 100000
-    edges:
-      timeToLiveInMinutes: 1440
-      maxSize: 100000
+      maxSize: 0
     roles:
       timeToLiveInMinutes: 1440
       maxSize: 100000
@@ -401,6 +398,9 @@ caffeine:
       timeToLiveInMinutes: 1440
       maxSize: 0
     deviceProfiles:
+      timeToLiveInMinutes: 1440
+      maxSize: 0
+    edges:
       timeToLiveInMinutes: 1440
       maxSize: 0
 

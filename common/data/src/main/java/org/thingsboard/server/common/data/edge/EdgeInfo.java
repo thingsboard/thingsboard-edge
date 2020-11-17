@@ -28,11 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.nosql;
+package org.thingsboard.server.common.data.edge;
 
-import org.thingsboard.server.controller.BaseEdgeEventControllerTest;
-import org.thingsboard.server.dao.service.DaoNoSqlTest;
+import lombok.Data;
+import org.thingsboard.server.common.data.Edge;
+import org.thingsboard.server.common.data.id.EdgeId;
 
-@DaoNoSqlTest
-public class EdgeEventControllerNoSqlTest extends BaseEdgeEventControllerTest {
+@Data
+public class EdgeInfo extends Edge {
+
+    private String customerTitle;
+    private boolean customerIsPublic;
+
+    public EdgeInfo() {
+        super();
+    }
+
+    public EdgeInfo(EdgeId edgeId) {
+        super(edgeId);
+    }
+
+    public EdgeInfo(Edge edge, String customerTitle, boolean customerIsPublic) {
+        super(edge);
+        this.customerTitle = customerTitle;
+        this.customerIsPublic = customerIsPublic;
+    }
 }

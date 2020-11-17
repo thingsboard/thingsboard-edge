@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.model.sql.RuleChainEntity;
 
 import java.util.UUID;
@@ -64,6 +65,5 @@ public interface RuleChainRepository extends PagingAndSortingRepository<RuleChai
                                                   @Param("edgeId") UUID edgeId,
                                                   @Param("searchText") String searchText,
                                                   Pageable pageable);
-
     Long countByTenantId(UUID tenantId);
 }

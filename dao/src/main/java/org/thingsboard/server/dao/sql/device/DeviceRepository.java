@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.AssetEntity;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
 
 import java.util.List;
@@ -139,4 +140,14 @@ public interface DeviceRepository extends PagingAndSortingRepository<DeviceEntit
     Long countByDeviceProfileId(UUID deviceProfileId);
 
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT d FROM DeviceEntity d, RelationEntity re WHERE d.tenantId = :tenantId " +
+            "AND d.id = re.toId AND re.toType = 'DEVICE' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
+            "AND LOWER(d.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DeviceEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
+                                               @Param("edgeId") UUID edgeId,
+                                               @Param("searchText") String searchText,
+                                               Pageable pageable);
+
 }

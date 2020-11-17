@@ -28,11 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller.nosql;
+@import '../../../../../scss/constants';
 
-import org.thingsboard.server.controller.BaseEdgeControllerTest;
-import org.thingsboard.server.dao.service.DaoNoSqlTest;
+:host {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  min-width: 150px;
+}
 
-@DaoNoSqlTest
-public class EdgeControllerNoSqlTest extends BaseEdgeControllerTest {
+:host ::ng-deep {
+  tb-entity-subtype-select {
+    width: 100%;
+
+    mat-form-field {
+      font-size: 16px;
+
+      .mat-form-field-wrapper {
+        padding-bottom: 0;
+      }
+
+      .mat-form-field-underline {
+        bottom: 0;
+      }
+
+      @media #{$mat-xs} {
+        width: 100%;
+
+        .mat-form-field-infix {
+          width: auto !important;
+        }
+      }
+    }
+  }
 }

@@ -282,8 +282,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "2.5.5":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.6.0", SCHEMA_UPDATE_SQL);
+                    // TODO: should be 2.6.0 ???
+                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "2.5.0", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
+
                     try {
                         conn.createStatement().execute("ALTER TABLE rule_chain ADD type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}

@@ -302,7 +302,7 @@ public abstract class BaseEdgeServiceTest extends AbstractServiceTest {
         }
 
         List<Edge> loadedEdgesType1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15);
+        PageLink pageLink = new PageLink(15, 0 , title1);
         PageData<Edge> pageData = null;
         do {
             pageData = edgeService.findEdgesByTenantIdAndType(tenantId, type1, pageLink);
@@ -318,7 +318,7 @@ public abstract class BaseEdgeServiceTest extends AbstractServiceTest {
         Assert.assertEquals(edgesType1, loadedEdgesType1);
 
         List<Edge> loadedEdgesType2 = new ArrayList<>();
-        pageLink = new PageLink(4);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = edgeService.findEdgesByTenantIdAndType(tenantId, type2, pageLink);
             loadedEdgesType2.addAll(pageData.getData());
@@ -336,7 +336,7 @@ public abstract class BaseEdgeServiceTest extends AbstractServiceTest {
             edgeService.deleteEdge(tenantId, edge.getId());
         }
 
-        pageLink = new PageLink(4);
+        pageLink = new PageLink(4, 0, title1);
         pageData = edgeService.findEdgesByTenantIdAndType(tenantId, type1, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -345,7 +345,7 @@ public abstract class BaseEdgeServiceTest extends AbstractServiceTest {
             edgeService.deleteEdge(tenantId, edge.getId());
         }
 
-        pageLink = new PageLink(4);
+        pageLink = new PageLink(4, 0, title2);
         pageData = edgeService.findEdgesByTenantIdAndType(tenantId, type2, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());

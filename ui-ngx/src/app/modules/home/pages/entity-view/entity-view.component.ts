@@ -54,7 +54,7 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
 
   dataKeyType = DataKeyType;
 
-  // entityViewScope: 'tenant' | 'customer' | 'customer_user';
+//  entityViewScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
 
   allowedEntityTypes = [EntityType.DEVICE, EntityType.ASSET];
 

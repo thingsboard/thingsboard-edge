@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -69,7 +68,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RestController
@@ -239,9 +237,9 @@ public class EdgeController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/{ruleChainId}/root", method = RequestMethod.POST)
     @ResponseBody
-    public Edge setRootRuleChain(@PathVariable("edgeId") String strEdgeId,
+    public Edge setRootRuleChain(@PathVariable(EDGE_ID) String strEdgeId,
                                  @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
-        checkParameter("edgeId", strEdgeId);
+        checkParameter(EDGE_ID, strEdgeId);
         checkParameter("ruleChainId", strRuleChainId);
         try {
             RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));

@@ -60,6 +60,11 @@ import { AssetService } from '@app/core/http/asset.service';
 import { AssetTableHeaderComponent } from '@modules/home/pages/asset/asset-table-header.component';
 import { AssetTabsComponent } from '@home/pages/asset/asset-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { EdgeService } from "@core/http/edge.service";
+import {
+  AddEntitiesToEdgeDialogComponent,
+  AddEntitiesToEdgeDialogData
+} from "@home/dialogs/add-entities-to-edge-dialog.component";
 import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
@@ -73,6 +78,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
               private broadcast: BroadcastService,
               private assetService: AssetService,
               private customerService: CustomerService,
+              private edgeService: EdgeService,
               private dialogService: DialogService,
               private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
@@ -113,7 +119,8 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     const routeParams = route.params;
     this.config.componentsData = {
       assetScope: route.data.assetsType,
-      assetType: ''
+      assetType: '',
+      edgeId: routeParams.edgeId
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -133,6 +140,10 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('asset.assets');
           }
+        } else if (this.config.componentsData.assetScope === 'edge') {
+          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
+            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('asset.assets')
+          );
         } else {
           this.config.tableTitle = this.translate.instant('asset.assets');
         }
@@ -173,7 +184,14 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getTenantAssets(pageLink, this.config.componentsData.assetType);
       this.config.deleteEntity = id => this.assetService.deleteAsset(id.id);
-    } else {
+    }
+    /*
+    else if (assetScope === 'edge') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.assetService.getEdgeAssets(this.config.componentsData.edgeId, pageLink, this.config.componentsData.assetType);
+    }
+     */
+    else {
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getCustomerAssets(this.customerId, pageLink, this.config.componentsData.assetType);
     //  this.config.deleteEntity = id => this.assetService.unassignAssetFromCustomer(id.id);
@@ -225,6 +243,17 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
+    }
+    if (assetScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.unassign-from-edge'),
+          icon: 'portable_wifi_off',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
+        }
+      );
+    }
     }*/
     return actions;
   }
@@ -250,6 +279,17 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event, entities) => this.unassignAssetsFromCustomer($event, entities)
         }
       );
+    }
+    if (assetScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('asset.unassign-assets-from-edge'),
+          icon: 'portable_wifi_off',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignAssetsFromEdge($event, entities)
+        }
+      );
+    }
     }*/
     return actions;
   }
@@ -281,6 +321,17 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
           onAction: ($event) => this.addAssetsToCustomer($event)
         }
       );
+    }
+    if (assetScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('asset.assign-new-asset'),
+          icon: 'add',
+          isEnabled: () => true,
+          onAction: ($event) => this.addAssetsToEdge($event)
+        }
+      );
+    }
     }*/
     return actions;
   }
@@ -431,4 +482,75 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
     return false;
   }
 
+  /*
+  addAssetsToEdge($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
+      boolean>(AddEntitiesToEdgeDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        edgeId: this.config.componentsData.edgeId,
+        entityType: EntityType.ASSET
+      }
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.config.table.updateData();
+        }
+      });
+  }
+
+  unassignFromEdge($event: Event, asset: AssetInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('asset.unassign-asset-from-edge-title', {assetName: asset.name}),
+      this.translate.instant('asset.unassign-asset-from-edge-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.assetService.unassignAssetFromEdge(this.config.componentsData.edgeId, asset.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          );
+        }
+      }
+    );
+  }
+
+  unassignAssetsFromEdge($event: Event, assets: Array<AssetInfo>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('asset.unassign-assets-from-edge-title', {count: assets.length}),
+      this.translate.instant('asset.unassign-assets-from-edge-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          const tasks: Observable<any>[] = [];
+          assets.forEach(
+            (asset) => {
+              tasks.push(this.assetService.unassignAssetFromEdge(this.config.componentsData.edgeId, asset.id.id));
+            }
+          );
+          forkJoin(tasks).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          );
+        }
+      }
+    );
+  }
+  */
 }

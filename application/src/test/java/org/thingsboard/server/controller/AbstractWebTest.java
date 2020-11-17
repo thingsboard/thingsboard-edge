@@ -33,7 +33,6 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
@@ -65,7 +64,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
-import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -83,7 +81,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.service.mail.TestMailService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -562,7 +559,6 @@ public abstract class AbstractWebTest {
     protected Edge constructEdge(String name, String type) {
         return constructEdge(tenantId, name, type);
     }
-
     protected Edge constructEdge(TenantId tenantId, String name, String type) {
         Edge edge = new Edge();
         edge.setTenantId(tenantId);
@@ -574,5 +570,4 @@ public abstract class AbstractWebTest {
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
     }
-
 }

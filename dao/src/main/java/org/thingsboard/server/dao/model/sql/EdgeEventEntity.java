@@ -130,7 +130,7 @@ public class EdgeEventEntity extends BaseSqlEntity<EdgeEvent> implements BaseEnt
     @Override
     public EdgeEvent toData() {
         EdgeEvent edgeEvent = new EdgeEvent(new EdgeEventId(this.getUuid()));
-        edgeEvent.setCreatedTime(this.getCreatedTime());
+        edgeEvent.setCreatedTime(createdTime);
         edgeEvent.setTenantId(new TenantId(tenantId));
         edgeEvent.setEdgeId(new EdgeId(edgeId));
         if (entityId != null) {

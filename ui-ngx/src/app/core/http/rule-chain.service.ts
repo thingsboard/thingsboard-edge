@@ -42,7 +42,8 @@ import {
   RuleChainMetaData,
   ruleChainNodeComponent,
   ruleNodeTypeComponentTypes,
-  unknownNodeComponent
+  unknownNodeComponent,
+  RuleChainType
 } from '@shared/models/rule-chain.models';
 import { ComponentDescriptorService } from './component-descriptor.service';
 import {
@@ -74,8 +75,8 @@ export class RuleChainService {
     private translate: TranslateService
   ) { }
 
-  public getRuleChains(pageLink: PageLink, config?: RequestConfig): Observable<PageData<RuleChain>> {
-    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}`,
+  public getRuleChains(pageLink: PageLink, type: string, config?: RequestConfig): Observable<PageData<RuleChain>> {
+    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -131,12 +132,12 @@ export class RuleChainService {
     );
   }
 
-  public getRuleNodeComponents(ruleNodeConfigResourcesModulesMap: {[key: string]: any}, config?: RequestConfig):
+  public getRuleNodeComponents(ruleNodeConfigResourcesModulesMap: {[key: string]: any}, ruleChainType: RuleChainType, config?: RequestConfig):
     Observable<Array<RuleNodeComponentDescriptor>> {
      if (this.ruleNodeComponents) {
        return of(this.ruleNodeComponents);
      } else {
-      return this.loadRuleNodeComponents(config).pipe(
+      return this.loadRuleNodeComponents(ruleChainType, config).pipe(
         mergeMap((components) => {
           return this.resolveRuleNodeComponentsUiResources(components, ruleNodeConfigResourcesModulesMap).pipe(
             map((ruleNodeComponents) => {
@@ -219,8 +220,8 @@ export class RuleChainService {
     }
   }
 
-  private loadRuleNodeComponents(config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
-    return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, config).pipe(
+  private loadRuleNodeComponents(ruleChainType: RuleChainType, config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
+    return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, ruleChainType, config).pipe(
       map((components) => {
         const ruleNodeComponents: RuleNodeComponentDescriptor[] = [];
         components.forEach((component) => {
@@ -305,6 +306,36 @@ export class RuleChainService {
         return of(ruleChain);
       })
     );
+  }
+
+  public getEdgeRuleChains(edgeId: string, pageLink: PageLink, config?:RequestConfig): Observable<PageData<RuleChain>> {
+    return this.http.get<PageData<RuleChain>>(`/api/edge/${edgeId}/ruleChains${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config) )
+  }
+
+  public assignRuleChainToEdge(edgeId: string, ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {
+    return this.http.post<RuleChain>(`/api/edge/${edgeId}/ruleChain/${ruleChainId}`, null,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public unassignRuleChainFromEdge(edgeId: string, ruleChainId: string, config?: RequestConfig) {
+    return this.http.delete(`/api/edge/${edgeId}/ruleChain/${ruleChainId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public setDefaultRootEdgeRuleChain(ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {
+    return this.http.post<RuleChain>(`/api/ruleChain/${ruleChainId}/defaultRootEdge`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public addDefaultEdgeRuleChain(ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {
+    return this.http.post<RuleChain>(`/api/ruleChain/${ruleChainId}/defaultEdge`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public removeDefaultEdgeRuleChain(ruleChainId: string, config?: RequestConfig): Observable<RuleChain> {
+    return this.http.delete<RuleChain>(`/api/ruleChain/${ruleChainId}/defaultEdge`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDefaultEdgeRuleChains(config?: RequestConfig): Observable<Array<RuleChain>> {
+    return this.http.get<Array<RuleChain>>(`/api/ruleChain/defaultEdgeRuleChains`, defaultHttpOptionsFromConfig(config));
   }
 
 }

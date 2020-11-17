@@ -62,7 +62,7 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private String secret;
     private String edgeLicenseKey;
     private String cloudEndpoint;
-    private transient JsonNode configuration;BaseEdgeTest.
+    private transient JsonNode configuration;
 
     public Edge() {
         super();

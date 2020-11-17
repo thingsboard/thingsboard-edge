@@ -255,6 +255,32 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             };
 
+    private PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
+            new PaginatedUpdater<String, Tenant>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants default edge rule chain updater";
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        RuleChain defaultEdgeRuleChain = ruleChainService.getDefaultRootEdgeRuleChain(tenant.getId());
+                        if (defaultEdgeRuleChain == null) {
+                            installScripts.createDefaultEdgeRuleChains(tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
+
     private PaginatedUpdater<String, Tenant> tenantsRootRuleChainUpdater =
             new PaginatedUpdater<String, Tenant>() {
 
@@ -1019,29 +1045,5 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     }
 
-    private PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
-            new PaginatedUpdater<String, Tenant>() {
 
-                @Override
-                protected String getName() {
-                    return "Tenants default edge rule chain updater";
-                }
-
-                @Override
-                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
-                    return tenantService.findTenants(pageLink);
-                }
-
-                @Override
-                protected void updateEntity(Tenant tenant) {
-                    try {
-                        RuleChain defaultEdgeRuleChain = ruleChainService.getDefaultRootEdgeRuleChain(tenant.getId());
-                        if (defaultEdgeRuleChain == null) {
-                            installScripts.createDefaultEdgeRuleChains(tenant.getId());
-                        }
-                    } catch (Exception e) {
-                        log.error("Unable to update Tenant", e);
-                    }
-                }
-            };
 }
