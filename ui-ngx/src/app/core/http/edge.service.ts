@@ -34,6 +34,8 @@ import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { EdgeSettings } from "@shared/models/edge.models";
+import {TimePageLink} from "@shared/models/page/page-link";
+import {PageData} from "@shared/models/page/page-data";
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +48,10 @@ export class EdgeService {
 
   getEdgeSettings(config?: RequestConfig): Observable<EdgeSettings> {
     return this.http.get<EdgeSettings>('/api/edge/settings', defaultHttpOptionsFromConfig(config));
+  }
+
+  getCloudEvents(pageLink: TimePageLink, config?: RequestConfig): Observable<PageData<Event>> {
+    return this.http.get<PageData<Event>>('/api/edge/events', defaultHttpOptionsFromConfig(config))
   }
 
 

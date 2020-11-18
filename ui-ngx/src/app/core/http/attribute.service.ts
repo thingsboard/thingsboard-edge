@@ -126,9 +126,4 @@ export class AttributeService {
     return forkJoin([saveEntityTimeseriesObservable, deleteEntityTimeseriesObservable]);
   }
 
-  public getEdgeAttributes(entityId: string, attributeScope: AttributeScope, config?: RequestConfig): Observable<Array<AttributeData>> {
-    let url = `/api/plugins/telemetry/EDGE/${entityId}/values/attributes/${attributeScope}`;
-    return this.http.get<Array<AttributeData>>(url, defaultHttpOptionsFromConfig(config));
-  }
-
 }
