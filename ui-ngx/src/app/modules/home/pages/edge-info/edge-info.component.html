@@ -1,1 +1,36 @@
-<p>edge-info works!</p>
+<div>
+  <mat-card class="edge-info-card">
+    <mat-card-title>
+      <div fxLayout="column">
+        <span class="mat-headline" translate>edge.info</span>
+        <span class="mat-subheading-1" style="opacity: 0.7;" translate>edge.info</span>
+      </div>
+    </mat-card-title>
+<!--    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">-->
+<!--    </mat-progress-bar>-->
+<!--    <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>-->
+    <mat-card-content style="padding-top: 16px;">
+      <form [formGroup]="edgeInfoGroup">
+<!--        <fieldset [disabled]="(isLoading$ | async)">-->
+        <fieldset>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.id</mat-label>
+            <input matInput formControlName="id"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.type</mat-label>
+            <input matInput formControlName="type"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.routing-key</mat-label>
+            <input matInput formControlName="routingKey"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.cloud-type</mat-label>
+            <input matInput formControlName="cloudType"/>
+          </mat-form-field>
+        </fieldset>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

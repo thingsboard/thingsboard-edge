@@ -69,7 +69,8 @@ export enum EntityType {
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
   WIDGET_TYPE = 'WIDGET_TYPE',
   ROLE = 'ROLE',
-  GROUP_PERMISSION = 'GROUP_PERMISSION'
+  GROUP_PERMISSION = 'GROUP_PERMISSION',
+  EDGE = 'EDGE'
 }
 
 export enum AliasEntityType {
