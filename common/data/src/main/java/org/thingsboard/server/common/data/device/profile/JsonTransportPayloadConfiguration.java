@@ -28,11 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.mqtt.telemetry.attributes.sql;
+package org.thingsboard.server.common.data.device.profile;
 
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.mqtt.telemetry.attributes.AbstractMqttAttributesProtoIntegrationTest;
+import lombok.Data;
+import org.thingsboard.server.common.data.TransportPayloadType;
 
-@DaoSqlTest
-public class MqttAttributesSqlProtoIntegrationTest extends AbstractMqttAttributesProtoIntegrationTest {
+@Data
+public class JsonTransportPayloadConfiguration implements TransportPayloadTypeConfiguration {
+
+    @Override
+    public TransportPayloadType getTransportPayloadType() {
+        return TransportPayloadType.JSON;
+    }
 }

@@ -94,6 +94,14 @@
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.wire</groupId>
+            <artifactId>wire-schema</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard</groupId>
+            <artifactId>protobuf-dynamic</artifactId>
+        </dependency>
     </dependencies>
 
     <distributionManagement>

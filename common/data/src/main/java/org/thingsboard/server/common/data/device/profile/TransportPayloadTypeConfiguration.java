@@ -28,11 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.mqtt.telemetry.attributes.sql;
+package org.thingsboard.server.common.data.device.profile;
 
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.mqtt.telemetry.attributes.AbstractMqttAttributesProtoIntegrationTest;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.server.common.data.TransportPayloadType;
 
-@DaoSqlTest
-public class MqttAttributesSqlProtoIntegrationTest extends AbstractMqttAttributesProtoIntegrationTest {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "transportPayloadType")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = JsonTransportPayloadConfiguration.class, name = "JSON"),
+        @JsonSubTypes.Type(value = ProtoTransportPayloadConfiguration.class, name = "PROTOBUF")})
+public interface TransportPayloadTypeConfiguration {
+
+    @JsonIgnore
+    TransportPayloadType getTransportPayloadType();
+
 }
