@@ -38,9 +38,10 @@ import { ActionStatus, AuditLog } from '@shared/models/audit-log.models';
 import * as ace from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
+import {CloudEvent} from "@shared/models/edge.models";
 
-export interface AuditLogDetailsDialogData {
-  auditLog: AuditLog;
+export interface CloudEventDetailsDialogData {
+  cloudEvent: CloudEvent;
 }
 
 @Component({
@@ -58,24 +59,24 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
   failureDetailsEditorElmRef: ElementRef;
   private failureDetailsEditor: ace.Ace.Editor;
 
-  auditLog: AuditLog;
+  cloudEvent: CloudEvent;
   displayFailureDetails: boolean;
   actionData: string;
   actionFailureDetails: string;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AuditLogDetailsDialogData,
+              @Inject(MAT_DIALOG_DATA) public data: CloudEventDetailsDialogData,
               public dialogRef: MatDialogRef<CloudEventDetailsDialogComponent>,
               private renderer: Renderer2) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
-    this.auditLog = this.data.auditLog;
-    this.displayFailureDetails = this.auditLog.actionStatus === ActionStatus.FAILURE;
-    this.actionData = this.auditLog.actionData ? JSON.stringify(this.auditLog.actionData, null, 2) : '';
-    this.actionFailureDetails = this.auditLog.actionFailureDetails;
+    this.cloudEvent = this.data.cloudEvent;
+    // this.displayFailureDetails = this.auditLog.actionStatus === ActionStatus.FAILURE;
+    // this.actionData = this.cloudEvent.actionData ? JSON.stringify(this.auditLog.actionData, null, 2) : '';
+    // this.actionFailureDetails = this.cloudEvent.actionFailureDetails;
 
     this.actionDataEditor = this.createEditor(this.actionDataEditorElmRef, this.actionData);
     if (this.displayFailureDetails) {

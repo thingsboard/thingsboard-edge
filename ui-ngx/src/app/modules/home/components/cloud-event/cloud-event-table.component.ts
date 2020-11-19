@@ -42,6 +42,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UtilsService } from '@core/services/utils.service';
 import { CloudEventTableConfig } from "@home/components/cloud-event/cloud-event-table-config";
+import {EdgeService} from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-cloud-event-table',
@@ -78,7 +79,8 @@ export class CloudEventTableComponent implements OnInit {
               private translate: TranslateService,
               private utils: UtilsService,
               private datePipe: DatePipe,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private edgeService: EdgeService) {
   }
 
   ngOnInit() {
@@ -91,7 +93,7 @@ export class CloudEventTableComponent implements OnInit {
       this.utils,
       this.datePipe,
       this.dialog,
-      this.auditLogMode,
+      this.edgeService,
       updateOnInit
     );
   }

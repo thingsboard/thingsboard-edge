@@ -54,6 +54,7 @@ import {
   AuditLogDetailsDialogData
 } from '@home/components/audit-log/audit-log-details-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
+import {EdgeService} from "@core/http/edge.service";
 
 export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageLink> {
 
@@ -62,6 +63,7 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
               private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
+              private edgeService: EdgeService,
               updateOnInit = true) {
     super();
     this.loadDataOnInit = updateOnInit;
@@ -87,12 +89,12 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
     this.columns.push(
       new DateEntityTableColumn<AuditLog>('createdTime', 'audit-log.timestamp', this.datePipe, '150px'));
 
-    this.columns.push(
-      new EntityTableColumn<AuditLog>('actionType', 'audit-log.type', '33%',
-        (entity) => translate.instant(actionTypeTranslations.get(entity.actionType))),
-      new EntityTableColumn<AuditLog>('actionStatus', 'audit-log.status', '33%',
-        (entity) => translate.instant(actionStatusTranslations.get(entity.actionStatus)))
-    );
+    // this.columns.push(
+    //   new EntityTableColumn<AuditLog>('actionType', 'audit-log.type', '33%',
+    //     (entity) => translate.instant(actionTypeTranslations.get(entity.actionType))),
+    //   new EntityTableColumn<AuditLog>('actionStatus', 'audit-log.status', '33%',
+    //     (entity) => translate.instant(actionStatusTranslations.get(entity.actionStatus)))
+    // );
 
     this.cellActionDescriptors.push(
       {
@@ -105,6 +107,8 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
   }
 
   fetchAuditLogs(pageLink: TimePageLink): Observable<PageData<AuditLog>> {
+    this.edgeService.getCloudEvents(pageLink);
+    this.auditLogService.getAuditLogs(pageLink);
     return this.auditLogService.getAuditLogs(pageLink);
   }
 
