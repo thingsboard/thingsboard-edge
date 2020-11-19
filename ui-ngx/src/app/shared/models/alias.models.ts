@@ -114,7 +114,7 @@ export interface EntitiesByGroupNameFilter {
   groupStateEntity?: boolean;
   stateEntityParamName?: string;
   groupType?: EntityType;
-  rootEntity?: EntityId;
+  ownerId?: EntityId;
   entityGroupNameFilter?: string;
 }
 
