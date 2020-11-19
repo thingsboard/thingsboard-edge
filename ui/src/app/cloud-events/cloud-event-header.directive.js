@@ -30,38 +30,26 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
-import edgeTemplate from './edge.tpl.html';
+import cloudEventHeaderTemplate from './cloud-event-header.tpl.html';
 
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EdgeRoutes($stateProvider) {
-    $stateProvider
-        .state('home.edge', {
-            url: '/edge',
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            redirectTo: 'home.information',
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
-            }
-        })
-        .state('home.edge.information', {
-        url: '/information',
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: edgeTemplate,
-                controller: 'EdgeController',
-                controllerAs: 'vm'
-            }
-        },
-        data: {
-            pageTitle: 'edge.info'
-        },
-        ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
-        }
-    })
+export default function CloudEventHeaderDirective($compile, $templateCache, types) {
+
+    var linker = function (scope, element) {
+
+        var template = $templateCache.get(cloudEventHeaderTemplate);
+        element.html(template);
+        scope.types = types;
+        $compile(element.contents())(scope);
+
+    };
+
+    return {
+        restrict: "A",
+        replace: false,
+        link: linker,
+        scope: false
+    };
 }

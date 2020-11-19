@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,40 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
-
-import edgeTemplate from './edge.tpl.html';
-
-/* eslint-enable import/no-unresolved, import/default */
-
-/*@ngInject*/
-export default function EdgeRoutes($stateProvider) {
-    $stateProvider
-        .state('home.edge', {
-            url: '/edge',
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            redirectTo: 'home.information',
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
-            }
-        })
-        .state('home.edge.information', {
-        url: '/information',
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: edgeTemplate,
-                controller: 'EdgeController',
-                controllerAs: 'vm'
-            }
-        },
-        data: {
-            pageTitle: 'edge.info'
-        },
-        ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
-        }
-    })
+#tb-cloud-event-action-data,
+#tb-cloud-event-failure-details {
+  width: 100%;
+  min-width: 400px;
+  height: 100%;
+  min-height: 50px;
+  border: 1px solid #c0c0c0;
 }

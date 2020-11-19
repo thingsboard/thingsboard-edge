@@ -386,10 +386,26 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 sections.push(
                     {
                         name: 'edge.info',
-                        type: 'link',
+                        type: 'toggle',
                         state: 'home.edge',
                         icon: 'router',
-                        disabled: false
+                        height: '80px',
+                        pages: [
+                            {
+                                name: 'edge.information',
+                                type: 'link',
+                                state: 'home.edge.information',
+                                icon: 'info',
+                                disabled: false
+                            },
+                            {
+                                name: 'edge.cloud-events',
+                                type: 'link',
+                                state: 'home.edge.cloudEvents',
+                                icon: 'date_range',
+                                disabled: false
+                            }
+                        ]
                     },
                     {
                         name: 'home.home',

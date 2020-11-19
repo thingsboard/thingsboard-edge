@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
@@ -28,40 +28,91 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-/* eslint-disable import/no-unresolved, import/default */
+.tb-cloud-events {
+  background-color: #fff;
 
-import edgeTemplate from './edge.tpl.html';
+  .tb-cloud-event-margin-18px {
+    margin-bottom: 18px;
+  }
 
-/* eslint-enable import/no-unresolved, import/default */
+  .tb-cloud-event-toolbar {
+    font-size: 20px;
 
-/*@ngInject*/
-export default function EdgeRoutes($stateProvider) {
-    $stateProvider
-        .state('home.edge', {
-            url: '/edge',
-            module: 'private',
-            auth: ['TENANT_ADMIN'],
-            redirectTo: 'home.information',
-            ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
-            }
-        })
-        .state('home.edge.information', {
-        url: '/information',
-        module: 'private',
-        auth: ['TENANT_ADMIN'],
-        views: {
-            "content@home": {
-                templateUrl: edgeTemplate,
-                controller: 'EdgeController',
-                controllerAs: 'vm'
-            }
-        },
-        data: {
-            pageTitle: 'edge.info'
-        },
-        ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
-        }
-    })
+    input {
+      font-size: 20px;
+    }
+  }
+
+  md-input-container.tb-cloud-event-search-input {
+    .md-errors-spacer {
+      min-height: 0;
+    }
+  }
+}
+
+.tb-cloud-event-container {
+  overflow-x: auto;
+}
+
+md-list.tb-cloud-event-table {
+  min-width: 700px;
+  padding: 0;
+
+  &.tb-cloud-event-table-full {
+    min-width: 900px;
+  }
+
+  md-list-item {
+    padding: 0;
+  }
+
+  .tb-row {
+    height: 48px;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .tb-row:hover {
+    background-color: #eee;
+  }
+
+  .tb-header:hover {
+    background: none;
+  }
+
+  .tb-header {
+    .tb-cell {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(0, 0, 0, .54);
+      white-space: nowrap;
+      background: none;
+    }
+  }
+
+  .tb-cell {
+    padding: 0 24px;
+    margin: auto 0;
+    overflow: hidden;
+    font-size: 13px;
+    color: rgba(0, 0, 0, .87);
+    text-align: left;
+    vertical-align: middle;
+
+    .md-button {
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  .tb-cell.tb-number {
+    text-align: right;
+  }
+}
+
+#tb-cloud-event-content {
+  width: 100%;
+  min-width: 440px;
+  height: 100%;
+  min-height: 50px;
 }
