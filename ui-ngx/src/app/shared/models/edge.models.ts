@@ -67,6 +67,7 @@ export enum CloudType {
   PE = "PE",
   CE = "CE"
 }
+
 export enum cloudConnectionStatus {
   true = 'edge.connected',
   false = 'edge.disconnected'

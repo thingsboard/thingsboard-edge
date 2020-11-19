@@ -35,9 +35,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AuditLogMode } from '@shared/models/audit-log.models';
-import { EntityId } from '@shared/models/id/entity-id';
-import { UserId } from '@shared/models/id/user-id';
-import { CustomerId } from '@shared/models/id/customer-id';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -61,9 +58,6 @@ export class CloudEventTableComponent implements OnInit {
 
   activeValue = false;
   dirtyValue = false;
-  entityIdValue: EntityId;
-  userIdValue: UserId;
-  customerIdValue: CustomerId;
 
   @Input()
   set active(active: boolean) {
@@ -72,42 +66,6 @@ export class CloudEventTableComponent implements OnInit {
       if (this.activeValue && this.dirtyValue) {
         this.dirtyValue = false;
         this.entitiesTable.updateData();
-      }
-    }
-  }
-
-  @Input()
-  set entityId(entityId: EntityId) {
-    this.entityIdValue = entityId;
-    if (this.cloudEventTableConfig && this.cloudEventTableConfig.entityId !== entityId) {
-      this.cloudEventTableConfig.entityId = entityId;
-      this.entitiesTable.resetSortAndFilter(this.activeValue);
-      if (!this.activeValue) {
-        this.dirtyValue = true;
-      }
-    }
-  }
-
-  @Input()
-  set userId(userId: UserId) {
-    this.userIdValue = userId;
-    if (this.cloudEventTableConfig && this.cloudEventTableConfig.userId !== userId) {
-      this.cloudEventTableConfig.userId = userId;
-      this.entitiesTable.resetSortAndFilter(this.activeValue);
-      if (!this.activeValue) {
-        this.dirtyValue = true;
-      }
-    }
-  }
-
-  @Input()
-  set customerId(customerId: CustomerId) {
-    this.customerIdValue = customerId;
-    if (this.cloudEventTableConfig && this.cloudEventTableConfig.customerId !== customerId) {
-      this.cloudEventTableConfig.customerId = customerId;
-      this.entitiesTable.resetSortAndFilter(this.activeValue);
-      if (!this.activeValue) {
-        this.dirtyValue = true;
       }
     }
   }
@@ -141,9 +99,6 @@ export class CloudEventTableComponent implements OnInit {
       this.datePipe,
       this.dialog,
       this.auditLogMode,
-      this.entityIdValue,
-      this.userIdValue,
-      this.customerIdValue,
       updateOnInit
     );
   }
