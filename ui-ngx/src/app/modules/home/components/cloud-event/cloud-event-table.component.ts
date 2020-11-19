@@ -36,13 +36,12 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AuditLogMode } from '@shared/models/audit-log.models';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { Authority } from '@shared/models/authority.enum';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UtilsService } from '@core/services/utils.service';
 import { CloudEventTableConfig } from "@home/components/cloud-event/cloud-event-table-config";
 import {EdgeService} from "@core/http/edge.service";
+import {Store} from "@ngrx/store";
+import {AppState} from "@core/core.state";
+import {AttributeService} from "@core/http/attribute.service";
 
 @Component({
   selector: 'tb-cloud-event-table',
@@ -75,12 +74,13 @@ export class CloudEventTableComponent implements OnInit {
 
   cloudEventTableConfig: CloudEventTableConfig;
 
-  constructor(private auditLogService: AuditLogService,
-              private translate: TranslateService,
+  constructor(private translate: TranslateService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
-              private edgeService: EdgeService) {
+              private edgeService: EdgeService,
+              private store: Store<AppState>,
+              private attributeService: AttributeService) {
   }
 
   ngOnInit() {
@@ -88,12 +88,13 @@ export class CloudEventTableComponent implements OnInit {
     this.dirtyValue = !this.activeValue;
     updateOnInit = true;
     this.cloudEventTableConfig = new CloudEventTableConfig(
-      this.auditLogService,
       this.translate,
       this.utils,
       this.datePipe,
       this.dialog,
       this.edgeService,
+      this.store,
+      this.attributeService,
       updateOnInit
     );
   }

@@ -34,36 +34,34 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import {
-  actionStatusTranslations,
-  actionTypeTranslations,
-  AuditLog
-} from '@shared/models/audit-log.models';
-import { EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { AuditLogService } from '@core/http/audit-log.service';
+import {EntityType, EntityTypeResource } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { Direction } from '@shared/models/page/sort-order';
 import { MatDialog } from '@angular/material/dialog';
 import { TimePageLink } from '@shared/models/page/page-link';
-import { Observable } from 'rxjs';
-import { PageData } from '@shared/models/page/page-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import {
-  AuditLogDetailsDialogComponent,
-  AuditLogDetailsDialogData
-} from '@home/components/audit-log/audit-log-details-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
-import {EdgeService} from "@core/http/edge.service";
+import { EdgeService } from "@core/http/edge.service";
+import { CloudEvent, CloudEventType, EdgeEventStatus, edgeEventStatusColor } from "@shared/models/edge.models";
+import { getCurrentAuthUser } from "@core/auth/auth.selectors";
+import { AttributeScope } from "@shared/models/telemetry/telemetry.models";
+import { Store } from "@ngrx/store";
+import { AppState } from "@core/core.state";
+import { AttributeService } from "@core/http/attribute.service";
+import { CloudEventDetailsDialogComponent } from "@home/components/cloud-event/cloud-event-details-dialog.component";
 
-export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageLink> {
+export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePageLink> {
 
-  constructor(private auditLogService: AuditLogService,
-              private translate: TranslateService,
+  queueStartTs: number = 0;
+
+  constructor(private translate: TranslateService,
               private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
               private edgeService: EdgeService,
+              private store: Store<AppState>,
+              private attributeService: AttributeService,
               updateOnInit = true) {
     super();
     this.loadDataOnInit = updateOnInit;
@@ -71,55 +69,80 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
     this.useTimePageLink = true;
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
-    this.searchEnabled = true;
+    this.searchEnabled = false;
     this.addEnabled = false;
     this.entitiesDeleteEnabled = false;
-    this.actionsColumnTitle = 'audit-log.details';
+    this.actionsColumnTitle = 'cloud-event.details';
     this.entityTranslations = {
       noEntities: 'audit-log.no-audit-logs-prompt',
       search: 'audit-log.search'
     };
     this.entityResources = {
-    } as EntityTypeResource<AuditLog>;
+    } as EntityTypeResource<CloudEvent>;
 
-    this.entitiesFetchFunction = pageLink => this.fetchAuditLogs(pageLink);
+    this.entitiesFetchFunction = pageLink => this.edgeService.getCloudEvents(pageLink);
 
     this.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.columns.push(
-      new DateEntityTableColumn<AuditLog>('createdTime', 'audit-log.timestamp', this.datePipe, '150px'));
-
-    // this.columns.push(
-    //   new EntityTableColumn<AuditLog>('actionType', 'audit-log.type', '33%',
-    //     (entity) => translate.instant(actionTypeTranslations.get(entity.actionType))),
-    //   new EntityTableColumn<AuditLog>('actionStatus', 'audit-log.status', '33%',
-    //     (entity) => translate.instant(actionStatusTranslations.get(entity.actionStatus)))
-    // );
+      new DateEntityTableColumn<CloudEvent>('createdTime', 'cloud-event.created-time', this.datePipe, '150px'),
+      new EntityTableColumn<CloudEvent>('cloudEventAction', 'cloud-event.action', '20%'),
+      new EntityTableColumn<CloudEvent>('cloudEventType', 'cloud-event.entity-type', '20%'),
+      new EntityTableColumn<CloudEvent>('entityId', 'cloud-event.entity-id', '30%'),
+      new EntityTableColumn<CloudEvent>('status', 'event.status', '20%',
+        (entity) => this.updateEdgeEventStatus(entity.createdTime),
+        entity => ({
+          color: this.isPending(entity.createdTime) ? edgeEventStatusColor.get(EdgeEventStatus.PENDING) : edgeEventStatusColor.get(EdgeEventStatus.DEPLOYED)
+        }), false),
+      );
 
     this.cellActionDescriptors.push(
       {
-        name: this.translate.instant('audit-log.details'),
+        name: this.translate.instant('cloud-event.details'),
         icon: 'more_horiz',
-        isEnabled: () => true,
+        isEnabled: (entity) => this.checkEdgeEventType(entity),
         onAction: ($event, entity) => this.showAuditLogDetails(entity)
       }
     );
+
+    this.loadEdgeInfo();
   }
 
-  fetchAuditLogs(pageLink: TimePageLink): Observable<PageData<AuditLog>> {
-    this.edgeService.getCloudEvents(pageLink);
-    this.auditLogService.getAuditLogs(pageLink);
-    return this.auditLogService.getAuditLogs(pageLink);
-  }
-
-  showAuditLogDetails(entity: AuditLog) {
-    this.dialog.open<AuditLogDetailsDialogComponent, AuditLogDetailsDialogData>(AuditLogDetailsDialogComponent, {
+  showAuditLogDetails(entity: CloudEvent) {
+    this.dialog.open<CloudEventDetailsDialogComponent, CloudEventDetailsDialogComponent>(CloudEventDetailsDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      // @ts-ignore
       data: {
-        auditLog: entity
+        cloudEvent: entity
       }
     });
+  }
+
+  isPending(createdTime) {
+    return createdTime > this.queueStartTs;
+  }
+
+  updateEdgeEventStatus(createdTime) {
+    if (this.queueStartTs && createdTime < this.queueStartTs) {
+      return this.translate.instant('edge.deployed');
+    } else {
+      return this.translate.instant('edge.pending');
+    }
+  }
+
+  loadEdgeInfo() {
+    const authUser = getCurrentAuthUser(this.store);
+    const currentTenant: EntityId = {
+      id: authUser.tenantId,
+      entityType: EntityType.TENANT
+    }
+    this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
+      .subscribe(attributes => this.queueStartTs = attributes[0].lastUpdateTs);
+  }
+
+  checkEdgeEventType(entity) {
+    return !(entity.type === CloudEventType.DEVICE || entity.type === CloudEventType.ALARM);
   }
 
 }

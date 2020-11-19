@@ -33,12 +33,12 @@ import { Component, ElementRef, Inject, OnInit, Renderer2, ViewChild } from '@an
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { ActionStatus, AuditLog } from '@shared/models/audit-log.models';
-
 import * as ace from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import {CloudEvent} from "@shared/models/edge.models";
+import {CloudEvent, CloudEventType} from "@shared/models/edge.models";
+import {RuleChainService} from "@core/http/rule-chain.service";
+import {EntityService} from "@core/http/entity.service";
 
 export interface CloudEventDetailsDialogData {
   cloudEvent: CloudEvent;
@@ -55,12 +55,7 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
   actionDataEditorElmRef: ElementRef;
   private actionDataEditor: ace.Ace.Editor;
 
-  @ViewChild('failureDetailsEditor', {static: true})
-  failureDetailsEditorElmRef: ElementRef;
-  private failureDetailsEditor: ace.Ace.Editor;
-
   cloudEvent: CloudEvent;
-  displayFailureDetails: boolean;
   actionData: string;
   actionFailureDetails: string;
 
@@ -68,21 +63,58 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: CloudEventDetailsDialogData,
               public dialogRef: MatDialogRef<CloudEventDetailsDialogComponent>,
-              private renderer: Renderer2) {
+              private renderer: Renderer2,
+              private ruleChainService: RuleChainService,
+              private entityService: EntityService) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
     this.cloudEvent = this.data.cloudEvent;
-    // this.displayFailureDetails = this.auditLog.actionStatus === ActionStatus.FAILURE;
-    // this.actionData = this.cloudEvent.actionData ? JSON.stringify(this.auditLog.actionData, null, 2) : '';
-    // this.actionFailureDetails = this.cloudEvent.actionFailureDetails;
-
+    this.actionData = this.cloudEvent.entityBody ? JSON.stringify(this.cloudEvent.entityBody, null, 2) : this.getCloudEventData(this.cloudEvent);
     this.actionDataEditor = this.createEditor(this.actionDataEditorElmRef, this.actionData);
-    if (this.displayFailureDetails) {
-      this.failureDetailsEditor = this.createEditor(this.failureDetailsEditorElmRef, this.actionFailureDetails);
-    }
   }
+
+  getCloudEventData(cloudEvent: CloudEvent): string {
+    var content: string = '';
+    switch (cloudEvent.cloudEventType) {
+      case CloudEventType.RELATION:
+        content = JSON.stringify(cloudEvent.entityBody);
+        break;
+      case CloudEventType.RULE_CHAIN_METADATA:
+        this.ruleChainService.getRuleChainMetadata(cloudEvent.entityId.id, {ignoreErrors: true})
+          .subscribe(data => content = JSON.stringify(data));
+        break;
+      // default:
+      //   this.entityService.getEntity(cloudEvent.cloudEventType, cloudEvent.entityId.id, {ignoreErrors: true})
+      //     .subscribe(data => content = JSON.stringify(data));
+    }
+    return content;
+  }
+
+//   switch(scope.cloudEvent.cloudEventType) {
+//   case types.cloudEventType.relation:
+//     content = angular.toJson(scope.cloudEvent.body);
+//   break;
+//   case types.cloudEventType.ruleChainMetaData:
+//     content = ruleChainService.getRuleChainMetaData(scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+//     function success(info) {
+//       showDialog();
+//       return angular.toJson(info);
+//     }, function fail() {
+//       showError();
+//     });
+//   break;
+//   default:
+//     content = entityService.getEntity(scope.cloudEvent.cloudEventType, scope.cloudEvent.entityId, {ignoreErrors: true}).then(
+//     function success(info) {
+//       showDialog();
+//       return angular.toJson(info);
+//     }, function fail() {
+//       showError();
+//     });
+//   break;
+// }
 
   createEditor(editorElementRef: ElementRef, content: string): ace.Ace.Editor {
     const editorElement = editorElementRef.nativeElement;
@@ -122,7 +154,6 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
       });
       newWidth = 8 * maxLineLength + 16;
     }
-    // newHeight = Math.min(400, newHeight);
     this.renderer.setStyle(editorElement, 'minHeight', newHeight.toString() + 'px');
     this.renderer.setStyle(editorElement, 'height', newHeight.toString() + 'px');
     this.renderer.setStyle(editorElement, 'width', newWidth.toString() + 'px');

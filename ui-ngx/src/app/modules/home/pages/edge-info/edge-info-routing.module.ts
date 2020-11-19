@@ -64,7 +64,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'edge.information',
           breadcrumb: {
-            label: 'edge.info',
+            label: 'edge.information',
             icon: 'info'
           }
         }

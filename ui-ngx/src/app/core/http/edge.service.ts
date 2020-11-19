@@ -51,7 +51,7 @@ export class EdgeService {
   }
 
   getCloudEvents(pageLink: TimePageLink, config?: RequestConfig): Observable<PageData<CloudEvent>> {
-    return this.http.get<PageData<CloudEvent>>('/api/edge/events', defaultHttpOptionsFromConfig(config))
+    return this.http.get<PageData<CloudEvent>>(`/api/edge/events${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config))
   }
 
 

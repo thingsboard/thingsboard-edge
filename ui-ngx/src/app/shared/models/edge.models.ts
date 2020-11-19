@@ -29,14 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {BaseData} from "@shared/models/base-data";
-import {AuditLogId} from "@shared/models/id/audit-log-id";
-import {TenantId} from "@shared/models/id/tenant-id";
-import {CustomerId} from "@shared/models/id/customer-id";
-import {EntityId} from "@shared/models/id/entity-id";
-import {UserId} from "@shared/models/id/user-id";
-import {ActionStatus, ActionType} from "@shared/models/audit-log.models";
-import {HasUUID} from "@shared/models/id/has-uuid";
+import { BaseData } from "@shared/models/base-data";
+import { TenantId } from "@shared/models/id/tenant-id";
+import { EntityId } from "@shared/models/id/entity-id";
+import { HasUUID } from "@shared/models/id/has-uuid";
+import { EntityGroupId } from "@shared/models/id/entity-group-id";
+import {EntityType} from "@shared/models/entity-type.models";
 
 export interface EdgeSettings {
   edgeId: string;
@@ -49,10 +47,10 @@ export interface EdgeSettings {
 
 export interface CloudEvent extends BaseData<CloudEventId> {
   cloudEventAction: string;
-  cloudEventType: any; //TODO check exact type
+  cloudEventType: CloudEventType | EntityType;
   entityBody: any;
-  entityGroupId: any; //TODO check exact type
-  entityId: any; //TODO check exact type
+  entityGroupId: EntityGroupId;
+  entityId: EntityId;
   tenantId: TenantId;
 }
 
@@ -79,16 +77,28 @@ export interface CloudStatus {
 }
 
 export enum CloudEventType {
-  DASHBOARD,
-  ASSET,
-  DEVICE,
-  ENTITY_VIEW,
-  ALARM,
-  RULE_CHAIN,
-  RULE_CHAIN_METADATA,
-  USER,
-  CUSTOMER,
-  RELATION,
-  ENTITY_GROUP
+  DASHBOARD = "DASHBOARD",
+  ASSET = "ASSET",
+  DEVICE = "DEVICE",
+  ENTITY_VIEW = "ENTITY_VIEW",
+  ALARM = "ALARM",
+  RULE_CHAIN = "RULE_CHAIN",
+  RULE_CHAIN_METADATA = "RULE_CHAIN_METADATA",
+  USER = "USER",
+  CUSTOMER = "CUSTOMER",
+  RELATION = "RELATION",
+  ENTITY_GROUP = "ENTITY_GROUP"
 }
+
+export enum EdgeEventStatus {
+  DEPLOYED = "DEPLOYED",
+  PENDING = "PENDING"
+}
+
+export const edgeEventStatusColor = new Map<EdgeEventStatus, string> (
+  [
+    [EdgeEventStatus.DEPLOYED, '#000000'],
+    [EdgeEventStatus.PENDING, '#9e9e9e']
+  ]
+);
 
