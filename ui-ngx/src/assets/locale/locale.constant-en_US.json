@@ -327,6 +327,7 @@
         "no-entity-filter-specified": "No entity filter specified",
         "root-state-entity": "Use dashboard state entity as root",
         "group-state-entity": "Use dashboard state entity as entity group",
+        "group-state-entity-owner": "Use dashboard state entity as entity group owner",
         "last-level-relation": "Fetch last level relation only",
         "root-entity": "Root entity",
         "state-entity-parameter-name": "State entity parameter name",
