@@ -37,8 +37,7 @@ import {
 import {
   actionStatusTranslations,
   actionTypeTranslations,
-  AuditLog,
-  AuditLogMode
+  AuditLog
 } from '@shared/models/audit-log.models';
 import { EntityTypeResource, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { AuditLogService } from '@core/http/audit-log.service';
@@ -63,7 +62,6 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
               private utils: UtilsService,
               private datePipe: DatePipe,
               private dialog: MatDialog,
-              private auditLogMode: AuditLogMode = AuditLogMode.TENANT,
               updateOnInit = true) {
     super();
     this.loadDataOnInit = updateOnInit;
@@ -88,12 +86,6 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
 
     this.columns.push(
       new DateEntityTableColumn<AuditLog>('createdTime', 'audit-log.timestamp', this.datePipe, '150px'));
-
-    if (this.auditLogMode !== AuditLogMode.USER) {
-      this.columns.push(
-        new EntityTableColumn<AuditLog>('userName', 'audit-log.user', '33%')
-      );
-    }
 
     this.columns.push(
       new EntityTableColumn<AuditLog>('actionType', 'audit-log.type', '33%',

@@ -78,20 +78,13 @@ export class CloudEventTableComponent implements OnInit {
               private translate: TranslateService,
               private utils: UtilsService,
               private datePipe: DatePipe,
-              private dialog: MatDialog,
-              private store: Store<AppState>) {
+              private dialog: MatDialog) {
   }
 
   ngOnInit() {
     let updateOnInit = this.activeValue;
     this.dirtyValue = !this.activeValue;
-    if (!this.auditLogMode) {
-      const authUser = getCurrentAuthUser(this.store);
-      if (authUser.authority === Authority.TENANT_ADMIN) {
-        this.auditLogMode = AuditLogMode.TENANT;
-      }
-      updateOnInit = true;
-    }
+    updateOnInit = true;
     this.cloudEventTableConfig = new CloudEventTableConfig(
       this.auditLogService,
       this.translate,
