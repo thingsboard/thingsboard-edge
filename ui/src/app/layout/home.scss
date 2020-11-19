@@ -89,6 +89,8 @@ md-sidenav.tb-site-sidenav {
 
 .tb-logo-title {
   width: auto;
+  max-width: 100%;
+  max-height: 100%;
   margin: auto;
 }
 
@@ -106,6 +108,7 @@ md-sidenav.tb-site-sidenav {
 
   .md-toolbar-tools {
     flex-basis: auto;
+    padding: 0;
   }
 }
 

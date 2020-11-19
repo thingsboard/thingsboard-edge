@@ -183,7 +183,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     // menu item names:
     //
-    // "home", "tenants", "widget_library", "mail_server",
+    // "home", "tenants", "widget_library", "general", "mail_server",
     // "mail_templates", "white_labeling", "login_white_labeling", "custom_translation", "custom_menu"
     // "rule_chains", "converters", "integrations", "roles", "customers_hierarchy", "user_groups",
     // "customer_groups", "asset_groups", "device_groups", "entity_view_groups", "dashboard_groups", "scheduler",
@@ -230,9 +230,16 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         name: 'admin.system-settings',
                         type: 'toggle',
                         state: 'home.settings',
-                        height: '240px',
+                        height: '320px',
                         icon: 'settings',
                         pages: [
+                            {
+                                name: 'admin.general',
+                                type: 'link',
+                                state: 'home.settings.general',
+                                icon: 'settings_applications',
+                                disabled: disabledItems.indexOf('general') > -1
+                            },
                             {
                                 name: 'admin.outgoing-mail',
                                 type: 'link',
@@ -310,6 +317,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         {
                             name: 'admin.system-settings',
                             places: [
+                                {
+                                    name: 'admin.general',
+                                    icon: 'settings_applications',
+                                    state: 'home.settings.general',
+                                    disabled: disabledItems.indexOf('general') > -1
+                                },
                                 {
                                     name: 'admin.outgoing-mail',
                                     icon: 'mail',
@@ -493,7 +506,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'white-labeling.white-labeling',
                             type: 'toggle',
                             state: 'home.settings',
-                            height: '240px',
+                            height: '280px',
                             icon: 'format_paint',
                             pages: [
                                 {

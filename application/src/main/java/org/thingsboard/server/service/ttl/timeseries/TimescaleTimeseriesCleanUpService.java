@@ -35,13 +35,14 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 @Service
 @Slf4j
 public class TimescaleTimeseriesCleanUpService extends AbstractTimeseriesCleanUpService {
 
     @Override
-    protected void doCleanUp(Connection connection) {
+    protected void doCleanUp(Connection connection) throws SQLException {
         long totalEntitiesTelemetryRemoved = executeQuery(connection, "call cleanup_timeseries_by_ttl('" + ModelConstants.NULL_UUID_STR + "'," + systemTtl + ", 0);");
         log.info("Total telemetry removed stats by TTL for entities: [{}]", totalEntitiesTelemetryRemoved);
     }

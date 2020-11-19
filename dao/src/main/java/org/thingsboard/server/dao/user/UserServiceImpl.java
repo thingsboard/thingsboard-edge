@@ -144,7 +144,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     private User doSaveUser(User user, boolean forceCreate) {
         log.trace("Executing saveUser [{}]", user);
         userValidator.validate(user, User::getTenantId);
-        if (user.getId() == null && !userLoginCaseSensitive) {
+        if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());
         }
         User savedUser = userDao.save(user.getTenantId(), user);

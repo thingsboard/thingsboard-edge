@@ -28,21 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.metrics;
+package org.thingsboard.integration.apache.pulsar;
 
-import io.micrometer.core.instrument.Counter;
+public interface PulsarIntegrationMsg {
 
-public class StubCounter implements Counter {
-    @Override
-    public void increment(double amount) {}
-
-    @Override
-    public double count() {
-        return 0;
-    }
-
-    @Override
-    public Id getId() {
-        return null;
-    }
+    byte[] getMsg();
 }

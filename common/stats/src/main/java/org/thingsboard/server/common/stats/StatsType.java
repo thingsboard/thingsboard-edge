@@ -28,25 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.stats;
+package org.thingsboard.server.common.stats;
 
-public interface QueueStats {
-    default void incrementTotal() {
-        incrementTotal(1);
+public enum StatsType {
+    RULE_ENGINE("ruleEngine"), CORE("core"), TRANSPORT("transport"), JS_INVOKE("jsInvoke"), RATE_EXECUTOR("rateExecutor");
+
+    private String name;
+
+    StatsType(String name) {
+        this.name = name;
     }
 
-    void incrementTotal(int amount);
-
-    default void incrementSuccessful() {
-        incrementSuccessful(1);
+    public String getName() {
+        return name;
     }
-
-    void incrementSuccessful(int amount);
-
-
-    default void incrementFailed() {
-        incrementFailed(1);
-    }
-
-    void incrementFailed(int amount);
 }

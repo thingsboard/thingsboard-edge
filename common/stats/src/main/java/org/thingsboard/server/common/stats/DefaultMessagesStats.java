@@ -28,17 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.kv;
+package org.thingsboard.server.common.stats;
 
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+public class DefaultMessagesStats implements MessagesStats {
+    private final StatsCounter totalCounter;
+    private final StatsCounter successfulCounter;
+    private final StatsCounter failedCounter;
 
-import java.io.Serializable;
-import java.util.List;
+    public DefaultMessagesStats(StatsCounter totalCounter, StatsCounter successfulCounter, StatsCounter failedCounter) {
+        this.totalCounter = totalCounter;
+        this.successfulCounter = successfulCounter;
+        this.failedCounter = failedCounter;
+    }
 
-public interface AttributesKVMsg extends Serializable {
+    @Override
+    public void incrementTotal(int amount) {
+        totalCounter.add(amount);
+    }
 
-    List<AttributeKvEntry> getClientAttributes();
-    List<AttributeKvEntry> getSharedAttributes();
-    List<AttributeKey> getDeletedAttributes();
+    @Override
+    public void incrementSuccessful(int amount) {
+        successfulCounter.add(amount);
+    }
+
+    @Override
+    public void incrementFailed(int amount) {
+        failedCounter.add(amount);
+    }
+
+    @Override
+    public int getTotal() {
+        return totalCounter.get();
+    }
+
+    @Override
+    public int getSuccessful() {
+        return successfulCounter.get();
+    }
+
+    @Override
+    public int getFailed() {
+        return failedCounter.get();
+    }
+
+    @Override
+    public void reset() {
+        totalCounter.clear();
+        successfulCounter.clear();
+        failedCounter.clear();
+    }
 }

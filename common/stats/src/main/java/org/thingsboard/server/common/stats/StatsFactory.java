@@ -28,33 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.server.common.stats;
 
-import org.thingsboard.server.queue.stats.QueueStats;
+public interface StatsFactory {
+    StatsCounter createStatsCounter(String key, String statsName);
 
-public class DefaultQueueStats implements QueueStats {
-    private final StatsCounter totalCounter;
-    private final StatsCounter successfulCounter;
-    private final StatsCounter failedCounter;
+    DefaultCounter createDefaultCounter(String key, String... tags);
 
-    public DefaultQueueStats(StatsCounter totalCounter, StatsCounter successfulCounter, StatsCounter failedCounter) {
-        this.totalCounter = totalCounter;
-        this.successfulCounter = successfulCounter;
-        this.failedCounter = failedCounter;
-    }
+    <T extends Number> T createGauge(String key, T number, String... tags);
 
-    @Override
-    public void incrementTotal(int amount) {
-        totalCounter.add(amount);
-    }
-
-    @Override
-    public void incrementSuccessful(int amount) {
-        successfulCounter.add(amount);
-    }
-
-    @Override
-    public void incrementFailed(int amount) {
-        failedCounter.add(amount);
-    }
+    MessagesStats createMessagesStats(String key);
 }

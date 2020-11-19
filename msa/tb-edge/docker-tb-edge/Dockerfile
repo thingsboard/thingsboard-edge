@@ -32,8 +32,6 @@
 FROM thingsboard/openjdk8
 
 RUN apt-get update
-RUN apt-get install -y telnet
-RUN apt-get update
 RUN apt-get install -y curl
 RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' | tee --append /etc/apt/sources.list.d/pgdg.list > /dev/null
 RUN curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
@@ -80,6 +78,8 @@ RUN chmod a+x /tmp/*.sh \
 RUN dpkg -i /tmp/tb-web-report.deb
 
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
+
+RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 

@@ -28,42 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.integration.apache.pulsar.credentials;
 
-import io.micrometer.core.instrument.Counter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.pulsar.client.api.Authentication;
 
-import java.util.concurrent.atomic.AtomicInteger;
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AnonymousPulsarCredentials.class, name = "anonymous"),
+        @JsonSubTypes.Type(value = TokenPulsarCredentials.class, name = "token")})
+public interface PulsarCredentials {
 
-public class StatsCounter {
-    private final AtomicInteger aiCounter;
-    private final Counter micrometerCounter;
-    private final String name;
-
-    public StatsCounter(AtomicInteger aiCounter, Counter micrometerCounter, String name) {
-        this.aiCounter = aiCounter;
-        this.micrometerCounter = micrometerCounter;
-        this.name = name;
-    }
-
-    public void increment() {
-        aiCounter.incrementAndGet();
-        micrometerCounter.increment();
-    }
-
-    public void clear() {
-        aiCounter.set(0);
-    }
-
-    public int get() {
-        return aiCounter.get();
-    }
-
-    public void add(int delta){
-        aiCounter.addAndGet(delta);
-        micrometerCounter.increment(delta);
-    }
-
-    public String getName() {
-        return name;
-    }
+    Authentication getAuthentication();
 }

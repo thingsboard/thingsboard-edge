@@ -51,6 +51,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -71,6 +72,7 @@ import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise
 import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
 import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
 import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
+import org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration;
 import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
@@ -972,12 +974,16 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TtnIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
+            case AZURE_IOT_HUB:
+                return new AzureIotHubIntegration();
             case OPC_UA:
                 return new OpcUaIntegration();
             case AWS_KINESIS:
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case APACHE_PULSAR:
+                return new BasicPulsarIntegration();
             case CUSTOM:
             case TCP:
             case UDP:

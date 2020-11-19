@@ -252,6 +252,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "LOCKOUT": {
                     name: "audit-log.type-lockout"
+                },
+                "ASSIGNED_FROM_TENANT": {
+                    name: "audit-log.type-assigned-from-tenant"
+                },
+                "ASSIGNED_TO_TENANT": {
+                    name: "audit-log.type-assigned-to-tenant"
                 }
             },
             auditLogActionStatus: {
@@ -468,6 +474,10 @@ export default angular.module('thingsboard.types', [])
                     name: "integration.type-azure-event-hub",
                     value: "AZURE_EVENT_HUB"
                 },
+                "AZURE_IOT_HUB": {
+                    name: "integration.type-azure-iot-hub",
+                    value: "AZURE_IOT_HUB"
+                },
                 "OPC_UA": {
                     name: "integration.type-opc-ua",
                     value: "OPC_UA"
@@ -485,6 +495,10 @@ export default angular.module('thingsboard.types', [])
                 "KAFKA": {
                     name: "integration.type-kafka",
                     value: "KAFKA"
+                },
+                "APACHE_PULSAR": {
+                    name: "integration.type-apache-pulsar",
+                    value: "APACHE_PULSAR"
                 },
                 "CUSTOM": {
                     name: "integration.type-custom",
@@ -1123,6 +1137,16 @@ export default angular.module('thingsboard.types', [])
                     name: "extension.pem"
                 }
             },
+            azureIotHubCredentialTypes: {
+                sas: {
+                    value: "sas",
+                    name: "integration.sas"
+                },
+                'cert.PEM': {
+                    value: "cert.PEM",
+                    name: "extension.pem"
+                }
+            },
             mqttQoS: {
                 0: {
                     value: 0,
@@ -1135,6 +1159,16 @@ export default angular.module('thingsboard.types', [])
                 2: {
                     value: 2,
                     name: 'integration.mqtt-qos-exactly-once'
+                }
+            },
+            apachePulsarCredentialTypes: {
+                anonymous:  {
+                    value: "anonymous",
+                    name: "extension.anonymous"
+                },
+                token: {
+                    value: "token",
+                    name: "extension.pulsar-token"
                 }
             },
             opcSecurityTypes: {

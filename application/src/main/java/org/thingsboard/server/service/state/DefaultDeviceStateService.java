@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -60,16 +60,17 @@ import org.thingsboard.server.common.data.page.TextPageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -105,7 +106,6 @@ import static org.thingsboard.server.common.data.DataConstants.SERVER_SCOPE;
 @Slf4j
 public class DefaultDeviceStateService implements DeviceStateService {
 
-    private static final ObjectMapper json = new ObjectMapper();
     public static final String ACTIVITY_STATE = "active";
     public static final String LAST_CONNECT_TIME = "lastConnectTime";
     public static final String LAST_DISCONNECT_TIME = "lastDisconnectTime";
@@ -212,15 +212,15 @@ public class DefaultDeviceStateService implements DeviceStateService {
         if (lastReportedActivity > 0 && lastReportedActivity > lastSavedActivity) {
             DeviceStateData stateData = getOrFetchDeviceStateData(deviceId);
             if (stateData != null) {
-                DeviceState state = stateData.getState();
-                stateData.getState().setLastActivityTime(lastReportedActivity);
-                stateData.getMetaData().putValue("scope", SERVER_SCOPE);
-                pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
                 save(deviceId, LAST_ACTIVITY_TIME, lastReportedActivity);
                 deviceLastSavedActivity.put(deviceId, lastReportedActivity);
+                DeviceState state = stateData.getState();
+                state.setLastActivityTime(lastReportedActivity);
                 if (!state.isActive()) {
                     state.setActive(true);
                     save(deviceId, ACTIVITY_STATE, state.isActive());
+                    stateData.getMetaData().putValue("scope", SERVER_SCOPE);
+                    pushRuleEngineMessage(stateData, ACTIVITY_EVENT);
                 }
             }
         }
@@ -407,7 +407,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
             if (stateData != null) {
                 DeviceState state = stateData.getState();
                 state.setActive(ts < state.getLastActivityTime() + state.getInactivityTimeout());
-                if (!state.isActive() && (state.getLastInactivityAlarmTime() == 0L || state.getLastInactivityAlarmTime() < state.getLastActivityTime())) {
+                if (!state.isActive() && (state.getLastInactivityAlarmTime() == 0L || state.getLastInactivityAlarmTime() < state.getLastActivityTime()) && stateData.getDeviceCreationTime() + state.getInactivityTimeout() < ts) {
                     state.setLastInactivityAlarmTime(ts);
                     pushRuleEngineMessage(stateData, INACTIVITY_EVENT);
                     save(deviceId, INACTIVITY_ALARM_TIME, ts);
@@ -494,6 +494,7 @@ public class DefaultDeviceStateService implements DeviceStateService {
                     return DeviceStateData.builder()
                             .tenantId(device.getTenantId())
                             .deviceId(device.getId())
+                            .deviceCreationTime(device.getCreatedTime())
                             .metaData(md)
                             .state(deviceState).build();
                 } catch (Exception e) {
@@ -518,8 +519,15 @@ public class DefaultDeviceStateService implements DeviceStateService {
     private void pushRuleEngineMessage(DeviceStateData stateData, String msgType) {
         DeviceState state = stateData.getState();
         try {
-            TbMsg tbMsg = TbMsg.newMsg(msgType, stateData.getDeviceId(), stateData.getMetaData().copy(), TbMsgDataType.JSON
-                    , json.writeValueAsString(state));
+            String data;
+            if (msgType.equals(CONNECT_EVENT)) {
+                ObjectNode stateNode = JacksonUtil.convertValue(state, ObjectNode.class);
+                stateNode.remove(ACTIVITY_STATE);
+                data = JacksonUtil.toString(stateNode);
+            } else {
+                data = JacksonUtil.toString(state);
+            }
+            TbMsg tbMsg = TbMsg.newMsg(msgType, stateData.getDeviceId(), stateData.getMetaData().copy(), TbMsgDataType.JSON, data);
             clusterService.pushMsgToRuleEngine(stateData.getTenantId(), stateData.getDeviceId(), tbMsg, null);
         } catch (Exception e) {
             log.warn("[{}] Failed to push inactivity alarm: {}", stateData.getDeviceId(), state, e);

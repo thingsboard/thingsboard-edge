@@ -28,36 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.server.service.queue;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.service.metrics.StubCounter;
+import lombok.Getter;
+import org.thingsboard.server.common.msg.queue.RuleNodeInfo;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-@Service
-public class StatsCounterFactory {
-    private static final String STATS_NAME_TAG = "statsName";
+public class TbRuleNodeProfilerInfo {
+    @Getter
+    private final UUID ruleNodeId;
+    @Getter
+    private final String label;
+    private AtomicInteger executionCount = new AtomicInteger(0);
+    private AtomicLong executionTime = new AtomicLong(0);
+    private AtomicLong maxExecutionTime = new AtomicLong(0);
 
-    private static final Counter STUB_COUNTER = new StubCounter();
-
-    @Autowired
-    private MeterRegistry meterRegistry;
-
-    @Value("${metrics.enabled}")
-    private Boolean metricsEnabled;
-
-    public StatsCounter createStatsCounter(String key, String statsName) {
-        return new StatsCounter(
-                new AtomicInteger(0),
-                metricsEnabled ?
-                        meterRegistry.counter(key, STATS_NAME_TAG, statsName)
-                        : STUB_COUNTER,
-                statsName
-        );
+    public TbRuleNodeProfilerInfo(RuleNodeInfo ruleNodeInfo) {
+        this.ruleNodeId = ruleNodeInfo.getRuleNodeId().getId();
+        this.label = ruleNodeInfo.toString();
     }
+
+    public TbRuleNodeProfilerInfo(UUID ruleNodeId) {
+        this.ruleNodeId = ruleNodeId;
+        this.label = "";
+    }
+
+    public void record(long processingTime) {
+        executionCount.incrementAndGet();
+        executionTime.addAndGet(processingTime);
+        while (true) {
+            long value = maxExecutionTime.get();
+            if (value >= processingTime) {
+                break;
+            }
+            if (maxExecutionTime.compareAndSet(value, processingTime)) {
+                break;
+            }
+        }
+    }
+
+    int getExecutionCount() {
+        return executionCount.get();
+    }
+
+    long getMaxExecutionTime() {
+        return maxExecutionTime.get();
+    }
+
+    double getAvgExecutionTime() {
+        double executionCnt = (double) executionCount.get();
+        if (executionCnt > 0) {
+            return executionTime.get() / executionCnt;
+        } else {
+            return 0.0;
+        }
+    }
+
 }

@@ -28,18 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.stats;
+package org.thingsboard.integration.apache.pulsar.credentials;
 
-public enum StatsType {
-    RULE_ENGINE("ruleEngine"), CORE("core"), TRANSPORT("transport"), JS_INVOKE("jsInvoke");
+import lombok.Setter;
+import org.apache.pulsar.client.api.Authentication;
+import org.apache.pulsar.client.impl.auth.AuthenticationToken;
 
-    private String name;
+public class TokenPulsarCredentials implements PulsarCredentials {
 
-    StatsType(String name) {
-        this.name = name;
-    }
+    @Setter
+    private String token;
 
-    public String getName() {
-        return name;
+    @Override
+    public Authentication getAuthentication() {
+        return new AuthenticationToken(token);
     }
 }

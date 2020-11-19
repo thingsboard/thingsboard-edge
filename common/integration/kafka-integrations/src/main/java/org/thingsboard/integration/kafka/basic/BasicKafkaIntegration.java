@@ -58,6 +58,7 @@ public class BasicKafkaIntegration extends AbstractKafkaIntegration<BasicKafkaIn
 
         loopExecutor.submit(() -> {
             while (!stopped) {
+                kafkaLock.lock();
                 try {
                     ConsumerRecords<String, String> requests = kafkaConsumer.poll(Duration.ofMillis(pollInterval));
                     requests.forEach(request -> process(new BasicKafkaIntegrationMsg(request.value())));
@@ -72,6 +73,8 @@ public class BasicKafkaIntegration extends AbstractKafkaIntegration<BasicKafkaIn
                     } catch (InterruptedException e2) {
                         log.trace("Failed to wait until the server has capacity to handle new requests", e2);
                     }
+                } finally {
+                    kafkaLock.unlock();
                 }
             }
         });

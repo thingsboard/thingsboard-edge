@@ -63,6 +63,8 @@ public enum ActionType {
     LOGIN(false),
     LOGOUT(false),
     LOCKOUT(false),
+    ASSIGNED_FROM_TENANT(false),
+    ASSIGNED_TO_TENANT(false),
     ATTRIBUTES_REQUEST(false),
     RULE_CHAIN_METADATA_REQUEST(false),
     RELATION_REQUEST(false),
