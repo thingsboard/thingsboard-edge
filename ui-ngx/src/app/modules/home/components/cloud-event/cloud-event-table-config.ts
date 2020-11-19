@@ -53,9 +53,9 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { UserId } from '@shared/models/id/user-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import {
-  CloudEventDetailsDialogComponent,
-  CloudEventDetailsDialogData
-} from '@home/components/cloud-event/cloud-event-details-dialog.component';
+  AuditLogDetailsDialogComponent,
+  AuditLogDetailsDialogData
+} from '@home/components/audit-log/audit-log-details-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
 
 export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageLink> {
@@ -141,7 +141,7 @@ export class CloudEventTableConfig extends EntityTableConfig<AuditLog, TimePageL
   }
 
   showAuditLogDetails(entity: AuditLog) {
-    this.dialog.open<CloudEventDetailsDialogComponent, CloudEventDetailsDialogData>(CloudEventDetailsDialogComponent, {
+    this.dialog.open<AuditLogDetailsDialogComponent, AuditLogDetailsDialogData>(AuditLogDetailsDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

@@ -38,16 +38,16 @@ import { AuditLogMode } from '@shared/models/audit-log.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { UserId } from '@shared/models/id/user-id';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { AuditLogTableConfig } from '@home/components/audit-log/audit-log-table-config';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UtilsService } from '@core/services/utils.service';
+import { CloudEventTableConfig } from "@home/components/cloud-event/cloud-event-table-config";
 
 @Component({
-  selector: 'tb-audit-log-table',
+  selector: 'tb-cloud-event-table',
   templateUrl: './cloud-event-table.component.html',
   styleUrls: ['./cloud-event-table.component.scss']
 })
@@ -79,8 +79,8 @@ export class CloudEventTableComponent implements OnInit {
   @Input()
   set entityId(entityId: EntityId) {
     this.entityIdValue = entityId;
-    if (this.auditLogTableConfig && this.auditLogTableConfig.entityId !== entityId) {
-      this.auditLogTableConfig.entityId = entityId;
+    if (this.cloudEventTableConfig && this.cloudEventTableConfig.entityId !== entityId) {
+      this.cloudEventTableConfig.entityId = entityId;
       this.entitiesTable.resetSortAndFilter(this.activeValue);
       if (!this.activeValue) {
         this.dirtyValue = true;
@@ -91,8 +91,8 @@ export class CloudEventTableComponent implements OnInit {
   @Input()
   set userId(userId: UserId) {
     this.userIdValue = userId;
-    if (this.auditLogTableConfig && this.auditLogTableConfig.userId !== userId) {
-      this.auditLogTableConfig.userId = userId;
+    if (this.cloudEventTableConfig && this.cloudEventTableConfig.userId !== userId) {
+      this.cloudEventTableConfig.userId = userId;
       this.entitiesTable.resetSortAndFilter(this.activeValue);
       if (!this.activeValue) {
         this.dirtyValue = true;
@@ -103,8 +103,8 @@ export class CloudEventTableComponent implements OnInit {
   @Input()
   set customerId(customerId: CustomerId) {
     this.customerIdValue = customerId;
-    if (this.auditLogTableConfig && this.auditLogTableConfig.customerId !== customerId) {
-      this.auditLogTableConfig.customerId = customerId;
+    if (this.cloudEventTableConfig && this.cloudEventTableConfig.customerId !== customerId) {
+      this.cloudEventTableConfig.customerId = customerId;
       this.entitiesTable.resetSortAndFilter(this.activeValue);
       if (!this.activeValue) {
         this.dirtyValue = true;
@@ -114,7 +114,7 @@ export class CloudEventTableComponent implements OnInit {
 
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
-  auditLogTableConfig: AuditLogTableConfig;
+  cloudEventTableConfig: CloudEventTableConfig;
 
   constructor(private auditLogService: AuditLogService,
               private translate: TranslateService,
@@ -134,7 +134,7 @@ export class CloudEventTableComponent implements OnInit {
       }
       updateOnInit = true;
     }
-    this.auditLogTableConfig = new AuditLogTableConfig(
+    this.cloudEventTableConfig = new CloudEventTableConfig(
       this.auditLogService,
       this.translate,
       this.utils,

@@ -33,7 +33,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { EdgeInfoComponent } from "@home/pages/edge-info/edge-info.component";
-import {CloudEventTableComponent} from "@home/components/cloud-event/cloud-event-table.component";
+import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
 
 const routes: Routes = [
   {

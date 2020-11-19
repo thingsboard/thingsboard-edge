@@ -29,6 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import {BaseData} from "@shared/models/base-data";
+import {AuditLogId} from "@shared/models/id/audit-log-id";
+import {TenantId} from "@shared/models/id/tenant-id";
+import {CustomerId} from "@shared/models/id/customer-id";
+import {EntityId} from "@shared/models/id/entity-id";
+import {UserId} from "@shared/models/id/user-id";
+import {ActionStatus, ActionType} from "@shared/models/audit-log.models";
+import {HasUUID} from "@shared/models/id/has-uuid";
+
 export interface EdgeSettings {
   edgeId: string;
   tenantId: string
@@ -36,6 +45,22 @@ export interface EdgeSettings {
   type: string;
   routingKey: string;
   cloudType: CloudType.PE | CloudType.CE;
+}
+
+export interface CloudEvent extends BaseData<CloudEventId> {
+  cloudEventAction: string;
+  cloudEventType: any; //TODO check exact type
+  entityBody: any;
+  entityGroupId: any; //TODO check exact type
+  entityId: any; //TODO check exact type
+  tenantId: TenantId;
+}
+
+export class CloudEventId implements HasUUID {
+  id: string;
+  constructor(id: string) {
+    this.id = id;
+  }
 }
 
 export enum CloudType {
@@ -52,4 +77,17 @@ export interface CloudStatus {
   isActive: boolean
 }
 
+export enum CloudEventType {
+  DASHBOARD,
+  ASSET,
+  DEVICE,
+  ENTITY_VIEW,
+  ALARM,
+  RULE_CHAIN,
+  RULE_CHAIN_METADATA,
+  USER,
+  CUSTOMER,
+  RELATION,
+  ENTITY_GROUP
+}
 

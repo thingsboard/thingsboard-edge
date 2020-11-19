@@ -39,12 +39,12 @@ import * as ace from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 
-export interface CloudEventDetailsDialogData {
+export interface AuditLogDetailsDialogData {
   auditLog: AuditLog;
 }
 
 @Component({
-  selector: 'tb-audit-log-details-dialog',
+  selector: 'tb-cloud-event-details-dialog',
   templateUrl: './cloud-event-details-dialog.component.html',
   styleUrls: ['./cloud-event-details-dialog.component.scss']
 })
@@ -65,7 +65,7 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: CloudEventDetailsDialogData,
+              @Inject(MAT_DIALOG_DATA) public data: AuditLogDetailsDialogData,
               public dialogRef: MatDialogRef<CloudEventDetailsDialogComponent>,
               private renderer: Renderer2) {
     super(store, router, dialogRef);
