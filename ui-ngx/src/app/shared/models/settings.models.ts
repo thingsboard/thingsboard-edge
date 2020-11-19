@@ -67,7 +67,10 @@ export enum MailTemplate {
   resetPassword = 'resetPassword',
   passwordWasReset = 'passwordWasReset',
   userActivated = 'userActivated',
-  userRegistered = 'userRegistered'
+  userRegistered = 'userRegistered',
+  apiUsageStateEnabled = 'apiUsageStateEnabled',
+  apiUsageStateWarning = 'apiUsageStateWarning',
+  apiUsageStateDisabled = 'apiUsageStateDisabled',
 }
 
 export const mailTemplateTranslations = new Map<MailTemplate, string>(
@@ -79,7 +82,10 @@ export const mailTemplateTranslations = new Map<MailTemplate, string>(
     [MailTemplate.resetPassword, 'admin.mail-template.reset-password'],
     [MailTemplate.passwordWasReset, 'admin.mail-template.password-was-reset'],
     [MailTemplate.userActivated, 'admin.mail-template.user-activated'],
-    [MailTemplate.userRegistered, 'admin.mail-template.user-registered']
+    [MailTemplate.userRegistered, 'admin.mail-template.user-registered'],
+    [MailTemplate.apiUsageStateEnabled, 'admin.mail-template.api-usage-state-enabled'],
+    [MailTemplate.apiUsageStateWarning, 'admin.mail-template.api-usage-state-warning'],
+    [MailTemplate.apiUsageStateDisabled, 'admin.mail-template.api-usage-state-disabled']
   ]
 );
 
