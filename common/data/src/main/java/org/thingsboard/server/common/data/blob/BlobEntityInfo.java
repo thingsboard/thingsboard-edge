@@ -36,15 +36,17 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, TenantEntity, HasCustomerId {
+public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntityId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 2807223040519549363L;
 
@@ -88,4 +90,17 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         return EntityType.BLOB_ENTITY;
     }
 
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
 }
