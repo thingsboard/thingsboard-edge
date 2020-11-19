@@ -146,7 +146,6 @@ public class DefaultAlarmQueryRepository implements AlarmQueryRepository {
             AlarmDataPageLink pageLink = query.getPageLink();
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, EntityType.ALARM, mergedUserPermissions, null));
             ctx.addUuidListParameter("entity_ids", orderedEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()));
-
             StringBuilder selectPart = new StringBuilder(FIELDS_SELECTION);
             StringBuilder fromPart = new StringBuilder(" from alarm a ");
             StringBuilder wherePart = new StringBuilder(" where ");
