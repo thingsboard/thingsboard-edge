@@ -33,9 +33,9 @@ import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import {CloudEvent, EdgeSettings} from "@shared/models/edge.models";
-import {TimePageLink} from "@shared/models/page/page-link";
-import {PageData} from "@shared/models/page/page-data";
+import { CloudEvent, EdgeSettings } from "@shared/models/edge.models";
+import { TimePageLink } from "@shared/models/page/page-link";
+import { PageData } from "@shared/models/page/page-data";
 
 @Injectable({
   providedIn: 'root'

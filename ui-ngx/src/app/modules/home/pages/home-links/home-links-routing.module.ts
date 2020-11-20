@@ -34,6 +34,12 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { HomeLinksComponent } from './home-links.component';
 import { Authority } from '@shared/models/authority.enum';
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
+
+export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
+  ((route, translate, component) =>
+      component.edgeName ? component.edgeName : translate.instant('home.home')
+  );
 
 const routes: Routes = [
   {
@@ -43,9 +49,9 @@ const routes: Routes = [
       auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       title: 'home.home',
       breadcrumb: {
-        label: 'home.home',
+        labelFunction: edgeNameResolver,
         icon: 'home'
-      }
+      } as BreadCrumbConfig<HomeLinksComponent>
     }
   }
 ];
