@@ -91,11 +91,15 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
   }
 
   private setSmsProviderSettings(smsProviderConfiguration: SmsProviderConfiguration) {
-    this.smsProvider.reset({configuration: smsProviderConfiguration});
+    const useSystemSmsSettings = smsProviderConfiguration && isDefined(smsProviderConfiguration.useSystemSmsSettings) ?
+      smsProviderConfiguration.useSystemSmsSettings : true;
+    if (smsProviderConfiguration) {
+      delete smsProviderConfiguration.useSystemSmsSettings;
+    }
+    this.smsProvider.reset({configuration: useSystemSmsSettings ? null : smsProviderConfiguration});
     if (this.isTenantAdmin()) {
       this.smsProvider.get('useSystemSmsSettings').setValue(
-        isDefined(smsProviderConfiguration?.useSystemSmsSettings) ?
-          smsProviderConfiguration?.useSystemSmsSettings : true, {emitEvent: false}
+        useSystemSmsSettings, {emitEvent: false}
       );
     }
     this.updateValidators();
@@ -132,7 +136,7 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
 
   private updateValidators() {
     const useSystemSmsSettings: boolean = this.smsProvider.get('useSystemSmsSettings').value;
-    if (useSystemSmsSettings) {
+    if (this.isTenantAdmin() && useSystemSmsSettings) {
       this.smsProvider.get('configuration').setValidators([]);
     } else {
       this.smsProvider.get('configuration').setValidators([Validators.required]);
@@ -151,12 +155,21 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
   }
 
   save(): void {
-    this.adminSettings.jsonValue = this.smsProvider.value.configuration;
-    this.adminSettings.jsonValue.useSystemSmsSettings = this.smsProvider.value.useSystemSmsSettings;
+    if (this.isTenantAdmin()) {
+      if (this.smsProvider.value.useSystemSmsSettings) {
+        this.adminSettings.jsonValue = {
+          useSystemSmsSettings: true
+        } as SmsProviderConfiguration;
+      } else {
+        this.adminSettings.jsonValue = {...this.smsProvider.value.configuration, useSystemSmsSettings: false};
+      }
+    } else {
+      this.adminSettings.jsonValue = this.smsProvider.value.configuration;
+    }
     this.adminService.saveAdminSettings(this.adminSettings).subscribe(
       (adminSettings) => {
         this.adminSettings = adminSettings;
-        this.smsProvider.reset({configuration: this.adminSettings.jsonValue});
+        this.setSmsProviderSettings(this.adminSettings.jsonValue);
       }
     );
   }
