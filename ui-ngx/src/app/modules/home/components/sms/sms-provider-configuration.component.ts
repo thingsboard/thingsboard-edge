@@ -42,7 +42,7 @@ import {
 import { deepClone } from '@core/utils';
 import {
   createSmsProviderConfiguration,
-  SmsProviderConfiguration,
+  SmsProviderConfiguration, smsProviderConfigurationValidator,
   SmsProviderType,
   smsProviderTypeTranslationMap
 } from '@shared/models/settings.models';
@@ -93,7 +93,7 @@ export class SmsProviderConfigurationComponent implements ControlValueAccessor, 
   ngOnInit() {
     this.smsProviderConfigurationFormGroup = this.fb.group({
       type: [null, Validators.required],
-      configuration: [null, Validators.required]
+      configuration: [null, smsProviderConfigurationValidator(true)]
     });
     this.smsProviderConfigurationFormGroup.valueChanges.subscribe(() => {
       this.updateModel();

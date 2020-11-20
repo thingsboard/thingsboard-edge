@@ -35,7 +35,11 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isDefinedAndNotNull } from '@core/utils';
-import { phoneNumberPattern, TwilioSmsProviderConfiguration } from '@shared/models/settings.models';
+import {
+  phoneNumberPattern,
+  SmsProviderConfiguration, SmsProviderType,
+  TwilioSmsProviderConfiguration
+} from '@shared/models/settings.models';
 
 @Component({
   selector: 'tb-twilio-sms-provider-configuration',
@@ -110,6 +114,7 @@ export class TwilioSmsProviderConfigurationComponent implements ControlValueAcce
     let configuration: TwilioSmsProviderConfiguration = null;
     if (this.twilioSmsProviderConfigurationFormGroup.valid) {
       configuration = this.twilioSmsProviderConfigurationFormGroup.value;
+      (configuration as SmsProviderConfiguration).type = SmsProviderType.TWILIO;
     }
     this.propagateChange(configuration);
   }

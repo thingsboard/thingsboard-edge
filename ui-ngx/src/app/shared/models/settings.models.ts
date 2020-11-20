@@ -29,6 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { ValidatorFn } from '@angular/forms';
+import { isNotEmptyStr } from '@core/utils';
+
 export const smtpPortPattern: RegExp = /^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$/;
 
 export interface AdminSettings<T> {
@@ -140,6 +143,36 @@ export type SmsProviderConfigurations = AwsSnsSmsProviderConfiguration & TwilioS
 export interface SmsProviderConfiguration extends SmsProviderConfigurations {
   useSystemSmsSettings?: boolean;
   type: SmsProviderType;
+}
+
+export function smsProviderConfigurationValidator(required: boolean): ValidatorFn {
+  return control => {
+    const configuration: SmsProviderConfiguration = control.value;
+    let errors = null;
+    if (required) {
+      let valid = false;
+      if (configuration && configuration.type) {
+        switch (configuration.type) {
+          case SmsProviderType.AWS_SNS:
+            const awsSnsConfiguration: AwsSnsSmsProviderConfiguration = configuration;
+            valid = isNotEmptyStr(awsSnsConfiguration.accessKeyId) && isNotEmptyStr(awsSnsConfiguration.secretAccessKey)
+              && isNotEmptyStr(awsSnsConfiguration.region);
+            break;
+          case SmsProviderType.TWILIO:
+            const twilioConfiguration: TwilioSmsProviderConfiguration = configuration;
+            valid = isNotEmptyStr(twilioConfiguration.numberFrom) && isNotEmptyStr(twilioConfiguration.accountSid)
+              && isNotEmptyStr(twilioConfiguration.accountToken);
+            break;
+        }
+      }
+      if (!valid) {
+        errors = {
+          invalid: true
+        };
+      }
+    }
+    return errors;
+  };
 }
 
 export interface TestSmsRequest {
