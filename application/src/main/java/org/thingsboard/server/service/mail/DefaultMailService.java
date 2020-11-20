@@ -42,6 +42,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.ApiFeature;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.ApiUsageStateMailMessage;
+import org.thingsboard.server.common.data.ApiUsageStateValue;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -252,6 +256,83 @@ public class DefaultMailService implements MailService {
         sendMail(tenantId, email, subject, message);
     }
 
+    @Override
+    public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = null;
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("apiFeature", apiFeature.getLabel());
+        model.put(TARGET_EMAIL, email);
+
+        String message = null;
+
+        switch (stateValue) {
+            case ENABLED:
+                model.put("apiLabel", toEnabledValueLabel(apiFeature));
+                message = body(mailTemplates, MailTemplates.API_USAGE_STATE_ENABLED, model);
+                subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_ENABLED);
+                break;
+            case WARNING:
+                model.put("apiLimitValueLabel", toDisabledValueLabel(msg.getKey(), msg.getThreshold()));
+                model.put("apiValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(msg.getKey(), msg.getValue()));
+                message = body(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING, model);
+                subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_WARNING);
+                break;
+            case DISABLED:
+                model.put("apiLimitValueLabel", toDisabledValueLabel(apiFeature) + " " + toDisabledValueLabel(msg.getKey(), msg.getThreshold()));
+                message =body(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED, model);
+                subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED);
+                break;
+        }
+
+        sendMail(tenantId, email, subject, message);
+    }
+
+    private String toEnabledValueLabel(ApiFeature apiFeature) {
+        switch (apiFeature) {
+            case DB:
+                return "save";
+            case TRANSPORT:
+                return "receive";
+            case JS:
+            case RE:
+                return "invoke";
+            default:
+                throw new RuntimeException("Not implemented!");
+        }
+    }
+
+    private String toDisabledValueLabel(ApiFeature apiFeature) {
+        switch (apiFeature) {
+            case DB:
+                return "saved";
+            case TRANSPORT:
+                return "received";
+            case JS:
+            case RE:
+                return "invoked";
+            default:
+                throw new RuntimeException("Not implemented!");
+        }
+    }
+
+    private String toDisabledValueLabel(ApiUsageRecordKey key, long value) {
+        switch (key) {
+            case STORAGE_DP_COUNT:
+            case TRANSPORT_DP_COUNT:
+                return (value / 1000000) + "M data points";
+            case TRANSPORT_MSG_COUNT:
+                return (value / 1000000) + "M messages";
+            case JS_EXEC_COUNT:
+                return (value / 1000000) + "M JavaScript functions";
+            case RE_EXEC_COUNT:
+                return (value / 1000000) + "M Rule Engine nodes";
+            default:
+                throw new RuntimeException("Not implemented!");
+        }
+    }
+
     private void sendMail(JavaMailSenderImpl mailSender,
                           String mailFrom, String email,
                           String subject, String message) throws ThingsboardException {
@@ -301,7 +382,7 @@ public class DefaultMailService implements MailService {
                 javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
             }
         }
-        
+
         boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
 
         if (enableProxy) {
