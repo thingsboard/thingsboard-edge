@@ -199,6 +199,14 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'admin.sms-provider',
+        type: 'link',
+        path: '/settings/sms-provider',
+        icon: 'sms',
+        disabled: disabledItems.indexOf('sms_provider') > -1
+      },
+      {
+        id: guid(),
         name: 'white-labeling.white-labeling',
         type: 'link',
         path: '/settings/whiteLabel',
@@ -313,6 +321,12 @@ export class MenuService {
             icon: 'format_shapes',
             path: '/settings/mail-template',
             disabled: disabledItems.indexOf('mail_templates') > -1
+          },
+          {
+            name: 'admin.sms-provider',
+            icon: 'sms',
+            path: '/settings/sms-provider',
+            disabled: disabledItems.indexOf('sms_provider') > -1
           },
           {
             name: 'admin.security-settings',
@@ -515,6 +529,14 @@ export class MenuService {
           path: '/settings/mail-template',
           icon: 'format_shapes',
           disabled: disabledItems.indexOf('mail_templates') > -1
+        },
+        {
+          id: guid(),
+          name: 'admin.sms-provider',
+          type: 'link',
+          path: '/settings/sms-provider',
+          icon: 'sms',
+          disabled: disabledItems.indexOf('sms_provider') > -1
         },
         {
           id: guid(),
@@ -802,6 +824,12 @@ export class MenuService {
               icon: 'format_shapes',
               path: '/settings/mail-template',
               disabled: disabledItems.indexOf('mail_templates') > -1
+            },
+            {
+              name: 'admin.sms-provider',
+              icon: 'sms',
+              path: '/settings/sms-provider',
+              disabled: disabledItems.indexOf('sms_provider') > -1
             },
             {
               name: 'white-labeling.white-labeling',

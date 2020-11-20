@@ -75,6 +75,7 @@ export const HelpLinks = {
   linksMap: {
     docs: helpBaseUrl + '/docs',
     outgoingMailSettings: helpBaseUrl + '/docs/user-guide/ui/mail-settings',
+    smsProviderSettings: helpBaseUrl + '/docs/user-guide/ui/sms-provider-settings',
     securitySettings: helpBaseUrl + '/docs/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/user-guide/oauth-2-support/',
     ruleEngine: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/overview/',

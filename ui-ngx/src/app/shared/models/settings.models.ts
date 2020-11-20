@@ -88,7 +88,7 @@ export interface MailTemplatesSettings {
   [mailTemplate: string]: {
     subject: string;
     body: string;
-  }
+  };
 }
 
 export interface UserPasswordPolicy {
@@ -107,4 +107,68 @@ export interface SecuritySettings {
 export interface UpdateMessage {
   message: string;
   updateAvailable: boolean;
+}
+
+export const phoneNumberPattern = /^\+[1-9]\d{1,14}$/;
+
+export enum SmsProviderType {
+  AWS_SNS = 'AWS_SNS',
+  TWILIO = 'TWILIO'
+}
+
+export const smsProviderTypeTranslationMap = new Map<SmsProviderType, string>(
+  [
+    [SmsProviderType.AWS_SNS, 'admin.sms-provider-type-aws-sns'],
+    [SmsProviderType.TWILIO, 'admin.sms-provider-type-twilio']
+  ]
+);
+
+export interface AwsSnsSmsProviderConfiguration {
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  region?: string;
+}
+
+export interface TwilioSmsProviderConfiguration {
+  accountSid?: string;
+  accountToken?: string;
+  numberFrom?: string;
+}
+
+export type SmsProviderConfigurations = AwsSnsSmsProviderConfiguration & TwilioSmsProviderConfiguration;
+
+export interface SmsProviderConfiguration extends SmsProviderConfigurations {
+  useSystemSmsSettings?: boolean;
+  type: SmsProviderType;
+}
+
+export interface TestSmsRequest {
+  providerConfiguration: SmsProviderConfiguration;
+  numberTo: string;
+  message: string;
+}
+
+export function createSmsProviderConfiguration(type: SmsProviderType): SmsProviderConfiguration {
+  let smsProviderConfiguration: SmsProviderConfiguration;
+  if (type) {
+    switch (type) {
+      case SmsProviderType.AWS_SNS:
+        const awsSnsSmsProviderConfiguration: AwsSnsSmsProviderConfiguration = {
+          accessKeyId: '',
+          secretAccessKey: '',
+          region: 'us-east-1'
+        };
+        smsProviderConfiguration = {...awsSnsSmsProviderConfiguration, type: SmsProviderType.AWS_SNS};
+        break;
+      case SmsProviderType.TWILIO:
+        const twilioSmsProviderConfiguration: TwilioSmsProviderConfiguration = {
+          numberFrom: '',
+          accountSid: '',
+          accountToken: ''
+        };
+        smsProviderConfiguration = {...twilioSmsProviderConfiguration, type: SmsProviderType.TWILIO};
+        break;
+    }
+  }
+  return smsProviderConfiguration;
 }
