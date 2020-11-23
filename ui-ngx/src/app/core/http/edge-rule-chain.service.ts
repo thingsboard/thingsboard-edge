@@ -29,36 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ComponentFactory, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { forkJoin, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import {
-  ResolvedRuleChainMetaData,
-  RuleChain,
-  RuleChainConnectionInfo,
-  RuleChainMetaData,
-  ruleChainNodeComponent, ruleChainType,
-  ruleNodeTypeComponentTypes,
-  unknownNodeComponent
+  RuleChain
 } from '@shared/models/rule-chain.models';
-import { ComponentDescriptorService } from './component-descriptor.service';
-import {
-  IRuleNodeConfigurationComponent,
-  LinkLabel,
-  RuleNodeComponentDescriptor,
-  TestScriptInputParams,
-  TestScriptResult
-} from '@app/shared/models/rule-node.models';
-import { ResourcesService } from '../services/resources.service';
-import { catchError, map, mergeMap } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
-import { EntityType } from '@shared/models/entity-type.models';
-import { deepClone, snakeCase } from '@core/utils';
-import { DebugRuleNodeEventBody } from '@app/shared/models/event.models';
-import {Edge} from "@shared/models/edge.models";
+import { Edge } from "@shared/models/edge.models";
 
 @Injectable({
   providedIn: 'root'
@@ -70,7 +50,7 @@ export class EdgeRuleChainService {
   ) { }
 
   public getRuleChains(pageLink: PageLink, config?: RequestConfig): Observable<PageData<RuleChain>> {
-    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=${ruleChainType.edge}`,
+    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=EDGE`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -104,10 +84,8 @@ export class EdgeRuleChainService {
     return this.http.get<Array<RuleChain>>(`/api/ruleChain/defaultEdgeRuleChains`, defaultHttpOptionsFromConfig(config));
   }
 
-  public setRootRuleChain(edgeId: string, ruleChainId: string,
-                          config?: RequestConfig): Observable<Edge> {
-    return this.http.post<Edge>(`/api/edge/${edgeId}/${ruleChainId}/root`,
-      defaultHttpOptionsFromConfig(config));
+  public setRootRuleChain(edgeId: string, ruleChainId: string, config?: RequestConfig): Observable<Edge> {
+    return this.http.post<Edge>(`/api/edge/${edgeId}/${ruleChainId}/root`, defaultHttpOptionsFromConfig(config));
   }
 
 }

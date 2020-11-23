@@ -74,7 +74,7 @@ import {RoleService} from '@core/http/role.service';
 import {EntityGroupService} from '@core/http/entity-group.service';
 import {Dashboard} from '@shared/models/dashboard.models';
 import {User} from '@shared/models/user.model';
-import {RuleChain} from '@shared/models/rule-chain.models';
+import {RuleChain, ruleChainType} from '@shared/models/rule-chain.models';
 import {Converter} from '@shared/models/converter.models';
 import {Integration} from '@shared/models/integration.models';
 import {SchedulerEvent} from '@shared/models/scheduler-event.models';
@@ -101,6 +101,8 @@ import {
   StringOperation
 } from '@shared/models/query/query.models';
 import {alarmFields} from '@shared/models/alarm.models';
+import {Router} from "@angular/router";
+import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
 
 @Injectable({
   providedIn: 'root'
@@ -127,7 +129,9 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
-    private utils: UtilsService
+    private utils: UtilsService,
+    private edgeRuleChainService: EdgeRuleChainService,
+    private router: Router
   ) {
   }
 
@@ -452,7 +456,11 @@ export class EntityService {
         break;
       case EntityType.RULE_CHAIN:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.ruleChainService.getRuleChains(pageLink, config);
+        if (this.router.url.includes('edge')) {
+          entitiesObservable = this.edgeRuleChainService.getRuleChains(pageLink, config);
+        } else {
+          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, config);
+        }
         break;
       case EntityType.DASHBOARD:
         pageLink.sortOrder.property = 'title';

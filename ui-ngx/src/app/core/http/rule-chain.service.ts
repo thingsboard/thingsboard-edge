@@ -40,7 +40,7 @@ import {
   RuleChain,
   RuleChainConnectionInfo,
   RuleChainMetaData,
-  ruleChainNodeComponent, ruleChainType,
+  ruleChainNodeComponent, RuleChainType,
   ruleNodeTypeComponentTypes,
   unknownNodeComponent
 } from '@shared/models/rule-chain.models';
@@ -66,6 +66,7 @@ export class RuleChainService {
 
   private ruleNodeComponents: Array<RuleNodeComponentDescriptor>;
   private ruleNodeConfigFactories: {[directive: string]: ComponentFactory<IRuleNodeConfigurationComponent>} = {};
+  private ruleNodeComponentsType: string = '';
 
   constructor(
     private http: HttpClient,
@@ -75,7 +76,7 @@ export class RuleChainService {
   ) { }
 
   public getRuleChains(pageLink: PageLink, config?: RequestConfig): Observable<PageData<RuleChain>> {
-    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=${ruleChainType.core}`,
+    return this.http.get<PageData<RuleChain>>(`/api/ruleChains${pageLink.toQuery()}&type=CORE`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -131,12 +132,13 @@ export class RuleChainService {
     );
   }
 
-  public getRuleNodeComponents(ruleNodeConfigResourcesModulesMap: {[key: string]: any}, config?: RequestConfig):
+  public getRuleNodeComponents(ruleNodeConfigResourcesModulesMap: {[key: string]: any}, ruleChainType: RuleChainType, config?: RequestConfig):
     Observable<Array<RuleNodeComponentDescriptor>> {
-     if (this.ruleNodeComponents) {
+     if (this.ruleNodeComponents && this.ruleNodeComponentsType === ruleChainType) {
        return of(this.ruleNodeComponents);
      } else {
-      return this.loadRuleNodeComponents(config).pipe(
+       this.ruleNodeComponentsType = ruleChainType;
+       return this.loadRuleNodeComponents(ruleChainType, config).pipe(
         mergeMap((components) => {
           return this.resolveRuleNodeComponentsUiResources(components, ruleNodeConfigResourcesModulesMap).pipe(
             map((ruleNodeComponents) => {
@@ -219,8 +221,8 @@ export class RuleChainService {
     }
   }
 
-  private loadRuleNodeComponents(config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
-    return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, config).pipe(
+  private loadRuleNodeComponents(ruleChainType: RuleChainType, config?: RequestConfig): Observable<Array<RuleNodeComponentDescriptor>> {
+    return this.componentDescriptorService.getComponentDescriptorsByTypes(ruleNodeTypeComponentTypes, ruleChainType, config).pipe(
       map((components) => {
         const ruleNodeComponents: RuleNodeComponentDescriptor[] = [];
         components.forEach((component) => {
