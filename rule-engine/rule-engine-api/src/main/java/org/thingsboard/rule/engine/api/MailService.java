@@ -40,8 +40,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.List;
 
-import javax.mail.MessagingException;
-
 public interface MailService {
 
     void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException;

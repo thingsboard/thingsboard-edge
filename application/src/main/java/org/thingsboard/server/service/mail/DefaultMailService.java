@@ -37,6 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -59,6 +61,8 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
 import javax.mail.internet.MimeMessage;
@@ -81,21 +85,31 @@ public class DefaultMailService implements MailService {
     public static final int _10K = 10000;
     public static final int _1M = 1000000;
 
+    private final AdminSettingsService adminSettingsService;
+    private final AttributesService attributesService;
+    private final BlobEntityService blobEntityService;
+    private final TbApiUsageReportClient apiUsageClient;
+
+    @Lazy
+    @Autowired
+    private TbApiUsageStateService apiUsageStateService;
+
     @Value("${actors.rule.allow_system_mail_service}")
     private boolean allowSystemMailService;
 
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private BlobEntityService blobEntityService;
+    public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
+        this.adminSettingsService = adminSettingsService;
+        this.attributesService = attributesService;
+        this.blobEntityService = blobEntityService;
+        this.apiUsageClient = apiUsageClient;
+    }
 
     @Override
     public void sendEmail(TenantId tenantId, String email, String subject, String message) throws ThingsboardException {
-        sendMail(tenantId, email, subject, message);
+        if (apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
+            sendMail(tenantId, email, subject, message);
+            apiUsageClient.report(tenantId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
+        }
     }
 
     @Override
@@ -214,34 +228,40 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void send(TenantId tenantId, String from, String to, String cc, String bcc, String subject, String body, List<BlobEntityId> attachments) throws ThingsboardException {
-        JsonNode jsonConfig = getConfig(tenantId, "mail", allowSystemMailService);
-        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
-        String mailFrom = getStringValue(jsonConfig, "mailFrom");
-        try {
-            MimeMessage mailMsg = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mailMsg, attachments != null && !attachments.isEmpty(), "UTF-8");
-            helper.setFrom(StringUtils.isBlank(from) ? mailFrom : from);
-            helper.setTo(to.split("\\s*,\\s*"));
-            if (!StringUtils.isBlank(cc)) {
-                helper.setCc(cc.split("\\s*,\\s*"));
-            }
-            if (!StringUtils.isBlank(bcc)) {
-                helper.setBcc(bcc.split("\\s*,\\s*"));
-            }
-            helper.setSubject(subject);
-            helper.setText(body);
-            if (attachments != null) {
-                for (BlobEntityId blobEntityId : attachments) {
-                    BlobEntity blobEntity = blobEntityService.findBlobEntityById(tenantId, blobEntityId);
-                    if (blobEntity != null) {
-                        DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
-                        helper.addAttachment(blobEntity.getName(), dataSource);
+        ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
+        JsonNode jsonConfig = configEntry.jsonConfig;
+        if (!configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
+            JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+            String mailFrom = getStringValue(jsonConfig, "mailFrom");
+            try {
+                MimeMessage mailMsg = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mailMsg, attachments != null && !attachments.isEmpty(), "UTF-8");
+                helper.setFrom(StringUtils.isBlank(from) ? mailFrom : from);
+                helper.setTo(to.split("\\s*,\\s*"));
+                if (!StringUtils.isBlank(cc)) {
+                    helper.setCc(cc.split("\\s*,\\s*"));
+                }
+                if (!StringUtils.isBlank(bcc)) {
+                    helper.setBcc(bcc.split("\\s*,\\s*"));
+                }
+                helper.setSubject(subject);
+                helper.setText(body);
+                if (attachments != null) {
+                    for (BlobEntityId blobEntityId : attachments) {
+                        BlobEntity blobEntity = blobEntityService.findBlobEntityById(tenantId, blobEntityId);
+                        if (blobEntity != null) {
+                            DataSource dataSource = new ByteArrayDataSource(blobEntity.getData().array(), blobEntity.getContentType());
+                            helper.addAttachment(blobEntity.getName(), dataSource);
+                        }
                     }
                 }
+                mailSender.send(helper.getMimeMessage());
+                if (configEntry.isSystem) {
+                    apiUsageClient.report(tenantId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
+                }
+            } catch (Exception e) {
+                throw handleException(e);
             }
-            mailSender.send(helper.getMimeMessage());
-        } catch (Exception e) {
-            throw handleException(e);
         }
     }
 
@@ -451,12 +471,13 @@ public class DefaultMailService implements MailService {
     }
 
     private JsonNode getConfig(TenantId tenantId, String key) throws ThingsboardException {
-        return getConfig(tenantId, key, true);
+        return getConfig(tenantId, key, true).jsonConfig;
     }
 
-    private JsonNode getConfig(TenantId tenantId, String key, boolean allowSystemMailService) throws ThingsboardException {
+    private ConfigEntry getConfig(TenantId tenantId, String key, boolean allowSystemMailService) throws ThingsboardException {
         try {
             JsonNode jsonConfig = null;
+            boolean isSystem = false;
             if (tenantId != null && !tenantId.isNullUid()) {
                 String jsonString = getEntityAttributeValue(tenantId, tenantId, key);
                 if (!StringUtils.isEmpty(jsonString)) {
@@ -479,12 +500,13 @@ public class DefaultMailService implements MailService {
                 AdminSettings settings = adminSettingsService.findAdminSettingsByKey(tenantId, key);
                 if (settings != null) {
                     jsonConfig = settings.getJsonValue();
+                    isSystem = true;
                 }
             }
             if (jsonConfig == null) {
                 throw new IncorrectParameterException("Failed to get mail configuration. Settings not found!");
             }
-            return jsonConfig;
+            return new ConfigEntry(jsonConfig, isSystem);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -499,6 +521,18 @@ public class DefaultMailService implements MailService {
         } else {
             return "";
         }
+    }
+
+    class ConfigEntry {
+
+        JsonNode jsonConfig;
+        boolean isSystem;
+
+        ConfigEntry(JsonNode jsonConfig, boolean isSystem) {
+            this.jsonConfig = jsonConfig;
+            this.isSystem = isSystem;
+        }
+
     }
 
     private String body(JsonNode mailTemplates, String template, Map<String, Object> model) throws ThingsboardException {
