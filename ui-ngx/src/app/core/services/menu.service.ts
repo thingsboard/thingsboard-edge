@@ -490,6 +490,9 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+      sections.push(this.createEntityGroupSection(EntityType.EDGE));
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
         {
@@ -760,6 +763,21 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+      homeSections.push(
+        {
+          name: 'edge.management',
+          places: [
+            {
+              name: 'edge.edges',
+              icon: 'router',
+              path: '/edgeGroups',
+              disabled: disabledItems.indexOf('edge_groups') > -1
+            }
+          ]
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) ||
         this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       const dashboardManagement: HomeSection = {
@@ -933,6 +951,9 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+      sections.push(this.createEntityGroupSection(EntityType.EDGE));
+    }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
@@ -1103,6 +1124,21 @@ export class MenuService {
               icon: 'view_quilt',
               path: '/entityViewGroups',
               disabled: disabledItems.indexOf('entity_view_groups') > -1
+            }
+          ]
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+      homeSections.push(
+        {
+          name: 'edge.management',
+          places: [
+            {
+              name: 'edge.edges',
+              icon: 'router',
+              path: '/edgeGroups',
+              disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]
         }
@@ -1444,6 +1480,11 @@ class EntityGroupSection {
         name = 'entity-group.entity-view-groups';
         path = '/entityViewGroups';
         icon = 'view_quilt';
+        break;
+      case EntityType.EDGE:
+        name = 'entity-group.edge-groups';
+        path = '/edgeGroups';
+        icon = 'router';
         break;
       case EntityType.DASHBOARD:
         name = 'entity-group.dashboard-groups';
