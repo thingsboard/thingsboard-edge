@@ -767,6 +767,7 @@
                             <exclude>**/*.raw</exclude>
                             <exclude>docker/**</exclude>
                             <exclude>**/apache/cassandra/io/**</exclude>
+                            <exclude>.run/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
