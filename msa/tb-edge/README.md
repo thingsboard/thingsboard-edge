@@ -6,75 +6,94 @@ This project provides the build for the ThingsBoard Edge single docker images.
 
 ## Running
 
-Execute the following command to run this docker directly:
+Create docker compose file for ThingsBoard Edge service:
+```
+sudo nano docker-compose.yml
+```
 
-` 
-$ docker run -it -p 19090:19090 -p 11883:11883 -p 15683:15683/udp -v ~/.mytb-data:/data --name mytb thingsboard/tb-edge
-` 
+Add the following lines to the yml file:
 
-Where: 
-    
-- `docker run`              - run this container
-- `-it`                     - attach a terminal session with current ThingsBoard process output
-- `-p 19090:9090`            - connect local port 19090 to exposed internal HTTP port 9090
-- `-p 11883:1883`            - connect local port 11883 to exposed internal MQTT port 1883    
-- `-p 15683:5683`            - connect local port 15683 to exposed internal COAP port 5683 
-- `-v ~/.mytb-data:/data`   - mounts the host's dir `~/.mytb-data` to ThingsBoard DataBase data directory
-- `--name mytb`             - friendly local name of this machine
-- `thingsboard/tb-edge`          - docker image, can be also `thingsboard/tb-postgres` or `thingsboard/tb-cassandra`
+```
+version: '2.2'
 
-TODO: voba - VERIFY FOR WINDOWS
+services:
+  mytbedge:
+    restart: always
+    image: "thingsboard/tb-edge"
+    ports:
+      - "8080:8080"
+      - "1883:1883"
+      - "5683:5683/udp"
+    environment:
+      CLOUD_ROUTING_KEY: PUT_YOUR_EDGE_KEY_HERE # e.g. 19ea7ee8-5e6d-e642-4f32-05440a529015
+      CLOUD_ROUTING_SECRET: PUT_YOUR_EDGE_SECRET_HERE # e.g. bztvkvfqsye7omv9uxlp
+      CLOUD_PRC_HOST: PUT_YOUR_CLOUD_IP # e.g. 192.168.1.250
+    volumes:
+      - ~/.mytb-edge-data:/data
+      - ~/.mytb-edge-logs:/var/log/tb-edge
+```
 
-> **NOTE**: **Windows** users should use docker managed volume instead of host's dir. Create docker volume (for ex. `mytb-data`) before executing `docker run` command:
-> ```
-> $ docker create volume mytb-data
-> ```
-> After you can execute docker run command using `mytb-data` volume instead of `~/.mytb-data`.
-> In order to get access to necessary resources from external IP/Host on **Windows** machine, please execute the following commands:
-> ```
-> $ VBoxManage controlvm "default" natpf1 "tcp-port9090,tcp,,9090,,9090"  
-> $ VBoxManage controlvm "default" natpf1 "tcp-port1883,tcp,,1883,,1883"
-> $ VBoxManage controlvm "default" natpf1 "tcp-port5683,tcp,,5683,,5683"
-> ```
+Where:    
+- `8080:8080` - connect local port 8080 to exposed internal HTTP port 8080
+- `1883:1883` - connect local port 1883 to exposed internal MQTT port 1883  
+- `5683:5683` - connect local port 5683 to exposed internal COAP port 5683   
+- `mytb-edge-data:/data` - mounts the host's dir `mytb-edge-data` to ThingsBoard Edge DataBase data directory
+- `mytb-edge-logs:/var/log/tb-edge` - mounts the host's dir `mytb-edge-logs` to ThingsBoard Edge logs directory
+- `thingsboard/tb-edge` - docker image
+- `CLOUD_ROUTING_KEY` - your edge key
+- `CLOUD_ROUTING_SECRET` - your edge secret
+- `CLOUD_PRC_HOST` - ip address of the machine with the ThingsBoard platform. 
 
-After executing `docker run` command you can open `http://{your-host-ip}:19090` in you browser (for ex. `http://localhost:19090`). You should see ThingsBoard Edge login page.
-Use the following default credentials:
+**NOTE**: do not use *'localhost'* - *'localhost'* is the ip address of the edge service in the docker container 
 
-- **System Administrator**: sysadmin@thingsboard.org / sysadmin
-- **Tenant Administrator**: tenant@thingsboard.org / tenant
-- **Customer User**: customer@thingsboard.org / customer
-    
-You can always change passwords for each account in account profile page.
+- `restart: always` - automatically start ThingsBoard Edge in case of system reboot and restart in case of failure
+
+Before starting Docker container run following commands to create a directory for storing data and logs and then change its owner to docker container user, to be able to change user, chown command is used, which requires sudo permissions (command will request password for a sudo access):
+```
+$ mkdir -p ~/.mytb-edge-data && sudo chown -R 799:799 ~/.mytb-edge-data
+$ mkdir -p ~/.mytb-edge-logs && sudo chown -R 799:799 ~/.mytb-edge-logs
+```
+
+**NOTE**: Replace directory **~/.mytb-edge-data** and **~/.mytb-edge-logs** with directories you’re planning to use in **docker-compose.yml**.
+
+Set the terminal in the directory which contains the `docker-compose.yml` file and execute the following command to up this docker compose directly:
+
+```
+docker-compose pull
+docker-compose up
+```
+
+After executing this command you can open `http://{your-host-ip}:8080` in you browser (for ex. `http://localhost:8080`). 
+You should see ThingsBoard Edge login page.
+
+Please use **tenant administrator** credentials to login to ThingsBoard Edge UI in case Edge connected to **ThingsBoard CE**.
+
+If ThingBoard Edge connected to **ThingsBoard PE** please use credentials of the **user(s)** that were assigned to the Edge during Edge **provisioning**.
+
+## Detaching, stop and start commands
 
 You can detach from session terminal with `Ctrl-p` `Ctrl-q` - the container will keep running in the background.
 
-To reattach to the terminal (to see ThingsBoard logs) run:
-
+In case of any issues you can examine service logs for errors. For example to see ThingsBoard Edge node logs execute the following command:
 ```
-$ docker attach mytb
+docker-compose logs -f mytbedge
 ```
-
 To stop the container:
-
 ```
-$ docker stop mytb
+docker-compose stop
 ```
-
 To start the container:
-
 ```
-$ docker start mytb
-```
-
-## Upgrading
-
-In order to update to the latest image, execute the following commands:
-
-```
-$ docker pull thingsboard/tb-edge
-$ docker stop mytb
-$ docker run -it -v ~/.mytb-data:/data --rm thingsboard/tb-edge upgrade-tb.sh
-$ docker start mytb
+docker-compose start
 ```
 
-**NOTE**: replace host's directory `~/.mytb-data` with directory used during container creation. 
+## Troubleshootings
+
+**Note** If you observe errors related to DNS issues, for example
+
+```bash
+127.0.1.1:53: cannot unmarshal DNS message
+```
+
+You may configure your system to use Google public DNS servers. 
+See corresponding [Linux](https://developers.google.com/speed/public-dns/docs/using#linux) and [Mac OS](https://developers.google.com/speed/public-dns/docs/using#mac_os) instructions.
