@@ -33,7 +33,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
 import { HomeDialogsService } from './home-dialogs.service';
-import { AddEntitiesToEdgeDialogComponent } from "@home/dialogs/add-entities-to-edge-dialog.component";
 import { SelectOwnerDialogComponent } from '@home/dialogs/select-owner-dialog.component';
 import { SelectEntityGroupDialogComponent } from '@home/dialogs/select-entity-group-dialog.component';
 import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-group-dialog.component';
@@ -41,7 +40,6 @@ import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-grou
 @NgModule({
   declarations:
   [
-    AddEntitiesToEdgeDialogComponent,
     SelectOwnerDialogComponent,
     SelectEntityGroupDialogComponent,
     ShareEntityGroupDialogComponent
@@ -51,7 +49,6 @@ import { ShareEntityGroupDialogComponent } from '@home/dialogs/share-entity-grou
     SharedModule
   ],
   exports: [
-    AddEntitiesToEdgeDialogComponent,
     SelectOwnerDialogComponent,
     SelectEntityGroupDialogComponent,
     ShareEntityGroupDialogComponent

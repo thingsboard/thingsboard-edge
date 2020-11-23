@@ -46,17 +46,15 @@ import { Authority } from '@shared/models/authority.enum';
 import { RuleChainsTableConfigResolver } from '@modules/home/pages/rulechain/rulechains-table-config.resolver';
 import { Observable } from 'rxjs';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
-import {
-  ResolvedRuleChainMetaData,
-  RuleChain,
-  ruleChainType,
-} from '@shared/models/rule-chain.models';
+import { ResolvedRuleChainMetaData, RuleChain, ruleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
 import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { ItemBufferService } from '@core/public-api';
 import { MODULES_MAP } from '@shared/public-api';
+import {EdgeRuleChainsTableConfigResolver} from "@home/pages/rulechain/edge-rulechains-table-config.resolver";
+import {EdgesRuleChainsTableConfigResolver} from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
 
 @Injectable()
 export class RuleChainResolver implements Resolve<RuleChain> {
@@ -90,7 +88,7 @@ export class RuleNodeComponentsResolver implements Resolve<Array<RuleNodeCompone
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<Array<RuleNodeComponentDescriptor>> {
-    return this.ruleChainService.getRuleNodeComponents(this.modulesMap, route.data.ruleChainType);
+    return this.ruleChainService.getRuleNodeComponents(this.modulesMap);
   }
 }
 
@@ -118,14 +116,6 @@ export const ruleChainBreadcumbLabelFunction: BreadCrumbLabelFunction<RuleChainP
   if (component.ruleChain.root) {
     label += ` (${translate.instant('rulechain.root')})`;
   }
-
-  // TODO: voba - deaflynx plz verify these changes
-  // <div ng-if="(vm.parentCtl.ruleChainsScope === 'tenant' && item && item.root) ||
-  //  (vm.parentCtl.ruleChainsScope === 'edge' && vm.parentCtl.isRootRuleChain(item)) ||
-  //  (vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isRootRuleChain(item))" translate>rulechain.root </div>
-  //
-  // <div ng-if="(vm.parentCtl.ruleChainsScope === 'edges' && vm.parentCtl.isDefaultEdgeRuleChain(item))" translate>rulechain.default </div>
-
   return label;
 });
 
@@ -233,11 +223,11 @@ const routes: Routes = [
             component: EntitiesTableComponent,
             data: {
               auth: [Authority.TENANT_ADMIN],
-              title: 'edge.rulechains',
+              title: 'rulechain.edge-rulechains',
               ruleChainsType: 'edges'
             },
             resolve: {
-              entitiesTableConfig: RuleChainsTableConfigResolver
+              entitiesTableConfig: EdgesRuleChainsTableConfigResolver
             }
           },
           {
@@ -250,7 +240,7 @@ const routes: Routes = [
                 icon: 'settings_ethernet'
               } as BreadCrumbConfig<RuleChainPageComponent>,
               auth: [Authority.TENANT_ADMIN],
-              title: 'edge.rulechain',
+              title: 'rulechain.edge-rulechain',
               import: false,
               ruleChainType: ruleChainType.edge
             },
@@ -271,7 +261,7 @@ const routes: Routes = [
                 icon: 'settings_ethernet'
               } as BreadCrumbConfig<RuleChainPageComponent>,
               auth: [Authority.TENANT_ADMIN],
-              title: 'edge.rulechain',
+              title: 'rulechain.edge-rulechain',
               import: true,
               ruleChainType: ruleChainType.edge
             },
@@ -294,7 +284,9 @@ const routes: Routes = [
     RuleChainResolver,
     ResolvedRuleChainMetaDataResolver,
     RuleNodeComponentsResolver,
-    RuleChainImportGuard
+    RuleChainImportGuard,
+    EdgeRuleChainsTableConfigResolver,
+    EdgesRuleChainsTableConfigResolver
   ]
 })
 export class RuleChainRoutingModule { }

@@ -50,7 +50,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
 
   entityType = EntityType;
 
-  // assetScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
+  // assetScope: 'tenant' | 'customer' | 'customer_user';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,

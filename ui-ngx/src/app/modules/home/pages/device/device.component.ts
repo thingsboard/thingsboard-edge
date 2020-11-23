@@ -59,7 +59,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
-//  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
+//  deviceScope: 'tenant' | 'customer' | 'customer_user';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,

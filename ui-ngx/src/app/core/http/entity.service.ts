@@ -100,10 +100,7 @@ import {
   singleEntityDataPageLink,
   StringOperation
 } from '@shared/models/query/query.models';
-import { alarmFields } from '@shared/models/alarm.models';
-import { EdgeService } from "@core/http/edge.service";
-import { ruleChainType } from "@shared/models/rule-chain.models";
-import { Router } from "@angular/router";
+import {alarmFields} from '@shared/models/alarm.models';
 
 @Injectable({
   providedIn: 'root'
@@ -114,7 +111,6 @@ export class EntityService {
     private http: HttpClient,
     private store: Store<AppState>,
     private deviceService: DeviceService,
-    private edgeService: EdgeService,
     private assetService: AssetService,
     private entityViewService: EntityViewService,
     private tenantService: TenantService,
@@ -124,16 +120,16 @@ export class EntityService {
     private dashboardService: DashboardService,
     private entityRelationService: EntityRelationService,
     private attributeService: AttributeService,
-    private utils: UtilsService,
-    private router: Router,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
     private schedulerEventService: SchedulerEventService,
     private blobEntityService: BlobEntityService,
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
-    private userPermissionsService: UserPermissionsService
-  ) { }
+    private userPermissionsService: UserPermissionsService,
+    private utils: UtilsService
+  ) {
+  }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
                               config?: RequestConfig): Observable<BaseData<EntityId>> {
@@ -145,9 +141,6 @@ export class EntityService {
         break;
       case EntityType.ASSET:
         observable = this.assetService.getAsset(entityId, config);
-        break;
-      case EntityType.EDGE:
-        observable = this.edgeService.getEdge(entityId, config);
         break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.getEntityView(entityId, config);
@@ -342,9 +335,6 @@ export class EntityService {
       case EntityType.ASSET:
         observable = this.assetService.getAssets(entityIds, config);
         break;
-      case EntityType.EDGE:
-        observable = this.edgeService.getEdges(entityIds, config);
-        break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.getEntityViews(entityIds, config);
         break;
@@ -439,18 +429,6 @@ export class EntityService {
           entitiesObservable = this.assetService.getUserAssets(pageLink, subType, config);
         }
         break;
-      case EntityType.EDGE:
-        pageLink.sortOrder.property = 'name';
-        // TODO: voba - deaflynx - validate getTenantEdgeInfos
-        // looks like this method is not required in PE version?
-        // entitiesObservable = this.edgeService.getTenantEdgeInfos(pageLink
-        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
-          entitiesObservable = this.edgeService.getTenantEdges(pageLink,
-            subType, config);
-        } else {
-          entitiesObservable = this.edgeService.getUserEdges(pageLink, subType, config);
-        }
-        break;
       case EntityType.ENTITY_VIEW:
         pageLink.sortOrder.property = 'name';
         if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
@@ -474,11 +452,7 @@ export class EntityService {
         break;
       case EntityType.RULE_CHAIN:
         pageLink.sortOrder.property = 'name';
-        if (this.router.url.includes('edge')) {
-          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, ruleChainType.edge, config);
-        } else {
-          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, ruleChainType.core, config);
-        }
+        entitiesObservable = this.ruleChainService.getRuleChains(pageLink, config);
         break;
       case EntityType.DASHBOARD:
         pageLink.sortOrder.property = 'title';
@@ -787,8 +761,6 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewType:
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
-        case AliasFilterType.edgeType:
-          return entityTypes.indexOf(EntityType.EDGE) > -1;
         case AliasFilterType.relationsQuery:
           if (filter.filters && filter.filters.length) {
             let match = false;
@@ -815,8 +787,6 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewSearchQuery:
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
-        case AliasFilterType.edgeSearchQuery:
-          return entityTypes.indexOf(EntityType.EDGE) > -1;
       }
     }
     return false;
@@ -857,8 +827,6 @@ export class EntityService {
         return entityType === EntityType.ASSET;
       case AliasFilterType.deviceType:
         return entityType === EntityType.DEVICE;
-      case AliasFilterType.edgeType:
-        return entityType === EntityType.EDGE;
       case AliasFilterType.entityViewType:
         return entityType === EntityType.ENTITY_VIEW;
       case AliasFilterType.relationsQuery:
@@ -867,8 +835,6 @@ export class EntityService {
         return entityType === EntityType.ASSET;
       case AliasFilterType.deviceSearchQuery:
         return entityType === EntityType.DEVICE;
-      case AliasFilterType.edgeSearchQuery:
-        return entityType === EntityType.EDGE;
       case AliasFilterType.entityViewSearchQuery:
         return entityType === EntityType.ENTITY_VIEW;
     }
@@ -886,7 +852,6 @@ export class EntityService {
       case Authority.TENANT_ADMIN:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
-        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
@@ -905,7 +870,6 @@ export class EntityService {
       case Authority.CUSTOMER_USER:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
-        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.ENTITY_VIEW);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
@@ -970,7 +934,6 @@ export class EntityService {
         entityFieldKeys.push(entityFields.type.keyName);
         break;
       case EntityType.DEVICE:
-      case EntityType.EDGE:
       case EntityType.ASSET:
         entityFieldKeys.push(entityFields.name.keyName);
         entityFieldKeys.push(entityFields.type.keyName);
@@ -1156,9 +1119,6 @@ export class EntityService {
       case AliasFilterType.entityViewType:
         result.entityFilter = deepClone(filter);
         return of(result);
-      case AliasFilterType.edgeType:
-        result.entityFilter = deepClone(filter);
-        return of(result);
       case AliasFilterType.apiUsageState:
         result.entityFilter = deepClone(filter);
         return of(result);
@@ -1183,7 +1143,6 @@ export class EntityService {
         }
       case AliasFilterType.assetSearchQuery:
       case AliasFilterType.deviceSearchQuery:
-      case AliasFilterType.edgeSearchQuery:
       case AliasFilterType.entityViewSearchQuery:
         result.stateEntity = filter.rootStateEntity;
         if (result.stateEntity && stateEntityId) {

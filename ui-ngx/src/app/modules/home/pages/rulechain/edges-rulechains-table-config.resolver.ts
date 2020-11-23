@@ -52,13 +52,18 @@ import { ItemBufferService } from '@core/services/item-buffer.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UtilsService } from '@core/services/utils.service';
+import {PageLink} from "@shared/models/page/page-link";
+import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
+import {map} from "rxjs/operators";
+import {isDefined} from "@core/utils";
 
 @Injectable()
-export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
+export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
 
   private readonly config: EntityTableConfig<RuleChain> = new EntityTableConfig<RuleChain>();
 
   constructor(private ruleChainService: RuleChainService,
+              private edgeRuleChainService: EdgeRuleChainService,
               private dialogService: DialogService,
               private importExport: ImportExportService,
               private itembuffer: ItemBufferService,
@@ -115,11 +120,22 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         onAction: ($event, entity) => this.exportRuleChain($event, entity)
       },
       {
-        name: this.translate.instant('rulechain.set-root'),
+        name: this.translate.instant('rulechain.set-default-root-edge'),
         icon: 'flag',
-        isEnabled: (ruleChain) => !ruleChain.root &&
-          this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
-        onAction: ($event, entity) => this.setRootRuleChain($event, entity)
+        isEnabled: (entity) => this.isNonRootRuleChain(entity),
+        onAction: ($event, entity) => this.setDefaultRootEdgeRuleChain($event, entity)
+      },
+      {
+        name: this.translate.instant('rulechain.set-default-edge'),
+        icon: 'bookmark_outline',
+        isEnabled: (entity) => this.isNonDefaultEdgeRuleChain(entity),
+        onAction: ($event, entity) => this.setDefaultEdgeRuleChain($event, entity)
+      },
+      {
+        name: this.translate.instant('rulechain.remove-default-edge'),
+        icon: 'bookmark',
+        isEnabled: (entity) => this.isDefaultEdgeRuleChain(entity),
+        onAction: ($event, entity) => this.removeDefaultEdgeRuleChain($event, entity)
       }
     );
 
@@ -129,9 +145,9 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.deleteEntitiesTitle = count => this.translate.instant('rulechain.delete-rulechains-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('rulechain.delete-rulechains-text');
 
-    this.config.entitiesFetchFunction = pageLink => this.ruleChainService.getRuleChains(pageLink);
+    this.config.entitiesFetchFunction = pageLink => this.fetchEdgeRuleChains(pageLink);
     this.config.loadEntity = id => this.ruleChainService.getRuleChain(id.id);
-    this.config.saveEntity = ruleChain => this.ruleChainService.saveRuleChain({...ruleChain, type: ruleChainType.core});
+    this.config.saveEntity = ruleChain => this.ruleChainService.saveRuleChain({...ruleChain, type: ruleChainType.edge});
     this.config.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
     this.config.onEntityAction = action => this.onRuleChainAction(action);
     this.config.deleteEnabled = (ruleChain) => ruleChain && !ruleChain.root &&
@@ -141,7 +157,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
   }
 
   resolve(): EntityTableConfig<RuleChain> {
-    this.config.tableTitle = this.translate.instant('rulechain.rulechains');
+    this.config.tableTitle = this.translate.instant('rulechain.edge-rulechains');
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
@@ -153,7 +169,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     this.importExport.importRuleChain().subscribe((ruleChainImport) => {
       if (ruleChainImport) {
         this.itembuffer.storeRuleChainImport(ruleChainImport);
-        this.router.navigateByUrl(`ruleChains/core/ruleChain/import`);
+        this.router.navigateByUrl(`ruleChains/edge/ruleChain/import`);
       }
     });
   }
@@ -162,7 +178,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    this.router.navigateByUrl(`ruleChains/core/${ruleChain.id.id}`);
+    this.router.navigateByUrl(`ruleChains/edge/${ruleChain.id.id}`);
   }
 
   exportRuleChain($event: Event, ruleChain: RuleChain) {
@@ -207,6 +223,100 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
         return true;
     }
     return false;
+  }
+
+  // TODO move to service
+  fetchEdgeRuleChains(pageLink: PageLink) {
+    let defaultEdgeRuleChainIds: Array<string> = [];
+    this.edgeRuleChainService.getDefaultEdgeRuleChains().subscribe(ruleChains => {
+        ruleChains.map(ruleChain => defaultEdgeRuleChainIds.push(ruleChain.id.id))
+    });
+    return this.edgeRuleChainService.getRuleChains(pageLink).pipe(
+      map(response => {
+        response.data.map(ruleChain =>
+          ruleChain.isDefault = defaultEdgeRuleChainIds.some(id => ruleChain.id.id.includes(id))
+        );
+        return response;
+      })
+    );
+  }
+
+  setDefaultRootEdgeRuleChain($event: Event, ruleChain: RuleChain) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('rulechain.set-default-root-edge-rulechain-title', {ruleChainName: ruleChain.name}),
+      this.translate.instant('rulechain.set-default-root-edge-rulechain-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.edgeRuleChainService.setDefaultRootEdgeRuleChain(ruleChain.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          );
+        }
+      }
+    );
+  }
+
+  setDefaultEdgeRuleChain($event: Event, ruleChain: RuleChain) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('rulechain.set-default-edge-title', {ruleChainName: ruleChain.name}),
+      this.translate.instant('rulechain.set-default-edge-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.edgeRuleChainService.addDefaultEdgeRuleChain(ruleChain.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          )
+        }
+      }
+    );
+  }
+
+  removeDefaultEdgeRuleChain($event: Event, ruleChain: RuleChain) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialogService.confirm(
+      this.translate.instant('rulechain.remove-default-edge-title', {ruleChainName: ruleChain.name}),
+      this.translate.instant('rulechain.remove-default-edge-text'),
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes'),
+      true
+    ).subscribe((res) => {
+        if (res) {
+          this.edgeRuleChainService.removeDefaultEdgeRuleChain(ruleChain.id.id).subscribe(
+            () => {
+              this.config.table.updateData();
+            }
+          )
+        }
+      }
+    );
+  }
+
+  isNonRootRuleChain(ruleChain: RuleChain) {
+    return (isDefined(ruleChain)) && !ruleChain.root;
+  }
+
+  isDefaultEdgeRuleChain(ruleChain) {
+    return (isDefined(ruleChain)) && !ruleChain.root && ruleChain.isDefault;
+  }
+
+  isNonDefaultEdgeRuleChain(ruleChain) {
+    return (isDefined(ruleChain)) && !ruleChain.root && !ruleChain.isDefault;
   }
 
 }

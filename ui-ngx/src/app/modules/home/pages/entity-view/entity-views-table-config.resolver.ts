@@ -59,11 +59,6 @@ import { EntityView } from '@app/shared/models/entity-view.models';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EntityViewTableHeaderComponent } from '@modules/home/pages/entity-view/entity-view-table-header.component';
 import { EntityViewTabsComponent } from '@home/pages/entity-view/entity-view-tabs.component';
-import { EdgeService } from "@core/http/edge.service";
-import {
-  AddEntitiesToEdgeDialogComponent,
-  AddEntitiesToEdgeDialogData
-} from "@home/dialogs/add-entities-to-edge-dialog.component";
 import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
@@ -77,7 +72,6 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
               private broadcast: BroadcastService,
               private entityViewService: EntityViewService,
               private customerService: CustomerService,
-              private edgeService: EdgeService,
               private dialogService: DialogService,
               private translate: TranslateService,
               private datePipe: DatePipe,
@@ -120,8 +114,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     const routeParams = route.params;
     this.config.componentsData = {
       entityViewScope: route.data.entityViewsType,
-      entityViewType: '',
-      edgeId: routeParams.edgeId
+      entityViewType: ''
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -141,12 +134,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           } else {
             this.config.tableTitle = parentCustomer.title + ': ' + this.translate.instant('entity-view.entity-views');
           }
-        } else if (this.config.componentsData.entityViewScope === 'edge') {
-          this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(
-            edge => this.config.tableTitle = edge.name + ': ' + this.translate.instant('entity-view.entity-views')
-          );
-        }
-        else {
+        } else {
           this.config.tableTitle = this.translate.instant('entity-view.entity-views');
         }
         this.config.columns = this.configureColumns(this.config.componentsData.entityViewScope);
@@ -185,15 +173,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
       this.config.entitiesFetchFunction = pageLink =>
         this.entityViewService.getTenantEntityViews(pageLink, this.config.componentsData.entityViewType);
       this.config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
-    }
-    /*
-    // TODO: deaflynx
-    else if (entityViewScope === 'edge') {
-      this.config.entitiesFetchFunction = pageLink =>
-        this.entityViewService.getEdgeEntityViews(this.config.componentsData.edgeId, pageLink, this.config.componentsData.entityViewType);
-    }
-     */
-    else {
+    } else {
       this.config.entitiesFetchFunction = pageLink =>
         this.entityViewService.getCustomerEntityViews(this.customerId, pageLink, this.config.componentsData.entityViewType);
       // this.config.deleteEntity = id => this.entityViewService.unassignEntityViewFromCustomer(id.id);
@@ -245,17 +225,6 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
-    }
-    if (entityViewScope === 'edge') {
-      actions.push(
-        {
-          name: this.translate.instant('edge.unassign-from-edge'),
-          icon: 'portable_wifi_off',
-          isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
-        }
-      );
-    }
     }*/
     return actions;
   }
@@ -281,17 +250,6 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entities) => this.unassignEntityViewsFromCustomer($event, entities)
         }
       );
-    }
-    if (entityViewScope === 'edge') {
-      actions.push(
-        {
-          name: this.translate.instant('entity-view.unassign-entity-views-from-edge'),
-          icon: 'portable_wifi_off',
-          isEnabled: true,
-          onAction: ($event, entities) => this.unassignEntityViewsFromEdge($event, entities)
-        }
-      );
-    }
     }*/
     return actions;
   }
@@ -307,17 +265,6 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event) => this.addEntityViewsToCustomer($event)
         }
       );
-    }
-    if (entityViewScope === 'edge') {
-      actions.push(
-        {
-          name: this.translate.instant('entity-view.assign-new-entity-view'),
-          icon: 'add',
-          isEnabled: () => true,
-          onAction: ($event) => this.addEntityViewsToEdge($event)
-        }
-      );
-    }
     }*/
     return actions;
   }
@@ -458,78 +405,5 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
     }
     return false;
   }
-
-  /*
-  addEntityViewsToEdge($event: Event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        edgeId: this.config.componentsData.edgeId,
-        entityType: EntityType.ENTITY_VIEW
-      }
-    }).afterClosed()
-      .subscribe((res) => {
-        if (res) {
-          this.config.table.updateData();
-        }
-      });
-  }
-
-  unassignFromEdge($event: Event, entityView: EntityViewInfo) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('entity-view.unassign-entity-view-from-edge-title', {entityViewName: entityView.name}),
-      this.translate.instant('entity-view.unassign-entity-view-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          this.entityViewService.unassignEntityViewFromEdge(this.config.componentsData.edgeId, entityView.id.id).subscribe(
-            () => {
-              this.config.table.updateData();
-            }
-          );
-        }
-      }
-    );
-  }
-
-  unassignEntityViewsFromEdge($event: Event, entityViews: Array<EntityViewInfo>) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    this.dialogService.confirm(
-      this.translate.instant('entity-view.unassign-entity-views-from-edge-title', {count: entityViews.length}),
-      this.translate.instant('entity-view.unassign-entity-views-from-edge-text'),
-      this.translate.instant('action.no'),
-      this.translate.instant('action.yes'),
-      true
-    ).subscribe((res) => {
-        if (res) {
-          const tasks: Observable<any>[] = [];
-          entityViews.forEach(
-            (entityView) => {
-              tasks.push(this.entityViewService.unassignEntityViewFromEdge(this.config.componentsData.edgeId, entityView.id.id));
-            }
-          );
-          forkJoin(tasks).subscribe(
-            () => {
-              this.config.table.updateData();
-            }
-          );
-        }
-      }
-    );
-  }
-
-   */
 
 }

@@ -384,42 +384,35 @@ export class MenuService {
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'rulechain.rulechains',
-          type: 'link',
-          path: '/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('rule_chains') > -1
-        }
-      );
-
-      // TODO: voba - deaflynx to fix
-      /*{
-        id: guid(),
-          name: 'rulechain.rulechains',
-        type: 'toggle',
-        path: '/ruleChains',
-        height: '80px',
-        icon: 'settings_ethernet',
-        pages: [
+      const pages: Array<MenuSection> = [
         {
           id: guid(),
           name: 'rulechain.core-rulechains',
           type: 'link',
           path: '/ruleChains/core',
-          icon: 'settings_ethernet'
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('core_rule_chains') > -1 //TODO deaflynx verify
         },
         {
           id: guid(),
           name: 'rulechain.edge-rulechains',
           type: 'link',
           path: '/ruleChains/edge',
-          icon: 'router'
+          icon: 'router',
+          disabled: disabledItems.indexOf('edge_rule_chains') > -1  //TODO deaflynx verify
         }
       ]
-      }*/
+      sections.push(
+        {
+          id: guid(),
+          name: 'rulechain.rulechains',
+          type: 'toggle',
+          path: '/ruleChains',
+          icon: 'settings_ethernet',
+          pages,
+          asyncPages: of(pages)
+        }
+      );
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
       sections.push(
@@ -626,24 +619,6 @@ export class MenuService {
           ]
         }
       );
-      // TODO: voba - deaflynx to fix
-      /*
-      {
-        name: 'rulechain.management',
-        places: [
-          {
-            name: 'rulechain.rulechains',
-            icon: 'settings_ethernet',
-            path: '/ruleChains'
-          },
-          {
-            name: 'rulechain.edge-rulechains',
-            icon: 'router',
-            path: '/edgesRuleChains'
-          }
-        ]
-      }
-       */
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
       homeSections.push(
@@ -785,19 +760,6 @@ export class MenuService {
         }
       );
     }
-    // TODO: voba - deaflynx to fix
-    /*
-      {
-        name: 'edge.management',
-        places: [
-          {
-            name: 'edge.edges',
-            icon: 'router',
-            path: '/edges'
-          }
-        ]
-      }
-     */
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) ||
         this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       const dashboardManagement: HomeSection = {

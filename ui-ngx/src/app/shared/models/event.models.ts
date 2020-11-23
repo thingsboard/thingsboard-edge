@@ -39,8 +39,7 @@ export enum EventType {
   ERROR = 'ERROR',
   LC_EVENT = 'LC_EVENT',
   STATS = 'STATS',
-  RAW_DATA = 'RAW_DATA',
-  EDGE_EVENT = 'EDGE_EVENT'
+  RAW_DATA = 'RAW_DATA'
 }
 
 export enum DebugEventType {
@@ -50,42 +49,12 @@ export enum DebugEventType {
   DEBUG_INTEGRATION = 'DEBUG_INTEGRATION'
 }
 
-export enum EdgeEventType {
-  DASHBOARD = "DASHBOARD",
-  ASSET = "ASSET",
-  DEVICE = "DEVICE",
-  ENTITY_VIEW = "ENTITY_VIEW",
-  ALARM = "ALARM",
-  RULE_CHAIN = "RULE_CHAIN",
-  RULE_CHAIN_METADATA = "RULE_CHAIN_METADATA",
-  EDGE = "EDGE",
-  USER = "USER",
-  CUSTOMER = "CUSTOMER",
-  RELATION = "RELATION",
-  WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
-  WIDGET_TYPE = "WIDGET_TYPE",
-  ADMIN_SETTINGS = "ADMIN_SETTINGS"
-}
-
-export enum EdgeEventStatus {
-  DEPLOYED = "DEPLOYED",
-  PENDING = "PENDING"
-}
-
-export const edgeEventStatusColor = new Map<EdgeEventStatus, string> (
-  [
-    [EdgeEventStatus.DEPLOYED, '#000000'],
-    [EdgeEventStatus.PENDING, '#9e9e9e']
-  ]
-);
-
 export const eventTypeTranslations = new Map<EventType | DebugEventType, string>(
   [
     [EventType.ERROR, 'event.type-error'],
     [EventType.LC_EVENT, 'event.type-lc-event'],
     [EventType.STATS, 'event.type-stats'],
     [EventType.RAW_DATA, 'event.type-rw-event'],
-    [EventType.EDGE_EVENT, 'event.type-edge-event'],
     [DebugEventType.DEBUG_RULE_NODE, 'event.type-debug-rule-node'],
     [DebugEventType.DEBUG_RULE_CHAIN, 'event.type-debug-rule-chain'],
     [DebugEventType.DEBUG_CONVERTER, 'event.type-debug-converter'],
@@ -117,12 +86,6 @@ export interface RawDataEventBody extends BaseEventBody {
   message: string;
   messageType: ContentType;
   uuid: string;
-}
-
-export interface EdgeEventBody extends BaseEventBody {
-  type: string;
-  action: string;
-  entityId: string;
 }
 
 export interface DebugRuleNodeEventBody extends BaseEventBody {
@@ -157,7 +120,7 @@ export interface DebugIntegrationEventBody extends BaseEventBody {
 }
 
 export type EventBody = ErrorEventBody & LcEventEventBody & StatsEventBody & RawDataEventBody
-                        & DebugRuleNodeEventBody & DebugConverterEventBody & DebugIntegrationEventBody & EdgeEventBody;
+                        & DebugRuleNodeEventBody & DebugConverterEventBody & DebugIntegrationEventBody;
 
 export interface Event extends BaseData<EventId> {
   tenantId: TenantId;
@@ -165,5 +128,4 @@ export interface Event extends BaseData<EventId> {
   type: string;
   uid: string;
   body: EventBody;
-  action: string; //TODO: refactor edgeEvents - move parameters to the entity.body
 }

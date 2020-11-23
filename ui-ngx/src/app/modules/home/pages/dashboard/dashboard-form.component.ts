@@ -48,8 +48,8 @@ import { isEqual } from '@core/utils';
 })
 export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
 
-//  dashboardScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
-//  customerId: string;
+  // dashboardScope: 'tenant' | 'customer' | 'customer_user';
+  // customerId: string;
 
   isPublic: boolean;
   publicLink: string;
