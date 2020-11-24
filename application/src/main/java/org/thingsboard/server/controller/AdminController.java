@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.mail.MailTemplates;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.update.UpdateService;
 
@@ -108,6 +109,11 @@ public class AdminController extends BaseController {
                 adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key));
             } else {
                 adminSettings = getTenantAdminSettings(key, systemByDefault);
+                if (adminSettings.getKey().equals("mailTemplates")) {
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_ENABLED);
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_WARNING);
+                    ((ObjectNode) adminSettings.getJsonValue()).remove(MailTemplates.API_USAGE_STATE_DISABLED);
+                }
             }
             if (adminSettings.getKey().equals("mail")) {
                 ((ObjectNode) adminSettings.getJsonValue()).put("password", "");

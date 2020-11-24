@@ -279,7 +279,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
-        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        JsonNode mailTemplates = getConfig(null, "mailTemplates");
         String subject = null;
 
         Map<String, Object> model = new HashMap<>();
