@@ -66,6 +66,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { UtilsService } from '@core/services/utils.service';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable()
 export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Device>> {
@@ -119,7 +120,8 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     const routeParams = route.params;
     this.config.componentsData = {
       deviceScope: route.data.devicesType,
-      deviceProfileId: null
+      deviceProfileId: null,
+      deviceCredential: null
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -478,6 +480,11 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       data: {
         deviceId: device.id.id,
         isReadOnly: this.config.componentsData.deviceScope === 'customer_user'
+      }
+    }).afterClosed().subscribe(deviceCredential => {
+      if (isDefinedAndNotNull(deviceCredential)) {
+        this.config.componentsData.deviceCredential = deviceCredential;
+        this.config.table.onEntityUpdated(device);
       }
     });
   }

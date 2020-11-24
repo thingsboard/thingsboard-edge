@@ -140,6 +140,10 @@ public class TenantApiUsageState {
                 return apiUsageState.getDbStorageState();
             case JS:
                 return apiUsageState.getJsExecState();
+            case EMAIL:
+                return apiUsageState.getEmailExecState();
+            case SMS:
+                return apiUsageState.getSmsExecState();
             default:
                 return ApiUsageStateValue.ENABLED;
         }
@@ -159,6 +163,12 @@ public class TenantApiUsageState {
                 break;
             case JS:
                 apiUsageState.setJsExecState(value);
+                break;
+            case EMAIL:
+                apiUsageState.setEmailExecState(value);
+                break;
+            case SMS:
+                apiUsageState.setSmsExecState(value);
                 break;
         }
         return !currentValue.equals(value);

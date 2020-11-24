@@ -318,6 +318,9 @@ public class DefaultMailService implements MailService {
                 return "invoke";
             case RE:
                 return "process";
+            case EMAIL:
+            case SMS:
+                return "send";
             default:
                 throw new RuntimeException("Not implemented!");
         }
@@ -333,6 +336,9 @@ public class DefaultMailService implements MailService {
                 return "invoked";
             case RE:
                 return "processed";
+            case EMAIL:
+            case SMS:
+                return "sent";
             default:
                 throw new RuntimeException("Not implemented!");
         }
@@ -351,6 +357,10 @@ public class DefaultMailService implements MailService {
                 return valueInM + " out of " + thresholdInM + " allowed JavaScript functions";
             case RE_EXEC_COUNT:
                 return valueInM + " out of " + thresholdInM + " allowed Rule Engine messages";
+            case EMAIL_EXEC_COUNT:
+                return valueInM + " out of " + thresholdInM + " allowed Email messages";
+            case SMS_EXEC_COUNT:
+                return valueInM + " out of " + thresholdInM + " allowed SMS messages";
             default:
                 throw new RuntimeException("Not implemented!");
         }
@@ -367,6 +377,10 @@ public class DefaultMailService implements MailService {
                 return "JavaScript functions " + getValueAsString(value) + " times";
             case RE_EXEC_COUNT:
                 return getValueAsString(value) + " Rule Engine messages";
+            case EMAIL_EXEC_COUNT:
+                return getValueAsString(value) + " Email messages";
+            case SMS_EXEC_COUNT:
+                return getValueAsString(value) + " SMS messages";
             default:
                 throw new RuntimeException("Not implemented!");
         }

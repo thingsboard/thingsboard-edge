@@ -58,6 +58,7 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
 import { DeviceWizardDialogComponent } from '@home/components/wizard/device-wizard-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<Device> {
@@ -77,6 +78,10 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
 
     config.entityComponent = DeviceComponent;
 
+    config.componentsData = {
+      deviceCredential: null
+    };
+
     config.entityTitle = (device) => device ?
       this.utils.customTranslation(device.name, device.name) : '';
 
@@ -94,7 +99,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     };
     config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
 
-    config.onEntityAction = action => this.onDeviceAction(action);
+    config.onEntityAction = action => this.onDeviceAction(action, config);
     config.addEntity = () => this.deviceWizard(config);
 
     if (config.settings.enableCredentialsManagement) {
@@ -105,7 +110,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
             name: this.translate.instant('device.view-credentials'),
             icon: 'security',
             isEnabled: config.manageCredentialsEnabled,
-            onAction: ($event, entity) => this.manageCredentials($event, entity, true)
+            onAction: ($event, entity) => this.manageCredentials($event, entity, true, config)
           }
         );
       }
@@ -116,7 +121,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
             name: this.translate.instant('device.manage-credentials'),
             icon: 'security',
             isEnabled: config.manageCredentialsEnabled,
-            onAction: ($event, entity) => this.manageCredentials($event, entity, false)
+            onAction: ($event, entity) => this.manageCredentials($event, entity, false, config)
           }
         );
       }
@@ -161,7 +166,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     });
   }
 
-  manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean) {
+  manageCredentials($event: Event, device: Device | ShortEntityView, isReadOnly: boolean, config: GroupEntityTableConfig<Device>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -173,16 +178,21 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         deviceId: device.id.id,
         isReadOnly
       }
+    }).afterClosed().subscribe(deviceCredential => {
+      if (isDefinedAndNotNull(deviceCredential)) {
+        config.componentsData.deviceCredential = deviceCredential;
+        config.table.onEntityUpdated(device);
+      }
     });
   }
 
-  onDeviceAction(action: EntityAction<Device>): boolean {
+  onDeviceAction(action: EntityAction<Device>, config: GroupEntityTableConfig<Device>): boolean {
     switch (action.action) {
       case 'manageCredentials':
-        this.manageCredentials(action.event, action.entity, false);
+        this.manageCredentials(action.event, action.entity, false, config);
         return true;
       case 'viewCredentials':
-        this.manageCredentials(action.event, action.entity, true);
+        this.manageCredentials(action.event, action.entity, true, config);
         return true;
     }
     return false;

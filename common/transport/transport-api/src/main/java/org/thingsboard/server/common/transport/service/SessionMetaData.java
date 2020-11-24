@@ -43,12 +43,11 @@ import java.util.concurrent.ScheduledFuture;
 @Data
 class SessionMetaData {
 
-    private final SessionInfoProto sessionInfo;
+    private volatile SessionInfoProto sessionInfo;
     private final SessionType sessionType;
     private final SessionMsgListener listener;
 
-    private ScheduledFuture scheduledFuture;
-
+    private volatile ScheduledFuture scheduledFuture;
     private volatile long lastActivityTime;
     private volatile long lastReportedActivityTime;
     private volatile boolean subscribedToAttributes;
@@ -66,11 +65,15 @@ class SessionMetaData {
         this.lastActivityTime = System.currentTimeMillis();
     }
 
-    void setScheduledFuture(ScheduledFuture scheduledFuture) { this.scheduledFuture = scheduledFuture; }
+    void setScheduledFuture(ScheduledFuture scheduledFuture) {
+        this.scheduledFuture = scheduledFuture;
+    }
 
     public ScheduledFuture getScheduledFuture() {
         return scheduledFuture;
     }
 
-    public boolean hasScheduledFuture() { return null != this.scheduledFuture; }
+    public boolean hasScheduledFuture() {
+        return null != this.scheduledFuture;
+    }
 }

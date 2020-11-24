@@ -28,10 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.session;
+package org.thingsboard.server.common.transport.session;
 
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SessionContext {
@@ -40,5 +43,7 @@ public interface SessionContext {
 
     int nextMsgId();
 
-    void onProfileUpdate(DeviceProfile deviceProfile);
+    void onDeviceProfileUpdate(TransportProtos.SessionInfoProto sessionInfo, DeviceProfile deviceProfile);
+
+    void onDeviceUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt);
 }

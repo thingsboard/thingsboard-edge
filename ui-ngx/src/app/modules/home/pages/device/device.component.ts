@@ -59,6 +59,8 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
+  componentsData: any;
+
 //  deviceScope: 'tenant' | 'customer' | 'customer_user';
 
   constructor(protected store: Store<AppState>,
@@ -73,6 +75,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   ngOnInit() {
     // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
+    this.componentsData = this.entitiesTableConfigValue.componentsData;
     super.ngOnInit();
   }
 
@@ -141,26 +144,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  copyAccessToken($event) {
-    if (this.entity.id) {
-      this.deviceService.getDeviceCredentials(this.entity.id.id, true).subscribe(
-        (deviceCredentials) => {
-          const credentialsId = deviceCredentials.credentialsId;
-          if (this.clipboardService.copyFromContent(credentialsId)) {
-            this.store.dispatch(new ActionNotificationShow(
-              {
-                message: this.translate.instant('device.accessTokenCopiedMessage'),
-                type: 'success',
-                duration: 750,
-                verticalPosition: 'bottom',
-                horizontalPosition: 'right'
-              }));
-          }
-        }
-      );
-    }
   }
 
   onDeviceProfileUpdated() {
