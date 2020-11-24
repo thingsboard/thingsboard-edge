@@ -93,7 +93,6 @@ export class CopyDeviceCredentialsComponent implements OnDestroy {
       filter(credential => isDefinedAndNotNull(credential)),
       distinctUntilChanged((prev, curr) => isEqual(prev, curr))
     ).subscribe(deviceCredentials => {
-      console.warn(deviceCredentials);
       this.processingValue(deviceCredentials);
     });
   }
