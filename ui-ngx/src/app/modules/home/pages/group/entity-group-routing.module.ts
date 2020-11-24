@@ -321,6 +321,48 @@ const DASHBOARD_GROUPS_ROUTE: Route =   {
   ]
 };
 
+const EDGE_GROUPS_ROUTE: Route = {
+  path: 'edgeGroups',
+  data: {
+    groupType: EntityType.EDGE,
+    breadcrumb: {
+      label: 'edge.edge-groups',
+      icon: 'router'
+    }
+  },
+  children: [
+    {
+      path: '',
+      component: EntitiesTableComponent,
+      data: {
+        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+        title: 'edge.edge-groups',
+        groupType: EntityType.EDGE
+      },
+      resolve: {
+        entityGroup: EntityGroupResolver,
+        entitiesTableConfig: EntityGroupsTableConfigResolver
+      }
+    },
+    {
+      path: ':entityGroupId',
+      component: GroupEntitiesTableComponent,
+      data: {
+        auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+        title: 'edge.edge-group',
+        groupType: EntityType.EDGE,
+        breadcrumb: {
+          icon: 'router',
+          labelFunction: groupEntitiesLabelFunction
+        } as BreadCrumbConfig<GroupEntitiesTableComponent>
+      },
+      resolve: {
+        entityGroup: EntityGroupResolver
+      }
+    }
+  ]
+};
+
 const routes: Routes = [
   {
     path: 'customerGroups',
@@ -472,7 +514,19 @@ const routes: Routes = [
                 }
               }
             }
-          }
+          },
+          { ...EDGE_GROUPS_ROUTE, ...{
+              path: ':customerId/edgeGroups',
+              data: {
+                breadcrumb: {
+                  labelFunction: (route, translate, component, data) => {
+                    return data.entityGroup.customerGroupsTitle;
+                  },
+                  icon: 'router'
+                }
+              }
+            }
+          },
         ]
       }
     ]
@@ -482,6 +536,7 @@ const routes: Routes = [
   ENTITY_VIEW_GROUPS_ROUTE,
   USER_GROUPS_ROUTE,
   DASHBOARD_GROUPS_ROUTE,
+  EDGE_GROUPS_ROUTE,
   {
     path: 'dashboards/:dashboardId',
     component: DashboardPageComponent,

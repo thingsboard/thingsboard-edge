@@ -74,7 +74,7 @@ import {RoleService} from '@core/http/role.service';
 import {EntityGroupService} from '@core/http/entity-group.service';
 import {Dashboard} from '@shared/models/dashboard.models';
 import {User} from '@shared/models/user.model';
-import {RuleChain, ruleChainType} from '@shared/models/rule-chain.models';
+import {RuleChain} from '@shared/models/rule-chain.models';
 import {Converter} from '@shared/models/converter.models';
 import {Integration} from '@shared/models/integration.models';
 import {SchedulerEvent} from '@shared/models/scheduler-event.models';
@@ -103,6 +103,8 @@ import {
 import {alarmFields} from '@shared/models/alarm.models';
 import {Router} from "@angular/router";
 import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
+import {EdgeService} from "@core/http/edge.service";
+import {Edge} from "@shared/models/edge.models";
 
 @Injectable({
   providedIn: 'root'
@@ -115,6 +117,7 @@ export class EntityService {
     private deviceService: DeviceService,
     private assetService: AssetService,
     private entityViewService: EntityViewService,
+    private edgeService: EdgeService,
     private tenantService: TenantService,
     private customerService: CustomerService,
     private userService: UserService,
@@ -148,6 +151,9 @@ export class EntityService {
         break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.getEntityView(entityId, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.getEdge(entityId, config);
         break;
       case EntityType.TENANT:
         observable = this.tenantService.getTenant(entityId, config);
@@ -209,6 +215,9 @@ export class EntityService {
         break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.saveEntityView(entity as EntityView, null, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.saveEdge(entity as Edge, null, config);
         break;
       case EntityType.TENANT:
         observable = this.tenantService.saveTenant(entity as Tenant, config);
@@ -282,6 +291,9 @@ export class EntityService {
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.saveEntityView(entity as EntityView, entityGroupId, config);
         break;
+      case EntityType.EDGE:
+        observable = this.edgeService.saveEdge(entity as Edge, entityGroupId, config);
+        break;
       case EntityType.CUSTOMER:
         observable = this.customerService.saveCustomer(entity as Customer, entityGroupId, config);
         break;
@@ -341,6 +353,9 @@ export class EntityService {
         break;
       case EntityType.ENTITY_VIEW:
         observable = this.entityViewService.getEntityViews(entityIds, config);
+        break;
+      case EntityType.EDGE:
+        observable = this.edgeService.getEdges(entityIds, config);
         break;
       case EntityType.TENANT:
         observable = this.tenantService.getTenantsByIds(entityIds, config);
@@ -440,6 +455,15 @@ export class EntityService {
             subType, config);
         } else {
           entitiesObservable = this.entityViewService.getUserEntityViews(pageLink, subType, config);
+        }
+        break;
+      case EntityType.EDGE:
+        pageLink.sortOrder.property = 'name';
+        if (authUser.authority === Authority.TENANT_ADMIN && isGenericPermission) {
+          entitiesObservable = this.edgeService.getTenantEdges(pageLink,
+            subType, config);
+        } else {
+          entitiesObservable = this.edgeService.getUserEdges(pageLink, subType, config);
         }
         break;
       case EntityType.TENANT:
@@ -837,6 +861,8 @@ export class EntityService {
         return entityType === EntityType.DEVICE;
       case AliasFilterType.entityViewType:
         return entityType === EntityType.ENTITY_VIEW;
+      case AliasFilterType.edgeType:
+        return entityType === EntityType.EDGE;
       case AliasFilterType.relationsQuery:
         return true;
       case AliasFilterType.assetSearchQuery:
@@ -861,6 +887,7 @@ export class EntityService {
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
         entityTypes.push(EntityType.ENTITY_VIEW);
+        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
@@ -879,6 +906,7 @@ export class EntityService {
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
         entityTypes.push(EntityType.ENTITY_VIEW);
+        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
         entityTypes.push(EntityType.USER);
@@ -946,6 +974,10 @@ export class EntityService {
         entityFieldKeys.push(entityFields.name.keyName);
         entityFieldKeys.push(entityFields.type.keyName);
         entityFieldKeys.push(entityFields.label.keyName);
+        break;
+      case EntityType.EDGE:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
         break;
       case EntityType.DASHBOARD:
         entityFieldKeys.push(entityFields.title.keyName);
@@ -1127,6 +1159,9 @@ export class EntityService {
       case AliasFilterType.entityViewType:
         result.entityFilter = deepClone(filter);
         return of(result);
+      case AliasFilterType.edgeType:
+        result.entityFilter = deepClone(filter);
+        return of(result);
       case AliasFilterType.apiUsageState:
         result.entityFilter = deepClone(filter);
         return of(result);
@@ -1151,6 +1186,7 @@ export class EntityService {
         }
       case AliasFilterType.assetSearchQuery:
       case AliasFilterType.deviceSearchQuery:
+      case AliasFilterType.edgeSearchQuery:
       case AliasFilterType.entityViewSearchQuery:
         result.stateEntity = filter.rootStateEntity;
         if (result.stateEntity && stateEntityId) {
@@ -1183,7 +1219,7 @@ export class EntityService {
       catchError(err => of(false))
     );
   }
-
+//TODO what is the purpose of the function saveEntityParameters? edge?
   public saveEntityParameters(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
                               entityData: ImportEntityData, update: boolean,
                               config?: RequestConfig): Observable<ImportEntitiesResultInfo> {

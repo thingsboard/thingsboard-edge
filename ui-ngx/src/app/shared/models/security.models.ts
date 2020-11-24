@@ -104,7 +104,8 @@ export enum Resource {
   GROUP_PERMISSION = 'GROUP_PERMISSION',
   WHITE_LABELING = 'WHITE_LABELING',
   AUDIT_LOG = 'AUDIT_LOG',
-  API_USAGE_STATE = 'API_USAGE_STATE'
+  API_USAGE_STATE = 'API_USAGE_STATE',
+  EDGE = 'EDGE'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();

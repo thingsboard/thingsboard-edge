@@ -103,6 +103,7 @@ export interface EntityGroupSettings {
   enableDevicesManagement: boolean;
   enableEntityViewsManagement: boolean;
   enableDashboardsManagement: boolean;
+  enableEdgesManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -454,6 +455,7 @@ export function entityGroupsTitle(groupType: EntityType) {
 export interface HierarchyCallbacks {
   groupSelected?: (parentNodeId: string, groupId: string) => void;
   customerGroupsSelected?: (parentNodeId: string, customerId: string, groupsType: EntityType) => void;
+  edgeGroupsSelected?: (parentNodeId: string, edgeId: string, groupsType: EntityType) => void;
   refreshEntityGroups?: (internalId: string) => void;
   refreshCustomerGroups?: (customerGroupIds: string[]) => void;
   groupUpdated?: (entityGroup: EntityGroupInfo) => void;

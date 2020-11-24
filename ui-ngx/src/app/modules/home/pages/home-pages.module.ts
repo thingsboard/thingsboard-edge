@@ -49,6 +49,7 @@ import { TenantProfileModule } from './tenant-profile/tenant-profile.module';
 import { MODULES_MAP } from '@shared/public-api';
 import { modulesMap } from '../../common/modules-map';
 import { DeviceProfileModule } from './device-profile/device-profile.module';
+import { EdgeModule } from "@home/pages/edge/edge.module";
 
 @NgModule({
   exports: [
@@ -67,7 +68,8 @@ import { DeviceProfileModule } from './device-profile/device-profile.module';
     IntegrationModule,
     EntityGroupModule,
     IFrameViewModule,
-    SchedulerModule
+    SchedulerModule,
+    EdgeModule
   ],
   providers: [
     {
