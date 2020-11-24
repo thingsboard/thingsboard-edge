@@ -95,6 +95,8 @@ function textForGroupType(translate: TranslateService, groupType: EntityType): s
       return translate.instant('entity-group.device-groups');
     case EntityType.ENTITY_VIEW:
       return translate.instant('entity-group.entity-view-groups');
+    case EntityType.EDGE:
+      return translate.instant('entity-group.edge-groups');
     case EntityType.DASHBOARD:
       return translate.instant('entity-group.dashboard-groups');
   }
@@ -121,6 +123,9 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.ENTITY_VIEW:
       materialIcon = 'view_quilt';
+      break;
+    case EntityType.EDGE:
+      materialIcon = 'router';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';

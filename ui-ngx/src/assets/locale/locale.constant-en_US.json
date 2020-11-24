@@ -1290,7 +1290,11 @@
         "type-roles": "Roles",
         "list-of-roles": "{ count, plural, 1 {One role} other {List of # roles} }",
         "role-name-starts-with": "Roles whose names start with '{{prefix}}'",
-        "type-group-permission": "Group Permission"
+        "type-group-permission": "Group Permission",
+        "type-edge": "Edge",
+        "type-edges": "Edges",
+        "list-of-edges": "{ count, plural, 1 {One edge} other {List of # edges} }",
+        "edge-name-starts-with": "Edges whose names start with '{{prefix}}'"
     },
     "entity-group": {
         "entity-group": "Entity group",
@@ -2809,7 +2813,8 @@
                 "GROUP_PERMISSION": "Group Permission",
                 "WHITE_LABELING": "White Labeling",
                 "AUDIT_LOG": "Audit Log",
-                "API_USAGE_STATE": "API Usage State"
+                "API_USAGE_STATE": "API Usage State",
+                "EDGE_GROUP": "Edge Group"
             }
         },
         "operation": {

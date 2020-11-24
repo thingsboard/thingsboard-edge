@@ -29,14 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
-import { PageComponent } from '@shared/components/page.component';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { LoadNodesCallback, NavTreeEditCallbacks, NodeSelectedCallback } from '@shared/components/nav-tree.component';
-import { EntityGroupService } from '@core/http/entity-group.service';
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityGroupInfo, EntityGroupParams, HierarchyCallbacks } from '@shared/models/entity-group.models';
+import {ChangeDetectorRef, Component, NgZone, OnInit} from '@angular/core';
+import {PageComponent} from '@shared/components/page.component';
+import {Store} from '@ngrx/store';
+import {AppState} from '@core/core.state';
+import {LoadNodesCallback, NavTreeEditCallbacks, NodeSelectedCallback} from '@shared/components/nav-tree.component';
+import {EntityGroupService} from '@core/http/entity-group.service';
+import {EntityType} from '@shared/models/entity-type.models';
+import {EntityGroupInfo, EntityGroupParams, HierarchyCallbacks} from '@shared/models/entity-group.models';
 import {
   CustomerNodeData,
   customerNodeText,
@@ -47,17 +47,17 @@ import {
   EntityGroupsNodeData,
   entityGroupsNodeText
 } from '@home/pages/group/customers-hierarchy.models';
-import { EntityService } from '@core/http/entity.service';
-import { Customer } from '@shared/models/customer.model';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { groupResourceByGroupType, Operation } from '@shared/models/security.models';
-import { TranslateService } from '@ngx-translate/core';
-import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
-import { BaseData, HasId } from '@shared/models/base-data';
-import { deepClone } from '@core/utils';
-import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
-import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
-import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import {EntityService} from '@core/http/entity.service';
+import {Customer} from '@shared/models/customer.model';
+import {UserPermissionsService} from '@core/http/user-permissions.service';
+import {groupResourceByGroupType, Operation} from '@shared/models/security.models';
+import {TranslateService} from '@ngx-translate/core';
+import {EntityGroupStateInfo} from '@home/models/group/group-entities-table-config.models';
+import {BaseData, HasId} from '@shared/models/base-data';
+import {deepClone} from '@core/utils';
+import {EntityGroupsTableConfig} from '@home/components/group/entity-groups-table-config';
+import {EntityGroupsTableConfigResolver} from '@home/components/group/entity-groups-table-config.resolver';
+import {EntityGroupConfigResolver} from '@home/components/group/entity-group-config.resolver';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -65,7 +65,8 @@ const groupTypes: EntityType[] = [
   EntityType.ASSET,
   EntityType.DEVICE,
   EntityType.ENTITY_VIEW,
-  EntityType.DASHBOARD
+  EntityType.DASHBOARD,
+  EntityType.EDGE
 ];
 
 @Component({

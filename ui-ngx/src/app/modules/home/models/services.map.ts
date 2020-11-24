@@ -49,6 +49,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { RoleService } from '@core/http/role.service';
 import { AlarmService } from '@core/http/alarm.service';
 import { Router } from '@angular/router';
+import { EdgeService } from "@core/http/edge.service";
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -56,6 +57,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['alarmService', AlarmService],
    ['assetService', AssetService],
    ['entityViewService', EntityViewService],
+   ['edgeService', EdgeService],
    ['customerService', CustomerService],
    ['dashboardService', DashboardService],
    ['userService', UserService],

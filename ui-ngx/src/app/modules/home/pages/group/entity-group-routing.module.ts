@@ -326,7 +326,7 @@ const EDGE_GROUPS_ROUTE: Route = {
   data: {
     groupType: EntityType.EDGE,
     breadcrumb: {
-      label: 'edge.edge-groups',
+      label: 'entity-group.edge-groups',
       icon: 'router'
     }
   },
@@ -336,7 +336,7 @@ const EDGE_GROUPS_ROUTE: Route = {
       component: EntitiesTableComponent,
       data: {
         auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'edge.edge-groups',
+        title: 'entity-group.edge-groups',
         groupType: EntityType.EDGE
       },
       resolve: {
@@ -349,7 +349,7 @@ const EDGE_GROUPS_ROUTE: Route = {
       component: GroupEntitiesTableComponent,
       data: {
         auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-        title: 'edge.edge-group',
+        title: 'entity-group.edge-group',
         groupType: EntityType.EDGE,
         breadcrumb: {
           icon: 'router',
