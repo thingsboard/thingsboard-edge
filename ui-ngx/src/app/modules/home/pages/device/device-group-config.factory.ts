@@ -30,7 +30,7 @@
 ///
 
 import { Device, DeviceCredentials } from '@shared/models/device.models';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { UtilsService } from '@core/services/utils.service';
 import {
@@ -79,7 +79,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     config.entityComponent = DeviceComponent;
 
     config.componentsData = {
-      deviceCredential: null
+      deviceCredentials$: new Subject<DeviceCredentials>()
     };
 
     config.entityTitle = (device) => device ?
@@ -178,10 +178,9 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
         deviceId: device.id.id,
         isReadOnly
       }
-    }).afterClosed().subscribe(deviceCredential => {
-      if (isDefinedAndNotNull(deviceCredential)) {
-        config.componentsData.deviceCredential = deviceCredential;
-        config.table.onEntityUpdated(device);
+    }).afterClosed().subscribe(deviceCredentials => {
+      if (isDefinedAndNotNull(deviceCredentials)) {
+        config.componentsData.deviceCredentials$.next(deviceCredentials);
       }
     });
   }

@@ -46,7 +46,7 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Device, DeviceCredentials } from '@app/shared/models/device.models';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -121,7 +121,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     this.config.componentsData = {
       deviceScope: route.data.devicesType,
       deviceProfileId: null,
-      deviceCredential: null
+      deviceCredentials$: new Subject<DeviceCredentials>()
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -481,10 +481,9 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         deviceId: device.id.id,
         isReadOnly: this.config.componentsData.deviceScope === 'customer_user'
       }
-    }).afterClosed().subscribe(deviceCredential => {
-      if (isDefinedAndNotNull(deviceCredential)) {
-        this.config.componentsData.deviceCredential = deviceCredential;
-        this.config.table.onEntityUpdated(device);
+    }).afterClosed().subscribe(deviceCredentials => {
+      if (isDefinedAndNotNull(deviceCredentials)) {
+        this.config.componentsData.deviceCredentials$.next(deviceCredentials);
       }
     });
   }

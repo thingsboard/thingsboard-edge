@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { EntityId } from '@shared/models/id/entity-id';
 import { DeviceService } from '@core/http/device.service';
 import { DeviceCredentials, DeviceCredentialsType } from '@shared/models/device.models';
 import { isDefinedAndNotNull, isEqual } from '@core/utils';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
 import { EntityType } from '@shared/models/entity-type.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
@@ -47,11 +47,9 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './copy-device-credentials.component.html',
   styleUrls: []
 })
-export class CopyDeviceCredentialsComponent implements OnDestroy {
+export class CopyDeviceCredentialsComponent implements OnInit, OnDestroy {
 
   private deviceId$ = new BehaviorSubject<EntityId>(null);
-
-  private credentials$ = new Subject<DeviceCredentials>();
 
   private tooltipMessage: string;
 
@@ -71,13 +69,14 @@ export class CopyDeviceCredentialsComponent implements OnDestroy {
   @Input() disabled: boolean;
 
   @Input()
-  set credentials(credential: DeviceCredentials) {
-    this.credentials$.next(credential);
-  }
+  credentials$: Subject<DeviceCredentials>;
+
+  private credentialsSubscription: Subscription = null;
 
   constructor(private store: Store<AppState>,
               private translate: TranslateService,
-              private deviceService: DeviceService
+              private deviceService: DeviceService,
+              private cd: ChangeDetectorRef
   ) {
     this.deviceId$.pipe(
       filter(device => isDefinedAndNotNull(device) && device.entityType === EntityType.DEVICE),
@@ -88,18 +87,23 @@ export class CopyDeviceCredentialsComponent implements OnDestroy {
       this.processingValue(deviceCredentials);
       this.loading = false;
     });
+  }
 
-    this.credentials$.pipe(
+  ngOnInit(): void {
+    this.credentialsSubscription = this.credentials$.pipe(
       filter(credential => isDefinedAndNotNull(credential)),
       distinctUntilChanged((prev, curr) => isEqual(prev, curr))
     ).subscribe(deviceCredentials => {
       this.processingValue(deviceCredentials);
+      this.cd.detectChanges();
     });
   }
 
   ngOnDestroy(): void {
     this.deviceId$.unsubscribe();
-    this.credentials$.unsubscribe();
+    if (this.credentialsSubscription !== null) {
+      this.credentialsSubscription.unsubscribe();
+    }
   }
 
   private processingValue(credential: DeviceCredentials): void {
@@ -139,4 +143,5 @@ export class CopyDeviceCredentialsComponent implements OnDestroy {
         horizontalPosition: 'right'
       }));
   }
+
 }

@@ -36,7 +36,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
-  createDeviceTransportConfiguration,
+  createDeviceTransportConfiguration, DeviceCredentials,
   DeviceData,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -49,6 +49,7 @@ import { DeviceService } from '@core/http/device.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'tb-device',
@@ -59,7 +60,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
 
-  componentsData: any;
+  deviceCredentials$: Subject<DeviceCredentials>;
 
 //  deviceScope: 'tenant' | 'customer' | 'customer_user';
 
@@ -75,7 +76,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   ngOnInit() {
     // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
-    this.componentsData = this.entitiesTableConfigValue.componentsData;
+    this.deviceCredentials$ = this.entitiesTableConfigValue.componentsData.deviceCredentials$;
     super.ngOnInit();
   }
 

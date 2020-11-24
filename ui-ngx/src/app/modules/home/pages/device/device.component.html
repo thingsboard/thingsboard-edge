@@ -85,7 +85,7 @@
       *ngIf="entityGroup | hasGroupEntityPermission: operation.READ_CREDENTIALS"
       [fxShow]="!isEdit"
       [disabled]="(isLoading$ | async)"
-      [credentials]="componentsData.deviceCredential"
+      [credentials$]="deviceCredentials$"
       [deviceId]="entity?.id">
     </tb-copy-device-credentials>
   </div>
