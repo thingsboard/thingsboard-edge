@@ -300,10 +300,8 @@ public class InstallScripts {
     }
 
     public void loadDemoRuleChains(TenantId tenantId) throws Exception {
-        Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
-        ruleChainIdMap.putAll(loadAdditionalTenantRuleChains(tenantId, Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, RULE_CHAINS_DIR)));
-        Path rootRuleChainFile = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, ROOT_RULE_CHAIN_DIR).resolve("root_rule_chain.json");
-        loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
+        createDefaultRuleChains(tenantId);
+        createDefaultRuleChain(tenantId, "Thermostat");
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {

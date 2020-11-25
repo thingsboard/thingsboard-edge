@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.DynamicValueSourceType;
@@ -93,6 +94,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -150,6 +152,9 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
 
     @Bean
     protected BCryptPasswordEncoder passwordEncoder() {
@@ -302,6 +307,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         thermostatDeviceProfile.setTransportType(DeviceTransportType.DEFAULT);
         thermostatDeviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);
         thermostatDeviceProfile.setDescription("Thermostat device profile");
+        thermostatDeviceProfile.setDefaultRuleChainId(ruleChainService.findTenantRuleChains(
+                demoTenant.getId(), new PageLink(1, 0, "Thermostat")).getData().get(0).getId());
 
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
