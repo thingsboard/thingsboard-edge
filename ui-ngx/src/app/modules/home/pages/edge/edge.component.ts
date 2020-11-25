@@ -58,9 +58,8 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
               protected fb: FormBuilder,
-              // @Inject(WINDOW) protected window: Window
-  ) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              @Inject(WINDOW) protected window: Window) {
+    super(store, fb, entityValue, entitiesTableConfigValue, window);
   }
 
   ngOnInit() {
@@ -94,7 +93,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         name: [entity ? entity.name : '', [Validators.required]],
         type: [entity ? entity.type : null, [Validators.required]],
         label: [entity ? entity.label : ''],
-        cloudEndpoint: ['', [Validators.required]],
+        cloudEndpoint: [this.window.location.origin, [Validators.required]],
         edgeLicenseKey: ['', [Validators.required]],
         routingKey: guid(),
         secret: this.generateSecret(20),

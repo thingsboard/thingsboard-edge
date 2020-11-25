@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Directive } from '@angular/core';
+import {Directive, Inject} from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -38,6 +38,7 @@ import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-
 import { PageLink } from '@shared/models/page/page-link';
 import { ShortEntityView } from '@shared/models/entity-group.models';
 import { BaseData, HasId } from '@shared/models/base-data';
+import { WINDOW } from "@core/services/window.service";
 
 // @dynamic
 @Directive()
@@ -50,8 +51,9 @@ export abstract class GroupEntityComponent<T extends BaseData<HasId>>
   constructor(protected store: Store<AppState>,
               protected fb: FormBuilder,
               protected entityValue: T,
-              protected entitiesTableConfigValue: GroupEntityTableConfig<T>) {
-    super(store, fb, entityValue, entitiesTableConfigValue);
+              protected entitiesTableConfigValue: GroupEntityTableConfig<T>,
+              @Inject(WINDOW) protected window?: Window) {
+    super(store, fb, entityValue, entitiesTableConfigValue, window);
   }
 
   protected setEntitiesTableConfig(entitiesTableConfig: GroupEntityTableConfig<T>) {
