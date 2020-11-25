@@ -102,6 +102,10 @@ export class AddEntitiesToCustomerDialogComponent extends
         this.assignToCustomerTitle = 'dashboard.assign-dashboard-to-customer';
         this.assignToCustomerText = 'dashboard.assign-dashboard-to-customer-text';
         break;
+      case EntityType.EDGE:
+        this.assignToCustomerTitle = 'edge.assign-edge-to-customer';
+        this.assignToCustomerText = 'edge.assign-edge-to-customer-text';
+        break;
     }
   }
 

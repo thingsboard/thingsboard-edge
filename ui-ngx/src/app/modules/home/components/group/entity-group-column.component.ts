@@ -152,6 +152,9 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       case EntityType.DASHBOARD:
         entityFieldKeys = ['title'];
         break;
+      case EntityType.EDGE:
+        entityFieldKeys = ['name', 'type', 'label']
+        break;
     }
     for (const fieldKey of entityFieldKeys) {
       this.entityFields[fieldKey] = entityGroupEntityFields[fieldKey];

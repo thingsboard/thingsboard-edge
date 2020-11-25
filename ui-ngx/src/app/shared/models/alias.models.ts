@@ -71,6 +71,7 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.assetType, 'alias.filter-type-asset-type' ],
     [ AliasFilterType.deviceType, 'alias.filter-type-device-type' ],
     [ AliasFilterType.entityViewType, 'alias.filter-type-entity-view-type' ],
+    [ AliasFilterType.edgeType, 'alias.filter-type-edge-type' ],
     [ AliasFilterType.apiUsageState, 'alias.filter-type-apiUsageState' ],
     [ AliasFilterType.relationsQuery, 'alias.filter-type-relations-query' ],
     [ AliasFilterType.assetSearchQuery, 'alias.filter-type-asset-search-query' ],
@@ -188,6 +189,10 @@ export interface EntityViewSearchQueryFilter extends EntitySearchQueryFilter {
   entityViewTypes?: string[];
 }
 
+export interface EdgeSearchQueryFilter extends EntitySearchQueryFilter {
+  edgeTypes?: string[];
+}
+
 export type EntityFilters =
   SingleEntityFilter &
   EntityGroupFilter &
@@ -206,6 +211,7 @@ export type EntityFilters =
   AssetSearchQueryFilter &
   DeviceSearchQueryFilter &
   EntityViewSearchQueryFilter &
+  EdgeSearchQueryFilter &
   EntitySearchQueryFilter;
 
 export interface EntityAliasFilter extends EntityFilters {

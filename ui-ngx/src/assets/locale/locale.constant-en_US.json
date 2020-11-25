@@ -1671,7 +1671,9 @@
       "delete-edges-title": "Are you sure you want to delete { count, plural, 1 {1 edge} other {# edges} }?",
       "delete-edges-action-title": "Delete { count, plural, 1 {1 edge} other {# edges} }",
       "delete-edges-text": "Be careful, after the confirmation all selected edges will be removed and all related data will become unrecoverable.",
-      "import": "Import edges"
+      "import": "Import edges",
+      "name-starts-with": "Edge name starts with",
+      "edge-types": "Edge types"
     },
     "event": {
         "events": "Events",

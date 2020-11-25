@@ -96,6 +96,10 @@ export class AssignToCustomerDialogComponent extends
         this.assignToCustomerTitle = 'entity-view.assign-entity-view-to-customer';
         this.assignToCustomerText = 'entity-view.assign-to-customer-text';
         break;
+      case EntityType.EDGE:
+        this.assignToCustomerTitle = 'edge.assign-edge-to-customer';
+        this.assignToCustomerText = 'edge.assign-to-customer-text';
+        break;
     }
   }
 
