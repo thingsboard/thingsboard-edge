@@ -29,17 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { EntityType } from '@shared/models/entity-type.models';
-import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData } from '@shared/models/base-data';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
-import { ActivatedRouteSnapshot } from '@angular/router';
-import { isEqual, isUndefinedOrNull } from '@core/utils';
-import { Customer } from '@shared/models/customer.model';
-import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
-import { PageLink } from '@shared/models/page/page-link';
-import { RoleId } from '@shared/models/id/role-id';
+import {EntityType} from '@shared/models/entity-type.models';
+import {EntityId} from '@shared/models/id/entity-id';
+import {BaseData} from '@shared/models/base-data';
+import {EntityGroupId} from '@shared/models/id/entity-group-id';
+import {WidgetActionDescriptor, WidgetActionSource, WidgetActionType} from '@shared/models/widget.models';
+import {ActivatedRouteSnapshot} from '@angular/router';
+import {isEqual, isUndefinedOrNull} from '@core/utils';
+import {Customer} from '@shared/models/customer.model';
+import {EntityData, EntityDataPageLink, EntityKey, EntityKeyType} from '@shared/models/query/query.models';
+import {PageLink} from '@shared/models/page/page-link';
+import {RoleId} from '@shared/models/id/role-id';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -47,7 +47,8 @@ export const entityGroupTypes: EntityType[] = [
   EntityType.DEVICE,
   EntityType.USER,
   EntityType.ENTITY_VIEW,
-  EntityType.DASHBOARD
+  EntityType.DASHBOARD,
+  EntityType.EDGE
 ];
 
 export const entityGroupActionTypes: WidgetActionType[] = [
@@ -404,7 +405,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       defaultPageSize: 10
   }, ...settings};
 
-  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW) {
+  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW || entityType === EntityType.EDGE) {
     settings = {...{
         enableAssignment: true
       }, ...settings};
@@ -429,7 +430,8 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableAssetsManagement: true,
         enableDevicesManagement: true,
         enableEntityViewsManagement: true,
-        enableDashboardsManagement: true
+        enableDashboardsManagement: true,
+        enableEdgesManagement: true
       }, ...settings};
   }
   return settings;
@@ -449,6 +451,8 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.entity-view-groups';
     case EntityType.DASHBOARD:
       return 'entity-group.dashboard-groups';
+    case EntityType.EDGE:
+      return 'entity-group.edge-groups';
   }
 }
 

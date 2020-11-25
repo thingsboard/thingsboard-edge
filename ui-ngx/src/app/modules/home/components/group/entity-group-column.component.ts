@@ -117,6 +117,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       case EntityType.USER:
       case EntityType.CUSTOMER:
       case EntityType.ASSET:
+      case EntityType.EDGE:
       case EntityType.DASHBOARD:
         this.columnTypes.push(EntityGroupColumnType.SERVER_ATTRIBUTE);
         this.columnTypes.push(EntityGroupColumnType.TIMESERIES);
