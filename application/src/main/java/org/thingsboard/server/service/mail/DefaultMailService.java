@@ -259,6 +259,8 @@ public class DefaultMailService implements MailService {
             } catch (Exception e) {
                 throw handleException(e);
             }
+        } else  {
+            throw new RuntimeException("Email sending is disabled due to API limits!");
         }
     }
 

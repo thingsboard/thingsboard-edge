@@ -97,6 +97,8 @@ public class DefaultSmsService implements SmsService {
                     apiUsageClient.report(tenantId, ApiUsageRecordKey.SMS_EXEC_COUNT, smsCount);
                 }
             }
+        } else {
+            throw new RuntimeException("SMS sending is disabled due to API limits!");
         }
     }
 
