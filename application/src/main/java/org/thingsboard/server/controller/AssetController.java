@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -66,6 +67,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+
+import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE;
 
 @RestController
 @TbCoreComponent
@@ -92,6 +95,9 @@ public class AssetController extends BaseController {
     @ResponseBody
     public Asset saveAsset(@RequestBody Asset asset,
                            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+        if (TB_SERVICE_QUEUE.equals(asset.getType())) {
+            throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
         return saveGroupEntity(asset, strEntityGroupId, assetService::saveAsset);
     }
 
