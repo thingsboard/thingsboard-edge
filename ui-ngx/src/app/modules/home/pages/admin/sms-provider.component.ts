@@ -91,8 +91,10 @@ export class SmsProviderComponent extends PageComponent implements OnInit, HasCo
   }
 
   private setSmsProviderSettings(smsProviderConfiguration: SmsProviderConfiguration) {
-    const useSystemSmsSettings = smsProviderConfiguration && isDefined(smsProviderConfiguration.useSystemSmsSettings) ?
-      smsProviderConfiguration.useSystemSmsSettings : true;
+    const useSystemSmsSettings = this.isTenantAdmin()
+      ? (smsProviderConfiguration && isDefined(smsProviderConfiguration.useSystemSmsSettings) ?
+         smsProviderConfiguration.useSystemSmsSettings : true)
+      : false;
     if (smsProviderConfiguration) {
       delete smsProviderConfiguration.useSystemSmsSettings;
     }
