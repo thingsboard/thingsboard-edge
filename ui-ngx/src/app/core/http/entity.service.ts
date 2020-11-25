@@ -793,6 +793,8 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewType:
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
+        case AliasFilterType.edgeType:
+          return entityTypes.indexOf(EntityType.EDGE) > -1;
         case AliasFilterType.relationsQuery:
           if (filter.filters && filter.filters.length) {
             let match = false;
@@ -819,6 +821,8 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.DEVICE) > -1;
         case AliasFilterType.entityViewSearchQuery:
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
+        case AliasFilterType.edgeSearchQuery:
+          return entityTypes.indexOf(EntityType.EDGE) > -1;
       }
     }
     return false;
@@ -871,6 +875,8 @@ export class EntityService {
         return entityType === EntityType.DEVICE;
       case AliasFilterType.entityViewSearchQuery:
         return entityType === EntityType.ENTITY_VIEW;
+      case AliasFilterType.edgeSearchQuery:
+        return entityType === EntityType.EDGE;
     }
     return false;
   }
@@ -970,14 +976,11 @@ export class EntityService {
         entityFieldKeys.push(entityFields.type.keyName);
         break;
       case EntityType.DEVICE:
+      case EntityType.EDGE:
       case EntityType.ASSET:
         entityFieldKeys.push(entityFields.name.keyName);
         entityFieldKeys.push(entityFields.type.keyName);
         entityFieldKeys.push(entityFields.label.keyName);
-        break;
-      case EntityType.EDGE:
-        entityFieldKeys.push(entityFields.name.keyName);
-        entityFieldKeys.push(entityFields.type.keyName);
         break;
       case EntityType.DASHBOARD:
         entityFieldKeys.push(entityFields.title.keyName);
@@ -1219,7 +1222,7 @@ export class EntityService {
       catchError(err => of(false))
     );
   }
-//TODO what is the purpose of the function saveEntityParameters? edge?
+
   public saveEntityParameters(customerId: CustomerId, entityType: EntityType, entityGroupId: string,
                               entityData: ImportEntityData, update: boolean,
                               config?: RequestConfig): Observable<ImportEntitiesResultInfo> {

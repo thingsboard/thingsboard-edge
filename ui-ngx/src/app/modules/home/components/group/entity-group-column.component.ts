@@ -117,12 +117,12 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
       case EntityType.USER:
       case EntityType.CUSTOMER:
       case EntityType.ASSET:
-      case EntityType.EDGE:
       case EntityType.DASHBOARD:
         this.columnTypes.push(EntityGroupColumnType.SERVER_ATTRIBUTE);
         this.columnTypes.push(EntityGroupColumnType.TIMESERIES);
         this.columnTypes.push(EntityGroupColumnType.ENTITY_FIELD);
         break;
+      case EntityType.EDGE:
       case EntityType.DEVICE:
       case EntityType.ENTITY_VIEW:
         for (const columnType of Object.keys(EntityGroupColumnType)) {

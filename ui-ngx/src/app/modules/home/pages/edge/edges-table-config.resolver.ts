@@ -68,7 +68,6 @@ import {
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { Edge } from "@shared/models/edge.models";
 import { EdgeService } from "@core/http/edge.service";
-import { EdgeComponent } from "@home/pages/edge/edge.component";
 import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
 import { EdgeId } from "@shared/models/id/edge-id";
 import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
@@ -163,7 +162,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
   configureColumns(edgeScope: string): Array<EntityTableColumn<Edge>> {
     const columns: Array<EntityTableColumn<Edge>> = [
       new DateEntityTableColumn<Edge>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Edge>('name', 'edge.name', '25%'),
+      new EntityTableColumn<Edge>('name', 'edge.name', '25%', this.config.entityTitle),
       new EntityTableColumn<Edge>('type', 'edge.edge-type', '25%'),
       new EntityTableColumn<Edge>('label', 'edge.label', '25%')
     ];
