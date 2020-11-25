@@ -2230,7 +2230,7 @@
         "type-aws-kinesis": "AWS Kinesis",
         "type-ibm-watson-iot": "IBM Watson IoT",
         "type-ttn": "TheThingsNetwork",
-        "type-tti": "TheThingsIndustries",
+        "type-tti": "The Things Stack",
         "type-azure-event-hub": "Azure Event Hub",
         "type-azure-iot-hub": "Azure IoT Hub",
         "type-opc-ua": "OPC-UA",
