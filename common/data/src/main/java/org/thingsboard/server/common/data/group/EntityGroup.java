@@ -71,7 +71,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     private static final String GROUP_EDGE_ALL_ENDS_WITH = "All";
     public static final String GROUP_EDGE_ALL_NAME_PATTERN = GROUP_EDGE_ALL_STARTS_WITH + " %s " + GROUP_EDGE_ALL_ENDS_WITH;
 
-    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD")
+    @ApiModelProperty(required = true, allowableValues = "CUSTOMER,ASSET,DEVICE,USER,ENTITY_VIEW,DASHBOARD,EDGE")
     private EntityType type;
 
     @ApiModelProperty(required = true)
