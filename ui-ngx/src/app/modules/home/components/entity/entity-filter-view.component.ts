@@ -161,10 +161,10 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           prefix = this.filter.edgeNameFilter;
           if (prefix && prefix.length) {
             this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-and-name-description',
-              {assetType, prefix});
+              {edgeType, prefix});
           } else {
             this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-type-description',
-              {assetType});
+              {edgeType});
           }
           break;
         case AliasFilterType.relationsQuery:

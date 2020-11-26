@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.model.sql;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 
 import java.util.HashMap;

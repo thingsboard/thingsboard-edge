@@ -38,15 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.GroupEntity;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -214,6 +206,12 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 } else {
                     return (PageData<T>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
                 }
+            case EDGE:
+                if (type != null && type.trim().length() > 0) {
+                    return (PageData<T>) edgeService.findEdgesByTenantIdAndType(tenantId, type, pageLink);
+                } else {
+                    return (PageData<T>) edgeService.findEdgesByTenantId(tenantId, pageLink);
+                }
             case DASHBOARD:
                 return (PageData<T>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
             case CUSTOMER:
@@ -253,6 +251,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case USER:
                 mappingFunction = getUserMapping();
+                break;
+            case EDGE:
+                mappingFunction = getEdgeMapping();
                 break;
             default:
                 mappingFunction = null;
@@ -337,6 +338,30 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 entityView.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
             }
             return entityView;
+        };
+    }
+
+    private Function<Map<String, Object>, Edge> getEdgeMapping() {
+        return row -> {
+            Edge edge = new Edge();
+            edge.setId(new EdgeId((UUID) row.get("id")));
+            edge.setCreatedTime((Long) row.get("created_time"));
+            edge.setTenantId(new TenantId((UUID) row.get("tenant_id")));
+            edge.setName(row.get("name").toString());
+            edge.setType(row.get("type").toString());
+            Object label = row.get("label");
+            if (label != null) {
+                edge.setLabel(label.toString());
+            }
+            Object customerId = row.get("customer_id");
+            if (customerId != null) {
+                edge.setCustomerId(new CustomerId((UUID) customerId));
+            }
+            Object addInfo = row.get("additional_info");
+            if (addInfo != null) {
+                edge.setAdditionalInfo(JacksonUtil.toJsonNode(addInfo.toString()));
+            }
+            return edge;
         };
     }
 

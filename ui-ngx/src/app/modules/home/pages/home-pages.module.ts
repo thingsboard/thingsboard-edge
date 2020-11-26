@@ -68,8 +68,7 @@ import { EdgeModule } from "@home/pages/edge/edge.module";
     IntegrationModule,
     EntityGroupModule,
     IFrameViewModule,
-    SchedulerModule,
-    EdgeModule
+    SchedulerModule
   ],
   providers: [
     {
