@@ -171,14 +171,24 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.SIGFOX, 'integrationSigFox'],
     [IntegrationType.THINGPARK, 'integrationThingPark'],
     [IntegrationType.TPE, 'integrationThingParkEnterprise'],
+    [IntegrationType.TMOBILE_IOT_CDP, 'integrationTMobileIotCdp'],
+    [IntegrationType.LORIOT, 'integrationLoriot'],
     [IntegrationType.MQTT, 'integrationMqtt'],
     [IntegrationType.AWS_IOT, 'integrationAwsIoT'],
+    [IntegrationType.AWS_SQS, 'integrationAwsSQS'],
     [IntegrationType.AWS_KINESIS, 'integrationAwsKinesis'],
     [IntegrationType.IBM_WATSON_IOT, 'integrationIbmWatsonIoT'],
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
-    [IntegrationType.OPC_UA, 'integrationOpcUa']
+    [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.OPC_UA, 'integrationOpcUa'],
+    [IntegrationType.UDP, 'integrationUdp'],
+    [IntegrationType.TCP, 'integrationTcp'],
+    [IntegrationType.KAFKA, 'integrationKafka'],
+    [IntegrationType.RABBITMQ, 'integrationRabbitmq'],
+    [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
+    [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );
 
