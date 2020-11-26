@@ -124,6 +124,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -2679,6 +2680,10 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public void makeEntityGroupPrivate(EntityGroupId entityGroupId) {
         restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/makePrivate", null, entityGroupId);
+    }
+
+    public void shareEntityGroup(EntityGroupId entityGroupId, ShareGroupRequest shareGroupRequest) {
+        restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/share", shareGroupRequest, entityGroupId);
     }
 
     public void shareEntityGroupToChildOwnerUserGroup(EntityGroupId entityGroupId, EntityGroupId userGroupId, RoleId roleId) {
