@@ -124,6 +124,7 @@ export const HelpLinks = {
     ruleNodeRabbitMq: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rabbitmq-node',
     ruleNodeRestApiCall: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node',
     ruleNodeSendEmail: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
+    ruleNodeSendSms: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/pe/action-nodes/#remove-from-group-node',
