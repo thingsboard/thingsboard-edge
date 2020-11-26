@@ -36,6 +36,7 @@ import { Inject, Injectable, NgZone } from '@angular/core';
 import { WINDOW } from '@core/services/window.service';
 import { ExceptionData } from '@app/shared/models/error.models';
 import {
+  baseUrl,
   createLabelFromDatasource,
   deepClone,
   deleteNullProperties,
@@ -476,12 +477,7 @@ export class UtilsService {
   }
 
   public baseUrl(): string {
-    let url = this.window.location.protocol + '//' + this.window.location.hostname;
-    const port = this.window.location.port;
-    if (port !== '80' && port !== '443') {
-      url += ':' + port;
-    }
-    return url;
+    return baseUrl();
   }
 
   public deepClone<T>(target: T, ignoreFields?: string[]): T {

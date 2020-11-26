@@ -168,8 +168,8 @@ export class DashboardService {
       const publicCustomerId = entityGroup.additionalInfo.publicCustomerId;
       let url = this.window.location.protocol + '//' + this.window.location.hostname;
       const port = this.window.location.port;
-      if (port !== '80' && port !== '443') {
-        url += ':' + port;
+      if (port && port.length > 0 && port !== '80' && port !== '443') {
+         url += ':' + port;
       }
       url += `/dashboard/${dashboard.id.id}?publicId=${publicCustomerId}`;
       return url;
