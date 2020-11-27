@@ -176,7 +176,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'manageDashboards':
         this.manageDashboards(action.event, action.entity, config, params);
         return true;
-      case 'manageSchedulers':
+      case 'manageSchedulerEvents':
         this.manageSchedulerEvents(action.event, action.entity, config, params);
         return true;
       case 'manageRuleChains':
