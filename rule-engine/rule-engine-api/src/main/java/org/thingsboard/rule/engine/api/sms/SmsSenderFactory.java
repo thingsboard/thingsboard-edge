@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.api.sms;
 
-import org.thingsboard.rule.engine.api.sms.config.SmsProviderConfiguration;
+import org.thingsboard.server.common.data.sms.config.SmsProviderConfiguration;
 
 public interface SmsSenderFactory {
 

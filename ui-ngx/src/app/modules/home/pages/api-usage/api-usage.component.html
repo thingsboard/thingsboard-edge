@@ -30,11 +30,4 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<a mat-button routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: !section.notExact}"
-  [queryParams]="section.queryParams"
-  [routerLink]="section.path">
-  <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
-  <mat-icon *ngIf="!section.iconUrl && !section.isMdiIcon && section.icon != null">{{section.icon}}</mat-icon>
-  <mat-icon *ngIf="!section.iconUrl && section.isMdiIcon && section.icon != null" [svgIcon]="section.icon"></mat-icon>
-  <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
-</a>
+<tb-dashboard-page [embedded]="true" [dashboard]="apiUsageDashboard"></tb-dashboard-page>

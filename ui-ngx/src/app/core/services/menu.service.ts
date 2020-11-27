@@ -44,7 +44,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { ActivationEnd, Params, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Resource } from '@shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
 import { CustomMenuItem } from '@shared/models/custom-menu.models';
 import { guid } from '@core/utils';
@@ -603,6 +603,19 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'api-usage.api-usage',
+          type: 'link',
+          path: '/usage',
+          icon: 'insert_chart',
+          disabled: disabledItems.indexOf('api_usage') > -1
+        }
+      );
+    }
     return sections;
   }
 
@@ -873,20 +886,38 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
+      (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+      this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
+
+      const audit: HomeSection = {
+        name: 'audit-log.audit',
+        places: []
+      };
       homeSections.push(
-        {
-          name: 'audit-log.audit',
-          places: [
-            {
-              name: 'audit-log.audit-logs',
-              icon: 'track_changes',
-              path: '/auditLogs',
-              disabled: disabledItems.indexOf('audit_log') > -1
-            }
-          ]
-        }
+        audit
       );
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+        audit.places.push(
+          {
+            name: 'audit-log.audit-logs',
+            icon: 'track_changes',
+            path: '/auditLogs',
+            disabled: disabledItems.indexOf('audit_log') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+        audit.places.push(
+          {
+            name: 'api-usage.api-usage',
+            icon: 'insert_chart',
+            path: '/usage',
+            disabled: disabledItems.indexOf('api_usage') > -1
+          }
+        );
+      }
     }
     return homeSections;
   }

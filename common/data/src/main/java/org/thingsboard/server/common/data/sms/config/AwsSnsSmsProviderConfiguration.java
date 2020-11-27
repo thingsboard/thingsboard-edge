@@ -28,9 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.sms.config;
+package org.thingsboard.server.common.data.sms.config;
 
-public enum SmsProviderType {
-    AWS_SNS,
-    TWILIO
+import lombok.Data;
+
+@Data
+public class AwsSnsSmsProviderConfiguration implements SmsProviderConfiguration {
+
+    private String accessKeyId;
+    private String secretAccessKey;
+    private String region;
+
+    @Override
+    public SmsProviderType getType() {
+        return SmsProviderType.AWS_SNS;
+    }
+
 }

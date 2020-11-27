@@ -29,40 +29,28 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable } from 'rxjs';
-import { EntityType } from '@shared/models/entity-type.models';
-import { HasUUID } from '@shared/models/id/has-uuid';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { Authority } from '@shared/models/authority.enum';
+import { ApiUsageComponent } from '@home/pages/api-usage/api-usage.component';
 
-export declare type MenuSectionType = 'link' | 'toggle';
+const routes: Routes = [
+  {
+    path: 'usage',
+    component: ApiUsageComponent,
+    data: {
+      auth: [Authority.TENANT_ADMIN],
+      title: 'api-usage.api-usage',
+      breadcrumb: {
+        label: 'api-usage.api-usage',
+        icon: 'insert_chart'
+      }
+    }
+  }
+];
 
-export interface MenuSection extends HasUUID{
-  name: string;
-  type: MenuSectionType;
-  path: string;
-  queryParams?: {[k: string]: any};
-  icon: string;
-  notExact?: boolean;
-  iconUrl?: string;
-  isMdiIcon?: boolean;
-  asyncPages?: Observable<Array<MenuSection>>;
-  pages?: Array<MenuSection>;
-  disabled?: boolean;
-  ignoreTranslate?: boolean;
-  groupType?: EntityType;
-  isCustom?: boolean;
-  stateId?: string;
-  childStateIds?: {[stateId: string]: boolean};
-}
-
-export interface HomeSection {
-  name: string;
-  places: Array<HomeSectionPlace>;
-}
-
-export interface HomeSectionPlace {
-  name: string;
-  icon: string;
-  isMdiIcon?: boolean;
-  path: string;
-  disabled?: boolean;
-}
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class ApiUsageRoutingModule { }

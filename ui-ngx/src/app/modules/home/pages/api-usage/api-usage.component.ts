@@ -29,40 +29,28 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Observable } from 'rxjs';
-import { EntityType } from '@shared/models/entity-type.models';
-import { HasUUID } from '@shared/models/id/has-uuid';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { PageComponent } from '@shared/components/page.component';
+import apiUsageDashboardJson from '!raw-loader!./api_usage_json.raw';
+import { Dashboard } from '@shared/models/dashboard.models';
 
-export declare type MenuSectionType = 'link' | 'toggle';
+@Component({
+  selector: 'tb-api-usage',
+  templateUrl: './api-usage.component.html',
+  styleUrls: ['./api-usage.component.scss']
+})
+export class ApiUsageComponent extends PageComponent implements OnInit {
 
-export interface MenuSection extends HasUUID{
-  name: string;
-  type: MenuSectionType;
-  path: string;
-  queryParams?: {[k: string]: any};
-  icon: string;
-  notExact?: boolean;
-  iconUrl?: string;
-  isMdiIcon?: boolean;
-  asyncPages?: Observable<Array<MenuSection>>;
-  pages?: Array<MenuSection>;
-  disabled?: boolean;
-  ignoreTranslate?: boolean;
-  groupType?: EntityType;
-  isCustom?: boolean;
-  stateId?: string;
-  childStateIds?: {[stateId: string]: boolean};
-}
+  apiUsageDashboard: Dashboard;
 
-export interface HomeSection {
-  name: string;
-  places: Array<HomeSectionPlace>;
-}
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
 
-export interface HomeSectionPlace {
-  name: string;
-  icon: string;
-  isMdiIcon?: boolean;
-  path: string;
-  disabled?: boolean;
+  ngOnInit() {
+    this.apiUsageDashboard = JSON.parse(apiUsageDashboardJson);
+  }
+
 }

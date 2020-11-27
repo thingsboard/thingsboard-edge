@@ -28,16 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.common.data.sms.config;
 
-import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TenantId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-public interface SmsService {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AwsSnsSmsProviderConfiguration.class, name = "AWS_SNS"),
+        @JsonSubTypes.Type(value = TwilioSmsProviderConfiguration.class, name = "TWILIO")})
+public interface SmsProviderConfiguration {
 
-    void sendSms(TenantId tenantId, String[] numbersTo, String message) throws ThingsboardException;;
-
-    void sendTestSms(TestSmsRequest testSmsRequest) throws ThingsboardException;
+    @JsonIgnore
+    SmsProviderType getType();
 
 }
