@@ -68,8 +68,7 @@
     </mat-form-field>
     <mat-checkbox *ngIf="entityType === entityTypes.DEVICE ||
                          entityType === entityTypes.ASSET ||
-                         entityType === entityTypes.ENTITY_VIEW ||
-                         entityType === entityTypes.EDGE"
+                         entityType === entityTypes.ENTITY_VIEW"
                   fxFlex formControlName="enableAssignment" style="padding-bottom: 16px;">
       {{ 'entity-group.enable-assignment-actions' | translate }}
     </mat-checkbox>
