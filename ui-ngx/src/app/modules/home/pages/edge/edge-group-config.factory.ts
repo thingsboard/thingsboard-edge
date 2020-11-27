@@ -126,19 +126,19 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
         {
           name: this.translate.instant('edge.manage-edge-dashboard-groups'),
           icon: 'dashboard',
-          isEnabled: config.manageAssetsEnabled,
+          isEnabled: config.manageDashboardsEnabled,
           onAction: ($event, entity) => this.manageDashboards($event, entity, config, params)
         },
         {
           name: this.translate.instant('edge.manage-edge-scheduler-events'),
           icon: 'schedule',
-          isEnabled: config.manageAssetsEnabled,
+          isEnabled: config.manageSchedulersEnabled,
           onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
         },
         {
           name: this.translate.instant('edge.manage-edge-rule-chains'),
           icon: 'settings_ethernet',
-          isEnabled: config.manageAssetsEnabled,
+          isEnabled: config.manageRuleChainsEnabled,
           onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
         }
       )

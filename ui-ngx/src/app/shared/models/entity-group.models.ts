@@ -105,6 +105,8 @@ export interface EntityGroupSettings {
   enableEntityViewsManagement: boolean;
   enableDashboardsManagement: boolean;
   enableEdgesManagement: boolean;
+  enableSchedulersManagement: boolean;
+  enableRuleChainsManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -405,7 +407,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       defaultPageSize: 10
   }, ...settings};
 
-  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW || entityType === EntityType.EDGE) {
+  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW) {
     settings = {...{
         enableAssignment: true
       }, ...settings};
@@ -432,6 +434,17 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableEntityViewsManagement: true,
         enableDashboardsManagement: true,
         enableEdgesManagement: true
+      }, ...settings};
+  }
+
+  if (entityType === EntityType.EDGE) {
+    settings = {...{
+        enableAssetsManagement: true,
+        enableDevicesManagement: true,
+        enableEntityViewsManagement: true,
+        enableDashboardsManagement: true,
+        enableSchedulersManagement: true,
+        enableRuleChainsManagement: true
       }, ...settings};
   }
   return settings;
