@@ -453,7 +453,7 @@ export class UtilsService {
   }
 
   public updateQueryParam(name: string, value: string | null) {
-    const baseUrl = [this.window.location.protocol, '//', this.window.location.host, this.window.location.pathname].join('');
+    const baseUrlPart = [baseUrl(), this.window.location.pathname].join('');
     const urlQueryString = this.window.location.search;
     let newParam = '';
     let params = '';
@@ -473,7 +473,7 @@ export class UtilsService {
     } else if (newParam) {
       params = '?' + newParam;
     }
-    this.window.history.replaceState({}, '', baseUrl + params);
+    this.window.history.replaceState({}, '', baseUrlPart + params);
   }
 
   public baseUrl(): string {

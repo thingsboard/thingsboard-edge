@@ -435,17 +435,19 @@ export function padValue(val: any, dec: number): string {
 
 export function removeEmptyObjects(obj: object): object {
   for (const key of Object.keys(obj)) {
-    if (obj[key] === null || obj[key] === undefined || obj[key] === ' ') delete obj[key]
-    else
-      if (Array.isArray(obj[key]))
-        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el))
-      else
-        if (typeof (obj[key]) === 'object')
-          removeEmptyObjects(obj[key]);
+    if (obj[key] === null || obj[key] === undefined || obj[key] === ' ') {
+      delete obj[key];
+    } else if (Array.isArray(obj[key])) {
+        obj[key] = obj[key].filter(el => !!removeEmptyObjects(el));
+    } else if (typeof (obj[key]) === 'object') {
+        removeEmptyObjects(obj[key]);
+    }
   }
-  if (Object.keys(obj).length)
+  if (Object.keys(obj).length) {
     return obj;
-  else return null;
+  } else {
+    return null;
+  }
 }
 
 
