@@ -612,6 +612,7 @@ export class MenuService {
           type: 'link',
           path: '/usage',
           icon: 'insert_chart',
+          notExact: true,
           disabled: disabledItems.indexOf('api_usage') > -1
         }
       );
