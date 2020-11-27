@@ -42,12 +42,14 @@ import {
   groupConfigFactoryTokenMap
 } from '@home/models/group/group-entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
+import { EdgeService } from "@core/http/edge.service";
 
 @Injectable()
 export class EntityGroupConfigResolver {
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
+              private edgeService: EdgeService,
               private translate: TranslateService,
               private injector: Injector) {
   }
@@ -89,6 +91,23 @@ export class EntityGroupConfigResolver {
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
             entityGroup.customerGroupsTitle = info.title + ': ' + this.translate.instant(entityGroupsTitle(groupType));
+            if (params.childEntityGroupId) {
+              return this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
+                map(parentEntityGroup => {
+                  entityGroup.parentEntityGroup = parentEntityGroup;
+                  return entityGroup;
+                })
+              );
+            } else {
+              return of(entityGroup);
+            }
+          }
+        ));
+    } else if (params.edgeId) {
+      const groupType: EntityType = params.childGroupType || params.groupType;
+      return this.edgeService.getEdge(params.edgeId).pipe(
+        mergeMap((info) => {
+            entityGroup.edgeGroupsTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(groupType));
             if (params.childEntityGroupId) {
               return this.entityGroupService.getEntityGroup(params.entityGroupId).pipe(
                 map(parentEntityGroup => {

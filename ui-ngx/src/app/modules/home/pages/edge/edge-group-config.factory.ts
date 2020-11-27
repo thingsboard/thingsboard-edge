@@ -189,7 +189,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.EDGE);
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
     }
@@ -201,7 +201,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.EDGE);
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
     }
@@ -213,7 +213,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.EDGE);
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
     }
@@ -225,7 +225,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.EDGE);
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
     }
@@ -237,7 +237,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       $event.stopPropagation();
     }
     if (params.hierarchyView) {
-      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.EDGE);
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
     }

@@ -62,6 +62,7 @@ import {
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
   customerId: string;
+  edgeId: string;
   groupType: EntityType;
 
   constructor(private entityGroupService: EntityGroupService,
@@ -79,7 +80,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     super();
 
     this.customerId = params.customerId;
-    if (this.customerId && params.childGroupType) {
+    this.edgeId = params.edgeId;
+    if (this.customerId || this.edgeId && params.childGroupType) {
       this.groupType = params.childGroupType;
     } else {
       this.groupType = params.groupType;

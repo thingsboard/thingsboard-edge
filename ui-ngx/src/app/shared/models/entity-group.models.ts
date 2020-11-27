@@ -493,6 +493,7 @@ export interface EntityGroupParams {
   nodeId?: string;
   internalId?: string;
   hierarchyCallbacks?: HierarchyCallbacks;
+  edgeId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -523,6 +524,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     entityGroupId: routeParams.entityGroupId,
     groupType: routeData.groupType,
     childEntityGroupId: routeParams.childEntityGroupId,
-    childGroupType: routeData.childGroupType
+    childGroupType: routeData.childGroupType,
+    edgeId: routeParams.edgeId
   }
 }
