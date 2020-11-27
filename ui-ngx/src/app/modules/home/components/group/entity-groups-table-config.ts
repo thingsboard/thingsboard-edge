@@ -58,6 +58,7 @@ import {
   EntityGroupWizardDialogComponent,
   EntityGroupWizardDialogResult
 } from '@home/components/wizard/entity-group-wizard-dialog.component';
+import { EdgeService } from "@core/http/edge.service";
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -125,7 +126,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       let fetchObservable: Observable<Array<EntityGroupInfo>>;
       if (this.customerId) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
-      } else {
+      }
+      else if (this.edgeId) {
+        fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
+      }
+      else {
         fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
       }
       return fetchObservable.pipe(

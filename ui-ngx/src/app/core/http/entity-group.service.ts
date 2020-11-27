@@ -187,4 +187,9 @@ export class EntityGroupService {
     url += pageLink.toQuery();
     return this.http.get<PageData<T>>(url, defaultHttpOptionsFromConfig(config));
   }
+
+  public getEdgeEntityGroups(edgeId: string, groupType: EntityType, config?: RequestConfig): Observable<Array<EntityGroupInfo>> {
+    return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/edge/${edgeId}/${groupType}`,
+      defaultHttpOptionsFromConfig(config));
+  }
 }

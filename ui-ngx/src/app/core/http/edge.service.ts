@@ -35,11 +35,10 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { EntitySubtype } from '@app/shared/models/entity-type.models';
+import { EntitySubtype, EntityType } from '@app/shared/models/entity-type.models';
 import { Edge, EdgeSearchQuery } from "@shared/models/edge.models";
-import { EntityId } from "@shared/models/id/entity-id";
 import { Event } from "@shared/models/event.models";
-import {Asset} from "@shared/models/asset.models";
+import { EdgeId } from "@shared/models/id/edge-id";
 
 @Injectable({
   providedIn: 'root'
@@ -124,9 +123,9 @@ export class EdgeService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeEvents(entityId: EntityId, pageLink: TimePageLink,
+  public getEdgeEvents(edgeId: EdgeId, pageLink: TimePageLink,
                        config?: RequestConfig): Observable<PageData<Event>> {
-    return this.http.get<PageData<Event>>(`/api/edge/${entityId.id}/events` + `${pageLink.toQuery()}`,
+    return this.http.get<PageData<Event>>(`/api/edge/${edgeId.id}/events` + `${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 }
