@@ -107,6 +107,7 @@ export interface EntityGroupSettings {
   enableEdgesManagement: boolean;
   enableSchedulersManagement: boolean;
   enableRuleChainsManagement: boolean;
+  enableSchedulerEventsManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -444,7 +445,8 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableEntityViewsManagement: true,
         enableDashboardsManagement: true,
         enableSchedulersManagement: true,
-        enableRuleChainsManagement: true
+        enableRuleChainsManagement: true,
+        enableSchedulerEventsManagement: true
       }, ...settings};
   }
   return settings;

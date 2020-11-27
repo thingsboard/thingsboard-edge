@@ -132,8 +132,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
         {
           name: this.translate.instant('edge.manage-edge-scheduler-events'),
           icon: 'schedule',
-          isEnabled: config.manageSchedulersEnabled,
-          onAction: ($event, entity) => this.manageAssets($event, entity, config, params)
+          isEnabled: config.manageSchedulerEventsEnabled,
+          onAction: ($event, entity) => this.manageSchedulerEvents($event, entity, config, params)
         },
         {
           name: this.translate.instant('edge.manage-edge-rule-chains'),
@@ -176,6 +176,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       case 'manageDashboards':
         this.manageDashboards(action.event, action.entity, config, params);
         return true;
+      case 'manageSchedulers':
+        this.manageSchedulerEvents(action.event, action.entity, config, params);
+        return true;
       case 'manageRuleChains':
         this.manageRuleChains(action.event, action.entity, config, params);
         return true;
@@ -203,7 +206,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
     } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
   }
 
@@ -228,6 +231,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
+    }
+  }
+
+  manageSchedulerEvents($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+                        params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
+    } else {
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/schedulerEvents`);
     }
   }
 
