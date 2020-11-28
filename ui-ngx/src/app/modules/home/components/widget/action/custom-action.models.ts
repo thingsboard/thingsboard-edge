@@ -86,7 +86,7 @@ const customPrettyActionCompletions: TbEditorCompletions = {
     }
   },
   ...customActionCompletions
-}
+};
 
 export const CustomActionEditorCompleter = new TbEditorCompleter(customActionCompletions);
 export const CustomPrettyActionEditorCompleter = new TbEditorCompleter(customPrettyActionCompletions);

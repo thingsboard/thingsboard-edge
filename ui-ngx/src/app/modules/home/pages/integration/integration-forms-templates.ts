@@ -625,19 +625,6 @@ export const templates = {
     }
   },
 
-  [IntegrationType.LORIOT]: {
-    clientConfiguration: {
-      serviceUrl: '',
-      credentials: {
-        type: apachePulsarCredentialsTypes.anonymous.value,
-        token: ''
-      }
-    },
-    fieldValidators: {
-      'clientConfiguration.serviceUrl': [Validators.required],
-    }
-  },
-
   [IntegrationType.CUSTOM]: {
     clazz: '',
     configuration: '',

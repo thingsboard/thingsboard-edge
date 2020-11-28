@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.UpdateMessage;
@@ -77,6 +79,9 @@ public class AdminController extends BaseController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private SmsService smsService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -180,6 +185,22 @@ public class AdminController extends BaseController {
                 String email = getCurrentUser().getEmail();
                 mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
             }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @RequestMapping(value = "/settings/testSms", method = RequestMethod.POST)
+    public void sendTestSms(@RequestBody TestSmsRequest testSmsRequest) throws ThingsboardException {
+        try {
+            Authority authority = getCurrentUser().getAuthority();
+            if (Authority.SYS_ADMIN.equals(authority)) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            } else {
+                accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
+            }
+            smsService.sendTestSms(testSmsRequest);
         } catch (Exception e) {
             throw handleException(e);
         }

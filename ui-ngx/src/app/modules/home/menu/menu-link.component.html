@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<a mat-button routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: true}"
+<a mat-button routerLinkActive="tb-active" [routerLinkActiveOptions]="{exact: !section.notExact}"
   [queryParams]="section.queryParams"
   [routerLink]="section.path">
   <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>

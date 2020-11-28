@@ -124,6 +124,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.query.AlarmData;
@@ -153,6 +154,7 @@ import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistratio
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -263,7 +265,11 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public void sendTestMail(AdminSettings adminSettings) {
-        restTemplate.postForEntity(baseURL + "/api/admin/settings/testMail", adminSettings, AdminSettings.class);
+        restTemplate.postForLocation(baseURL + "/api/admin/settings/testMail", adminSettings);
+    }
+
+    public void sendTestSms(TestSmsRequest testSmsRequest) {
+        restTemplate.postForLocation(baseURL + "/api/admin/settings/testSms", testSmsRequest);
     }
 
     public Optional<SecuritySettings> getSecuritySettings() {
@@ -1384,6 +1390,10 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public OAuth2ClientsParams saveOAuth2Params(OAuth2ClientsParams oauth2Params) {
         return restTemplate.postForEntity(baseURL + "/api/oauth2/config", oauth2Params, OAuth2ClientsParams.class).getBody();
+    }
+
+    public String getLoginProcessingUrl() {
+        return restTemplate.getForEntity(baseURL + "/api/oauth2/loginProcessingUrl", String.class).getBody();
     }
 
     public void handleOneWayDeviceRPCRequest(DeviceId deviceId, JsonNode requestBody) {
@@ -2679,6 +2689,10 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public void makeEntityGroupPrivate(EntityGroupId entityGroupId) {
         restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/makePrivate", null, entityGroupId);
+    }
+
+    public void shareEntityGroup(EntityGroupId entityGroupId, ShareGroupRequest shareGroupRequest) {
+        restTemplate.postForLocation(baseURL + "/api/entityGroup/{entityGroupId}/share", shareGroupRequest, entityGroupId);
     }
 
     public void shareEntityGroupToChildOwnerUserGroup(EntityGroupId entityGroupId, EntityGroupId userGroupId, RoleId roleId) {
