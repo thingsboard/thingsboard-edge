@@ -164,7 +164,7 @@ public class TbDeviceProfileNode implements TbNode {
 
     @Override
     public void destroy() {
-        ctx.removeProfileListener();
+        ctx.removeListeners();
         deviceStates.clear();
     }
 

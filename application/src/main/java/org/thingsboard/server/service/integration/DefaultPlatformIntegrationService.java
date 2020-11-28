@@ -496,9 +496,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
                 statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", latestEvent != null ? latestEvent.name() : "N/A")));
-                telemetrySubscriptionService.saveAndNotify(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Void>() {
+                telemetrySubscriptionService.saveAndNotifyInternal(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Integer>() {
                     @Override
-                    public void onSuccess(@Nullable Void result) {
+                    public void onSuccess(@Nullable Integer result) {
                         log.trace("[{}] Persisted statistics telemetry: {}", id, statistics);
                     }
 

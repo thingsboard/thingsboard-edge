@@ -439,9 +439,9 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         }
-        ctx.getTelemetrySubscriptionService().saveAndNotify(configuration.getTenantId(), configuration.getId(), statsTs, new FutureCallback<Void>() {
+        ctx.getTelemetrySubscriptionService().saveAndNotifyInternal(configuration.getTenantId(), configuration.getId(), statsTs, new FutureCallback<Integer>() {
             @Override
-            public void onSuccess(@Nullable Void result) {
+            public void onSuccess(@Nullable Integer result) {
                 log.trace("[{}] Persisted statistics telemetry!", configuration.getId());
             }
 
