@@ -1674,7 +1674,13 @@
       "import": "Import edges",
       "name-starts-with": "Edge name starts with",
       "edge-types": "Edge types",
-      "add-groups-to-edge": "Add groups to edge"
+      "add-groups-to-edge": "Add groups to edge",
+      "unassign-entity-group-from-edge-title": "Are you sure you want to unassign the entity group '{{ entityGroupName }}'?",
+      "unassign-entity-group-from-edge-text": "After the confirmation the entity group will be unassigned and won't be accessible by the edge.",
+      "unassign-entity-group-from-edge": "Unassign entity group from edge",
+      "unassign-entity-groups-from-edge-title": "Are you sure you want to unassign {{count}} entity groups?",
+      "unassign-entity-groups-from-edge-text": "After the confirmation entity groups will be unassigned and won't be accessible by the edge.",
+      "unassign-entity-groups-from-edge": "Unassign entity groups from edge"
     },
     "event": {
         "events": "Events",

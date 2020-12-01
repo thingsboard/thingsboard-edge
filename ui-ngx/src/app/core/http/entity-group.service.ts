@@ -194,6 +194,12 @@ export class EntityGroupService {
   }
 
   public assignEntityGroupToEdge(edgeId: string, entityGroupId: string, groupType: string, config?: RequestConfig): Observable<EntityGroup> {
-    return this.http.post<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`, defaultHttpOptionsFromConfig(config))
+    return this.http.post<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`,
+      defaultHttpOptionsFromConfig(config))
+  }
+
+  public unassignEntityGroupFromEdge(edgeId: string, entityGroupId: string, groupType: string, config?: RequestConfig): Observable<EntityGroup> {
+    return this.http.delete<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`,
+      defaultHttpOptionsFromConfig(config));
   }
 }

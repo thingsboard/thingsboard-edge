@@ -35,7 +35,7 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
+import { EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -168,8 +168,23 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
-    this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
-      this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
+    if (this.edgeId) {
+      this.deleteEnabled = () => false;
+      this.groupActionDescriptors.push(
+        {
+          name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
+          icon: 'portable_wifi_off',
+          isEnabled: true,
+          onAction: ($event, entities) => {
+            this.unassignEntityGroups($event, entities);
+          }
+        }
+      );
+    } else {
+      this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
+        this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
+    }
+
     this.detailsReadonly = (entityGroup) =>
       !this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entityGroup);
     this.entitySelectionEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
@@ -178,7 +193,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType)) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.edgeId) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
@@ -198,46 +213,57 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
   private updateActionCellDescriptors() {
     this.cellActionDescriptors.splice(0);
-    this.cellActionDescriptors.push(
-      {
-        name: this.translate.instant('action.open'),
-        icon: 'view_list',
-        isEnabled: (entity) => true,
-        onAction: ($event, entity) => this.open($event, entity)
+    if (this.edgeId) {
+      this.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('edge.unassign-entity-group-from-edge'),
+          icon: 'portable_wifi_off',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignEntityGroup($event, entity)
+        }
+      );
+    } else {
+      this.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('action.open'),
+          icon: 'view_list',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.open($event, entity)
+        }
+      );
+      if (sharableGroupTypes.has(this.groupType) &&
+        this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
+        this.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('action.share'),
+            icon: 'assignment_ind',
+            isEnabled: (entity) => entity && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+            onAction: ($event, entity) => this.share($event, entity)
+          }
+        );
       }
-    );
-    if (sharableGroupTypes.has(this.groupType) &&
-      this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
-      this.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('action.share'),
-          icon: 'assignment_ind',
-          isEnabled: (entity) => entity && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-          onAction: ($event, entity) => this.share($event, entity)
-        }
-      );
+      if (publicGroupTypes.has(this.groupType)) {
+        this.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('action.make-public'),
+            icon: 'share',
+            isEnabled: (entity) => entity
+              && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
+              && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+              && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+            onAction: ($event, entity) => this.makePublic($event, entity)
+          },
+          {
+            name: this.translate.instant('action.make-private'),
+            icon: 'reply',
+            isEnabled: (entity) => entity
+              && entity.additionalInfo && entity.additionalInfo.isPublic
+              && this.userPermissionsService.isDirectlyOwnedGroup(entity)
+              && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
+            onAction: ($event, entity) => this.makePrivate($event, entity)
+          }
+        );
     }
-    if (publicGroupTypes.has(this.groupType)) {
-      this.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('action.make-public'),
-          icon: 'share',
-          isEnabled: (entity) => entity
-            && (!entity.additionalInfo || !entity.additionalInfo.isPublic)
-            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-          onAction: ($event, entity) => this.makePublic($event, entity)
-        },
-        {
-          name: this.translate.instant('action.make-private'),
-          icon: 'reply',
-          isEnabled: (entity) => entity
-            && entity.additionalInfo && entity.additionalInfo.isPublic
-            && this.userPermissionsService.isDirectlyOwnedGroup(entity)
-            && this.userPermissionsService.hasEntityGroupPermission(Operation.WRITE, entity),
-          onAction: ($event, entity) => this.makePrivate($event, entity)
-        }
-      );
     }
   }
 
@@ -358,6 +384,33 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
   }
 
+  private unassignEntityGroup($event: Event, entityGroup: EntityGroup) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.homeDialogs.unassignEntityGroupFromEdge($event, entityGroup, this.edgeId).subscribe(
+      (res) => {
+        if (res) {
+          this.onGroupUpdated();
+        }
+      }
+    );
+  }
+
+  private unassignEntityGroups($event: Event, entityGroups: Array<EntityGroup>) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.homeDialogs.unassignEntityGroupsFromEdge($event, entityGroups, this.edgeId).subscribe(
+      (res) => {
+        if (res) {
+          this.onGroupUpdated();
+        }
+      }
+    );
+
+  }
+
   private onEntityGroupAction(action: EntityAction<EntityGroupInfo>): boolean {
     switch (action.action) {
       case 'open':
@@ -372,7 +425,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       case 'makePrivate':
         this.makePrivate(action.event, action.entity);
         return true;
+      case 'unassign':
+        this.unassignEntityGroup(action.event, action.entity);
+        return true;
     }
     return false;
   }
+
 }
