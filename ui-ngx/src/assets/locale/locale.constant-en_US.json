@@ -1673,7 +1673,8 @@
       "delete-edges-text": "Be careful, after the confirmation all selected edges will be removed and all related data will become unrecoverable.",
       "import": "Import edges",
       "name-starts-with": "Edge name starts with",
-      "edge-types": "Edge types"
+      "edge-types": "Edge types",
+      "add-groups-to-edge": "Add groups to edge"
     },
     "event": {
         "events": "Events",

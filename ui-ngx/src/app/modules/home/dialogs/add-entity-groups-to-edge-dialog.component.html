@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="addEntityGroupsToEdgeFormGroup" (ngSubmit)="addEntityGroupsToEdge()" style="width: 800px;">
+<form [formGroup]="addEntityGroupToEdgeFormGroup" (ngSubmit)="addEntityGroupsToEdge()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ addEntityGroupsToEdgeTitle | translate }}</h2>
     <span fxFlex></span>
@@ -45,15 +45,14 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
     <fieldset [disabled]="isLoading$ | async">
-      <section fxFlex fxLayout="column">
-        <tb-owner-autocomplete
-          formControlName="targetOwnerId"
-          [excludeOwnerIds]="excludeOwnerIds"
+      <section fxLayout="column">
+        <span translate style="padding-bottom: 10px;">entity-group.select-existing</span>
+        <tb-edge-entity-group-list
           required
-          placeholderText="{{placeholderText}}"
-          notFoundText="{{notFoundText}}"
-          requiredText="{{requiredText}}">
-        </tb-owner-autocomplete>
+          [groupType]="childGroupType"
+          [excludeGroupAll]="true"
+          formControlName="edgeEntityGroupIds">
+        </tb-edge-entity-group-list>
       </section>
     </fieldset>
   </div>
@@ -66,8 +65,8 @@
     </button>
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || addEntityGroupsToEdgeFormGroup.invalid
-            || !addEntityGroupsToEdgeFormGroup.dirty">
+            [disabled]="(isLoading$ | async) || addEntityGroupToEdgeFormGroup.invalid
+            || !addEntityGroupToEdgeFormGroup.dirty">
       {{ confirmSelectTitle | translate }}
     </button>
   </div>

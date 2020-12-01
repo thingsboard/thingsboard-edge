@@ -36,18 +36,28 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
 import { EntityId } from '@shared/models/id/entity-id';
-import { Observable } from 'rxjs';
+import {forkJoin, Observable} from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
+import {EntityType} from "@shared/models/entity-type.models";
+import {UserPermissionsService} from "@core/http/user-permissions.service";
+import {EntityGroupService} from "@core/http/entity-group.service";
+import {BroadcastService} from "@core/services/broadcast.service";
+import {Operation} from "@shared/models/security.models";
+import {EntityGroup, EntityGroupInfo} from "@shared/models/entity-group.models";
+import {
+  SelectEntityGroupDialogData,
+  SelectEntityGroupDialogResult
+} from "@home/dialogs/select-entity-group-dialog.component";
 
 export interface AddEntityGroupsToEdgeDialogData {
+  ownerId: EntityId;
+  childGroupType: EntityType;
+  edgeId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
-  placeholderText: string;
   notFoundText: string;
   requiredText: string;
-  excludeOwnerIds: Array<string>;
-  onOwnerSelected: (targetOwnerId: EntityId) => Observable<boolean>;
 }
 
 @Component({
@@ -57,39 +67,48 @@ export interface AddEntityGroupsToEdgeDialogData {
   styleUrls: []
 })
 export class AddEntityGroupsToEdgeDialogComponent extends
-  DialogComponent<AddEntityGroupsToEdgeDialogComponent, EntityId> implements OnInit, ErrorStateMatcher {
+  DialogComponent<AddEntityGroupsToEdgeDialogComponent> implements OnInit, ErrorStateMatcher {
 
-  addEntityGroupsToEdgeFormGroup: FormGroup;
+  addEntityGroupToEdgeFormGroup: FormGroup;
 
   submitted = false;
 
+  entityType = EntityType;
+
+  ownerId: EntityId;
+  childGroupType: EntityType;
+  edgeId: string;
+  childGroupId: string;
   addEntityGroupsToEdgeTitle: string;
   confirmSelectTitle: string;
-  placeholderText: string;
   notFoundText: string;
   requiredText: string;
-  excludeOwnerIds: Array<string>;
-  onOwnerSelected: (targetOwnerId: EntityId) => Observable<boolean>;
+
+  edgeEntityGroupIds: string[];
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
+              protected userPermissionsService: UserPermissionsService,
+              protected entityGroupService: EntityGroupService,
+              protected broadcast: BroadcastService,
               @Inject(MAT_DIALOG_DATA) public data: AddEntityGroupsToEdgeDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<AddEntityGroupsToEdgeDialogComponent, EntityId>,
+              public dialogRef: MatDialogRef<AddEntityGroupsToEdgeDialogComponent>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
+    this.ownerId = data.ownerId;
+    this.childGroupType = data.childGroupType;
+    this.edgeId = data.edgeId;
     this.addEntityGroupsToEdgeTitle = data.addEntityGroupsToEdgeTitle;
     this.confirmSelectTitle = data.confirmSelectTitle;
-    this.placeholderText = data.placeholderText;
     this.notFoundText = data.notFoundText;
     this.requiredText = data.requiredText;
-    this.excludeOwnerIds = data.excludeOwnerIds;
-    this.onOwnerSelected = data.onOwnerSelected;
+    this.edgeEntityGroupIds = [];
   }
 
   ngOnInit(): void {
-    this.addEntityGroupsToEdgeFormGroup = this.fb.group({
-      targetOwnerId: [null, [Validators.required]]
+    this.addEntityGroupToEdgeFormGroup = this.fb.group({
+      edgeEntityGroupIds: [[...this.edgeEntityGroupIds]]
     });
   }
 
@@ -105,17 +124,18 @@ export class AddEntityGroupsToEdgeDialogComponent extends
 
   addEntityGroupsToEdge(): void {
     this.submitted = true;
-    const targetOwnerId: EntityId = this.addEntityGroupsToEdgeFormGroup.get('targetOwnerId').value;
-    if (this.onOwnerSelected) {
-      this.onOwnerSelected(targetOwnerId).subscribe((res) => {
-        if (res) {
-          this.dialogRef.close(targetOwnerId);
-        }
-      },
-        () => {}
-      );
-    } else {
-      this.dialogRef.close(targetOwnerId);
-    }
+    const edgeEntityGroupIds: Array<string> = this.addEntityGroupToEdgeFormGroup.get('edgeEntityGroupIds').value;
+    const tasks: Observable<any>[] = [];
+    edgeEntityGroupIds.forEach(
+      (entityGroupId) => {
+        tasks.push(this.entityGroupService.assignEntityGroupToEdge(this.edgeId, entityGroupId, this.childGroupType));
+      }
+    );
+    forkJoin(tasks).subscribe(
+      () => {
+        this.dialogRef.close(true);
+      }
+    )
   }
+
 }

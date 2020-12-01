@@ -58,9 +58,10 @@ import {
   EntityGroupWizardDialogComponent,
   EntityGroupWizardDialogResult
 } from '@home/components/wizard/entity-group-wizard-dialog.component';
-import {GroupEntityTableConfig} from "@home/models/group/group-entities-table-config.models";
-import {AddEntityGroupsToEdgeDialogComponent} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
-import {AddGroupEntityDialogData} from "@home/models/group/group-entity-component.models";
+import {
+  AddEntityGroupsToEdgeDialogComponent,
+  AddEntityGroupsToEdgeDialogData
+} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -259,23 +260,37 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   }
 
   private addEntityGroupsToEdge(): Observable<EntityGroupInfo> {
-    return this.dialog.open<AddEntityGroupsToEdgeDialogComponent, AddGroupEntityDialogData<EntityGroupInfo>,
-      any>(AddEntityGroupsToEdgeDialogComponent, {
+    let ownerId = this.userPermissionsService.getUserOwnerId();
+    if (this.params.customerId) {
+      ownerId = {
+        id: this.params.customerId,
+        entityType: EntityType.CUSTOMER
+      };
+    }
+    return this.dialog.open<AddEntityGroupsToEdgeDialogComponent,
+      AddEntityGroupsToEdgeDialogData,
+      EntityGroupWizardDialogResult>(AddEntityGroupsToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        entitiesTableConfig: null
+        ownerId: ownerId,
+        childGroupType: this.params.childGroupType,
+        edgeId: this.params.edgeId,
+        addEntityGroupsToEdgeTitle: 'edge.add-groups-to-edge',
+        confirmSelectTitle: 'action.add',
+        notFoundText: 'entity-group.no-entity-groups-matching',
+        requiredText: 'entity-group.target-entity-group-required'
       }
     }).afterClosed().pipe(
-          map((result) => {
-            if (result && result.shared) {
-              this.notifyEntityGroupUpdated();
-            }
-            return result?.entityGroup;
+      map((result) => {
+          if (result && result.shared) {
+            this.notifyEntityGroupUpdated();
           }
-        ))
+          return result?.entityGroup;
+        }
+      )
+    );
   }
-
 
   private share($event: Event, entityGroup: EntityGroupInfo) {
     if ($event) {

@@ -192,4 +192,8 @@ export class EntityGroupService {
     return this.http.get<Array<EntityGroupInfo>>(`/api/entityGroups/edge/${edgeId}/${groupType}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+  public assignEntityGroupToEdge(edgeId: string, entityGroupId: string, groupType: string, config?: RequestConfig): Observable<EntityGroup> {
+    return this.http.post<EntityGroup>(`/api/edge/${edgeId}/entityGroup/${entityGroupId}/${groupType}`, defaultHttpOptionsFromConfig(config))
+  }
 }

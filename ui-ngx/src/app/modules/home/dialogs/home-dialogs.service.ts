@@ -54,6 +54,10 @@ import {
   ShareEntityGroupDialogComponent,
   ShareEntityGroupDialogData
 } from '@home/dialogs/share-entity-group-dialog.component';
+import {
+  AddEntityGroupsToEdgeDialogComponent,
+  AddEntityGroupsToEdgeDialogData
+} from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
 
 @Injectable()
 export class HomeDialogsService {
