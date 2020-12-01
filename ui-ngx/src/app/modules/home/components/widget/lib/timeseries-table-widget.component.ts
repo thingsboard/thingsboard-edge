@@ -381,8 +381,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     return header.index;
   }
 
-  public trackByRowTimestamp(index: number, row: TimeseriesRow) {
-    return row[0];
+  public trackByRowTimestamp(index: number) {
+    return index;
   }
 
   public trackByActionCellDescriptionId(index: number, action: WidgetActionDescriptor) {
