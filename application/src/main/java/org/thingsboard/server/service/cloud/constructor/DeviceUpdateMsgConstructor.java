@@ -97,10 +97,10 @@ public class DeviceUpdateMsgConstructor {
         DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
                 .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
                 .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                .setRequestIdMSB(requestUUID.getMostSignificantBits())
-                .setRequestIdLSB(requestUUID.getLeastSignificantBits())
+                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
+                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
                 .setExpirationTime(body.get("expirationTime").asLong())
-                .setOriginServiceId(body.get("originServiceId").asText())
+                .setRequestId(body.get("requestId").asInt())
                 .setOneway(body.get("oneway").asBoolean())
                 .setResponseMsg(responseBuilder.build());
         return builder.build();

@@ -107,7 +107,7 @@ public abstract class BaseProcessor {
     protected DeviceService deviceService;
 
     @Autowired
-    protected  TbCoreDeviceRpcService deviceRpcService;
+    protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
     @Autowired
     protected AssetService assetService;
