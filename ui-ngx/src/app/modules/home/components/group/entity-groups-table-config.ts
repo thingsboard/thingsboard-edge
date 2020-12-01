@@ -283,7 +283,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       }
     }).afterClosed().pipe(
       map((result) => {
-        //TODO deaflynx check result.shared => if (result && result.shared) {
           if (result) {
             this.notifyEntityGroupUpdated();
             this.table.updateData();
