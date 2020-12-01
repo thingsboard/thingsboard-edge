@@ -176,7 +176,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           icon: 'portable_wifi_off',
           isEnabled: true,
           onAction: ($event, entities) => {
-            this.unassignEntityGroups($event, entities);
+            this.unassignEntityGroupsFromEdge($event, entities);
           }
         }
       );
@@ -216,10 +216,16 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (this.edgeId) {
       this.cellActionDescriptors.push(
         {
+          name: this.translate.instant('action.open'),
+          icon: 'view_list',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.openEdgeEntity($event, entity)
+        },
+        {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'portable_wifi_off',
           isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.unassignEntityGroup($event, entity)
+          onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }
       );
     } else {
@@ -384,7 +390,19 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
   }
 
-  private unassignEntityGroup($event: Event, entityGroup: EntityGroup) {
+  private openEdgeEntity($event: Event, entityGroup: EntityGroupInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (this.params.hierarchyView) {
+      this.params.hierarchyCallbacks.groupSelected(this.params.nodeId, entityGroup.id.id);
+    } else {
+      const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.table.route});
+      this.router.navigateByUrl(url);
+    }
+  }
+
+  private unassignEntityGroupFromEdge($event: Event, entityGroup: EntityGroup) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -397,7 +415,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     );
   }
 
-  private unassignEntityGroups($event: Event, entityGroups: Array<EntityGroup>) {
+  private unassignEntityGroupsFromEdge($event: Event, entityGroups: Array<EntityGroup>) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -426,7 +444,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         this.makePrivate(action.event, action.entity);
         return true;
       case 'unassign':
-        this.unassignEntityGroup(action.event, action.entity);
+        this.unassignEntityGroupFromEdge(action.event, action.entity);
         return true;
     }
     return false;
