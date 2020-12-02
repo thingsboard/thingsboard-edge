@@ -62,6 +62,7 @@ import {
   AddEntityGroupsToEdgeDialogComponent,
   AddEntityGroupsToEdgeDialogData
 } from "@home/dialogs/add-entity-groups-to-edge-dialog.component";
+import {EdgeService} from "@core/http/edge.service";
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
