@@ -71,7 +71,7 @@ import { EdgeService } from "@core/http/edge.service";
 import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
 import { EdgeId } from "@shared/models/id/edge-id";
 import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";
-import {UtilsService} from "@core/services/utils.service";
+import { UtilsService } from "@core/services/utils.service";
 
 @Injectable()
 export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>> {
@@ -219,6 +219,17 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
         //   isEnabled: (entity) => (entity.customerId && entity.customerId.id !== NULL_UUID && entity.customerIsPublic),
         //   onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         // },
+        {
+          name: this.translate.instant('edge.manage-edge-users'),
+          nameFunction: (edge) => {
+            return edge.additionalInfo && edge.additionalInfo.isPublic
+              ? this.translate.instant('edge.manage-public-users')
+              : this.translate.instant('edge.manage-edge-users');
+          },
+          icon: 'account_circle',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.manageEdgeUsers($event, entity)
+        },
         {
           name: this.translate.instant('edge.manage-edge-assets'),
           nameFunction: (edge) => {
@@ -488,6 +499,9 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     // case 'unassignFromCustomer':
     //   this.unassignFromCustomer(action.event, action.entity);
     // return true;
+    case 'openEdgeUsers':
+      this.manageEdgeUsers(action.event, action.entity);
+      return true;
     case 'openEdgeAssets':
       this.manageEdgeAssets(action.event, action.entity);
     return true;
@@ -505,6 +519,13 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
     return true;
     }
     return true;
+  }
+
+  manageEdgeUsers($event: Event, edge: Edge) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.router.navigateByUrl(`edges/${edge.id.id}/users`);
   }
 
   manageEdgeAssets($event: Event, edge: Edge) {

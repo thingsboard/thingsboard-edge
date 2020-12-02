@@ -106,6 +106,12 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ)) {
       config.cellActionDescriptors.push(
         {
+          name: this.translate.instant('edge.manage-edge-user-groups'),
+          icon: 'account_circle',
+          isEnabled: config.manageUsersEnabled,
+          onAction: ($event, entity) => this.manageUsers($event, entity, config, params)
+        },
+        {
           name: this.translate.instant('edge.manage-edge-asset-groups'),
           icon: 'domain',
           isEnabled: config.manageAssetsEnabled,
@@ -164,6 +170,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   onEdgeAction(action: EntityAction<Edge>, config: GroupEntityTableConfig<Edge>, params: EntityGroupParams): boolean {
     switch (action.action) {
+      case 'manageUsers':
+        this.manageUsers(action.event, action.entity, config, params);
+        return true;
       case 'manageAssets':
         this.manageAssets(action.event, action.entity, config, params);
         return true;
@@ -184,6 +193,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
         return true;
     }
     return false;
+  }
+
+  manageUsers($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+               params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
+    } else {
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
+    }
   }
 
   manageAssets($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,

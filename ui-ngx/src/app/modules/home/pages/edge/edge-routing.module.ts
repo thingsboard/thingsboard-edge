@@ -39,6 +39,7 @@ import { DevicesTableConfigResolver } from "@home/pages/device/devices-table-con
 import { EntityViewsTableConfigResolver } from "@home/pages/entity-view/entity-views-table-config.resolver";
 import { DashboardsTableConfigResolver } from "@home/pages/dashboard/dashboards-table-config.resolver";
 import { RuleChainsTableConfigResolver } from "@home/pages/rulechain/rulechains-table-config.resolver";
+import { UsersTableConfigResolver } from "@home/pages/user/users-table-config.resolver";
 
 const routes: Routes = [
   {
@@ -74,6 +75,20 @@ const routes: Routes = [
         },
         resolve: {
           entitiesTableConfig: RuleChainsTableConfigResolver
+        }
+      },
+      {
+        path: ':edgeId/users',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          breadcrumb: {
+            label: 'edge.users',
+            icon: 'account_circle'
+          }
+        },
+        resolve: {
+          entitiesTableConfig: UsersTableConfigResolver
         }
       },
       {

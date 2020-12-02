@@ -439,6 +439,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
 
   if (entityType === EntityType.EDGE) {
     settings = {...{
+        enableUsersManagement: true,
         enableAssetsManagement: true,
         enableDevicesManagement: true,
         enableEntityViewsManagement: true,

@@ -568,6 +568,18 @@ const routes: Routes = [
               }
             ]
           },
+          { ...USER_GROUPS_ROUTE, ...{
+              path: ':edgeId/userGroups',
+              data: {
+                breadcrumb: {
+                  labelFunction: (route, translate, component, data) => {
+                    return data.entityGroup.edgeGroupsTitle;
+                  },
+                  icon: 'account_circle'
+                }
+              }
+            }
+          },
           { ...ASSET_GROUPS_ROUTE, ...{
               path: ':edgeId/assetGroups',
               data: {
@@ -600,6 +612,18 @@ const routes: Routes = [
                     return data.entityGroup.edgeGroupsTitle;
                   },
                   icon: 'view_quilt'
+                }
+              }
+            }
+          },
+          { ...USER_GROUPS_ROUTE, ...{
+              path: ':edgeId/userGroups',
+              data: {
+                breadcrumb: {
+                  labelFunction: (route, translate, component, data) => {
+                    return data.entityGroup.customerGroupsTitle;
+                  },
+                  icon: 'account_circle'
                 }
               }
             }
