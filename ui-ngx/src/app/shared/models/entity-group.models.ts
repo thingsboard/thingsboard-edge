@@ -467,6 +467,10 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.dashboard-groups';
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
+    case EntityType.SCHEDULER_EVENT:
+      return 'scheduler.scheduler-events';
+    case EntityType.RULE_CHAIN:
+      return 'rulechain.edge-rule-chains';
   }
 }
 

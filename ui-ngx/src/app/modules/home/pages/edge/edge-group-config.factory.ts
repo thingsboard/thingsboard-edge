@@ -263,7 +263,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
     } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/schedulerEvents`);
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
     }
   }
 

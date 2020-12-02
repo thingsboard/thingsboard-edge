@@ -85,4 +85,19 @@ export class SchedulerEventService {
     return this.http.delete(`/api/schedulerEvent/${schedulerEventId}`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getEdgeSchedulerEvents(edgeId: string, config?: RequestConfig): Observable<Array<SchedulerEventInfo>> {
+    return this.http.get<Array<SchedulerEventInfo>>(`/api/edge/${edgeId}/schedulerEvents`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public assignSchedulerEventToEdge(edgeId: string, schedulerEventId: string, config?: RequestConfig): Observable<SchedulerEventInfo> {
+    return this.http.post<SchedulerEventInfo>(`/api/edge/${edgeId}/schedulerEvent/${schedulerEventId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public unassignSchedulerEventFromEdge(edgeId: string, schedulerEventId: string, config?: RequestConfig) {
+    return this.http.delete(`/api/edge/${edgeId}/schedulerEvent/${schedulerEventId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
 }

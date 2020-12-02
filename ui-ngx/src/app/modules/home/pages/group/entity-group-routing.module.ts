@@ -51,6 +51,7 @@ import { CustomersHierarchyComponent } from '@home/pages/group/customers-hierarc
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { SchedulerEventsComponent } from "@home/components/scheduler/scheduler-events.component";
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -638,6 +639,23 @@ const routes: Routes = [
                   icon: 'dashboard'
                 }
               }
+            }
+          },
+          {
+            path: ':edgeId/scheduler',
+            component: SchedulerEventsComponent,
+            data: {
+              groupType: EntityType.SCHEDULER_EVENT,
+              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+              breadcrumb: {
+                labelFunction: (route, translate, component, data) => {
+                  return data.entityGroup.edgeGroupsTitle;
+                },
+                icon: 'schedule'
+              }
+            },
+            resolve: {
+              entityGroup: EntityGroupResolver
             }
           }
         ]
