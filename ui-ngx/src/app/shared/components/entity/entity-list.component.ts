@@ -53,6 +53,9 @@ import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { EdgeRuleChainService } from "@core/http/edge-rule-chain.service";
+import { PageLink } from "@shared/models/page/page-link";
+
 
 @Component({
   selector: 'tb-entity-list',
@@ -119,6 +122,7 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
+              private edgeRuleChainService: EdgeRuleChainService,
               private fb: FormBuilder) {
     this.entityListFormGroup = this.fb.group({
       entities: [this.entities, this.required ? [Validators.required] : []],
@@ -243,8 +247,17 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   fetchEntities(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    return this.entityService.getEntitiesByNameFilter(this.entityType, searchText,
-      50, this.entitySubType, {ignoreLoading: true}).pipe(
+    let $entities: Observable<Array<BaseData<EntityId>>>;
+    if (this.entityType === EntityType.RULE_CHAIN) {
+      let pageLink = new PageLink(50); //TODO deaflynx test if > 50
+      $entities = this.edgeRuleChainService.getRuleChains(pageLink).pipe(
+        map(data => data.data)
+    );
+    } else {
+      $entities = this.entityService.getEntitiesByNameFilter(this.entityType, searchText,
+        50, this.entitySubType, {ignoreLoading: true})
+    }
+    return $entities.pipe(
       map((data) => data ? data : []));
   }
 

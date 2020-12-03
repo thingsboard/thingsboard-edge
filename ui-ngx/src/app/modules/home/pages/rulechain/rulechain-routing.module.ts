@@ -53,7 +53,6 @@ import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { ItemBufferService } from '@core/public-api';
 import { MODULES_MAP } from '@shared/public-api';
-import { EdgeRuleChainsTableConfigResolver } from "@home/pages/rulechain/edge-rulechains-table-config.resolver";
 import { EdgesRuleChainsTableConfigResolver} from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
 
 @Injectable()
@@ -285,7 +284,6 @@ const routes: Routes = [
     ResolvedRuleChainMetaDataResolver,
     RuleNodeComponentsResolver,
     RuleChainImportGuard,
-    EdgeRuleChainsTableConfigResolver,
     EdgesRuleChainsTableConfigResolver
   ]
 })

@@ -470,7 +470,7 @@ export function entityGroupsTitle(groupType: EntityType) {
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler-events';
     case EntityType.RULE_CHAIN:
-      return 'rulechain.edge-rule-chains';
+      return 'rulechain.edge-rulechains';
   }
 }
 

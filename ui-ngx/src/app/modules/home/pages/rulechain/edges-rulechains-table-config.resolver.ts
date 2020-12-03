@@ -31,12 +31,12 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
+import {ActivatedRouteSnapshot, Resolve, Router} from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
-  EntityTableConfig
+  EntityTableConfig, HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
@@ -56,15 +56,24 @@ import { PageLink } from "@shared/models/page/page-link";
 import { EdgeRuleChainService } from "@core/http/edge-rule-chain.service";
 import { map } from "rxjs/operators";
 import { isDefined } from "@core/utils";
+import { Observable} from "rxjs";
+import { PageData } from "@shared/models/page/page-data";
+import {
+  AddEntitiesToEdgeDialogComponent,
+  AddEntitiesToEdgeDialogData
+} from "@home/dialogs/add-entities-to-edge-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
 
 @Injectable()
 export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
 
   private readonly config: EntityTableConfig<RuleChain> = new EntityTableConfig<RuleChain>();
+  private edgeId: string;
 
   constructor(private ruleChainService: RuleChainService,
               private edgeRuleChainService: EdgeRuleChainService,
               private dialogService: DialogService,
+              private dialog: MatDialog,
               private importExport: ImportExportService,
               private itembuffer: ItemBufferService,
               private translate: TranslateService,
@@ -144,7 +153,6 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
     this.config.deleteEntityContent = () => this.translate.instant('rulechain.delete-rulechain-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('rulechain.delete-rulechains-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('rulechain.delete-rulechains-text');
-    this.config.entitiesFetchFunction = pageLink => this.fetchEdgeRuleChains(pageLink);
     this.config.loadEntity = id => this.ruleChainService.getRuleChain(id.id);
     this.config.saveEntity = ruleChain => this.ruleChainService.saveRuleChain({...ruleChain, type: ruleChainType.edge});
     this.config.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
@@ -155,7 +163,10 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
   }
 
-  resolve(): EntityTableConfig<RuleChain> {
+  resolve(route:ActivatedRouteSnapshot): EntityTableConfig<RuleChain> {
+    this.edgeId = route.params.edgeId;
+    this.config.addActionDescriptors = this.configureAddActionDescriptor();
+    this.config.entitiesFetchFunction = pageLink => this.fetchEdgeRuleChains(pageLink);
     this.config.tableTitle = this.translate.instant('rulechain.edge-rulechains');
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
@@ -224,18 +235,19 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
     return false;
   }
 
-  addActionDescriptor() {
-    if (this.router.url.includes('edgeGroups')) {
-      this.config.addActionDescriptors.push(
+  configureAddActionDescriptor() {
+    const actions: Array<HeaderActionDescriptor> = [];
+    if (this.edgeId) {
+      actions.push(
         {
           name: this.translate.instant('action.assign'),
           icon: 'insert_drive_file',
           isEnabled: () => true,
-          onAction: ($event) => this.config.table.addEntity($event)
+          onAction: ($event) => this.addRuleChainsToEdge($event)
         }
       );
     } else {
-      this.config.addActionDescriptors.push(
+      actions.push(
         {
           name: this.translate.instant('rulechain.create-new-rulechain'),
           icon: 'insert_drive_file',
@@ -250,6 +262,27 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
         }
       );
     }
+    return actions;
+  }
+
+  addRuleChainsToEdge($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
+      boolean>(AddEntitiesToEdgeDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        edgeId: this.edgeId,
+        entityType: EntityType.RULE_CHAIN
+      }
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.config.table.updateData();
+        }
+      });
   }
 
   // TODO move to service & fix router includes
@@ -258,26 +291,20 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
     this.edgeRuleChainService.getDefaultEdgeRuleChains().subscribe(ruleChains => {
         ruleChains.map(ruleChain => defaultEdgeRuleChainIds.push(ruleChain.id.id))
     });
-    if (this.router.url.includes('edgeGroups')) {
-      const edgeId = this.router.parseUrl(this.router.url).root.children["primary"].segments[2].path;
-      return this.edgeRuleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(
-        map(response => {
-          response.data.map(ruleChain =>
-            ruleChain.isDefault = defaultEdgeRuleChainIds.some(id => ruleChain.id.id.includes(id))
-          );
-          return response;
-        })
-      );
+    let $ruleChains: Observable<PageData<RuleChain>>;
+    if (this.edgeId) {
+      $ruleChains = this.edgeRuleChainService.getEdgeRuleChains(this.edgeId, pageLink);
     } else {
-      return this.edgeRuleChainService.getRuleChains(pageLink).pipe(
-        map(response => {
-          response.data.map(ruleChain =>
-            ruleChain.isDefault = defaultEdgeRuleChainIds.some(id => ruleChain.id.id.includes(id))
-          );
-          return response;
-        })
-      );
+      $ruleChains = this.edgeRuleChainService.getRuleChains(pageLink);
     }
+    return $ruleChains.pipe(
+      map(response => {
+        response.data.map(ruleChain =>
+          ruleChain.isDefault = defaultEdgeRuleChainIds.some(id => ruleChain.id.id.includes(id))
+        );
+        return response;
+      })
+    );
   }
 
   setDefaultRootEdgeRuleChain($event: Event, ruleChain: RuleChain) {

@@ -38,8 +38,8 @@ import { AssetsTableConfigResolver } from "@home/pages/asset/assets-table-config
 import { DevicesTableConfigResolver } from "@home/pages/device/devices-table-config.resolver";
 import { EntityViewsTableConfigResolver } from "@home/pages/entity-view/entity-views-table-config.resolver";
 import { DashboardsTableConfigResolver } from "@home/pages/dashboard/dashboards-table-config.resolver";
-import { RuleChainsTableConfigResolver } from "@home/pages/rulechain/rulechains-table-config.resolver";
 import { UsersTableConfigResolver } from "@home/pages/user/users-table-config.resolver";
+import { EdgesRuleChainsTableConfigResolver } from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
 
 const routes: Routes = [
   {
@@ -74,7 +74,7 @@ const routes: Routes = [
           },
         },
         resolve: {
-          entitiesTableConfig: RuleChainsTableConfigResolver
+          entitiesTableConfig: EdgesRuleChainsTableConfigResolver
         }
       },
       {

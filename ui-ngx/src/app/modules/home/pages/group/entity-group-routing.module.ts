@@ -664,7 +664,7 @@ const routes: Routes = [
             component: EntitiesTableComponent,
             data: {
               ruleChainsType: 'edges',
-              title: 'rulechain.edge-rule-chains',
+              title: 'rulechain.edge-rulechains',
               groupType: EntityType.RULE_CHAIN,
               auth: [Authority.TENANT_ADMIN],
               breadcrumb: {
