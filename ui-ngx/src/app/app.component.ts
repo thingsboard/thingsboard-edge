@@ -141,5 +141,11 @@ export class AppComponent implements OnInit {
   ngOnInit() {
   }
 
-}
+  onActivateComponent($event: any) {
+    const loadingElement = $('div#tb-loading-spinner');
+    if (loadingElement.length) {
+      loadingElement.remove();
+    }
+  }
 
+}
