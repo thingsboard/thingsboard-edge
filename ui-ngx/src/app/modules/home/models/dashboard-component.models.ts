@@ -40,7 +40,6 @@ import { IterableDiffer, KeyValueDiffer } from '@angular/core';
 import { IAliasController, IStateController } from '@app/core/api/widget-api.models';
 import { UtilsService } from '@core/services/utils.service';
 import { enumerable } from '@shared/decorators/enumerable';
-import { UtilsService } from '@core/services/utils.service';
 
 export interface WidgetsData {
   widgets: Array<Widget>;
