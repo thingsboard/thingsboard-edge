@@ -77,6 +77,7 @@ import { distinct } from 'rxjs/operators';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { UtilsService } from '@core/services/utils.service';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { UtilsService } from '@core/services/utils.service';
 
 @Component({
   selector: 'tb-dashboard',

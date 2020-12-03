@@ -216,7 +216,7 @@ export class WidgetSubscriptionContext {
 export type SubscriptionMessageSeverity = 'info' | 'warn' | 'error' | 'success';
 
 export interface SubscriptionMessage {
-  severity: SubscriptionMessageSeverity,
+  severity: SubscriptionMessageSeverity;
   message: string;
 }
 

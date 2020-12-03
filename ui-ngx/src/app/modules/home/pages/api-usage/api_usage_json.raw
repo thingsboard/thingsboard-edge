@@ -95,7 +95,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"JavaScript\";"
+                  "postFuncBody": "return \"{i18n:api-usage.javascript}\";"
                 },
                 {
                   "name": "jsExecutionApiState",
@@ -108,7 +108,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Executions\";"
+                  "postFuncBody": "return \"{i18n:api-usage.executions}\";"
                 }
               ]
             }
@@ -123,8 +123,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"javascript_functions_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"javascript_functions_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
           },
           "title": "JavaScript functions",
           "dropShadow": true,
@@ -254,7 +254,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Telemetry\";"
+                  "postFuncBody": "return \"{i18n:api-usage.telemetry}\";"
                 },
                 {
                   "name": "dbApiState",
@@ -267,7 +267,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Data points storage days\";"
+                  "postFuncBody": "return \"{i18n:api-usage.data-points-storage-days}\";"
                 }
               ]
             }
@@ -282,8 +282,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"telemetry_persistence_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"telemetry_persistence_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
           },
           "title": "Telemetry persistence",
           "dropShadow": true,
@@ -413,7 +413,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Rule Engine\";"
+                  "postFuncBody": "return \"{i18n:api-usage.rule-engine}\";"
                 },
                 {
                   "name": "ruleEngineApiState",
@@ -426,7 +426,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Executions\";"
+                  "postFuncBody": "return \"{i18n:api-usage.executions}\";"
                 }
               ]
             }
@@ -441,8 +441,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n",
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"rule_engine_statistics_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View statistics</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n        <button id=\"rule_engine_execution_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>"
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n",
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"rule_engine_statistics_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-statistics}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n        <button id=\"rule_engine_execution_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>"
           },
           "title": "Rule Engine execution",
           "dropShadow": true,
@@ -608,7 +608,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Transport\";"
+                  "postFuncBody": "return \"{i18n:api-usage.transport}\";"
                 }
               ]
             }
@@ -623,8 +623,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n            var pointsCount = \"${pointsCount:0}\";\n            var pointsLimit = \"${pointsLimit:0}\";\n            pointsCount = pointsCount.length > 0 ? parseInt(pointsCount, 10) : 0;\n            pointsLimit = pointsLimit.length > 0 ? parseInt(pointsLimit, 10) : 0;\n            var pointsPercentElement = $('#api-usage-percent2', parentTag);\n            var pointsValueElement = $('#api-usage-value2', parentTag);\n            var pointsBarElement = $('#api-usage-bar2', parentTag);\n            if (Number.isFinite(pointsLimit) && pointsLimit > 0) {\n                var percent = Math.min(100, ((pointsCount / pointsLimit) * 100));\n                pointsBarElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                pointsPercentElement.text(percent + '%');\n                pointsValueElement.text(toShortNumber(pointsCount) + ' / ' + toShortNumber(pointsLimit));\n            } else {\n                pointsBarElement.width('0%');\n                pointsPercentElement.text('');\n                pointsValueElement.text(toShortNumber(pointsCount) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>\n                    <span>${title}</span>\n                </div>\n                <div class='state'>${apiState}</div>\n            </div>\n            <div class=\"bars-row\">\n                <div class=\"bar-column\" style=\"margin-right: 10px;\">\n                    <div class='bar-container'>\n                        <div class=\"unit\">Messages</div>\n                        <div class='bar'>\n                            <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                        </div>\n                        <div class='bar-labels'>\n                            <div id=\"api-usage-percent\"></div>\n                            <div style=\"flex: 1;\"></div>\n                            <div id=\"api-usage-value\"></div>\n                        </div>\n                    </div>    \n                </div>\n                <div class=\"bar-column\" style=\"margin-left: 10px;\">\n                    <div class='bar-container'>\n                        <div class=\"unit\">Data points</div>\n                        <div class='bar'>\n                            <div class=\"bar-fill\" id=\"api-usage-bar2\"></div>\n                        </div>    \n                        <div class='bar-labels'>\n                            <div id=\"api-usage-percent2\"></div>\n                            <div style=\"flex: 1;\"></div>\n                            <div id=\"api-usage-value2\"></div>\n                        </div>\n                    </div>    \n                </div>\n            </div>\n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"transport_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div>    \n</div>",
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bars-row {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n}\n\n.card .bar-column {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 6px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n"
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n            var pointsCount = \"${pointsCount:0}\";\n            var pointsLimit = \"${pointsLimit:0}\";\n            pointsCount = pointsCount.length > 0 ? parseInt(pointsCount, 10) : 0;\n            pointsLimit = pointsLimit.length > 0 ? parseInt(pointsLimit, 10) : 0;\n            var pointsPercentElement = $('#api-usage-percent2', parentTag);\n            var pointsValueElement = $('#api-usage-value2', parentTag);\n            var pointsBarElement = $('#api-usage-bar2', parentTag);\n            if (Number.isFinite(pointsLimit) && pointsLimit > 0) {\n                var percent = Math.min(100, ((pointsCount / pointsLimit) * 100));\n                pointsBarElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                pointsPercentElement.text(percent + '%');\n                pointsValueElement.text(toShortNumber(pointsCount) + ' / ' + toShortNumber(pointsLimit));\n            } else {\n                pointsBarElement.width('0%');\n                pointsPercentElement.text('');\n                pointsValueElement.text(toShortNumber(pointsCount) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>\n                    <span>${title}</span>\n                </div>\n                <div class='state'>${apiState}</div>\n            </div>\n            <div class=\"bars-row\">\n                <div class=\"bar-column\" style=\"margin-right: 10px;\">\n                    <div class='bar-container'>\n                        <div class=\"unit\">{i18n:api-usage.messages}</div>\n                        <div class='bar'>\n                            <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                        </div>\n                        <div class='bar-labels'>\n                            <div id=\"api-usage-percent\"></div>\n                            <div style=\"flex: 1;\"></div>\n                            <div id=\"api-usage-value\"></div>\n                        </div>\n                    </div>    \n                </div>\n                <div class=\"bar-column\" style=\"margin-left: 10px;\">\n                    <div class='bar-container'>\n                        <div class=\"unit\">{i18n:api-usage.data-points}</div>\n                        <div class='bar'>\n                            <div class=\"bar-fill\" id=\"api-usage-bar2\"></div>\n                        </div>    \n                        <div class='bar-labels'>\n                            <div id=\"api-usage-percent2\"></div>\n                            <div style=\"flex: 1;\"></div>\n                            <div id=\"api-usage-value2\"></div>\n                        </div>\n                    </div>    \n                </div>\n            </div>\n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"transport_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div>    \n</div>",
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bars-row {\n    flex: 1;\n    display: flex;\n    flex-direction: row;\n}\n\n.card .bar-column {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 6px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n"
           },
           "title": "Transport",
           "dropShadow": true,
@@ -754,7 +754,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Email\";"
+                  "postFuncBody": "return \"{i18n:api-usage.email}\";"
                 },
                 {
                   "name": "emailApiState",
@@ -767,7 +767,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Messages\";"
+                  "postFuncBody": "return \"{i18n:api-usage.messages}\";"
                 }
               ]
             }
@@ -782,8 +782,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"email_messages_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"email_messages_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
           },
           "title": "Email messages",
           "dropShadow": true,
@@ -913,7 +913,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"SMS\";"
+                  "postFuncBody": "return \"{i18n:api-usage.sms}\";"
                 },
                 {
                   "name": "smsApiState",
@@ -926,7 +926,7 @@
                   "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": true,
-                  "postFuncBody": "return \"Messages\";"
+                  "postFuncBody": "return \"{i18n:api-usage.messages}\";"
                 }
               ]
             }
@@ -941,8 +941,8 @@
           "color": "#666666",
           "padding": "0",
           "settings": {
-            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / unlimited');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"sms_messages_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">View details</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
-            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
+            "cardHtml": "<div class='card ${apiStateClass}'>\n    <img src=\"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\" onload=\"initializeCard_${cardId:0}(event);\">\n    <script type=\"text/javascript\">\n        function initializeCard_${cardId:0}(e) {\n            \n            function toShortNumber(number) {\n                var rounder = Math.pow(10, 1);\n                var powers = [\n                  {key: 'Q', value: Math.pow(10, 15)},\n                  {key: 'T', value: Math.pow(10, 12)},\n                  {key: 'B', value: Math.pow(10, 9)},\n                  {key: 'M', value: Math.pow(10, 6)},\n                  {key: 'K', value: 1000}\n                ];\n                \n                var key = '';\n                \n                for (var i = 0; i < powers.length; i++) {\n                    var reduced = number / powers[i].value;\n                    reduced = Math.round(reduced * rounder) / rounder;\n                    if (reduced >= 1) {\n                        number = reduced;\n                        key = powers[i].key;\n                        break;\n                    }\n                }\n                return number + key;\n            }\n            \n            var imgTag = e.target;\n            var parentTag = imgTag.parentNode;\n            var count = \"${count:0}\";\n            var limit = \"${limit:0}\";\n            count = count.length > 0 ? parseInt(count, 10) : 0;\n            limit = limit.length > 0 ? parseInt(limit, 10) : 0;\n            var percentElement = $('#api-usage-percent', parentTag);\n            var valueElement = $('#api-usage-value', parentTag);\n            var barElement = $('#api-usage-bar', parentTag);\n            if (Number.isFinite(limit) && limit > 0) {\n                var percent = Math.min(100, ((count / limit) * 100));\n                barElement.width(percent + '%');\n                percent = percent.toFixed(2);\n                percentElement.text(percent + '%');\n                valueElement.text(toShortNumber(count) + ' / ' + toShortNumber(limit));\n            } else {\n                barElement.width('0%');\n                percentElement.text('');\n                valueElement.text(toShortNumber(count) + ' / ∞');\n            }\n        }\n    </script>\n    <div class='content'>\n        <div class='column'>\n            <div class='title-row'>\n                <div class='title'>${title}</div>\n                <div class='state'>${apiState}</div>\n            </div>    \n            <div class='bar-container'>\n                <div class=\"unit\">${unit}</div>\n                <div class='bar'>\n                    <div class=\"bar-fill\" id=\"api-usage-bar\"></div>\n                </div>    \n                <div class='bar-labels'>\n                    <div id=\"api-usage-percent\"></div>\n                    <div style=\"flex: 1;\"></div>\n                    <div id=\"api-usage-value\"></div>\n                </div>\n            </div>    \n        </div>\n    </div>\n    <div role=\"separator\" class=\"mat-divider mat-divider-horizontal\" aria-orientation=\"horizontal\"></div>\n    <div class='action-row'>\n        <button id=\"sms_messages_details\" class=\"mat-focus-indicator mat-button mat-button-base mat-primary\">\n            <span class=\"mat-button-wrapper\">{i18n:api-usage.view-details}</span>\n            <span class=\"mat-ripple mat-button-ripple\"></span>\n            <span class=\"mat-button-focus-overlay\"></span>\n        </button>\n    </div> \n</div>",
+            "cardCss": ".card {\n   width: 100%;\n   height: 100%;\n   box-sizing: border-box;\n   display: flex;\n   flex-direction: column;\n}\n\n.card > img {\n    height: 0;\n}\n\n.card .content {\n   flex: 1;    \n   padding: 13px 13px 0;\n   display: flex;\n   box-sizing: border-box;\n}\n\n.card .content .column {\n   display: flex;\n   flex-direction: column;    \n   justify-content: space-around;\n   flex: 1;\n}\n\n.card .content .title-row {\n    display: flex;\n    flex-direction: row;\n    padding-bottom: 10px;\n}\n\n.card .title {\n    flex: 1;\n    font-size: 20px;\n    font-weight: 400;\n    color: #666666;\n}\n\n.card .state {\n    text-transform: uppercase;\n    font-size: 20px;\n    font-weight: bold;\n}\n\n.card.enabled .state {\n    color: #00B260;\n}\n\n.card.warning .state {\n    color: #FFAD6F;\n}\n\n.card.disabled .state {\n    color: #F73243;\n}\n\n.card .bar-container {\n    flex: 1;\n    display: flex;\n    flex-direction: column;\n    justify-content: center;\n}\n\n.card .bar {\n    flex: 1;\n    max-height: 30px;\n    margin-top: 3.5px;\n    margin-bottom: 4px;\n    background-color: #F0F0F0;\n    border: 1px solid #DADCDB;\n    border-radius: 2px;\n    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);\n}\n\n.card.enabled .bar {\n    border-color: #00B260;\n    background-color: #F0FBF7;\n}\n\n.card.warning .bar {\n    border-color: #FFAD6F;\n    background-color: #FFFAF6;\n}\n\n.card.disabled .bar {\n    border-color: #F73243;\n    background-color: #FFF0F0;\n}\n\n.card .bar .bar-fill {\n    background-color: #F0F0F0;\n    border-radius: 2px;\n    height: 100%;\n    width: 0%;\n}\n\n.card.enabled .bar-fill {\n    background-color: #00C46C;\n}\n\n.card.warning .bar-fill {\n    background-color: #FFD099;\n}\n\n.card.disabled .bar-fill {\n    background-color: #FF9494;\n}\n\n.card .bar-labels {\n    height: 20px;\n    font-size: 16px;\n    color: #666;\n    display: flex;\n    flex-direction: row;\n}\n\n\n.card .mat-button {\n    text-transform: uppercase;\n}\n\n.card .mat-button-wrapper {\n    pointer-events: none;\n}\n\n.card .action-row {\n    display: flex;\n    flex-direction: row;\n    justify-content: flex-end;\n    padding: 8px 0;\n}\n\n@media screen and (min-width: 960px) and (max-width: 1279px) {\n  .card .title {\n      font-size: 12px;\n  }\n  .card .state {\n      font-size: 12px;\n  }\n  .card .unit {\n      font-size: 8px;\n  }\n  .card .bar-labels {\n      font-size: 8px;\n  }\n  .card .mat-button {\n      font-size: 8px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1280px) and (max-width: 1599px) {\n  .card .title {\n      font-size: 14px;\n  }\n  .card .state {\n      font-size: 14px;\n  }\n  .card .unit {\n      font-size: 10px;\n  }\n  .card .bar-labels {\n      font-size: 10px;\n  }\n  .card .mat-button {\n      font-size: 10px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}\n\n@media screen and (min-width: 1600px) and (max-width: 1919px) {\n  .card .title {\n      font-size: 16px;\n  }\n  .card .state {\n      font-size: 16px;\n  }\n  .card .unit {\n      font-size: 12px;\n  }\n  .card .bar-labels {\n      font-size: 12px;\n  }\n  .card .mat-button {\n      font-size: 12px;\n  }\n  .card .action-row {\n      padding: 0;\n  }\n}    \n\n\n"
           },
           "title": "SMS messages",
           "dropShadow": true,
@@ -999,7 +999,7 @@
                 {
                   "name": "ruleEngineExecutionCountHourly",
                   "type": "timeseries",
-                  "label": "Rule Engine executions",
+                  "label": "{i18n:api-usage.rule-engine-executions}",
                   "color": "#ab00ff",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1084,7 +1084,7 @@
               "showLabels": true
             }
           },
-          "title": "Rule Engine hourly activity",
+          "title": "{i18n:api-usage.rule-engine-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1097,7 +1097,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View statistics",
+                "name": "{i18n:api-usage.view-statistics}",
                 "icon": "show_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "rule_engine_statistics",
@@ -1107,7 +1107,7 @@
                 "id": "f9f08190-9ed9-d802-5b7a-c57ff84b5648"
               },
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "rule_engine_execution",
@@ -1157,7 +1157,7 @@
                 {
                   "name": "transportMsgCountHourly",
                   "type": "timeseries",
-                  "label": "Transport messages",
+                  "label": "{i18n:api-usage.transport-messages}",
                   "color": "#2196f3",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1192,7 +1192,7 @@
                 {
                   "name": "transportDataPointsCountHourly",
                   "type": "timeseries",
-                  "label": "Transport data points",
+                  "label": "{i18n:api-usage.transport-data-points}",
                   "color": "#4caf50",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1278,7 +1278,7 @@
             },
             "tooltipCumulative": false
           },
-          "title": "Transport hourly activity",
+          "title": "{i18n:api-usage.transport-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1291,7 +1291,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "transport",
@@ -1341,7 +1341,7 @@
                 {
                   "name": "jsExecutionCountHourly",
                   "type": "timeseries",
-                  "label": "JavaScript executions",
+                  "label": "{i18n:api-usage.javascript-executions}",
                   "color": "#ff9900",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1426,7 +1426,7 @@
               "showLabels": true
             }
           },
-          "title": "JavaScript functions hourly activity",
+          "title": "{i18n:api-usage.javascript-functions-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1439,7 +1439,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "javascript_functions",
@@ -1489,7 +1489,7 @@
                 {
                   "name": "storageDataPointsCountHourly",
                   "type": "timeseries",
-                  "label": "Data points storage days",
+                  "label": "{i18n:api-usage.data-points-storage-days}",
                   "color": "#1039ee",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1574,7 +1574,7 @@
               "showLabels": true
             }
           },
-          "title": "Telemetry persistence hourly activity",
+          "title": "{i18n:api-usage.telemetry-persistence-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1587,7 +1587,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "telemetry_persistence",
@@ -1637,7 +1637,7 @@
                 {
                   "name": "emailCountHourly",
                   "type": "timeseries",
-                  "label": "Email messages",
+                  "label": "{i18n:api-usage.email-messages}",
                   "color": "#d35a00",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1722,7 +1722,7 @@
               "showLabels": true
             }
           },
-          "title": "Email messages hourly activity",
+          "title": "{i18n:api-usage.email-messages-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1735,7 +1735,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "email_messages",
@@ -1785,7 +1785,7 @@
                 {
                   "name": "smsCountHourly",
                   "type": "timeseries",
-                  "label": "SMS messages",
+                  "label": "{i18n:api-usage.sms-messages}",
                   "color": "#f36021",
                   "settings": {
                     "excludeFromStacking": false,
@@ -1870,7 +1870,7 @@
               "showLabels": true
             }
           },
-          "title": "SMS messages hourly activity",
+          "title": "{i18n:api-usage.sms-messages-hourly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -1883,7 +1883,7 @@
           "actions": {
             "headerButton": [
               {
-                "name": "View details",
+                "name": "{i18n:api-usage.view-details}",
                 "icon": "insert_chart",
                 "type": "openDashboardState",
                 "targetDashboardStateId": "sms_messages",
@@ -1933,7 +1933,7 @@
                 {
                   "name": "ruleEngineExecutionCountHourly",
                   "type": "timeseries",
-                  "label": "Rule Engine executions",
+                  "label": "{i18n:api-usage.rule-engine-executions}",
                   "color": "#ab00ff",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2019,7 +2019,7 @@
               "showLabels": true
             }
           },
-          "title": "Rule Engine daily activity",
+          "title": "{i18n:api-usage.rule-engine-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2069,7 +2069,7 @@
                 {
                   "name": "ruleEngineExecutionCount",
                   "type": "timeseries",
-                  "label": "Rule Engine executions",
+                  "label": "{i18n:api-usage.rule-engine-executions}",
                   "color": "#ab00ff",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2155,7 +2155,7 @@
               "showLabels": true
             }
           },
-          "title": "Rule Engine monthly activity",
+          "title": "{i18n:api-usage.rule-engine-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2205,7 +2205,7 @@
                 {
                   "name": "jsExecutionCountHourly",
                   "type": "timeseries",
-                  "label": "JavaScript executions",
+                  "label": "{i18n:api-usage.javascript-executions}",
                   "color": "#ff9900",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2291,7 +2291,7 @@
               "showLabels": true
             }
           },
-          "title": "JavaScript functions daily activity",
+          "title": "{i18n:api-usage.javascript-functions-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2341,7 +2341,7 @@
                 {
                   "name": "jsExecutionCount",
                   "type": "timeseries",
-                  "label": "JavaScript executions",
+                  "label": "{i18n:api-usage.javascript-executions}",
                   "color": "#ff9900",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2427,7 +2427,7 @@
               "showLabels": true
             }
           },
-          "title": "JavaScript functions monthly activity",
+          "title": "{i18n:api-usage.javascript-functions-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2477,7 +2477,7 @@
                 {
                   "name": "transportMsgCountHourly",
                   "type": "timeseries",
-                  "label": "Transport messages",
+                  "label": "{i18n:api-usage.transport-messages}",
                   "color": "#2196f3",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2512,7 +2512,7 @@
                 {
                   "name": "transportDataPointsCountHourly",
                   "type": "timeseries",
-                  "label": "Transport data points",
+                  "label": "{i18n:api-usage.transport-data-points}",
                   "color": "#4caf50",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2599,7 +2599,7 @@
             },
             "tooltipCumulative": false
           },
-          "title": "Transport daily activity",
+          "title": "{i18n:api-usage.transport-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2649,7 +2649,7 @@
                 {
                   "name": "transportMsgCount",
                   "type": "timeseries",
-                  "label": "Transport messages",
+                  "label": "{i18n:api-usage.transport-messages}",
                   "color": "#2196f3",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2684,7 +2684,7 @@
                 {
                   "name": "transportDataPointsCount",
                   "type": "timeseries",
-                  "label": "Transport data points",
+                  "label": "{i18n:api-usage.transport-data-points}",
                   "color": "#4caf50",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2771,7 +2771,7 @@
             },
             "tooltipCumulative": false
           },
-          "title": "Transport monthly activity",
+          "title": "{i18n:api-usage.transport-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2821,7 +2821,7 @@
                 {
                   "name": "storageDataPointsCountHourly",
                   "type": "timeseries",
-                  "label": "Data points storage days",
+                  "label": "{i18n:api-usage.data-points-storage-days}",
                   "color": "#1039ee",
                   "settings": {
                     "excludeFromStacking": false,
@@ -2907,7 +2907,7 @@
               "showLabels": true
             }
           },
-          "title": "Telemetry persistence daily activity",
+          "title": "{i18n:api-usage.telemetry-persistence-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -2957,7 +2957,7 @@
                 {
                   "name": "storageDataPointsCount",
                   "type": "timeseries",
-                  "label": "Data points storage days",
+                  "label": "{i18n:api-usage.data-points-storage-days}",
                   "color": "#1039ee",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3043,7 +3043,7 @@
               "showLabels": true
             }
           },
-          "title": "Telemetry persistence monthly activity",
+          "title": "{i18n:api-usage.telemetry-persistence-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -3093,7 +3093,7 @@
                 {
                   "name": "emailCountHourly",
                   "type": "timeseries",
-                  "label": "Email messages",
+                  "label": "{i18n:api-usage.email-messages}",
                   "color": "#d35a00",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3179,7 +3179,7 @@
               "showLabels": true
             }
           },
-          "title": "Email messages daily activity",
+          "title": "{i18n:api-usage.email-messages-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -3229,7 +3229,7 @@
                 {
                   "name": "emailCount",
                   "type": "timeseries",
-                  "label": "Email messages",
+                  "label": "{i18n:api-usage.email-messages}",
                   "color": "#d35a00",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3315,7 +3315,7 @@
               "showLabels": true
             }
           },
-          "title": "Email messages monthly activity",
+          "title": "{i18n:api-usage.sms-messages-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -3365,7 +3365,7 @@
                 {
                   "name": "smsCountHourly",
                   "type": "timeseries",
-                  "label": "SMS messages",
+                  "label": "{i18n:api-usage.sms-messages}",
                   "color": "#f36021",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3451,7 +3451,7 @@
               "showLabels": true
             }
           },
-          "title": "SMS messages daily activity",
+          "title": "{i18n:api-usage.sms-messages-daily-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -3501,7 +3501,7 @@
                 {
                   "name": "smsCount",
                   "type": "timeseries",
-                  "label": "SMS messages",
+                  "label": "{i18n:api-usage.sms-messages}",
                   "color": "#f36021",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3587,7 +3587,7 @@
               "showLabels": true
             }
           },
-          "title": "SMS messages monthly activity",
+          "title": "{i18n:api-usage.sms-messages-monthly-activity}",
           "dropShadow": true,
           "enableFullscreen": true,
           "titleStyle": {
@@ -3634,7 +3634,7 @@
                 {
                   "name": "successfulMsgs",
                   "type": "timeseries",
-                  "label": "${entityName} Successful",
+                  "label": "{i18n:api-usage.successful}",
                   "color": "#4caf50",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3664,7 +3664,7 @@
                 {
                   "name": "failedMsgs",
                   "type": "timeseries",
-                  "label": "${entityName} Permanent Failures",
+                  "label": "{i18n:api-usage.permanent-failures}",
                   "color": "#ef5350",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3694,7 +3694,7 @@
                 {
                   "name": "tmpFailed",
                   "type": "timeseries",
-                  "label": "${entityName} Processing Failures",
+                  "label": "{i18n:api-usage.processing-failures}",
                   "color": "#ffc107",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3819,7 +3819,7 @@
                 {
                   "name": "timeoutMsgs",
                   "type": "timeseries",
-                  "label": "${entityName} Permanent Timeouts",
+                  "label": "{i18n:api-usage.permanent-timeouts}",
                   "color": "#4caf50",
                   "settings": {
                     "excludeFromStacking": false,
@@ -3849,7 +3849,7 @@
                 {
                   "name": "tmpTimeout",
                   "type": "timeseries",
-                  "label": "${entityName} Processing Timeouts",
+                  "label": "{i18n:api-usage.processing-timeouts}",
                   "color": "#9c27b0",
                   "settings": {
                     "excludeFromStacking": false,
@@ -4058,7 +4058,7 @@
     },
     "states": {
       "default": {
-        "name": "Api Usage",
+        "name": "{i18n:api-usage.api-usage}",
         "root": true,
         "layouts": {
           "main": {
@@ -4157,7 +4157,7 @@
         }
       },
       "transport": {
-        "name": "Transport",
+        "name": "{i18n:api-usage.transport}",
         "root": false,
         "layouts": {
           "main": {
@@ -4190,7 +4190,7 @@
         }
       },
       "rule_engine_execution": {
-        "name": "Rule Engine execution",
+        "name": "{i18n:api-usage.rule-engine-executions}",
         "root": false,
         "layouts": {
           "main": {
@@ -4223,7 +4223,7 @@
         }
       },
       "javascript_functions": {
-        "name": "JavaScript functions",
+        "name": "{i18n:api-usage.javascript-functions}",
         "root": false,
         "layouts": {
           "main": {
@@ -4256,7 +4256,7 @@
         }
       },
       "telemetry_persistence": {
-        "name": "Telemetry persistence",
+        "name": "{i18n:api-usage.telemetry-persistence}",
         "root": false,
         "layouts": {
           "main": {
@@ -4289,7 +4289,7 @@
         }
       },
       "email_messages": {
-        "name": "Email messages",
+        "name": "{i18n:api-usage.email-messages}",
         "root": false,
         "layouts": {
           "main": {
@@ -4322,7 +4322,7 @@
         }
       },
       "sms_messages": {
-        "name": "SMS messages",
+        "name": "{i18n:api-usage.sms-messages}",
         "root": false,
         "layouts": {
           "main": {
@@ -4355,7 +4355,7 @@
         }
       },
       "rule_engine_statistics": {
-        "name": "Rule Engine Statistics",
+        "name": "{i18n:api-usage.rule-engine-statistics}",
         "root": false,
         "layouts": {
           "main": {
