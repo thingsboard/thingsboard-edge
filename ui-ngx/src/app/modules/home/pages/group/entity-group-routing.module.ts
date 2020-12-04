@@ -52,7 +52,7 @@ import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-g
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { SchedulerEventsComponent } from "@home/components/scheduler/scheduler-events.component";
-import {EdgesRuleChainsTableConfigResolver} from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
+import { EdgesRuleChainsTableConfigResolver } from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
