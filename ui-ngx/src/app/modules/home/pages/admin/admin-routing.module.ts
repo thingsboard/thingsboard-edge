@@ -32,8 +32,10 @@
 import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
+import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';
+import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.component';
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { Observable } from 'rxjs';
@@ -126,9 +128,22 @@ const routes: Routes = [
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
-            SYS_ADMIN: '/settings/outgoing-mail',
+            SYS_ADMIN: '/settings/general',
             TENANT_ADMIN: '/settings/outgoing-mail',
             CUSTOMER_USER: '/settings/customTranslation'
+          }
+        }
+      },
+      {
+        path: 'general',
+        component: GeneralSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN],
+          title: 'admin.general-settings',
+          breadcrumb: {
+            label: 'admin.general',
+            icon: 'settings_applications'
           }
         }
       },
@@ -159,6 +174,19 @@ const routes: Routes = [
         },
         resolve: {
           adminSettings: MailTemplateSettingsResolver
+        }
+      },
+      {
+        path: 'sms-provider',
+        component: SmsProviderComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'admin.sms-provider-settings',
+          breadcrumb: {
+            label: 'admin.sms-provider',
+            icon: 'sms'
+          }
         }
       },
       {

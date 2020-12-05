@@ -39,7 +39,7 @@
       <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
                       style="max-height: 40px;">
         <mat-label></mat-label>
-        <input [formControl]="keyValControl.get('key')" matInput required
+        <input [formControl]="keyValControl.get('key')" matInput required [readonly]="isSinglePredefinedKey"
                placeholder="{{ (keyPlaceholderText ? keyPlaceholderText : 'key-val.key') | translate }}"/>
       </mat-form-field>
       <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
@@ -49,7 +49,7 @@
                placeholder="{{ (valuePlaceholderText ? valuePlaceholderText : 'key-val.value') | translate }}"/>
       </mat-form-field>
       <button mat-icon-button color="primary"
-              [fxShow]="!disabled"
+              [fxShow]="!disabled && !isSinglePredefinedKey"
               type="button"
               (click)="removeKeyVal($index)"
               [disabled]="isLoading$ | async"
@@ -64,7 +64,7 @@
         class="no-data-found" translate>{{noDataText ? noDataText : 'key-val.no-data'}}</span>
   <div style="margin-top: 8px;">
     <button mat-button mat-raised-button color="primary"
-            [fxShow]="!disabled"
+            [fxShow]="!disabled && (!isSingleMode || !keyValsFormArray().length)"
             [disabled]="isLoading$ | async"
             (click)="addKeyVal()"
             type="button"

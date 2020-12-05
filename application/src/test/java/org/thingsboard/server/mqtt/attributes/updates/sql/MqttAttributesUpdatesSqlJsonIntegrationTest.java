@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.mqtt.attributes.updates.sql;
 
-import org.thingsboard.server.mqtt.attributes.updates.AbstractMqttAttributesUpdatesIntegrationTest;
 import org.thingsboard.server.mqtt.attributes.updates.AbstractMqttAttributesUpdatesJsonIntegrationTest;
 
 public class MqttAttributesUpdatesSqlJsonIntegrationTest extends AbstractMqttAttributesUpdatesJsonIntegrationTest {

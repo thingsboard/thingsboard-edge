@@ -68,5 +68,4 @@ public abstract class AbstractEntityService {
             return Optional.empty();
         }
     }
-
 }

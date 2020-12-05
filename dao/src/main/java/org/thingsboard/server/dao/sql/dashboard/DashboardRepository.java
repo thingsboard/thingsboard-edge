@@ -39,4 +39,6 @@ import java.util.UUID;
  * Created by Valerii Sosliuk on 5/6/2017.
  */
 public interface DashboardRepository extends CrudRepository<DashboardEntity, UUID> {
+
+    Long countByTenantId(UUID tenantId);
 }

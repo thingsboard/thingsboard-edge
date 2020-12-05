@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -103,5 +104,9 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
                         additionalCustomerIds != null && !additionalCustomerIds.isEmpty() ? additionalCustomerIds : null,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
+    }
+
+    public Long countByTenantId(TenantId tenantId) {
+        return customerRepository.countByTenantId(tenantId.getId());
     }
 }

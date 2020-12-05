@@ -65,6 +65,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
@@ -77,7 +78,9 @@ import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
 import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
+import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -112,6 +115,9 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.common.transport.TransportServiceCallback;
+import org.thingsboard.server.common.transport.service.DefaultTransportService;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -233,6 +239,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private DbCallbackExecutorService callbackExecutorService;
+
+    @Autowired
+    private TbApiUsageReportClient apiUsageReportClient;
 
     @Value("${transport.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -432,7 +441,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         try {
             TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
             IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY));
+            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
             Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
             if (integration == null) {
                 boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
@@ -487,9 +496,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
                 statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
                 statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", latestEvent != null ? latestEvent.name() : "N/A")));
-                telemetrySubscriptionService.saveAndNotify(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Void>() {
+                telemetrySubscriptionService.saveAndNotifyInternal(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Integer>() {
                     @Override
-                    public void onSuccess(@Nullable Void result) {
+                    public void onSuccess(@Nullable Integer result) {
                         log.trace("[{}] Persisted statistics telemetry: {}", id, statistics);
                     }
 
@@ -552,7 +561,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             reportActivity(sessionInfo);
             TenantId tenantId = new TenantId(new UUID(sessionInfo.getTenantIdMSB(), sessionInfo.getTenantIdLSB()));
             DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
-            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), callback);
+            int dataPoints = 0;
+            for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+                dataPoints += tsKv.getKvCount();
+            }
+            MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(tenantId, dataPoints, callback));
             for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
                 TbMsgMetaData metaData = new TbMsgMetaData();
                 metaData.putValue("deviceName", sessionInfo.getDeviceName());
@@ -576,13 +589,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             metaData.putValue("deviceName", sessionInfo.getDeviceName());
             metaData.putValue("deviceType", sessionInfo.getDeviceType());
             TbMsg tbMsg = TbMsg.newMsg(SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), deviceId, metaData, gson.toJson(json));
-            sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(callback));
+            sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, msg.getKvList().size(), callback)));
         }
     }
 
     @Override
     public void process(TenantId tenantId, TbMsg tbMsg, IntegrationCallback<Void> callback) {
-        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(callback));
+        sendToRuleEngine(tenantId, tbMsg, new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(tenantId, 1, callback)));
     }
 
 
@@ -962,6 +975,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         switch (integration.getType()) {
             case HTTP:
                 return new BasicHttpIntegration();
+            case LORIOT:
+                return new LoriotIntegration();
             case SIGFOX:
                 return new SigFoxIntegration();
             case OCEANCONNECT:
@@ -993,6 +1008,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new AwsKinesisIntegration();
             case KAFKA:
                 return new BasicKafkaIntegration();
+            case RABBITMQ:
+                return new BasicRabbitMQIntegration();
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
             case CUSTOM:
@@ -1051,6 +1068,33 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             if (callback != null) {
                 callback.onError(t);
             }
+        }
+    }
+
+    private class ApiStatsProxyCallback<T> implements IntegrationCallback<T> {
+        private final TenantId tenantId;
+        private final int dataPoints;
+        private final IntegrationCallback<T> callback;
+
+        public ApiStatsProxyCallback(TenantId tenantId, int dataPoints, IntegrationCallback<T> callback) {
+            this.tenantId = tenantId;
+            this.dataPoints = dataPoints;
+            this.callback = callback;
+        }
+
+        @Override
+        public void onSuccess(T msg) {
+            try {
+                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_MSG_COUNT, 1);
+                apiUsageReportClient.report(tenantId, ApiUsageRecordKey.TRANSPORT_DP_COUNT, dataPoints);
+            } finally {
+                callback.onSuccess(msg);
+            }
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            callback.onError(e);
         }
     }
 

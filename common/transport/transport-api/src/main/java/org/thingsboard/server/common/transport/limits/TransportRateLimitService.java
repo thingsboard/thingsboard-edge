@@ -30,13 +30,14 @@
  */
 package org.thingsboard.server.common.transport.limits;
 
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.transport.profile.TenantProfileUpdateResult;
 
 public interface TransportRateLimitService {
 
-    TransportRateLimitType checkLimits(TenantId tenantId, DeviceId deviceId, int dataPoints, TransportRateLimitType... limits);
+    EntityType checkLimits(TenantId tenantId, DeviceId deviceId, int dataPoints);
 
     void update(TenantProfileUpdateResult update);
 
@@ -46,4 +47,5 @@ public interface TransportRateLimitService {
 
     void remove(DeviceId deviceId);
 
+    void update(TenantId tenantId, boolean transportEnabled);
 }

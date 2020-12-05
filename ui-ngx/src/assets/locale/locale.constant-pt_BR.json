@@ -560,17 +560,17 @@
     "select-customer": "Selecionar cliente",
     "no-customers-matching": "Nenhum cliente encontrado que coincida com '{{entity}}'.",
     "customer-required": "O cliente é obrigatório",
-    "selected-customers": "{ count, plural, 1 {1 customer} other {# customers} } selecionado(s)",
+    "select-default-customer": "Selecionar cliente predefinido",
+    "default-customer": "Cliente predefinido",
+    "default-customer-required": "O cliente predefinido é necessário para depurar o dashboard no nível de locatário",
     "search": "Pesquisar clientes",
+    "selected-customers": "{ count, plural, 1 {1 customer} other {# customers} } selecionado(s)",
     "select-group-to-add": "Selecionar grupo alvo para adicionar clientes selecionados",
     "select-group-to-move": "Selecionar grupo alvo para mover clientes selecionados",
     "remove-customers-from-group": "Tem certeza de que deseja remover { count, plural, 1 {1 customer} other {# customers} } do grupo '{{entityGroup}}'?",
     "group": "Grupo de clientes",
     "list-of-groups": "{ count, plural, 1 {One customer group} other {List of # customer groups} }",
     "group-name-starts-with": "Grupos de clientes cujos nomes começam com '{{prefix}}'",
-    "select-default-customer": "Selecionar cliente predefinido",
-    "default-customer": "Cliente predefinido",
-    "default-customer-required": "O cliente predefinido é necessário para depurar o dashboard no nível de locatário",
     "allow-white-labeling": "Permitir personalização"
   },
   "customers-hierarchy": {
@@ -1299,8 +1299,8 @@
     "attributes-propagation-hint": "A exibição de entidade copiará automaticamente atributos especificados da entidade alvo sempre que essa exibição de entidade for salva ou atualizada. Por questões de desempenho, os atributos da entidade alvo não são propagados para a exibição de entidade em cada alteração de atributo. A propagação automática pode ser habilitada configurando o nó de regra \"copiar para exibição\" na cadeia de regras e vinculando mensagens de \"Pós-Atributos\" e \"Atributos Atualizados\" ao novo nó de regra.",
     "timeseries-data": "Dados de intervalos de tempo",
     "timeseries-data-hint": "Configurar chaves de dados de intervalos de tempo da entidade alvo que estará acessível para a exibição de entidade. Esses dados de intervalo de tempo são apenas de leitura.",
-    "selected-entity-views": "{ count, plural, 1 {1 entity view} other {# entity views} } selecionado(s)",
     "search": "Pesquisar exibições de entidades",
+    "selected-entity-views": "{ count, plural, 1 {1 entity view} other {# entity views} } selecionado(s)",
     "select-group-to-add": "Selecionar grupo alvo para adicionar exibições de entidades selecionadas",
     "select-group-to-move": "Selecionar grupo alvo para mover exibições de entidades selecionadas",
     "remove-entity-views-from-group": "Tem certeza de que deseja remover { count, plural, 1 {1 entity view} other {# entity views} } do grupo '{{entityGroup}}'?",
@@ -1342,8 +1342,8 @@
     "success": "Êxito",
     "failed": "Falhou",
     "messages-processed": "Mensagens processadas",
-    "errors-occurred": "Erros",
-    "uuid": "UUID"
+    "uuid": "UUID",
+    "errors-occurred": "Erros"
   },
   "extension": {
     "extensions": "Extensões",
@@ -1906,7 +1906,7 @@
     "type-aws-kinesis": "AWS Kinesis",
     "type-ibm-watson-iot": "IBM Watson IoT",
     "type-ttn": "TheThingsNetwork",
-    "type-tti": "TheThingsIndustries",
+    "type-tti": "The Things Stack",
     "type-azure-event-hub": "Azure Event Hub",
     "type-azure-iot-hub": "Azure IoT Hub",
     "type-opc-ua": "OPC-UA",
@@ -2126,7 +2126,7 @@
     "email-verification-message": "Um e-mail com detalhes de verificação foi enviado para o endereço de e-mail especificado.<br>Siga as instruções fornecidas no e-mail, para completar seu processo de inscrição.<br>Observação: Se não tiver recebido o e-mail, verifique a pasta de 'spam' ou tente enviar o e-mail novamente clicando no botão 'Reenviar'.",
     "account-activation-title": "Ativação de conta",
     "account-activated": "Conta ativada corretamente!",
-    "account-activated-text": "Parabéns!<br>Sua conta do ThingsBoard Professional Edition foi ativada.<br>Agora você pode fazer login no espaço do ThingsBoard.",
+    "account-activated-text": "Parabéns!<br>Sua conta do foi ativada.",
     "resend": "Reenviar",
     "inactive-user-exists-title": "Este usuário inativo já existe",
     "inactive-user-exists-text": "Já existe um usuário registrado com endereço de e-mail não verificado.<br>Se quiser reenviar o e-mail de verificação, clique no botão 'Reenviar'.",
@@ -3075,19 +3075,6 @@
     "select-icon": "Selecionar ícone",
     "material-icons": "Ícones de materiais",
     "show-all": "Mostrar todos os ícones"
-  },
-  "subscription": {
-    "upgrade-your-plan": "Solicitar a licença",
-    "white-labeling-feature": "Recurso de personalização",
-    "white-labeling-text-full": "Personalize a marca da interface Web da plataforma ThingsBoard com o logotipo e esquema de cores da sua empresa ou produto em 2 minutos.<br/><br/>Remova “Powered By” no rodapé do dashboard.<br/>Não é necessário codificar ou reiniciar. Também permite que os clientes personalizem sua interface.",
-    "enable-white-labeling": "Habilite o recurso de personalização adquirindo a licença de PE!",
-    "read-more": "Leia mais",
-    "white-labeling-video-text": "Assista ao tutorial em vídeo abaixo para ver como este recurso funciona!",
-    "trial-expired": "Período de avaliação expirado",
-    "trial-expired-message": "O período de avaliação para este locatário expirou.",
-    "deploy-your-aws-instance": "Implemente sua própria instância de PE do AWS Marketplace",
-    "deploy-other": "Saiba mais sobre outras opções de implementação",
-    "trial-expired-message-full": "Implemente sua própria instância de PE do ThingsBoard a partir de US$ 10/mês."
   },
   "custom": {
     "widget-action": {

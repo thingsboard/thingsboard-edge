@@ -130,7 +130,7 @@ class TbIntervalTable {
         return state;
     }
 
-    ListenableFuture<List<Void>> saveIntervalState(EntityId entityId, long intervalStartTs, TbIntervalState state) {
+    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long intervalStartTs, TbIntervalState state) {
         KvEntry kvEntry = new StringDataEntry("RuleNodeState_" + ctx.getSelfId(), state.toStateJson(gson));
         TsKvEntry tsKvEntry = new BasicTsKvEntry(intervalStartTs, kvEntry);
         return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);

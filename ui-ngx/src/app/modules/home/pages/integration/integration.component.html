@@ -65,7 +65,7 @@
         </mat-error>
       </mat-form-field>
       <div fxLayout="row" fxLayout.xs="column">
-        <mat-checkbox fxFlex="33" fxFlex.xs formControlName="enabled">
+        <mat-checkbox fxFlex="33" formControlName="enabled">
           {{ 'integration.enabled' | translate }}
         </mat-checkbox>
         <mat-checkbox fxFlex="33" formControlName="debugMode">
@@ -121,7 +121,7 @@
           [topicFilters]="integrationForm.get('topicFilters')"
           [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
-        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -155,7 +155,7 @@
                                  [topicFilters]="integrationForm.get('topicFilters')"
                                  [integrationType]="integrationType">
         </tb-ttn-integration-form>
-        <button *ngIf="!entityFormValue().remote" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -181,14 +181,14 @@
         <tb-kafka-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-kafka-integration-form>
       </section>
-
-
+      <section *ngIf="integrationType === integrationTypes.RABBITMQ">
+        <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        </tb-rabbitmq-integration-form>
+      </section>
       <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
         <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-pulsar-integration-form>
       </section>
-
-
       <section *ngIf="integrationType === integrationTypes.CUSTOM">
         <tb-custom-integration-form #integrationFormComponent [form]="integrationForm">
         </tb-custom-integration-form>

@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.scheduler;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,6 @@ import java.util.UUID;
  * The Interface SchedulerEventDao.
  *
  */
-public interface SchedulerEventDao extends Dao<SchedulerEvent> {
+public interface SchedulerEventDao extends Dao<SchedulerEvent>, TenantEntityDao {
 
 }

@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.mqtt.telemetry.timeseries.sql;
 
-import org.thingsboard.server.mqtt.telemetry.timeseries.AbstractMqttTimeseriesJsonIntegrationTest;
 import org.thingsboard.server.mqtt.telemetry.timeseries.AbstractMqttTimeseriesProtoIntegrationTest;
 
 /**

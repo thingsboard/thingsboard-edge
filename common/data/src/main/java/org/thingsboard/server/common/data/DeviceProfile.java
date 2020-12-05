@@ -58,6 +58,7 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
     private DeviceTransportType transportType;
     private DeviceProfileProvisionType provisionType;
     private RuleChainId defaultRuleChainId;
+    private String defaultQueueName;
     private transient DeviceProfileData profileData;
     @JsonIgnore
     private byte[] profileDataBytes;
@@ -78,6 +79,7 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
         this.description = deviceProfile.getDescription();
         this.isDefault = deviceProfile.isDefault();
         this.defaultRuleChainId = deviceProfile.getDefaultRuleChainId();
+        this.defaultQueueName = deviceProfile.getDefaultQueueName();
         this.setProfileData(deviceProfile.getProfileData());
         this.provisionDeviceKey = deviceProfile.getProvisionDeviceKey();
     }

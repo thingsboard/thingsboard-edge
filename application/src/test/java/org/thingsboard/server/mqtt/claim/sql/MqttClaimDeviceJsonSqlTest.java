@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.mqtt.claim.sql;
 
-import org.thingsboard.server.mqtt.claim.AbstractMqttClaimDeviceTest;
 import org.thingsboard.server.mqtt.claim.AbstractMqttClaimJsonDeviceTest;
 
 public class MqttClaimDeviceJsonSqlTest extends AbstractMqttClaimJsonDeviceTest {

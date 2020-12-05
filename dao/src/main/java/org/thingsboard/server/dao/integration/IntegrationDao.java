@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * The Interface IntegrationDao.
  *
  */
-public interface IntegrationDao extends Dao<Integration> {
+public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
 
     /**
      * Find integrations by tenantId and page link.

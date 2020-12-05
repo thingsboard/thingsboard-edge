@@ -39,6 +39,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -81,6 +82,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
     @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private ApiUsageStateService apiUsageStateService;
 
 
     @Override

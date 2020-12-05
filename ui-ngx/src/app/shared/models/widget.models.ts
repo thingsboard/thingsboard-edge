@@ -218,6 +218,7 @@ export const legendPositionTranslationMap = new Map<LegendPosition, string>(
 export interface LegendConfig {
   position: LegendPosition;
   direction?: LegendDirection;
+  sortDataKeys: boolean;
   showMin: boolean;
   showMax: boolean;
   showAvg: boolean;
@@ -228,6 +229,7 @@ export function defaultLegendConfig(wType: widgetType): LegendConfig {
   return {
     direction: LegendDirection.column,
     position: LegendPosition.bottom,
+    sortDataKeys: false,
     showMin: false,
     showMax: false,
     showAvg: wType === widgetType.timeseries,

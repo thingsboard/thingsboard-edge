@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.mqtt.telemetry.attributes.sql;
 
-import org.thingsboard.server.mqtt.telemetry.attributes.AbstractMqttAttributesJsonIntegrationTest;
 import org.thingsboard.server.mqtt.telemetry.attributes.AbstractMqttAttributesProtoIntegrationTest;
 
 public class MqttAttributesSqlProtoIntegrationTest extends AbstractMqttAttributesProtoIntegrationTest {

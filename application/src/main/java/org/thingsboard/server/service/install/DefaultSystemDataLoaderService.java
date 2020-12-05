@@ -40,37 +40,23 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.TenantProfileData;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.user.UserLoaderService;
 
@@ -96,6 +82,27 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Autowired
     private TenantProfileService tenantProfileService;
 
+    @Autowired
+    private CustomerService customerService;
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private AttributesService attributesService;
+
+    @Autowired
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
     @Bean
     protected BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -110,13 +117,16 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     public void createDefaultTenantProfiles() throws Exception {
         tenantProfileService.findOrCreateDefaultTenantProfile(TenantId.SYS_TENANT_ID);
 
+        TenantProfileData tenantProfileData = new TenantProfileData();
+        tenantProfileData.setConfiguration(new DefaultTenantProfileConfiguration());
+
         TenantProfile isolatedTbCoreProfile = new TenantProfile();
         isolatedTbCoreProfile.setDefault(false);
         isolatedTbCoreProfile.setName("Isolated TB Core");
-        isolatedTbCoreProfile.setProfileData(new TenantProfileData());
         isolatedTbCoreProfile.setDescription("Isolated TB Core tenant profile");
         isolatedTbCoreProfile.setIsolatedTbCore(true);
         isolatedTbCoreProfile.setIsolatedTbRuleEngine(false);
+        isolatedTbCoreProfile.setProfileData(tenantProfileData);
         try {
             tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbCoreProfile);
         } catch (DataValidationException e) {
@@ -126,10 +136,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         TenantProfile isolatedTbRuleEngineProfile = new TenantProfile();
         isolatedTbRuleEngineProfile.setDefault(false);
         isolatedTbRuleEngineProfile.setName("Isolated TB Rule Engine");
-        isolatedTbRuleEngineProfile.setProfileData(new TenantProfileData());
         isolatedTbRuleEngineProfile.setDescription("Isolated TB Rule Engine tenant profile");
         isolatedTbRuleEngineProfile.setIsolatedTbCore(false);
         isolatedTbRuleEngineProfile.setIsolatedTbRuleEngine(true);
+        isolatedTbRuleEngineProfile.setProfileData(tenantProfileData);
+
         try {
             tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbRuleEngineProfile);
         } catch (DataValidationException e) {
@@ -139,10 +150,11 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         TenantProfile isolatedTbCoreAndTbRuleEngineProfile = new TenantProfile();
         isolatedTbCoreAndTbRuleEngineProfile.setDefault(false);
         isolatedTbCoreAndTbRuleEngineProfile.setName("Isolated TB Core and TB Rule Engine");
-        isolatedTbCoreAndTbRuleEngineProfile.setProfileData(new TenantProfileData());
         isolatedTbCoreAndTbRuleEngineProfile.setDescription("Isolated TB Core and TB Rule Engine tenant profile");
         isolatedTbCoreAndTbRuleEngineProfile.setIsolatedTbCore(true);
         isolatedTbCoreAndTbRuleEngineProfile.setIsolatedTbRuleEngine(true);
+        isolatedTbCoreAndTbRuleEngineProfile.setProfileData(tenantProfileData);
+
         try {
             tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, isolatedTbCoreAndTbRuleEngineProfile);
         } catch (DataValidationException e) {

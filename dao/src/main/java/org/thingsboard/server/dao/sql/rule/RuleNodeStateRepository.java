@@ -51,4 +51,5 @@ public interface RuleNodeStateRepository extends PagingAndSortingRepository<Rule
 
     void removeByRuleNodeId(@Param("ruleNodeId") UUID ruleNodeId);
 
+    void removeByRuleNodeIdAndEntityId(@Param("ruleNodeId") UUID ruleNodeId, @Param("entityId") UUID entityId);
 }

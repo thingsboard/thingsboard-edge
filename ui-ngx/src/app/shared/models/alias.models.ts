@@ -48,6 +48,7 @@ export enum AliasFilterType {
   assetType = 'assetType',
   deviceType = 'deviceType',
   entityViewType = 'entityViewType',
+  apiUsageState = 'apiUsageState',
   relationsQuery = 'relationsQuery',
   assetSearchQuery = 'assetSearchQuery',
   deviceSearchQuery = 'deviceSearchQuery',
@@ -68,6 +69,7 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.assetType, 'alias.filter-type-asset-type' ],
     [ AliasFilterType.deviceType, 'alias.filter-type-device-type' ],
     [ AliasFilterType.entityViewType, 'alias.filter-type-entity-view-type' ],
+    [ AliasFilterType.apiUsageState, 'alias.filter-type-apiUsageState' ],
     [ AliasFilterType.relationsQuery, 'alias.filter-type-relations-query' ],
     [ AliasFilterType.assetSearchQuery, 'alias.filter-type-asset-search-query' ],
     [ AliasFilterType.deviceSearchQuery, 'alias.filter-type-device-search-query' ],
@@ -112,6 +114,7 @@ export interface EntitiesByGroupNameFilter {
   groupStateEntity?: boolean;
   stateEntityParamName?: string;
   groupType?: EntityType;
+  ownerId?: EntityId;
   entityGroupNameFilter?: string;
 }
 
@@ -162,6 +165,11 @@ export interface EntitySearchQueryFilter {
   fetchLastLevelOnly?: boolean;
 }
 
+// tslint:disable-next-line:no-empty-interface
+export interface ApiUsageStateFilter {
+
+}
+
 export interface AssetSearchQueryFilter extends EntitySearchQueryFilter {
   assetTypes?: string[];
 }
@@ -190,7 +198,8 @@ export type EntityFilters =
   RelationsQueryFilter &
   AssetSearchQueryFilter &
   DeviceSearchQueryFilter &
-  EntityViewSearchQueryFilter;
+  EntityViewSearchQueryFilter &
+  EntitySearchQueryFilter;
 
 export interface EntityAliasFilter extends EntityFilters {
   type?: AliasFilterType;

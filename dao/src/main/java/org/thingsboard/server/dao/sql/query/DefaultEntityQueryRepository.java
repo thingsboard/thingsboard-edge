@@ -307,6 +307,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     public static final String ATTR_READ_FLAG = "attr_read";
     public static final String TS_READ_FLAG = "ts_read";
+    private static final String SELECT_API_USAGE_STATE = "(select aus.id, aus.created_time, aus.tenant_id, '13814000-1dd2-11b2-8080-808080808080'::uuid as customer_id, " +
+            "(select title from tenant where id = aus.tenant_id) as name from api_usage_state as aus)";
 
     static {
         entityTableMap.put(EntityType.ENTITY_GROUP, "entity_group");
@@ -322,6 +324,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.SCHEDULER_EVENT, "scheduler_event");
         entityTableMap.put(EntityType.BLOB_ENTITY, "blob_entity");
         entityTableMap.put(EntityType.ROLE, "role");
+        entityTableMap.put(EntityType.API_USAGE_STATE, SELECT_API_USAGE_STATE);
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
@@ -438,6 +441,10 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
                 return new PageData<>();
             }
+        } else if (query.getEntityFilter().getType().equals(EntityFilterType.API_USAGE_STATE)) {
+            if (!ctx.isTenantUser()) {
+                return new PageData<>();
+            }
         } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
             return new PageData<>();
         }
@@ -470,6 +477,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String entityTypeStr;
             if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
                 entityTypeStr = "e.entity_type";
+            } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
+                entityTypeStr = "'ENTITY_GROUP'";
             } else {
                 entityTypeStr = "'" + ctx.getEntityType().name() + "'";
             }
@@ -1297,6 +1306,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case API_USAGE_STATE:
                 return "";
             default:
                 throw new RuntimeException("Not implemented!");
@@ -1386,14 +1396,40 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = ctx.getSecurityCtx().getMergedReadGroupPermissionsByEntityType();
         String where;
         if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-
+            EntityId customOwnerId = entityFilter.getOwnerId();
+            if (customOwnerId != null && !customOwnerId.getEntityType().equals(EntityType.TENANT) && !customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                customOwnerId = null;
+            }
             String allowedGroupIdsSelect = "(";
+            boolean genericPartAdded = false;
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
-                ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                if (customOwnerId == null || ctx.getOwnerId().equals(customOwnerId.getId())) {
+                    // No custom owner - just select a list of groups that belong to current owner
+                    allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
+                    ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (ctx.isTenantUser()) {
+                    // Tenant user with different custom owner id. We need to check that this is our customer.
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id)";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                    // Customer user with different custom owner id. We need to check the hierarchy now
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id and id in ";
+                    allowedGroupIdsSelect += "(WITH RECURSIVE customers_ids(id) AS" +
+                            " (SELECT id id FROM customer WHERE tenant_id = :where_real_tenant_id and id = :where_real_owner_id" +
+                            " UNION SELECT c.id id FROM customer c, customers_ids parent WHERE c.tenant_id = :where_real_tenant_id" +
+                            " and c.parent_customer_id = parent.id) SELECT id FROM customers_ids)";
+                    allowedGroupIdsSelect += ")";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getTenantId().getId());
+                    ctx.addUuidParameter("where_real_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                }
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-                if (groupTypePermissionInfo.isHasGenericRead()) {
+                if (genericPartAdded) {
                     allowedGroupIdsSelect += " or ";
                 }
                 allowedGroupIdsSelect += "id in (:where_group_ids)";
@@ -1669,6 +1705,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return EntityType.ENTITY_VIEW;
             case RELATIONS_QUERY:
                 return ((RelationsQueryFilter) entityFilter).getRootEntity().getEntityType();
+            case API_USAGE_STATE:
+                return EntityType.API_USAGE_STATE;
             default:
                 throw new RuntimeException("Not implemented!");
         }

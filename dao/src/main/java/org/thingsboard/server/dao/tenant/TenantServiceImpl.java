@@ -61,6 +61,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -98,6 +99,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private ApiUsageStateService apiUsageStateService;
 
     @Autowired
     private EntityViewService entityViewService;
@@ -191,6 +195,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
             // TODO: voba - these entity groups are created by cloud manager service
             // entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
             // entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
+            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId());
         }
         return savedTenant;
     }
@@ -217,6 +222,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         deleteEntityRelations(tenantId, tenantId);
         groupPermissionService.deleteGroupPermissionsByTenantId(tenantId);
         roleService.deleteRolesByTenantId(tenantId);
+        apiUsageStateService.deleteApiUsageStateByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
     }
 

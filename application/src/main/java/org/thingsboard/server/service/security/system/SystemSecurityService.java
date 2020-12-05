@@ -53,4 +53,7 @@ public interface SystemSecurityService {
     void validatePassword(TenantId tenantId, String password, UserCredentials userCredentials) throws DataValidationException;
 
     String getBaseUrl(Authority authority, TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest);
+
+    String getBaseUrl(TenantId tenantId, CustomerId customerId, HttpServletRequest httpServletRequest);
+
 }

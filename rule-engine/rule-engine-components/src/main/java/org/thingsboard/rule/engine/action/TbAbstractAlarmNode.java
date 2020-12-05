@@ -41,8 +41,6 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
@@ -129,5 +127,4 @@ public abstract class TbAbstractAlarmNode<C extends TbAbstractAlarmNodeConfigura
                 () -> ctx.tellNext(toAlarmMsg(ctx, alarmResult, msg), alarmAction),
                 throwable -> ctx.tellFailure(toAlarmMsg(ctx, alarmResult, msg), throwable));
     }
-
 }

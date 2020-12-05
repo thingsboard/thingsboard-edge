@@ -44,21 +44,22 @@
                     integration.host-type-required</mat-error>
             </mat-form-field>
             <div fxFlex="50" fxLayout="row" fxLayoutGap="8px">
-                <mat-form-field *ngIf="currentHostType.value === 'Region'" fxFlex="60" class="mat-block">
-                    <mat-label translate>integration.region</mat-label>
-                    <input matInput required [formControl]="hostRegion">
-                    <mat-error translate *ngIf="hostRegion.hasError('required')">
-                        integration.region-required
-                    </mat-error>
-                </mat-form-field>
-                <div *ngIf="currentHostType.value === 'Region'" fxFlex="40" fxLayout="column" fxLayoutAlign="center start">
+                <div *ngIf="currentHostType.value === 'Region'" fxFlex fxLayout="row" fxLayoutAlign="start center">
+                    <mat-form-field fxFlex class="mat-block">
+                        <mat-label translate>integration.region</mat-label>
+                        <input matInput required [formControl]="hostRegion">
+                        <mat-error translate *ngIf="hostRegion.hasError('required')">
+                          integration.region-required
+                        </mat-error>
+                    </mat-form-field>
                     <mat-label>{{hostRegionSuffix}}</mat-label>
                 </div>
                 <mat-form-field *ngIf="currentHostType.value === 'Custom'" fxFlex="100" class="mat-block">
                     <mat-label translate>integration.custom-host</mat-label>
                     <input matInput required [formControl]="hostCustom">
                     <mat-error translate *ngIf="hostCustom.hasError('required')">
-                        integration.custom-host-required</mat-error>
+                        integration.custom-host-required
+                    </mat-error>
                 </mat-form-field>
             </div>
         </div>

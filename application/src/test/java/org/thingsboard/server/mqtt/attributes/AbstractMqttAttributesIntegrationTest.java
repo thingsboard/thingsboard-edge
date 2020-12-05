@@ -71,7 +71,6 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         return tsKvProtoList;
     }
 
-
     protected TransportProtos.TsKvProto getTsKvProto(String key, String value, TransportProtos.KeyValueType keyValueType) {
         TransportProtos.TsKvProto.Builder tsKvProtoBuilder = TransportProtos.TsKvProto.newBuilder();
         TransportProtos.KeyValueProto keyValueProto = getKeyValueProto(key, value, keyValueType);

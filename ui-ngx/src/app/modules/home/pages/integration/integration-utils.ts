@@ -32,7 +32,7 @@
 import { FormGroup } from '@angular/forms';
 import {
   apachePulsarCredentialsType,
-  azureIotHubCredentialsType,
+  azureIotHubCredentialsType, loriotCredentialType,
   mqttCredentialType
 } from '@home/pages/integration/integration-forms-templates';
 

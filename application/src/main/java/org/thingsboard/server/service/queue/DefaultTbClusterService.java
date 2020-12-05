@@ -37,6 +37,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.msg.ToDeviceActorNotificationMsg;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
@@ -47,7 +49,6 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
@@ -64,6 +65,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotifica
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -195,8 +197,16 @@ public class DefaultTbClusterService implements TbClusterService {
     private TbMsg transformMsg(TbMsg tbMsg, DeviceProfile deviceProfile) {
         if (deviceProfile != null) {
             RuleChainId targetRuleChainId = deviceProfile.getDefaultRuleChainId();
-            if (targetRuleChainId != null && !targetRuleChainId.equals(tbMsg.getRuleChainId())) {
+            String targetQueueName = deviceProfile.getDefaultQueueName();
+            boolean isRuleChainTransform = targetRuleChainId != null && !targetRuleChainId.equals(tbMsg.getRuleChainId());
+            boolean isQueueTransform = targetQueueName != null && !targetQueueName.equals(tbMsg.getQueueName());
+
+            if (isRuleChainTransform && isQueueTransform) {
+                tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId, targetQueueName);
+            } else if (isRuleChainTransform) {
                 tbMsg = TbMsg.transformMsg(tbMsg, targetRuleChainId);
+            } else if (isQueueTransform) {
+                tbMsg = TbMsg.transformMsg(tbMsg, targetQueueName);
             }
         }
         return tbMsg;
@@ -246,6 +256,12 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
+    public void onApiStateChange(ApiUsageState apiUsageState, TbQueueCallback callback) {
+        onEntityChange(apiUsageState.getTenantId(), apiUsageState.getId(), apiUsageState, callback);
+        broadcast(new ComponentLifecycleMsg(apiUsageState.getTenantId(), apiUsageState.getId(), ComponentLifecycleEvent.UPDATED));
+    }
+
+    @Override
     public void onDeviceProfileDelete(DeviceProfile entity, TbQueueCallback callback) {
         onEntityDelete(entity.getTenantId(), entity.getId(), entity.getName(), callback);
     }
@@ -260,13 +276,24 @@ public class DefaultTbClusterService implements TbClusterService {
         onEntityDelete(TenantId.SYS_TENANT_ID, entity.getId(), entity.getName(), callback);
     }
 
-    public <T extends HasName> void onEntityChange(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
-        log.trace("[{}][{}][{}] Processing [{}] change event", tenantId, entityid.getEntityType(), entityid.getId(), entity.getName());
+    @Override
+    public void onDeviceChange(Device entity, TbQueueCallback callback) {
+        onEntityChange(entity.getTenantId(), entity.getId(), entity, callback);
+    }
+
+    @Override
+    public void onDeviceDeleted(Device entity, TbQueueCallback callback) {
+        onEntityDelete(entity.getTenantId(), entity.getId(), entity.getName(), callback);
+    }
+
+    public <T> void onEntityChange(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {
+        String entityName = (entity instanceof HasName) ? ((HasName) entity).getName() : entity.getClass().getName();
+        log.trace("[{}][{}][{}] Processing [{}] change event", tenantId, entityid.getEntityType(), entityid.getId(), entityName);
         TransportProtos.EntityUpdateMsg entityUpdateMsg = TransportProtos.EntityUpdateMsg.newBuilder()
                 .setEntityType(entityid.getEntityType().name())
                 .setData(ByteString.copyFrom(encodingService.encode(entity))).build();
         ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setEntityUpdateMsg(entityUpdateMsg).build();
-        broadcast(transportMsg);
+        broadcast(transportMsg, callback);
     }
 
     private void onEntityDelete(TenantId tenantId, EntityId entityId, String name, TbQueueCallback callback) {
@@ -277,15 +304,16 @@ public class DefaultTbClusterService implements TbClusterService {
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                 .build();
         ToTransportMsg transportMsg = ToTransportMsg.newBuilder().setEntityDeleteMsg(entityDeleteMsg).build();
-        broadcast(transportMsg);
+        broadcast(transportMsg, callback);
     }
 
-    private void broadcast(ToTransportMsg transportMsg) {
+    private void broadcast(ToTransportMsg transportMsg, TbQueueCallback callback) {
         TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> toTransportNfProducer = producerProvider.getTransportNotificationsMsgProducer();
         Set<String> tbTransportServices = partitionService.getAllServiceIds(ServiceType.TB_TRANSPORT);
+        TbQueueCallback proxyCallback = callback != null ? new MultipleTbQueueCallbackWrapper(tbTransportServices.size(), callback) : null;
         for (String transportServiceId : tbTransportServices) {
             TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_TRANSPORT, transportServiceId);
-            toTransportNfProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), transportMsg), null);
+            toTransportNfProducer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), transportMsg), proxyCallback);
             toTransportNfs.incrementAndGet();
         }
     }
@@ -295,9 +323,11 @@ public class DefaultTbClusterService implements TbClusterService {
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = new HashSet<>(partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE));
         boolean toCore = msg.getEntityId().getEntityType().equals(EntityType.TENANT) ||
+                msg.getEntityId().getEntityType().equals(EntityType.TENANT_PROFILE) ||
                 msg.getEntityId().getEntityType().equals(EntityType.DEVICE_PROFILE) ||
                 msg.getEntityId().getEntityType().equals(EntityType.CONVERTER) ||
-                msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION);
+                msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION) ||
+                msg.getEntityId().getEntityType().equals(EntityType.API_USAGE_STATE);
 
         boolean toRuleEngine = !msg.getEntityId().getEntityType().equals(EntityType.CONVERTER) &&
                 !msg.getEntityId().getEntityType().equals(EntityType.INTEGRATION);

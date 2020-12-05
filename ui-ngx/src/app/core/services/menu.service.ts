@@ -44,7 +44,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { ActivationEnd, Params, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Resource } from '@shared/models/security.models';
+import { Operation, Resource } from '@shared/models/security.models';
 import { AuthState } from '@core/auth/auth.models';
 import { CustomMenuItem } from '@shared/models/custom-menu.models';
 import { guid } from '@core/utils';
@@ -175,6 +175,14 @@ export class MenuService {
     const pages: Array<MenuSection> = [
       {
         id: guid(),
+        name: 'admin.general',
+        type: 'link',
+        path: '/settings/general',
+        icon: 'settings_applications',
+        disabled: disabledItems.indexOf('general') > -1
+      },
+      {
+        id: guid(),
         name: 'admin.outgoing-mail',
         type: 'link',
         path: '/settings/outgoing-mail',
@@ -188,6 +196,14 @@ export class MenuService {
         path: '/settings/mail-template',
         icon: 'format_shapes',
         disabled: disabledItems.indexOf('mail_templates') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.sms-provider',
+        type: 'link',
+        path: '/settings/sms-provider',
+        icon: 'sms',
+        disabled: disabledItems.indexOf('sms_provider') > -1
       },
       {
         id: guid(),
@@ -289,6 +305,12 @@ export class MenuService {
         name: 'admin.system-settings',
         places: [
           {
+            name: 'admin.general',
+            icon: 'settings_applications',
+            path: '/settings/general',
+            disabled: disabledItems.indexOf('general') > -1
+          },
+          {
             name: 'admin.outgoing-mail',
             icon: 'mail',
             path: '/settings/outgoing-mail',
@@ -299,6 +321,12 @@ export class MenuService {
             icon: 'format_shapes',
             path: '/settings/mail-template',
             disabled: disabledItems.indexOf('mail_templates') > -1
+          },
+          {
+            name: 'admin.sms-provider',
+            icon: 'sms',
+            path: '/settings/sms-provider',
+            disabled: disabledItems.indexOf('sms_provider') > -1
           },
           {
             name: 'admin.security-settings',
@@ -504,6 +532,14 @@ export class MenuService {
         },
         {
           id: guid(),
+          name: 'admin.sms-provider',
+          type: 'link',
+          path: '/settings/sms-provider',
+          icon: 'sms',
+          disabled: disabledItems.indexOf('sms_provider') > -1
+        },
+        {
+          id: guid(),
           name: 'custom-translation.custom-translation',
           type: 'link',
           path: '/settings/customTranslation',
@@ -564,6 +600,20 @@ export class MenuService {
           path: '/auditLogs',
           icon: 'track_changes',
           disabled: disabledItems.indexOf('audit_log') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'api-usage.api-usage',
+          type: 'link',
+          path: '/usage',
+          icon: 'insert_chart',
+          notExact: true,
+          disabled: disabledItems.indexOf('api_usage') > -1
         }
       );
     }
@@ -790,6 +840,12 @@ export class MenuService {
               disabled: disabledItems.indexOf('mail_templates') > -1
             },
             {
+              name: 'admin.sms-provider',
+              icon: 'sms',
+              path: '/settings/sms-provider',
+              disabled: disabledItems.indexOf('sms_provider') > -1
+            },
+            {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
               path: '/settings/whiteLabel',
@@ -831,20 +887,38 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
+      (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+      this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
+
+      const audit: HomeSection = {
+        name: 'audit-log.audit',
+        places: []
+      };
       homeSections.push(
-        {
-          name: 'audit-log.audit',
-          places: [
-            {
-              name: 'audit-log.audit-logs',
-              icon: 'track_changes',
-              path: '/auditLogs',
-              disabled: disabledItems.indexOf('audit_log') > -1
-            }
-          ]
-        }
+        audit
       );
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
+        audit.places.push(
+          {
+            name: 'audit-log.audit-logs',
+            icon: 'track_changes',
+            path: '/auditLogs',
+            disabled: disabledItems.indexOf('audit_log') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+        audit.places.push(
+          {
+            name: 'api-usage.api-usage',
+            icon: 'insert_chart',
+            path: '/usage',
+            disabled: disabledItems.indexOf('api_usage') > -1
+          }
+        );
+      }
     }
     return homeSections;
   }

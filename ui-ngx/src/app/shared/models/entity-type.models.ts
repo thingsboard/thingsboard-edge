@@ -69,7 +69,8 @@ export enum EntityType {
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
   WIDGET_TYPE = 'WIDGET_TYPE',
   ROLE = 'ROLE',
-  GROUP_PERMISSION = 'GROUP_PERMISSION'
+  GROUP_PERMISSION = 'GROUP_PERMISSION',
+  API_USAGE_STATE = 'API_USAGE_STATE'
 }
 
 export enum AliasEntityType {
@@ -311,6 +312,12 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'entity-group.no-entity-groups-text',
         search: 'entity-group.search',
         selectedEntities: 'entity-group.selected-entity-groups'
+      }
+    ],
+    [
+      EntityType.API_USAGE_STATE,
+      {
+        type: 'entity.type-api-usage-state'
       }
     ],
     [

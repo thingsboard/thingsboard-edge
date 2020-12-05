@@ -39,6 +39,7 @@ export enum IntegrationType {
   OCEANCONNECT = 'OCEANCONNECT',
   SIGFOX = 'SIGFOX',
   THINGPARK = 'THINGPARK',
+  LORIOT = 'LORIOT',
   TPE = 'TPE',
   TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
   MQTT = 'MQTT',
@@ -54,6 +55,7 @@ export enum IntegrationType {
   UDP = 'UDP',
   TCP = 'TCP',
   KAFKA = 'KAFKA',
+  RABBITMQ = 'RABBITMQ',
   APACHE_PULSAR = 'APACHE_PULSAR',
   CUSTOM = 'CUSTOM'
 }
@@ -90,6 +92,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
     [
       IntegrationType.TMOBILE_IOT_CDP,
       { name: 'integration.type-tmobile-iot-cdp', http: true }
+    ],
+    [
+      IntegrationType.LORIOT,
+      { name: 'integration.type-loriot', http: true }
     ],
     [
       IntegrationType.MQTT,
@@ -144,6 +150,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-kafka' }
     ],
     [
+      IntegrationType.RABBITMQ,
+      { name: 'integration.type-rabbitmq' }
+    ],
+    [
       IntegrationType.APACHE_PULSAR,
       { name: 'integration.type-apache-pulsar' }
     ],
@@ -161,14 +171,24 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.SIGFOX, 'integrationSigFox'],
     [IntegrationType.THINGPARK, 'integrationThingPark'],
     [IntegrationType.TPE, 'integrationThingParkEnterprise'],
+    [IntegrationType.TMOBILE_IOT_CDP, 'integrationTMobileIotCdp'],
+    [IntegrationType.LORIOT, 'integrationLoriot'],
     [IntegrationType.MQTT, 'integrationMqtt'],
     [IntegrationType.AWS_IOT, 'integrationAwsIoT'],
+    [IntegrationType.AWS_SQS, 'integrationAwsSQS'],
     [IntegrationType.AWS_KINESIS, 'integrationAwsKinesis'],
     [IntegrationType.IBM_WATSON_IOT, 'integrationIbmWatsonIoT'],
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
-    [IntegrationType.OPC_UA, 'integrationOpcUa']
+    [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.OPC_UA, 'integrationOpcUa'],
+    [IntegrationType.UDP, 'integrationUdp'],
+    [IntegrationType.TCP, 'integrationTcp'],
+    [IntegrationType.KAFKA, 'integrationKafka'],
+    [IntegrationType.RABBITMQ, 'integrationRabbitmq'],
+    [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
+    [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );
 

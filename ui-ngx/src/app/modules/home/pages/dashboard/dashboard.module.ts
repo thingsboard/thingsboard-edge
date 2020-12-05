@@ -65,6 +65,9 @@ import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-gro
     DashboardStateDialogComponent,
     PublicDashboardLinkDialogComponent
   ],
+  exports: [
+    DashboardPageComponent
+  ],
   imports: [
     CommonModule,
     SharedModule,

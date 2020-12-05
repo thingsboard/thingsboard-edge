@@ -52,7 +52,8 @@
 
     <modules>
         <module>tb-edge</module>
-        <module>web-report</module>
+        <!-- VOBA: FIX -->
+<!--        <module>web-report</module>-->
     </modules>
 
     <build>

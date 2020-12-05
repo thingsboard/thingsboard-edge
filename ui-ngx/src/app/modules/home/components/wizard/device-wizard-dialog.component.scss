@@ -36,6 +36,10 @@
       max-height: 75vh;
     }
   }
+
+  .invisible{
+    visibility: hidden;
+  }
 }
 
 :host ::ng-deep {
@@ -72,6 +76,12 @@
         height: 100%;
         form {
           height: 100%;
+        }
+      }
+
+      tb-device-profile-autocomplete, tb-queue-type-list{
+        .mat-form-field-wrapper{
+          width: 180px !important;
         }
       }
     }

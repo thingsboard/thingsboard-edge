@@ -62,7 +62,7 @@ interface SchedulerEventScheduleConfig {
   timerRepeat?: {
     repeatInterval?: number;
     timeUnit?: SchedulerTimeUnit;
-  }
+  };
 }
 
 @Component({
@@ -224,7 +224,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       doUpdate = true;
     }
     this.lastAppliedTimezone = this.modelValue.timezone;
-    this.scheduleConfigFormGroup.reset(this.modelValue,{emitEvent: false});
+    this.scheduleConfigFormGroup.reset(this.modelValue, {emitEvent: false});
     this.updateEnabledState();
     if (doUpdate) {
       setTimeout(() => {
@@ -332,7 +332,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private dateFromUtcTime(time: number, timezone: string): Date {
     const offset = _moment.tz.zone(timezone).utcOffset(time) * 60 * 1000;
-    return new Date(time - offset + new Date().getTimezoneOffset() * 60 * 1000);
+    return new Date(time - offset + new Date(time).getTimezoneOffset() * 60 * 1000);
   }
 
   private dateTimeToUtcTime(date: Date, timezone: string): number {
@@ -346,7 +346,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       date.getMilliseconds()
     ).getTime();
     const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
-    return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
+    return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 
   private dateToUtcTime(date: Date, timezone: string): number {
@@ -356,7 +356,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       date.getDate()
     ).getTime();
     const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
-    return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
+    return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 
 }
