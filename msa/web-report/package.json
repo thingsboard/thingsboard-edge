@@ -1,7 +1,7 @@
 {
   "name": "thingsboard-web-report",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.6.0",
   "description": "ThingsBoard Web Reporting Microservice",
   "main": "server.js",
   "bin": "server.js",
