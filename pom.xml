@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.6.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard Edge</name>
@@ -52,12 +52,11 @@
         <pkg.implementationTitle>${project.name}</pkg.implementationTitle>
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
-        <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
-        <spring-oauth2.version>2.1.2.RELEASE</spring-oauth2.version>
-        <spring.version>5.2.6.RELEASE</spring.version>
-        <spring-security.version>5.2.3.RELEASE</spring-security.version>
-        <spring-data-redis.version>2.2.4.RELEASE</spring-data-redis.version>
-        <jedis.version>3.1.0</jedis.version>
+        <spring-boot.version>2.3.5.RELEASE</spring-boot.version>
+        <spring.version>5.2.10.RELEASE</spring.version>
+        <spring-security.version>5.4.1</spring-security.version>
+        <spring-data-redis.version>2.4.1</spring-data-redis.version>
+        <jedis.version>3.3.0</jedis.version>
         <jjwt.version>0.7.0</jjwt.version>
         <json-path.version>2.2.0</json-path.version>
         <junit.version>4.12</junit.version>
@@ -66,6 +65,8 @@
         <mockito.version>1.9.5</mockito.version>
         <rat.version>0.10</rat.version>
         <cassandra.version>3.6.0</cassandra.version>
+        <cassandra-unit.version>3.5.0.1</cassandra-unit.version>
+        <cassandra-all.version>3.11.9</cassandra-all.version>
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version>
         <guava.version>28.2-jre</guava.version>
         <caffeine.version>2.6.1</caffeine.version>
@@ -75,9 +76,9 @@
         <commons-csv.version>1.4</commons-csv.version>
         <commons-codec.version>1.11</commons-codec.version>
         <jackson-dataformat-cbor.version>2.9.9</jackson-dataformat-cbor.version>
-        <jackson.version>2.10.2</jackson.version>
-        <jackson-annotations.version>2.10.2</jackson-annotations.version>
-        <jackson-core.version>2.10.2</jackson-core.version>
+        <jackson.version>2.11.3</jackson.version>
+        <jackson-annotations.version>2.11.3</jackson-annotations.version>
+        <jackson-core.version>2.11.3</jackson-core.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
         <scala.version>2.13</scala.version>
         <akka.version>2.6.3</akka.version>
@@ -93,7 +94,7 @@
         <grpc.version>1.22.1</grpc.version>
         <lombok.version>1.16.18</lombok.version>
         <paho.client.version>1.1.0</paho.client.version>
-        <netty.version>4.1.49.Final</netty.version>
+        <netty.version>4.1.53.Final</netty.version>
         <os-maven-plugin.version>1.5.0</os-maven-plugin.version>
         <rabbitmq.version>4.8.0</rabbitmq.version>
         <surfire.version>2.19.1</surfire.version>
@@ -120,7 +121,7 @@
         <bucket4j.version>4.1.1</bucket4j.version>
         <fst.version>2.57</fst.version>
         <antlr.version>2.7.7</antlr.version>
-        <snakeyaml.version>1.25</snakeyaml.version>
+        <snakeyaml.version>1.27</snakeyaml.version>
         <struts.version>1.3.10</struts.version>
         <amazonaws.sqs.version>1.11.747</amazonaws.sqs.version>
         <amazon-kinesis-producer>0.13.1</amazon-kinesis-producer>
@@ -140,6 +141,7 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
+        <!--<module>transport</module>-->
         <module>integration</module>
         <module>ui</module>
         <module>tools</module>
@@ -758,6 +760,9 @@
                             <exclude>**/public/static/rulenode/**</exclude>
                             <exclude>**/*.proto.js</exclude>
                             <exclude>docker/**</exclude>
+                            <exclude>docker/haproxy/**</exclude>
+                            <exclude>docker/tb-node/**</exclude>
+                            <exclude>.run/**</exclude>
                         </excludes>
                         <mapping>
                             <proto>JAVADOC_STYLE</proto>
@@ -972,11 +977,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-security</artifactId>
                 <version>${spring-boot.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-starter-oauth2</artifactId>
-                <version>${spring-oauth2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
