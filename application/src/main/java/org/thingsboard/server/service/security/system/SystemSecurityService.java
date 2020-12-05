@@ -40,6 +40,8 @@ import org.thingsboard.server.dao.exception.DataValidationException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import javax.servlet.http.HttpServletRequest;
+
 public interface SystemSecurityService {
 
     SecuritySettings getSecuritySettings(TenantId tenantId);

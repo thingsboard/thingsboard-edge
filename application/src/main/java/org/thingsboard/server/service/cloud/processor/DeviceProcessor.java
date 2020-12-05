@@ -312,7 +312,7 @@ public class DeviceProcessor extends BaseProcessor {
         ToDeviceRpcRequestBody body = new ToDeviceRpcRequestBody(deviceRpcRequestMsg.getRequestMsg().getMethod(),
                 deviceRpcRequestMsg.getRequestMsg().getParams());
 
-        UUID requestUUID = new UUID(deviceRpcRequestMsg.getRequestIdMSB(), deviceRpcRequestMsg.getRequestIdLSB());
+        UUID requestUUID = new UUID(deviceRpcRequestMsg.getRequestUuidMSB(), deviceRpcRequestMsg.getRequestUuidLSB());
         ToDeviceRpcRequest rpcRequest = new ToDeviceRpcRequest(requestUUID,
                 tenantId,
                 deviceId,
@@ -321,19 +321,19 @@ public class DeviceProcessor extends BaseProcessor {
                 body
         );
 
-        deviceRpcService.processRestApiRpcRequest(rpcRequest,
-                fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcRequestMsg.getOriginServiceId(), fromDeviceRpcResponse));
+        tbCoreDeviceRpcService.processRestApiRpcRequest(rpcRequest,
+                fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcRequestMsg.getRequestId(), fromDeviceRpcResponse));
         return Futures.immediateFuture(null);
     }
 
-    public void reply(ToDeviceRpcRequest rpcRequest, String originServiceId, FromDeviceRpcResponse response) {
+    public void reply(ToDeviceRpcRequest rpcRequest, int requestId, FromDeviceRpcResponse response) {
         try {
             Optional<RpcError> rpcError = response.getError();
             ObjectNode body = mapper.createObjectNode();
             body.put("requestUUID", rpcRequest.getId().toString());
             body.put("expirationTime", rpcRequest.getExpirationTime());
             body.put("oneway", rpcRequest.isOneway());
-            body.put("originServiceId", originServiceId);
+            body.put("requestId", requestId);
             if (rpcError.isPresent()) {
                 RpcError error = rpcError.get();
                 body.put("error", error.name());
