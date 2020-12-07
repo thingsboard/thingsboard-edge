@@ -134,6 +134,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       }
       this.config.entitySelectionEnabled = (ruleChain) => this.edge.rootRuleChainId.id != ruleChain.id.id;
       this.config.entitiesFetchFunction = pageLink => this.edgeRuleChainService.getEdgeRuleChains(this.edgeId, pageLink);
+      this.config.groupActionDescriptors = [];
       this.config.groupActionDescriptors.push(
         {
           name: this.translate.instant('rulechain.unassign-rulechains'),
