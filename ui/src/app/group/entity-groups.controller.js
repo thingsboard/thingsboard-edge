@@ -273,7 +273,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     function deleteEntityGroupsTitle(selectedCount) {
         if (vm.edgeId) {
-            return $translate.instant('entity-group.unassign-entity-groups-title', {count: selectedCount}, 'messageformat');
+            return $translate.instant('entity-group.unassign-entity-groups-from-edge-title', {count: selectedCount}, 'messageformat');
         } else {
             return $translate.instant('entity-group.delete-entity-groups-title', {count: selectedCount}, 'messageformat');
         }
@@ -289,7 +289,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     function deleteEntityGroupsText () {
         if (vm.edgeId) {
-            return $translate.instant('entity-group.unassign-entity-groups-text');
+            return $translate.instant('entity-group.unassign-entity-groups-from-edge-text');
         } else {
             return $translate.instant('entity-group.delete-entity-groups-text');
         }

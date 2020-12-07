@@ -1030,7 +1030,8 @@
         "remove-edges-from-group": "Are you sure you want to remove { count, plural, 1 {1 edge} other {# edges} } from group '{entityGroup}'?",
         "group": "Group of edges",
         "list-of-groups": "{ count, plural, 1 {One edge group} other {List of # edge groups} }",
-        "group-name-starts-with": "Edge groups whose names start with '{{prefix}}'"
+        "group-name-starts-with": "Edge groups whose names start with '{{prefix}}'",
+        "assign-schduler-to-edge": "Please select the scheduler event(s) to assign to the edge"
     },
     "error": {
         "unable-to-connect": "Unable to connect to the server! Please check your internet connection.",
@@ -1316,7 +1317,10 @@
         "assign-dashboard-group-to-edge-text": "Please select the dashboard group(s) to assign to the edge",
         "unassign-entity-group-from-edge-title": "Are you sure you want to unassign the entity group '{{entityGroupTitle}}'?",
         "unassign-entity-group-from-edge-text": "After the confirmation the entity group will be unassigned and won't be accessible by the edge.",
-        "unassign-entity-group-from-edge": "Unassign entity group from edge"
+        "unassign-entity-group-from-edge": "Unassign entity group from edge",
+        "unassign-entity-groups-action-title": "Unassign { count, plural, 1 {1 entity group} other {# entity groups} } from edge",
+        "unassign-entity-groups-from-edge-title": "Are you sure you want to unassign {{count}} entity groups?",
+        "unassign-entity-groups-from-edge-text": "After the confirmation entity groups will be unassigned and won't be accessible by the edge."
     },
     "entity-field": {
         "created-time": "Created time",
