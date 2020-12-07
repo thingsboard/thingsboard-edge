@@ -67,6 +67,7 @@
         <dependency>
             <groupId>org.thingsboard.msa</groupId>
             <artifactId>web-report</artifactId>
+            <version>${project.version}</version>
             <classifier>deb</classifier>
             <type>deb</type>
             <scope>provided</scope>
