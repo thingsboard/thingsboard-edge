@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -632,20 +633,25 @@ public class CloudManagerService {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         try {
+            ArrayList<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
             AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                     .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                     .setEntityType(entityId.getEntityType().name())
                     .setScope(DataConstants.SERVER_SCOPE)
                     .build();
-            AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
-                    .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                    .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                    .setEntityType(entityId.getEntityType().name())
-                    .setScope(DataConstants.SHARED_SCOPE)
-                    .build();
+            allAttributesRequestMsg.add(serverAttributesRequestMsg);
+            if (EntityType.DEVICE.equals(entityId.getEntityType())) {
+                AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
+                        .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                        .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                        .setEntityType(entityId.getEntityType().name())
+                        .setScope(DataConstants.SHARED_SCOPE)
+                        .build();
+                allAttributesRequestMsg.add(sharedAttributesRequestMsg);
+            }
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllAttributesRequestMsg(Arrays.asList(serverAttributesRequestMsg, sharedAttributesRequestMsg));
+                    .addAllAttributesRequestMsg(allAttributesRequestMsg);
             return builder.build();
         } catch (Exception e) {
             log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
