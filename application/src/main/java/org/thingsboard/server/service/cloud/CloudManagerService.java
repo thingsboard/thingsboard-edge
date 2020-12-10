@@ -169,6 +169,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -631,13 +632,20 @@ public class CloudManagerService {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         try {
-            AttributesRequestMsg attributesRequestMsg = AttributesRequestMsg.newBuilder()
+            AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                     .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                     .setEntityType(entityId.getEntityType().name())
+                    .setScope(DataConstants.SERVER_SCOPE)
+                    .build();
+            AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
+                    .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                    .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                    .setEntityType(entityId.getEntityType().name())
+                    .setScope(DataConstants.SHARED_SCOPE)
                     .build();
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllAttributesRequestMsg(Collections.singletonList(attributesRequestMsg));
+                    .addAllAttributesRequestMsg(Arrays.asList(serverAttributesRequestMsg, sharedAttributesRequestMsg));
             return builder.build();
         } catch (Exception e) {
             log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
