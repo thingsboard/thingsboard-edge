@@ -31,19 +31,27 @@
 package org.thingsboard.server.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TimePageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.List;
 
 
 @RestController
@@ -82,4 +90,22 @@ public class EdgeController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edges", method = RequestMethod.POST)
+    @ResponseBody
+    public List<Edge> findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException {
+        checkNotNull(query);
+        checkNotNull(query.getParameters());
+        checkNotNull(query.getEdgeTypes());
+        // TODO: voba - security?
+        // checkEntityId(query.getParameters().getEntityId(), Operation.READ);
+        try {
+            List<Edge> edges = checkNotNull(edgeService.findEdgesByQuery(getTenantId(), query).get());
+            return edges;
+            // TODO: voba - filter?
+            // return filterEntityViewsByReadPermission(entityViews);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
 }

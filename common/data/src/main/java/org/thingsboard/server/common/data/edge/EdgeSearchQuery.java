@@ -28,40 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.edge;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
+import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
 
-@Slf4j
-public final class CloudUtils {
+import java.util.Collections;
+import java.util.List;
 
-    private CloudUtils() {
-    }
+@Data
+public class EdgeSearchQuery {
 
-    public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return CloudEventType.DEVICE;
-            case ASSET:
-                return CloudEventType.ASSET;
-            case ENTITY_VIEW:
-                return CloudEventType.ENTITY_VIEW;
-            case DASHBOARD:
-                return CloudEventType.DASHBOARD;
-            case USER:
-                return CloudEventType.USER;
-            case ALARM:
-                return CloudEventType.ALARM;
-            case CUSTOMER:
-                return CloudEventType.CUSTOMER;
-            case ENTITY_GROUP:
-                return CloudEventType.ENTITY_GROUP;
-            case EDGE:
-                return CloudEventType.EDGE;
-            default:
-                log.warn("Unsupported entity type: [{}]", entityType);
-                return null;
-        }
+    private RelationsSearchParameters parameters;
+    private String relationType;
+    private List<String> edgeTypes;
+
+    public EntityRelationsQuery toEntitySearchQuery() {
+        EntityRelationsQuery query = new EntityRelationsQuery();
+        query.setParameters(parameters);
+        query.setFilters(
+                Collections.singletonList(new EntityTypeFilter(relationType == null ? EntityRelation.CONTAINS_TYPE : relationType,
+                        Collections.singletonList(EntityType.EDGE))));
+        return query;
     }
 }

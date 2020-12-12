@@ -28,40 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.common.data.id;
 
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.thingsboard.server.common.data.EntityType;
 
-@Slf4j
-public final class CloudUtils {
+import java.util.UUID;
 
-    private CloudUtils() {
+public class EdgeId extends UUIDBased implements EntityId {
+
+    private static final long serialVersionUID = 1L;
+
+    @JsonCreator
+    public EdgeId(@JsonProperty("id") UUID id) {
+        super(id);
     }
 
-    public static CloudEventType getCloudEventTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return CloudEventType.DEVICE;
-            case ASSET:
-                return CloudEventType.ASSET;
-            case ENTITY_VIEW:
-                return CloudEventType.ENTITY_VIEW;
-            case DASHBOARD:
-                return CloudEventType.DASHBOARD;
-            case USER:
-                return CloudEventType.USER;
-            case ALARM:
-                return CloudEventType.ALARM;
-            case CUSTOMER:
-                return CloudEventType.CUSTOMER;
-            case ENTITY_GROUP:
-                return CloudEventType.ENTITY_GROUP;
-            case EDGE:
-                return CloudEventType.EDGE;
-            default:
-                log.warn("Unsupported entity type: [{}]", entityType);
-                return null;
-        }
+    public static EdgeId fromString(String assetId) {
+        return new EdgeId(UUID.fromString(assetId));
+    }
+
+    @JsonIgnore
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.EDGE;
     }
 }

@@ -220,6 +220,7 @@ public class TbMsgPushToCloudNode implements TbNode {
             case ENTITY_VIEW:
             case DASHBOARD:
             case ENTITY_GROUP:
+            case EDGE:
                 return true;
             default:
                 return false;

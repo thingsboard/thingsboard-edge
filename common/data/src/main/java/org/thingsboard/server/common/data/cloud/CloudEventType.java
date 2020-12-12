@@ -41,5 +41,6 @@ public enum CloudEventType {
     USER,
     CUSTOMER,
     RELATION,
-    ENTITY_GROUP
+    ENTITY_GROUP,
+    EDGE
 }

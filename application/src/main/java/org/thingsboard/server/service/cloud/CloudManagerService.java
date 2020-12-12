@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -64,6 +65,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -91,6 +93,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -208,6 +211,9 @@ public class CloudManagerService {
 
     @Autowired
     private CloudEventService cloudEventService;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Autowired
     private AttributesService attributesService;
@@ -857,6 +863,10 @@ public class CloudManagerService {
             }
 
             cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
+
+            // TODO: voba - verify storage of edge entity
+            saveEdge(edgeConfiguration);
+
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
 
@@ -869,6 +879,18 @@ public class CloudManagerService {
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
+    }
+
+    private void saveEdge(EdgeConfiguration edgeConfiguration) {
+        Edge edge = new Edge();
+        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
+        edge.setId(new EdgeId(edgeUUID));
+        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
+        edge.setTenantId(new TenantId(tenantUUID));
+        edge.setName(edgeConfiguration.getName());
+        edge.setType(edgeConfiguration.getType());
+        edge.setRoutingKey(edgeConfiguration.getRoutingKey());
+        edgeService.saveEdge(edge);
     }
 
     private void cleanUp() {

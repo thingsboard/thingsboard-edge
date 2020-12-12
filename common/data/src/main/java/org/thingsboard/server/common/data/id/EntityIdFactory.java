@@ -96,12 +96,16 @@ public class EntityIdFactory {
                 return new WidgetsBundleId(uuid);
             case WIDGET_TYPE:
                 return new WidgetTypeId(uuid);
+            case EDGE:
+                return new EdgeId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }
 
     public static EntityId getByCloudEventTypeAndUuid(CloudEventType cloudEventType, UUID uuid) {
         switch (cloudEventType) {
+            case EDGE:
+                return new EdgeId(uuid);
             case CUSTOMER:
                 return new CustomerId(uuid);
             case USER:

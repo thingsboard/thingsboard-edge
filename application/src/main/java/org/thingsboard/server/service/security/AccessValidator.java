@@ -261,6 +261,10 @@ public class AccessValidator {
             case DASHBOARD:
                 validateDashboard(currentUser, operation, entityId, callback);
                 return;
+            case EDGE:
+                // TODO: voba - validate that this is required
+                // validateEdge(currentUser, operation, entityId, callback);
+                return;
             default:
                 //TODO: add support of other entities
                 throw new IllegalStateException("Not Implemented!");

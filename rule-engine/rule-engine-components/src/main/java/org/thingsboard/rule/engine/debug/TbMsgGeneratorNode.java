@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -187,6 +188,9 @@ public class TbMsgGeneratorNode implements TbNode {
                 break;
             case ROLE:
                 entity = ctx.getPeContext().getRoleService().findRoleById(tenantId, (RoleId) originatorId);
+                break;
+            case EDGE:
+                entity = ctx.getEdgeService().findEdgeById(tenantId, (EdgeId) originatorId);
                 break;
             default:
                 throw new RuntimeException("Unsupported originator entity type");

@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -129,7 +130,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
-                // case EDGE:
+                case EDGE:
                 case ASSET:
                 case DEVICE:
                 case ENTITY_VIEW:
@@ -180,7 +181,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         ListenableFuture<Alarm> alarmFuture = alarmService.findAlarmByIdAsync(tenantId, alarmId);
         Futures.transform(alarmFuture, alarm -> {
             if (alarm != null) {
-                CloudEventType cloudEventType = getCloudQueueTypeByEntityType(alarm.getOriginator().getEntityType());
+                CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
                 if (cloudEventType != null) {
                     saveCloudEvent(tenantId,
                             CloudEventType.ALARM,
@@ -202,20 +203,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 null,
                 mapper.valueToTree(relation),
                 null);
-    }
-
-    private CloudEventType getCloudQueueTypeByEntityType(EntityType entityType) {
-        switch (entityType) {
-            case DEVICE:
-                return CloudEventType.DEVICE;
-            case ASSET:
-                return CloudEventType.ASSET;
-            case ENTITY_VIEW:
-                return CloudEventType.ENTITY_VIEW;
-            default:
-                log.debug("Unsupported entity type: [{}]", entityType);
-                return null;
-        }
     }
 }
 

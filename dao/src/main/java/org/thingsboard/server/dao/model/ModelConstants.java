@@ -392,6 +392,30 @@ public class ModelConstants {
     public static final String TS_COLUMN = "ts";
 
     /**
+     * Cassandra edge constants.
+     */
+    public static final String EDGE_COLUMN_FAMILY_NAME = "edge";
+    public static final String EDGE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String EDGE_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String EDGE_ROOT_RULE_CHAIN_ID_PROPERTY = "root_rule_chain_id";
+    public static final String EDGE_NAME_PROPERTY = "name";
+    public static final String EDGE_LABEL_PROPERTY = "label";
+    public static final String EDGE_TYPE_PROPERTY = "type";
+    public static final String EDGE_CONFIGURATION_PROPERTY = "configuration";
+    public static final String EDGE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String EDGE_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "edge_by_tenant_and_search_text";
+    public static final String EDGE_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "edge_by_tenant_by_type_and_search_text";
+    public static final String EDGE_BY_CUSTOMER_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "edge_by_customer_and_search_text";
+    public static final String EDGE_BY_CUSTOMER_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "edge_by_customer_by_type_and_search_text";
+    public static final String EDGE_BY_TENANT_AND_NAME_VIEW_NAME = "edge_by_tenant_and_name";
+    public static final String EDGE_BY_ROUTING_KEY_VIEW_NAME = "edge_by_routing_key";
+
+    public static final String EDGE_ROUTING_KEY_PROPERTY = "routing_key";
+    public static final String EDGE_SECRET_PROPERTY = "secret";
+    public static final String EDGE_LICENSE_KEY_PROPERTY = "edge_license_key";
+    public static final String EDGE_CLOUD_ENDPOINT_KEY_PROPERTY = "cloud_endpoint";
+
+    /**
      * cloud queue constants.
      */
     public static final String CLOUD_EVENT_COLUMN_FAMILY_NAME = "cloud_event";
