@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -126,6 +127,13 @@ public class TelemetryProcessor extends BaseProcessor {
                 if (entityView != null) {
                     metaData.putValue("entityViewName", entityView.getName());
                     metaData.putValue("entityViewType", entityView.getType());
+                }
+                break;
+            case EDGE:
+                Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                if (edge != null) {
+                    metaData.putValue("edgeName", edge.getName());
+                    metaData.putValue("edgeType", edge.getType());
                 }
                 break;
             case ENTITY_GROUP:

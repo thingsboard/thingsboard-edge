@@ -103,6 +103,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
@@ -887,9 +888,15 @@ public class CloudManagerService {
         edge.setId(new EdgeId(edgeUUID));
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         edge.setTenantId(new TenantId(tenantUUID));
+        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        edge.setCustomerId(new CustomerId(customerUUID));
         edge.setName(edgeConfiguration.getName());
         edge.setType(edgeConfiguration.getType());
         edge.setRoutingKey(edgeConfiguration.getRoutingKey());
+        edge.setSecret(edgeConfiguration.getSecret());
+        edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
+        edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
+        edge.setConfiguration(JacksonUtil.toJsonNode(edgeConfiguration.getConfiguration()));
         edgeService.saveEdge(edge);
     }
 

@@ -95,6 +95,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         commonEdgePermissions.put(Resource.ASSET, READ_ONLY_GROUP_PERMISSIONS);
         commonEdgePermissions.put(Resource.DASHBOARD, READ_ONLY_GROUP_PERMISSIONS);
         commonEdgePermissions.put(Resource.ENTITY_VIEW, READ_ONLY_GROUP_PERMISSIONS);
+        commonEdgePermissions.put(Resource.EDGE, READ_ONLY_GROUP_PERMISSIONS);
         commonEdgePermissions.put(Resource.TENANT, READ_ONLY_GROUP_PERMISSIONS);
         commonEdgePermissions.put(Resource.CUSTOMER, READ_ONLY_GROUP_PERMISSIONS);
 

@@ -73,6 +73,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.CUSTOMER, customerGroupEntityPermissionChecker);
         put(Resource.DASHBOARD, customerGroupEntityPermissionChecker);
         put(Resource.ENTITY_VIEW, customerGroupEntityPermissionChecker);
+        put(Resource.EDGE, customerStandaloneEntityPermissionChecker);
         put(Resource.ROLE, customerStandaloneEntityPermissionChecker);
         put(Resource.USER, customerGroupEntityPermissionChecker);
         put(Resource.WIDGETS_BUNDLE, widgetsPermissionChecker);

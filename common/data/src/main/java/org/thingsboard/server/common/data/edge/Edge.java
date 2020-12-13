@@ -38,11 +38,13 @@ import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -50,7 +52,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 @ToString
 @Getter
 @Setter
-public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId> implements HasName, HasTenantId, HasCustomerId, TenantEntity {
+public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
+        implements HasName, TenantEntity, HasTenantId, HasCustomerId, HasOwnerId {
 
     private static final long serialVersionUID = 4934987555236873728L;
 
@@ -96,5 +99,19 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId> implements H
     @Override
     public EntityType getEntityType() {
         return EntityType.EDGE;
+    }
+
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
     }
 }

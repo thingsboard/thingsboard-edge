@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -57,6 +58,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -83,6 +85,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -154,6 +157,9 @@ public class AccessValidator {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected EdgeService edgeService;
 
     @Autowired
     protected RoleService roleService;
@@ -262,8 +268,7 @@ public class AccessValidator {
                 validateDashboard(currentUser, operation, entityId, callback);
                 return;
             case EDGE:
-                // TODO: voba - validate that this is required
-                // validateEdge(currentUser, operation, entityId, callback);
+                validateEdge(currentUser, operation, entityId, callback);
                 return;
             default:
                 //TODO: add support of other entities
@@ -535,6 +540,26 @@ public class AccessValidator {
                         return ValidationResult.accessDenied(e.getMessage());
                     }
                     return ValidationResult.ok(entityView);
+                }
+            }), executor);
+        }
+    }
+
+    private void validateEdge(final SecurityUser currentUser, Operation operation, EntityId entityId, FutureCallback<ValidationResult> callback) {
+        if (currentUser.isSystemAdmin()) {
+            callback.onSuccess(ValidationResult.accessDenied(SYSTEM_ADMINISTRATOR_IS_NOT_ALLOWED_TO_PERFORM_THIS_OPERATION));
+        } else {
+            ListenableFuture<Edge> edgeFuture = edgeService.findEdgeByIdAsync(currentUser.getTenantId(), new EdgeId(entityId.getId()));
+            Futures.addCallback(edgeFuture, getCallback(callback, edge -> {
+                if (edge == null) {
+                    return ValidationResult.entityNotFound(ROLE_WITH_REQUESTED_ID_NOT_FOUND);
+                } else {
+                    try {
+                        accessControlService.checkPermission(currentUser, Resource.EDGE, operation, entityId, edge);
+                    } catch (ThingsboardException e) {
+                        return ValidationResult.accessDenied(e.getMessage());
+                    }
+                    return ValidationResult.ok(edge);
                 }
             }), executor);
         }

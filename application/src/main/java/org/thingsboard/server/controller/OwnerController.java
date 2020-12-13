@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -133,6 +134,9 @@ public class OwnerController extends BaseController {
                     break;
                 case ENTITY_VIEW:
                     ownersCacheService.changeEntityViewOwner(tenantId, targetOwnerId, checkEntityViewId(new EntityViewId(entityId.getId()), Operation.CHANGE_OWNER));
+                    break;
+                case EDGE:
+                    ownersCacheService.changeEdgeOwner(tenantId, targetOwnerId, checkEdgeId(new EdgeId(entityId.getId()), Operation.CHANGE_OWNER));
                     break;
                 case CUSTOMER:
                     ownersCacheService.changeCustomerOwner(tenantId, targetOwnerId, checkCustomerId(new CustomerId(entityId.getId()), Operation.CHANGE_OWNER));

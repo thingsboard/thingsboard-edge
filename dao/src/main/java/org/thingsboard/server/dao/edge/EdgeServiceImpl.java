@@ -41,11 +41,14 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.TextPageData;
@@ -67,10 +70,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
+import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -130,7 +135,12 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     public Edge saveEdge(Edge edge) {
         log.trace("Executing saveEdge [{}]", edge);
         edgeValidator.validate(edge, Edge::getTenantId);
-        return edgeDao.save(edge.getTenantId(), edge);
+        Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
+        // TODO: voba - add to all group on save
+//        if (edge.getId() == null) {
+            entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
+//        }
+        return savedEdge;
     }
 
     @Override
@@ -261,6 +271,35 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
                     edgeTypes.sort(Comparator.comparing(EntitySubtype::getType));
                     return edgeTypes;
                 }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ShortEntityView findGroupEdge(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
+        log.trace("Executing findGroupEdge, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
+        validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+        validateEntityId(entityId, "Incorrect entityId " + entityId);
+        return entityGroupService.findGroupEntity(tenantId, entityGroupId, entityId,
+                (edgeEntityId) -> new EdgeId(edgeEntityId.getId()),
+                (edgeId) -> findEdgeById(tenantId, edgeId),
+                new EdgeViewFunction());
+    }
+
+    class EdgeViewFunction implements BiFunction<Edge, List<EntityField>, ShortEntityView> {
+
+        @Override
+        public ShortEntityView apply(Edge edge, List<EntityField> entityFields) {
+            ShortEntityView shortEntityView = new ShortEntityView(edge.getId());
+            shortEntityView.put(EntityField.NAME.name().toLowerCase(), edge.getName());
+            for (EntityField field : entityFields) {
+                String key = field.name().toLowerCase();
+                switch (field) {
+                    case TYPE:
+                        shortEntityView.put(key, edge.getType());
+                        break;
+                }
+            }
+            return shortEntityView;
+        }
     }
 
     private DataValidator<Edge> edgeValidator =

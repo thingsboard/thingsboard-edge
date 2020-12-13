@@ -338,6 +338,9 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
                 case types.entityType.entityView:
                     url = '/api/entityGroup/' + entityGroupId + '/entityViews';
                     break;
+                case types.entityType.edge:
+                    url = '/api/entityGroup/' + entityGroupId + '/edges';
+                    break;
                 case types.entityType.dashboard:
                     url = '/api/entityGroup/' + entityGroupId + '/dashboards';
                     break;
@@ -456,6 +459,8 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
                 return 'entity-group.user-groups';
             case types.entityType.entityView:
                 return 'entity-group.entity-view-groups';
+            case types.entityType.edge:
+                return 'entity-group.edge-groups';
             case types.entityType.dashboard:
                 return 'entity-group.dashboard-groups';
         }
@@ -473,6 +478,8 @@ function EntityGroupService($http, $q, $translate, $injector, customerService, t
                 return $injector.get('deviceGroupConfig');
             case types.entityType.entityView:
                 return $injector.get('entityViewGroupConfig');
+            case types.entityType.edge:
+                return $injector.get('edgeGroupConfig');
             case types.entityType.dashboard:
                 return $injector.get('dashboardGroupConfig');
         }

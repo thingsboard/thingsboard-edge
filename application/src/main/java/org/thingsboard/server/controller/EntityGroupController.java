@@ -441,6 +441,8 @@ public class EntityGroupController extends BaseController {
                 result = userService.findGroupUser(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.ENTITY_VIEW) {
                 result = entityViewService.findGroupEntityView(getTenantId(), entityGroupId, entityId);
+            } else if (entityType == EntityType.EDGE) {
+                result = edgeService.findGroupEdge(getTenantId(), entityGroupId, entityId);
             } else if (entityType == EntityType.DASHBOARD) {
                 result = dashboardService.findGroupDashboard(getTenantId(), entityGroupId, entityId);
             }

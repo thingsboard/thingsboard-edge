@@ -35,11 +35,25 @@ export default angular.module('thingsboard.api.edge', [thingsboardTypes])
     .name;
 
 /*@ngInject*/
-function EdgeService($q, $http) {
+function EdgeService($q, $http, customerService) {
 
     var service = {
         getEdgeSetting: getEdgeSetting,
-        getCloudEvents: getCloudEvents
+        getCloudEvents: getCloudEvents,
+        getEdges: getEdges,
+        getEdgesByIds: getEdgesByIds,
+        getEdge: getEdge,
+        // deleteEdge: deleteEdge,
+        // saveEdge: saveEdge,
+        getEdgeTypes: getEdgeTypes,
+        getTenantEdges: getTenantEdges,
+        getUserEdges: getUserEdges,
+        // assignEdgeToCustomer: assignEdgeToCustomer,
+        // unassignEdgeFromCustomer: unassignEdgeFromCustomer,
+        // makeEdgePublic: makeEdgePublic,
+        // setRootRuleChain: setRootRuleChain,
+        // getEdgeEvents: getEdgeEvents,
+        // syncEdge: syncEdge
     }
 
     return service;
@@ -71,6 +85,132 @@ function EdgeService($q, $http) {
             deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function getEdges(pageLink, config) {
+        var deferred = $q.defer();
+        var url = '/api/edges?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEdgesByIds(edgeIds, config) {
+        var deferred = $q.defer();
+        var ids = '';
+        for (var i=0;i<edgeIds.length;i++) {
+            if (i>0) {
+                ids += ',';
+            }
+            ids += edgeIds[i];
+        }
+        var url = '/api/edges?edgeIds=' + ids;
+        $http.get(url, config).then(function success(response) {
+            var entities = response.data;
+            entities.sort(function (entity1, entity2) {
+                var id1 =  entity1.id.id;
+                var id2 =  entity2.id.id;
+                var index1 = edgeIds.indexOf(id1);
+                var index2 = edgeIds.indexOf(id2);
+                return index1 - index2;
+            });
+            deferred.resolve(entities);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getEdge(edgeId, config) {
+        var deferred = $q.defer();
+        var url = '/api/edge/' + edgeId;
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail(response) {
+            deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function getEdgeTypes(config) {
+        var deferred = $q.defer();
+        var url = '/api/edge/types';
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getTenantEdges(pageLink, applyCustomersInfo, config, type) {
+        var deferred = $q.defer();
+        var url = '/api/tenant/edges?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (angular.isDefined(type) && type.length) {
+            url += '&type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            if (applyCustomersInfo) {
+                customerService.applyAssignedCustomersInfo(response.data.data).then(
+                    function success(data) {
+                        response.data.data = data;
+                        deferred.resolve(response.data);
+                    },
+                    function fail() {
+                        deferred.reject();
+                    }
+                );
+            } else {
+                deferred.resolve(response.data);
+            }
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function getUserEdges(pageLink, config, type) {
+        var deferred = $q.defer();
+        var url = '/api/user/edges?limit=' + pageLink.limit;
+        if (angular.isDefined(pageLink.textSearch)) {
+            url += '&textSearch=' + pageLink.textSearch;
+        }
+        if (angular.isDefined(pageLink.idOffset)) {
+            url += '&idOffset=' + pageLink.idOffset;
+        }
+        if (angular.isDefined(pageLink.textOffset)) {
+            url += '&textOffset=' + pageLink.textOffset;
+        }
+        if (angular.isDefined(type) && type.length) {
+            url += '&type=' + type;
+        }
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
         });
         return deferred.promise;
     }

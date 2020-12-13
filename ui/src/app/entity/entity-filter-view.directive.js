@@ -127,6 +127,15 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                             scope.filterDisplayValue = $translate.instant('alias.filter-type-entity-view-type-description', {entityViewType: entityViewType});
                         }
                         break;
+                    case types.aliasFilterType.edgeType.value:
+                        var edgeType = scope.filter.edgeType;
+                        prefix = scope.filter.edgeNameFilter;
+                        if (prefix && prefix.length) {
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-edge-type-and-name-description', {edgeType: edgeType, prefix: prefix});
+                        } else {
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-edge-type-description', {edgeType: edgeType});
+                        }
+                        break;
                     case types.aliasFilterType.relationsQuery.value:
                         var rootEntityText;
                         var directionText;
@@ -185,6 +194,7 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                     case types.aliasFilterType.assetSearchQuery.value:
                     case types.aliasFilterType.deviceSearchQuery.value:
                     case types.aliasFilterType.entityViewSearchQuery.value:
+                    case types.aliasFilterType.edgeSearchQuery.value:
                         allEntitiesText = $translate.instant('alias.all-entities');
                         anyRelationText = $translate.instant('alias.any-relation');
                         if (scope.filter.rootStateEntity) {
@@ -234,6 +244,16 @@ export default function EntityFilterViewDirective($compile, $templateCache, $q, 
                             var entityViewTypesText = entityViewTypesQuoted.join(', ');
                             translationValues.entityViewTypes = entityViewTypesText;
                             scope.filterDisplayValue = $translate.instant('alias.filter-type-entity-view-search-query-description',
+                                translationValues
+                            );
+                        } else if (scope.filter.type == types.aliasFilterType.edgeSearchQuery.value) {
+                            var edgeTypesQuoted = [];
+                            scope.filter.edgeTypes.forEach(function(edgeType) {
+                                edgeTypesQuoted.push("'"+edgeType+"'");
+                            });
+                            var edgeTypesText = edgeTypesQuoted.join(', ');
+                            translationValues.edgeTypes = edgeTypesText;
+                            scope.filterDisplayValue = $translate.instant('alias.filter-type-edge-search-query-description',
                                 translationValues
                             );
                         }

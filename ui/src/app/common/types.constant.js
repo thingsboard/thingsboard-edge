@@ -327,6 +327,10 @@ export default angular.module('thingsboard.types', [])
                     value: 'entityViewType',
                     name: 'alias.filter-type-entity-view-type'
                 },
+                edgeType: {
+                    value: 'edgeType',
+                    name: 'alias.filter-type-edge-type'
+                },
                 relationsQuery: {
                     value: 'relationsQuery',
                     name: 'alias.filter-type-relations-query'
@@ -342,6 +346,10 @@ export default angular.module('thingsboard.types', [])
                 entityViewSearchQuery: {
                     value: 'entityViewSearchQuery',
                     name: 'alias.filter-type-entity-view-search-query'
+                },
+                edgeSearchQuery: {
+                    value: 'edgeSearchQuery',
+                    name: 'alias.filter-type-edge-search-query'
                 }
             },
             direction: {
@@ -531,7 +539,8 @@ export default angular.module('thingsboard.types', [])
                 schedulerEvent: "SCHEDULER_EVENT",
                 blobEntity: "BLOB_ENTITY",
                 entityView: "ENTITY_VIEW",
-                role: "ROLE"
+                role: "ROLE",
+                edge: "EDGE"
             },
             entityGroup: {
                 sortOrder: {

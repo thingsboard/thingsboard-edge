@@ -306,6 +306,8 @@ export function EntityGroupsController($rootScope, $scope, $state, utils, tbDial
                 targetState = 'userGroups.userGroup';
             } else if (entityGroup.type == types.entityType.entityView) {
                 targetState = 'entityViewGroups.entityViewGroup';
+            } else if (entityGroup.type == types.entityType.edge) {
+                targetState = 'edgeGroups.edgeGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
             }
