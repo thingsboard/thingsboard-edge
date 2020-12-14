@@ -532,6 +532,9 @@ function EntitiesHierarchyWidgetController($element, $scope, $q, $timeout, toast
             case types.entityType.device:
                 materialIcon = 'devices_other';
                 break;
+            case types.entityType.edge:
+                materialIcon = 'router';
+                break;
             case types.entityType.asset:
                 materialIcon = 'domain';
                 break;
