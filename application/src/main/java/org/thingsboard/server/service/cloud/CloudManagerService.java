@@ -47,6 +47,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -885,7 +886,8 @@ public class CloudManagerService {
     private void saveEdge(EdgeConfiguration edgeConfiguration) {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        edge.setId(new EdgeId(edgeUUID));
+        EdgeId edgeId = new EdgeId(edgeUUID);
+        edge.setId(edgeId);
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         edge.setTenantId(new TenantId(tenantUUID));
         UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
@@ -898,6 +900,8 @@ public class CloudManagerService {
         edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
         edge.setConfiguration(JacksonUtil.toJsonNode(edgeConfiguration.getConfiguration()));
         edgeService.saveEdge(edge);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.RELATION_REQUEST, edgeId, null);
     }
 
     private void cleanUp() {
