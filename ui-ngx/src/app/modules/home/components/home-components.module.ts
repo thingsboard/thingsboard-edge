@@ -155,6 +155,8 @@ import { SmsProviderConfigurationComponent } from '@home/components/sms/sms-prov
 import { AwsSnsProviderConfigurationComponent } from '@home/components/sms/aws-sns-provider-configuration.component';
 import { TwilioSmsProviderConfigurationComponent } from '@home/components/sms/twilio-sms-provider-configuration.component';
 import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-device-credentials.component';
+import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
+import { CloudEventDetailsDialogComponent } from "@home/components/cloud-event/cloud-event-details-dialog.component";
 
 @NgModule({
   declarations:
@@ -273,7 +275,9 @@ import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-dev
       SmsProviderConfigurationComponent,
       AwsSnsProviderConfigurationComponent,
       TwilioSmsProviderConfigurationComponent,
-      EntityGroupWizardDialogComponent
+      EntityGroupWizardDialogComponent,
+      CloudEventTableComponent,
+      CloudEventDetailsDialogComponent
     ],
   imports: [
     CommonModule,
@@ -381,7 +385,9 @@ import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-dev
     SmsProviderConfigurationComponent,
     AwsSnsProviderConfigurationComponent,
     TwilioSmsProviderConfigurationComponent,
-    EntityGroupWizardDialogComponent
+    EntityGroupWizardDialogComponent,
+    CloudEventTableComponent,
+    CloudEventDetailsDialogComponent
   ],
   providers: [
     WidgetComponentService,

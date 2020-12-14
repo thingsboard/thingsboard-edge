@@ -29,35 +29,76 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { BaseData } from "@shared/models/base-data";
+import { TenantId } from "@shared/models/id/tenant-id";
+import { EntityId } from "@shared/models/id/entity-id";
+import { HasUUID } from "@shared/models/id/has-uuid";
+import { EntityGroupId } from "@shared/models/id/entity-group-id";
+import {EntityType} from "@shared/models/entity-type.models";
 
-import { HomeLinksComponent } from './home-links.component';
-import { Authority } from '@shared/models/authority.enum';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
+export interface EdgeSettings {
+  edgeId: string;
+  tenantId: string
+  name: string;
+  type: string;
+  routingKey: string;
+  cloudType: CloudType.PE | CloudType.CE;
+}
 
-export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
-  ((route, translate, component) =>
-      component.edgeName ? component.edgeName : translate.instant('home.home')
-  );
+export interface CloudEvent extends BaseData<CloudEventId> {
+  cloudEventAction: string;
+  cloudEventType: CloudEventType | EntityType;
+  entityBody: any;
+  entityGroupId: EntityGroupId;
+  entityId: EntityId;
+  tenantId: TenantId;
+}
 
-const routes: Routes = [
-  {
-    path: 'home',
-    component: HomeLinksComponent,
-    data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'home.home',
-      breadcrumb: {
-        labelFunction: edgeNameResolver,
-        icon: 'home'
-      } as BreadCrumbConfig<HomeLinksComponent>
-    }
+export class CloudEventId implements HasUUID {
+  id: string;
+  constructor(id: string) {
+    this.id = id;
   }
-];
+}
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
-})
-export class HomeLinksRoutingModule { }
+export enum CloudType {
+  PE = "PE",
+  CE = "CE"
+}
+
+export enum cloudConnectionStatus {
+  true = 'edge.connected',
+  false = 'edge.disconnected'
+}
+
+export interface CloudStatus {
+  label: string,
+  isActive: boolean
+}
+
+export enum CloudEventType {
+  DASHBOARD = "DASHBOARD",
+  ASSET = "ASSET",
+  DEVICE = "DEVICE",
+  ENTITY_VIEW = "ENTITY_VIEW",
+  ALARM = "ALARM",
+  RULE_CHAIN = "RULE_CHAIN",
+  RULE_CHAIN_METADATA = "RULE_CHAIN_METADATA",
+  USER = "USER",
+  CUSTOMER = "CUSTOMER",
+  RELATION = "RELATION",
+  ENTITY_GROUP = "ENTITY_GROUP"
+}
+
+export enum EdgeEventStatus {
+  DEPLOYED = "DEPLOYED",
+  PENDING = "PENDING"
+}
+
+export const edgeEventStatusColor = new Map<EdgeEventStatus, string> (
+  [
+    [EdgeEventStatus.DEPLOYED, '#000000'],
+    [EdgeEventStatus.PENDING, '#9e9e9e']
+  ]
+);
+

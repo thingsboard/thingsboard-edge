@@ -35,6 +35,7 @@ import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
 import { map } from 'rxjs/operators';
+import { EdgeService } from "@core/http/edge.service";
 
 @Component({
   selector: 'tb-home-links',
@@ -49,10 +50,11 @@ export class HomeLinksComponent implements OnInit {
       return sections.filter((section) => this.sectionPlaces(section).length > 0);
     })
   );
-
+  edgeName: string;
   cols = 2;
 
   constructor(private menuService: MenuService,
+              private edgeService: EdgeService,
               public breakpointObserver: BreakpointObserver) {
   }
 
@@ -61,6 +63,7 @@ export class HomeLinksComponent implements OnInit {
     this.breakpointObserver
       .observe([MediaBreakpoints.lg, MediaBreakpoints['gt-lg']])
       .subscribe((state: BreakpointState) => this.updateColumnCount());
+    this.edgeService.getEdgeSettings().subscribe(edgeSettings => this.edgeName = edgeSettings.name);
   }
 
   private updateColumnCount() {

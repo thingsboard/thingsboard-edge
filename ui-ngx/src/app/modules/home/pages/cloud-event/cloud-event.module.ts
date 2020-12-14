@@ -30,34 +30,17 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-
-import { HomeLinksComponent } from './home-links.component';
-import { Authority } from '@shared/models/authority.enum';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
-
-export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
-  ((route, translate, component) =>
-      component.edgeName ? component.edgeName : translate.instant('home.home')
-  );
-
-const routes: Routes = [
-  {
-    path: 'home',
-    component: HomeLinksComponent,
-    data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'home.home',
-      breadcrumb: {
-        labelFunction: edgeNameResolver,
-        icon: 'home'
-      } as BreadCrumbConfig<HomeLinksComponent>
-    }
-  }
-];
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@shared/shared.module';
+import { EdgeInfoRoutingModule } from "@home/pages/edge-info/edge-info-routing.module";
 
 @NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  declarations: [
+  ],
+  imports: [
+    CommonModule,
+    SharedModule,
+    EdgeInfoRoutingModule
+  ]
 })
-export class HomeLinksRoutingModule { }
+export class CloudEventModule { }
