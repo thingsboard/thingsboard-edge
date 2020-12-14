@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.common.data;
 
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 
+@Slf4j
 public final class CloudUtils {
 
     private CloudUtils() {
@@ -55,7 +57,10 @@ public final class CloudUtils {
                 return CloudEventType.CUSTOMER;
             case ENTITY_GROUP:
                 return CloudEventType.ENTITY_GROUP;
+            case EDGE:
+                return CloudEventType.EDGE;
             default:
+                log.warn("Unsupported entity type: [{}]", entityType);
                 return null;
         }
     }

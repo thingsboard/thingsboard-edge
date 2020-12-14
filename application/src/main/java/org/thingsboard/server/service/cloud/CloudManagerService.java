@@ -47,15 +47,18 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.CloudType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -63,6 +66,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -89,6 +93,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -98,6 +103,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
@@ -168,6 +174,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -205,6 +212,9 @@ public class CloudManagerService {
 
     @Autowired
     private CloudEventService cloudEventService;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Autowired
     private AttributesService attributesService;
@@ -633,13 +643,25 @@ public class CloudManagerService {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
         try {
-            AttributesRequestMsg attributesRequestMsg = AttributesRequestMsg.newBuilder()
+            ArrayList<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
+            AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()
                     .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                     .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
                     .setEntityType(entityId.getEntityType().name())
+                    .setScope(DataConstants.SERVER_SCOPE)
                     .build();
+            allAttributesRequestMsg.add(serverAttributesRequestMsg);
+            if (EntityType.DEVICE.equals(entityId.getEntityType())) {
+                AttributesRequestMsg sharedAttributesRequestMsg = AttributesRequestMsg.newBuilder()
+                        .setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                        .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                        .setEntityType(entityId.getEntityType().name())
+                        .setScope(DataConstants.SHARED_SCOPE)
+                        .build();
+                allAttributesRequestMsg.add(sharedAttributesRequestMsg);
+            }
             UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                    .addAllAttributesRequestMsg(Collections.singletonList(attributesRequestMsg));
+                    .addAllAttributesRequestMsg(allAttributesRequestMsg);
             return builder.build();
         } catch (Exception e) {
             log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
@@ -845,6 +867,10 @@ public class CloudManagerService {
             }
 
             cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
+
+            // TODO: voba - verify storage of edge entity
+            saveEdge(edgeConfiguration);
+
             save(DefaultDeviceStateService.ACTIVITY_STATE, true);
             save(DefaultDeviceStateService.LAST_CONNECT_TIME, System.currentTimeMillis());
 
@@ -857,6 +883,27 @@ public class CloudManagerService {
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
         }
+    }
+
+    private void saveEdge(EdgeConfiguration edgeConfiguration) {
+        Edge edge = new Edge();
+        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
+        EdgeId edgeId = new EdgeId(edgeUUID);
+        edge.setId(edgeId);
+        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
+        edge.setTenantId(new TenantId(tenantUUID));
+        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        edge.setCustomerId(new CustomerId(customerUUID));
+        edge.setName(edgeConfiguration.getName());
+        edge.setType(edgeConfiguration.getType());
+        edge.setRoutingKey(edgeConfiguration.getRoutingKey());
+        edge.setSecret(edgeConfiguration.getSecret());
+        edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
+        edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
+        edge.setConfiguration(JacksonUtil.toJsonNode(edgeConfiguration.getConfiguration()));
+        edgeService.saveEdge(edge);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.RELATION_REQUEST, edgeId, null);
     }
 
     private void cleanUp() {

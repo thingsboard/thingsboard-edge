@@ -564,6 +564,26 @@ CREATE TABLE IF NOT EXISTS api_usage_state (
     CONSTRAINT api_usage_state_unq_key UNIQUE (tenant_id, entity_id)
 );
 
+CREATE TABLE IF NOT EXISTS edge (
+    id uuid NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
+    additional_info varchar,
+    customer_id uuid,
+    root_rule_chain_id uuid,
+    configuration varchar(10000000),
+    type varchar(255),
+    name varchar(255),
+    label varchar(255),
+    routing_key varchar(255),
+    secret varchar(255),
+    edge_license_key varchar(30),
+    cloud_endpoint varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
+    CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
+    );
+
+
 CREATE TABLE IF NOT EXISTS cloud_event (
     id uuid NOT NULL CONSTRAINT cloud_event_pkey PRIMARY KEY,
     created_time bigint NOT NULL,

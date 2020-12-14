@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -52,6 +53,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -63,7 +65,6 @@ import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -72,6 +73,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -116,6 +118,9 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private EdgeService edgeService;
 
     @Autowired
     private DashboardService dashboardService;
@@ -190,7 +195,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId,Dashboard dashboard) throws ThingsboardException {
+    public void changeDashboardOwner(TenantId tenantId, EntityId targetOwnerId, Dashboard dashboard) throws ThingsboardException {
         changeEntityOwner(tenantId, targetOwnerId, dashboard.getId(),
                 dashboard,
                 dashboardService::saveDashboard);
@@ -228,6 +233,11 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
+    public void changeEdgeOwner(TenantId tenantId, EntityId targetOwnerId, Edge edge) throws ThingsboardException {
+        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, edgeService::saveEdge);
+    }
+
+    @Override
     public void changeAssetOwner(TenantId tenantId, EntityId targetOwnerId, Asset asset) throws ThingsboardException {
         changeEntityOwner(tenantId, targetOwnerId, asset.getId(), asset, assetService::saveAsset);
     }
@@ -258,6 +268,9 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
             case ENTITY_VIEW:
                 changeEntityViewOwner(tenantId, targetOwnerId, getEntityViewById(tenantId, entityId));
                 break;
+            case EDGE:
+                changeEdgeOwner(tenantId, targetOwnerId, getEdgeById(tenantId, entityId));
+                break;
             default:
                 throw new RuntimeException("EntityType does not support owner change: " + entityId.getEntityType());
         }
@@ -273,7 +286,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {
         Resource resource = Resource.resourceFromEntityType(entityType);
-        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())  &&
+        if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority()) &&
                 securityUser.getUserPermissions().hasGenericPermission(resource, operation)) {
             switch (entityType) {
                 case DEVICE:
@@ -288,6 +301,8 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                     return (PageData<E>) dashboardService.findDashboardsByTenantId(tenantId, pageLink);
                 case ENTITY_VIEW:
                     return (PageData<E>) entityViewService.findEntityViewByTenantId(tenantId, pageLink);
+                case EDGE:
+                    return (PageData<E>) edgeService.findEdgesByTenantId(tenantId, pageLink);
                 default:
                     throw new RuntimeException("EntityType does not supported: " + entityType);
             }
@@ -343,6 +358,8 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                 return getOwnerId(getCustomerById(tenantId, entityId));
             case ENTITY_VIEW:
                 return getOwnerId(getEntityViewById(tenantId, entityId));
+            case EDGE:
+                return getOwnerId(getEdgeById(tenantId, entityId));
             case DASHBOARD:
                 return getOwnerId(getDashboardById(tenantId, entityId));
             case USER:
@@ -381,6 +398,10 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     private EntityView getEntityViewById(TenantId tenantId, EntityId entityId) {
         return entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+    }
+
+    private Edge getEdgeById(TenantId tenantId, EntityId entityId) {
+        return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
     }
 
     private EntityId getOwnerId(HasOwnerId entity) {

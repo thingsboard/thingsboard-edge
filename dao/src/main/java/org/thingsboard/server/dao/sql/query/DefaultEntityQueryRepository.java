@@ -84,6 +84,7 @@ import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 import org.thingsboard.server.dao.model.sql.DashboardEntity;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
+import org.thingsboard.server.dao.model.sql.EdgeEntity;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
 import org.thingsboard.server.dao.model.sql.RoleEntity;
@@ -95,6 +96,7 @@ import org.thingsboard.server.dao.sql.blob.BlobEntityRepository;
 import org.thingsboard.server.dao.sql.customer.CustomerRepository;
 import org.thingsboard.server.dao.sql.dashboard.DashboardRepository;
 import org.thingsboard.server.dao.sql.device.DeviceRepository;
+import org.thingsboard.server.dao.sql.edge.EdgeRepository;
 import org.thingsboard.server.dao.sql.entityview.EntityViewRepository;
 import org.thingsboard.server.dao.sql.group.EntityGroupRepository;
 import org.thingsboard.server.dao.sql.role.RoleRepository;
@@ -375,6 +377,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     private final CustomerRepository customerRepository;
     private final DeviceRepository deviceRepository;
     private final EntityViewRepository entityViewRepository;
+    private final EdgeRepository edgeRepository;
     private final UserRepository userRepository;
     private final DashboardRepository dashboardRepository;
     private final EntityGroupRepository entityGroupRepository;
@@ -388,6 +391,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public DefaultEntityQueryRepository(NamedParameterJdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate,
                                         AssetRepository assetRepository, CustomerRepository customerRepository,
                                         DeviceRepository deviceRepository, EntityViewRepository entityViewRepository,
+                                        EdgeRepository edgeRepository,
                                         UserRepository userRepository, DashboardRepository dashboardRepository,
                                         EntityGroupRepository entityGroupRepository, SchedulerEventRepository schedulerEventRepository,
                                         RoleRepository roleRepository, AlarmRepository alarmRepository, BlobEntityRepository blobEntityRepository
@@ -398,6 +402,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         this.customerRepository = customerRepository;
         this.deviceRepository = deviceRepository;
         this.entityViewRepository = entityViewRepository;
+        this.edgeRepository = edgeRepository;
         this.userRepository = userRepository;
         this.dashboardRepository = dashboardRepository;
         this.entityGroupRepository = entityGroupRepository;
@@ -641,6 +646,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 EntityViewEntity entityView = entityViewRepository.findById(stateEntityId.getId()).orElse(null);
                 if (entityView != null) {
                     return getOwnerId(entityView.getTenantId(), entityView.getCustomerId());
+                }
+                break;
+            case EDGE:
+                EdgeEntity edge = edgeRepository.findById(stateEntityId.getId()).orElse(null);
+                if (edge != null) {
+                    return getOwnerId(edge.getTenantId(), edge.getCustomerId());
                 }
                 break;
             case USER:

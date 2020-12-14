@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.3.0-SNAPSHOT</version>
+    <version>3.3.0-edge-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard Edge</name>
@@ -954,13 +954,6 @@
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>edge-api</artifactId>
                 <version>${thingsboard-cloud.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.msa</groupId>
-                <artifactId>web-report</artifactId>
-                <version>${thingsboard-cloud.version}</version>
-                <classifier>deb</classifier>
-                <type>deb</type>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common</groupId>

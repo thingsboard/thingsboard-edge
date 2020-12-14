@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.0-SNAPSHOT</version>
+        <version>3.3.0-edge-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -52,8 +52,7 @@
 
     <modules>
         <module>tb-edge</module>
-        <!-- VOBA: FIX -->
-<!--        <module>web-report</module>-->
+        <module>web-report</module>
     </modules>
 
     <build>

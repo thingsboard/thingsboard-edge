@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.page.PageData;
@@ -64,6 +65,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -267,13 +269,20 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                         }
                     }
                     break;
+                case EDGE:
+                    EdgeService edgeService = ctx.getEdgeService();
+                    Edge edge = edgeService.findEdgeByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
+                    if (edge != null) {
+                        targetEntity.setEntityId(edge.getId());
+                    }
+                    break;
                 case USER:
                     UserService userService = ctx.getUserService();
                     User user = userService.findUserByEmail(ctx.getTenantId(), entitykey.getEntityName());
                     if(user != null){
                         targetEntity.setEntityId(user.getId());
                     }
-                    break;    
+                    break;
                 default:
                     return targetEntity;
             }

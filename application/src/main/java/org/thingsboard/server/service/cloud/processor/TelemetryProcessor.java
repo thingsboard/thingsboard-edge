@@ -46,11 +46,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -127,6 +129,13 @@ public class TelemetryProcessor extends BaseProcessor {
                     metaData.putValue("entityViewType", entityView.getType());
                 }
                 break;
+            case EDGE:
+                Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                if (edge != null) {
+                    metaData.putValue("edgeName", edge.getName());
+                    metaData.putValue("edgeType", edge.getType());
+                }
+                break;
             case ENTITY_GROUP:
                 EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId()));
                 if (entityGroup != null) {
@@ -158,6 +167,8 @@ public class TelemetryProcessor extends BaseProcessor {
                 return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             case ENTITY_GROUP:
                 return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
+            case EDGE:
+                return new EdgeId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
             default:
                 log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
                 return null;

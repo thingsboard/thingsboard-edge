@@ -107,6 +107,9 @@ public class TbOriginatorTypeSwitchNode implements TbNode {
             case ALARM:
                 relationType = "Alarm";
                 break;
+            case EDGE:
+                relationType = "Edge";
+                break;
             default:
                 throw new TbNodeException("Unsupported originator type: " + originatorType);
         }

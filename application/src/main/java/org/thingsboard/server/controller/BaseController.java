@@ -54,7 +54,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.Tenant;
@@ -68,9 +67,9 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
-import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -81,8 +80,9 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -93,8 +93,8 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -107,7 +107,6 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
-import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -138,6 +137,7 @@ import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.DataValidationException;
@@ -152,6 +152,7 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
@@ -164,12 +165,10 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
+import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
-import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
@@ -292,6 +291,9 @@ public abstract class BaseController {
 
     @Autowired
     protected EntityViewService entityViewService;
+
+    @Autowired
+    protected EdgeService edgeService;
 
     @Autowired
     protected RoleService roleService;
@@ -688,6 +690,9 @@ public abstract class BaseController {
                 case GROUP_PERMISSION:
                     checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
                     return;
+                case EDGE:
+                    checkEdgeId(new EdgeId(entityId.getId()), operation);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -763,6 +768,17 @@ public abstract class BaseController {
             checkNotNull(groupPermission);
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, operation, groupPermissionId, groupPermission);
             return groupPermission;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    protected Edge checkEdgeId(EdgeId edgeId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(edgeId, "Incorrect edgeId " + edgeId);
+            Edge edge = edgeService.findEdgeById(getCurrentUser().getTenantId(), edgeId);
+            checkNotNull(edge);
+            return edge;
         } catch (Exception e) {
             throw handleException(e, false);
         }

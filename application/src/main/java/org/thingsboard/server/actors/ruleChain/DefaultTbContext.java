@@ -60,8 +60,8 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -88,6 +88,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -457,6 +458,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineDeviceProfileCache getDeviceProfileCache() {
         return mainCtx.getDeviceProfileCache();
+    }
+
+    @Override
+    public EdgeService getEdgeService() {
+        return mainCtx.getEdgeService();
     }
 
     @Override

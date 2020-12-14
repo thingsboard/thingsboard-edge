@@ -52,7 +52,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
 
     public static final EntityType[] groupTypes = new EntityType[]{
             EntityType.USER, EntityType.CUSTOMER, EntityType.DEVICE,
-            EntityType.ASSET, EntityType.ENTITY_VIEW, EntityType.DASHBOARD
+            EntityType.ASSET, EntityType.ENTITY_VIEW, EntityType.EDGE, EntityType.DASHBOARD
     };
 
     public static final EntityType[] sharableGroupTypes = new EntityType[]{

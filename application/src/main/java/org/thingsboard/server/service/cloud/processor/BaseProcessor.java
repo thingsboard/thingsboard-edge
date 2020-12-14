@@ -70,6 +70,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -150,6 +151,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected AdminSettingsService adminSettingsService;
+
+    @Autowired
+    protected EdgeService edgeService;
 
     @Autowired
     protected TbClusterService tbClusterService;
