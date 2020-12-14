@@ -948,6 +948,12 @@ export default angular.module('thingsboard.types', [])
                 },
                 "GROUP_PERMISSION": {
                     type: 'entity.type-group-permission'
+                },
+                "EDGE": {
+                    type: 'entity.type-edge',
+                    typePlural: 'entity.type-edges',
+                    list: 'entity.list-of-edges',
+                    nameStartsWith: 'entity.edge-name-starts-with'
                 }
             },
             entityField: {
