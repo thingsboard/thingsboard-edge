@@ -36,12 +36,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,8 +55,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 @Getter
 @Setter
 public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
-        implements HasName, TenantEntity, HasTenantId, HasCustomerId, HasOwnerId {
-
+        implements GroupEntity<EdgeId> {
     private static final long serialVersionUID = 4934987555236873728L;
 
     private TenantId tenantId;
