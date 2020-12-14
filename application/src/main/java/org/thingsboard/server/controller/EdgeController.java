@@ -135,19 +135,6 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
-    @ResponseBody
-    public EdgeSettings getEdgeSettings() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/edges", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
     public TextPageData<Edge> getCustomerEdges(
@@ -198,24 +185,6 @@ public class EdgeController extends BaseController {
                     },
                     filters,
                     pageLink);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
-    @ResponseBody
-    public TimePageData<CloudEvent> getCloudEvents(
-            @RequestParam int limit,
-            @RequestParam(required = false) Long startTime,
-            @RequestParam(required = false) Long endTime,
-            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
-            @RequestParam(required = false) String offset) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
-            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -280,6 +249,37 @@ public class EdgeController extends BaseController {
             TenantId tenantId = user.getTenantId();
             ListenableFuture<List<EntitySubtype>> edgeTypes = edgeService.findEdgeTypesByTenantId(tenantId);
             return checkNotNull(edgeTypes.get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeSettings getEdgeSettings() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
+    @ResponseBody
+    public TimePageData<CloudEvent> getCloudEvents(
+            @RequestParam int limit,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime,
+            @RequestParam(required = false, defaultValue = "false") boolean ascOrder,
+            @RequestParam(required = false) String offset) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createPageLink(limit, startTime, endTime, ascOrder, offset);
+            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
