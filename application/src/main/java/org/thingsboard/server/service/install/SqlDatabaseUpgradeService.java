@@ -438,8 +438,20 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 }
                 break;
             case "3.2.0":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_device_device_profile_id ON device(tenant_id, device_profile_id);");
+                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3002001;");
+                    } catch (Exception e) {
+                        log.error("Failed updating schema!!!", e);
+                    }
+                    log.info("Schema updated.");
+                }
+                break;
+            case "3.2.1":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.0pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.1pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {

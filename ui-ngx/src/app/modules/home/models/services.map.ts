@@ -49,9 +49,11 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { RoleService } from '@core/http/role.service';
 import { AlarmService } from '@core/http/alarm.service';
 import { Router } from '@angular/router';
+import { BroadcastService } from "@core/services/broadcast.service";
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
+   ['broadcastService', BroadcastService],
    ['deviceService', DeviceService],
    ['alarmService', AlarmService],
    ['assetService', AssetService],

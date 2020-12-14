@@ -49,6 +49,7 @@ import { DeviceProfileAlarm, deviceProfileAlarmValidator } from '@shared/models/
 import { guid } from '@core/utils';
 import { Subscription } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Component({
   selector: 'tb-device-profile-alarms',
@@ -82,6 +83,9 @@ export class DeviceProfileAlarmsComponent implements ControlValueAccessor, OnIni
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  deviceProfileId: EntityId;
 
   private valueChangeSubscription: Subscription = null;
 

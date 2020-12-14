@@ -54,6 +54,7 @@ import {
 import { EntityType } from '@shared/models/entity-type.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { ServiceType } from '@shared/models/queue.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Component({
   selector: 'tb-device-profile',
@@ -81,6 +82,8 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
 
   serviceType = ServiceType.TB_RULE_ENGINE;
 
+  deviceProfileId: EntityId;
+
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Optional() @Inject('entity') protected entityValue: DeviceProfile,
@@ -98,6 +101,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
   }
 
   buildForm(entity: DeviceProfile): FormGroup {
+    this.deviceProfileId = entity?.id ? entity.id : null;
     this.displayProfileConfiguration = entity && entity.type &&
       deviceProfileTypeConfigurationInfoMap.get(entity.type).hasProfileConfiguration;
     this.displayTransportConfiguration = entity && entity.transportType &&
@@ -172,6 +176,7 @@ export class DeviceProfileComponent extends EntityComponent<DeviceProfile> {
   }
 
   updateForm(entity: DeviceProfile) {
+    this.deviceProfileId = entity.id;
     this.displayProfileConfiguration = entity.type &&
       deviceProfileTypeConfigurationInfoMap.get(entity.type).hasProfileConfiguration;
     this.displayTransportConfiguration = entity.transportType &&

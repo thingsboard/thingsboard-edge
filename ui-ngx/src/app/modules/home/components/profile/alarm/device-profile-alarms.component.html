@@ -37,6 +37,7 @@
          fxLayout="column" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
       <tb-device-profile-alarm [formControl]="alarmControl"
                                [expanded]="$index === 0"
+                               [deviceProfileId]="deviceProfileId"
                                (removeAlarm)="removeAlarm($index)">
       </tb-device-profile-alarm>
     </div>
