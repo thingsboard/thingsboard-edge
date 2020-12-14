@@ -566,10 +566,10 @@ CREATE TABLE IF NOT EXISTS api_usage_state (
 
 CREATE TABLE IF NOT EXISTS edge (
     id uuid NOT NULL CONSTRAINT edge_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
     additional_info varchar,
     customer_id uuid,
     root_rule_chain_id uuid,
-    configuration varchar(10000000),
     type varchar(255),
     name varchar(255),
     label varchar(255),
