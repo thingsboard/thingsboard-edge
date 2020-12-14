@@ -94,12 +94,16 @@ message EdgeConfiguration {
   int64 edgeIdLSB = 2;
   int64 tenantIdMSB = 3;
   int64 tenantIdLSB = 4;
-  string name = 5;
-  string routingKey = 6;
-  string type = 7;
-  string edgeLicenseKey = 8;
-  string cloudEndpoint = 9;
-  string cloudType = 10;
+  int64 customerIdMSB = 5;
+  int64 customerIdLSB = 6;
+  string name = 7;
+  string type = 8;
+  string routingKey = 9;
+  string secret = 10;
+  string edgeLicenseKey = 11;
+  string cloudEndpoint = 12;
+  string configuration = 13;
+  string cloudType = 14;
 }
 
 enum UpdateMsgType {
@@ -341,6 +345,7 @@ message AttributesRequestMsg {
   int64 entityIdMSB = 1;
   int64 entityIdLSB = 2;
   string entityType = 3;
+  string scope = 4;
 }
 
 message RelationRequestMsg {
@@ -362,11 +367,11 @@ message DeviceCredentialsRequestMsg {
 message DeviceRpcCallMsg {
   int64 deviceIdMSB = 1;
   int64 deviceIdLSB = 2;
-  int64 requestIdMSB = 3;
-  int64 requestIdLSB = 4;
-  int64 expirationTime = 5;
-  bool oneway = 6;
-  string originServiceId = 7;
+  int64 requestUuidMSB = 3;
+  int64 requestUuidLSB = 4;
+  int32 requestId = 5;
+  int64 expirationTime = 6;
+  bool oneway = 7;
   RpcRequestMsg requestMsg = 8;
   RpcResponseMsg responseMsg = 9;
 }
