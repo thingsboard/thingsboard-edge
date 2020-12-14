@@ -260,6 +260,9 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             vm.entityGroupGridConfig.fetchItemsFunc = fetchEntityGroupsFunction;
             vm.entityGroupGridConfig.deleteItemFunc = deleteEntityGroupFunction;
             vm.entityGroupGridConfig.actionsList = entityGroupActionsList;
+            vm.entityGroupGridConfig.entitiesDeleteEnabled = () => {
+                return false;
+            };
         }
     }
 

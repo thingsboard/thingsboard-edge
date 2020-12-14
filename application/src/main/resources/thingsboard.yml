@@ -33,7 +33,7 @@ server:
   # Server bind address
   address: "${HTTP_BIND_ADDRESS:0.0.0.0}"
   # Server bind port
-  port: "${HTTP_BIND_PORT:8080}"
+  port: "${HTTP_BIND_PORT:8090}"
   # Server SSL configuration
   ssl:
     # Enable/disable SSL support
@@ -369,7 +369,7 @@ integrations:
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   rpc:
     enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
-    port: "${INTEGRATIONS_RPC_PORT:9090}"
+    port: "${INTEGRATIONS_RPC_PORT:9091}"
     ssl:
       # Enable/disable SSL support
       enabled: "${INTEGRATIONS_RPC_SSL_ENABLED:false}"
@@ -627,7 +627,7 @@ transport:
     # Enable/disable mqtt transport protocol.
     enabled: "${MQTT_ENABLED:true}"
     bind_address: "${MQTT_BIND_ADDRESS:0.0.0.0}"
-    bind_port: "${MQTT_BIND_PORT:1883}"
+    bind_port: "${MQTT_BIND_PORT:1884}"
     timeout: "${MQTT_TIMEOUT:10000}"
     netty:
       leak_detector_level: "${NETTY_LEAK_DETECTOR_LVL:DISABLED}"
