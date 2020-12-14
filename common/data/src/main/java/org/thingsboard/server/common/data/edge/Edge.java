@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.edge;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -62,7 +61,6 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
     private String secret;
     private String edgeLicenseKey;
     private String cloudEndpoint;
-    private transient JsonNode configuration;
 
     public Edge() {
         super();
@@ -83,7 +81,6 @@ public class Edge extends SearchTextBasedWithAdditionalInfo<EdgeId>
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
-        this.configuration = edge.getConfiguration();
     }
 
     @Override

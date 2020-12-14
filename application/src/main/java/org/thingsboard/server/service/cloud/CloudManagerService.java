@@ -900,7 +900,7 @@ public class CloudManagerService {
         edge.setSecret(edgeConfiguration.getSecret());
         edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
         edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
-        edge.setConfiguration(JacksonUtil.toJsonNode(edgeConfiguration.getConfiguration()));
+        edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
         edgeService.saveEdge(edge);
         saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);
         saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.RELATION_REQUEST, edgeId, null);
