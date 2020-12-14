@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -80,6 +81,7 @@ public class EntityGroupProcessor extends BaseProcessor {
                     if (entityGroup == null) {
                         entityGroup = new EntityGroup();
                         entityGroup.setId(entityGroupId);
+                        entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
                         created = true;
                     }
 

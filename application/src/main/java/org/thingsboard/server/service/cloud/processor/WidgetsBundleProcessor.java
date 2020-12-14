@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,7 @@ public class WidgetsBundleProcessor extends BaseProcessor {
                             widgetsBundle.setTenantId(tenantId);
                         }
                         widgetsBundle.setId(widgetsBundleId);
+                        widgetsBundle.setCreatedTime(Uuids.unixTimestamp(widgetsBundleId.getId()));
                     }
                     widgetsBundle.setTitle(widgetsBundleUpdateMsg.getTitle());
                     widgetsBundle.setAlias(widgetsBundleUpdateMsg.getAlias());

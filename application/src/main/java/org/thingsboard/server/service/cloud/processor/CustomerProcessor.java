@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,7 @@ public class CustomerProcessor extends BaseProcessor {
                     if (customer == null) {
                         customer = new Customer();
                         customer.setId(customerId);
+                        customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
                         customer.setTenantId(tenantId);
                         created = true;
                     }

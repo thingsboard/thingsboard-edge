@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +74,7 @@ public class DashboardProcessor extends BaseProcessor {
                     if (dashboard == null) {
                         dashboard = new Dashboard();
                         dashboard.setId(dashboardId);
+                        dashboard.setCreatedTime(Uuids.unixTimestamp(dashboardId.getId()));
                         dashboard.setTenantId(tenantId);
                         created = true;
                     }

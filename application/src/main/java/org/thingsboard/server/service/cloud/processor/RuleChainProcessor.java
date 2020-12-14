@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,7 @@ public class RuleChainProcessor extends BaseProcessor {
                         created = true;
                         ruleChain = new RuleChain();
                         ruleChain.setId(ruleChainId);
+                        ruleChain.setCreatedTime(Uuids.unixTimestamp(ruleChainId.getId()));
                         ruleChain.setTenantId(tenantId);
                     }
                     ruleChain.setName(ruleChainUpdateMsg.getName());

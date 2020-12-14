@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ public class GroupPermissionProcessor extends BaseProcessor {
                         created = true;
                         groupPermission = new GroupPermission();
                         groupPermission.setId(groupPermissionId);
+                        groupPermission.setCreatedTime(Uuids.unixTimestamp(groupPermissionId.getId()));
                         groupPermission.setTenantId(tenantId);
                     }
                     EntityGroupId userGroupId =

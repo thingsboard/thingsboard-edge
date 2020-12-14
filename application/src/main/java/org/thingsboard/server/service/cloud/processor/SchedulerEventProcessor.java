@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,6 +70,7 @@ public class SchedulerEventProcessor extends BaseProcessor {
                         created = true;
                         schedulerEvent = new SchedulerEvent();
                         schedulerEvent.setId(schedulerEventId);
+                        schedulerEvent.setCreatedTime(Uuids.unixTimestamp(schedulerEventId.getId()));
                         schedulerEvent.setTenantId(tenantId);
                     }
                     schedulerEvent.setName(schedulerEventUpdateMsg.getName());

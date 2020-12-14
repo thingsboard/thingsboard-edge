@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -256,6 +257,7 @@ public class DeviceProcessor extends BaseProcessor {
                 device = new Device();
                 device.setTenantId(tenantId);
                 device.setId(deviceId);
+                device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
                 created = true;
             }
             device.setName(deviceUpdateMsg.getName());

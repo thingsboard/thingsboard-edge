@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -90,6 +91,7 @@ public class RoleProcessor extends BaseProcessor {
                     if (role == null) {
                         role = new Role();
                         role.setId(roleId);
+                        role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
                         TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
                         role.setTenantId(roleTenantId);
                     }

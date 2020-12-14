@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +69,7 @@ public class AssetProcessor extends BaseProcessor {
                         asset = new Asset();
                         asset.setTenantId(tenantId);
                         asset.setId(assetId);
+                        asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
                         created = true;
                     }
                     asset.setName(assetUpdateMsg.getName());

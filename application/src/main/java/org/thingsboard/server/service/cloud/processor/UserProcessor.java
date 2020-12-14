@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.cloud.processor;
 
+import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +80,7 @@ public class UserProcessor extends BaseProcessor {
                         user = new User();
                         user.setTenantId(tenantId);
                         user.setId(userId);
+                        user.setCreatedTime(Uuids.unixTimestamp(userId.getId()));
                         created = true;
                     }
                     user.setEmail(userUpdateMsg.getEmail());
