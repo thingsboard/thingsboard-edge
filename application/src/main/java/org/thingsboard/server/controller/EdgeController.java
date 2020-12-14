@@ -41,8 +41,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
@@ -51,7 +49,6 @@ import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -64,7 +61,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -75,7 +71,7 @@ public class EdgeController extends BaseController {
 
     public static final String EDGE_ID = "edgeId";
 
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}", method = RequestMethod.GET)
     @ResponseBody
     public Edge getEdgeById(@PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
@@ -164,19 +160,6 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
-    @ResponseBody
-    public EdgeSettings getEdgeSettings() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Edge> getCustomerEdges(
@@ -231,32 +214,6 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edges", params = {"edgeIds"}, method = RequestMethod.GET)
-    @ResponseBody
-    public List<Edge> getEdgesByIds(
-            @RequestParam("edgeIds") String[] strEdgeIds) throws ThingsboardException {
-        checkArrayParameter("edgeIds", strEdgeIds);
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            CustomerId customerId = user.getCustomerId();
-            List<EdgeId> edgeIds = new ArrayList<>();
-            for (String strEdgeId : strEdgeIds) {
-                edgeIds.add(new EdgeId(toUUID(strEdgeId)));
-            }
-            ListenableFuture<List<Edge>> edges;
-            if (customerId == null || customerId.isNullUid()) {
-                edges = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
-            } else {
-                edges = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
-            }
-            return checkNotNull(edges.get());
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edges", method = RequestMethod.POST)
     @ResponseBody
     public List<Edge> findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException {
@@ -275,27 +232,6 @@ public class EdgeController extends BaseController {
                 }
             }).collect(Collectors.toList());
             return edges;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
-    @ResponseBody
-    public PageData<Asset> getUserAssets(
-            @RequestParam int pageSize,
-            @RequestParam int page,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String textSearch,
-            @RequestParam(required = false) String sortProperty,
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            SecurityUser currentUser = getCurrentUser();
-            MergedUserPermissions mergedUserPermissions = currentUser.getUserPermissions();
-            return entityService.findUserEntities(currentUser.getTenantId(), currentUser.getCustomerId(), mergedUserPermissions, EntityType.ASSET,
-                    Operation.READ, type, pageLink);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -322,6 +258,59 @@ public class EdgeController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edges", params = {"edgeIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<Edge> getEdgesByIds(
+            @RequestParam("edgeIds") String[] strEdgeIds) throws ThingsboardException {
+        checkArrayParameter("edgeIds", strEdgeIds);
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            CustomerId customerId = user.getCustomerId();
+            List<EdgeId> edgeIds = new ArrayList<>();
+            for (String strEdgeId : strEdgeIds) {
+                edgeIds.add(new EdgeId(toUUID(strEdgeId)));
+            }
+            ListenableFuture<List<Edge>> edges;
+            if (customerId == null || customerId.isNullUid()) {
+                edges = edgeService.findEdgesByTenantIdAndIdsAsync(tenantId, edgeIds);
+            } else {
+                edges = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
+            }
+            return checkNotNull(edges.get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/types", method = RequestMethod.GET)
+    @ResponseBody
+    public List<EntitySubtype> getEdgeTypes() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            ListenableFuture<List<EntitySubtype>> edgeTypes = edgeService.findEdgeTypesByTenantId(tenantId);
+            return checkNotNull(edgeTypes.get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeSettings getEdgeSettings() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
     @ResponseBody
@@ -337,20 +326,6 @@ public class EdgeController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/types", method = RequestMethod.GET)
-    @ResponseBody
-    public List<EntitySubtype> getEdgeTypes() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            ListenableFuture<List<EntitySubtype>> edgeTypes = edgeService.findEdgeTypesByTenantId(tenantId);
-            return checkNotNull(edgeTypes.get());
         } catch (Exception e) {
             throw handleException(e);
         }
