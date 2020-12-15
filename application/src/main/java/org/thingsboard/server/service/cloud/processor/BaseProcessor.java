@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -78,6 +79,7 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -97,6 +99,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected AttributesService attributesService;
+
+    @Autowired
+    protected TimeseriesService timeseriesService;
 
     @Autowired
     protected DeviceCredentialsService deviceCredentialsService;
@@ -162,37 +167,65 @@ public abstract class BaseProcessor {
     protected DbCallbackExecutorService dbCallbackExecutor;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
-        TimePageData<AuditLog> auditLogs = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, new TimePageLink(Integer.MAX_VALUE));
-        if (auditLogs != null && auditLogs.getData() != null && !auditLogs.getData().isEmpty()) {
-            for (AuditLog auditLogEntry : auditLogs.getData()) {
-                auditLogEntry.setEntityId(destination.getId());
-                auditLogService.saveOrUpdateAuditLog(auditLogEntry);
+        TimePageLink pageLink = new TimePageLink(100);
+        TimePageData<AuditLog> pageData;
+        do {
+            pageData = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (AuditLog auditLogEntry : pageData.getData()) {
+                    auditLogEntry.setEntityId(destination.getId());
+                    auditLogService.saveOrUpdateAuditLog(auditLogEntry);
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageData.getNextPageLink();
+                }
             }
-        }
+        } while (pageData != null && pageData.hasNext());
         log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
-    protected ListenableFuture<List<CloudEvent>> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
-        List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
-                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType) ||
-                UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(updateMsgType)) {
+                UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
+            SettableFuture<Void> futureToSet = SettableFuture.create();
+            List<ListenableFuture<CloudEvent>> futures = new ArrayList<>();
             futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
                     ActionType.ATTRIBUTES_REQUEST, entityId, null));
             futures.add(saveCloudEvent(tenantId, CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
                     ActionType.RELATION_REQUEST, entityId, null));
+            Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<CloudEvent>>() {
+                @Override
+                public void onSuccess(@Nullable List<CloudEvent> cloudEvents) {
+                    futureToSet.set(null);
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    log.error("Failed to save cloud events", t);
+                    futureToSet.setException(t);
+                }
+            }, dbCallbackExecutor);
+            return futureToSet;
+        } else {
+            return Futures.immediateFuture(null);
         }
-        return Futures.allAsList(futures);
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
-        TimePageData<Event> events = eventService.findEvents(tenantId, origin.getId(), new TimePageLink(Integer.MAX_VALUE));
-        if (events != null && events.getData() != null && !events.getData().isEmpty()) {
-            for (Event event : events.getData()) {
-                event.setEntityId(destination.getId());
-                eventService.saveAsync(event);
+        TimePageLink pageLink = new TimePageLink(100);
+        TimePageData<Event> pageData;
+        do {
+            pageData = eventService.findEvents(tenantId, origin.getId(), pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (Event event : pageData.getData()) {
+                    event.setEntityId(destination.getId());
+                    eventService.saveAsync(event);
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageData.getNextPageLink();
+                }
             }
-        }
+        } while (pageData != null && pageData.hasNext());
         log.debug("Related events updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
     }
 
