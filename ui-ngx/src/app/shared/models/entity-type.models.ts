@@ -70,7 +70,8 @@ export enum EntityType {
   WIDGET_TYPE = 'WIDGET_TYPE',
   ROLE = 'ROLE',
   GROUP_PERMISSION = 'GROUP_PERMISSION',
-  API_USAGE_STATE = 'API_USAGE_STATE'
+  API_USAGE_STATE = 'API_USAGE_STATE',
+  EDGE = 'EDGE'
 }
 
 export enum AliasEntityType {

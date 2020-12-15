@@ -65,6 +65,8 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
 import { OAuth2ClientInfo } from '@shared/models/oauth2.models';
+import { EdgeService } from '@core/http/edge.service';
+import {CloudType} from "@shared/models/edge.models";
 
 @Injectable({
     providedIn: 'root'
@@ -81,6 +83,7 @@ export class AuthService {
     private userPermissionsService: UserPermissionsService,
     private reportService: ReportService,
     private timeService: TimeService,
+    private edgeService: EdgeService,
     private router: Router,
     private route: ActivatedRoute,
     private zone: NgZone,
@@ -121,6 +124,8 @@ export class AuthService {
   public static getJwtToken() {
     return AuthService._storeGet('jwt_token');
   }
+
+  public peMenuAllowed: boolean = false;
 
   public reloadUser() {
     this.loadUser(true).subscribe(
@@ -481,12 +486,14 @@ export class AuthService {
                      this.customMenuService.loadCustomMenu(),
                      this.customTranslationService.updateCustomTranslations(true),
                      this.userPermissionsService.loadPermissionsInfo(),
-                     this.timeService.loadMaxDatapointsLimit()];
+                     this.timeService.loadMaxDatapointsLimit(),
+                     this.edgeService.getEdgeSettings()];
     return forkJoin(sources)
       .pipe(map((data) => {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
         const whiteLabelingAllowedInfo = data[2] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        this.peMenuAllowed = data[8].cloudType == CloudType.PE;
         return {userTokenAccessEnabled, allowedDashboardIds, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
@@ -669,4 +676,9 @@ export class AuthService {
       return of([]);
     }
   }
+
+  public isPEMenuAllowed(): boolean {
+    return this.peMenuAllowed;
+  }
+
 }

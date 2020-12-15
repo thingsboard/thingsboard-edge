@@ -31,28 +31,57 @@
 
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-
-import { HomeLinksComponent } from './home-links.component';
 import { Authority } from '@shared/models/authority.enum';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
-
-export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
-  ((route, translate, component) =>
-      component.edgeName ? component.edgeName : translate.instant('home.home')
-  );
+import { EdgeInfoComponent } from "@home/pages/edge-info/edge-info.component";
+import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
 
 const routes: Routes = [
   {
-    path: 'home',
-    component: HomeLinksComponent,
+    path: 'edge',
     data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'home.home',
+      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      title: 'edge.information',
       breadcrumb: {
-        labelFunction: edgeNameResolver,
-        icon: 'home'
-      } as BreadCrumbConfig<HomeLinksComponent>
-    }
+        label: 'edge.info',
+        icon: 'router'
+      }
+    },
+    children: [
+      {
+        path: '',
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          redirectTo: {
+            TENANT_ADMIN: '/edge/information',
+            CUSTOMER_USER: '/edge/information'
+          }
+        }
+      },
+      {
+        path: 'information',
+        component: EdgeInfoComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'edge.information',
+          breadcrumb: {
+            label: 'edge.information',
+            icon: 'info'
+          }
+        }
+      },
+      {
+        path: 'cloudEvents',
+        component: CloudEventTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'edge.cloud-events',
+          breadcrumb: {
+            label: 'edge.cloud-events',
+            icon: 'date_range'
+          }
+        }
+      }
+    ]
   }
 ];
 
@@ -60,4 +89,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class HomeLinksRoutingModule { }
+export class EdgeInfoRoutingModule { }

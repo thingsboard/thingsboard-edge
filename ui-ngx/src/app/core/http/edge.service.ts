@@ -29,35 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable } from '@angular/core';
+import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
+import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { CloudEvent, EdgeSettings } from "@shared/models/edge.models";
+import { TimePageLink } from "@shared/models/page/page-link";
+import { PageData } from "@shared/models/page/page-data";
 
-import { HomeLinksComponent } from './home-links.component';
-import { Authority } from '@shared/models/authority.enum';
-import { BreadCrumbConfig, BreadCrumbLabelFunction } from "@shared/components/breadcrumb";
-
-export const edgeNameResolver: BreadCrumbLabelFunction<HomeLinksComponent> =
-  ((route, translate, component) =>
-      component.edgeName ? component.edgeName : translate.instant('home.home')
-  );
-
-const routes: Routes = [
-  {
-    path: 'home',
-    component: HomeLinksComponent,
-    data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'home.home',
-      breadcrumb: {
-        labelFunction: edgeNameResolver,
-        icon: 'home'
-      } as BreadCrumbConfig<HomeLinksComponent>
-    }
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+@Injectable({
+  providedIn: 'root'
 })
-export class HomeLinksRoutingModule { }
+export class EdgeService {
+
+  constructor(
+    private http: HttpClient
+  ) { }
+
+  getEdgeSettings(config?: RequestConfig): Observable<EdgeSettings> {
+    return this.http.get<EdgeSettings>('/api/edge/settings', defaultHttpOptionsFromConfig(config));
+  }
+
+  getCloudEvents(pageLink: TimePageLink, config?: RequestConfig): Observable<PageData<CloudEvent>> {
+    return this.http.get<PageData<CloudEvent>>(`/api/edge/events${pageLink.toQuery()}`, defaultHttpOptionsFromConfig(config))
+  }
+
+
+}
