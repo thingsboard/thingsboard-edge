@@ -32,11 +32,15 @@ package org.thingsboard.server.service.cloud.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.RpcError;
@@ -54,8 +58,13 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -78,12 +87,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
 public class DeviceProcessor extends BaseProcessor {
+
+    private static final int ONE_DAY = 86400000;
 
     @Autowired
     private DeviceStateService deviceStateService;
@@ -109,21 +121,32 @@ public class DeviceProcessor extends BaseProcessor {
                     }
                 }
                 break;
-            case DEVICE_CONFLICT_RPC_MESSAGE:
+            case ENTITY_MERGE_RPC_MESSAGE:
                 try {
                     deviceCreationLock.lock();
                     String deviceName = deviceUpdateMsg.getName();
+                    if (StringUtils.isNoneBlank(deviceUpdateMsg.getConflictName())) {
+                        deviceName = deviceUpdateMsg.getConflictName();
+                    }
                     Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
                     if (deviceByName != null) {
                         deviceByName.setName(RandomStringUtils.randomAlphabetic(15));
                         deviceService.saveDevice(deviceByName);
                         Device deviceCopy = saveOrUpdateDevice(tenantId, customerId, deviceUpdateMsg, cloudType);
+                        copyAccessCredentials(tenantId, deviceByName, deviceCopy);
                         ListenableFuture<List<Void>> future = updateOrCopyDeviceRelatedEntities(tenantId, deviceByName, deviceCopy);
-                        Futures.transform(future, list -> {
-                            log.debug("Related entities copied, removing origin device [{}]", deviceByName.getId());
-                            deviceService.deleteDevice(tenantId, deviceByName.getId());
-                            return null;
-                        }, MoreExecutors.directExecutor());
+                        Futures.addCallback(future, new FutureCallback<List<Void>>() {
+                            @Override
+                            public void onSuccess(@Nullable List<Void> voids) {
+                                log.debug("Related entities copied, removing origin device [{}]", deviceByName.getId());
+                                deviceService.deleteDevice(tenantId, deviceByName.getId());
+                            }
+
+                            @Override
+                            public void onFailure(Throwable t) {
+                                log.error("Failed to update or copy device related entities", t);
+                            }
+                        }, dbCallbackExecutor);
                     }
                 } finally {
                     deviceCreationLock.unlock();
@@ -134,19 +157,42 @@ public class DeviceProcessor extends BaseProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type" + deviceUpdateMsg.getMsgType()));
         }
 
-        ListenableFuture<Void> aDRF = Futures.transform(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), future -> null, dbCallbackExecutor);
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId), new FutureCallback<Void>() {
+            @Override
+            public void onSuccess(@Nullable Void unused) {
+                FutureCallback<CloudEvent> cloudEventFutureCallback = new FutureCallback<CloudEvent>() {
+                    @Override
+                    public void onSuccess(@Nullable CloudEvent cloudEvent) {
+                        futureToSet.set(null);
+                    }
 
-        ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
-            ListenableFuture<CloudEvent> f = Futures.immediateFuture(null);
-            if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                    UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                    UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                f = saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
+                    @Override
+                    public void onFailure(Throwable t) {
+                        futureToSet.setException(t);
+                    }
+                };
+                if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                    Futures.addCallback(saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null),
+                            cloudEventFutureCallback,
+                            dbCallbackExecutor);
+                } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                    Futures.addCallback(saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null),
+                            cloudEventFutureCallback,
+                            dbCallbackExecutor);
+                } else {
+                    futureToSet.set(null);
+                }
             }
-            return Futures.transform(f, tmp -> null, dbCallbackExecutor);
-        }, dbCallbackExecutor);
 
-        return Futures.transform(t, tt -> null, dbCallbackExecutor);
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to request for additional data, deviceUpdateMsg [{}]", deviceUpdateMsg, t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
     }
 
     public ListenableFuture<Void> onDeviceCredentialsUpdate(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
@@ -175,60 +221,218 @@ public class DeviceProcessor extends BaseProcessor {
     }
 
     private ListenableFuture<List<Void>> updateOrCopyDeviceRelatedEntities(TenantId tenantId, Device origin, Device destination) {
+        // TODO: voba - check that everything is covered by copy
         updateAuditLogs(tenantId, origin, destination);
         updateEvents(tenantId, origin, destination);
+
         ArrayList<ListenableFuture<Void>> futures = new ArrayList<>();
         futures.add(updateEntityViews(tenantId, origin, destination));
         futures.add(updateAlarms(tenantId, origin, destination));
         futures.add(copyAttributes(tenantId, origin, destination));
+        futures.add(copyTimeseries(tenantId, origin, destination));
         futures.add(copyRelations(tenantId, origin, destination, EntitySearchDirection.FROM));
         futures.add(copyRelations(tenantId, origin, destination, EntitySearchDirection.TO));
         return Futures.allAsList(futures);
     }
 
+    private void copyAccessCredentials(TenantId tenantId, Device origin, Device destination) {
+        DeviceCredentials prevDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, origin.getId());
+        DeviceCredentials newDeviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, destination.getId());
+        newDeviceCredentials.setCredentialsType(prevDeviceCredentials.getCredentialsType());
+        newDeviceCredentials.setCredentialsId(prevDeviceCredentials.getCredentialsId());
+        newDeviceCredentials.setCredentialsValue(prevDeviceCredentials.getCredentialsValue());
+        newDeviceCredentials.setCreatedTime(prevDeviceCredentials.getCreatedTime());
+
+        deviceCredentialsService.deleteDeviceCredentials(tenantId, prevDeviceCredentials);
+
+        deviceCredentialsService.createDeviceCredentials(tenantId, newDeviceCredentials);
+    }
+
     private ListenableFuture<Void> copyRelations(TenantId tenantId, Device origin, Device destination, EntitySearchDirection direction) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         EntityRelationsQuery query = new EntityRelationsQuery();
         query.setParameters(new RelationsSearchParameters(origin.getId(), direction, -1, false));
         ListenableFuture<List<EntityRelation>> relationsByQueryFuture = relationService.findByQuery(tenantId, query);
-        return Futures.transform(relationsByQueryFuture, relationsByQuery -> {
-            if (relationsByQuery != null && !relationsByQuery.isEmpty()) {
-                for (EntityRelation relation : relationsByQuery) {
-                    if (EntitySearchDirection.FROM.equals(direction)) {
-                        relation.setFrom(destination.getId());
-                    } else {
-                        relation.setTo(destination.getId());
+        Futures.addCallback(relationsByQueryFuture, new FutureCallback<List<EntityRelation>>() {
+            @Override
+            public void onSuccess(@Nullable List<EntityRelation> relationsByQuery) {
+                if (relationsByQuery != null && !relationsByQuery.isEmpty()) {
+                    for (EntityRelation relation : relationsByQuery) {
+                        if (EntitySearchDirection.FROM.equals(direction)) {
+                            relation.setFrom(destination.getId());
+                        } else {
+                            relation.setTo(destination.getId());
+                        }
+                        relationService.saveRelationAsync(tenantId, relation);
                     }
-                    relationService.saveRelationAsync(tenantId, relation);
                 }
+                log.debug("Related [{}] relations copied, origin [{}], destination [{}]", direction.name(), origin.getId(), destination.getId());
+                futureToSet.set(null);
             }
-            log.debug("Related [{}] relations copied, origin [{}], destination [{}]", direction.name(), origin.getId(), destination.getId());
-            return null;
-        }, MoreExecutors.directExecutor());
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to find relations, origin [{}], destination [{}]", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> updateEntityViews(TenantId tenantId, Device origin, Device destination) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         ListenableFuture<List<EntityView>> entityViewsFuture = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(tenantId, origin.getId());
-        return Futures.transform(entityViewsFuture, entityViews -> {
-            if (entityViews != null && !entityViews.isEmpty()) {
-                for (EntityView entityView : entityViews) {
-                    entityView.setEntityId(destination.getId());
-                    entityViewService.saveEntityView(entityView);
+        Futures.addCallback(entityViewsFuture, new FutureCallback<List<EntityView>>() {
+            @Override
+            public void onSuccess(@Nullable List<EntityView> entityViews) {
+                if (entityViews != null && !entityViews.isEmpty()) {
+                    for (EntityView entityView : entityViews) {
+                        entityView.setEntityId(destination.getId());
+                        entityViewService.saveEntityView(entityView);
+                    }
                 }
+                log.debug("Related entity views updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
+                futureToSet.set(null);
             }
-            log.debug("Related entity views updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
-            return null;
-        }, MoreExecutors.directExecutor());
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to find entity views, origin [{}], destination [{}]", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> copyAttributes(TenantId tenantId, Device origin, Device destination) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
         ListenableFuture<List<AttributeKvEntry>> allFuture = attributesService.findAll(tenantId, origin.getId(), DataConstants.SERVER_SCOPE);
-        return Futures.transform(allFuture, attributes -> {
-            if (attributes != null && !attributes.isEmpty()) {
-                attributesService.save(tenantId, destination.getId(), DataConstants.SERVER_SCOPE, attributes);
+        Futures.addCallback(allFuture, new FutureCallback<List<AttributeKvEntry>>() {
+            @Override
+            public void onSuccess(@Nullable List<AttributeKvEntry> attributes) {
+                if (attributes != null && !attributes.isEmpty()) {
+                    attributesService.save(tenantId, destination.getId(), DataConstants.SERVER_SCOPE, attributes);
+                }
+                log.debug("Related attributes copied, origin [{}], destination [{}]", origin.getId(), destination.getId());
+                futureToSet.set(null);
             }
-            log.debug("Related attributes copied, origin [{}], destination [{}]", origin.getId(), destination.getId());
-            return null;
-        }, MoreExecutors.directExecutor());
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to find attributes, origin [{}], destination [{}]", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> copyTimeseries(TenantId tenantId, Device origin, Device destination) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        ListenableFuture<List<TsKvEntry>> allLatestFuture = timeseriesService.findAllLatest(tenantId, origin.getId());
+        Futures.addCallback(allLatestFuture, new FutureCallback<List<TsKvEntry>>() {
+            @Override
+            public void onSuccess(@Nullable List<TsKvEntry> tsKvEntries) {
+                ListenableFuture<Void> future = copyTimeseries(tenantId, origin, destination, tsKvEntries);
+                Futures.addCallback(future, new FutureCallback<Void>() {
+                    @Override
+                    public void onSuccess(@Nullable Void unused) {
+                        futureToSet.set(null);
+                        log.debug("Related telemetries copied, origin [{}], destination [{}]", origin.getId(), destination.getId());
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                        futureToSet.setException(t);
+                    }
+                }, dbCallbackExecutor);
+            }
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> copyTimeseries(TenantId tenantId, Device origin, Device destination, List<TsKvEntry> tsKvEntries) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        ArrayList<ReadTsKvQuery> queries = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        if (tsKvEntries != null && !tsKvEntries.isEmpty()) {
+            for (TsKvEntry tsKvEntry : tsKvEntries) {
+                queries.add(new BaseReadTsKvQuery(tsKvEntry.getKey(), 0, now, 0, 1, Aggregation.NONE, "ASC"));
+            }
+        }
+        ListenableFuture<List<TsKvEntry>> allOldest = timeseriesService.findAll(tenantId, origin.getId(), queries);
+        Futures.addCallback(allOldest, new FutureCallback<List<TsKvEntry>>() {
+            @Override
+            public void onSuccess(@Nullable List<TsKvEntry> tsKvEntries) {
+                List<ListenableFuture<Void>> futures = new ArrayList<>();
+                if (tsKvEntries != null && !tsKvEntries.isEmpty()) {
+                    for (TsKvEntry tsKvEntry : tsKvEntries) {
+                        futures.add(copyTimeseries(tenantId, origin, destination, tsKvEntry));
+                    }
+                }
+                Futures.addCallback(Futures.allAsList(futures), new FutureCallback<List<Void>>() {
+                    @Override
+                    public void onSuccess(@Nullable List<Void> voids) {
+                        futureToSet.set(null);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                        futureToSet.setException(t);
+                    }
+                }, dbCallbackExecutor);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
+    }
+
+    private ListenableFuture<Void> copyTimeseries(TenantId tenantId, Device origin, Device destination, TsKvEntry oldest) {
+        SettableFuture<Void> futureToSet = SettableFuture.create();
+        long now = System.currentTimeMillis();
+        long oldestTs = oldest.getTs();
+        List<ReadTsKvQuery> queries = new ArrayList<>();
+        do {
+            queries.add(new BaseReadTsKvQuery(oldest.getKey(), oldestTs, oldestTs + ONE_DAY, 0, Integer.MAX_VALUE, Aggregation.NONE));
+            oldestTs += ONE_DAY;
+        } while(oldestTs < now);
+        ListenableFuture<List<TsKvEntry>> allFutures = timeseriesService.findAll(tenantId, origin.getId(), queries);
+        Futures.addCallback(allFutures, new FutureCallback<List<TsKvEntry>>() {
+            @Override
+            public void onSuccess(@Nullable List<TsKvEntry> tsKvEntries) {
+                ListenableFuture<Integer> saveFuture = timeseriesService.save(tenantId, destination.getId(), tsKvEntries, 0);
+                Futures.addCallback(saveFuture, new FutureCallback<Integer>() {
+                    @Override
+                    public void onSuccess(@Nullable Integer count) {
+                        futureToSet.set(null);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                        futureToSet.setException(t);
+                    }
+                }, dbCallbackExecutor);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("Failed to copy device timeseries, origin [{}], destination [{}] ", origin.getId(), destination.getId(), t);
+                futureToSet.setException(t);
+            }
+        }, dbCallbackExecutor);
+        return futureToSet;
     }
 
     private ListenableFuture<Void> updateAlarms(TenantId tenantId, Device origin, Device destination) {
