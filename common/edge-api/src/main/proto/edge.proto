@@ -112,7 +112,7 @@ enum UpdateMsgType {
   ENTITY_DELETED_RPC_MESSAGE = 2;
   ALARM_ACK_RPC_MESSAGE = 3;
   ALARM_CLEAR_RPC_MESSAGE = 4;
-  DEVICE_CONFLICT_RPC_MESSAGE = 5;
+  ENTITY_MERGE_RPC_MESSAGE = 5;
 }
 
 message EntityDataProto {
@@ -199,8 +199,9 @@ message DeviceUpdateMsg {
   string type = 7;
   string label = 8;
   string additionalInfo = 9;
-  int64 entityGroupIdMSB = 10;
-  int64 entityGroupIdLSB = 11;
+  string conflictName = 10;
+  int64 entityGroupIdMSB = 11;
+  int64 entityGroupIdLSB = 12;
 }
 
 message DeviceCredentialsUpdateMsg {
