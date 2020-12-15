@@ -225,6 +225,8 @@ public final class IntegrationGrpcSession implements Closeable {
                             .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
                             .setDeviceName(device.getName())
                             .setDeviceType(device.getType())
+                            .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
+                            .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
                             .build();
 
                     if (data.hasPostTelemetryMsg()) {
