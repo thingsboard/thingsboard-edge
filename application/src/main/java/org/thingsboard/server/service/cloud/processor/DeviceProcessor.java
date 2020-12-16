@@ -57,8 +57,10 @@ import org.thingsboard.server.common.data.edge.CloudType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -467,6 +469,11 @@ public class DeviceProcessor extends BaseProcessor {
             device.setName(deviceUpdateMsg.getName());
             device.setType(deviceUpdateMsg.getType());
             device.setLabel(deviceUpdateMsg.getLabel());
+            if (deviceUpdateMsg.getDeviceProfileIdMSB() != 0 && deviceUpdateMsg.getDeviceProfileIdLSB() != 0) {
+                DeviceProfileId deviceProfileId = new DeviceProfileId(
+                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB()));
+                device.setDeviceProfileId(deviceProfileId);
+            }
             device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
             CustomerId deviceCustomerId = safeSetCustomerId(deviceUpdateMsg, cloudType, device);
             device = deviceService.saveDevice(device, created);

@@ -184,7 +184,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         tenantValidator.validate(tenant, Tenant::getId);
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
         if (tenant.getId() == null || forceCreate) {
-            deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
+            // TODO: voba - devices profiles are created by cloud manager service
+            // deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
             entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);

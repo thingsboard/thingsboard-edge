@@ -234,9 +234,11 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
     public DeviceProfile findOrCreateDeviceProfile(TenantId tenantId, String name) {
         log.trace("Executing findOrCreateDefaultDeviceProfile");
         DeviceProfile deviceProfile = findDeviceProfileByName(tenantId, name);
-        if (deviceProfile == null) {
-            deviceProfile = this.doCreateDefaultDeviceProfile(tenantId, name, name.equals("default"));
-        }
+
+        // TODO: default device profiles are not created on edge
+        //if (deviceProfile == null) {
+        //    deviceProfile = this.doCreateDefaultDeviceProfile(tenantId, name, name.equals("default"));
+        //}
         return deviceProfile;
     }
 
@@ -387,23 +389,25 @@ public class DeviceProfileServiceImpl extends AbstractEntityService implements D
                 @Override
                 protected void validateUpdate(TenantId tenantId, DeviceProfile deviceProfile) {
                     DeviceProfile old = deviceProfileDao.findById(deviceProfile.getTenantId(), deviceProfile.getId().getId());
-                    if (old == null) {
-                        throw new DataValidationException("Can't update non existing device profile!");
-                    }
-                    boolean profileTypeChanged = !old.getType().equals(deviceProfile.getType());
-                    boolean transportTypeChanged = !old.getTransportType().equals(deviceProfile.getTransportType());
-                    if (profileTypeChanged || transportTypeChanged) {
-                        Long profileDeviceCount = deviceDao.countDevicesByDeviceProfileId(deviceProfile.getTenantId(), deviceProfile.getId().getId());
-                        if (profileDeviceCount > 0) {
-                            String message = null;
-                            if (profileTypeChanged) {
-                                message = "Can't change device profile type because devices referenced it!";
-                            } else if (transportTypeChanged) {
-                                message = "Can't change device profile transport type because devices referenced it!";
-                            }
-                            throw new DataValidationException(message);
-                        }
-                    }
+
+                    // TODO: voba - validate disabled to be able to sync with a cloud
+//                    if (old == null) {
+//                        throw new DataValidationException("Can't update non existing device profile!");
+//                    }
+//                    boolean profileTypeChanged = !old.getType().equals(deviceProfile.getType());
+//                    boolean transportTypeChanged = !old.getTransportType().equals(deviceProfile.getTransportType());
+//                    if (profileTypeChanged || transportTypeChanged) {
+//                        Long profileDeviceCount = deviceDao.countDevicesByDeviceProfileId(deviceProfile.getTenantId(), deviceProfile.getId().getId());
+//                        if (profileDeviceCount > 0) {
+//                            String message = null;
+//                            if (profileTypeChanged) {
+//                                message = "Can't change device profile type because devices referenced it!";
+//                            } else if (transportTypeChanged) {
+//                                message = "Can't change device profile transport type because devices referenced it!";
+//                            }
+//                            throw new DataValidationException(message);
+//                        }
+//                    }
                 }
 
                 private void validateTransportProtoSchema(String schema, String schemaName) throws IllegalArgumentException {

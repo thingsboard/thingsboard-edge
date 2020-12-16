@@ -62,6 +62,10 @@ public class DeviceUpdateMsgConstructor {
         if (device.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
+        if (device.getDeviceProfileId() != null) {
+            builder.setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
+                    .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+        }
         return builder.build();
     }
 

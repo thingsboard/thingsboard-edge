@@ -36,6 +36,8 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.TransportPayloadType;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -44,7 +46,7 @@ import org.thingsboard.server.common.data.TransportPayloadType;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = JsonTransportPayloadConfiguration.class, name = "JSON"),
         @JsonSubTypes.Type(value = ProtoTransportPayloadConfiguration.class, name = "PROTOBUF")})
-public interface TransportPayloadTypeConfiguration {
+public interface TransportPayloadTypeConfiguration extends Serializable {
 
     @JsonIgnore
     TransportPayloadType getTransportPayloadType();

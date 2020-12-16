@@ -47,7 +47,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -92,6 +91,7 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -115,6 +115,7 @@ import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
@@ -152,6 +153,7 @@ import org.thingsboard.server.service.cloud.processor.AssetProcessor;
 import org.thingsboard.server.service.cloud.processor.CustomerProcessor;
 import org.thingsboard.server.service.cloud.processor.DashboardProcessor;
 import org.thingsboard.server.service.cloud.processor.DeviceProcessor;
+import org.thingsboard.server.service.cloud.processor.DeviceProfileProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityGroupProcessor;
 import org.thingsboard.server.service.cloud.processor.EntityViewProcessor;
 import org.thingsboard.server.service.cloud.processor.GroupPermissionProcessor;
@@ -174,7 +176,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -238,6 +239,9 @@ public class CloudManagerService {
     private DeviceService deviceService;
 
     @Autowired
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
     private DeviceCredentialsService deviceCredentialsService;
 
     @Autowired
@@ -287,6 +291,9 @@ public class CloudManagerService {
 
     @Autowired
     private DeviceProcessor deviceProcessor;
+
+    @Autowired
+    private DeviceProfileProcessor deviceProfileProcessor;
 
     @Autowired
     private AssetProcessor assetProcessor;
@@ -933,6 +940,7 @@ public class CloudManagerService {
         ruleChainService.deleteRuleChainsByTenantId(tenant.getId());
         entityViewService.deleteEntityViewsByTenantId(tenant.getId());
         deviceService.deleteDevicesByTenantId(tenant.getId());
+        deviceProfileService.deleteDeviceProfilesByTenantId(tenant.getId());
         assetService.deleteAssetsByTenantId(tenant.getId());
         dashboardService.deleteDashboardsByTenantId(tenant.getId());
         adminSettingsService.deleteAdminSettingsByKey(tenant.getId(), "mailTemplates");
@@ -1028,6 +1036,11 @@ public class CloudManagerService {
             if (downlinkMsg.getDeviceUpdateMsgList() != null && !downlinkMsg.getDeviceUpdateMsgList().isEmpty()) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
                     result.add(deviceProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, edgeSettings.getCloudType()));
+                }
+            }
+            if (downlinkMsg.getDeviceProfileUpdateMsgList() != null && !downlinkMsg.getDeviceProfileUpdateMsgList().isEmpty()) {
+                for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
+                    result.add(deviceProfileProcessor.onDeviceProfileUpdate(tenantId, deviceProfileUpdateMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsUpdateMsgList() != null && !downlinkMsg.getDeviceCredentialsUpdateMsgList().isEmpty()) {
