@@ -1018,67 +1018,67 @@ public class CloudManagerService {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
             log.debug("onDownlink {}", downlinkMsg);
-            if (downlinkMsg.getEntityDataList() != null && !downlinkMsg.getEntityDataList().isEmpty()) {
+            if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
                     result.addAll(telemetryProcessor.onTelemetryUpdate(tenantId, entityData));
                 }
             }
-            if (downlinkMsg.getDeviceRpcCallMsgList() != null && !downlinkMsg.getDeviceRpcCallMsgList().isEmpty()) {
+            if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
                     result.add(deviceProcessor.onDeviceRpcRequest(tenantId, deviceRpcRequestMsg));
                 }
             }
-            if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
+            if (downlinkMsg.getDeviceCredentialsRequestMsgCount() > 0) {
                 for (DeviceCredentialsRequestMsg deviceCredentialsRequestMsg : downlinkMsg.getDeviceCredentialsRequestMsgList()) {
                     result.add(processDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg));
                 }
             }
-            if (downlinkMsg.getDeviceUpdateMsgList() != null && !downlinkMsg.getDeviceUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
                     result.add(deviceProcessor.onDeviceUpdate(tenantId, customerId, deviceUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
-            if (downlinkMsg.getDeviceProfileUpdateMsgList() != null && !downlinkMsg.getDeviceProfileUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
                 for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
                     result.add(deviceProfileProcessor.onDeviceProfileUpdate(tenantId, deviceProfileUpdateMsg));
                 }
             }
-            if (downlinkMsg.getDeviceCredentialsUpdateMsgList() != null && !downlinkMsg.getDeviceCredentialsUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getDeviceCredentialsUpdateMsgCount() > 0) {
                 for (DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg : downlinkMsg.getDeviceCredentialsUpdateMsgList()) {
                     result.add(deviceProcessor.onDeviceCredentialsUpdate(tenantId, deviceCredentialsUpdateMsg));
                 }
             }
-            if (downlinkMsg.getAssetUpdateMsgList() != null && !downlinkMsg.getAssetUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
                     result.add(assetProcessor.onAssetUpdate(tenantId, customerId, assetUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
-            if (downlinkMsg.getEntityViewUpdateMsgList() != null && !downlinkMsg.getEntityViewUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
                     result.add(entityViewProcessor.onEntityViewUpdate(tenantId, customerId, entityViewUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
-            if (downlinkMsg.getRuleChainUpdateMsgList() != null && !downlinkMsg.getRuleChainUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
                 for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
                     result.add(ruleChainProcessor.onRuleChainUpdate(tenantId, ruleChainUpdateMsg));
                 }
             }
-            if (downlinkMsg.getRuleChainMetadataUpdateMsgList() != null && !downlinkMsg.getRuleChainMetadataUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
                 for (RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg : downlinkMsg.getRuleChainMetadataUpdateMsgList()) {
                     result.add(ruleChainProcessor.onRuleChainMetadataUpdate(tenantId, ruleChainMetadataUpdateMsg));
                 }
             }
-            if (downlinkMsg.getDashboardUpdateMsgList() != null && !downlinkMsg.getDashboardUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
                     result.add(dashboardProcessor.onDashboardUpdate(tenantId, customerId, dashboardUpdateMsg, edgeSettings.getCloudType()));
                 }
             }
-            if (downlinkMsg.getAlarmUpdateMsgList() != null && !downlinkMsg.getAlarmUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
                 for (AlarmUpdateMsg alarmUpdateMsg : downlinkMsg.getAlarmUpdateMsgList()) {
                     result.add(alarmProcessor.onAlarmUpdate(tenantId, alarmUpdateMsg));
                 }
             }
-            if (downlinkMsg.getCustomerUpdateMsgList() != null && !downlinkMsg.getCustomerUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getCustomerUpdateMsgCount() > 0) {
                 for (CustomerUpdateMsg customerUpdateMsg : downlinkMsg.getCustomerUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
@@ -1089,22 +1089,22 @@ public class CloudManagerService {
                     }
                 }
             }
-            if (downlinkMsg.getRelationUpdateMsgList() != null && !downlinkMsg.getRelationUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getRelationUpdateMsgCount() > 0) {
                 for (RelationUpdateMsg relationUpdateMsg : downlinkMsg.getRelationUpdateMsgList()) {
                     result.add(relationProcessor.onRelationUpdate(tenantId, relationUpdateMsg));
                 }
             }
-            if (downlinkMsg.getWidgetsBundleUpdateMsgList() != null && !downlinkMsg.getWidgetsBundleUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
                 for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
                     result.add(widgetsBundleProcessor.onWidgetsBundleUpdate(tenantId, widgetsBundleUpdateMsg));
                 }
             }
-            if (downlinkMsg.getWidgetTypeUpdateMsgList() != null && !downlinkMsg.getWidgetTypeUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
                 for (WidgetTypeUpdateMsg widgetTypeUpdateMsg : downlinkMsg.getWidgetTypeUpdateMsgList()) {
                     result.add(widgetTypeProcessor.onWidgetTypeUpdate(tenantId, widgetTypeUpdateMsg));
                 }
             }
-            if (downlinkMsg.getUserUpdateMsgList() != null && !downlinkMsg.getUserUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getUserUpdateMsgCount() > 0) {
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     try {
                         sequenceDependencyLock.lock();
@@ -1114,47 +1114,47 @@ public class CloudManagerService {
                     }
                 }
             }
-            if (downlinkMsg.getUserCredentialsUpdateMsgList() != null && !downlinkMsg.getUserCredentialsUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getUserCredentialsUpdateMsgCount() > 0) {
                 for (UserCredentialsUpdateMsg userCredentialsUpdateMsg : downlinkMsg.getUserCredentialsUpdateMsgList()) {
                     result.add(userProcessor.onUserCredentialsUpdate(tenantId, userCredentialsUpdateMsg));
                 }
             }
-            if (downlinkMsg.getEntityGroupUpdateMsgList() != null && !downlinkMsg.getEntityGroupUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getEntityGroupUpdateMsgCount() > 0) {
                 for (EntityGroupUpdateMsg entityGroupUpdateMsg : downlinkMsg.getEntityGroupUpdateMsgList()) {
                     result.add(entityGroupProcessor.onEntityGroupUpdate(tenantId, entityGroupUpdateMsg));
                 }
             }
-            if (downlinkMsg.getCustomTranslationMsgList() != null && !downlinkMsg.getCustomTranslationMsgList().isEmpty()) {
+            if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
                 for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
                     result.add(whiteLabelingProcessor.onCustomTranslationUpdate(tenantId, customTranslationProto));
                 }
             }
-            if (downlinkMsg.getWhiteLabelingParamsList() != null && !downlinkMsg.getWhiteLabelingParamsList().isEmpty()) {
+            if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
                 for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
                     result.add(whiteLabelingProcessor.onWhiteLabelingParamsUpdate(tenantId, whiteLabelingParamsProto));
                 }
             }
-            if (downlinkMsg.getLoginWhiteLabelingParamsList() != null && !downlinkMsg.getLoginWhiteLabelingParamsList().isEmpty()) {
+            if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
                 for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
                     result.add(whiteLabelingProcessor.onLoginWhiteLabelingParamsUpdate(tenantId, loginWhiteLabelingParamsProto));
                 }
             }
-            if (downlinkMsg.getSchedulerEventUpdateMsgList() != null && !downlinkMsg.getSchedulerEventUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
                     result.add(schedulerEventProcessor.onScheduleEventUpdate(tenantId, schedulerEventUpdateMsg));
                 }
             }
-            if (downlinkMsg.getAdminSettingsUpdateMsgList() != null && !downlinkMsg.getAdminSettingsUpdateMsgList().isEmpty()) {
+            if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
                 for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
                     result.add(adminSettingsProcessor.onAdminSettingsUpdate(tenantId, adminSettingsUpdateMsg));
                 }
             }
-            if (downlinkMsg.getRoleMsgList() != null && !downlinkMsg.getRoleMsgList().isEmpty()) {
+            if (downlinkMsg.getRoleMsgCount() > 0) {
                 for (RoleProto roleProto : downlinkMsg.getRoleMsgList()) {
                     result.add(roleProcessor.onRoleUpdate(tenantId, roleProto));
                 }
             }
-            if (downlinkMsg.getGroupPermissionMsgList() != null && !downlinkMsg.getGroupPermissionMsgList().isEmpty()) {
+            if (downlinkMsg.getGroupPermissionMsgCount() > 0) {
                 for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
                     result.add(groupPermissionProcessor.onGroupPermissionUpdate(tenantId, groupPermissionProto));
                 }
