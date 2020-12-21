@@ -242,7 +242,6 @@ public abstract class BaseProcessor {
 
                 @Override
                 public void onFailure(Throwable t) {
-
                 }
             }, dbCallbackExecutor);
         }

@@ -75,13 +75,13 @@ export interface LoginWhiteLabelingParams extends WhiteLabelingParams {
   showNameBottom?: boolean;
 }
 
-const defaultImageUrl = 'assets/logo_title_white_pe.svg';
+const defaultImageUrl = 'assets/logo_title_white_edge.svg';
 
 export const defaultWLParams: WhiteLabelingParams = {
   logoImageUrl: defaultImageUrl,
   logoImageChecksum: 'ce227e602495446086a0672d3a2f1d899203dd4d',
   logoImageHeight: 36,
-  appTitle: 'ThingsBoard PE',
+  appTitle: 'ThingsBoard Edge',
   favicon: {
     url: 'thingsboard.ico',
     type: 'image/x-icon'
@@ -109,9 +109,7 @@ loginWlParams.darkForeground = false;
 
 export const defaultLoginWlParams = loginWlParams;
 
-export const tbPrimaryPalette: ColorPalette = extendDefaultPalette('teal', {
-  500: '#00695c'
-});
+export const tbPrimaryPalette: ColorPalette = extendDefaultPalette('teal', {});
 export const tbAccentPalette: ColorPalette = extendDefaultPalette('deep-orange', {});
 
 export function mergeDefaults<T extends WhiteLabelingParams & LoginWhiteLabelingParams>(wlParams: T,

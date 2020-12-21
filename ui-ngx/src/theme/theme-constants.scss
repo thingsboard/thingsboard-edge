@@ -31,7 +31,6 @@
 @import '~@angular/material/theming';
 
 $mat-tb-primary: map_merge($mat-teal, (
-  500: map-get($mat-teal, 800)
 ));
 
 $mat-tb-accent: map_merge($mat-deep-orange, (
