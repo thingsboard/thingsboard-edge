@@ -852,8 +852,6 @@ public class CloudManagerService {
                 scheduledFuture = null;
             }
 
-            edgeRpcClient.sendSyncRequestMsg();
-
             UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
             this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 
@@ -862,6 +860,7 @@ public class CloudManagerService {
             if (this.edgeSettings == null || !this.edgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
                 cleanUp();
                 this.edgeSettings = newEdgeSetting;
+                edgeRpcClient.sendSyncRequestMsg();
             }
 
             cloudEventService.saveEdgeSettings(tenantId, newEdgeSetting);
