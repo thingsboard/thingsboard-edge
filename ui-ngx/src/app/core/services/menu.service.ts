@@ -512,18 +512,18 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'widget.widget-library',
-          type: 'link',
-          path: '/widgets-bundles',
-          icon: 'now_widgets',
-          disabled: disabledItems.indexOf('widget_library') > -1
-        }
-      );
-    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'widget.widget-library',
+    //       type: 'link',
+    //       path: '/widgets-bundles',
+    //       icon: 'now_widgets',
+    //       disabled: disabledItems.indexOf('widget_library') > -1
+    //     }
+    //   );
+    // }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
@@ -630,20 +630,20 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
-        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'api-usage.api-usage',
-          type: 'link',
-          path: '/usage',
-          icon: 'insert_chart',
-          notExact: true,
-          disabled: disabledItems.indexOf('api_usage') > -1
-        }
-      );
-    }
+    // if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+    //     this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+    //   sections.push(
+    //     {
+    //       id: guid(),
+    //       name: 'api-usage.api-usage',
+    //       type: 'link',
+    //       path: '/usage',
+    //       icon: 'insert_chart',
+    //       notExact: true,
+    //       disabled: disabledItems.indexOf('api_usage') > -1
+    //     }
+    //   );
+    // }
     return sections;
   }
 
@@ -813,16 +813,16 @@ export class MenuService {
       homeSections.push(
         dashboardManagement
       );
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
-        dashboardManagement.places.push(
-          {
-            name: 'widget.widget-library',
-            icon: 'now_widgets',
-            path: '/widgets-bundles',
-            disabled: disabledItems.indexOf('widget_library') > -1
-          }
-        );
-      }
+      // if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
+      //   dashboardManagement.places.push(
+      //     {
+      //       name: 'widget.widget-library',
+      //       icon: 'now_widgets',
+      //       path: '/widgets-bundles',
+      //       disabled: disabledItems.indexOf('widget_library') > -1
+      //     }
+      //   );
+      // }
       if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD)) {
         dashboardManagement.places.push(
           {
@@ -935,17 +935,17 @@ export class MenuService {
           }
         );
       }
-      if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
-        this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
-        audit.places.push(
-          {
-            name: 'api-usage.api-usage',
-            icon: 'insert_chart',
-            path: '/usage',
-            disabled: disabledItems.indexOf('api_usage') > -1
-          }
-        );
-      }
+      // if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
+      //   this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
+      //   audit.places.push(
+      //     {
+      //       name: 'api-usage.api-usage',
+      //       icon: 'insert_chart',
+      //       path: '/usage',
+      //       disabled: disabledItems.indexOf('api_usage') > -1
+      //     }
+      //   );
+      // }
     }
     return homeSections;
   }

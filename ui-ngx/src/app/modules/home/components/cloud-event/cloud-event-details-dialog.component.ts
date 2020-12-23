@@ -36,9 +36,7 @@ import { AppState } from '@core/core.state';
 import * as ace from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import {CloudEvent, CloudEventType} from "@shared/models/edge.models";
-import {RuleChainService} from "@core/http/rule-chain.service";
-import {EntityService} from "@core/http/entity.service";
+import { CloudEvent } from "@shared/models/edge.models";
 
 export interface CloudEventDetailsDialogData {
   cloudEvent: CloudEvent;
@@ -63,58 +61,24 @@ export class CloudEventDetailsDialogComponent extends DialogComponent<CloudEvent
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: CloudEventDetailsDialogData,
               public dialogRef: MatDialogRef<CloudEventDetailsDialogComponent>,
-              private renderer: Renderer2,
-              private ruleChainService: RuleChainService,
-              private entityService: EntityService) {
+              private renderer: Renderer2) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
     this.cloudEvent = this.data.cloudEvent;
-    this.actionData = this.cloudEvent.entityBody ? JSON.stringify(this.cloudEvent.entityBody, null, 2) : this.getCloudEventData(this.cloudEvent);
+    this.actionData = this.prepareEdgeEventContent(this.cloudEvent);
     this.actionDataEditor = this.createEditor(this.actionDataEditorElmRef, this.actionData);
   }
 
-  getCloudEventData(cloudEvent: CloudEvent): string {
-    var content: string = '';
-    switch (cloudEvent.cloudEventType) {
-      case CloudEventType.RELATION:
-        content = JSON.stringify(cloudEvent.entityBody);
-        break;
-      case CloudEventType.RULE_CHAIN_METADATA:
-        this.ruleChainService.getRuleChainMetadata(cloudEvent.entityId.id, {ignoreErrors: true})
-          .subscribe(data => content = JSON.stringify(data));
-        break;
-      // default:
-      //   this.entityService.getEntity(cloudEvent.cloudEventType, cloudEvent.entityId.id, {ignoreErrors: true})
-      //     .subscribe(data => content = JSON.stringify(data));
+  prepareEdgeEventContent(entity) {
+    // TODO: voba - extend this function with different cases based on action and entity type
+    // TODO: voba - add proper action data based on the cloud event type
+    switch (entity.type) {
+      default:
+        return JSON.stringify(entity, null, 2);
     }
-    return content;
   }
-
-//   switch(scope.cloudEvent.cloudEventType) {
-//   case types.cloudEventType.relation:
-//     content = angular.toJson(scope.cloudEvent.body);
-//   break;
-//   case types.cloudEventType.ruleChainMetaData:
-//     content = ruleChainService.getRuleChainMetaData(scope.cloudEvent.entityId, {ignoreErrors: true}).then(
-//     function success(info) {
-//       showDialog();
-//       return angular.toJson(info);
-//     }, function fail() {
-//       showError();
-//     });
-//   break;
-//   default:
-//     content = entityService.getEntity(scope.cloudEvent.cloudEventType, scope.cloudEvent.entityId, {ignoreErrors: true}).then(
-//     function success(info) {
-//       showDialog();
-//       return angular.toJson(info);
-//     }, function fail() {
-//       showError();
-//     });
-//   break;
-// }
 
   createEditor(editorElementRef: ElementRef, content: string): ace.Ace.Editor {
     const editorElement = editorElementRef.nativeElement;

@@ -43,7 +43,13 @@ import { TimePageLink } from '@shared/models/page/page-link';
 import { EntityId } from '@shared/models/id/entity-id';
 import { UtilsService } from '@core/services/utils.service';
 import { EdgeService } from "@core/http/edge.service";
-import { CloudEvent, CloudEventType, EdgeEventStatus, edgeEventStatusColor } from "@shared/models/edge.models";
+import {
+  CloudEvent, cloudEventActionTypeTranslations,
+  CloudEventType,
+  cloudEventTypeTranslations,
+  EdgeEventStatus,
+  edgeEventStatusColor
+} from "@shared/models/edge.models";
 import { getCurrentAuthUser } from "@core/auth/auth.selectors";
 import { AttributeScope } from "@shared/models/telemetry/telemetry.models";
 import { Store } from "@ngrx/store";
@@ -74,8 +80,8 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.entitiesDeleteEnabled = false;
     this.actionsColumnTitle = 'cloud-event.details';
     this.entityTranslations = {
-      noEntities: 'audit-log.no-audit-logs-prompt',
-      search: 'audit-log.search'
+      noEntities: 'cloud-event.no-cloud-events-prompt',
+      search: 'cloud-event.search'
     };
     this.entityResources = {
     } as EntityTypeResource<CloudEvent>;
@@ -86,8 +92,10 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
 
     this.columns.push(
       new DateEntityTableColumn<CloudEvent>('createdTime', 'cloud-event.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<CloudEvent>('cloudEventAction', 'cloud-event.action', '20%'),
-      new EntityTableColumn<CloudEvent>('cloudEventType', 'cloud-event.entity-type', '20%'),
+      new EntityTableColumn<CloudEvent>('cloudEventAction', 'cloud-event.action', '20%',
+        entity => this.translate.instant(cloudEventActionTypeTranslations.get(entity.cloudEventAction)), entity => ({}), false),
+      new EntityTableColumn<CloudEvent>('cloudEventType', 'cloud-event.entity-type', '20%',
+        entity => this.translate.instant(cloudEventTypeTranslations.get(entity.cloudEventType)), entity => ({}), false),
       new EntityTableColumn<CloudEvent>('entityId', 'cloud-event.entity-id', '30%'),
       new EntityTableColumn<CloudEvent>('status', 'event.status', '20%',
         (entity) => this.updateEdgeEventStatus(entity.createdTime),
@@ -100,15 +108,15 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
       {
         name: this.translate.instant('cloud-event.details'),
         icon: 'more_horiz',
-        isEnabled: (entity) => this.checkEdgeEventType(entity),
-        onAction: ($event, entity) => this.showAuditLogDetails(entity)
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.showCloudEventDetails(entity)
       }
     );
 
     this.loadEdgeInfo();
   }
 
-  showAuditLogDetails(entity: CloudEvent) {
+  showCloudEventDetails(entity: CloudEvent) {
     this.dialog.open<CloudEventDetailsDialogComponent, CloudEventDetailsDialogComponent>(CloudEventDetailsDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
@@ -140,9 +148,4 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     this.attributeService.getEntityAttributes(currentTenant, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
       .subscribe(attributes => this.queueStartTs = attributes[0].lastUpdateTs);
   }
-
-  checkEdgeEventType(entity) {
-    return !(entity.type === CloudEventType.DEVICE || entity.type === CloudEventType.ALARM);
-  }
-
 }

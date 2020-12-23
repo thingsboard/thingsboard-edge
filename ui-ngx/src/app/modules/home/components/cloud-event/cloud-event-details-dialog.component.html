@@ -31,7 +31,7 @@
 
 -->
 <mat-toolbar color="primary">
-  <h2 translate>audit-log.audit-log-details</h2>
+  <h2 translate>cloud-event.cloud-event-details</h2>
   <span fxFlex></span>
   <button mat-button mat-icon-button
           [mat-dialog-close]="false"
@@ -40,12 +40,12 @@
   </button>
 </mat-toolbar>
 <div mat-dialog-content fxLayout="column">
-  <label translate class="tb-title no-padding">audit-log.action-data</label>
-  <div #actionDataEditor class="tb-audit-log-action-data">
+  <label translate class="tb-title no-padding">cloud-event.action-data</label>
+  <div #actionDataEditor class="tb-cloud-event-action-data">
   </div>
   <span style="min-height: 30px;"></span>
-  <label [fxShow]="displayFailureDetails" translate class="tb-title no-padding">audit-log.failure-details</label>
-  <div #failureDetailsEditor [fxShow]="displayFailureDetails" class="tb-audit-log-failure-details">
+  <label [fxShow]="displayFailureDetails" translate class="tb-title no-padding">cloud-event.failure-details</label>
+  <div #failureDetailsEditor [fxShow]="displayFailureDetails" class="tb-cloud-event-failure-details">
   </div>
 </div>
 <div mat-dialog-actions fxLayoutAlign="end center">

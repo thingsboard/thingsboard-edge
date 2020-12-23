@@ -30,18 +30,16 @@
 ///
 
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { AuditLogService } from '@core/http/audit-log.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
-import { AuditLogMode } from '@shared/models/audit-log.models';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { UtilsService } from '@core/services/utils.service';
 import { CloudEventTableConfig } from "@home/components/cloud-event/cloud-event-table-config";
-import {EdgeService} from "@core/http/edge.service";
-import {Store} from "@ngrx/store";
-import {AppState} from "@core/core.state";
-import {AttributeService} from "@core/http/attribute.service";
+import { EdgeService } from "@core/http/edge.service";
+import { Store } from "@ngrx/store";
+import { AppState } from "@core/core.state";
+import { AttributeService } from "@core/http/attribute.service";
 
 @Component({
   selector: 'tb-cloud-event-table',
@@ -49,9 +47,6 @@ import {AttributeService} from "@core/http/attribute.service";
   styleUrls: ['./cloud-event-table.component.scss']
 })
 export class CloudEventTableComponent implements OnInit {
-
-  @Input()
-  auditLogMode: AuditLogMode;
 
   @Input()
   detailsMode: boolean;

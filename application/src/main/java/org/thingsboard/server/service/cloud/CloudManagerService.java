@@ -861,8 +861,6 @@ public class CloudManagerService {
                 scheduledFuture = null;
             }
 
-
-
             UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
             this.tenantId = getOrCreateTenant(new TenantId(tenantUUID), CloudType.valueOf(edgeConfiguration.getCloudType())).getTenantId();
 

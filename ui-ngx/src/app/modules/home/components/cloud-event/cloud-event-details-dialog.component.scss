@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .tb-audit-log-action-data,
-  .tb-audit-log-failure-details {
+  .tb-cloud-event-action-data,
+  .tb-cloud-event-failure-details {
     width: 100%;
     min-width: 400px;
     height: 100%;
