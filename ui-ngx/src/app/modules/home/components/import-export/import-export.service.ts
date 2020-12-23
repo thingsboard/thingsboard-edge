@@ -84,8 +84,7 @@ import { ConverterService } from '@core/http/converter.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
 import * as JSZip from 'jszip';
-import * as Excel from 'exceljs/dist/exceljs.min.js';
-import * as ExcelProper from 'exceljs';
+import { Column, Borders, Workbook} from 'exceljs';
 import * as moment_ from 'moment';
 
 const moment = moment_;
@@ -462,7 +461,7 @@ export class ImportExportService {
         converter.configuration = {};
       }
       let name = converter.name;
-      name = name.toLowerCase().replace(/\W/g,'_');
+      name = name.toLowerCase().replace(/\W/g, '_');
       this.exportToPc(this.prepareExport(converter), name);
     },
     (error) => {
@@ -491,8 +490,9 @@ export class ImportExportService {
   private processCSVCell(cellData: any): any {
     if (isString(cellData)) {
       let result = cellData.replace(/"/g, '""');
-      if (result.search(/([",\n])/g) >= 0)
+      if (result.search(/([",\n])/g) >= 0) {
         result = `"${result}"`;
+      }
       return result;
     }
     return cellData;
@@ -537,54 +537,56 @@ export class ImportExportService {
     this.downloadFile(xlsData, filename, XLS_TYPE);
   }
 
-  public exportXlsx(data: {[key: string]: any}[], filename: string) {
-    const workbook: ExcelProper.Workbook = new Excel.Workbook();
-    workbook.creator = 'ThingsBoard, Inc.';
-    workbook.lastModifiedBy = 'ThingsBoard, Inc.';
-    workbook.properties.date1904 = false;
+  public exportXlsx(data: { [key: string]: any }[], filename: string) {
+    import('exceljs').then((Excel) => {
+      const workbook: Workbook = new Excel.Workbook();
+      workbook.creator = 'ThingsBoard, Inc.';
+      workbook.lastModifiedBy = 'ThingsBoard, Inc.';
+      workbook.properties.date1904 = false;
 
-    const sheet = workbook.addWorksheet('Export');
+      const sheet = workbook.addWorksheet('Export');
 
-    const cellBorderStyle: Partial<ExcelProper.Borders> = {
-      top: {style: 'thin'},
-      left: {style: 'thin'},
-      bottom: {style: 'thin'},
-      right: {style: 'thin'}
-    };
+      const cellBorderStyle: Partial<Borders> = {
+        top: {style: 'thin'},
+        left: {style: 'thin'},
+        bottom: {style: 'thin'},
+        right: {style: 'thin'}
+      };
 
-    const dateFormat = 'yyyy-MM-dd HH:mm:ss';
+      const dateFormat = 'yyyy-MM-dd HH:mm:ss';
 
-    if (data && data.length) {
-      const titles = Object.keys(data[0]);
-      const columnsTable: Array<Partial<ExcelProper.Column>> = [];
-      titles.forEach((title) => {
-        columnsTable.push({
-          header: title,
-          key: title,
-          width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
-          style: {
-            numFmt: title === 'Timestamp' ? dateFormat : null
+      if (data && data.length) {
+        const titles = Object.keys(data[0]);
+        const columnsTable: Array<Partial<Column>> = [];
+        titles.forEach((title) => {
+          columnsTable.push({
+            header: title,
+            key: title,
+            width: (title === 'Timestamp' ? dateFormat.length : title.length) * 1.2,
+            style: {
+              numFmt: title === 'Timestamp' ? dateFormat : null
+            }
+          });
+        });
+        sheet.columns = columnsTable;
+        sheet.views = [
+          {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
+        ];
+        sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
+
+        data.forEach((item) => {
+          if (item.Timestamp) {
+            item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
           }
+          sheet.addRow(item).eachCell((cell) => {
+            cell.border = cellBorderStyle;
+          });
         });
+      }
+
+      workbook.xlsx.writeBuffer().then((xlsxData) => {
+        this.downloadFile(xlsxData, filename, XLSX_TYPE);
       });
-      sheet.columns = columnsTable;
-      sheet.views = [
-        {state: 'frozen', xSplit: 0, ySplit: 1, activeCell: 'B1'}
-      ];
-      sheet.getRow(1).eachCell(cell => cell.border = cellBorderStyle);
-
-      data.forEach((item) => {
-        if (item.Timestamp) {
-          item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
-        }
-        sheet.addRow(item).eachCell((cell) => {
-          cell.border = cellBorderStyle;
-        });
-      })
-    }
-
-    workbook.xlsx.writeBuffer().then((xlsxData) => {
-      this.downloadFile(xlsxData, filename, XLSX_TYPE);
     });
   }
 
