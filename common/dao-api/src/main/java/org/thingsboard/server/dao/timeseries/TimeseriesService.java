@@ -67,4 +67,6 @@ public interface TimeseriesService {
     ListenableFuture<Collection<String>> removeAllLatest(TenantId tenantId, EntityId entityId);
 
     List<String> findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId);
+
+    List<String> findAllKeysByEntityIds(TenantId tenantId, List<EntityId> entityIds);
 }

@@ -79,6 +79,12 @@ export interface EntityField {
   time?: boolean;
 }
 
+export interface EntitiesKeysByQuery {
+  attribute: Array<string>;
+  timeseries: Array<string>;
+  entityTypes: EntityType[];
+}
+
 export const entityFields: {[fieldName: string]: EntityField} = {
   createdTime: {
     keyName: 'createdTime',

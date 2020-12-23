@@ -28,35 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.server.dao.timeseries;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * @author Andrew Shvayka
- */
-public interface AttributesDao {
+public class CassandraTsPartitionsCache {
 
-    ListenableFuture<Optional<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String attributeType, String attributeKey);
+    private AsyncLoadingCache<CassandraPartitionCacheKey, Boolean> partitionsCache;
 
-    ListenableFuture<List<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String attributeType, Collection<String> attributeKey);
+    public CassandraTsPartitionsCache(long maxCacheSize) {
+        this.partitionsCache = Caffeine.newBuilder()
+                .maximumSize(maxCacheSize)
+                .buildAsync(key -> {
+                    throw new IllegalStateException("'get' methods calls are not supported!");
+                });
+    }
 
-    ListenableFuture<List<AttributeKvEntry>> findAll(TenantId tenantId, EntityId entityId, String attributeType);
+    public boolean has(CassandraPartitionCacheKey key) {
+        return partitionsCache.getIfPresent(key) != null;
+    }
 
-    ListenableFuture<Void> save(TenantId tenantId, EntityId entityId, String attributeType, AttributeKvEntry attribute);
-
-    ListenableFuture<List<Void>> removeAll(TenantId tenantId, EntityId entityId, String attributeType, List<String> keys);
-
-    List<String> findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId);
-
-    List<String> findAllKeysByEntityIds(TenantId tenantId, EntityType entityType, List<EntityId> entityIds);
+    public void put(CassandraPartitionCacheKey key) {
+        partitionsCache.put(key, CompletableFuture.completedFuture(true));
+    }
 }
