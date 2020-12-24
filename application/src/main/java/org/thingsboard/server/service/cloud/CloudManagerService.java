@@ -855,6 +855,7 @@ public class CloudManagerService {
             if (this.edgeSettings == null || !this.edgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
                 cleanUp();
                 this.edgeSettings = newEdgeSetting;
+                // TODO: voba - should sync be executed in some other cases ???
                 edgeRpcClient.sendSyncRequestMsg();
             }
 
