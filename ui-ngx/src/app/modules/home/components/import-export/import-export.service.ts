@@ -83,7 +83,6 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { ConverterService } from '@core/http/converter.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
-import * as JSZip from 'jszip';
 import { Column, Borders, Workbook} from 'exceljs';
 import * as moment_ from 'moment';
 
@@ -623,15 +622,17 @@ export class ImportExportService {
   }
 
   public exportJSZip(data: object, filename: string) {
-    const jsZip = new JSZip();
-    for (const keyName in data) {
-      if (data.hasOwnProperty(keyName)) {
-        const valueData = data[keyName];
-        jsZip.file(keyName, valueData);
+    import('jszip').then((JSZip) => {
+      const jsZip = new JSZip.default();
+      for (const keyName in data) {
+        if (data.hasOwnProperty(keyName)) {
+          const valueData = data[keyName];
+          jsZip.file(keyName, valueData);
+        }
       }
-    }
-    jsZip.generateAsync({type: 'blob'}).then(content => {
-      this.downloadFile(content, filename, ZIP_TYPE);
+      jsZip.generateAsync({type: 'blob'}).then(content => {
+        this.downloadFile(content, filename, ZIP_TYPE);
+      });
     });
   }
 
