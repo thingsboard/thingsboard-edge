@@ -58,7 +58,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -141,10 +140,27 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
 
     @Override
     public void process(IpIntegrationMsg msg) {
+
+    }
+
+    private void process(IpIntegrationMsg msg, ChannelHandlerContext ctx) {
         String status = "OK";
         Exception exception = null;
         try {
             List<UplinkData> upLinkDataList = getUplinkDataList(context, msg);
+
+            if (downlinkConverter != null) {
+                for (UplinkData uplinkData : upLinkDataList) {
+                    String entityName;
+                    if (uplinkData.isAsset()) {
+                        entityName = uplinkData.getAssetName();
+                    } else {
+                        entityName = uplinkData.getDeviceName();
+                    }
+                    connectedDevicesContexts.put(entityName, ctx);
+                }
+            }
+
             processUplinkData(context, upLinkDataList);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
@@ -276,17 +292,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                     return;
                 }
                 IpIntegrationMsg message = new IpIntegrationMsg(transformer.apply(msg));
-                process(message);
-                for (UplinkData uplinkData : getUplinkDataList(context, message)) {
-                    String entityName;
-                    if (uplinkData.isAsset()) {
-                        entityName = uplinkData.getAssetName();
-                    } else {
-                        entityName = uplinkData.getDeviceName();
-                    }
-                    connectedDevicesContexts.put(entityName, ctx);
-                }
-
+                process(message, ctx);
             } catch (Exception e) {
                 log.error("[{}] Exception happened during read messages from channel!", e.getMessage(), e);
                 throw new Exception(e);
