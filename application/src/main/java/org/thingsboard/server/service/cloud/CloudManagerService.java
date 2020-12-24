@@ -47,7 +47,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -175,7 +174,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -207,9 +205,6 @@ public class CloudManagerService {
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
-
-    @Autowired
-    private CloudNotificationService cloudNotificationService;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -404,7 +399,7 @@ public class CloudManagerService {
                         UUID ifOffset = null;
                         boolean success = true;
                         do {
-                            pageData = cloudNotificationService.findCloudEvents(tenantId, pageLink);
+                            pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
                             if (initialized && !pageData.getData().isEmpty()) {
                                 log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                 List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());

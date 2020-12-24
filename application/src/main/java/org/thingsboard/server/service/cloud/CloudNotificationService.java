@@ -30,16 +30,10 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 public interface CloudNotificationService {
-
-    TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
 
     void pushNotificationToCloud(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback);
 }

@@ -39,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.CloudUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -48,8 +47,6 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.alarm.AlarmService;
@@ -92,11 +89,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         if (tsCallBackExecutor != null) {
             tsCallBackExecutor.shutdownNow();
         }
-    }
-
-    @Override
-    public TimePageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink) {
-        return cloudEventService.findCloudEvents(tenantId, pageLink);
     }
 
     private void saveCloudEvent(TenantId tenantId,
