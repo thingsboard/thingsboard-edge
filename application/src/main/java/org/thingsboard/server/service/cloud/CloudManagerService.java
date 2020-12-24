@@ -209,9 +209,6 @@ public class CloudManagerService {
     private long reconnectTimeoutMs;
 
     @Autowired
-    private CloudNotificationService cloudNotificationService;
-
-    @Autowired
     private CloudEventService cloudEventService;
 
     @Autowired
@@ -413,7 +410,7 @@ public class CloudManagerService {
                         UUID ifOffset = null;
                         boolean success = true;
                         do {
-                            pageData = cloudNotificationService.findCloudEvents(tenantId, pageLink);
+                            pageData = cloudEventService.findCloudEvents(tenantId, pageLink);
                             if (initialized && !pageData.getData().isEmpty()) {
                                 log.trace("[{}] event(s) are going to be converted.", pageData.getData().size());
                                 List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(pageData.getData());

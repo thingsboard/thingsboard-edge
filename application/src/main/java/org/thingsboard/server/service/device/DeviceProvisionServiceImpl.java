@@ -43,7 +43,9 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -74,6 +76,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.Collections;
@@ -118,6 +121,9 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
 
     @Autowired
     PartitionService partitionService;
+
+    @Autowired
+    protected TbClusterService tbClusterService;
 
     public DeviceProvisionServiceImpl(TbQueueProducerProvider producerProvider) {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
@@ -221,6 +227,8 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
                 pushDeviceCreatedEventToRuleEngine(savedDevice);
                 notify(savedDevice, provisionRequest, DataConstants.PROVISION_SUCCESS, true);
 
+                sendDeviceAddedMsgToCloudService(savedDevice.getTenantId(), savedDevice.getId());
+
                 return new ProvisionResponse(getDeviceCredentials(savedDevice), ProvisionResponseStatus.SUCCESS);
             } else {
                 log.warn("[{}] The device is already provisioned!", device.getName());
@@ -279,5 +287,19 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private void logAction(TenantId tenantId, CustomerId customerId, Device device, boolean success, ProvisionRequest provisionRequest) {
         ActionType actionType = success ? ActionType.PROVISION_SUCCESS : ActionType.PROVISION_FAILURE;
         auditLogService.logEntityAction(tenantId, customerId, new UserId(UserId.NULL_UUID), device.getName(), device.getId(), device, actionType, null, provisionRequest);
+    }
+
+    private void sendDeviceAddedMsgToCloudService(TenantId tenantId, EntityId entityId) {
+        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setCloudEventType(CloudEventType.DEVICE.name());
+        builder.setCloudEventAction(ActionType.ADDED.name());
+        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+        builder.setEntityType(entityId.getEntityType().name());
+        TransportProtos.CloudNotificationMsgProto msg = builder.build();
+        tbClusterService.pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
+                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
     }
 }
