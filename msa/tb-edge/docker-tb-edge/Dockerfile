@@ -94,7 +94,7 @@ ENV PGDATA=/data/db
 
 ENV SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
 ENV SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/thingsboard_edge
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tb_edge
 ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
 
