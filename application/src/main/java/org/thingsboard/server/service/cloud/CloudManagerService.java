@@ -39,6 +39,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -366,6 +367,8 @@ public class CloudManagerService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
+        validateRoutingKeyAndSecret();
+
         log.info("Starting Cloud Edge service");
         edgeRpcClient.connect(routingKey, routingSecret,
                 this::onUplinkResponse,
@@ -375,6 +378,15 @@ public class CloudManagerService {
         executor = Executors.newSingleThreadExecutor();
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor();
         processHandleMessages();
+    }
+
+    private void validateRoutingKeyAndSecret() {
+        if (StringUtils.isBlank(routingKey) || StringUtils.isBlank(routingSecret)) {
+            new Thread(() -> {
+                log.error("Routing Key and Routing Secret must be provided and can't be blank. Please configure Routing Key and Routing Secret in the tb-edge.yml file or add CLOUD_ROUTING_KEY and CLOUD_ROUTING_SECRET export to the tb-edge.conf file. Stopping ThingsBoard Edge application...");
+                System.exit(-1);
+            }, "Shutdown Thread").start();
+        }
     }
 
     @PreDestroy
