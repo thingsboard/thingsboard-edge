@@ -43,5 +43,5 @@ fi
 su postgres -c '${PG_CTL} -l /var/log/postgres/postgres.log -w start'
 
 if [ ! -f ${firstlaunch} ]; then
-    su postgres -c 'psql -U postgres -d postgres -c "CREATE DATABASE thingsboard_edge"'
+    su postgres -c 'psql -U postgres -d postgres -c "CREATE DATABASE tb_edge"'
 fi
