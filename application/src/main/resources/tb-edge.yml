@@ -84,8 +84,8 @@ server:
       default_timeout:  "${DEFAULT_SERVER_SIDE_RPC_TIMEOUT:10000}"
 
 cloud:
-  routingKey: "${CLOUD_ROUTING_KEY:8281f344-6869-5f5c-54ee-498aac6d3b6c}"
-  secret: "${CLOUD_ROUTING_SECRET:ir134i5skie7csfm6wuc}"
+  routingKey: "${CLOUD_ROUTING_KEY:}"
+  secret: "${CLOUD_ROUTING_SECRET:}"
   reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}" # in milliseconds
   rpc:
     host: "${CLOUD_PRC_HOST:localhost}"
