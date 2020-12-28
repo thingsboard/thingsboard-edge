@@ -40,7 +40,8 @@ import {
   ViewEncapsulation
 } from '@angular/core';
 import { ControlValueAccessor, FormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
-import * as ace from 'ace-builds';
+import { Ace } from 'ace-builds';
+import { getAce, Range } from '@shared/models/ace/ace.models';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -75,7 +76,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   @ViewChild('javascriptEditor', {static: true})
   javascriptEditorElmRef: ElementRef;
 
-  private jsEditor: ace.Ace.Editor;
+  private jsEditor: Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
   private editorResize$: ResizeObserver;
   private ignoreChange = false;
@@ -151,7 +152,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
       });
     }
     const editorElement = this.javascriptEditorElmRef.nativeElement;
-    let editorOptions: Partial<ace.Ace.EditorOptions> = {
+    let editorOptions: Partial<Ace.EditorOptions> = {
       mode: 'ace/mode/javascript',
       showGutter: true,
       showPrintMargin: true,
@@ -165,22 +166,27 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
     };
 
     editorOptions = {...editorOptions, ...advancedOptions};
-    this.jsEditor = ace.edit(editorElement, editorOptions);
-    this.jsEditor.session.setUseWrapMode(true);
-    this.jsEditor.setValue(this.modelValue ? this.modelValue : '', -1);
-    this.jsEditor.on('change', () => {
-      if (!this.ignoreChange) {
-        this.cleanupJsErrors();
-        this.updateView();
+    getAce().subscribe(
+      (ace) => {
+        this.jsEditor = ace.edit(editorElement, editorOptions);
+        this.jsEditor.session.setUseWrapMode(true);
+        this.jsEditor.setValue(this.modelValue ? this.modelValue : '', -1);
+        this.jsEditor.setReadOnly(this.disabled);
+        this.jsEditor.on('change', () => {
+          if (!this.ignoreChange) {
+            this.cleanupJsErrors();
+            this.updateView();
+          }
+        });
+        if (this.editorCompleter) {
+          this.jsEditor.completers = [this.editorCompleter, ...(this.jsEditor.completers || [])];
+        }
+        this.editorResize$ = new ResizeObserver(() => {
+          this.onAceEditorResize();
+        });
+        this.editorResize$.observe(editorElement);
       }
-    });
-    if (this.editorCompleter) {
-      this.jsEditor.completers = [this.editorCompleter, ...(this.jsEditor.completers || [])];
-    }
-    this.editorResize$ = new ResizeObserver(() => {
-      this.onAceEditorResize();
-    });
-    this.editorResize$.observe(editorElement);
+    );
   }
 
   ngOnDestroy(): void {
@@ -309,11 +315,11 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
         if (details.columnNumber) {
           column = details.columnNumber;
         }
-        const errorMarkerId = this.jsEditor.session.addMarker(new ace.Range(line, 0, line, Infinity),
+        const errorMarkerId = this.jsEditor.session.addMarker(new Range(line, 0, line, Infinity),
           'ace_active-line', 'screenLine');
         this.errorMarkers.push(errorMarkerId);
         const annotations = this.jsEditor.session.getAnnotations();
-        const errorAnnotation: ace.Ace.Annotation = {
+        const errorAnnotation: Ace.Annotation = {
           row: line,
           column,
           text: details.message,

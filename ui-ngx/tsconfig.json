@@ -34,6 +34,12 @@
       "@home/*": ["src/app/modules/home/*"],
       "jszip": [
         "node_modules/jszip/dist/jszip.min.js"
+      ],
+      "ace": [
+        "node_modules/ace-builds/src-noconflict/ace.js"
+      ],
+      "exceljs": [
+        "node_modules/exceljs/dist/exceljs.min.js"
       ]
     },
     "lib": [

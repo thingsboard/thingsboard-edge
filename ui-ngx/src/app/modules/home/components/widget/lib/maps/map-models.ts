@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { LatLngTuple } from 'leaflet';
 import { Datasource } from '@app/shared/models/widget.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import tinycolor from 'tinycolor2';
@@ -62,7 +61,7 @@ export type MapSettings = {
     provider?: MapProviders;
     credentials?: any; // declare credentials format
     gmApiKey?: string;
-    defaultCenterPosition?: LatLngTuple;
+    defaultCenterPosition?: [number, number];
     markerClusteringSetting?;
     useDefaultCenterPosition?: boolean;
     gmDefaultMapType?: string;

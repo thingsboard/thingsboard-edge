@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as L from 'leaflet'
+import * as L from 'leaflet';
 
 declare module 'leaflet' {
 
