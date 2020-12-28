@@ -1,7 +1,7 @@
 {
   "name": "thingsboard-js-executor",
   "private": true,
-  "version": "2.5.5PE",
+  "version": "2.5.6PE",
   "description": "ThingsBoard JavaScript Executor Microservice",
   "main": "server.js",
   "bin": "server.js",
