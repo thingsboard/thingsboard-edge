@@ -80,6 +80,8 @@ public class DataConstants {
     public static final String ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP";
     public static final String REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP";
     public static final String REST_API_REQUEST = "REST_API_REQUEST";
+    public static final String TIMESERIES_UPDATED = "TIMESERIES_UPDATED";
+    public static final String TIMESERIES_DELETED = "TIMESERIES_DELETED";
     public static final String ALARM_ACK = "ALARM_ACK";
     public static final String ALARM_CLEAR = "ALARM_CLEAR";
     public static final String ENTITY_ASSIGNED_FROM_TENANT = "ENTITY_ASSIGNED_FROM_TENANT";
