@@ -104,7 +104,9 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                         sqs.deleteMessage(sqsConfiguration.getQueueUrl(), message.getReceiptHandle());
                     }
                 }
-                this.context.getScheduledExecutorService().submit(this::pollMessages);
+                if (!stopped) {
+                    this.context.getScheduledExecutorService().submit(this::pollMessages);
+                }
             } else {
                 taskFuture = this.context.getScheduledExecutorService().schedule(this::pollMessages, sqsConfiguration.getPollingPeriodSeconds(), TimeUnit.SECONDS);
             }
