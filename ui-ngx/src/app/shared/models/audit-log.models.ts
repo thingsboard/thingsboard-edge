@@ -75,7 +75,8 @@ export enum ActionType {
   PROVISION_SUCCESS = 'PROVISION_SUCCESS',
   PROVISION_FAILURE = 'PROVISION_FAILURE',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
-  TIMESERIES_DELETED = 'TIMESERIES_DELETED'
+  TIMESERIES_DELETED = 'TIMESERIES_DELETED',
+  CHANGE_OWNER = 'CHANGE_OWNER'
 }
 
 export enum ActionStatus {
@@ -116,7 +117,8 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.PROVISION_SUCCESS, 'audit-log.type-provision-success'],
     [ActionType.PROVISION_FAILURE, 'audit-log.type-provision-failure'],
     [ActionType.TIMESERIES_UPDATED, 'audit-log.type-timeseries-updated'],
-    [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted']
+    [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted'],
+    [ActionType.CHANGE_OWNER, 'audit-log.owner-changed']
   ]
 );
 

@@ -100,7 +100,7 @@ public class JacksonUtil {
         return fromString(toString(value), (Class<T>) value.getClass());
     }
 
-    public static <T> JsonNode valueToTree(T value) {
+    public static <T> ObjectNode valueToTree(T value) {
         return OBJECT_MAPPER.valueToTree(value);
     }
 }

@@ -1013,6 +1013,7 @@ public abstract class BaseController {
                 msgType = DataConstants.ENTITY_UPDATED;
                 break;
             case ASSIGNED_TO_CUSTOMER:
+            case CHANGE_OWNER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
             case UNASSIGNED_FROM_CUSTOMER:
