@@ -30,7 +30,7 @@
 ///
 
 import { MatDialogRef } from '@angular/material/dialog';
-import { Inject, InjectionToken } from '@angular/core';
+import { Directive, Inject, InjectionToken } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
@@ -45,6 +45,7 @@ export interface CustomDialogData {
   [key: string]: any;
 }
 
+@Directive()
 export class CustomDialogComponent extends PageComponent {
 
   [key: string]: any;

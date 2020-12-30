@@ -351,7 +351,7 @@
               {{ 'widget-config.enable-fullscreen' | translate }}
             </mat-checkbox>
             <mat-checkbox formControlName="enableDataExport"
-                          [fxShow]="widgetType !== widgetTypes.static || widgetType !== widgetTypes.rpc">
+                          [fxShow]="widgetType !== widgetTypes.static && widgetType !== widgetTypes.rpc">
               {{ 'widget-config.enable-data-export' | translate }}
             </mat-checkbox>
           </div>
