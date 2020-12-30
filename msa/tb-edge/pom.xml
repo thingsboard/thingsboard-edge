@@ -52,6 +52,7 @@
         <pkg.name>tb-edge</pkg.name>
         <tb.docker.name>tb-edge</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
+        <pkg.upgradeVersion>3.3.0-edge</pkg.upgradeVersion>
     </properties>
 
     <dependencies>

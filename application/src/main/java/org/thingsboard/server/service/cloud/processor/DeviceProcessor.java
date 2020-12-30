@@ -102,8 +102,6 @@ public class DeviceProcessor extends BaseProcessor {
     @Autowired
     private DeviceStateService deviceStateService;
 
-    private final Lock deviceCreationLock = new ReentrantLock();
-
     public ListenableFuture<Void> onDeviceUpdate(TenantId tenantId, CustomerId customerId, DeviceUpdateMsg deviceUpdateMsg, CloudType cloudType) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {

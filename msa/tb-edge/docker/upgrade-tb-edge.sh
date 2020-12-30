@@ -30,6 +30,8 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
+start-db.sh
+
 CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
@@ -56,3 +58,5 @@ java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstal
                 org.springframework.boot.loader.PropertiesLauncher
 
 echo "${pkg.upgradeVersion}" > ${upgradeversion}
+
+stop-db.sh

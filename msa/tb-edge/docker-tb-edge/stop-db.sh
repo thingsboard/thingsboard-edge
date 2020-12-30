@@ -30,32 +30,6 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-start-db.sh
+PG_CTL=$(find /usr/lib/postgresql/ -name pg_ctl)
 
-identity=tb-web-report
-CONF_FOLDER=/usr/tb-web-report/usr/share/tb-web-report/conf
-configfile=tb-web-report.conf
-source "${CONF_FOLDER}/${configfile}"
-echo "Starting Web Report ..."
-exec /bin/sh -c "/usr/tb-web-report/usr/share/tb-web-report/bin/tb-web-report" &
-
-CONF_FOLDER="${pkg.installFolder}/conf"
-jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
-configfile=${pkg.name}.conf
-firstlaunch=${DATA_FOLDER}/.firstlaunch
-
-source "${CONF_FOLDER}/${configfile}"
-
-if [ ! -f ${firstlaunch} ]; then
-    install-tb-edge.sh --loadDemo
-    touch ${firstlaunch}
-fi
-
-echo "Starting ThingsBoard Edge ..."
-
-java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
-
-stop-db.sh
+${PG_CTL} stop

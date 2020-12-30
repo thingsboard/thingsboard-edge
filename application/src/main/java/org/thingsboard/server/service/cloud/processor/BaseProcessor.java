@@ -91,11 +91,17 @@ import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class BaseProcessor {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
+
+    protected static final Lock deviceCreationLock = new ReentrantLock();
+
+    protected static final Lock widgetCreationLock = new ReentrantLock();
 
     @Autowired
     protected AttributesService attributesService;

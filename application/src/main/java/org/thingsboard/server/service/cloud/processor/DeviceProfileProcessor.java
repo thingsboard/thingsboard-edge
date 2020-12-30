@@ -58,8 +58,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class DeviceProfileProcessor extends BaseProcessor {
 
-    private final Lock deviceProfileCreationLock = new ReentrantLock();
-
     @Autowired
     private DeviceProfileService deviceProfileService;
 
@@ -72,7 +70,7 @@ public class DeviceProfileProcessor extends BaseProcessor {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
-                    deviceProfileCreationLock.lock();
+                    deviceCreationLock.lock();
                     DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                     boolean created = false;
                     if (deviceProfile == null) {
@@ -107,7 +105,7 @@ public class DeviceProfileProcessor extends BaseProcessor {
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile);
                 } finally {
-                    deviceProfileCreationLock.unlock();
+                    deviceCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:

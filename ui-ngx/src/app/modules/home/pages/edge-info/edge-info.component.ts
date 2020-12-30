@@ -29,19 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, OnInit} from '@angular/core';
-import {PageComponent} from "@shared/components/page.component";
-import {FormBuilder, FormGroup} from "@angular/forms";
-import {Store} from "@ngrx/store";
-import {AppState} from "@core/core.state";
-import {EdgeService} from "@core/http/edge.service";
-import {CloudStatus} from "@shared/models/edge.models";
-import {AttributeService} from "@core/http/attribute.service";
-import {AttributeScope} from "@shared/models/telemetry/telemetry.models";
-import {getCurrentAuthUser} from "@core/auth/auth.selectors";
-import {EntityId} from "@shared/models/id/entity-id";
-import {EntityType} from "@shared/models/entity-type.models";
-import {DatePipe} from "@angular/common";
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { PageComponent } from "@shared/components/page.component";
+import { FormBuilder, FormGroup } from "@angular/forms";
+import { Store } from "@ngrx/store";
+import { AppState } from "@core/core.state";
+import { EdgeService } from "@core/http/edge.service";
+import { CloudStatus } from "@shared/models/edge.models";
+import { AttributeService } from "@core/http/attribute.service";
+import { AttributeScope } from "@shared/models/telemetry/telemetry.models";
+import { getCurrentAuthUser } from "@core/auth/auth.selectors";
+import { EntityId } from "@shared/models/id/entity-id";
+import { EntityType } from "@shared/models/entity-type.models";
+import { DatePipe } from "@angular/common";
 
 @Component({
   selector: 'tb-edge-info',
@@ -60,7 +60,8 @@ export class EdgeInfoComponent extends PageComponent implements OnInit {
               private edgeService: EdgeService,
               private attributeService: AttributeService,
               private datePipe: DatePipe,
-              public fb: FormBuilder) {
+              public fb: FormBuilder,
+              private cd: ChangeDetectorRef) {
     super(store);
     this.buildEdgeInfoForm();
   }
@@ -98,14 +99,18 @@ export class EdgeInfoComponent extends PageComponent implements OnInit {
           label: edge.active.value ? "edge.connected" : "edge.disconnected",
           isActive: edge.active.value
         }
+        const lastDisconnectTime = edge.lastDisconnectTime ?
+          this.datePipe.transform(edge.lastDisconnectTime?.value, 'yyyy-MM-dd HH:mm:ss') : 'N/A';
         this.edgeInfoGroup.setValue({
           id: edgeSettings.edgeId,
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,
           cloudType: edgeSettings.cloudType,
           lastConnectTime: this.datePipe.transform(edge.lastConnectTime.value, 'yyyy-MM-dd HH:mm:ss'),
-          lastDisconnectTime: this.datePipe.transform(edge.lastDisconnectTime.value, 'yyyy-MM-dd HH:mm:ss')
+          lastDisconnectTime: lastDisconnectTime
         })
+
+        this.cd.detectChanges();
       })
   }
 

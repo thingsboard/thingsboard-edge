@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-const forwardUrl = "http://localhost:8180";
-const wsForwardUrl = "ws://localhost:8180";
+const forwardUrl = "http://localhost:18080";
+const wsForwardUrl = "ws://localhost:18080";
 const ruleNodeUiforwardUrl = forwardUrl;
 
 const PROXY_CONFIG = {
