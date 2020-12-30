@@ -47,15 +47,13 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class WidgetsBundleProcessor extends BaseProcessor {
 
-    private final Lock widgetBundleCreationLock = new ReentrantLock();
-
     public ListenableFuture<Void> onWidgetsBundleUpdate(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
-                    widgetBundleCreationLock.lock();
+                    widgetCreationLock.lock();
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                     if (widgetsBundle == null) {
                         widgetsBundle = new WidgetsBundle();
@@ -71,7 +69,7 @@ public class WidgetsBundleProcessor extends BaseProcessor {
                     widgetsBundle.setImage(widgetsBundleUpdateMsg.getImage().toByteArray());
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle);
                 } finally {
-                    widgetBundleCreationLock.unlock();
+                    widgetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:

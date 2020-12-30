@@ -48,15 +48,13 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class WidgetTypeProcessor extends BaseProcessor {
 
-    private final Lock widgetTypeCreationLock = new ReentrantLock();
-
     public ListenableFuture<Void> onWidgetTypeUpdate(TenantId tenantId, WidgetTypeUpdateMsg widgetTypeUpdateMsg) {
         WidgetTypeId widgetTypeId = new WidgetTypeId(new UUID(widgetTypeUpdateMsg.getIdMSB(), widgetTypeUpdateMsg.getIdLSB()));
         switch (widgetTypeUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 try {
-                    widgetTypeCreationLock.lock();
+                    widgetCreationLock.lock();
                     WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
                     if (widgetType == null) {
                         widgetType = new WidgetType();
@@ -73,7 +71,7 @@ public class WidgetTypeProcessor extends BaseProcessor {
                     widgetType.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
                     widgetTypeService.saveWidgetType(widgetType);
                 } finally {
-                    widgetTypeCreationLock.unlock();
+                    widgetCreationLock.unlock();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
