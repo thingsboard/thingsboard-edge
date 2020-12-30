@@ -174,5 +174,4 @@ public class OwnerController extends BaseController {
         logEntityAction(entityId, entity, null, ActionType.CHANGE_OWNER, null, targetOwnerId);
     }
 
-
 }
