@@ -181,7 +181,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             case RELATIONS_DELETED:
             case ASSIGNED_TO_TENANT:
                 if (entity != null) {
-                    ObjectNode entityNode = JacksonUtil.valueToTree(entity);
+                    ObjectNode entityNode = (ObjectNode) JacksonUtil.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
@@ -190,7 +190,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 if (entityId.getEntityType() == EntityType.RULE_CHAIN) {
                     RuleChainMetaData ruleChainMetaData = extractParameter(RuleChainMetaData.class, additionalInfo);
                     if (ruleChainMetaData != null) {
-                        ObjectNode ruleChainMetaDataNode = JacksonUtil.valueToTree(ruleChainMetaData);
+                        ObjectNode ruleChainMetaDataNode = (ObjectNode) JacksonUtil.valueToTree(ruleChainMetaData);
                         actionData.set("metadata", ruleChainMetaDataNode);
                     }
                 }
