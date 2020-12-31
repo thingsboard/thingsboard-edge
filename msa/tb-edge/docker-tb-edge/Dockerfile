@@ -39,8 +39,7 @@ RUN apt-get update \
     && curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update \
     && apt-get install -y postgresql-11 \
-    && update-rc.d postgresql disable \
-    && apt-get update \
+    && update-rc.d postgresql disable
 
 RUN mkdir -p /var/log/postgres
 RUN chown -R postgres:postgres /var/log/postgres
