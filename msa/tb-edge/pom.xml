@@ -64,14 +64,6 @@
             <type>deb</type>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.thingsboard.msa</groupId>
-            <artifactId>web-report</artifactId>
-            <version>${project.version}</version>
-            <classifier>deb</classifier>
-            <type>deb</type>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -94,14 +86,6 @@
                                     <classifier>deb</classifier>
                                     <type>deb</type>
                                     <destFileName>${pkg.name}.deb</destFileName>
-                                    <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.thingsboard.msa</groupId>
-                                    <artifactId>web-report</artifactId>
-                                    <classifier>deb</classifier>
-                                    <type>deb</type>
-                                    <destFileName>tb-web-report.deb</destFileName>
                                     <outputDirectory>${project.build.directory}/docker-tb-edge</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
