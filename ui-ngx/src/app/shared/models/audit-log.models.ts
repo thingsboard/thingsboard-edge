@@ -118,7 +118,7 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.PROVISION_FAILURE, 'audit-log.type-provision-failure'],
     [ActionType.TIMESERIES_UPDATED, 'audit-log.type-timeseries-updated'],
     [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted'],
-    [ActionType.CHANGE_OWNER, 'audit-log.owner-changed']
+    [ActionType.CHANGE_OWNER, 'audit-log.type-owner-changed']
   ]
 );
 

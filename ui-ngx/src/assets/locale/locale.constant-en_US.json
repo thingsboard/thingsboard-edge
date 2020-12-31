@@ -578,7 +578,7 @@
         "type-provision-failure": "Device provisioning was failed",
         "type-timeseries-updated": "Telemetry updated",
         "type-timeseries-deleted": "Telemetry deleted",
-        "owner-changed": "Owner changed"
+        "type-owner-changed": "Owner changed"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
