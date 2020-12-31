@@ -31,13 +31,16 @@
 
 FROM thingsboard/openjdk8
 
-RUN apt-get update
-RUN apt-get install -y curl
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' | tee --append /etc/apt/sources.list.d/pgdg.list > /dev/null
-RUN curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN apt-get update
-RUN apt-get install -y postgresql-11
-RUN update-rc.d postgresql disable
+ENV PG_MAJOR 11
+
+RUN apt-get update \
+    && apt-get install -y curl \
+    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main' | tee --append /etc/apt/sources.list.d/pgdg.list > /dev/null \
+    && curl -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update \
+    && apt-get install -y postgresql-11 \
+    && update-rc.d postgresql disable \
+    && apt-get update \
 
 RUN mkdir -p /var/log/postgres
 RUN chown -R postgres:postgres /var/log/postgres
