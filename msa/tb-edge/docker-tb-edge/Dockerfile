@@ -42,31 +42,7 @@ RUN update-rc.d postgresql disable
 RUN mkdir -p /var/log/postgres
 RUN chown -R postgres:postgres /var/log/postgres
 
-RUN apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
-                            libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 \
-                            libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
-                            libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 \
-                            ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget unzip fonts-roboto \
-        && apt-get clean \
-        && rm -r /var/lib/apt/lists/*
-
-RUN mkdir /noto
-
-ADD https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip /noto
-
-WORKDIR /noto
-
-RUN unzip NotoSansCJKjp-hinted.zip && \
-    mkdir -p /usr/share/fonts/noto && \
-    cp *.otf /usr/share/fonts/noto && \
-    chmod 655 -R /usr/share/fonts/noto/ && \
-    fc-cache -fv
-
-RUN rm -rf /noto
-
-WORKDIR /
-
-COPY logback.xml ${pkg.name}.conf start-db.sh stop-db.sh start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb tb-web-report.deb /tmp/
+COPY logback.xml ${pkg.name}.conf start-db.sh stop-db.sh start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-edge.sh /usr/bin \
@@ -75,11 +51,7 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-db.sh /usr/bin \
     && mv /tmp/stop-db.sh /usr/bin
 
-RUN dpkg -i /tmp/tb-web-report.deb
-
 RUN yes | dpkg -i /tmp/${pkg.name}.deb
-
-RUN dpkg-deb -R /tmp/tb-web-report.deb /usr/tb-web-report
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
