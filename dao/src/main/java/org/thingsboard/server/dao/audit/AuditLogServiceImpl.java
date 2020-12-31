@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.audit.sink.AuditLogSink;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -75,8 +76,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @Service
 @ConditionalOnProperty(prefix = "audit-log", value = "enabled", havingValue = "true")
 public class AuditLogServiceImpl implements AuditLogService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     private static final int INSERTS_PER_ENTRY = 3;
@@ -174,7 +173,7 @@ public class AuditLogServiceImpl implements AuditLogService {
     private <E extends HasName, I extends EntityId> JsonNode constructActionData(I entityId, E entity,
                                                                                  ActionType actionType,
                                                                                  Object... additionalInfo) {
-        ObjectNode actionData = objectMapper.createObjectNode();
+        ObjectNode actionData = JacksonUtil.newObjectNode();
         switch (actionType) {
             case ADDED:
             case UPDATED:
@@ -183,7 +182,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             case RELATIONS_DELETED:
             case ASSIGNED_TO_TENANT:
                 if (entity != null) {
-                    ObjectNode entityNode = objectMapper.valueToTree(entity);
+                    ObjectNode entityNode = (ObjectNode) JacksonUtil.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
@@ -192,7 +191,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 if (entityId.getEntityType() == EntityType.RULE_CHAIN) {
                     RuleChainMetaData ruleChainMetaData = extractParameter(RuleChainMetaData.class, additionalInfo);
                     if (ruleChainMetaData != null) {
-                        ObjectNode ruleChainMetaDataNode = objectMapper.valueToTree(ruleChainMetaData);
+                        ObjectNode ruleChainMetaDataNode = (ObjectNode) JacksonUtil.valueToTree(ruleChainMetaData);
                         actionData.set("metadata", ruleChainMetaDataNode);
                     }
                 }
@@ -209,7 +208,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 String scope = extractParameter(String.class, 0, additionalInfo);
                 List<AttributeKvEntry> attributes = extractParameter(List.class, 1, additionalInfo);
                 actionData.put("scope", scope);
-                ObjectNode attrsNode = objectMapper.createObjectNode();
+                ObjectNode attrsNode = JacksonUtil.newObjectNode();
                 if (attributes != null) {
                     for (AttributeKvEntry attr : attributes) {
                         attrsNode.put(attr.getKey(), attr.getValueAsString());
@@ -240,7 +239,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             case CREDENTIALS_UPDATED:
                 actionData.put("entityId", entityId.toString());
                 DeviceCredentials deviceCredentials = extractParameter(DeviceCredentials.class, additionalInfo);
-                actionData.set("credentials", objectMapper.valueToTree(deviceCredentials));
+                actionData.set("credentials", JacksonUtil.valueToTree(deviceCredentials));
                 break;
             case ASSIGNED_TO_CUSTOMER:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
@@ -259,8 +258,8 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("unassignedCustomerName", strCustomerName);
                 break;
             case CHANGE_OWNER:
-                String strNewOwnerId = extractParameter(String.class, 0, additionalInfo);
-                actionData.put("targetOwnerId", strNewOwnerId);
+                EntityId targetOwnerId = extractParameter(EntityId.class, additionalInfo);
+                actionData.set("targetOwnerId", JacksonUtil.valueToTree(targetOwnerId));
                 break;
             case ADDED_TO_ENTITY_GROUP:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
@@ -280,7 +279,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             case RELATION_ADD_OR_UPDATE:
             case RELATION_DELETED:
                 EntityRelation relation = extractParameter(EntityRelation.class, 0, additionalInfo);
-                actionData.set("relation", objectMapper.valueToTree(relation));
+                actionData.set("relation", JacksonUtil.valueToTree(relation));
                 break;
             case MADE_PUBLIC:
             case MADE_PRIVATE:

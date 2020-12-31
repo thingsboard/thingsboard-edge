@@ -900,6 +900,9 @@ public abstract class BaseController {
             case ASSIGNED_TO_CUSTOMER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
+            case CHANGE_OWNER:
+                msgType = DataConstants.OWNER_CHANGED;
+                break;
             case UNASSIGNED_FROM_CUSTOMER:
                 msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
@@ -966,6 +969,10 @@ public abstract class BaseController {
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
                     metaData.putValue("assignedToTenantId", strTenantId);
                     metaData.putValue("assignedToTenantName", strTenantName);
+                } else if (actionType == ActionType.CHANGE_OWNER) {
+                    EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
+                    metaData.putValue("targetOwnerId", targetOwnerId.toString());
+                    metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
