@@ -72,7 +72,9 @@ var ruleNodeClazzHelpLinkMap = {
     'org.thingsboard.rule.engine.rest.TbSendRestApiCallReplyNode': 'ruleNodeRestCallReply',
     'org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode': 'ruleNodeAggregateLatest',
     'org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode': 'ruleNodeAggregateStream',
-    'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCount'
+    'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCount',
+    'org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode': 'ruleNodePushToCloud',
+    'org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode': 'ruleNodePushToEdge'
 };
 
 var integrationTypeHelpLinkMap = {
@@ -183,6 +185,8 @@ export default angular.module('thingsboard.help', [])
                 customMenu: helpBaseUrl +  "/docs/user-guide/custom-menu",
                 roles: helpBaseUrl + "/docs/user-guide/ui/roles",
                 selfRegistration: helpBaseUrl + "/docs/user-guide/self-registration",
+                ruleNodePushToCloud: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#push-to-cloud",
+                ruleNodePushToEdge: helpBaseUrl + "/docs/user-guide/rule-engine-2-0/action-nodes/#push-to-edge",
             },
             getRuleNodeLink: function(ruleNode) {
                 if (ruleNode && ruleNode.component) {
