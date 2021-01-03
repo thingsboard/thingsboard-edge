@@ -186,7 +186,8 @@ export const HelpLinks = {
     customTranslation: helpBaseUrl +  '/docs/user-guide/custom-translation',
     customMenu: helpBaseUrl +  '/docs/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/user-guide/ui/roles',
-    selfRegistration: helpBaseUrl + '/docs/user-guide/self-registration'
+    selfRegistration: helpBaseUrl + '/docs/user-guide/self-registration',
+    ruleNodePushToCloud: helpBaseUrl + '/docs/user-guide/rule-engine-2-0/action-nodes/#push-to-cloud'
   }
 };
 
