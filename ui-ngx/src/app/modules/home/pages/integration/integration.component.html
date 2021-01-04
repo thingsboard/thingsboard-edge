@@ -186,7 +186,9 @@
         </tb-rabbitmq-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.CHIRPSTACK">
-        <tb-chirpstack-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-chirpstack-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
+                                        [integrationType]="integrationType"
+                                        [routingKey]="entityForm.get('routingKey').value">
         </tb-chirpstack-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
