@@ -47,6 +47,7 @@ export enum IntegrationType {
   AWS_SQS = 'AWS_SQS',
   AWS_KINESIS = 'AWS_KINESIS',
   IBM_WATSON_IOT = 'IBM_WATSON_IOT',
+  CHIRPSTACK = 'CHIRPSTACK',
   TTN = 'TTN',
   TTI = 'TTI',
   AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
@@ -126,6 +127,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-tti', mqtt: true }
     ],
     [
+      IntegrationType.CHIRPSTACK,
+      { name: 'integration.type-chirpstack' }
+    ],
+    [
       IntegrationType.AZURE_EVENT_HUB,
       { name: 'integration.type-azure-event-hub' }
     ],
@@ -180,6 +185,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.IBM_WATSON_IOT, 'integrationIbmWatsonIoT'],
     [IntegrationType.TTN, 'integrationTheThingsNetwork'],
     [IntegrationType.TTI, 'integrationTheThingsIndustries'],
+    [IntegrationType.CHIRPSTACK, 'integrationChirpStack'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],

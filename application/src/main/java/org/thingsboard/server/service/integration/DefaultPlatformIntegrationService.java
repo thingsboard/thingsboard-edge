@@ -65,6 +65,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
@@ -1025,6 +1026,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case TTN:
             case TTI:
                 return new TtnIntegration();
+            case CHIRPSTACK:
+                return new ChirpStackIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
             case AZURE_IOT_HUB:

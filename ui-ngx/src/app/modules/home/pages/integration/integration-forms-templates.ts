@@ -391,6 +391,18 @@ export const templates = {
       topicFilters: [Validators.required]
     }
   },
+  [IntegrationType.CHIRPSTACK]: {
+    clientConfiguration: {
+      baseUrl: baseUrl(),
+      applicationServerUrl: '',
+      replaceNoContentToOk: true,
+      applicationServerAPIToken: '',
+      httpEndpoint: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required]
+    }
+  },
   [IntegrationType.TTN]: {
     clientConfiguration: {
       host: '',
