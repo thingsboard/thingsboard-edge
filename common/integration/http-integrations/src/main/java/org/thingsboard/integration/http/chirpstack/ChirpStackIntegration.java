@@ -84,8 +84,8 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
             return;
         }
         JsonNode json = configuration.getConfiguration();
-        applicationServerUrl = json.get("applicationServerUrl").asText();
-        applicationServerAPIToken = json.get("applicationServerAPIToken").asText();
+        applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
+        applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
 
