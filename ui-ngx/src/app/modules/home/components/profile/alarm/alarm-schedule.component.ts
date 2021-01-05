@@ -55,7 +55,6 @@ import {
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { getDefaultTimezone } from '@shared/models/time/time.models';
-import { share } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-alarm-schedule',
@@ -76,10 +75,6 @@ export class AlarmScheduleComponent implements ControlValueAccessor, Validator, 
   disabled: boolean;
 
   alarmScheduleForm: FormGroup;
-
-  defaultTimezone$ = getDefaultTimezone().pipe(
-    share()
-  );
 
   alarmScheduleTypes = Object.keys(AlarmScheduleType);
   alarmScheduleType = AlarmScheduleType;

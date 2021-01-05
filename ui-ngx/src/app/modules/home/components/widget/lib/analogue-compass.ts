@@ -45,6 +45,7 @@ import RadialGauge = CanvasGauges.RadialGauge;
 
 const analogueCompassSettingsSchemaValue = analogueCompassSettingsSchema;
 
+// @dynamic
 export class TbAnalogueCompass extends TbBaseGauge<AnalogueCompassSettings, RadialGaugeOptions> {
 
   static get settingsSchema(): JsonSettingsSchema {
