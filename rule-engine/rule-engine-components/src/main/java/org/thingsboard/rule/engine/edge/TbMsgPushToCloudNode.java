@@ -72,7 +72,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         configClazz = EmptyNodeConfiguration.class,
         nodeDescription = "Pushes messages to cloud",
         nodeDetails = "Pushes messages to cloud. This node is used only on Edge instances to push messages from Edge to Cloud.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbNodeEmptyConfig",
         icon = "cloud_upload"
 )
