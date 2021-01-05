@@ -83,7 +83,7 @@ export const defaultWLParams: WhiteLabelingParams = {
   logoImageHeight: 36,
   appTitle: 'ThingsBoard Edge',
   favicon: {
-    url: 'thingsboard.ico',
+    url: 'tb-edge.ico',
     type: 'image/x-icon'
   },
   faviconChecksum: '87059b3055f7ce8b8e43f18f470ed895a316f5ec',
