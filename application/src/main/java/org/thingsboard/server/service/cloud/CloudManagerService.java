@@ -897,8 +897,9 @@ public class CloudManagerService {
         edge.setId(edgeId);
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         edge.setTenantId(new TenantId(tenantUUID));
-        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        edge.setCustomerId(new CustomerId(customerUUID));
+        // TODO: voba - can't assign edge to non-existing customer
+        // UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        // edge.setCustomerId(new CustomerId(customerUUID));
         edge.setName(edgeConfiguration.getName());
         edge.setType(edgeConfiguration.getType());
         edge.setRoutingKey(edgeConfiguration.getRoutingKey());
