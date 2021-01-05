@@ -61,7 +61,7 @@
     </button>
   </div>
   <tb-timezone-select
-    [defaultTimezone]="defaultTimezone"
+    [defaultTimezone]="defaultTimezone$ | async"
     required
     formControlName="timezone">
   </tb-timezone-select>

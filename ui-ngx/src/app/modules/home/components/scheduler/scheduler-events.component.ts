@@ -93,6 +93,7 @@ import { EventSourceError, EventSourceInput } from '@fullcalendar/core/structs/e
 import * as _moment from 'moment';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
+import { getUserZone } from '@shared/models/time/time.models';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -530,7 +531,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventClick(arg: EventHandlerArg<'eventClick'>) {
-    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(event => event.id.id === arg.event.id);
     if (schedulerEvent) {
       this.openSchedulerEventContextMenu(arg.jsEvent, schedulerEvent);
     }
@@ -569,7 +570,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   onEventDrop(arg: EventHandlerArg<'eventDrop'>) {
-    const schedulerEvent = this.schedulerEvents.find(schedulerEvent => schedulerEvent.id.id === arg.event.id);
+    const schedulerEvent = this.schedulerEvents.find(event => event.id.id === arg.event.id);
     if (schedulerEvent) {
       this.moveEvent(schedulerEvent, arg.delta, arg.revert);
     }
@@ -597,38 +598,42 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   eventRender(arg: EventHandlerArg<'eventRender'>) {
     const props: {name: string, type: string, info: string, htmlTitle: string} = arg.event.extendedProps;
     if (props.htmlTitle) {
-      if(arg.el.getElementsByClassName('fc-title').length > 0) {
+      if (arg.el.getElementsByClassName('fc-title').length > 0) {
         arg.el.getElementsByClassName('fc-title')[0].innerHTML = props.htmlTitle;
       }
-      if(arg.el.getElementsByClassName('fc-list-item-title').length > 0) {
+      if (arg.el.getElementsByClassName('fc-list-item-title').length > 0) {
         arg.el.getElementsByClassName('fc-list-item-title')[0].innerHTML = props.htmlTitle;
       }
     }
     const element = $(arg.el);
-    element.tooltipster(
-      {
-        theme: 'tooltipster-shadow',
-        delay: 100,
-        trigger: 'hover',
-        triggerOpen: {
-          click: false,
-          tap: false
-        },
-        triggerClose: {
-          click: true,
-          tap: true,
-          scroll: true
-        },
-        side: 'top',
-        trackOrigin: true
+    import('tooltipster').then(
+      () => {
+        element.tooltipster(
+          {
+            theme: 'tooltipster-shadow',
+            delay: 100,
+            trigger: 'hover',
+            triggerOpen: {
+              click: false,
+              tap: false
+            },
+            triggerClose: {
+              click: true,
+              tap: true,
+              scroll: true
+            },
+            side: 'top',
+            trackOrigin: true
+          }
+        );
+        const tooltip = element.tooltipster('instance');
+        tooltip.content($(
+          '<div class="tb-scheduler-tooltip-title">' + props.name + '</div>' +
+          '<div class="tb-scheduler-tooltip-content"><b>' + this.translate.instant('scheduler.event-type') + ':</b> ' + props.type + '</div>' +
+          '<div class="tb-scheduler-tooltip-content">' + props.info + '</div>'
+        ));
       }
     );
-    const tooltip = element.tooltipster('instance');
-    tooltip.content($(
-      '<div class="tb-scheduler-tooltip-title">' + props.name + '</div>' +
-      '<div class="tb-scheduler-tooltip-content"><b>' + this.translate.instant('scheduler.event-type') + ':</b> ' + props.type + '</div>' +
-      '<div class="tb-scheduler-tooltip-content">' + props.info + '</div>'
-    ));
   }
 
   updateCalendarEvents(schedulerEvents: Array<SchedulerEventWithCustomerInfo>) {
@@ -642,83 +647,88 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     start: Date;
     end: Date;
     timeZone: string;
-  }, successCallback: (events: EventInput[]) => void, failureCallback: (error: EventSourceError) => void) {
+  },                  successCallback: (events: EventInput[]) => void, failureCallback: (error: EventSourceError) => void) {
     const events: EventInput[] = [];
     if (this.schedulerEvents && this.schedulerEvents.length) {
       const start = toMoment(arg.start, this.calendarApi);
       const end = toMoment(arg.end, this.calendarApi);
-      const userZone = _moment.tz.zone(_moment.tz.guess());
-      const rangeStart = start.local();
-      const rangeEnd = end.local();
-      this.schedulerEvents.forEach((event) => {
-        const startOffset = userZone.utcOffset(event.schedule.startTime) * 60 * 1000;
-        const eventStart = _moment(event.schedule.startTime - startOffset);
-        let calendarEvent: EventInput;
-        if (rangeEnd.isSameOrAfter(eventStart)) {
-          if (event.schedule.repeat) {
-            const endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
-            const repeatEndsOn = _moment(event.schedule.repeat.endsOn - endOffset);
-            if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
-              calendarEvent = this.toCalendarEvent(event,
-                eventStart,
-                repeatEndsOn);
-              events.push(calendarEvent);
-            } else {
-              let currentTime: _moment.Moment;
-              let eventStartOffsetUnits = 0;
-              if (rangeStart.isSameOrBefore(eventStart)) {
-                currentTime = eventStart.clone();
-              } else {
-                switch (event.schedule.repeat.type) {
-                  case SchedulerRepeatType.YEARLY:
-                  case SchedulerRepeatType.MONTHLY:
-                    const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
-                    const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
-                    eventStartOffsetUnits =
-                      Math.ceil(eventStartOffsetDuration.as(offsetUnits));
-                    currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
-                    break;
-                  default:
-                    currentTime = rangeStart.clone();
-                    currentTime.hours(eventStart.hours());
-                    currentTime.minutes(eventStart.minutes());
-                    currentTime.seconds(eventStart.seconds())
-                }
-              }
-              let eventEnd;
-              if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
-                eventEnd = repeatEndsOn.clone();
-              } else {
-                eventEnd = rangeEnd.clone();
-              }
-              while (currentTime.isBefore(eventEnd)) {
-                const day = currentTime.day();
-                if (event.schedule.repeat.type !== SchedulerRepeatType.WEEKLY ||
-                  event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
-                  const currentEventStart = currentTime.clone();
-                  calendarEvent = this.toCalendarEvent(event, currentEventStart);
+      getUserZone().subscribe(
+        (userZone) => {
+          const rangeStart = start.local();
+          const rangeEnd = end.local();
+          this.schedulerEvents.forEach((event) => {
+            const startOffset = userZone.utcOffset(event.schedule.startTime) * 60 * 1000;
+            const eventStart = _moment(event.schedule.startTime - startOffset);
+            let calendarEvent: EventInput;
+            if (rangeEnd.isSameOrAfter(eventStart)) {
+              if (event.schedule.repeat) {
+                const endOffset = userZone.utcOffset(event.schedule.repeat.endsOn) * 60 * 1000;
+                const repeatEndsOn = _moment(event.schedule.repeat.endsOn - endOffset);
+                if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
+                  calendarEvent = this.toCalendarEvent(event,
+                    eventStart,
+                    repeatEndsOn);
                   events.push(calendarEvent);
+                } else {
+                  let currentTime: _moment.Moment;
+                  let eventStartOffsetUnits = 0;
+                  if (rangeStart.isSameOrBefore(eventStart)) {
+                    currentTime = eventStart.clone();
+                  } else {
+                    switch (event.schedule.repeat.type) {
+                      case SchedulerRepeatType.YEARLY:
+                      case SchedulerRepeatType.MONTHLY:
+                        const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
+                        const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
+                        eventStartOffsetUnits =
+                          Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                        currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
+                        break;
+                      default:
+                        currentTime = rangeStart.clone();
+                        currentTime.hours(eventStart.hours());
+                        currentTime.minutes(eventStart.minutes());
+                        currentTime.seconds(eventStart.seconds());
+                    }
+                  }
+                  let eventEnd;
+                  if (rangeEnd.isSameOrAfter(repeatEndsOn)) {
+                    eventEnd = repeatEndsOn.clone();
+                  } else {
+                    eventEnd = rangeEnd.clone();
+                  }
+                  while (currentTime.isBefore(eventEnd)) {
+                    const day = currentTime.day();
+                    if (event.schedule.repeat.type !== SchedulerRepeatType.WEEKLY ||
+                      event.schedule.repeat.repeatOn.indexOf(day) !== -1) {
+                      const currentEventStart = currentTime.clone();
+                      calendarEvent = this.toCalendarEvent(event, currentEventStart);
+                      events.push(calendarEvent);
+                    }
+                    switch (event.schedule.repeat.type) {
+                      case SchedulerRepeatType.YEARLY:
+                      case SchedulerRepeatType.MONTHLY:
+                        eventStartOffsetUnits++;
+                        currentTime = eventStart.clone()
+                          .add(eventStartOffsetUnits, schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type));
+                        break;
+                      default:
+                        currentTime.add(1, 'days');
+                    }
+                  }
                 }
-                switch (event.schedule.repeat.type) {
-                  case SchedulerRepeatType.YEARLY:
-                  case SchedulerRepeatType.MONTHLY:
-                    eventStartOffsetUnits++;
-                    currentTime = eventStart.clone()
-                      .add(eventStartOffsetUnits, schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type));
-                    break;
-                  default:
-                    currentTime.add(1, 'days');
-                }
+              } else if (rangeStart.isSameOrBefore(eventStart)) {
+                calendarEvent = this.toCalendarEvent(event, eventStart);
+                events.push(calendarEvent);
               }
             }
-          } else if (rangeStart.isSameOrBefore(eventStart)) {
-            calendarEvent = this.toCalendarEvent(event, eventStart);
-            events.push(calendarEvent);
-          }
+          });
+          successCallback(events);
         }
-      });
+      );
+    } else {
+      successCallback(events);
     }
-    successCallback(events);
   }
 
   private toCalendarEvent(event: SchedulerEventWithCustomerInfo, start: _moment.Moment, end?: _moment.Moment): EventInput {
@@ -762,7 +772,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       } else if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {
           const repeatInterval = this.translate.instant(schedulerTimeUnitRepeatTranslationMap.get(event.schedule.repeat.timeUnit),
             {count: event.schedule.repeat.repeatInterval});
-        info += repeatInterval + ', ';
+          info += repeatInterval + ', ';
       } else {
         info += this.translate.instant('scheduler.weekly') + ' ' + this.translate.instant('scheduler.on') + ' ';
         event.schedule.repeat.repeatOn.forEach((day) => {
@@ -842,7 +852,7 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
     return this.getAllEntities(eventType).pipe(
       map((data) => allPageLinkData.filterData(data)),
       map((data) => [pageLink.filterData(data.data), data])
-    )
+    );
   }
 
   getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {

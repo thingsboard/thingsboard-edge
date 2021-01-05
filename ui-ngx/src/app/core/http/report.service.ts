@@ -33,11 +33,9 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { UtilsService } from '@core/services/utils.service';
 import { ReportParams, ReportType } from '@shared/models/report.models';
-import { Timewindow } from '@shared/models/time/time.models';
-import * as _moment from 'moment';
-import 'moment-timezone';
+import { getDefaultTimezone, Timewindow } from '@shared/models/time/time.models';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 
@@ -71,17 +69,21 @@ export class ReportService {
 
   public downloadDashboardReport(dashboardId: string, reportType: ReportType, state?: string, timewindow?: Timewindow): Observable<any> {
     const url = `/api/report/${dashboardId}/download`;
-    const reportParams: ReportParams = {
-      type: reportType,
-      timezone: _moment.tz.guess()
-    };
-    if (state) {
-      reportParams.state = state;
-    }
-    if (timewindow) {
-      reportParams.timewindow = timewindow;
-    }
-    return this.downloadReport(url, reportParams);
+    return getDefaultTimezone().pipe(
+      mergeMap((defaultTz) => {
+        const reportParams: ReportParams = {
+          type: reportType,
+          timezone: defaultTz
+        };
+        if (state) {
+          reportParams.state = state;
+        }
+        if (timewindow) {
+          reportParams.timewindow = timewindow;
+        }
+        return this.downloadReport(url, reportParams);
+      })
+    );
   }
 
   public downloadTestReport(reportConfig: ReportParams, reportsServerEndpointUrl?: string): Observable<any> {

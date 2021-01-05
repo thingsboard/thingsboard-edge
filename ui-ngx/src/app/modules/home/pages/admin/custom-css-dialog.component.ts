@@ -38,9 +38,9 @@ import { Ace } from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
-import { css_beautify } from 'js-beautify';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { getAce } from '@shared/models/ace/ace.models';
+import { beautifyCss } from '@shared/models/beautify.models';
 
 export interface CustomCssDialogData {
   customCss: string;
@@ -152,12 +152,15 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
   }
 
   beautifyCss(): void {
-    const res = css_beautify(this.customCss, {indent_size: 4});
-    if (this.customCss !== res) {
-      this.isDirty = true;
-      this.customCss = res;
-      this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
-    }
+    beautifyCss(this.customCss, {indent_size: 4}).subscribe(
+      (res) => {
+        if (this.customCss !== res) {
+          this.isDirty = true;
+          this.customCss = res;
+          this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
+        }
+      }
+    );
   }
 
   onFullscreen() {

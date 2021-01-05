@@ -33,7 +33,7 @@ import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
-import { DAY, historyInterval } from '@shared/models/time/time.models';
+import { DAY, getDefaultTimezone, historyInterval } from '@shared/models/time/time.models';
 import { ReportConfig, reportTypeNamesMap, reportTypes } from '@shared/models/report.models';
 import * as _moment from 'moment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -49,6 +49,8 @@ import { PageComponent } from '@shared/components/page.component';
 import { ReportService } from '@core/http/report.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
+import { map, share } from 'rxjs/operators';
+import { Observable } from 'rxjs/internal/Observable';
 
 @Component({
   selector: 'tb-report-config',
@@ -72,7 +74,9 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   @Input()
   disabled: boolean;
 
-  defaultTimezone = _moment.tz.guess();
+  defaultTimezone$ = getDefaultTimezone().pipe(
+    share()
+  );
 
   authUser = getCurrentAuthUser(this.store);
 
@@ -195,34 +199,41 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
 
   writeValue(value: ReportConfig | null): void {
     this.modelValue = value;
-    let doUpdate = false;
     if (!this.modelValue) {
-      this.modelValue = this.createDefaultReportConfig();
-      doUpdate = true;
-    }
-    this.reportConfigFormGroup.reset(this.modelValue,{emitEvent: false});
-    this.updateEnabledState();
-    if (doUpdate) {
-      setTimeout(() => {
-        this.updateModel();
-      }, 0);
+      this.createDefaultReportConfig().subscribe(
+        (reportConfig) => {
+          this.modelValue = reportConfig;
+          this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
+          this.updateEnabledState();
+          setTimeout(() => {
+            this.updateModel();
+          }, 0);
+        }
+      );
+    } else {
+      this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
+      this.updateEnabledState();
     }
   }
 
-  private createDefaultReportConfig(): ReportConfig {
-    const reportConfig: ReportConfig = {
-      baseUrl: this.utils.baseUrl(),
-      useDashboardTimewindow: true,
-      timewindow: historyInterval(DAY),
-      namePattern: 'report-%d{yyyy-MM-dd_HH:mm:ss}',
-      type: 'pdf',
-      timezone: this.defaultTimezone,
-      useCurrentUserCredentials: true,
-      userId: this.authUser.userId,
-      dashboardId: null,
-      state: ''
-    };
-    return reportConfig;
+  private createDefaultReportConfig(): Observable<ReportConfig> {
+    return getDefaultTimezone().pipe(
+      map(defaultTz => {
+        const reportConfig: ReportConfig = {
+          baseUrl: this.utils.baseUrl(),
+          useDashboardTimewindow: true,
+          timewindow: historyInterval(DAY),
+          namePattern: 'report-%d{yyyy-MM-dd_HH:mm:ss}',
+          type: 'pdf',
+          timezone: defaultTz,
+          useCurrentUserCredentials: true,
+          userId: this.authUser.userId,
+          dashboardId: null,
+          state: ''
+        };
+        return reportConfig;
+      })
+    );
   }
 
   private updateModel() {

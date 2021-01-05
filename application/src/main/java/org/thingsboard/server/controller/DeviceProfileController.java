@@ -166,7 +166,7 @@ public class DeviceProfileController extends BaseController {
 
             logEntityAction(savedDeviceProfile.getId(), savedDeviceProfile,
                     null,
-                    savedDeviceProfile.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+                    created ? ActionType.ADDED : ActionType.UPDATED, null);
 
             return savedDeviceProfile;
         } catch (Exception e) {

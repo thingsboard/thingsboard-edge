@@ -51,6 +51,8 @@ import {
 } from '@shared/models/scheduler-event.models';
 import * as _moment from 'moment';
 import { isDefined } from '@core/utils';
+import { getDefaultTimezone, getMomentTz } from '@shared/models/time/time.models';
+import { share } from 'rxjs/operators';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
@@ -94,7 +96,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   @Input()
   disabled: boolean;
 
-  defaultTimezone = _moment.tz.guess();
+  defaultTimezone$ = getDefaultTimezone().pipe(
+    share()
+  );
 
   private lastAppliedTimezone: string;
 
@@ -120,17 +124,21 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
     this.scheduleConfigFormGroup.get('timezone').valueChanges.subscribe((timezone: string) => {
       if (timezone !== this.lastAppliedTimezone && timezone) {
-        let startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
-        const startTime = this.dateTimeToUtcTime(startDate, this.lastAppliedTimezone);
-        startDate = this.dateFromUtcTime(startTime, timezone);
-        this.scheduleConfigFormGroup.get('startDate').patchValue(startDate, {emitEvent: false});
-        let endsOnDate: Date = this.scheduleConfigFormGroup.get('endsOnDate').value;
-        if (endsOnDate) {
-          const endsOnTime = this.dateToUtcTime(endsOnDate, this.lastAppliedTimezone);
-          endsOnDate = this.dateFromUtcTime(endsOnTime, timezone);
-          this.scheduleConfigFormGroup.get('endsOnDate').patchValue(endsOnDate, {emitEvent: false});
-        }
-        this.lastAppliedTimezone = timezone;
+        getMomentTz().subscribe(
+          (momentTz) => {
+            let startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
+            const startTime = this.dateTimeToUtcTime(momentTz, startDate, this.lastAppliedTimezone);
+            startDate = this.dateFromUtcTime(momentTz, startTime, timezone);
+            this.scheduleConfigFormGroup.get('startDate').patchValue(startDate, {emitEvent: false});
+            let endsOnDate: Date = this.scheduleConfigFormGroup.get('endsOnDate').value;
+            if (endsOnDate) {
+              const endsOnTime = this.dateToUtcTime(momentTz, endsOnDate, this.lastAppliedTimezone);
+              endsOnDate = this.dateFromUtcTime(momentTz, endsOnTime, timezone);
+              this.scheduleConfigFormGroup.get('endsOnDate').patchValue(endsOnDate, {emitEvent: false});
+            }
+            this.lastAppliedTimezone = timezone;
+          }
+        );
       }
     });
 
@@ -162,7 +170,11 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     });
 
     this.scheduleConfigFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
+      getMomentTz().subscribe(
+        (momentTz) => {
+          this.updateModel(momentTz);
+        }
+      );
     });
   }
 
@@ -215,30 +227,34 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
   }
 
   writeValue(value: SchedulerEventSchedule | null): void {
-    this.modelValue = this.toSchedulerEventScheduleConfig(value);
-    let doUpdate = false;
-    if (!this.modelValue) {
-      this.modelValue = this.createDefaultSchedulerEventScheduleConfig();
-      doUpdate = true;
-    } else if (this.modelValue.timezone !== value.timezone) {
-      doUpdate = true;
-    }
-    this.lastAppliedTimezone = this.modelValue.timezone;
-    this.scheduleConfigFormGroup.reset(this.modelValue, {emitEvent: false});
-    this.updateEnabledState();
-    if (doUpdate) {
-      setTimeout(() => {
-        this.updateModel();
-      }, 0);
-    }
+    getMomentTz().subscribe(
+      (momentTz) => {
+        this.modelValue = this.toSchedulerEventScheduleConfig(momentTz, value);
+        let doUpdate = false;
+        if (!this.modelValue) {
+          this.modelValue = this.createDefaultSchedulerEventScheduleConfig(momentTz);
+          doUpdate = true;
+        } else if (this.modelValue.timezone !== value.timezone) {
+          doUpdate = true;
+        }
+        this.lastAppliedTimezone = this.modelValue.timezone;
+        this.scheduleConfigFormGroup.reset(this.modelValue, {emitEvent: false});
+        this.updateEnabledState();
+        if (doUpdate) {
+          setTimeout(() => {
+            this.updateModel(momentTz);
+          }, 0);
+        }
+      }
+    );
   }
 
-  private toSchedulerEventScheduleConfig(value: SchedulerEventSchedule): SchedulerEventScheduleConfig {
+  private toSchedulerEventScheduleConfig(momentTz: moment.MomentTimezone, value: SchedulerEventSchedule): SchedulerEventScheduleConfig {
     if (value) {
-      const timezone = value.timezone || this.defaultTimezone;
+      const timezone = value.timezone || momentTz.guess();
       const config: SchedulerEventScheduleConfig = {
         timezone,
-        startDate: this.dateFromUtcTime(value.startTime, timezone)
+        startDate: this.dateFromUtcTime(momentTz, value.startTime, timezone)
       };
       if (value.repeat && value.repeat !== null) {
         config.repeat = true;
@@ -254,7 +270,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
             timeUnit: value.repeat.timeUnit
           };
         }
-        config.endsOnDate = this.dateFromUtcTime(value.repeat.endsOn, timezone);
+        config.endsOnDate = this.dateFromUtcTime(momentTz, value.repeat.endsOn, timezone);
       } else {
         config.repeat = false;
       }
@@ -263,16 +279,16 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return null;
   }
 
-  private fromSchedulerEventScheduleConfig(value: SchedulerEventScheduleConfig): SchedulerEventSchedule {
+  private fromSchedulerEventScheduleConfig(momentTz: moment.MomentTimezone, value: SchedulerEventScheduleConfig): SchedulerEventSchedule {
     if (value) {
       const schedule: SchedulerEventSchedule = {
         timezone: value.timezone,
-        startTime: this.dateTimeToUtcTime(value.startDate, value.timezone)
+        startTime: this.dateTimeToUtcTime(momentTz, value.startDate, value.timezone)
       };
       if (value.repeat) {
         schedule.repeat = {
           type: value.repeatType,
-          endsOn: this.dateToUtcTime(value.endsOnDate, value.timezone)
+          endsOn: this.dateToUtcTime(momentTz, value.endsOnDate, value.timezone)
         };
         if (value.repeatType === SchedulerRepeatType.WEEKLY) {
           schedule.repeat.repeatOn = [];
@@ -291,9 +307,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return null;
   }
 
-  private createDefaultSchedulerEventScheduleConfig(): SchedulerEventScheduleConfig {
+  private createDefaultSchedulerEventScheduleConfig(momentTz: moment.MomentTimezone): SchedulerEventScheduleConfig {
     const scheduleConfig: SchedulerEventScheduleConfig = {
-      timezone: this.defaultTimezone
+      timezone: momentTz.guess()
     };
     const date = new Date();
     scheduleConfig.startDate = new Date(
@@ -321,21 +337,21 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     return weeklyRepeat;
   }
 
-  private updateModel() {
+  private updateModel(momentTz: moment.MomentTimezone) {
     if (this.scheduleConfigFormGroup.valid) {
       this.modelValue = this.scheduleConfigFormGroup.value;
-      this.propagateChange(this.fromSchedulerEventScheduleConfig(this.modelValue));
+      this.propagateChange(this.fromSchedulerEventScheduleConfig(momentTz, this.modelValue));
     } else {
       this.propagateChange(null);
     }
   }
 
-  private dateFromUtcTime(time: number, timezone: string): Date {
-    const offset = _moment.tz.zone(timezone).utcOffset(time) * 60 * 1000;
+  private dateFromUtcTime(momentTz: moment.MomentTimezone, time: number, timezone: string): Date {
+    const offset = momentTz.zone(timezone).utcOffset(time) * 60 * 1000;
     return new Date(time - offset + new Date(time).getTimezoneOffset() * 60 * 1000);
   }
 
-  private dateTimeToUtcTime(date: Date, timezone: string): number {
+  private dateTimeToUtcTime(momentTz: moment.MomentTimezone, date: Date, timezone: string): number {
     const ts = new Date(
       date.getFullYear(),
       date.getMonth(),
@@ -345,17 +361,17 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       date.getSeconds(),
       date.getMilliseconds()
     ).getTime();
-    const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
+    const offset = momentTz.zone(timezone).utcOffset(ts) * 60 * 1000;
     return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 
-  private dateToUtcTime(date: Date, timezone: string): number {
+  private dateToUtcTime(momentTz: moment.MomentTimezone, date: Date, timezone: string): number {
     const ts = new Date(
       date.getFullYear(),
       date.getMonth(),
       date.getDate()
     ).getTime();
-    const offset = _moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000;
+    const offset = momentTz.zone(timezone).utcOffset(ts) * 60 * 1000;
     return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
   }
 
