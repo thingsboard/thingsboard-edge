@@ -51,8 +51,7 @@ import {
 } from '@shared/models/scheduler-event.models';
 import * as _moment from 'moment';
 import { isDefined } from '@core/utils';
-import { getDefaultTimezone, getMomentTz } from '@shared/models/time/time.models';
-import { share } from 'rxjs/operators';
+import { getMomentTz } from '@shared/models/time/time.models';
 
 interface SchedulerEventScheduleConfig {
   timezone: string;
@@ -95,10 +94,6 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   @Input()
   disabled: boolean;
-
-  defaultTimezone$ = getDefaultTimezone().pipe(
-    share()
-  );
 
   private lastAppliedTimezone: string;
 

@@ -35,7 +35,6 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { DAY, getDefaultTimezone, historyInterval } from '@shared/models/time/time.models';
 import { ReportConfig, reportTypeNamesMap, reportTypes } from '@shared/models/report.models';
-import * as _moment from 'moment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { UtilsService } from '@core/services/utils.service';
@@ -49,7 +48,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { ReportService } from '@core/http/report.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
-import { map, share } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs/internal/Observable';
 
 @Component({
@@ -73,10 +72,6 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
 
   @Input()
   disabled: boolean;
-
-  defaultTimezone$ = getDefaultTimezone().pipe(
-    share()
-  );
 
   authUser = getCurrentAuthUser(this.store);
 

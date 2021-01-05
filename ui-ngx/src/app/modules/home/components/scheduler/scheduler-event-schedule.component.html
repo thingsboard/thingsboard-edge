@@ -33,7 +33,7 @@
 <section [formGroup]="scheduleConfigFormGroup" fxLayout="column">
   <span style="height: 16px;"></span>
   <tb-timezone-select
-    [defaultTimezone]="defaultTimezone$ | async"
+    userTimezoneByDefault
     required
     formControlName="timezone">
   </tb-timezone-select>
