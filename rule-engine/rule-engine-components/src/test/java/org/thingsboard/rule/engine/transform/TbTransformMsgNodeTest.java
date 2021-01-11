@@ -53,6 +53,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import javax.script.ScriptException;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
@@ -87,7 +88,7 @@ public class TbTransformMsgNodeTest {
         TbMsg msg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON,rawJson, ruleChainId, ruleNodeId);
         TbMsg transformedMsg = TbMsg.newMsg( "USER", null, metaData, TbMsgDataType.JSON, "{new}", ruleChainId, ruleNodeId);
         mockJsExecutor();
-        when(scriptEngine.executeUpdateAsync(msg)).thenReturn(Futures.immediateFuture(transformedMsg));
+        when(scriptEngine.executeUpdateAsync(msg)).thenReturn(Futures.immediateFuture(Collections.singletonList(transformedMsg)));
 
         node.onMsg(ctx, msg);
         verify(ctx).getDbCallbackExecutor();

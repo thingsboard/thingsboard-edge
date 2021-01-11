@@ -28,39 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.transform;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.msg.TbMsg;
+public interface TbMsgCallbackWrapper {
 
-import javax.script.ScriptException;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
+    void onSuccess();
 
-public interface ScriptEngine {
-
-    TbMsg executeUpdate(TbMsg msg) throws ScriptException;
-
-    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
-
-    TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
-
-    boolean executeFilter(TbMsg msg) throws ScriptException;
-
-    boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
-
-    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
-
-    Set<String> executeSwitch(TbMsg msg) throws ScriptException;
-
-    JsonNode executeJson(TbMsg msg) throws ScriptException;
-
-    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg) throws ScriptException;
-
-    String executeToString(TbMsg msg) throws ScriptException;
-
-    void destroy();
-
+    void onFailure(Throwable t);
 }

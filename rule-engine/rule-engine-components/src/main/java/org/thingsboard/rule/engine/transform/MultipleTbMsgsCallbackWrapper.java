@@ -28,39 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.rule.engine.transform;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
-import javax.script.ScriptException;
-import java.util.Map;
-import java.util.List;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public interface ScriptEngine {
+public class MultipleTbMsgsCallbackWrapper implements TbMsgCallbackWrapper {
 
-    TbMsg executeUpdate(TbMsg msg) throws ScriptException;
+    private final AtomicInteger tbMsgsCallbackCount;
+    private final TbMsgCallback callback;
 
-    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
+    public MultipleTbMsgsCallbackWrapper(int tbMsgsCallbackCount, TbMsgCallback callback) {
+        this.tbMsgsCallbackCount = new AtomicInteger(tbMsgsCallbackCount);
+        this.callback = callback;
+    }
 
-    TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
+    @Override
+    public void onSuccess() {
+        if (tbMsgsCallbackCount.decrementAndGet() <= 0) {
+            callback.onSuccess();
+        }
+    }
 
-    boolean executeFilter(TbMsg msg) throws ScriptException;
-
-    boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
-
-    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
-
-    Set<String> executeSwitch(TbMsg msg) throws ScriptException;
-
-    JsonNode executeJson(TbMsg msg) throws ScriptException;
-
-    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg) throws ScriptException;
-
-    String executeToString(TbMsg msg) throws ScriptException;
-
-    void destroy();
-
+    @Override
+    public void onFailure(Throwable t) {
+        callback.onFailure(new RuleEngineException(t.getMessage()));
+    }
 }
+
