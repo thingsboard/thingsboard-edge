@@ -192,10 +192,13 @@ export class ConverterComponent extends EntityComponent<Converter> {
       .afterClosed().subscribe((result) => {
         if (result !== null) {
           if (isDecoder) {
-            this.entityForm.get('configuration').get('decoder').patchValue(result);
+            this.entityForm.get('configuration.decoder').patchValue(result);
+            this.entityForm.get('configuration.decoder').markAsDirty();
           } else {
-            this.entityForm.get('configuration').get('encoder').patchValue(result);
+            this.entityForm.get('configuration.encoder').patchValue(result);
+            this.entityForm.get('configuration.encoder').markAsDirty();
           }
+          this.entityForm.updateValueAndValidity();
         }
     });
   }
