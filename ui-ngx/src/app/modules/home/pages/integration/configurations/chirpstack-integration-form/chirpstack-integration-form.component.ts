@@ -29,19 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, Input, SimpleChanges} from '@angular/core';
-import {IntegrationType} from '@shared/models/integration.models';
-import {ActionNotificationShow} from '@app/core/notification/notification.actions';
-import {Store} from '@ngrx/store';
-import {AppState} from '@app/core/core.state';
-import {TranslateService} from '@ngx-translate/core';
-import {disableFields, enableFields} from '../../integration-utils';
-import {IntegrationFormComponent} from '@home/pages/integration/configurations/integration-form.component';
+import { Component, Input, SimpleChanges } from '@angular/core';
+import { IntegrationType } from '@shared/models/integration.models';
+import { ActionNotificationShow } from '@app/core/notification/notification.actions';
+import { Store } from '@ngrx/store';
+import { AppState } from '@app/core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { disableFields, enableFields } from '@home/pages/integration/integration-utils';
 
 @Component({
   selector: 'tb-chirpstack-integration-form',
-  templateUrl: './chirpstack-integration-form.component.html',
-  styleUrls: ['./chirpstack-integration-form.component.scss']
+  templateUrl: './chirpstack-integration-form.component.html'
 })
 export class ChirpstackIntegrationFormComponent extends IntegrationFormComponent {
 
@@ -67,6 +66,18 @@ export class ChirpstackIntegrationFormComponent extends IntegrationFormComponent
     this.form.get('baseUrl').valueChanges.subscribe(() => {
       this.integrationBaseUrlChanged();
     });
+    this.form.get('applicationServerUrl').valueChanges.subscribe((serverURL: string) => {
+      this.applicationServerUrlChange(serverURL);
+    });
+    this.applicationServerUrlChange(this.form.get('applicationServerUrl').value);
+  }
+
+  private applicationServerUrlChange(serverURL: string): void {
+    if (serverURL.length) {
+      enableFields(this.form, ['applicationServerAPIToken']);
+    } else {
+      disableFields(this.form, ['applicationServerAPIToken'], true);
+    }
   }
 
   onHttpEndpointCopied() {

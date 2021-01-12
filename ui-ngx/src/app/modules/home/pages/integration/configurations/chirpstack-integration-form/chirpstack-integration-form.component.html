@@ -38,7 +38,7 @@
       <mat-error translate *ngIf="form.get('baseUrl').hasError('required')">integration.base-url-required
       </mat-error>
     </mat-form-field>
-    <div fxLayout="row" fxLayoutGap="8px">
+    <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
       <mat-form-field class="mat-block" fxFlex>
         <mat-label translate>integration.http-endpoint</mat-label>
         <input matInput formControlName="httpEndpoint">
@@ -56,7 +56,10 @@
       </mat-form-field>
       <mat-form-field class="mat-block" *ngIf="form.get('applicationServerUrl').value">
         <mat-label translate>integration.application-server-api-token</mat-label>
-        <input matInput formControlName="applicationServerAPIToken">
+        <input matInput formControlName="applicationServerAPIToken" required>
+        <mat-error translate *ngIf="form.get('applicationServerAPIToken').hasError('required')">
+          integration.application-server-api-token-required
+        </mat-error>
       </mat-form-field>
     </section>
   </fieldset>

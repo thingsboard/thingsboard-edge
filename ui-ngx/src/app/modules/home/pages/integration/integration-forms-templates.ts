@@ -141,6 +141,8 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
       integrationForm.get('httpEndpoint').disable({emitEvent: false});
     } else if (type === IntegrationType.TTN) {
       integrationForm.get('topicFilters').disable({emitEvent: false});
+    } else if (type === IntegrationType.CHIRPSTACK) {
+      integrationForm.get('clientConfiguration.httpEndpoint').disable({emitEvent: false});
     }
   }
 }
@@ -400,7 +402,8 @@ export const templates = {
       httpEndpoint: ''
     },
     fieldValidators: {
-      'clientConfiguration.baseUrl': [Validators.required]
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.applicationServerAPIToken': [Validators.required],
     }
   },
   [IntegrationType.TTN]: {
