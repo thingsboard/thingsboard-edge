@@ -172,6 +172,7 @@ export const HelpLinks = {
     integrationIbmWatsonIoT: helpBaseUrl +  '/docs/user-guide/integrations/ibm-watson-iot',
     integrationTheThingsNetwork: helpBaseUrl +  '/docs/user-guide/integrations/ttn',
     integrationTheThingsIndustries: helpBaseUrl +  '/docs/user-guide/integrations/tti',
+    integrationChirpStack: helpBaseUrl +  '/docs/user-guide/integrations/chirpstack',
     integrationAzureEventHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-event-hub',
     integrationAzureIoTHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-iot-hub',
     integrationOpcUa:  helpBaseUrl +  '/docs/user-guide/integrations/opc-ua',

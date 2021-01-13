@@ -141,6 +141,8 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
       integrationForm.get('httpEndpoint').disable({emitEvent: false});
     } else if (type === IntegrationType.TTN) {
       integrationForm.get('topicFilters').disable({emitEvent: false});
+    } else if (type === IntegrationType.CHIRPSTACK) {
+      integrationForm.get('clientConfiguration.httpEndpoint').disable({emitEvent: false});
     }
   }
 }
@@ -389,6 +391,19 @@ export const templates = {
       'clientConfiguration.credentials.password': [Validators.required],
       downlinkTopicPattern: [Validators.required],
       topicFilters: [Validators.required]
+    }
+  },
+  [IntegrationType.CHIRPSTACK]: {
+    clientConfiguration: {
+      baseUrl: baseUrl(),
+      applicationServerUrl: '',
+      replaceNoContentToOk: true,
+      applicationServerAPIToken: '',
+      httpEndpoint: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.applicationServerAPIToken': [Validators.required],
     }
   },
   [IntegrationType.TTN]: {
