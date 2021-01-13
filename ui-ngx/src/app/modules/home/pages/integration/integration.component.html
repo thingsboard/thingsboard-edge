@@ -87,30 +87,32 @@
       </mat-slide-toggle>
     </fieldset>
     <div [fxShow]="entityForm.get('remote').value" class="mat-elevation-z1 remote-config-panel">
-      <div fxLayout="row">
+      <div fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>integration.integration-key</mat-label>
           <input matInput formControlName="routingKey">
         </mat-form-field>
-        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onIntegrationInfoCopied('key')"
-          [cbContent]="entityForm?.get('routingKey').value"
-          matTooltip="{{'integration.copy-integration-key' | translate}}">
+        <button mat-button mat-icon-button ngxClipboard type="button"
+                (cbOnSuccess)="onIntegrationInfoCopied('key')"
+                [cbContent]="entityForm?.get('routingKey').value"
+                matTooltip="{{'integration.copy-integration-key' | translate}}">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
         </button>
       </div>
-      <div fxLayout="row">
+      <div fxLayout="row" fxLayoutAlign="start center">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>integration.integration-secret</mat-label>
           <input matInput formControlName="secret">
         </mat-form-field>
-        <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onIntegrationInfoCopied('secret')"
-          [cbContent]="entityForm?.get('secret').value"
-          matTooltip="{{'integration.copy-integration-secret' | translate}}">
+        <button mat-button mat-icon-button ngxClipboard type="button"
+                (cbOnSuccess)="onIntegrationInfoCopied('secret')"
+                [cbContent]="entityForm?.get('secret').value"
+                matTooltip="{{'integration.copy-integration-secret' | translate}}">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
         </button>
       </div>
     </div>
-    <fieldset [disabled]="(isLoading$ | async) || !isEdit" *ngIf="integrationForm">
+    <fieldset [disabled]="(isLoading$ | async)" *ngIf="integrationForm">
       <section *ngIf="integrationInfo?.http">
         <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType"
           [routingKey]="entityForm.get('routingKey').value">
