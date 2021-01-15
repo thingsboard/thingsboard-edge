@@ -197,6 +197,10 @@
         <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-pulsar-integration-form>
       </section>
+      <section *ngIf="integrationType === integrationTypes.PUB_SUB">
+        <tb-pubsub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        </tb-pubsub-integration-form>
+      </section>
       <section *ngIf="integrationType === integrationTypes.CUSTOM">
         <tb-custom-integration-form #integrationFormComponent [form]="integrationForm">
         </tb-custom-integration-form>

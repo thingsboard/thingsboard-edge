@@ -49,6 +49,7 @@ import { AzureIotHubIntegrationFormComponent } from '@home/pages/integration/con
 import { PulsarIntegrationFormComponent } from './apache-pulsar-integration-form/pulsar-integration-form.component';
 import { RabbitmqIntegrationFormComponent } from '@home/pages/integration/configurations/rabbitmq-integration-form/rabbitmq-integration-form.component';
 import { ChirpstackIntegrationFormComponent } from './chirpstack-integration-form/chirpstack-integration-form.component';
+import { PubSubIntegrationFormComponent } from '@home/pages/integration/configurations/gcp-pubsub-integration-form/pubsub-integration-form.component';
 
 export const integrations = [
     CertUploadComponent,
@@ -71,5 +72,6 @@ export const integrations = [
     ChirpstackIntegrationFormComponent,
     UdpIntegrationFormComponent,
     OpcUaSubscriptionTagsComponent,
-    PulsarIntegrationFormComponent
+    PulsarIntegrationFormComponent,
+    PubSubIntegrationFormComponent
 ];
