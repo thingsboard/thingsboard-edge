@@ -39,7 +39,7 @@ const routes: Routes = [
   {
     path: 'edge',
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      auth: [Authority.TENANT_ADMIN],
       title: 'edge.status',
       breadcrumb: {
         label: 'edge.edge',
@@ -50,7 +50,7 @@ const routes: Routes = [
       {
         path: '',
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           redirectTo: {
             TENANT_ADMIN: '/edge/status',
             CUSTOMER_USER: '/edge/status'
@@ -61,7 +61,7 @@ const routes: Routes = [
         path: 'status',
         component: EdgeStatusComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           title: 'edge.status',
           breadcrumb: {
             label: 'edge.status',
@@ -73,7 +73,7 @@ const routes: Routes = [
         path: 'cloudEvents',
         component: CloudEventTableComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           title: 'edge.cloud-events',
           breadcrumb: {
             label: 'edge.cloud-events',
