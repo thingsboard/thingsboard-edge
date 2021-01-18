@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
+import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -1017,6 +1018,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TMobileIotCdpIntegration();
             case MQTT:
                 return new BasicMqttIntegration();
+            case PUB_SUB:
+                return new PubSubIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
             case AWS_SQS:

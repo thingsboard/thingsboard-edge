@@ -28,28 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.integration;
+package org.thingsboard.gcloud.pubsub;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@AllArgsConstructor
-public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), CHIRPSTACK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    PUB_SUB(true), AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(false, false), AZURE_IOT_HUB(true), APACHE_PULSAR(false), RABBITMQ(false, false), LORIOT(false);
+/*
+ * Created by Valerii Sosliuk on 03.06.19
+ */
+@Data
+public class PubSubIntegrationConfiguration {
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
-
-    //Identifies if the Integration instance is one per cluster.
-    @Getter
-    private final boolean singleton;
-
-    @Getter
-    private final boolean remoteOnly;
-
-
+    private String projectId;
+    private String subscriptionId;
+    private String serviceAccountKey;
+    private String serviceAccountKeyFileName;
 }
