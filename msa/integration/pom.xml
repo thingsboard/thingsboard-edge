@@ -60,6 +60,7 @@
         <module>kafka</module>
         <module>apache-pulsar</module>
         <module>rabbitmq</module>
+        <module>pubsub</module>
     </modules>
 
     <build>
