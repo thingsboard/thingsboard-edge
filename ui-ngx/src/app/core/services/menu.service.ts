@@ -387,12 +387,12 @@ export class MenuService {
 
   private buildTenantAdminMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
-    const pages: Array<MenuSection> = [
+    const edgePages: Array<MenuSection> = [
       {
         id: guid(),
-        name: 'edge.information',
+        name: 'edge.status',
         type: 'link',
-        path: '/edge/information',
+        path: '/edge/status',
         icon: 'info',
         disabled: false
       },
@@ -408,20 +408,20 @@ export class MenuService {
     sections.push(
       {
         id: guid(),
-        name: 'edge.info',
-        type: 'toggle',
-        path: '/edge',
-        icon: 'router',
-        pages: pages,
-        asyncPages: of(pages)
-      },
-      {
-        id: guid(),
         name: 'home.home',
         type: 'link',
         path: '/home',
         icon: 'home',
         disabled: disabledItems.indexOf('home') > -1
+      },
+      {
+        id: guid(),
+        name: 'edge.edge',
+        type: 'toggle',
+        path: '/edge',
+        icon: 'router',
+        pages: edgePages,
+        asyncPages: of(edgePages)
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
@@ -649,6 +649,28 @@ export class MenuService {
 
   private buildTenantAdminHome(authState: AuthState, disabledItems: string[]): Array<HomeSection> {
     const homeSections: Array<HomeSection> = [];
+
+    // TODO: voba - add permission check in next release once advanced RBAC is introduced
+    homeSections.push(
+      {
+        name: 'edge.edge',
+        places: [
+          {
+            name: 'edge.status',
+            icon: 'info',
+            path: '/edge/status',
+            disabled: false
+          },
+          {
+            name: 'edge.cloud-events',
+            icon: 'date_range',
+            path: '/edge/cloudEvents',
+            disabled: false
+          }
+        ]
+      }
+    );
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       homeSections.push(
         {

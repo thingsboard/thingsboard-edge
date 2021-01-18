@@ -32,7 +32,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
-import { EdgeInfoComponent } from "@home/pages/edge-info/edge-info.component";
+import { EdgeStatusComponent } from "@home/pages/edge-status/edge-status.component";
 import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
 
 const routes: Routes = [
@@ -40,9 +40,9 @@ const routes: Routes = [
     path: 'edge',
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'edge.information',
+      title: 'edge.status',
       breadcrumb: {
-        label: 'edge.info',
+        label: 'edge.edge',
         icon: 'router'
       }
     },
@@ -52,19 +52,19 @@ const routes: Routes = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
-            TENANT_ADMIN: '/edge/information',
-            CUSTOMER_USER: '/edge/information'
+            TENANT_ADMIN: '/edge/status',
+            CUSTOMER_USER: '/edge/status'
           }
         }
       },
       {
-        path: 'information',
-        component: EdgeInfoComponent,
+        path: 'status',
+        component: EdgeStatusComponent,
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'edge.information',
+          title: 'edge.status',
           breadcrumb: {
-            label: 'edge.information',
+            label: 'edge.status',
             icon: 'info'
           }
         }
@@ -89,4 +89,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class EdgeInfoRoutingModule { }
+export class EdgeStatusRoutingModule { }

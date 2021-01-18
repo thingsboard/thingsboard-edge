@@ -44,13 +44,13 @@ import { EntityType } from "@shared/models/entity-type.models";
 import { DatePipe } from "@angular/common";
 
 @Component({
-  selector: 'tb-edge-info',
-  templateUrl: './edge-info.component.html',
-  styleUrls: ['./edge-info.component.scss']
+  selector: 'tb-edge-status',
+  templateUrl: './edge-status.component.html',
+  styleUrls: ['./edge-status.component.scss']
 })
-export class EdgeInfoComponent extends PageComponent implements OnInit {
+export class EdgeStatusComponent extends PageComponent implements OnInit {
 
-  edgeInfoGroup: FormGroup;
+  edgeStatusGroup: FormGroup;
   cloudStatus: CloudStatus = {
     label: '',
     isActive: false
@@ -63,15 +63,15 @@ export class EdgeInfoComponent extends PageComponent implements OnInit {
               public fb: FormBuilder,
               private cd: ChangeDetectorRef) {
     super(store);
-    this.buildEdgeInfoForm();
+    this.buildEdgeStatusForm();
   }
 
   ngOnInit(): void {
-    this.loadEdgeInfo();
+    this.loadEdgeStatus();
   }
 
-  buildEdgeInfoForm() {
-    this.edgeInfoGroup = this.fb.group({
+  buildEdgeStatusForm() {
+    this.edgeStatusGroup = this.fb.group({
       id: '',
       type: '',
       routingKey: '',
@@ -79,10 +79,10 @@ export class EdgeInfoComponent extends PageComponent implements OnInit {
       lastConnectTime: '',
       lastDisconnectTime: ''
     });
-    this.edgeInfoGroup.disable();
+    this.edgeStatusGroup.disable();
   }
 
-  loadEdgeInfo() {
+  loadEdgeStatus() {
     const authUser = getCurrentAuthUser(this.store);
     const currentTenant: EntityId = {
       id: authUser.tenantId,
@@ -101,7 +101,7 @@ export class EdgeInfoComponent extends PageComponent implements OnInit {
         }
         const lastDisconnectTime = edge.lastDisconnectTime ?
           this.datePipe.transform(edge.lastDisconnectTime?.value, 'yyyy-MM-dd HH:mm:ss') : 'N/A';
-        this.edgeInfoGroup.setValue({
+        this.edgeStatusGroup.setValue({
           id: edgeSettings.edgeId,
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,
