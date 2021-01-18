@@ -34,7 +34,7 @@
   <mat-card class="edge-info-card">
     <mat-card-title>
       <div fxLayout="column">
-        <span class="mat-headline" translate>edge.information</span>
+        <span class="mat-headline" translate>edge.status</span>
         <span class="mat-subheading-1"
               [ngClass]="{'connected': cloudStatus.isActive, 'disconnected': !cloudStatus.isActive}"
               translate>{{ cloudStatus.label }}</span>

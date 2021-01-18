@@ -40,9 +40,9 @@ const routes: Routes = [
     path: 'edge',
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'edge.information',
+      title: 'edge.edge',
       breadcrumb: {
-        label: 'edge.info',
+        label: 'edge.edge',
         icon: 'router'
       }
     },
@@ -52,19 +52,19 @@ const routes: Routes = [
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
-            TENANT_ADMIN: '/edge/information',
-            CUSTOMER_USER: '/edge/information'
+            TENANT_ADMIN: '/edge/status',
+            CUSTOMER_USER: '/edge/status'
           }
         }
       },
       {
-        path: 'information',
+        path: 'status',
         component: EdgeInfoComponent,
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'edge.information',
+          title: 'edge.status',
           breadcrumb: {
-            label: 'edge.information',
+            label: 'edge.status',
             icon: 'info'
           }
         }

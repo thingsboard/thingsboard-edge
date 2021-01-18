@@ -1260,7 +1260,7 @@
     "edge": {
         "name": "Edge name",
         "id": "ID",
-        "info": "Edge info",
+        "edge": "Edge",
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
         "type": "Type",
@@ -1269,7 +1269,7 @@
         "connected": "Connected",
         "disconnected": "Disconnected",
         "cloud-events": "Cloud events",
-        "information": "Information",
+        "status": "Status",
 
         "credentials-request": "Credentials request",
         "attributes-request": "Attributes request",
