@@ -58,6 +58,7 @@ export enum IntegrationType {
   KAFKA = 'KAFKA',
   RABBITMQ = 'RABBITMQ',
   APACHE_PULSAR = 'APACHE_PULSAR',
+  PUB_SUB = 'PUB_SUB',
   CUSTOM = 'CUSTOM'
 }
 
@@ -163,6 +164,10 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       { name: 'integration.type-apache-pulsar' }
     ],
     [
+      IntegrationType.PUB_SUB,
+      { name: 'integration.type-pubsub' }
+    ],
+    [
       IntegrationType.CUSTOM,
       { name: 'integration.type-custom', remote: true }
     ]
@@ -194,6 +199,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.KAFKA, 'integrationKafka'],
     [IntegrationType.RABBITMQ, 'integrationRabbitmq'],
     [IntegrationType.APACHE_PULSAR, 'integrationApachePulsar'],
+    [IntegrationType.PUB_SUB, 'integrationPubsub'],
     [IntegrationType.CUSTOM, 'integrationCustom']
   ]
 );

@@ -181,6 +181,7 @@ export const HelpLinks = {
     integrationKafka:  helpBaseUrl +  '/docs/user-guide/integrations/kafka',
     integrationRabbitmq:  helpBaseUrl +  '/docs/user-guide/integrations/rabbitmq',
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
+    integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/user-guide/groups',

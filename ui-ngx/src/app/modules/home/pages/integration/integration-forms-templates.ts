@@ -640,6 +640,21 @@ export const templates = {
     }
   },
 
+  [IntegrationType.PUB_SUB]: {
+    clientConfiguration: {
+      projectId: '',
+      subscriptionId: '',
+      serviceAccountKey: '',
+      serviceAccountKeyFileName: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.projectId': [Validators.required],
+      'clientConfiguration.subscriptionId': [Validators.required],
+      'clientConfiguration.serviceAccountKey': [Validators.required],
+      'clientConfiguration.serviceAccountKeyFileName': [Validators.required]
+    }
+  },
+
   [IntegrationType.CUSTOM]: {
     clazz: '',
     configuration: '',

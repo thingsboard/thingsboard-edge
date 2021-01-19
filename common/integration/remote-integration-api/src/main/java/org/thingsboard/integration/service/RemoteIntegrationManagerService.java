@@ -355,6 +355,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
+            case PUB_SUB:
+                return newInstance("org.thingsboard.gcloud.pubsub.PubSubIntegration");
             case IBM_WATSON_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
             case TTI:

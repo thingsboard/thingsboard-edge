@@ -882,6 +882,11 @@
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>gcloud-integrations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>azure-integrations</artifactId>
                 <version>${project.version}</version>
             </dependency>
