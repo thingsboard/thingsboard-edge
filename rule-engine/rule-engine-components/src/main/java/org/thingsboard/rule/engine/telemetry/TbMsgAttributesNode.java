@@ -68,6 +68,9 @@ public class TbMsgAttributesNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgAttributesNodeConfiguration.class);
+        if (config.getNotifyDevice() == null) {
+            config.setNotifyDevice(true);
+        }
     }
 
     @Override
@@ -77,10 +80,21 @@ public class TbMsgAttributesNode implements TbNode {
             return;
         }
         String src = msg.getData();
+        String scope = msg.getMetaData().getValue(SCOPE);
+        if (StringUtils.isEmpty(scope)) {
+            scope = config.getScope();
+        }
         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(src));
         msg.getMetaData().putValue(SCOPE, config.getScope());
-        ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(), config.getScope(),
-                new ArrayList<>(attributes), new TelemetryNodeCallback(ctx, msg));
+        String notifyDeviceStr = msg.getMetaData().getValue("notifyDevice");
+        ctx.getTelemetryService().saveAndNotify(
+                ctx.getTenantId(),
+                msg.getOriginator(),
+                scope,
+                new ArrayList<>(attributes),
+                new TelemetryNodeCallback(ctx, msg),
+                config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr)
+        );
     }
 
     @Override

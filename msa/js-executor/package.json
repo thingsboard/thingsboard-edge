@@ -16,7 +16,7 @@
     "btoa": "^1.2.1",
     "config": "^3.2.2",
     "js-yaml": "^3.12.0",
-    "kafkajs": "^1.12.0",
+    "kafkajs": "^1.14.0",
     "@google-cloud/pubsub": "^1.7.1",
     "aws-sdk": "^2.663.0",
     "amqplib": "^0.5.5",

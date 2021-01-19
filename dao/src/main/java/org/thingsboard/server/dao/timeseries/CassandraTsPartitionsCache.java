@@ -28,24 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.server.dao.timeseries;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.DataConstants;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
-@Data
-public class TbMsgAttributesNodeConfiguration implements NodeConfiguration<TbMsgAttributesNodeConfiguration> {
+import java.util.concurrent.CompletableFuture;
 
-    private String scope;
+public class CassandraTsPartitionsCache {
 
-    private Boolean notifyDevice;
+    private AsyncLoadingCache<CassandraPartitionCacheKey, Boolean> partitionsCache;
 
-    @Override
-    public TbMsgAttributesNodeConfiguration defaultConfiguration() {
-        TbMsgAttributesNodeConfiguration configuration = new TbMsgAttributesNodeConfiguration();
-        configuration.setScope(DataConstants.SERVER_SCOPE);
-        configuration.setNotifyDevice(false);
-        return configuration;
+    public CassandraTsPartitionsCache(long maxCacheSize) {
+        this.partitionsCache = Caffeine.newBuilder()
+                .maximumSize(maxCacheSize)
+                .buildAsync(key -> {
+                    throw new IllegalStateException("'get' methods calls are not supported!");
+                });
+    }
+
+    public boolean has(CassandraPartitionCacheKey key) {
+        return partitionsCache.getIfPresent(key) != null;
+    }
+
+    public void put(CassandraPartitionCacheKey key) {
+        partitionsCache.put(key, CompletableFuture.completedFuture(true));
     }
 }

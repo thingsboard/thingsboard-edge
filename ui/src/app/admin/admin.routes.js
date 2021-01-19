@@ -30,6 +30,7 @@
  */
 /* eslint-disable import/no-unresolved, import/default */
 
+import generalSettingsTemplate from '../admin/general-settings.tpl.html';
 import outgoingMailSettingsTemplate from '../admin/outgoing-mail-settings.tpl.html';
 import securitySettingsTemplate from '../admin/security-settings.tpl.html';
 import mailTemplateSettingsTemplate from '../admin/mail-template-settings.tpl.html';
@@ -48,11 +49,30 @@ export default function AdminRoutes($stateProvider) {
             module: 'private',
             auth: ['SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER'],
             redirectTo: {
-                'SYS_ADMIN': 'home.settings.outgoing-mail',
+                'SYS_ADMIN': 'home.settings.general',
                 'TENANT_ADMIN': 'home.settings.outgoing-mail',
                 'CUSTOMER_USER': 'home.settings.customTranslation'},
             ncyBreadcrumb: {
                 label: '{"icon": "settings", "label": "admin.system-settings"}'
+            }
+        })
+        .state('home.settings.general', {
+            url: '/general',
+            module: 'private',
+            auth: ['SYS_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: generalSettingsTemplate,
+                    controllerAs: 'vm',
+                    controller: 'AdminController'
+                }
+            },
+            data: {
+                key: 'general',
+                pageTitle: 'admin.general-settings'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "settings_applications", "label": "admin.general"}'
             }
         })
         .state('home.settings.outgoing-mail', {

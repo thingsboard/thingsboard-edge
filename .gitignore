@@ -33,5 +33,5 @@ pom.xml.versionsBackup
 **/.env
 .instance_id
 rebuild-docker.sh
-.run/
-instance-license.data
+.run/**
+.run

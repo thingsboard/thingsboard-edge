@@ -146,6 +146,7 @@ public class AlarmController extends BaseController {
             long ackTs = System.currentTimeMillis();
             alarmService.ackAlarm(getCurrentUser().getTenantId(), alarmId, ackTs).get();
             alarm.setAckTs(ackTs);
+            alarm.setStatus(alarm.getStatus().isCleared() ? AlarmStatus.CLEARED_ACK : AlarmStatus.ACTIVE_ACK);
             logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_ACK, null);
 
             sendNotificationMsgToEdgeService(getTenantId(), alarmId, ActionType.ALARM_ACK);
@@ -165,6 +166,7 @@ public class AlarmController extends BaseController {
             long clearTs = System.currentTimeMillis();
             alarmService.clearAlarm(getCurrentUser().getTenantId(), alarmId, null, clearTs).get();
             alarm.setClearTs(clearTs);
+            alarm.setStatus(alarm.getStatus().isAck() ? AlarmStatus.CLEARED_ACK : AlarmStatus.CLEARED_UNACK);
             logEntityAction(alarmId, alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_CLEAR, null);
 
             sendNotificationMsgToEdgeService(getTenantId(), alarmId, ActionType.ALARM_CLEAR);

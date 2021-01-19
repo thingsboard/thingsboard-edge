@@ -121,7 +121,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             timezone = vm.schedulerEvent.schedule.timezone;
         }
         var offset = moment.tz.zone(timezone).utcOffset(time) * 60 * 1000; //eslint-disable-line
-        return new Date(time - offset + new Date().getTimezoneOffset() * 60 * 1000);
+        return new Date(time - offset + new Date(time).getTimezoneOffset() * 60 * 1000);
     }
 
     function dateTimeToUtcTime(date, timezone) {
@@ -138,7 +138,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             date.getMilliseconds()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
+        return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
     }
 
     function dateToUtcTime(date, timezone) {
@@ -151,7 +151,7 @@ export default function SchedulerEventDialogController($rootScope, $scope, $mdDi
             date.getDate()
         ).getTime();
         var offset = moment.tz.zone(timezone).utcOffset(ts) * 60 * 1000; //eslint-disable-line
-        return ts + offset - new Date().getTimezoneOffset() * 60 * 1000;
+        return ts + offset - new Date(ts).getTimezoneOffset() * 60 * 1000;
     }
 
     function timezoneChange() {

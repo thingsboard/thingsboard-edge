@@ -276,7 +276,7 @@ public class DeviceProcessor extends BaseProcessor {
 
     public ListenableFuture<Void> processDeviceRpcCallResponseMsg(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
-        UUID uuid = new UUID(deviceRpcCallMsg.getRequestIdMSB(), deviceRpcCallMsg.getRequestIdLSB());
+        UUID uuid = new UUID(deviceRpcCallMsg.getRequestUuidMSB(), deviceRpcCallMsg.getRequestUuidLSB());
         FromDeviceRpcResponse response;
         if (!StringUtils.isEmpty(deviceRpcCallMsg.getResponseMsg().getError())) {
             response = new FromDeviceRpcResponse(uuid, null, RpcError.valueOf(deviceRpcCallMsg.getResponseMsg().getError()));
@@ -295,7 +295,7 @@ public class DeviceProcessor extends BaseProcessor {
                 futureToSet.setException(t);
             }
         };
-        tbClusterService.pushNotificationToCore(deviceRpcCallMsg.getOriginServiceId(), response, callback);
+        tbClusterService.pushNotificationToCore(deviceRpcCallMsg.getInitializationErrorString(), response, callback);
         return futureToSet;
     }
 }

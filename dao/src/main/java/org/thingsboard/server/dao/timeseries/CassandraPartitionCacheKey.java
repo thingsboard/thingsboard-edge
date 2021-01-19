@@ -28,24 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.telemetry;
+package org.thingsboard.server.dao.timeseries;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
-public class TbMsgAttributesNodeConfiguration implements NodeConfiguration<TbMsgAttributesNodeConfiguration> {
+@AllArgsConstructor
+public class CassandraPartitionCacheKey {
 
-    private String scope;
+    private EntityId entityId;
+    private String key;
+    private long partition;
 
-    private Boolean notifyDevice;
-
-    @Override
-    public TbMsgAttributesNodeConfiguration defaultConfiguration() {
-        TbMsgAttributesNodeConfiguration configuration = new TbMsgAttributesNodeConfiguration();
-        configuration.setScope(DataConstants.SERVER_SCOPE);
-        configuration.setNotifyDevice(false);
-        return configuration;
-    }
 }

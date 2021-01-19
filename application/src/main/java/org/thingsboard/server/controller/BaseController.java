@@ -946,6 +946,9 @@ public abstract class BaseController {
             case ASSIGNED_TO_CUSTOMER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
+            case CHANGE_OWNER:
+                msgType = DataConstants.OWNER_CHANGED;
+                break;
             case UNASSIGNED_FROM_CUSTOMER:
                 msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
@@ -1018,6 +1021,10 @@ public abstract class BaseController {
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
                     metaData.putValue("assignedToTenantId", strTenantId);
                     metaData.putValue("assignedToTenantName", strTenantName);
+                } else if (actionType == ActionType.CHANGE_OWNER) {
+                    EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
+                    metaData.putValue("targetOwnerId", targetOwnerId.toString());
+                    metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
                 } else if (actionType == ActionType.ASSIGNED_TO_EDGE) {
                     String strEntityId = extractParameter(String.class, 0, additionalInfo);
                     String strEntityName = extractParameter(String.class, 1, additionalInfo);
@@ -1135,8 +1142,8 @@ public abstract class BaseController {
     }
 
     protected <E extends SearchTextBased<? extends UUIDBased>, I extends EntityId> TextPageData<E>
-    loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
-        return ownersCacheService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
+        loadAndFilterEntities(List<I> entityIds, Function<List<I>, List<E>> toEntitiesFunction, TextPageLink pageLink) {
+            return ownersCacheService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
     }
 
     protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityRelation relation, ActionType action) {

@@ -389,7 +389,7 @@ public final class EdgeGrpcSession implements Closeable {
             DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
             Device device = ctx.getDeviceService().findDeviceById(edge.getTenantId(), deviceId);
             DeviceUpdateMsg d =
-                    ctx.getDeviceMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.DEVICE_CONFLICT_RPC_MESSAGE, device, null);
+                    ctx.getDeviceMsgConstructor().constructDeviceUpdatedMsg(UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE, device, null);
             downlinkMsg = DownlinkMsg.newBuilder()
                     .addAllDeviceUpdateMsg(Collections.singletonList(d))
                     .build();
@@ -400,7 +400,7 @@ public final class EdgeGrpcSession implements Closeable {
     private DownlinkMsg processRpcCallMsg(EdgeEvent edgeEvent) {
         log.trace("Executing processRpcCall, edgeEvent [{}]", edgeEvent);
         DeviceRpcCallMsg deviceRpcCallMsg =
-                ctx.getDeviceMsgConstructor().constructDeviceRpcCallMsg(edgeEvent.getBody());
+                ctx.getDeviceMsgConstructor().constructDeviceRpcCallMsg(edgeEvent.getEntityId(), edgeEvent.getBody());
         return DownlinkMsg.newBuilder()
                 .addAllDeviceRpcCallMsg(Collections.singletonList(deviceRpcCallMsg))
                 .build();

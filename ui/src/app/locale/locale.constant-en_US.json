@@ -78,6 +78,8 @@
         "test-mail-sent": "Test mail was successfully sent!",
         "base-url": "Base URL",
         "base-url-required": "Base URL is required.",
+        "prohibit-different-url": "Prohibit to use hostname from the client request headers",
+        "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "mail-from": "Mail From",
         "mail-from-required": "Mail From is required.",
         "smtp-protocol": "SMTP protocol",
@@ -416,7 +418,8 @@
         "search": "Search audit logs",
         "clear-search": "Clear search",
         "type-assigned-from-tenant": "Assigned from Tenant",
-        "type-assigned-to-tenant": "Assigned to Tenant"
+        "type-assigned-to-tenant": "Assigned to Tenant",
+        "type-owner-changed": "Owner changed"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
@@ -1921,6 +1924,7 @@
         "application-credentials": "Application Credentials",
         "api-key": "API Key",
         "api-key-required": "API Key is required.",
+        "api-key-format": "Invalid API Key format.",
         "auth-token": "Authentication Token",
         "auth-token-required": "Authentication Token is required.",
         "region": "Region",
@@ -3018,6 +3022,10 @@
         "page-background-color": "Page background color",
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
+        "base-url": "Base URL",
+        "base-url-required": "Base URL is required.",
+        "prohibit-different-url": "Prohibit to use hostname from the client request headers",
+        "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
         "enable-help-links": "Enable help links",
         "error-verification-url": "A domain name shouldn't contain symbols '/' and ':'. Example: thingsboard.io",

@@ -391,7 +391,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
     function getEntitiesByPageLinkPromise(entityType, pageLink, config, subType) {
         var promise;
         var user = userService.getCurrentUser();
-        var isGenericPermission = userPermissionsService.hasReadGenericPermission(securityTypes.resource[entityType]);
+        var isGenericPermission = userPermissionsService.hasReadGenericPermission(securityTypes.resourceByEntityType[entityType]);
         switch (entityType) {
             case types.entityType.device:
                 if (user.authority === 'TENANT_ADMIN' && isGenericPermission) {

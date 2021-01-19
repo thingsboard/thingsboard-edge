@@ -46,6 +46,8 @@ import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 
+import java.util.UUID;
+
 @Component
 @Slf4j
 public class DeviceMsgConstructor {
@@ -97,19 +99,25 @@ public class DeviceMsgConstructor {
                 .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
     }
 
-    public DeviceRpcCallMsg constructDeviceRpcCallMsg(JsonNode body) {
-        RuleEngineDeviceRpcRequest request = mapper.convertValue(body, RuleEngineDeviceRpcRequest.class);
+    public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {
+        int requestId = body.get("requestId").asInt();
+        boolean oneway = body.get("oneway").asBoolean();
+        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
+        long expirationTime = body.get("expirationTime").asLong();
+        String method = body.get("method").asText();
+        String params = body.get("params").asText();
+
         RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
-        requestBuilder.setMethod(request.getMethod());
-        requestBuilder.setParams(request.getBody());
+        requestBuilder.setMethod(method);
+        requestBuilder.setParams(params);
         DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
-                .setDeviceIdMSB(request.getDeviceId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(request.getDeviceId().getId().getLeastSignificantBits())
-                .setRequestIdMSB(request.getRequestUUID().getMostSignificantBits())
-                .setRequestIdLSB(request.getRequestUUID().getLeastSignificantBits())
-                .setExpirationTime(request.getExpirationTime())
-                .setOriginServiceId(request.getOriginServiceId())
-                .setOneway(request.isOneway())
+                .setDeviceIdMSB(deviceId.getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getLeastSignificantBits())
+                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
+                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
+                .setRequestId(requestId)
+                .setExpirationTime(expirationTime)
+                .setOneway(oneway)
                 .setRequestMsg(requestBuilder.build());
         return builder.build();
     }
