@@ -81,7 +81,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = entityViewService.getEntityView(entityId, true, config);
                 break;
             case types.entityType.edge:
-                promise = edgeService.getEdge(entityId, config);
+                promise = edgeService.getEdge(entityId, true, config);
                 break;
             case types.entityType.tenant:
                 promise = tenantService.getTenant(entityId, config);
@@ -233,7 +233,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = entityViewService.saveEntityView(entity, entityGroupId);
                 break;
             case types.entityType.edge:
-                promise = edgeService.saveEdge(entity, entityGroupId);
+                promise = edgeService.saveEdge(entity, entityGroupId, config, false);
                 break;
             case types.entityType.customer:
                 promise = customerService.saveCustomer(entity, entityGroupId);
@@ -1336,6 +1336,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
             }
         }
+        if (!userService.isEdgesSupportEnabled()) {
+            delete entityTypes.edge;
+        }
         return entityTypes;
     }
 
@@ -1707,6 +1710,17 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
             };
         }
 
+        if (entityType === types.entityType.edge) {
+            Object.assign(newEntity,
+                {
+                    edgeLicenseKey: entityParameters.edgeLicenseKey,
+                    cloudEndpoint: entityParameters.cloudEndpoint,
+                    routingKey: entityParameters.routingKey,
+                    secret: entityParameters.secret
+                }
+            );
+        }
+
         let saveEntityPromise = getEntitySavePromise(entityType, entityGroupId, newEntity, config);
 
         saveEntityPromise.then(function success(response) {
@@ -1730,6 +1744,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                         break;
                     case types.entityType.asset:
                         findIdEntity = assetService.findByName(entityParameters.name, config);
+                        break;
+                    case types.entityType.edge:
+                        findIdEntity = edgeService.findByName(entityParameters.name, config);
                         break;
                 }
                 findIdEntity.then(function success(response) {
@@ -1776,6 +1793,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 break;
             case types.entityType.asset:
                 promise = assetService.saveAsset(newEntity, true, config, entityGroupId);
+                break;
+            case types.entityType.edge:
+                promise = edgeService.saveEdge(newEntity, entityGroupId, config);
                 break;
         }
         return promise;

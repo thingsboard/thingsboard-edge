@@ -46,13 +46,13 @@ import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -64,15 +64,15 @@ import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.aware.DeviceAwareMsg;
 import org.thingsboard.server.common.msg.aware.RuleChainAwareMsg;
+import org.thingsboard.server.common.msg.edge.EdgeEventUpdateMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
-import org.thingsboard.server.service.converter.DataConverterService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
-
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.integration.PlatformIntegrationService;
 
 import java.util.List;
 import java.util.Optional;
@@ -171,12 +171,17 @@ public class TenantActor extends RuleChainManagerActor {
             case DEVICE_ATTRIBUTES_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_NAME_OR_TYPE_UPDATE_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_EDGE_UPDATE_TO_DEVICE_ACTOR_MSG:
             case DEVICE_RPC_REQUEST_TO_DEVICE_ACTOR_MSG:
+            case DEVICE_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
             case SERVER_RPC_RESPONSE_TO_DEVICE_ACTOR_MSG:
                 onToDeviceActorMsg((DeviceAwareMsg) msg, true);
                 break;
             case RULE_CHAIN_TO_RULE_CHAIN_MSG:
                 onRuleChainMsg((RuleChainAwareMsg) msg);
+                break;
+            case EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG:
+                onToEdgeSessionMsg((EdgeEventUpdateMsg) msg);
                 break;
             default:
                 return false;
@@ -266,21 +271,19 @@ public class TenantActor extends RuleChainManagerActor {
                     edgeRpcService.updateEdge(edge);
                 }
             }
-        } else {
-            if (isRuleEngineForCurrentTenant) {
-                TbActorRef target = getEntityActorRef(msg.getEntityId());
-                if (target != null) {
-                    if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
-                        RuleChain ruleChain = systemContext.getRuleChainService().
-                                findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
-                        if (ruleChain != null && ruleChain.getType().equals(RuleChainType.CORE)) {
-                            visit(ruleChain, target);
-                        }
+        } else if (isRuleEngineForCurrentTenant) {
+            TbActorRef target = getEntityActorRef(msg.getEntityId());
+            if (target != null) {
+                if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
+                    RuleChain ruleChain = systemContext.getRuleChainService().
+                            findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
+                    if (ruleChain != null && RuleChainType.CORE.equals(ruleChain.getType())) {
+                        visit(ruleChain, target);
                     }
-                    target.tellWithHighPriority(msg);
-                } else {
-                    log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
                 }
+                target.tellWithHighPriority(msg);
+            } else {
+                log.debug("[{}] Invalid component lifecycle msg: {}", tenantId, msg);
             }
         }
     }
@@ -289,6 +292,11 @@ public class TenantActor extends RuleChainManagerActor {
         return ctx.getOrCreateChildActor(new TbEntityActorId(deviceId),
                 () -> DefaultActorService.DEVICE_DISPATCHER_NAME,
                 () -> new DeviceActorCreator(systemContext, tenantId, deviceId));
+    }
+
+    private void onToEdgeSessionMsg(EdgeEventUpdateMsg msg) {
+        log.trace("[{}] onToEdgeSessionMsg [{}]", msg.getTenantId(), msg);
+        systemContext.getEdgeRpcService().onEdgeEvent(msg.getEdgeId());
     }
 
     public static class ActorCreator extends ContextBasedCreator {

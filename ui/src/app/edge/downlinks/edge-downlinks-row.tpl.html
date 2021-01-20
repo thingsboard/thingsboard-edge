@@ -30,9 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div translate class="tb-cell" flex="20">event.event-time</div>
-<div translate class="tb-cell" flex="20">event.event-type</div>
-<div translate class="tb-cell" flex="40">edge.event-action</div>
-<div translate class="tb-cell" flex="20">edge.entity-id</div>
-<div translate class="tb-cell" flex="15">edge.status</div>
-<div translate class="tb-cell" flex="10">edge.entity-info</div>
+<div class="tb-cell" flex="20">{{ downlink.createdTime | date :  'yyyy-MM-dd HH:mm:ss' }}</div>
+<div class="tb-cell" flex="15">{{ downlink.edgeEventTypeText }}</div>
+<div class="tb-cell" flex="15">{{ downlink.edgeEventActionText }}</div>
+<div class="tb-cell" flex="30">{{ downlink.entityId }}</div>
+<div class="tb-cell" flex="10" ng-style="{'color': statusColor}">{{ updateStatus(downlink.createdTime) }}</div>
+<div class="tb-cell" flex="10">
+    <md-button ng-if="checkEdgeDownlinksType(downlink.type)" class="md-icon-button md-primary"
+               ng-click="showEdgeEntityContent($event, 'edge.entity-info', 'JSON')"
+               aria-label="{{ 'action.view' | translate }}">
+        <md-tooltip md-direction="top">
+            {{ 'action.view' | translate }}
+        </md-tooltip>
+        <md-icon aria-label="{{ 'action.view' | translate }}"
+                 class="material-icons">
+            more_horiz
+        </md-icon>
+    </md-button>
+</div>
+
+

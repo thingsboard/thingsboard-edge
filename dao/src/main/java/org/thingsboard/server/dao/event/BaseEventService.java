@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,7 +73,7 @@ public class BaseEventService implements EventService {
     public Optional<Event> saveIfNotExists(Event event) {
         eventValidator.validate(event, Event::getTenantId);
         if (StringUtils.isEmpty(event.getUid())) {
-            throw new DataValidationException("Event uid should be specified!");
+            throw new DataValidationException("Event uid should be specified!.");
         }
         checkAndTruncateDebugEvent(event);
         return eventDao.saveIfNotExists(event);
@@ -94,16 +93,16 @@ public class BaseEventService implements EventService {
     @Override
     public Optional<Event> findEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid) {
         if (tenantId == null) {
-            throw new DataValidationException("Tenant id should be specified!");
+            throw new DataValidationException("Tenant id should be specified!.");
         }
         if (entityId == null) {
-            throw new DataValidationException("Entity id should be specified!");
+            throw new DataValidationException("Entity id should be specified!.");
         }
         if (StringUtils.isEmpty(eventType)) {
-            throw new DataValidationException("Event type should be specified!");
+            throw new DataValidationException("Event type should be specified!.");
         }
         if (StringUtils.isEmpty(eventUid)) {
-            throw new DataValidationException("Event uid should be specified!");
+            throw new DataValidationException("Event uid should be specified!.");
         }
         Event event = eventDao.findEvent(tenantId.getId(), entityId, eventType, eventUid);
         return event != null ? Optional.of(event) : Optional.empty();
@@ -146,13 +145,13 @@ public class BaseEventService implements EventService {
                 @Override
                 protected void validateDataImpl(TenantId tenantId, Event event) {
                     if (event.getEntityId() == null) {
-                        throw new DataValidationException("Entity id should be specified!");
+                        throw new DataValidationException("Entity id should be specified!.");
                     }
                     if (StringUtils.isEmpty(event.getType())) {
-                        throw new DataValidationException("Event type should be specified!");
+                        throw new DataValidationException("Event type should be specified!.");
                     }
                     if (event.getBody() == null) {
-                        throw new DataValidationException("Event body should be specified!");
+                        throw new DataValidationException("Event body should be specified!.");
                     }
                 }
             };

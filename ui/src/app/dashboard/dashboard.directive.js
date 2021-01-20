@@ -72,6 +72,7 @@ export default function DashboardDirective($compile, $templateCache, $translate,
             dashboard: '=',
             isEdit: '=',
             customerId: '=',
+            edgeId: '=',
             theForm: '=',
             onMakePublic: '&',
             onMakePrivate: '&',
@@ -82,7 +83,8 @@ export default function DashboardDirective($compile, $templateCache, $translate,
             onDeleteDashboard: '&',
             hideAssignmentActions: '=',
             hideDelete: '=',
-            hideOpen: '='
+            hideOpen: '=',
+            onUnassignFromEdge: '&'
         }
     };
 }

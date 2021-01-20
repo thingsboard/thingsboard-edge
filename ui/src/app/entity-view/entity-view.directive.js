@@ -161,7 +161,8 @@ export default function EntityViewDirective($q, $compile, $templateCache, $filte
             onUnassignFromCustomer: '&',
             onDeleteEntityView: '&',
             hideAssignmentActions: '=',
-            hideDelete: '='
+            hideDelete: '=',
+            onUnassignFromEdge: '&'
         }
     };
 }

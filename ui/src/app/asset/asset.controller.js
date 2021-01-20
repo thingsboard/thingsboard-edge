@@ -144,6 +144,7 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
     vm.assignToCustomer = assignToCustomer;
     vm.makePublic = makePublic;
     vm.unassignFromCustomer = unassignFromCustomer;
+    vm.unassignFromEdge = unassignFromEdge;
 
     initController();
 
@@ -155,7 +156,11 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
         var user = userService.getCurrentUser();
 
         if (user.authority === 'CUSTOMER_USER') {
-            vm.assetsScope = 'customer_user';
+            if (vm.assetsScope === 'edge') {
+                vm.assetsScope = 'edge_customer_user';
+            } else {
+                vm.assetsScope = 'customer_user';
+            }
             customerId = user.customerId;
         }
         if (customerId) {
@@ -336,51 +341,64 @@ export function AssetController(/*$rootScope, tbDialogs, userService, assetServi
             }
             vm.assetGridConfig.addItemActions = [];
 
-        } else if (vm.assetsScope === 'edge') {
-            fetchAssetsFunction = function (pageLink, assetType) {
-                return assetService.getEdgeAssets(edgeId, pageLink, null, assetType);
+        } else if (vm.assetsScope === 'edge' || vm.assetsScope === 'edge_customer_user') {
+            fetchAssetsFunction = function (pageLink) {
+                return assetService.getEdgeAssets(edgeId, pageLink, null);
             };
-            deleteAssetFunction = function (assetId) {
-                return assetService.unassignAssetFromEdge(edgeId, assetId);
-            };
-            refreshAssetsParamsFunction = function () {
-                return {"edgeId": edgeId, "topIndex": vm.topIndex};
-            };
+            if (vm.assetsScope === 'edge') {
+                deleteAssetFunction = function (assetId) {
+                    return assetService.unassignAssetFromEdge(edgeId, assetId);
+                };
+                refreshAssetsParamsFunction = function () {
+                    return {"edgeId": edgeId, "topIndex": vm.topIndex};
+                };
 
-            assetActionsList.push(
-                {
-                    onAction: function ($event, item) {
-                        unassignFromEdge($event, item, false);
-                    },
-                    name: function() { return $translate.instant('action.unassign') },
-                    details: function() { return $translate.instant('edge.unassign-from-edge') },
-                    icon: "assignment_return"
-                }
-            );
+                assetActionsList.push(
+                    {
+                        onAction: function ($event, item) {
+                            unassignFromEdge($event, item, false);
+                        },
+                        name: function () {
+                            return $translate.instant('action.unassign')
+                        },
+                        details: function () {
+                            return $translate.instant('edge.unassign-from-edge')
+                        },
+                        icon: "assignment_return"
+                    }
+                );
 
-            assetGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        unassignAssetsFromEdge($event, items);
-                    },
-                    name: function() { return $translate.instant('asset.unassign-assets') },
-                    details: function(selectedCount) {
-                        return $translate.instant('asset.unassign-assets-from-edge-action-title', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "assignment_return"
-                }
-            );
+                assetGroupActionsList.push(
+                    {
+                        onAction: function ($event, items) {
+                            unassignAssetsFromEdge($event, items);
+                        },
+                        name: function () {
+                            return $translate.instant('asset.unassign-assets')
+                        },
+                        details: function (selectedCount) {
+                            return $translate.instant('asset.unassign-assets-from-edge-action-title', {count: selectedCount}, "messageformat");
+                        },
+                        icon: "assignment_return"
+                    }
+                );
 
-            vm.assetGridConfig.addItemAction = {
-                onAction: function ($event) {
-                    addAssetsToEdge($event);
-                },
-                name: function() { return $translate.instant('asset.assign-assets') },
-                details: function() { return $translate.instant('asset.assign-new-asset') },
-                icon: "add"
-            };
+                vm.assetGridConfig.addItemAction = {
+                    onAction: function ($event) {
+                        addAssetsToEdge($event);
+                    },
+                    name: function () {
+                        return $translate.instant('asset.assign-assets')
+                    },
+                    details: function () {
+                        return $translate.instant('asset.assign-new-asset')
+                    },
+                    icon: "add"
+                };
+            } else if (vm.assetsScope === 'edge_customer_user') {
+                vm.assetGridConfig.addItemAction = {};
+            }
             vm.assetGridConfig.addItemActions = [];
-
         }
 
         vm.assetGridConfig.refreshParamsFunc = refreshAssetsParamsFunction;

@@ -411,24 +411,8 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'rulechain.rulechains',
                             type: 'toggle',
                             state: 'home.ruleChains',
-                            height: '80px',
                             icon: 'settings_ethernet',
-                            pages: [
-                                {
-                                    name: 'rulechain.core-rulechains',
-                                    type: 'link',
-                                    state: 'home.ruleChains.core',
-                                    icon: 'settings_ethernet',
-                                    disabled: disabledItems.indexOf('rule_chains') > -1
-                                },
-                                {
-                                    name: 'rulechain.edge-rulechains',
-                                    type: 'link',
-                                    state: 'home.ruleChains.edge',
-                                    icon: 'router',
-                                    disabled: disabledItems.indexOf('rule_chains') > -1
-                                }
-                            ]
+                            disabled: disabledItems.indexOf('rule_chains') > -1
                         }
                     );
                 }
@@ -496,6 +480,32 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(entityViewGroups);
                     entityGroupSections.push(entityViewGroups);
                 }
+                // TODO: voba
+                // if (userService.isEdgesSupportEnabled()) {
+                //     sections.push(
+                //         {
+                //             name: 'edge.management',
+                //             type: 'toggle',
+                //             state: 'home.edges',
+                //             height: '80px',
+                //             icon: 'router',
+                //             pages: [
+                //                 {
+                //                     name: 'edge.edge-instances',
+                //                     type: 'link',
+                //                     state: 'home.edges',
+                //                     icon: 'router'
+                //                 },
+                //                 {
+                //                     name: 'edge.rulechain-templates',
+                //                     type: 'link',
+                //                     state: 'home.edges.edgeRuleChains',
+                //                     icon: 'settings_ethernet'
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.edge) && disabledItems.indexOf('edge_groups') === -1) {
                     sections.push(edgeGroups);
                     entityGroupSections.push(edgeGroups);
@@ -607,15 +617,9 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'rulechain.management',
                             places: [
                                 {
-                                    name: 'rulechain.core-rulechains',
+                                    name: 'rulechain.rulechains',
                                     icon: 'settings_ethernet',
-                                    state: 'home.ruleChains.core',
-                                    disabled: disabledItems.indexOf('rule_chains') > -1
-                                },
-                                {
-                                    name: 'rulechain.edge-rulechains',
-                                    icon: 'router',
-                                    state: 'home.ruleChains.edge',
+                                    state: 'home.ruleChains',
                                     disabled: disabledItems.indexOf('rule_chains') > -1
                                 }
                             ]
@@ -753,6 +757,25 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
+                // TODO: voba
+                // if (userService.isEdgesSupportEnabled()) {
+                //     homeSections.push({
+                //         name: 'edge.management',
+                //         places: [
+                //             {
+                //                 name: 'edge.edge-instances',
+                //                 icon: 'router',
+                //                 state: 'home.edges'
+                //             },
+                //             {
+                //                 name: 'edge.rulechain-templates',
+                //                 icon: 'settings_ethernet',
+                //                 state: 'home.edges.edgeRuleChains'
+                //             }
+                //         ]
+                //
+                //     });
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.edge)) {
                     homeSections.push(
                         {
@@ -948,6 +971,17 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(entityViewGroups);
                     entityGroupSections.push(entityViewGroups);
                 }
+                // TODO: voba
+                // if (userService.isEdgesSupportEnabled()) {
+                //     sections.push(
+                //         {
+                //             name: 'edge.edge-instances',
+                //             type: 'link',
+                //             state: 'home.edges',
+                //             icon: 'router'
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.edge) && disabledItems.indexOf('edge_groups') === -1) {
                     sections.push(edgeGroups);
                     entityGroupSections.push(edgeGroups);
@@ -1122,6 +1156,21 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         }
                     );
                 }
+                // TODO: voba
+                // if (userService.isEdgesSupportEnabled()) {
+                //     homeSections.push(
+                //         {
+                //             name: 'edge.edge-instances',
+                //             places: [
+                //                 {
+                //                     name: 'edge.edge-instances',
+                //                     icon: 'router',
+                //                     state: 'home.edges'
+                //                 }
+                //             ]
+                //         }
+                //     );
+                // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.edge)) {
                     homeSections.push(
                         {

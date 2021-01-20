@@ -37,8 +37,7 @@ import eventTableTemplate from './event-table.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EventTableDirective($compile, $templateCache, $rootScope, types,
-                                            eventService, edgeService, attributeService) {
+export default function EventTableDirective($compile, $templateCache, $rootScope, types, eventService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -46,16 +45,11 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
 
         element.html(template);
 
-        scope.eventTypeScope = angular.copy(types.eventType);
-        if (scope.entityType !== types.entityType.edge) {
-            delete scope.eventTypeScope.edgeEvent;
-        }
-
         if (attrs.disabledEventTypes) {
             var disabledEventTypes = attrs.disabledEventTypes.split(',');
             scope.eventTypes = {};
-            for (var type in scope.eventTypeScope) {
-                var eventType = scope.eventTypeScope[type];
+            for (var type in types.eventType) {
+                var eventType = types.eventType[type];
                 var enabled = true;
                 for (var i=0;i<disabledEventTypes.length;i++) {
                     if (eventType.value === disabledEventTypes[i]) {
@@ -68,7 +62,7 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
                 }
             }
         } else {
-            scope.eventTypes = angular.copy(scope.eventTypeScope);
+            scope.eventTypes = angular.copy(types.eventType);
         }
 
         if (attrs.debugEventTypes) {
@@ -121,14 +115,8 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
             fetchMoreItems_: function () {
                 if (scope.events.hasNext && !scope.events.pending) {
                     if (scope.entityType && scope.entityId && scope.eventType && scope.tenantId) {
-                        var promise = '';
-                        if (scope.eventType !== types.eventType.edgeEvent.value) {
-                            promise = eventService.getEvents(scope.entityType, scope.entityId,
-                                scope.eventType, scope.tenantId, scope.events.nextPageLink);
-                        } else {
-                            promise = edgeService.getEdgeEvents(scope.entityId, scope.events.nextPageLink);
-                            scope.loadEdgeInfo();
-                        }
+                        var promise = eventService.getEvents(scope.entityType, scope.entityId,
+                            scope.eventType, scope.tenantId, scope.events.nextPageLink);
                         if (promise) {
                             scope.events.pending = true;
                             promise.then(
@@ -157,7 +145,6 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
 
         scope.$watch("entityId", function(newVal, prevVal) {
             if (newVal && !angular.equals(newVal, prevVal)) {
-                scope.loadEdgeInfo();
                 scope.resetFilter();
                 scope.reload();
             }
@@ -235,58 +222,10 @@ export default function EventTableDirective($compile, $templateCache, $rootScope
             return false;
         }
 
-        scope.subscriptionId = null;
-        scope.queueStartTs;
-
-        scope.loadEdgeInfo = function() {
-            attributeService.getEntityAttributesValues(scope.entityType, scope.entityId, types.attributesScope.server.value,
-                types.edgeAttributeKeys.queueStartTs, {})
-                .then(function success(attributes) {
-                    scope.onUpdate(attributes);
-                });
-
-            scope.checkSubscription();
-
-            attributeService.getEntityAttributes(scope.entityType, scope.entityId, types.attributesScope.server.value, {order: '', limit: 1, page: 1, search: ''},
-                function (attributes) {
-                    if (attributes && attributes.data) {
-                        scope.onUpdate(attributes.data);
-                    }
-                });
-        }
-
-        scope.onUpdate = function(attributes) {
-            let edge = attributes.reduce(function (map, attribute) {
-                map[attribute.key] = attribute;
-                return map;
-            }, {});
-            if (edge.queueStartTs) {
-                scope.queueStartTs = edge.queueStartTs.lastUpdateTs;
-            }
-        }
-
-        scope.checkSubscription = function() {
-            var newSubscriptionId = null;
-            if (scope.entityId && scope.entityType && types.attributesScope.server.value) {
-                newSubscriptionId = attributeService.subscribeForEntityAttributes(scope.entityType, scope.entityId, types.attributesScope.server.value);
-            }
-            if (scope.subscriptionId && scope.subscriptionId != newSubscriptionId) {
-                attributeService.unsubscribeForEntityAttributes(scope.subscriptionId);
-            }
-            scope.subscriptionId = newSubscriptionId;
-        }
-
-        scope.$on('$destroy', function () {
-            if (scope.subscriptionId) {
-                attributeService.unsubscribeForEntityAttributes(scope.subscriptionId);
-            }
-        });
-
         scope.reload();
 
         $compile(element.contents())(scope);
     }
-
     return {
         restrict: "E",
         link: linker,

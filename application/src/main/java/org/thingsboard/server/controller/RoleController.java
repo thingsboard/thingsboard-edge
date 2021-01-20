@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -103,8 +104,8 @@ public class RoleController extends BaseController {
             logEntityAction(savedRole.getId(), savedRole, null,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedRole.getId(),
-                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToEdgeService(getTenantId(), savedRole.getId(), EntityType.ROLE,
+                    role.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedRole;
         } catch (Exception e) {
@@ -131,7 +132,7 @@ public class RoleController extends BaseController {
             roleService.deleteRole(getTenantId(), roleId);
             logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), roleId, ActionType.DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), roleId, EntityType.ROLE, EdgeEventActionType.DELETED);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ROLE),

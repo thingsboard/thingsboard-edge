@@ -53,11 +53,12 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -80,6 +81,7 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -215,7 +217,8 @@ public class UserController extends BaseController {
                         savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(), ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                sendNotificationMsgToEdgeService(getTenantId(), null, savedUser.getId(), EntityType.USER,
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             if (sendEmail) {
@@ -239,8 +242,8 @@ public class UserController extends BaseController {
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(),
-                    user.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToEdgeService(getTenantId(), savedUser.getId(), EntityType.USER,
+                    user.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedUser;
         } catch (Exception e) {
@@ -311,6 +314,9 @@ public class UserController extends BaseController {
         try {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), userId);
+
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
 
             userPermissionsService.onUserUpdatedOrRemoved(user);
@@ -319,7 +325,7 @@ public class UserController extends BaseController {
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), user.getId(), ActionType.DELETED);
+            sendDeleteNotificationMsgToEdgeService(getTenantId(), userId, EntityType.USER, relatedEdgeIds);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),

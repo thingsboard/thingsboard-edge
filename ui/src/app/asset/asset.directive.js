@@ -83,7 +83,8 @@ export default function AssetDirective($compile, $templateCache, toast, $transla
             onUnassignFromCustomer: '&',
             onDeleteAsset: '&',
             hideAssignmentActions: '=',
-            hideDelete: '='
+            hideDelete: '=',
+            onUnassignFromEdge: '&'
         }
     };
 }

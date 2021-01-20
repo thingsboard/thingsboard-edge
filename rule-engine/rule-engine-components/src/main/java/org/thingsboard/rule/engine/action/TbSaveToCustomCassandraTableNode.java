@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.model.type.ComponentLifecycleStateCodec;
 import org.thingsboard.server.dao.model.type.ComponentScopeCodec;
 import org.thingsboard.server.dao.model.type.ComponentTypeCodec;
 import org.thingsboard.server.dao.model.type.DeviceCredentialsTypeCodec;
+import org.thingsboard.server.dao.model.type.EdgeEventActionTypeCodec;
 import org.thingsboard.server.dao.model.type.EdgeEventTypeCodec;
 import org.thingsboard.server.dao.model.type.EntityTypeCodec;
 import org.thingsboard.server.dao.model.type.JsonCodec;
@@ -73,12 +74,10 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
 @Slf4j
@@ -163,6 +162,7 @@ public class TbSaveToCustomCassandraTableNode implements TbNode {
             registerCodecIfNotFound(registry, new EntityTypeCodec());
             registerCodecIfNotFound(registry, new EdgeEventTypeCodec());
             registerCodecIfNotFound(registry, new RuleChainTypeCodec());
+            registerCodecIfNotFound(registry, new EdgeEventActionTypeCodec());
         }
         return session;
     }

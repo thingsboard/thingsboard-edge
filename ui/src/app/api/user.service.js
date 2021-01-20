@@ -46,6 +46,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         redirectParams = null,
         userTokenAccessEnabled = false,
         userLoaded = false,
+        edgesSupportEnabled = false,
         whiteLabelingAllowed = false,
         customerWhiteLabelingAllowed = false;
 
@@ -88,7 +89,8 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
         loginAsUser: loginAsUser,
         isWhiteLabelingAllowed: isWhiteLabelingAllowed,
         isCustomerWhiteLabelingAllowed: isCustomerWhiteLabelingAllowed,
-        setUserCredentialsEnabled: setUserCredentialsEnabled
+        setUserCredentialsEnabled: setUserCredentialsEnabled,
+        isEdgesSupportEnabled: isEdgesSupportEnabled
     }
 
     reloadUser();
@@ -510,6 +512,7 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
     function loadSystemParams() {
         var promises = [];
         promises.push(loadIsUserTokenAccessEnabled());
+        promises.push(loadIsEdgesSupportEnabled());
         promises.push(whiteLabelingService.loadUserWhiteLabelingParams());
         promises.push(customMenuService.loadCustomMenu());
         promises.push(timeService.loadMaxDatapointsLimit());
@@ -825,6 +828,22 @@ function UserService($http, $q, $rootScope, adminService, dashboardService, time
             setUserFromJwtToken(token, refreshToken, true);
         }, function fail() {
         });
+    }
+
+    function isEdgesSupportEnabled() {
+        return edgesSupportEnabled;
+    }
+
+    function loadIsEdgesSupportEnabled() {
+        var deferred = $q.defer();
+        var url = '/api/edges/enabled';
+        $http.get(url).then(function success(response) {
+            edgesSupportEnabled = response.data;
+            deferred.resolve(response);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
     }
 
 }

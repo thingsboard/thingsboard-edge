@@ -28,6 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+import { grey300, grey900 } from 'material-ui/styles/colors';
+
 export default angular.module('thingsboard.types', [])
     .constant('types',
         {
@@ -737,18 +739,15 @@ export default angular.module('thingsboard.types', [])
                 widgetType: "WIDGET_TYPE",
                 adminSettings: "ADMIN_SETTINGS"
             },
-            edgeEventAction: {
-                updated: "UPDATED",
-                added: "ADDED",
-                assignedToEdge: "ASSIGNED_TO_EDGE",
-                deleted: "DELETED",
-                unassignedFromEdge: "UNASSIGNED_FROM_EDGE",
-                alarmAck: "ALARM_ACK",
-                alarmClear: "ALARM_CLEAR",
-                credentialsUpdated: "CREDENTIALS_UPDATED",
-                attributesUpdated: "ATTRIBUTES_UPDATED",
-                attributesDeleted: "ATTRIBUTES_DELETED",
-                timeseriesUpdated: "TIMESERIES_UPDATED"
+            edgeEventStatus: {
+                "DEPLOYED": {
+                    name: "edge.deployed",
+                    color: grey900
+                },
+                "PENDING": {
+                    name: "edge.pending",
+                    color: grey300
+                }
             },
             edgeAttributeKeys: {
                 active: "active",
@@ -800,6 +799,22 @@ export default angular.module('thingsboard.types', [])
                 description: {
                     name: 'import.column-type.description',
                     value: 'description'
+                },
+                edgeLicenseKey: {
+                    name: 'import.column-type.edgeLicenseKey',
+                    value: 'edgeLicenseKey'
+                },
+                cloudEndpoint: {
+                    name: 'import.column-type.cloudEndpoint',
+                    value: 'cloudEndpoint'
+                },
+                routingKey: {
+                    name: 'import.column-type.routingKey',
+                    value: 'routingKey'
+                },
+                secret: {
+                    name: 'import.column-type.secret',
+                    value: 'secret'
                 }
             },
             aliasEntityType: {
@@ -1108,10 +1123,6 @@ export default angular.module('thingsboard.types', [])
                 rawData: {
                     value: "RAW_DATA",
                     name: "event.type-rw-event"
-                },
-                edgeEvent: {
-                    value: "EDGE_EVENT",
-                    name: "event.type-edge-event"
                 }
             },
             debugEventType: {
@@ -1821,6 +1832,127 @@ export default angular.module('thingsboard.types', [])
             translate: {
                 customTranslationsPrefix: "custom.",
                 i18nPrefix: "i18n"
+            },
+            edgeEventActionTypeTranslations: {
+                "ADDED": {
+                    name: "edge-event.action-type-added"
+                },
+                "DELETED": {
+                    name: "edge-event.action-type-deleted"
+                },
+                "UPDATED": {
+                    name: "edge-event.action-type-updated"
+                },
+                "POST_ATTRIBUTES": {
+                    name: "edge-event.action-type-post-attributes"
+                },
+                "TIMESERIES_UPDATED": {
+                    name: "edge-event.action-type-timeseries-updated"
+                },
+                "ATTRIBUTES_UPDATED": {
+                    name: "edge-event.action-type-attributes-updated"
+                },
+                "ATTRIBUTES_DELETED": {
+                    name: "edge-event.action-type-attributes-deleted"
+                },
+                "CREDENTIALS_UPDATED": {
+                    name: "edge-event.action-type-credentials-updated"
+                },
+                "ASSIGNED_TO_CUSTOMER": {
+                    name: "edge-event.action-type-assigned-to-customer"
+                },
+                "UNASSIGNED_FROM_CUSTOMER": {
+                    name: "edge-event.action-type-unassigned-from-customer"
+                },
+                "RELATION_ADD_OR_UPDATE": {
+                    name: "edge-event.action-type-relation-add-or-update"
+                },
+                "RELATION_DELETED": {
+                    name: "edge-event.action-type-relation-deleted"
+                },
+                "RPC_CALL": {
+                    name: "edge-event.action-type-rpc-call"
+                },
+                "ALARM_ACK": {
+                    name: "edge-event.action-type-alarm-ack"
+                },
+                "ALARM_CLEAR": {
+                    name: "edge-event.action-type-alarm-clear"
+                },
+                "CREDENTIALS_REQUEST": {
+                    name: "edge-event.action-type-credentials-request"
+                },
+                "ASSIGNED_TO_EDGE": {
+                    name: "edge-event.action-type-assigned-to-edge"
+                },
+                "UNASSIGNED_FROM_EDGE": {
+                    name: "edge-event.action-type-unassigned-from-edge"
+                },
+                "ENTITY_MERGE_REQUEST": {
+                    name: "edge-event.action-type-entity-merge-request"
+                }
+            },
+            edgeEventTypeTranslations:{
+                "DASHBOARD": {
+                    name: "edge-event.type-dashboard"
+                },
+                "ASSET": {
+                    name: "edge-event.type-asset"
+                },
+                "DEVICE": {
+                    name: "edge-event.type-device"
+                },
+                "ENTITY_VIEW": {
+                    name: "edge-event.type-entity-view"
+                },
+                "ALARM": {
+                    name: "edge-event.type-alarm"
+                },
+                "RULE_CHAIN": {
+                    name: "edge-event.type-rule-chain"
+                },
+                "RULE_CHAIN_METADATA": {
+                    name: "edge-event.type-rule-chain-metadata"
+                },
+                "EDGE": {
+                    name: "edge-event.type-edge"
+                },
+                "USER": {
+                    name: "edge-event.type-user"
+                },
+                "TENANT": {
+                    name: "edge-event.type-tenant"
+                },
+                "CUSTOMER": {
+                    name: "edge-event.type-customer"
+                },
+                "RELATION": {
+                    name: "edge-event.type-relation"
+                },
+                "WIDGETS_BUNDLE": {
+                    name: "edge-event.type-widgets-bundle"
+                },
+                "WIDGET_TYPE": {
+                    name: "edge-event.type-widgets-type"
+                },
+                "ADMIN_SETTINGS": {
+                    name: "edge-event.type-admin-settings"
+                },
+                "ENTITY_GROUP": {
+                    name: "edge-event.type-entity-group"
+                },
+                "SCHEDULER_EVENT": {
+                    name: "edge-event.type-scheduler-event"
+                },
+                "WHITE_LABELING": {
+                    name: "edge-event.type-white-labeling"
+                },
+                "LOGIN_WHITE_LABELING": {
+                    name: "edge-event.type-login-white-labeling"
+                },
+                "CUSTOM_TRANSLATION": {
+                    name: "edge-event.custom-translation",
+                }
             }
         }
     ).name;

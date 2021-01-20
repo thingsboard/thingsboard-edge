@@ -121,6 +121,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
     vm.assignToCustomer = assignToCustomer;
     vm.makePublic = makePublic;
     vm.unassignFromCustomer = unassignFromCustomer;
+    vm.unassignFromEdge = unassignFromEdge;
 
     initController();
 
@@ -132,7 +133,11 @@ export function EntityViewController($rootScope, userService, entityViewService,
         var user = userService.getCurrentUser();
 
         if (user.authority === 'CUSTOMER_USER') {
-            vm.entityViewsScope = 'customer_user';
+            if (vm.entityViewsScope === 'edge') {
+                vm.entityViewsScope = 'edge_customer_user';
+            } else {
+                vm.entityViewsScope = 'customer_user';
+            }
             customerId = user.customerId;
         }
         if (customerId) {
@@ -298,7 +303,7 @@ export function EntityViewController($rootScope, userService, entityViewService,
             } else if (vm.entityViewsScope === 'customer_user') {
                 vm.entityViewGridConfig.addItemAction = {};
             }
-        } else if (vm.entityViewsScope === 'edge') {
+        } else if (vm.entityViewsScope === 'edge' || vm.entityViewsScope === 'edge_customer_user') {
             /* fetchEntityViewsFunction = function (pageLink, entityViewType) {
                 return entityViewService.getEdgeEntityViews(edgeId, pageLink, null, entityViewType);
             };
@@ -309,37 +314,63 @@ export function EntityViewController($rootScope, userService, entityViewService,
                 return {"edgeId": edgeId, "topIndex": vm.topIndex};
             }; */
 
-            entityViewActionsList.push({
-                    onAction: function ($event, item) {
-                        unassignFromEdge($event, item, false);
-                    },
-                    name: function() { return $translate.instant('action.unassign') },
-                    details: function() { return $translate.instant('edge.unassign-from-edge') },
-                    icon: "assignment_return"
-                }
-            );
-
-            entityViewGroupActionsList.push(
-                {
-                    onAction: function ($event, items) {
-                        unassignEntityViewsFromEdge($event, items);
-                    },
-                    name: function() { return $translate.instant('entity-view.unassign-entity-views') },
-                    details: function(selectedCount) {
-                        return $translate.instant('entity-view.unassign-entity-views-from-edge-action-title', {count: selectedCount}, "messageformat");
-                    },
-                    icon: "assignment_return"
-                }
-            );
-
-            vm.entityViewGridConfig.addItemAction = {
-                onAction: function ($event) {
-                    addEntityViewsToEdge($event);
-                },
-                name: function() { return $translate.instant('entity-view.assign-entity-views') },
-                details: function() { return $translate.instant('entity-view.assign-new-entity-view') },
-                icon: "add"
+            // TODO: voba - probably this is wrong
+            fetchEntityViewsFunction = function (pageLink) {
+                return entityViewService.getEdgeEntityViews(edgeId, pageLink, null);
             };
+
+            if (vm.entityViewsScope === 'edge') {
+                deleteEntityViewFunction = function (entityViewId) {
+                    return entityViewService.unassignEntityViewFromEdge(edgeId, entityViewId);
+                };
+                refreshEntityViewsParamsFunction = function () {
+                    return {"edgeId": edgeId, "topIndex": vm.topIndex};
+                };
+
+                entityViewActionsList.push({
+                        onAction: function ($event, item) {
+                            unassignFromEdge($event, item, false);
+                        },
+                        name: function () {
+                            return $translate.instant('action.unassign')
+                        },
+                        details: function () {
+                            return $translate.instant('edge.unassign-from-edge')
+                        },
+                        icon: "assignment_return"
+                    }
+                );
+
+                entityViewGroupActionsList.push(
+                    {
+                        onAction: function ($event, items) {
+                            unassignEntityViewsFromEdge($event, items);
+                        },
+                        name: function () {
+                            return $translate.instant('entity-view.unassign-entity-views')
+                        },
+                        details: function (selectedCount) {
+                            return $translate.instant('entity-view.unassign-entity-views-from-edge-action-title', {count: selectedCount}, "messageformat");
+                        },
+                        icon: "assignment_return"
+                    }
+                );
+
+                vm.entityViewGridConfig.addItemAction = {
+                    onAction: function ($event) {
+                        addEntityViewsToEdge($event);
+                    },
+                    name: function () {
+                        return $translate.instant('entity-view.assign-entity-views')
+                    },
+                    details: function () {
+                        return $translate.instant('entity-view.assign-new-entity-view')
+                    },
+                    icon: "add"
+                };
+            } else if (vm.entityViewsScope === 'edge_customer_user') {
+                vm.entityViewGridConfig.addItemAction = {};
+            }
             vm.entityViewGridConfig.addItemActions = [];
 
         }

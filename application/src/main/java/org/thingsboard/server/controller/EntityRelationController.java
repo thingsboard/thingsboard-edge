@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -84,7 +85,7 @@ public class EntityRelationController extends BaseController {
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, null, relation);
 
-            sendNotificationMsgToEdgeService(getTenantId(), relation, ActionType.RELATION_ADD_OR_UPDATE);
+            sendNotificationMsgToEdgeService(getTenantId(), relation, EdgeEventActionType.RELATION_ADD_OR_UPDATE);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, e, relation);
@@ -123,7 +124,7 @@ public class EntityRelationController extends BaseController {
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, null, relation);
 
-            sendNotificationMsgToEdgeService(getTenantId(), relation, ActionType.RELATION_DELETED);
+            sendNotificationMsgToEdgeService(getTenantId(), relation, EdgeEventActionType.RELATION_DELETED);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, e, relation);

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
@@ -56,7 +57,6 @@ import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
-import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.encoding.DataDecodingEncodingService;
@@ -64,9 +64,9 @@ import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
+import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.scheduler.SchedulerService;
-import org.thingsboard.server.service.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
@@ -251,16 +251,22 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             log.trace("[{}] Forwarding message to RuleEngineCallService service {}", id, toCoreNotification.getRestApiCallResponseMsg());
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
-            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getComponentLifecycleMsg().toByteArray());
-            if (actorMsg.isPresent()) {
-                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                actorContext.tellWithHighPriority(actorMsg.get());
-            }
-            callback.onSuccess();
+            forwardToAppActor(id, toCoreNotification.getComponentLifecycleMsg().toByteArray(), callback);
+        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            forwardToAppActor(id, toCoreNotification.getEdgeEventUpdateMsg().toByteArray(), callback);
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);
         }
+    }
+
+    private void forwardToAppActor(UUID id, byte[] msgBytes, TbCallback callback) {
+        Optional<TbActorMsg> actorMsg = encodingService.decode(msgBytes);
+        if (actorMsg.isPresent()) {
+            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+            actorContext.tellWithHighPriority(actorMsg.get());
+        }
+        callback.onSuccess();
     }
 
     private void forwardToCoreRpcService(FromDeviceRPCResponseProto proto, TbCallback callback) {

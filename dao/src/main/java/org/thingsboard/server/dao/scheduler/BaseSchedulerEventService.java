@@ -194,7 +194,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         }
         try {
             createRelation(tenantId, new EntityRelation(edgeId, schedulerEventId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to create scheduler event relation. Edge Id: [{}]", schedulerEventId, edgeId);
             throw new RuntimeException(e);
         }
@@ -210,7 +210,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         }
         try {
             deleteRelation(tenantId, new EntityRelation(edgeId, schedulerEventId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             log.warn("[{}] Failed to delete scheduler event relation. Edge group id: [{}]", schedulerEventId, edgeId);
             throw new RuntimeException(e);
         }

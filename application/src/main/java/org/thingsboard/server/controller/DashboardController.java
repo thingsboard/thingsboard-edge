@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -72,7 +73,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
-
 
 @RestController
 @TbCoreComponent
@@ -141,12 +141,15 @@ public class DashboardController extends BaseController {
         try {
             DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
             Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), dashboardId);
+
             dashboardService.deleteDashboard(getCurrentUser().getTenantId(), dashboardId);
             logEntityAction(dashboardId, dashboard,
                     null,
                     ActionType.DELETED, null, strDashboardId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), dashboardId, ActionType.DELETED);
+            sendDeleteNotificationMsgToEdgeService(getTenantId(), dashboardId, EntityType.DASHBOARD, relatedEdgeIds);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DASHBOARD),
                     null,

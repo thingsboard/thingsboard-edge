@@ -101,7 +101,8 @@ export default function DeviceDirective($compile, $templateCache, toast, $transl
             onDeleteDevice: '&',
             hideAssignmentActions: '=',
             hideDelete: '=',
-            hideManageCredentials: '='
+            hideManageCredentials: '=',
+            onUnassignFromEdge: '&'
         }
     };
 }
