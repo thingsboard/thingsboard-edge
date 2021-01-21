@@ -38,6 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -70,8 +71,8 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
     private static final String CONFIRMED = "confirmed";
     private static final String DEVICE_DOWNLINK_QUEUE = "deviceQueueItem";
 
-    private String applicationServerUrl;
-    private String applicationServerAPIToken;
+    private String applicationServerUrl = "";
+    private String applicationServerAPIToken = "";
     private final RestTemplate httpClient = new RestTemplate();
 
     private String devicesUrl;
@@ -84,8 +85,10 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
             return;
         }
         JsonNode json = configuration.getConfiguration();
-        applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
-        applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
+        if (json.get("clientConfiguration").has("applicationServerAPIToken")) {
+            applicationServerUrl = json.get("clientConfiguration").get("applicationServerUrl").asText();
+            applicationServerAPIToken = json.get("clientConfiguration").get("applicationServerAPIToken").asText();
+        }
         devicesUrl = applicationServerUrl + DEVICES_ENDPOINT;
     }
 
@@ -120,6 +123,11 @@ public class ChirpStackIntegration extends BasicHttpIntegration {
     @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg downlink){
         TbMsg msg = downlink.getTbMsg();
+        if (StringUtils.isEmpty(this.applicationServerAPIToken)) {
+            Exception e = new RuntimeException("Cannot send downlink because of Application Server API Token was not set.");
+            log.warn("Failed to process downLink message", e);
+            reportDownlinkError(context, msg, "ERROR", e);
+        }
         logDownlink(context, msg.getType(), msg);
         if (downlinkConverter != null) {
             processDownLinkMsg(context, msg);
