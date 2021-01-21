@@ -40,7 +40,7 @@ import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-co
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
-import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
+import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';

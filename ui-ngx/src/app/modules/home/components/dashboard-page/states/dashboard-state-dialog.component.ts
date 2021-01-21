@@ -31,65 +31,110 @@
 
 import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
-import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  FormGroupDirective,
+  NgForm,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
-import { UtilsService } from '@core/services/utils.service';
+import { DashboardState } from '@app/shared/models/dashboard.models';
+import { DashboardStateInfo } from '@home/components/dashboard-page/states/manage-dashboard-states-dialog.component.models';
 import { TranslateService } from '@ngx-translate/core';
-import { DashboardLayoutId, DashboardStateLayouts } from '@app/shared/models/dashboard.models';
-import { deepClone, isDefined } from '@core/utils';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import {
-  DashboardSettingsDialogComponent,
-  DashboardSettingsDialogData
-} from '@home/pages/dashboard/dashboard-settings-dialog.component';
 
-export interface ManageDashboardLayoutsDialogData {
-  layouts: DashboardStateLayouts;
+export interface DashboardStateDialogData {
+  states: {[id: string]: DashboardState };
+  state: DashboardStateInfo;
+  isAdd: boolean;
 }
 
 @Component({
-  selector: 'tb-manage-dashboard-layouts-dialog',
-  templateUrl: './manage-dashboard-layouts-dialog.component.html',
-  providers: [{provide: ErrorStateMatcher, useExisting: ManageDashboardLayoutsDialogComponent}],
-  styleUrls: ['../../../components/dashboard/layout-button.scss']
+  selector: 'tb-dashboard-state-dialog',
+  templateUrl: './dashboard-state-dialog.component.html',
+  providers: [{provide: ErrorStateMatcher, useExisting: DashboardStateDialogComponent}],
+  styleUrls: []
 })
-export class ManageDashboardLayoutsDialogComponent extends DialogComponent<ManageDashboardLayoutsDialogComponent, DashboardStateLayouts>
+export class DashboardStateDialogComponent extends
+  DialogComponent<DashboardStateDialogComponent, DashboardStateInfo>
   implements OnInit, ErrorStateMatcher {
 
-  layoutsFormGroup: FormGroup;
+  stateFormGroup: FormGroup;
 
-  layouts: DashboardStateLayouts;
+  states: {[id: string]: DashboardState };
+  state: DashboardStateInfo;
+  prevStateId: string;
+
+  stateIdTouched: boolean;
+
+  isAdd: boolean;
 
   submitted = false;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: ManageDashboardLayoutsDialogData,
+              @Inject(MAT_DIALOG_DATA) public data: DashboardStateDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<ManageDashboardLayoutsDialogComponent, DashboardStateLayouts>,
+              public dialogRef: MatDialogRef<DashboardStateDialogComponent, DashboardStateInfo>,
               private fb: FormBuilder,
-              private utils: UtilsService,
-              private dashboardUtils: DashboardUtilsService,
               private translate: TranslateService,
-              private dialog: MatDialog) {
+              private dashboardUtils: DashboardUtilsService) {
     super(store, router, dialogRef);
 
-    this.layouts = this.data.layouts;
-    this.layoutsFormGroup = this.fb.group({
-        main:  [{value: isDefined(this.layouts.main), disabled: true}, []],
-        right: [isDefined(this.layouts.right), []],
-      }
-    );
-    for (const l of Object.keys(this.layoutsFormGroup.controls)) {
-      const control = this.layoutsFormGroup.controls[l];
-      if (!this.layouts[l]) {
-        this.layouts[l] = this.dashboardUtils.createDefaultLayoutData();
-      }
+    this.states = this.data.states;
+    this.isAdd = this.data.isAdd;
+    if (this.isAdd) {
+      this.state = {id: '', ...this.dashboardUtils.createDefaultState('', false)};
+      this.prevStateId = '';
+    } else {
+      this.state = this.data.state;
+      this.prevStateId = this.state.id;
     }
+
+    this.stateFormGroup = this.fb.group({
+      name: [this.state.name, [Validators.required]],
+      id: [this.state.id, [Validators.required, this.validateDuplicateStateId()]],
+      root: [this.state.root, []],
+    });
+
+    this.stateFormGroup.get('name').valueChanges.subscribe((name: string) => {
+      this.checkStateName(name);
+    });
+
+    this.stateFormGroup.get('id').valueChanges.subscribe((id: string) => {
+      this.stateIdTouched = true;
+    });
+  }
+
+  private checkStateName(name: string) {
+    if (name && !this.stateIdTouched && this.isAdd) {
+      this.stateFormGroup.get('id').setValue(
+        name.toLowerCase().replace(/\W/g, '_'),
+        { emitEvent: false }
+      );
+    }
+  }
+
+  private validateDuplicateStateId(): ValidatorFn {
+    return (c: FormControl) => {
+      const newStateId: string = c.value;
+      if (newStateId) {
+        const existing = this.states[newStateId];
+        if (existing && newStateId !== this.prevStateId) {
+          return {
+            stateExists: true
+          };
+        }
+      }
+      return null;
+    };
   }
 
   ngOnInit(): void {
@@ -101,36 +146,14 @@ export class ManageDashboardLayoutsDialogComponent extends DialogComponent<Manag
     return originalErrorState || customErrorState;
   }
 
-  openLayoutSettings(layoutId: DashboardLayoutId) {
-    const gridSettings = deepClone(this.layouts[layoutId].gridSettings);
-    this.dialog.open<DashboardSettingsDialogComponent, DashboardSettingsDialogData,
-      DashboardSettingsDialogData>(DashboardSettingsDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        settings: null,
-        gridSettings
-      }
-    }).afterClosed().subscribe((data) => {
-      if (data && data.gridSettings) {
-        this.dashboardUtils.updateLayoutSettings(this.layouts[layoutId], data.gridSettings);
-        this.layoutsFormGroup.markAsDirty();
-      }
-    });
-  }
-
   cancel(): void {
     this.dialogRef.close(null);
   }
 
   save(): void {
     this.submitted = true;
-    for (const l of Object.keys(this.layoutsFormGroup.controls)) {
-      const control = this.layoutsFormGroup.controls[l];
-      if (!control.value) {
-        delete this.layouts[l];
-      }
-    }
-    this.dialogRef.close(this.layouts);
+    this.state = {...this.state, ...this.stateFormGroup.value};
+    this.state.id = this.state.id.trim();
+    this.dialogRef.close(this.state);
   }
 }

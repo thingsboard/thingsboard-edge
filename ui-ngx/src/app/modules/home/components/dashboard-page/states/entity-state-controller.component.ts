@@ -32,24 +32,29 @@
 import { Component, Inject, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DashboardState } from '@shared/models/dashboard.models';
+import { forkJoin, Observable, of } from 'rxjs';
 import { StateControllerState } from './state-controller.models';
 import { StateControllerComponent } from './state-controller.component';
-import { StatesControllerService } from '@home/pages/dashboard/states/states-controller.service';
+import { StatesControllerService } from '@home/components/dashboard-page/states/states-controller.service';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import { UtilsService } from '@core/services/utils.service';
-import { base64toObj, objToBase64URI } from '@app/core/utils';
+import { base64toObj, insertVariable, isEmpty, objToBase64URI } from '@app/core/utils';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
+import { EntityType } from '@shared/models/entity-type.models';
+import { map, tap } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 // @dynamic
 @Component({
-  selector: 'tb-default-state-controller',
-  templateUrl: './default-state-controller.component.html',
-  styleUrls: ['./default-state-controller.component.scss']
+  selector: 'tb-entity-state-controller',
+  templateUrl: './entity-state-controller.component.html',
+  styleUrls: ['./entity-state-controller.component.scss']
 })
-export class DefaultStateControllerComponent extends StateControllerComponent implements OnInit, OnDestroy {
+export class EntityStateControllerComponent extends StateControllerComponent implements OnInit, OnDestroy {
+
+  selectedStateIndex = -1;
 
   constructor(protected router: Router,
               @Inject(WINDOW) protected window: Window,
@@ -73,14 +78,16 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
   protected init() {
     if (this.preservedState) {
       this.stateObject = this.preservedState;
+      this.selectedStateIndex = this.stateObject.length - 1;
       setTimeout(() => {
-        this.gotoState(this.stateObject[0].id, true);
+        this.gotoState(this.stateObject[this.stateObject.length - 1].id, true);
       }, 1);
     } else {
       const initialState = this.currentState;
       this.stateObject = this.parseState(initialState);
+      this.selectedStateIndex = this.stateObject.length - 1;
       setTimeout(() => {
-        this.gotoState(this.stateObject[0].id, false);
+        this.gotoState(this.stateObject[this.stateObject.length - 1].id, false);
       }, 1);
     }
   }
@@ -96,11 +103,12 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
 
   protected onStateChanged() {
     this.stateObject = this.parseState(this.currentState);
-    this.gotoState(this.stateObject[0].id, false);
+    this.selectedStateIndex = this.stateObject.length - 1;
+    this.gotoState(this.stateObject[this.stateObject.length - 1].id, false);
   }
 
   protected stateControllerId(): string {
-    return 'default';
+    return 'entity';
   }
 
   public getStateParams(): StateParams {
@@ -113,21 +121,35 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
 
   public openState(id: string, params?: StateParams, openRightLayout?: boolean): void {
     if (this.states && this.states[id]) {
-      if (!params) {
-        params = {};
-      }
-      const newState: StateObject = {
-        id,
-        params
-      };
-      this.stateObject[0] = newState;
-      this.gotoState(this.stateObject[0].id, true, openRightLayout);
+      this.resolveEntity(params).subscribe(
+        () => {
+          const newState: StateObject = {
+            id,
+            params
+          };
+          this.stateObject.push(newState);
+          this.selectedStateIndex = this.stateObject.length - 1;
+          this.gotoState(this.stateObject[this.stateObject.length - 1].id, true, openRightLayout);
+        }
+      );
     }
   }
 
   public pushAndOpenState(states: Array<StateObject>, openRightLayout?: boolean): void {
-    const state = states[states.length - 1];
-    this.openState(state.id, state.params, openRightLayout);
+    if (this.states) {
+      for (const state of states) {
+        if (!this.states[state.id]) {
+          return;
+        }
+      }
+      forkJoin(states.map(state => this.resolveEntity(state.params))).subscribe(
+        () => {
+          this.stateObject.push(...states);
+          this.selectedStateIndex = this.stateObject.length - 1;
+          this.gotoState(this.stateObject[this.stateObject.length - 1].id, true, openRightLayout);
+        }
+      );
+    }
   }
 
   public updateState(id: string, params?: StateParams, openRightLayout?: boolean): void {
@@ -135,19 +157,25 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
       id = this.getStateId();
     }
     if (this.states && this.states[id]) {
-      if (!params) {
-        params = {};
-      }
-      const newState: StateObject = {
-        id,
-        params
-      };
-      this.stateObject[0] = newState;
-      this.gotoState(this.stateObject[0].id, true, openRightLayout);
+      this.resolveEntity(params).subscribe(
+        () => {
+          this.stateObject[this.stateObject.length - 1] = {
+            id,
+            params
+          };
+          this.gotoState(this.stateObject[this.stateObject.length - 1].id, true, openRightLayout);
+        }
+      );
     }
   }
 
   public getEntityId(entityParamName: string): EntityId {
+    const stateParams = this.getStateParams();
+    if (!entityParamName || !entityParamName.length) {
+      return stateParams.entityId;
+    } else if (stateParams[entityParamName]) {
+      return stateParams[entityParamName].entityId;
+    }
     return null;
   }
 
@@ -187,6 +215,7 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
   public navigatePrevState(index: number): void {
     if (index < this.stateObject.length - 1) {
       this.stateObject.splice(index + 1, this.stateObject.length - index - 1);
+      this.selectedStateIndex = this.stateObject.length - 1;
       this.gotoState(this.stateObject[this.stateObject.length - 1].id, true);
     }
   }
@@ -197,16 +226,34 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
     this.gotoState(rootStateId, true);
   }
 
-  public getStateName(id: string, state: DashboardState): string {
-    return this.utils.customTranslation(state.name, id);
+  public getStateName(index: number): string {
+    let result = '';
+    const state = this.stateObject[index];
+    if (state) {
+      const dashboardState = this.states[state.id];
+      if (dashboardState) {
+        let stateName = dashboardState.name;
+        stateName = this.utils.customTranslation(stateName, stateName);
+        const params = this.stateObject[index].params;
+        const entityName = params && params.entityName ? params.entityName : '';
+        const entityLabel = params && params.entityLabel ? params.entityLabel : '';
+        result = insertVariable(stateName, 'entityName', entityName);
+        result = insertVariable(result, 'entityLabel', entityLabel);
+        for (const prop of Object.keys(params)) {
+          if (params[prop] && params[prop].entityName) {
+            result = insertVariable(result, prop + ':entityName', params[prop].entityName);
+          }
+          if (params[prop] && params[prop].entityLabel) {
+            result = insertVariable(result, prop + ':entityLabel', params[prop].entityLabel);
+          }
+        }
+      }
+    }
+    return result;
   }
 
-  public displayStateSelection(): boolean {
-    return this.states && Object.keys(this.states).length > 1;
-  }
-
-  public selectedStateIdChanged() {
-    this.gotoState(this.stateObject[0].id, true);
+  public selectedStateIndexChanged() {
+    this.navigatePrevState(this.selectedStateIndex);
   }
 
   private parseState(stateBase64: string): StateControllerState {
@@ -223,10 +270,6 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
     }
     if (!result.length) {
       result[0] = { id: null, params: {} };
-    } else if (result.length > 1) {
-      const newResult = [];
-      newResult.push(result[result.length - 1]);
-      result = newResult;
     }
     const rootStateId = this.dashboardUtils.getRootStateId(this.states);
     if (!result[0].id) {
@@ -245,19 +288,65 @@ export class DefaultStateControllerComponent extends StateControllerComponent im
   }
 
   private gotoState(stateId: string, update: boolean, openRightLayout?: boolean) {
-    if (this.dashboardCtrl.dashboardCtx.state !== stateId) {
-      this.dashboardCtrl.openDashboardState(stateId, openRightLayout);
-      if (update) {
-        this.updateLocation();
-      }
+    this.dashboardCtrl.openDashboardState(stateId, openRightLayout);
+    if (update) {
+      this.updateLocation();
     }
   }
 
   private updateLocation() {
-    if (this.stateObject[0].id) {
-      const newState = objToBase64URI(this.stateObject);
+    if (this.stateObject[this.stateObject.length - 1].id) {
+      let newState;
+      if (this.isDefaultState()) {
+        newState = null;
+      } else {
+        newState = objToBase64URI(this.stateObject);
+      }
       this.updateStateParam(newState);
     }
+  }
+
+  private isDefaultState(): boolean {
+    if (this.stateObject.length === 1) {
+      const state = this.stateObject[0];
+      const rootStateId = this.dashboardUtils.getRootStateId(this.states);
+      if (state.id === rootStateId && (!state.params || isEmpty(state.params))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private resolveEntity(params: StateParams): Observable<void> {
+    if (params && params.targetEntityParamName) {
+      params = params[params.targetEntityParamName];
+    }
+    if (params && params.entityId && params.entityId.id && params.entityId.entityType) {
+      if (this.isEntityResolved(params)) {
+        return of(null);
+      } else {
+        return this.entityService.getEntity(params.entityId.entityType as EntityType,
+          params.entityId.id, {ignoreLoading: true, ignoreErrors: true}).pipe(
+            tap((entity) => {
+              params.entityName = entity.name;
+              params.entityLabel = entity.label;
+              if (params.entityId.entityType === EntityType.ENTITY_GROUP) {
+                params.entityGroupType = (entity as EntityGroupInfo).type;
+              }
+            }),
+          map(() => null)
+        );
+      }
+    } else {
+      return of(null);
+    }
+  }
+
+  private isEntityResolved(params: StateParams): boolean {
+    if (params.entityId && params.entityId.entityType === EntityType.ENTITY_GROUP && !params.entityGroupType) {
+      return false;
+    }
+    return !(!params.entityName || !params.entityName.length);
   }
 
   private getStateObjById(id: string): StateObject {

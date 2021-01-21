@@ -29,18 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { IStateController, StateObject } from '@core/api/widget-api.models';
-import { IDashboardController } from '@home/pages/dashboard/dashboard-page.models';
-import { DashboardState } from '@shared/models/dashboard.models';
+import { InjectionToken } from '@angular/core';
+import { ComponentType } from '@angular/cdk/portal';
 
-export declare type StateControllerState = StateObject[];
+export const EMBED_DASHBOARD_DIALOG_TOKEN: InjectionToken<ComponentType<any>> =
+  new InjectionToken<ComponentType<any>>('EMBED_DASHBOARD_DIALOG_TOKEN');
 
-export interface IStateControllerComponent extends IStateController {
-  state: string;
-  isMobile: boolean;
-  dashboardCtrl: IDashboardController;
-  states: {[id: string]: DashboardState };
-  dashboardId: string;
-  preservedState: any;
-  reInit(): void;
-}

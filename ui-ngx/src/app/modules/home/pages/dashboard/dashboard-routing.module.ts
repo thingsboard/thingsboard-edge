@@ -33,7 +33,7 @@ import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { DashboardsTableConfigResolver } from './dashboards-table-config.resolver';
-import { DashboardPageComponent } from '@home/pages/dashboard/dashboard-page.component';
+import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { Observable } from 'rxjs';
 import { Dashboard } from '@app/shared/models/dashboard.models';

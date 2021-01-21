@@ -49,7 +49,8 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { RoleService } from '@core/http/role.service';
 import { AlarmService } from '@core/http/alarm.service';
 import { Router } from '@angular/router';
-import { BroadcastService } from "@core/services/broadcast.service";
+import { BroadcastService } from '@core/services/broadcast.service';
+import { ImportExportService } from '@home/components/import-export/import-export.service';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -72,6 +73,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['utils', UtilsService],
    ['translate', TranslateService],
    ['http', HttpClient],
-   ['router', Router]
+   ['router', Router],
+   ['importExport', ImportExportService]
   ]
 );

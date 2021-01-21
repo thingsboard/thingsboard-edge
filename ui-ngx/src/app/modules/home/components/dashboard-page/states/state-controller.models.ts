@@ -29,39 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { StatesControllerService } from './states-controller.service';
-import { EntityStateControllerComponent } from './entity-state-controller.component';
-import { StatesComponentDirective } from './states-component.directive';
-import { HomeDialogsModule } from '@app/modules/home/dialogs/home-dialogs.module';
-import { DefaultStateControllerComponent } from '@home/pages/dashboard/states/default-state-controller.component';
+import { IStateController, StateObject } from '@core/api/widget-api.models';
+import { IDashboardController } from '@home/components/dashboard-page/dashboard-page.models';
+import { DashboardState } from '@shared/models/dashboard.models';
 
-@NgModule({
-  declarations: [
-    StatesComponentDirective,
-    DefaultStateControllerComponent,
-    EntityStateControllerComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule
-  ],
-  exports: [
-    StatesComponentDirective
-  ],
-  providers: [
-    StatesControllerService
-  ]
-})
-export class StatesControllerModule {
+export declare type StateControllerState = StateObject[];
 
-  constructor(private statesControllerService: StatesControllerService) {
-    this.statesControllerService.registerStatesController('default', DefaultStateControllerComponent);
-    this.statesControllerService.registerStatesController('entity', EntityStateControllerComponent);
-  }
+export interface IStateControllerComponent extends IStateController {
+  stateControllerInstanceId: string;
+  state: string;
+  currentState: string;
+  isMobile: boolean;
+  states: {[id: string]: DashboardState };
+  dashboardId: string;
+  preservedState: any;
+  reInit(): void;
 }

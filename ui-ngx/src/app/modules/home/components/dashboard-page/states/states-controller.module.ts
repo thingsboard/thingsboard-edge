@@ -32,29 +32,34 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { DashboardFormComponent } from '@modules/home/pages/dashboard/dashboard-form.component';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { PublicDashboardLinkDialogComponent } from '@home/pages/dashboard/public-dashboard-link.dialog.component';
-import { DASHBOARD_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { DashboardGroupConfigFactory } from '@home/pages/dashboard/dashboard-group-config.factory';
+import { StatesControllerService } from './states-controller.service';
+import { EntityStateControllerComponent } from './entity-state-controller.component';
+import { StatesComponentDirective } from './states-component.directive';
+import { HomeDialogsModule } from '@app/modules/home/dialogs/home-dialogs.module';
+import { DefaultStateControllerComponent } from '@home/components/dashboard-page/states/default-state-controller.component';
 
 @NgModule({
   declarations: [
-    DashboardFormComponent,
-    PublicDashboardLinkDialogComponent
+    StatesComponentDirective,
+    DefaultStateControllerComponent,
+    EntityStateControllerComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
+    HomeDialogsModule
+  ],
+  exports: [
+    StatesComponentDirective
   ],
   providers: [
-    {
-      provide: DASHBOARD_GROUP_CONFIG_FACTORY,
-      useClass: DashboardGroupConfigFactory
-    }
+    StatesControllerService
   ]
 })
-export class DashboardModule { }
+export class StatesControllerModule {
+
+  constructor(private statesControllerService: StatesControllerService) {
+    this.statesControllerService.registerStatesController('default', DefaultStateControllerComponent);
+    this.statesControllerService.registerStatesController('entity', EntityStateControllerComponent);
+  }
+}
