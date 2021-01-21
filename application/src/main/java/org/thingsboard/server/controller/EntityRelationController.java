@@ -85,7 +85,7 @@ public class EntityRelationController extends BaseController {
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, null, relation);
 
-            sendNotificationMsgToEdgeService(getTenantId(), relation, EdgeEventActionType.RELATION_ADD_OR_UPDATE);
+            sendRelationNotificationMsg(getTenantId(), relation, EdgeEventActionType.RELATION_ADD_OR_UPDATE);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_ADD_OR_UPDATE, e, relation);
@@ -124,7 +124,7 @@ public class EntityRelationController extends BaseController {
             logEntityAction(relation.getTo(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, null, relation);
 
-            sendNotificationMsgToEdgeService(getTenantId(), relation, EdgeEventActionType.RELATION_DELETED);
+            sendRelationNotificationMsg(getTenantId(), relation, EdgeEventActionType.RELATION_DELETED);
         } catch (Exception e) {
             logEntityAction(relation.getFrom(), null, getCurrentUser().getCustomerId(),
                     ActionType.RELATION_DELETED, e, relation);

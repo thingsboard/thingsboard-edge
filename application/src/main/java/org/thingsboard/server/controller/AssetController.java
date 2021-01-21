@@ -116,7 +116,7 @@ public class AssetController extends BaseController {
                     asset.getCustomerId(),
                     ActionType.DELETED, null, strAssetId);
 
-            sendDeleteNotificationMsgToEdgeService(getTenantId(), assetId, EntityType.ASSET, relatedEdgeIds);
+            sendDeleteNotificationMsg(getTenantId(), assetId, relatedEdgeIds);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ASSET),
                     null,

@@ -104,7 +104,7 @@ public class RoleController extends BaseController {
             logEntityAction(savedRole.getId(), savedRole, null,
                     role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), savedRole.getId(), EntityType.ROLE,
+            sendEntityNotificationMsg(getTenantId(), savedRole.getId(),
                     role.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedRole;
@@ -132,7 +132,7 @@ public class RoleController extends BaseController {
             roleService.deleteRole(getTenantId(), roleId);
             logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), roleId, EntityType.ROLE, EdgeEventActionType.DELETED);
+            sendEntityNotificationMsg(getTenantId(), roleId, EdgeEventActionType.DELETED);
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ROLE),

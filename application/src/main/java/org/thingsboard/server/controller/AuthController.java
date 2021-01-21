@@ -48,7 +48,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -146,7 +145,7 @@ public class AuthController extends BaseController {
             userCredentials.setPassword(passwordEncoder.encode(newPassword));
             userService.replaceUserCredentials(securityUser.getTenantId(), userCredentials);
 
-            sendNotificationMsgToEdgeService(getTenantId(), userCredentials.getUserId(), EntityType.USER, EdgeEventActionType.CREDENTIALS_UPDATED);
+            sendEntityNotificationMsg(getTenantId(), userCredentials.getUserId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
         } catch (Exception e) {
             throw handleException(e);
@@ -263,7 +262,7 @@ public class AuthController extends BaseController {
                 }
             }
 
-            sendNotificationMsgToEdgeService(user.getTenantId(), user.getId(), EntityType.USER, EdgeEventActionType.CREDENTIALS_UPDATED);
+            sendEntityNotificationMsg(user.getTenantId(), user.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);

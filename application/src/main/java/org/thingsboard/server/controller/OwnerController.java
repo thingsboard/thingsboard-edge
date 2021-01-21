@@ -43,9 +43,6 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -99,7 +96,7 @@ public class OwnerController extends BaseController {
         try {
             checkEntityId(entityId, Operation.CHANGE_OWNER);
             EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsgToEdgeService(getTenantId(), entityId, previousOwnerId);
+            sendChangeOwnerNotificationMsg(getTenantId(), entityId, previousOwnerId);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -128,7 +125,7 @@ public class OwnerController extends BaseController {
         }
         try {
             EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsgToEdgeService(getTenantId(), entityId, previousOwnerId);
+            sendChangeOwnerNotificationMsg(getTenantId(), entityId, previousOwnerId);
         } catch (Exception e) {
             throw handleException(e);
         }

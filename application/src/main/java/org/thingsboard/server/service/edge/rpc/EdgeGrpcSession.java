@@ -361,8 +361,6 @@ public final class EdgeGrpcSession implements Closeable {
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:
-                    case ASSIGNED_TO_CUSTOMER:
-                    case UNASSIGNED_FROM_CUSTOMER:
                         downlinkMsg = processEntityMessage(edgeEvent, edgeEvent.getAction());
                         break;
                     case ATTRIBUTES_UPDATED:
@@ -1007,8 +1005,6 @@ public final class EdgeGrpcSession implements Closeable {
         switch (actionType) {
             case UPDATED:
             case CREDENTIALS_UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
                 return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:

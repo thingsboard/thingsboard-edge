@@ -156,7 +156,7 @@ public class DeviceController extends BaseController {
                     device.getCustomerId(),
                     ActionType.DELETED, null, strDeviceId);
 
-            sendDeleteNotificationMsgToEdgeService(getTenantId(), deviceId, EntityType.DEVICE, relatedEdgeIds);
+            sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
 
             deviceStateService.onDeviceDeleted(device);
         } catch (Exception e) {
@@ -200,7 +200,7 @@ public class DeviceController extends BaseController {
 
             tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId()), null);
 
-            sendNotificationMsgToEdgeService(getTenantId(), device.getId(), EntityType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED);
+            sendEntityNotificationMsg(getTenantId(), device.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
 
             logEntityAction(device.getId(), device,
                     device.getCustomerId(),

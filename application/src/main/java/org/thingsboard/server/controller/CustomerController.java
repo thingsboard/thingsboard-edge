@@ -150,7 +150,7 @@ public class CustomerController extends BaseController {
                     customer.getId(),
                     ActionType.DELETED, null, strCustomerId);
 
-            sendDeleteNotificationMsgToEdgeService(getTenantId(), customerId, EntityType.CUSTOMER, relatedEdgeIds);
+            sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.CUSTOMER),

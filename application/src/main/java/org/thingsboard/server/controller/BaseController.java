@@ -523,7 +523,7 @@ public abstract class BaseController {
                         savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                         savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
 
-                sendNotificationMsgToEdgeService(getTenantId(), null, savedEntity.getId(), entity.getEntityType(),
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
                         EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
@@ -532,8 +532,7 @@ public abstract class BaseController {
                     entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (entity.getId() != null) {
-                sendNotificationMsgToEdgeService(savedEntity.getTenantId(), savedEntity.getId(),
-                        entity.getEntityType(), EdgeEventActionType.UPDATED);
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
             }
 
             return savedEntity;
@@ -1141,48 +1140,16 @@ public abstract class BaseController {
         return ownersCacheService.loadAndFilterEntities(entityIds, toEntitiesFunction, Collections.emptyList(), pageLink);
     }
 
-
-    protected void sendChangeOwnerNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
-        if (!edgesEnabled) {
-            return;
-        }
+    protected void sendChangeOwnerNotificationMsg(TenantId tenantId, EntityId entityId, EntityId previousOwnerId) {
         try {
-            EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
-            if (type != null) {
-                sendNotificationMsgToEdgeService(tenantId, null, entityId,
-                        json.writeValueAsString(previousOwnerId), type, EdgeEventActionType.CHANGE_OWNER, null, null);
-            }
+            sendNotificationMsgToEdgeService(tenantId, null, entityId,
+                    json.writeValueAsString(previousOwnerId), EdgeEventActionType.CHANGE_OWNER);
         } catch (Exception e) {
             log.warn("Failed to push change owner event to core: {}", previousOwnerId, e);
         }
     }
 
-//    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, ActionType edgeEventAction) {
-//        sendNotificationMsgToEdgeService(tenantId, entityId, edgeEventAction, null);
-//    }
-//
-//    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, ActionType edgeEventAction) {
-//        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, edgeEventAction, null);
-//    }
-//
-//    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EdgeEventActionType action, EntityGroupId entityGroupId) {
-//        sendNotificationMsgToEdgeService(tenantId, null, entityId, action, entityGroupId);
-//    }
-//
-//    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, CustomerId customerId, EdgeEventActionType action) {
-//        if (!edgesEnabled) {
-//            return;
-//        }
-//        EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
-//        if (type != null) {
-//            sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, type, action, null, entityGroupId);
-//        }
-//    }
-
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
-        if (!edgesEnabled) {
-            return;
-        }
+    protected void sendRelationNotificationMsg(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
                     !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
@@ -1193,52 +1160,50 @@ public abstract class BaseController {
         }
     }
 
-    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
-        if (!edgesEnabled) {
-            return null;
-        }
-        List<EdgeId> result = null;
-        try {
-            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
-        } catch (Exception e) {
-            log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
-        }
-        return result;
-    }
-
-    protected void sendDeleteNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityType entityType, List<EdgeId> edgeIds) {
-        if (!edgesEnabled) {
-            return;
-        }
+    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, entityType, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, EdgeEventActionType.DELETED);
             }
         }
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityType entityType, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, entityType, action);
+    protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType entityType, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, entityType, action, null);
+    protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
     }
 
-    protected void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType entityType, EdgeEventActionType action,
-                                                    EntityGroupId entityGroupId) {
-        if (!edgesEnabled) {
-            return;
-        }
-        EdgeEventType type = EdgeUtils.getEdgeEventTypeByEntityType(entityType);
-        if (type != null) {
-            sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, type, action, entityType, null);
-        }
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
+                                                EntityGroupId entityGroupId) {
+        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    }
+
+    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                                  EdgeEventActionType action) {
+        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
     }
 
     private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
                                                   EdgeEventType type, EdgeEventActionType action,
                                                   EntityType entityGroupType, EntityGroupId entityGroupId) {
+        if (!edgesEnabled) {
+            return;
+        }
+        if (type == null) {
+            if (entityId != null) {
+                type = EdgeUtils.getEdgeEventTypeByEntityType(entityId.getEntityType());
+            } else {
+                log.trace("[{}] entity id and type are null. Ignoring this notification", tenantId);
+                return;
+            }
+            if (type == null) {
+                log.trace("[{}] edge event type is null. Ignoring this notification [{}]", tenantId, entityId);
+                return;
+            }
+        }
         TransportProtos.EdgeNotificationMsgProto.Builder builder = TransportProtos.EdgeNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
@@ -1269,4 +1234,16 @@ public abstract class BaseController {
                 TransportProtos.ToCoreMsg.newBuilder().setEdgeNotificationMsg(msg).build(), null);
     }
 
+    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
+        if (!edgesEnabled) {
+            return null;
+        }
+        List<EdgeId> result = null;
+        try {
+            result = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, null).get();
+        } catch (Exception e) {
+            log.error("[{}] can't find related edge ids for entity [{}]", tenantId, entityId, e);
+        }
+        return result;
+    }
 }

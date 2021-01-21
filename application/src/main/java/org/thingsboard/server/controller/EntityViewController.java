@@ -196,7 +196,7 @@ public class EntityViewController extends BaseController {
             logEntityAction(entityViewId, entityView, entityView.getCustomerId(),
                     ActionType.DELETED, null, strEntityViewId);
 
-            sendDeleteNotificationMsgToEdgeService(getTenantId(), entityViewId, EntityType.ENTITY_VIEW, relatedEdgeIds);
+            sendDeleteNotificationMsg(getTenantId(), entityViewId, relatedEdgeIds);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ENTITY_VIEW),
                     null,

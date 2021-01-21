@@ -114,8 +114,8 @@ public class SchedulerEventController extends BaseController {
                     schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (schedulerEvent.getId() != null) {
-                sendNotificationMsgToEdgeService(getTenantId(), savedSchedulerEvent.getId(),
-                        EntityType.SCHEDULER_EVENT, EdgeEventActionType.UPDATED);
+                sendEntityNotificationMsg(getTenantId(), savedSchedulerEvent.getId(),
+                        EdgeEventActionType.UPDATED);
             }
 
             if (schedulerEvent.getId() == null) {
@@ -147,7 +147,7 @@ public class SchedulerEventController extends BaseController {
                     schedulerEvent.getCustomerId(),
                     ActionType.DELETED, null, strSchedulerEventId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), schedulerEventId, EntityType.SCHEDULER_EVENT, EdgeEventActionType.DELETED);
+            sendEntityNotificationMsg(getTenantId(), schedulerEventId, EdgeEventActionType.DELETED);
 
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
@@ -241,7 +241,7 @@ public class SchedulerEventController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, schedulerEventId, EntityType.SCHEDULER_EVENT, EdgeEventActionType.ASSIGNED_TO_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {
@@ -273,7 +273,7 @@ public class SchedulerEventController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, schedulerEventId, EntityType.SCHEDULER_EVENT, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {

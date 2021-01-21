@@ -183,8 +183,8 @@ public class EntityGroupController extends BaseController {
                     entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
             if (entityGroup.getId() != null) {
-                sendNotificationMsgToEdgeService(getTenantId(), savedEntityGroup.getId(),
-                        EntityType.ENTITY_GROUP, EdgeEventActionType.UPDATED);
+                sendEntityNotificationMsg(getTenantId(), savedEntityGroup.getId(),
+                        EdgeEventActionType.UPDATED);
             }
 
             return toEntityGroupInfo(savedEntityGroup);
@@ -224,7 +224,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.DELETED, null, strEntityGroupId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), entityGroupId, EntityType.ENTITY_GROUP, EdgeEventActionType.DELETED);
+            sendEntityNotificationMsg(getTenantId(), entityGroupId, EdgeEventActionType.DELETED);
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.ENTITY_GROUP),
@@ -363,8 +363,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), null, entityId, entityId.getEntityType(),
-                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -411,7 +410,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                sendNotificationMsgToEdgeService(getTenantId(), null, entityId, entityId.getEntityType(),
+                sendGroupEntityNotificationMsg(getTenantId(), entityId,
                         EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
@@ -779,7 +778,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, savedEntityGroup.getId(), EntityType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
@@ -813,7 +812,7 @@ public class EntityGroupController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
-            sendNotificationMsgToEdgeService(getTenantId(), edgeId, savedEntityGroup.getId(), EntityType.ENTITY_GROUP, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
