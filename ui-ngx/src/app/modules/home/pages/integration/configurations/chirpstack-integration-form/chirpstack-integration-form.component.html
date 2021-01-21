@@ -43,11 +43,16 @@
         <mat-label translate>integration.http-endpoint</mat-label>
         <input matInput formControlName="httpEndpoint">
       </mat-form-field>
-      <button mat-button mat-icon-button type="button" ngxClipboard (cbOnSuccess)="onHttpEndpointCopied()"
-              [cbContent]="form.get('httpEndpoint').value"
-              [matTooltip]="'integration.copy-http-endpoint-url' | translate">
-        <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-      </button>
+      <fieldset [disabled]="false" style="width: auto">
+        <div ngxClipboard
+             (cbOnSuccess)="onHttpEndpointCopied()"
+             [cbContent]="form.get('httpEndpoint').value"
+             matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
+          <button mat-button mat-icon-button type="button">
+            <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+          </button>
+        </div>
+      </fieldset>
     </div>
     <section>
       <mat-form-field class="mat-block">
