@@ -409,7 +409,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                     sections.push(
                         {
                             name: 'rulechain.rulechains',
-                            type: 'toggle',
+                            type: 'link',
                             state: 'home.ruleChains',
                             icon: 'settings_ethernet',
                             disabled: disabledItems.indexOf('rule_chains') > -1
