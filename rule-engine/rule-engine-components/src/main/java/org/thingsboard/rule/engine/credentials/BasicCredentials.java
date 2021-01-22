@@ -28,29 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mqtt.credentials;
+package org.thingsboard.rule.engine.credentials;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.netty.handler.ssl.SslContext;
-import org.thingsboard.mqtt.MqttClientConfig;
-import org.thingsboard.rule.engine.mqtt.azure.AzureIotHubSasCredentials;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 
-import java.util.Optional;
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class BasicCredentials implements ClientCredentials {
+    private String username;
+    private String password;
 
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = AnonymousCredentials.class, name = "anonymous"),
-        @JsonSubTypes.Type(value = BasicCredentials.class, name = "basic"),
-        @JsonSubTypes.Type(value = AzureIotHubSasCredentials.class, name = "sas"),
-        @JsonSubTypes.Type(value = CertPemClientCredentials.class, name = "cert.PEM")})
-public interface MqttClientCredentials {
-
-    Optional<SslContext> initSslContext();
-
-    void configure(MqttClientConfig config);
+    @Override
+    public CredentialsType getType() {
+        return CredentialsType.BASIC;
+    }
 }
-

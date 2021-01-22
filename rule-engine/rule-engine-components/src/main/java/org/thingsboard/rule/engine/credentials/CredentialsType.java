@@ -28,23 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.mqtt.credentials;
+package org.thingsboard.rule.engine.credentials;
 
-import io.netty.handler.ssl.SslContext;
-import org.thingsboard.mqtt.MqttClientConfig;
+public enum CredentialsType {
+    ANONYMOUS("anonymous"),
+    BASIC("basic"),
+    SAS("sas"),
+    CERT_PEM("cert.PEM");
 
-import java.util.Optional;
+    private final String label;
 
-public class AnonymousCredentials implements MqttClientCredentials {
-
-    @Override
-    public Optional<SslContext> initSslContext() {
-        return Optional.empty();
-    }
-
-    @Override
-    public void configure(MqttClientConfig config) {
-
+    CredentialsType(String label) {
+        this.label = label;
     }
 }
-

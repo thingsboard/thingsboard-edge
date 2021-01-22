@@ -28,53 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.transport.service;
+package org.thingsboard.rule.engine.credentials;
 
-import lombok.Data;
-import org.thingsboard.server.common.transport.SessionMsgListener;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.concurrent.ScheduledFuture;
-
-/**
- * Created by ashvayka on 15.10.18.
- */
-@Data
-public class SessionMetaData {
-
-    private volatile SessionInfoProto sessionInfo;
-    private final SessionType sessionType;
-    private final SessionMsgListener listener;
-
-    private volatile ScheduledFuture scheduledFuture;
-    private volatile long lastActivityTime;
-    private volatile long lastReportedActivityTime;
-    private volatile boolean subscribedToAttributes;
-    private volatile boolean subscribedToRPC;
-    private volatile boolean overwriteActivityTime;
-
-    SessionMetaData(SessionInfoProto sessionInfo, SessionType sessionType, SessionMsgListener listener) {
-        this.sessionInfo = sessionInfo;
-        this.sessionType = sessionType;
-        this.listener = listener;
-        this.lastActivityTime = System.currentTimeMillis();
-        this.scheduledFuture = null;
-    }
-
-    void updateLastActivityTime() {
-        this.lastActivityTime = System.currentTimeMillis();
-    }
-
-    void setScheduledFuture(ScheduledFuture scheduledFuture) {
-        this.scheduledFuture = scheduledFuture;
-    }
-
-    public ScheduledFuture getScheduledFuture() {
-        return scheduledFuture;
-    }
-
-    public boolean hasScheduledFuture() {
-        return null != this.scheduledFuture;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AnonymousCredentials implements ClientCredentials {
+    @Override
+    public CredentialsType getType() {
+        return CredentialsType.ANONYMOUS;
     }
 }

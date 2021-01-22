@@ -1068,6 +1068,7 @@
         "unable-delete-device-alias-title": "Unable to delete device alias",
         "unable-delete-device-alias-text": "Device alias '{{deviceAlias}}' can't be deleted as it used by the following widget(s):<br/>{{widgetsList}}",
         "is-gateway": "Is gateway",
+        "overwrite-activity-time": "Overwrite activity time for connected device",
         "public": "Public",
         "device-public": "Device is public",
         "select-device": "Select device",
@@ -2074,6 +2075,7 @@
             "entity-field": "Entity field",
             "access-token": "Access token",
             "isgateway": "Is Gateway",
+            "activity-time-from-gateway-device": "Activity time from gateway device",
             "description": "Description"
         },
         "stepper-text":{
