@@ -32,7 +32,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { EdgeInfoRoutingModule } from "@home/pages/edge-info/edge-info-routing.module";
+import { EdgeStatusRoutingModule } from "@home/pages/edge-status/edge-status-routing.module";
 
 @NgModule({
   declarations: [
@@ -40,7 +40,7 @@ import { EdgeInfoRoutingModule } from "@home/pages/edge-info/edge-info-routing.m
   imports: [
     CommonModule,
     SharedModule,
-    EdgeInfoRoutingModule
+    EdgeStatusRoutingModule
   ]
 })
 export class CloudEventModule { }

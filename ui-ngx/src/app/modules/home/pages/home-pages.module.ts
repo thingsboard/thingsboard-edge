@@ -51,7 +51,7 @@ import { modulesMap } from '../../common/modules-map';
 import { DeviceProfileModule } from './device-profile/device-profile.module';
 import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
 import { CloudEventModule } from "@home/pages/cloud-event/cloud-event.module";
-import { EdgeInfoModule } from "@home/pages/edge-info/edge-info.module";
+import { EdgeStatusModule } from "@home/pages/edge-status/edge-status.module";
 
 @NgModule({
   exports: [
@@ -73,7 +73,7 @@ import { EdgeInfoModule } from "@home/pages/edge-info/edge-info.module";
     IFrameViewModule,
     SchedulerModule,
     CloudEventModule,
-    EdgeInfoModule
+    EdgeStatusModule
   ],
   providers: [
     {

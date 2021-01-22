@@ -32,13 +32,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { EdgeInfoComponent } from './edge-info.component';
+import { EdgeStatusComponent } from './edge-status.component';
 
 @NgModule({
-  declarations: [ EdgeInfoComponent ],
+  declarations: [ EdgeStatusComponent ],
   imports: [
     CommonModule,
     SharedModule
   ]
 })
-export class EdgeInfoModule { }
+export class EdgeStatusModule { }

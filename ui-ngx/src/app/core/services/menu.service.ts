@@ -387,7 +387,7 @@ export class MenuService {
 
   private buildTenantAdminMenu(authState: AuthState, disabledItems: string[]): Array<MenuSection> {
     const sections: Array<MenuSection> = [];
-    const pages: Array<MenuSection> = [
+    const edgePages: Array<MenuSection> = [
       {
         id: guid(),
         name: 'edge.status',
@@ -420,8 +420,8 @@ export class MenuService {
         type: 'toggle',
         path: '/edge',
         icon: 'router',
-        pages: pages,
-        asyncPages: of(pages)
+        pages: edgePages,
+        asyncPages: of(edgePages)
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
@@ -649,6 +649,8 @@ export class MenuService {
 
   private buildTenantAdminHome(authState: AuthState, disabledItems: string[]): Array<HomeSection> {
     const homeSections: Array<HomeSection> = [];
+
+    // TODO: voba - add permission check in next release once advanced RBAC is introduced
     homeSections.push(
       {
         name: 'edge.edge',
@@ -657,17 +659,18 @@ export class MenuService {
             name: 'edge.status',
             icon: 'info',
             path: '/edge/status',
-            disabled: disabledItems.indexOf('customer_groups') > -1
+            disabled: false
           },
           {
             name: 'edge.cloud-events',
             icon: 'date_range',
             path: '/edge/cloudEvents',
-            disabled: disabledItems.indexOf('customers_hierarchy') > -1
+            disabled: false
           }
         ]
       }
-    )
+    );
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
       homeSections.push(
         {

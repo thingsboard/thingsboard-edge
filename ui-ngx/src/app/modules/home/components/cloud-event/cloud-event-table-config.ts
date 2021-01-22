@@ -113,7 +113,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
       }
     );
 
-    this.loadEdgeInfo();
+    this.loadEdgeStatus();
   }
 
   showCloudEventDetails(entity: CloudEvent) {
@@ -139,7 +139,7 @@ export class CloudEventTableConfig extends EntityTableConfig<CloudEvent, TimePag
     }
   }
 
-  loadEdgeInfo() {
+  loadEdgeStatus() {
     const authUser = getCurrentAuthUser(this.store);
     const currentTenant: EntityId = {
       id: authUser.tenantId,

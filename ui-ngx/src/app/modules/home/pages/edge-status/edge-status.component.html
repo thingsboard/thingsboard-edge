@@ -31,7 +31,7 @@
 
 -->
 <div>
-  <mat-card class="edge-info-card">
+  <mat-card class="edge-status-card">
     <mat-card-title>
       <div fxLayout="column">
         <span class="mat-headline" translate>edge.status</span>
@@ -44,7 +44,7 @@
 <!--    </mat-progress-bar>-->
 <!--    <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>-->
     <mat-card-content style="padding-top: 16px;">
-      <form [formGroup]="edgeInfoGroup">
+      <form [formGroup]="edgeStatusGroup">
 <!--        <fieldset [disabled]="(isLoading$ | async)">-->
         <fieldset>
           <mat-form-field class="mat-block">

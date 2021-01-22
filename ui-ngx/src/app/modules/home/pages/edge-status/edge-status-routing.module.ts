@@ -32,14 +32,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
-import { EdgeInfoComponent } from "@home/pages/edge-info/edge-info.component";
+import { EdgeStatusComponent } from "@home/pages/edge-status/edge-status.component";
 import { CloudEventTableComponent } from "@home/components/cloud-event/cloud-event-table.component";
 
 const routes: Routes = [
   {
     path: 'edge',
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      auth: [Authority.TENANT_ADMIN],
       title: 'edge.edge',
       breadcrumb: {
         label: 'edge.edge',
@@ -50,7 +50,7 @@ const routes: Routes = [
       {
         path: '',
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           redirectTo: {
             TENANT_ADMIN: '/edge/status',
             CUSTOMER_USER: '/edge/status'
@@ -59,9 +59,9 @@ const routes: Routes = [
       },
       {
         path: 'status',
-        component: EdgeInfoComponent,
+        component: EdgeStatusComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           title: 'edge.status',
           breadcrumb: {
             label: 'edge.status',
@@ -73,7 +73,7 @@ const routes: Routes = [
         path: 'cloudEvents',
         component: CloudEventTableComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           title: 'edge.cloud-events',
           breadcrumb: {
             label: 'edge.cloud-events',
@@ -89,4 +89,4 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class EdgeInfoRoutingModule { }
+export class EdgeStatusRoutingModule { }
