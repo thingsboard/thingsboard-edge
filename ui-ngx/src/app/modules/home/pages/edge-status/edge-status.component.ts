@@ -72,6 +72,7 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
 
   buildEdgeStatusForm() {
     this.edgeStatusGroup = this.fb.group({
+      name: '',
       id: '',
       type: '',
       routingKey: '',
@@ -102,6 +103,7 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
         const lastDisconnectTime = edge.lastDisconnectTime ?
           this.datePipe.transform(edge.lastDisconnectTime?.value, 'yyyy-MM-dd HH:mm:ss') : 'N/A';
         this.edgeStatusGroup.setValue({
+          name: edgeSettings.name,
           id: edgeSettings.edgeId,
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,

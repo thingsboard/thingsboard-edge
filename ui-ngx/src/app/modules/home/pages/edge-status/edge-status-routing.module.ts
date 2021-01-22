@@ -40,7 +40,7 @@ const routes: Routes = [
     path: 'edge',
     data: {
       auth: [Authority.TENANT_ADMIN],
-      title: 'edge.status',
+      title: 'edge.edge',
       breadcrumb: {
         label: 'edge.edge',
         icon: 'router'
