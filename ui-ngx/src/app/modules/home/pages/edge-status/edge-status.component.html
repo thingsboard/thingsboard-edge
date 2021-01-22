@@ -48,6 +48,10 @@
 <!--        <fieldset [disabled]="(isLoading$ | async)">-->
         <fieldset>
           <mat-form-field class="mat-block">
+            <mat-label translate>edge.name</mat-label>
+            <input matInput formControlName="name"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
             <mat-label translate>edge.id</mat-label>
             <input matInput formControlName="id"/>
           </mat-form-field>

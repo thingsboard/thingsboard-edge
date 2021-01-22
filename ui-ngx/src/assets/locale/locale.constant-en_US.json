@@ -1258,7 +1258,7 @@
         "unknown-error": "Unknown error"
     },
     "edge": {
-        "name": "Edge name",
+        "name": "Name",
         "id": "ID",
         "edge": "Edge",
         "last-connect-time": "Last time connected to Cloud",
