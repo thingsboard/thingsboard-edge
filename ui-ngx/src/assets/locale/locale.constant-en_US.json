@@ -1270,7 +1270,6 @@
         "disconnected": "Disconnected",
         "cloud-events": "Cloud events",
         "status": "Status",
-
         "credentials-request": "Credentials request",
         "attributes-request": "Attributes request",
         "timeseries-updated": "Timeseries updated",
