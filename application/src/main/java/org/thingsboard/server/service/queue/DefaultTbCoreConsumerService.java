@@ -50,6 +50,8 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
@@ -294,10 +296,21 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
+        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            forwardToAppActor(id, toCoreNotification.getEdgeEventUpdateMsg().toByteArray(), callback);
         }
         if (statsEnabled) {
             stats.logToCoreNotification();
         }
+    }
+
+    private void forwardToAppActor(UUID id, byte[] msgBytes, TbCallback callback) {
+        Optional<TbActorMsg> actorMsg = encodingService.decode(msgBytes);
+        if (actorMsg.isPresent()) {
+            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+            actorContext.tellWithHighPriority(actorMsg.get());
+        }
+        callback.onSuccess();
     }
 
     private void launchUsageStatsConsumer() {

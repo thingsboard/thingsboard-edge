@@ -591,8 +591,9 @@ message ToCoreNotificationMsg {
   LocalSubscriptionServiceMsgProto toLocalSubscriptionServiceMsg = 1;
   FromDeviceRPCResponseProto fromDeviceRpcResponse = 2;
   bytes componentLifecycleMsg = 3;
-  IntegrationDownlinkMsgProto integrationDownlinkMsg = 4;
-  RestApiCallResponseMsgProto restApiCallResponseMsg = 5;
+  bytes edgeEventUpdateMsg = 4;
+  IntegrationDownlinkMsgProto integrationDownlinkMsg = 5;
+  RestApiCallResponseMsgProto restApiCallResponseMsg = 6;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

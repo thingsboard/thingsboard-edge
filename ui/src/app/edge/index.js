@@ -40,7 +40,11 @@ import AssignEdgeToCustomerController from './assign-to-customer.controller';
 import AddEdgesToCustomerController from './add-edges-to-customer.controller';
 import SetRootRuleChainToEdgesController from './set-root-rule-chain-to-edges.controller';
 import EdgeDirective from './edge.directive';
-import EdgeGroupConfig from "./edge-group.config";
+import EdgeDownlinksContentDialogController from './downlinks/edge-downlinks-content-dialog.controller';
+import EdgeDownlinksHeaderDirective from './downlinks/edge-downlinks-header.directive';
+import EdgeDownlinksRowDirective from './downlinks/edge-downlinks-row.directive';
+import EdgeDownlinksDirective from './downlinks/edge-downlinks-table.directive';
+import EdgeGroupConfig from './edge-group.config';
 
 export default angular.module('thingsboard.edge', [
     uiRouter,
@@ -55,6 +59,10 @@ export default angular.module('thingsboard.edge', [
     .controller('AssignEdgeToCustomerController', AssignEdgeToCustomerController)
     .controller('AddEdgesToCustomerController', AddEdgesToCustomerController)
     .controller('SetRootRuleChainToEdgesController', SetRootRuleChainToEdgesController)
+    .controller('EdgeDownlinksContentDialogController', EdgeDownlinksContentDialogController)
     .directive('tbEdge', EdgeDirective)
+    .directive('tbEdgeDownlinksTable', EdgeDownlinksDirective)
+    .directive('tbEdgeDownlinksHeader', EdgeDownlinksHeaderDirective)
+    .directive('tbEdgeDownlinksRow', EdgeDownlinksRowDirective)
     .factory('edgeGroupConfig', EdgeGroupConfig)
     .name;

@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AdminSettingsId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
@@ -64,7 +65,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -99,6 +99,8 @@ public class InstallScripts {
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
 
+    public static final String EDGE_MANAGEMENT = "edge_management";
+
     public static final String JSON_EXT = ".json";
 
     private static final Pattern velocityVarPattern = Pattern.compile("\\$([a-zA-Z]+)");
@@ -128,7 +130,7 @@ public class InstallScripts {
     @Autowired
     private OAuth2ConfigTemplateService oAuth2TemplateService;
 
-    public Path getTenantRuleChainsDir() {
+    private Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
     }
 
@@ -138,6 +140,10 @@ public class InstallScripts {
 
     public Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
+    }
+
+    private Path getEdgeRuleChainsDir() {
+        return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
     }
 
     public String getDataDir() {
@@ -197,8 +203,16 @@ public class InstallScripts {
     }
 
     public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
-        Path tenantChainsDir = getTenantRuleChainsDir();
-        loadRootRuleChain(tenantId, Collections.emptyMap(), tenantChainsDir.resolve("edge_root_rule_chain.json"));
+        Path edgeChainsDir = getEdgeRuleChainsDir();
+        loadRuleChainsFromPath(tenantId, edgeChainsDir);
+    }
+
+    private void loadRuleChainsFromPath(TenantId tenantId, Path ruleChainsPath) throws IOException {
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            dirStream.forEach(
+                    path -> loadRuleChainFromFile(tenantId, path)
+            );
+        }
     }
 
     public void loadSystemWidgets() throws Exception {
@@ -308,6 +322,9 @@ public class InstallScripts {
         ruleChainIdMap.putAll(loadAdditionalTenantRuleChains(tenantId, Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, RULE_CHAINS_DIR)));
         Path rootRuleChainFile = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, ROOT_RULE_CHAIN_DIR).resolve("root_rule_chain.json");
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
+
+        // TODO: voba - verify this
+        loadEdgeDemoRuleChains(tenantId);
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
@@ -318,6 +335,33 @@ public class InstallScripts {
         }
         JsonNode rootRuleChainJson = objectMapper.readTree(rootRuleChainContent);
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
+    }
+
+    private void loadEdgeDemoRuleChains(TenantId tenantId) throws Exception {
+        Path edgeRuleChainsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, EDGE_MANAGEMENT, RULE_CHAINS_DIR);
+        try {
+            loadRuleChainFromFile(tenantId, edgeRuleChainsDir.resolve("edge_root_rule_chain.json"));
+        } catch (Exception e) {
+            log.error("Unable to load dashboard from json", e);
+            throw new RuntimeException("Unable to load dashboard from json", e);
+        }
+    }
+
+    private void loadRuleChainFromFile(TenantId tenantId, Path ruleChainPath) {
+        try {
+            JsonNode ruleChainJson = objectMapper.readTree(ruleChainPath.toFile());
+            RuleChain ruleChain = objectMapper.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            RuleChainMetaData ruleChainMetaData = objectMapper.treeToValue(ruleChainJson.get("metadata"), RuleChainMetaData.class);
+
+            ruleChain.setTenantId(tenantId);
+            ruleChain = ruleChainService.saveRuleChain(ruleChain);
+
+            ruleChainMetaData.setRuleChainId(ruleChain.getId());
+            ruleChainService.saveRuleChainMetaData(new TenantId(EntityId.NULL_UUID), ruleChainMetaData);
+        } catch (Exception e) {
+            log.error("Unable to load rule chain from json: [{}]", ruleChainPath.toString());
+            throw new RuntimeException("Unable to load rule chain from json", e);
+        }
     }
 
     private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {

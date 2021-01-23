@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -307,6 +308,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
         return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action);
+    }
+
+    @Override
+    public void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId) {
+        mainCtx.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
     }
 
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {

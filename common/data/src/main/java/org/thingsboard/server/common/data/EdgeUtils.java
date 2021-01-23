@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.common.data;
 
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 
+@Slf4j
 public final class EdgeUtils {
 
     private EdgeUtils() {
@@ -72,6 +74,7 @@ public final class EdgeUtils {
             case GROUP_PERMISSION:
                 return EdgeEventType.GROUP_PERMISSION;
             default:
+                log.warn("Unsupported entity type [{}]", entityType);
                 return null;
         }
     }

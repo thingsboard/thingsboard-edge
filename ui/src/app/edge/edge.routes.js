@@ -61,16 +61,16 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
                 searchEnabled: true,
                 searchByEntitySubtype: true,
                 searchEntityType: types.entityType.edge,
-                pageTitle: 'edge.edges'
+                pageTitle: 'edge.edge-instances'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "transform", "label": "edge.edges"}'
+                label: '{"icon": "router", "label": "edge.edge-instances"}'
             }
         }).state('home.edges.entityViews', {
             url: '/:edgeId/entityViews',
             params: {'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: entityViewsTemplate,
@@ -92,7 +92,7 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
             url: '/:edgeId/devices',
             params: {'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: devicesTemplate,
@@ -114,7 +114,7 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
             url: '/:edgeId/assets',
             params: {'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: assetsTemplate,
@@ -136,7 +136,7 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
             url: '/:edgeId/dashboards',
             params: {'topIndex': 0},
             module: 'private',
-            auth: ['TENANT_ADMIN'],
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
                 "content@home": {
                     templateUrl: dashboardsTemplate,
@@ -209,11 +209,11 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
             },
             data: {
                 searchEnabled: true,
-                pageTitle: 'edge.rulechains',
+                pageTitle: 'edge.rulechain-templates',
                 ruleChainsType: 'edge'
             },
             ncyBreadcrumb: {
-                label: '{"icon": "settings_ethernet", "label": "rulechain.edge-rulechains"}'
+                label: '{"icon": "settings_ethernet", "label": "edge.rulechain-templates"}'
             }
         }).state('home.edges.ruleChains.ruleChain', {
             url: '/:ruleChainId',
@@ -247,7 +247,7 @@ import ruleChainTemplate from "../rulechain/rulechain.tpl.html";
             data: {
                 import: false,
                 searchEnabled: false,
-                pageTitle: 'edge.rulechain'
+                pageTitle: 'edge.rulechain-templates'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'

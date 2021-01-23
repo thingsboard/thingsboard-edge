@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -87,4 +88,6 @@ public interface TbClusterService {
     void onTenantDelete(Tenant tenant, TbQueueCallback callback);
 
     void onApiStateChange(ApiUsageState apiUsageState, TbQueueCallback callback);
+    void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
+
 }

@@ -45,11 +45,14 @@ function EdgeService($http, $q, customerService) {
         getCustomerEdges: getCustomerEdges,
         getUserEdges: getUserEdges,
         assignEdgeToCustomer: assignEdgeToCustomer,
+        findByQuery: findByQuery,
+        findByName: findByName,
         unassignEdgeFromCustomer: unassignEdgeFromCustomer,
         makeEdgePublic: makeEdgePublic,
         setRootRuleChain: setRootRuleChain,
         getEdgeEvents: getEdgeEvents,
-        syncEdge: syncEdge
+        syncEdge: syncEdge,
+        findMissingToRelatedRuleChains: findMissingToRelatedRuleChains
     };
 
     return service;
@@ -74,9 +77,13 @@ function EdgeService($http, $q, customerService) {
         return deferred.promise;
     }
 
-    function getEdge(edgeId, config) {
+    function getEdge(edgeId, ignoreErrors, config) {
         var deferred = $q.defer();
         var url = '/api/edge/' + edgeId;
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
         $http.get(url, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {
@@ -85,13 +92,17 @@ function EdgeService($http, $q, customerService) {
         return deferred.promise;
     }
 
-    function saveEdge(edge, entityGroupId) {
+    function saveEdge(edge, entityGroupId, config, ignoreErrors) {
         var deferred = $q.defer();
         var url = '/api/edge';
         if (entityGroupId) {
             url += '?entityGroupId=' + entityGroupId;
         }
-        $http.post(url, edge).then(function success(response) {
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, edge, config).then(function success(response) {
             deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);
@@ -121,7 +132,7 @@ function EdgeService($http, $q, customerService) {
         return deferred.promise;
     }
 
-    function getTenantEdges(pageLink, applyCustomersInfo, config, type) {
+    function getTenantEdges(pageLink, applyCustomersInfo, type, config) {
         var deferred = $q.defer();
         var url = '/api/tenant/edges?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
@@ -156,7 +167,7 @@ function EdgeService($http, $q, customerService) {
         return deferred.promise;
     }
 
-    function getCustomerEdges(customerId, pageLink, applyCustomersInfo, config, type) {
+    function getCustomerEdges(customerId, pageLink, applyCustomersInfo, type, config) {
         var deferred = $q.defer();
         var url = '/api/customer/' + customerId + '/edges?limit=' + pageLink.limit;
         if (angular.isDefined(pageLink.textSearch)) {
@@ -189,6 +200,33 @@ function EdgeService($http, $q, customerService) {
             deferred.reject();
         });
 
+        return deferred.promise;
+    }
+
+    function findByQuery(query, ignoreErrors, config) {
+        var deferred = $q.defer();
+        var url = '/api/edges';
+        if (!config) {
+            config = {};
+        }
+        config = Object.assign(config, { ignoreErrors: ignoreErrors });
+        $http.post(url, query, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
+        return deferred.promise;
+    }
+
+    function findByName(edgeName, config) {
+        config = config || {};
+        var deferred = $q.defer();
+        var url = '/api/tenant/edges?edgeName=' + edgeName;
+        $http.get(url, config).then(function success(response) {
+            deferred.resolve(response.data);
+        }, function fail() {
+            deferred.reject();
+        });
         return deferred.promise;
     }
 
@@ -281,9 +319,20 @@ function EdgeService($http, $q, customerService) {
 
     function syncEdge(edgeId) {
         var deferred = $q.defer();
-        var url = '/api/edge/sync';
-        $http.post(url, edgeId).then(function success(response) {
+        var url = '/api/edge/sync/' + edgeId;
+        $http.post(url, null).then(function success(response) {
             deferred.resolve(response);
+        }, function fail(response) {
+            deferred.reject(response.data);
+        });
+        return deferred.promise;
+    }
+
+    function findMissingToRelatedRuleChains(edgeId) {
+        var deferred = $q.defer();
+        var url = '/api/edge/missingToRelatedRuleChains/' + edgeId;
+        $http.get(url, null).then(function success(response) {
+            deferred.resolve(response.data);
         }, function fail(response) {
             deferred.reject(response.data);
         });

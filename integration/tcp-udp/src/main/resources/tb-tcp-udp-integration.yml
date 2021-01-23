@@ -57,7 +57,7 @@ executors:
   reconnect_timeout: "${EXECUTORS_RECONNECT_TIMEOUT:3000}" # in milliseconds
 
 rpc:
-  host: "${PRC_HOST:cloud.thingsboard.io}"
+  host: "${RPC_HOST:cloud.thingsboard.io}"
   port: "${RPC_PORT:9090}"
   timeout: "${RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
   ssl:

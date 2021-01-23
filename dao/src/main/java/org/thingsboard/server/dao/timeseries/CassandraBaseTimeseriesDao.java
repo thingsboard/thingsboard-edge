@@ -43,6 +43,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +77,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
@@ -94,11 +97,16 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
 
     protected static List<Long> FIXED_PARTITION = Arrays.asList(new Long[]{0L});
 
+    private CassandraTsPartitionsCache cassandraTsPartitionsCache;
+
     @Autowired
     private Environment environment;
 
     @Value("${cassandra.query.ts_key_value_partitioning}")
     private String partitioning;
+
+    @Value("${cassandra.query.ts_key_value_partitions_max_cache_size:100000}")
+    private long partitionsCacheSize;
 
     @Value("${cassandra.query.ts_key_value_ttl}")
     private long systemTtl;
@@ -131,6 +139,9 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         Optional<NoSqlTsPartitionDate> partition = NoSqlTsPartitionDate.parse(partitioning);
         if (partition.isPresent()) {
             tsFormat = partition.get();
+            if (!isFixedPartitioning() && partitionsCacheSize > 0) {
+                cassandraTsPartitionsCache = new CassandraTsPartitionsCache(partitionsCacheSize);
+            }
         } else {
             log.warn("Incorrect configuration of partitioning {}", partitioning);
             throw new RuntimeException("Failed to parse partitioning property: " + partitioning + "!");

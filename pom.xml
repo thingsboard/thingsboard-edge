@@ -765,6 +765,9 @@
                             <exclude>**/*.raw</exclude>
                             <exclude>.run/**</exclude>
                             <exclude>docker/**</exclude>
+                            <exclude>docker/haproxy/**</exclude>
+                            <exclude>docker/tb-node/**</exclude>
+                            <exclude>.run/**</exclude>
                             <exclude>**/apache/cassandra/io/**</exclude>
                         </excludes>
                         <mapping>

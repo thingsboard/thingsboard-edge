@@ -271,7 +271,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 @Override
                 protected void updateEntity(Tenant tenant) {
                     try {
-                        RuleChain defaultEdgeRuleChain = ruleChainService.getDefaultRootEdgeRuleChain(tenant.getId());
+                        RuleChain defaultEdgeRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenant.getId());
                         if (defaultEdgeRuleChain == null) {
                             installScripts.createDefaultEdgeRuleChains(tenant.getId());
                         }
@@ -1044,6 +1044,4 @@ public class DefaultDataUpdateService implements DataUpdateService {
         protected abstract ListenableFuture<WhiteLabelingParams> updateEntity(D entity) throws Exception;
 
     }
-
-
 }

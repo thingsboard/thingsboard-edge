@@ -30,7 +30,7 @@
  */
 /*@ngInject*/
 /*
-export default function AddDashboardsToEdgeController(dashboardService, types, $mdDialog, $q, edgeId, edgeCustomerId, dashboards) {
+export default function AddDashboardsToEdgeController(dashboardService, types, $mdDialog, $q, edgeId, dashboards) {
 
     var vm = this;
 

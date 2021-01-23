@@ -45,7 +45,9 @@ import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
@@ -69,6 +71,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class EdgeImitator {
@@ -77,6 +81,8 @@ public class EdgeImitator {
     private String routingSecret;
 
     private EdgeRpcClient edgeRpcClient;
+
+    private final Lock lock = new ReentrantLock();
 
     private CountDownLatch messagesLatch;
     private CountDownLatch responsesLatch;
@@ -87,7 +93,7 @@ public class EdgeImitator {
     @Getter
     private UserId userId;
     @Getter
-    private List<AbstractMessage> downlinkMsgs;
+    private final List<AbstractMessage> downlinkMsgs;
 
     public EdgeImitator(String host, int port, String routingKey, String routingSecret) throws NoSuchFieldException, IllegalAccessException {
         edgeRpcClient = new EdgeGrpcClient();
@@ -239,12 +245,27 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(userCredentialsUpdateMsg));
             }
         }
+        if (downlinkMsg.getDeviceRpcCallMsgList() != null && !downlinkMsg.getDeviceRpcCallMsgList().isEmpty()) {
+            for (DeviceRpcCallMsg deviceRpcCallMsg: downlinkMsg.getDeviceRpcCallMsgList()) {
+                result.add(saveDownlinkMsg(deviceRpcCallMsg));
+            }
+        }
+        if (downlinkMsg.getDeviceCredentialsRequestMsgList() != null && !downlinkMsg.getDeviceCredentialsRequestMsgList().isEmpty()) {
+            for (DeviceCredentialsRequestMsg deviceCredentialsRequestMsg: downlinkMsg.getDeviceCredentialsRequestMsgList()) {
+                result.add(saveDownlinkMsg(deviceCredentialsRequestMsg));
+            }
+        }
         return Futures.allAsList(result);
     }
 
     private ListenableFuture<Void> saveDownlinkMsg(AbstractMessage message) {
         if (!ignoredTypes.contains(message.getClass())) {
-            downlinkMsgs.add(message);
+            try {
+                lock.lock();
+                downlinkMsgs.add(message);
+            } finally {
+                lock.unlock();
+            }
             messagesLatch.countDown();
         }
         return Futures.immediateFuture(null);
@@ -265,7 +286,14 @@ public class EdgeImitator {
     }
 
     public <T> Optional<T> findMessageByType(Class<T> tClass) {
-        return (Optional<T>) downlinkMsgs.stream().filter(downlinkMsg -> downlinkMsg.getClass().isAssignableFrom(tClass)).findAny();
+        Optional<T> result;
+        try {
+            lock.lock();
+            result = (Optional<T>) downlinkMsgs.stream().filter(downlinkMsg -> downlinkMsg.getClass().isAssignableFrom(tClass)).findAny();
+        } finally {
+            lock.unlock();
+        }
+        return result;
     }
 
     public AbstractMessage getLatestMessage() {

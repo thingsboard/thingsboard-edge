@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -342,11 +343,14 @@ public class EntityViewController extends BaseController {
         try {
             EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
             EntityView entityView = checkEntityViewId(entityViewId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityViewId);
+
             entityViewService.deleteEntityView(getTenantId(), entityViewId);
             logEntityAction(entityViewId, entityView, entityView.getCustomerId(),
                     ActionType.DELETED, null, strEntityViewId);
 
-            sendNotificationMsgToEdgeService(getTenantId(), entityViewId, ActionType.DELETED);
+            sendDeleteNotificationMsg(getTenantId(), entityViewId, relatedEdgeIds);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.ENTITY_VIEW),
                     null,

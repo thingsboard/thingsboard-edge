@@ -51,6 +51,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
                     scope.edge.routingKey = utils.guid('');
                     scope.edge.secret = generateSecret(20);
                     scope.edge.cloudEndpoint = utils.baseUrl();
+                    scope.edge.type = 'default';
                 }
                 /*if (scope.edge.customerId && scope.edge.customerId.id !== types.id.nullUid) {
                     scope.isAssignedToCustomer = true;
@@ -85,7 +86,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
         };
 
         scope.onEdgeSync = function (edgeId) {
-            edgeService.syncEdge(edgeId).then(
+            edgeService.syncEdge(edgeId.id).then(
                 function success() {
                     toast.showSuccess($translate.instant('edge.sync-message'), 750, angular.element(element).parent().parent(), 'bottom left');
                 },
@@ -98,18 +99,17 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
         $compile(element.contents())(scope);
 
         scope.onEdgeInfoCopied = function(type) {
-            let translateInstant = "";
+            let infoTypeLabel = "";
             switch (type) {
                 case 'key':
-                    translateInstant = "edge.edge-key-copied-message";
+                    infoTypeLabel = "edge.edge-key-copied-message";
                     break;
                 case 'secret':
-                    translateInstant = "edge.edge-secret-copied-message";
+                    infoTypeLabel = "edge.edge-secret-copied-message";
                     break;
             }
-            toast.showSuccess($translate.instant(translateInstant), 750, angular.element(element).parent().parent(), 'top left');
+            toast.showSuccess($translate.instant(infoTypeLabel), 750, angular.element(element).parent().parent(), 'bottom left');
         };
-
 
     };
     return {

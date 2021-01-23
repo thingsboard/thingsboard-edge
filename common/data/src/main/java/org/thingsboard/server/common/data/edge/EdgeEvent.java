@@ -44,7 +44,7 @@ public class EdgeEvent extends BaseData<EdgeEventId> {
 
     private TenantId tenantId;
     private EdgeId edgeId;
-    private String action;
+    private EdgeEventActionType action;
     private UUID entityId;
     private String uid;
     private EdgeEventType type;

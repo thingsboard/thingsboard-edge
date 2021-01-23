@@ -60,7 +60,7 @@ public class EdgeEventController extends BaseController {
 
     public static final String EDGE_ID = "edgeId";
 
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/events", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<EdgeEvent> getEdgeEvents(

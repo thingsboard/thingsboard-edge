@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -38,9 +37,10 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
-@Slf4j
+@TbCoreComponent
 public class DashboardMsgConstructor {
 
     public DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId) {
