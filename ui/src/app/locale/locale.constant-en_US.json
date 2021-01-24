@@ -908,9 +908,10 @@
         "unknown-error": "Unknown error"
     },
     "edge": {
-        "name": "Edge name",
+        "name": "Name",
         "id": "ID",
-        "info": "Edge",
+        "status": "Status",
+        "edge": "Edge",
         "last-connect-time": "Last time connected to Cloud",
         "last-disconnect-time": "Last time disconnected from Cloud",
         "type": "Type",
@@ -919,7 +920,6 @@
         "connected": "Connected",
         "disconnected": "Disconnected",
         "cloud-events": "Cloud events",
-        "information": "Information",
         "cloud-events-search": "Search cloud events",
         "no-cloud-events-prompt": "No logs found",
         "cloud-event-details": "Cloud event details",

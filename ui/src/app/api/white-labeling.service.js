@@ -495,7 +495,7 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
 
         if (primaryPalette.type == 'tb-primary' &&
             accentPalette.type == 'tb-accent') {
-            $rootScope.currentLoginTheme = 'tb-dark';
+            $rootScope.currentLoginTheme = 'tb-primary';
             return;
         }
 
