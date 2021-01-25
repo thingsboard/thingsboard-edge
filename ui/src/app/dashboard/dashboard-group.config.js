@@ -119,7 +119,7 @@ export default function DashboardGroupConfig($q, $translate, $state, $window, $d
                     href = $state.href('home.customerGroups.customerGroup.dashboardGroups.dashboardGroup.dashboard', stateParams, {absolute: true});
                     $window.open(href, '_blank');
                 } else if (params.groupType === types.entityType.edge) {
-                    $state.go('home.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
+                    $state.go('home.edges.edgeGroups.edgeGroup.dashboardGroups.dashboardGroup.dashboard', {dashboardId: entity.id.id});
                 } else if (params.groupType === types.entityType.customer && params.childGroupType === types.entityType.edge) {
                     stateParams.edge = params.edgeId;
                     stateParams.groupType = stateParams.targetGroupType;

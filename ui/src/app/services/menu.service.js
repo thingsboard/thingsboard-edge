@@ -110,13 +110,13 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     var edgeGroups = {
         name: 'entity-group.edge-groups',
-        type: 'toggle',
-        state: 'home.edgeGroups',
+        type: 'link',
+        state: 'home.edges.edgeGroups',
         height: '0px',
         icon: 'router',
         pages: [],
         loaded: false,
-        childState: 'home.edgeGroups.edgeGroup',
+        childState: 'home.edges.edgeGroups.edgeGroup',
         groupType: types.entityType.edge
     };
 
@@ -507,8 +507,41 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 //     );
                 // }
                 if (userPermissionsService.hasReadGroupsPermission(types.entityType.edge) && disabledItems.indexOf('edge_groups') === -1) {
-                    sections.push(edgeGroups);
-                    entityGroupSections.push(edgeGroups);
+                    // sections.push(edgeGroups);
+                    // entityGroupSections.push(edgeGroups);
+                    //    var edgeGroups = {
+                    //         name: 'entity-group.edge-groups',
+                    //         type: 'toggle',
+                    //         state: 'home.edgeGroups',
+                    //         height: '0px',
+                    //         icon: 'router',
+                    //         pages: [],
+                    //         loaded: false,
+                    //         childState: 'home.edgeGroups.edgeGroup',
+                    //         groupType: types.entityType.edge
+                    //     };
+
+                    var edgeRuleChainSection = {
+                        name: 'edge.rulechain-templates',
+                        type: 'link',
+                        state: 'home.edges.ruleChains',
+                        icon: 'settings_ethernet'
+                    };
+
+                    sections.push(
+                        {
+                            name: 'edge.management',
+                            type: 'toggle',
+                            state: 'home.edges',
+                            height: '120px',
+                            icon: 'router',
+                            pages: [
+                                edgeGroups,
+                                edgeRuleChainSection
+                            ]
+                        }
+                    )
+
                 }
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.widgetsBundle)) {
                     sections.push(
@@ -785,7 +818,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'edge.edges',
                                     icon: 'router',
                                     //state: 'home.edges',
-                                    state: 'home.edgeGroups',
+                                    state: 'home.edges.edgeGroups',
                                     disabled: disabledItems.indexOf('edge_groups') > -1
                                 }
                             ]
@@ -1180,7 +1213,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'edge.edges',
                                     icon: 'router',
                                     //state: 'home.edges',
-                                    state: 'home.edgeGroups',
+                                    state: 'home.edges.edgeGroups',
                                     disabled: disabledItems.indexOf('edge_groups') > -1
                                 }
                             ]
