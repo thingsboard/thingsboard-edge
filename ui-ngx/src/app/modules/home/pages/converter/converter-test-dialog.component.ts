@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { ConverterDebugInput, TestConverterInputParams } from '@shared/models/converter.models';
 import { base64toString, isEqual, stringToBase64 } from '@core/utils';
 import { ConverterService } from '@core/http/converter.service';
+import { beautifyJs } from '@shared/models/beautify.models';
 
 export interface ConverterTestDialogData {
   isDecoder: boolean;
@@ -124,19 +125,11 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     const debugIn = this.data.debugIn;
     let contentType: ContentType;
     let msgType: string;
-    let stringContent: string;
     let metadata: any;
     let integrationMetadata: any;
     if (debugIn) {
       if (debugIn.inContentType) {
         contentType = debugIn.inContentType;
-        if (debugIn.inContent) {
-          let inStringContent = debugIn.inContent;
-          if (debugIn.inContentType === ContentType.JSON) {
-            inStringContent = js_beautify(inStringContent, {indent_size: 4});
-          }
-          stringContent = inStringContent;
-        }
       }
       if (debugIn.inMetadata) {
         metadata = JSON.parse(debugIn.inMetadata);
@@ -154,22 +147,12 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
       contentType = ContentType.JSON;
     }
     if (this.isDecoder) {
-      if (!stringContent) {
-        stringContent = js_beautify(JSON.stringify({devName: 'devA', param1: 1, param2: 'test'}), {indent_size: 4});
-      }
       if (!metadata) {
         metadata = {
           integrationName: 'Test integration'
         };
       }
     } else {
-      if (!stringContent) {
-        const msg = {
-          temperatureUploadFrequency: 60,
-          humidityUploadFrequency: 30
-        };
-        stringContent = js_beautify(JSON.stringify(msg), {indent_size: 4});
-      }
       if (!metadata) {
         metadata = {
           deviceName: 'sensorA',
@@ -186,9 +169,10 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         msgType = 'ATTRIBUTES_UPDATED';
       }
     }
+
     this.converterTestFormGroup = this.fb.group({
       payload: this.fb.group({
-        stringContent: [stringContent, []],
+        stringContent: [null, []],
         contentType: [contentType, []]
       }),
       metadata: [metadata],
@@ -205,11 +189,19 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         if (newVal && !isEqual(newVal, prevVal)) {
           const content = payloadFormGroup.get('stringContent').value;
           if (prevVal === ContentType.BINARY) {
-            payloadFormGroup.get('stringContent').patchValue(this.convertContent(content, newVal));
+            this.convertContent(content, newVal).subscribe(
+              (newContent) => {
+                payloadFormGroup.get('stringContent').patchValue(newContent);
+              }
+            );
           } else if (newVal === ContentType.BINARY) {
             payloadFormGroup.get('stringContent').patchValue(stringToBase64(content));
           } else if (newVal === ContentType.JSON) {
-            payloadFormGroup.get('stringContent').patchValue(js_beautify(content, {indent_size: 4}));
+            beautifyJs(content, {indent_size: 4}).subscribe(
+              (newContent) => {
+                payloadFormGroup.get('stringContent').patchValue(newContent);
+              }
+            );
           }
         }
       });
@@ -234,22 +226,51 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
     combineLatest(inputContentTriggers).subscribe(() => {
       this.updateInputContent();
     });
+    this.prepareStringContent(debugIn).subscribe(
+      (stringContent) => {
+        this.converterTestFormGroup.get('payload').get('stringContent').patchValue(stringContent, {emitEvent: false});
+      }
+    );
   }
 
-  private convertContent(content: string, contentType: ContentType): string {
-    let stringContent = '';
+  private prepareStringContent(debugIn: ConverterDebugInput): Observable<string> {
+    if (debugIn) {
+      if (debugIn.inContentType) {
+        if (debugIn.inContent) {
+          if (debugIn.inContentType === ContentType.JSON) {
+            return beautifyJs(debugIn.inContent, {indent_size: 4});
+          } else {
+            return of(debugIn.inContent);
+          }
+        }
+      }
+    }
+    if (this.isDecoder) {
+      return beautifyJs(JSON.stringify({devName: 'devA', param1: 1, param2: 'test'}), {indent_size: 4});
+    } else {
+      const msg = {
+        temperatureUploadFrequency: 60,
+        humidityUploadFrequency: 30
+      };
+      return beautifyJs(JSON.stringify(msg), {indent_size: 4});
+    }
+  }
+
+  private convertContent(content: string, contentType: ContentType): Observable<string> {
     if (contentType && content) {
       if (contentType === ContentType.JSON ||
         contentType === ContentType.TEXT) {
-        stringContent = base64toString(content);
+        const stringContent = base64toString(content);
         if (contentType === ContentType.JSON) {
-          stringContent = js_beautify(stringContent, {indent_size: 4});
+          return beautifyJs(stringContent, {indent_size: 4});
+        } else {
+          return of(stringContent);
         }
       } else {
-        stringContent = content;
+        return of(content);
       }
     }
-    return stringContent;
+    return of('');
   }
 
   private updateInputContent() {
@@ -314,7 +335,11 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
 
   test(): void {
     this.testConverter().subscribe((output) => {
-      this.converterTestFormGroup.get('output').setValue(js_beautify(output, {indent_size: 4}));
+      beautifyJs(output, {indent_size: 4}).subscribe(
+        (newOutput) => {
+          this.converterTestFormGroup.get('output').setValue(newOutput);
+        }
+      );
     });
   }
 

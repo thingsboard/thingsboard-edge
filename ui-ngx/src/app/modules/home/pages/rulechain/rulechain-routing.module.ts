@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ import {
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { RuleChainsTableConfigResolver } from '@modules/home/pages/rulechain/rulechains-table-config.resolver';
-import { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { ResolvedRuleChainMetaData, RuleChain, ruleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
@@ -53,7 +53,7 @@ import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { ItemBufferService } from '@core/public-api';
 import { MODULES_MAP } from '@shared/public-api';
-import { EdgesRuleChainsTableConfigResolver} from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
+import { EdgesRuleChainsTableConfigResolver} from '@home/pages/rulechain/edges-rulechains-table-config.resolver';
 
 @Injectable()
 export class RuleChainResolver implements Resolve<RuleChain> {
@@ -88,6 +88,17 @@ export class RuleNodeComponentsResolver implements Resolve<Array<RuleNodeCompone
 
   resolve(route: ActivatedRouteSnapshot): Observable<Array<RuleNodeComponentDescriptor>> {
     return this.ruleChainService.getRuleNodeComponents(this.modulesMap, route.data.ruleChainType);
+  }
+}
+
+@Injectable()
+export class TooltipsterResolver implements Resolve<any> {
+
+  constructor() {
+  }
+
+  resolve(route: ActivatedRouteSnapshot): Observable<any> {
+    return from(import('tooltipster'));
   }
 }
 
@@ -147,129 +158,170 @@ const routes: Routes = [
         }
       },
       {
-        path: 'core',
+        path: ':ruleChainId',
+        component: RuleChainPageComponent,
+        canDeactivate: [ConfirmOnExitGuard],
         data: {
           breadcrumb: {
-            label: 'rulechain.core-rulechains',
+            labelFunction: ruleChainBreadcumbLabelFunction,
             icon: 'settings_ethernet'
-          }
+          } as BreadCrumbConfig<RuleChainPageComponent>,
+          auth: [Authority.TENANT_ADMIN],
+          title: 'rulechain.rulechain',
+          import: false
         },
-        children: [
-          {
-            path: '',
-            component: EntitiesTableComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.rulechains',
-              ruleChainsType: 'tenant'
-            },
-            resolve: {
-              entitiesTableConfig: RuleChainsTableConfigResolver
-            },
-          },
-          {
-            path: ':ruleChainId',
-            component: RuleChainPageComponent,
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: ruleChainBreadcumbLabelFunction,
-                icon: 'settings_ethernet'
-              } as BreadCrumbConfig<RuleChainPageComponent>,
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.rulechain',
-              import: false,
-              ruleChainType: ruleChainType.core
-            },
-            resolve: {
-              ruleChain: RuleChainResolver,
-              ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-              ruleNodeComponents: RuleNodeComponentsResolver
-            }
-          },
-          {
-            path: 'ruleChain/import',
-            component: RuleChainPageComponent,
-            canActivate: [RuleChainImportGuard],
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: importRuleChainBreadcumbLabelFunction,
-                icon: 'settings_ethernet'
-              } as BreadCrumbConfig<RuleChainPageComponent>,
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.rulechain',
-              import: true,
-              ruleChainType: ruleChainType.core
-            },
-            resolve: {
-              ruleNodeComponents: RuleNodeComponentsResolver
-            }
-          }
-        ]
+        resolve: {
+          ruleChain: RuleChainResolver,
+          ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+          ruleNodeComponents: RuleNodeComponentsResolver,
+          tooltipster: TooltipsterResolver
+        }
       },
       {
-        path: 'edge',
+        path: 'ruleChain/import',
+        component: RuleChainPageComponent,
+        canActivate: [RuleChainImportGuard],
+        canDeactivate: [ConfirmOnExitGuard],
         data: {
           breadcrumb: {
-            label: 'rulechain.edge-rulechains',
+            labelFunction: importRuleChainBreadcumbLabelFunction,
             icon: 'settings_ethernet'
-          }
+          } as BreadCrumbConfig<RuleChainPageComponent>,
+          auth: [Authority.TENANT_ADMIN],
+          title: 'rulechain.rulechain',
+          import: true
         },
-        children: [
-          {
-            path: '',
-            component: EntitiesTableComponent,
-            data: {
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.edge-rulechains',
-              ruleChainsType: 'edges'
-            },
-            resolve: {
-              entitiesTableConfig: EdgesRuleChainsTableConfigResolver
-            }
-          },
-          {
-            path: ':ruleChainId',
-            component: RuleChainPageComponent,
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: ruleChainBreadcumbLabelFunction,
-                icon: 'settings_ethernet'
-              } as BreadCrumbConfig<RuleChainPageComponent>,
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.edge-rulechain',
-              import: false,
-              ruleChainType: ruleChainType.edge
-            },
-            resolve: {
-              ruleChain: RuleChainResolver,
-              ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-              ruleNodeComponents: RuleNodeComponentsResolver
-            }
-          },
-          {
-            path: 'ruleChain/import',
-            component: RuleChainPageComponent,
-            canActivate: [RuleChainImportGuard],
-            canDeactivate: [ConfirmOnExitGuard],
-            data: {
-              breadcrumb: {
-                labelFunction: importRuleChainBreadcumbLabelFunction,
-                icon: 'settings_ethernet'
-              } as BreadCrumbConfig<RuleChainPageComponent>,
-              auth: [Authority.TENANT_ADMIN],
-              title: 'rulechain.edge-rulechain',
-              import: true,
-              ruleChainType: ruleChainType.edge
-            },
-            resolve: {
-              ruleNodeComponents: RuleNodeComponentsResolver
-            }
-          }
-        ]
+        resolve: {
+          ruleNodeComponents: RuleNodeComponentsResolver,
+          tooltipster: TooltipsterResolver
+        }
       }
+
+      // {
+      //   path: 'core',
+      //   data: {
+      //     breadcrumb: {
+      //       label: 'rulechain.core-rulechains',
+      //       icon: 'settings_ethernet'
+      //     }
+      //   },
+      //   children: [
+      //     {
+      //       path: '',
+      //       component: EntitiesTableComponent,
+      //       data: {
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.rulechains',
+      //         ruleChainsType: 'tenant'
+      //       },
+      //       resolve: {
+      //         entitiesTableConfig: RuleChainsTableConfigResolver
+      //       },
+      //     },
+      //     {
+      //       path: ':ruleChainId',
+      //       component: RuleChainPageComponent,
+      //       canDeactivate: [ConfirmOnExitGuard],
+      //       data: {
+      //         breadcrumb: {
+      //           labelFunction: ruleChainBreadcumbLabelFunction,
+      //           icon: 'settings_ethernet'
+      //         } as BreadCrumbConfig<RuleChainPageComponent>,
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.rulechain',
+      //         import: false,
+      //         ruleChainType: ruleChainType.core
+      //       },
+      //       resolve: {
+      //         ruleChain: RuleChainResolver,
+      //         ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+      //         ruleNodeComponents: RuleNodeComponentsResolver
+      //       }
+      //     },
+      //     {
+      //       path: 'ruleChain/import',
+      //       component: RuleChainPageComponent,
+      //       canActivate: [RuleChainImportGuard],
+      //       canDeactivate: [ConfirmOnExitGuard],
+      //       data: {
+      //         breadcrumb: {
+      //           labelFunction: importRuleChainBreadcumbLabelFunction,
+      //           icon: 'settings_ethernet'
+      //         } as BreadCrumbConfig<RuleChainPageComponent>,
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.rulechain',
+      //         import: true,
+      //         ruleChainType: ruleChainType.core
+      //       },
+      //       resolve: {
+      //         ruleNodeComponents: RuleNodeComponentsResolver
+      //       }
+      //     }
+      //   ]
+      // },
+      // {
+      //   path: 'edge',
+      //   data: {
+      //     breadcrumb: {
+      //       label: 'rulechain.edge-rulechains',
+      //       icon: 'settings_ethernet'
+      //     }
+      //   },
+      //   children: [
+      //     {
+      //       path: '',
+      //       component: EntitiesTableComponent,
+      //       data: {
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.edge-rulechains',
+      //         ruleChainsType: 'edges'
+      //       },
+      //       resolve: {
+      //         entitiesTableConfig: EdgesRuleChainsTableConfigResolver
+      //       }
+      //     },
+      //     {
+      //       path: ':ruleChainId',
+      //       component: RuleChainPageComponent,
+      //       canDeactivate: [ConfirmOnExitGuard],
+      //       data: {
+      //         breadcrumb: {
+      //           labelFunction: ruleChainBreadcumbLabelFunction,
+      //           icon: 'settings_ethernet'
+      //         } as BreadCrumbConfig<RuleChainPageComponent>,
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.edge-rulechain',
+      //         import: false,
+      //         ruleChainType: ruleChainType.edge
+      //       },
+      //       resolve: {
+      //         ruleChain: RuleChainResolver,
+      //         ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+      //         ruleNodeComponents: RuleNodeComponentsResolver
+      //       }
+      //     },
+      //     {
+      //       path: 'ruleChain/import',
+      //       component: RuleChainPageComponent,
+      //       canActivate: [RuleChainImportGuard],
+      //       canDeactivate: [ConfirmOnExitGuard],
+      //       data: {
+      //         breadcrumb: {
+      //           labelFunction: importRuleChainBreadcumbLabelFunction,
+      //           icon: 'settings_ethernet'
+      //         } as BreadCrumbConfig<RuleChainPageComponent>,
+      //         auth: [Authority.TENANT_ADMIN],
+      //         title: 'rulechain.edge-rulechain',
+      //         import: true,
+      //         ruleChainType: ruleChainType.edge
+      //       },
+      //       resolve: {
+      //         ruleNodeComponents: RuleNodeComponentsResolver
+      //       }
+      //     }
+      //   ]
+      // }
+
     ]
   }
 ];
@@ -283,6 +335,7 @@ const routes: Routes = [
     RuleChainResolver,
     ResolvedRuleChainMetaDataResolver,
     RuleNodeComponentsResolver,
+    TooltipsterResolver,
     RuleChainImportGuard,
     EdgesRuleChainsTableConfigResolver
   ]

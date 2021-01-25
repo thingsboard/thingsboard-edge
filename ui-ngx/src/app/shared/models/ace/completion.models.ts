@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import * as ace from 'ace-builds';
+import { Ace } from 'ace-builds';
 
 export type tbMetaType = 'object' | 'function' | 'service' | 'property' | 'argument';
 
@@ -56,7 +56,7 @@ export interface TbEditorCompletion {
   children?: TbEditorCompletions;
 }
 
-interface TbEditorAceCompletion extends ace.Ace.Completion {
+interface TbEditorAceCompletion extends Ace.Completion {
   isTbEditorAceCompletion: true;
   snippet: string;
   description?: string;
@@ -65,7 +65,7 @@ interface TbEditorAceCompletion extends ace.Ace.Completion {
   return?: FunctionArgType;
 }
 
-export class TbEditorCompleter implements ace.Ace.Completer {
+export class TbEditorCompleter implements Ace.Completer {
 
   identifierRegexps: RegExp[] = [
     /[a-zA-Z_0-9\$\-\u00A2-\u2000\u2070-\uFFFF.]/
@@ -74,8 +74,8 @@ export class TbEditorCompleter implements ace.Ace.Completer {
   constructor(private editorCompletions: TbEditorCompletions) {
   }
 
-  getCompletions(editor: ace.Ace.Editor, session: ace.Ace.EditSession,
-                 position: ace.Ace.Point, prefix: string, callback: ace.Ace.CompleterCallback): void {
+  getCompletions(editor: Ace.Editor, session: Ace.EditSession,
+                 position: Ace.Point, prefix: string, callback: Ace.CompleterCallback): void {
     const result = this.prepareCompletions(prefix);
     if (result) {
       callback(null, result);
@@ -106,7 +106,7 @@ export class TbEditorCompleter implements ace.Ace.Completer {
     return parts;
   }
 
-  private prepareCompletions(prefix: string): ace.Ace.Completion[]  {
+  private prepareCompletions(prefix: string): Ace.Completion[]  {
     const path = this.resolvePath(prefix);
     if (path !== null) {
       return this.toAceCompletionsList(this.editorCompletions, path);
@@ -115,8 +115,8 @@ export class TbEditorCompleter implements ace.Ace.Completer {
     }
   }
 
-  private toAceCompletionsList(completions: TbEditorCompletions, parentPath: string[]): ace.Ace.Completion[]  {
-    const result: ace.Ace.Completion[] = [];
+  private toAceCompletionsList(completions: TbEditorCompletions, parentPath: string[]): Ace.Completion[]  {
+    const result: Ace.Completion[] = [];
     let targetCompletions = completions;
     let parentPrefix = '';
     if (parentPath.length) {
@@ -131,7 +131,7 @@ export class TbEditorCompleter implements ace.Ace.Completer {
     return result;
   }
 
-  private toAceCompletion(name: string, completion: TbEditorCompletion, parentPrefix: string): ace.Ace.Completion {
+  private toAceCompletion(name: string, completion: TbEditorCompletion, parentPrefix: string): Ace.Completion {
     const aceCompletion: TbEditorAceCompletion = {
       isTbEditorAceCompletion: true,
       snippet: parentPrefix + name,
@@ -190,7 +190,7 @@ export class TbEditorCompleter implements ace.Ace.Completer {
     if (completion.args || completion.return) {
       let functionInfoBlock = '<div class="tb-function-info">';
       if (completion.args) {
-        functionInfoBlock += '<div class="tb-api-title">Parameters</div>'
+        functionInfoBlock += '<div class="tb-api-title">Parameters</div>';
         let argsTable = '<table class="tb-api-table"><tbody>';
         const strArgs: string[] = [];
         for (const arg of completion.args) {
@@ -200,7 +200,7 @@ export class TbEditorCompleter implements ace.Ace.Completer {
           }
           strArg += '</code></td><td>';
           if (arg.type) {
-            strArg += `<code>${arg.type}</code>`
+            strArg += `<code>${arg.type}</code>`;
           }
           strArg += '</td><td class="arg-description">';
           if (arg.description) {

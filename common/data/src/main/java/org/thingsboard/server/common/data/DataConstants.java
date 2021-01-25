@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -80,13 +80,15 @@ public class DataConstants {
     public static final String ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP";
     public static final String REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP";
     public static final String REST_API_REQUEST = "REST_API_REQUEST";
+    public static final String TIMESERIES_UPDATED = "TIMESERIES_UPDATED";
+    public static final String TIMESERIES_DELETED = "TIMESERIES_DELETED";
     public static final String ALARM_ACK = "ALARM_ACK";
     public static final String ALARM_CLEAR = "ALARM_CLEAR";
     public static final String ENTITY_ASSIGNED_FROM_TENANT = "ENTITY_ASSIGNED_FROM_TENANT";
     public static final String ENTITY_ASSIGNED_TO_TENANT = "ENTITY_ASSIGNED_TO_TENANT";
-    public static final String OWNER_CHANGED = "OWNER_CHANGED";
     public static final String PROVISION_SUCCESS = "PROVISION_SUCCESS";
     public static final String PROVISION_FAILURE = "PROVISION_FAILURE";
+    public static final String OWNER_CHANGED = "OWNER_CHANGED";
     public static final String ENTITY_ASSIGNED_TO_EDGE = "ENTITY_ASSIGNED_TO_EDGE";
     public static final String ENTITY_UNASSIGNED_FROM_EDGE = "ENTITY_UNASSIGNED_FROM_EDGE";
 

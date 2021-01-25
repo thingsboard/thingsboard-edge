@@ -1,7 +1,7 @@
 /*
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,7 +31,8 @@
 import * as React from 'react';
 import ThingsboardAceEditor from './json-form-ace-editor';
 import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
-import { css_beautify } from 'js-beautify';
+import { Observable } from 'rxjs/internal/Observable';
+import { beautifyCss } from '@shared/models/beautify.models';
 
 class ThingsboardCss extends React.Component<JsonFormFieldProps, JsonFormFieldState> {
 
@@ -40,8 +41,8 @@ class ThingsboardCss extends React.Component<JsonFormFieldProps, JsonFormFieldSt
         this.onTidyCss = this.onTidyCss.bind(this);
     }
 
-    onTidyCss(css: string): string {
-        return css_beautify(css, {indent_size: 4});
+    onTidyCss(css: string): Observable<string> {
+        return beautifyCss(css, {indent_size: 4});
     }
 
     render() {

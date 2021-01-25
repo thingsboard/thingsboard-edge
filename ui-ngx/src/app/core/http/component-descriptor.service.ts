@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -36,7 +36,7 @@ import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-uti
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RuleNodeType } from '@shared/models/rule-node.models';
-import {RuleChainType} from "@shared/models/rule-chain.models";
+import { RuleChainType } from '@shared/models/rule-chain.models';
 
 @Injectable({
   providedIn: 'root'

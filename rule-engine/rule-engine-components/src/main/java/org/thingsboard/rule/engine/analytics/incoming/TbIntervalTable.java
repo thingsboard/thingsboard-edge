@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -94,7 +94,7 @@ class TbIntervalTable {
             tmpIntervalDuration = getDefaultIntervalDurationByAggType();
         }
         this.intervalDuration = Math.max(tmpIntervalDuration, TimeUnit.MINUTES.toMillis(1));
-        this.intervalTtl = TimeUnit.valueOf(config.getIntervalTtlTimeUnit()).toMillis(config.getIntervalTtlValue());
+        this.intervalTtl = TimeUnit.valueOf(config.getAggIntervalTimeUnit()).toMillis(config.getAggIntervalValue() * 2);
         this.function = MathFunction.valueOf(config.getMathFunction());
         this.autoCreateIntervals = config.isAutoCreateIntervals();
     }
@@ -130,9 +130,9 @@ class TbIntervalTable {
         return state;
     }
 
-    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long intervalStartTs, TbIntervalState state) {
+    ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
         KvEntry kvEntry = new StringDataEntry("RuleNodeState_" + ctx.getSelfId(), state.toStateJson(gson));
-        TsKvEntry tsKvEntry = new BasicTsKvEntry(intervalStartTs, kvEntry);
+        TsKvEntry tsKvEntry = new BasicTsKvEntry(calculateIntervalStart(ts), kvEntry);
         return ctx.getTimeseriesService().save(ctx.getTenantId(), entityId, tsKvEntry);
     }
 

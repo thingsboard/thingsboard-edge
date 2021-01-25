@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,6 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { deepTrim } from '@core/utils';
-import { WINDOW } from "@core/services/window.service";
 
 // @dynamic
 @Directive()
@@ -96,8 +95,7 @@ export abstract class EntityComponent<T extends BaseData<HasId>,
   protected constructor(protected store: Store<AppState>,
                         protected fb: FormBuilder,
                         protected entityValue: T,
-                        protected entitiesTableConfigValue: C,
-                        @Inject(WINDOW) protected window?: Window) {
+                        protected entitiesTableConfigValue: C) {
     super(store);
     this.entityForm = this.buildForm(this.entityValue);
   }

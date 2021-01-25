@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -84,16 +84,19 @@ export function addCondition(schema: JsonSettingsSchema, condition: string, excl
                 return {
                     key: element,
                     condition
-                }
+                };
             }
             if (typeof element === 'object') {
                 if (element.condition) {
-                    element.condition += ' && ' + condition
+                    element.condition += ' && ' + condition;
                 }
-                else element.condition = condition;
+                else {
+                  element.condition = condition;
+                }
             }
         }
         return element;
     });
     return schema;
 }
+

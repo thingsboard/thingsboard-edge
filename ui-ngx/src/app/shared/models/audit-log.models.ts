@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -73,7 +73,10 @@ export enum ActionType {
   ASSIGNED_FROM_TENANT = 'ASSIGNED_FROM_TENANT',
   ASSIGNED_TO_TENANT = 'ASSIGNED_TO_TENANT',
   PROVISION_SUCCESS = 'PROVISION_SUCCESS',
-  PROVISION_FAILURE = 'PROVISION_FAILURE'
+  PROVISION_FAILURE = 'PROVISION_FAILURE',
+  TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
+  TIMESERIES_DELETED = 'TIMESERIES_DELETED',
+  CHANGE_OWNER = 'CHANGE_OWNER'
 }
 
 export enum ActionStatus {
@@ -112,7 +115,10 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.ASSIGNED_FROM_TENANT, 'audit-log.type-assigned-from-tenant'],
     [ActionType.ASSIGNED_TO_TENANT, 'audit-log.type-assigned-to-tenant'],
     [ActionType.PROVISION_SUCCESS, 'audit-log.type-provision-success'],
-    [ActionType.PROVISION_FAILURE, 'audit-log.type-provision-failure']
+    [ActionType.PROVISION_FAILURE, 'audit-log.type-provision-failure'],
+    [ActionType.TIMESERIES_UPDATED, 'audit-log.type-timeseries-updated'],
+    [ActionType.TIMESERIES_DELETED, 'audit-log.type-timeseries-deleted'],
+    [ActionType.CHANGE_OWNER, 'audit-log.type-owner-changed']
   ]
 );
 

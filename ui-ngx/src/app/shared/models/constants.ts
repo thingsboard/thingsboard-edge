@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -172,6 +172,7 @@ export const HelpLinks = {
     integrationIbmWatsonIoT: helpBaseUrl +  '/docs/user-guide/integrations/ibm-watson-iot',
     integrationTheThingsNetwork: helpBaseUrl +  '/docs/user-guide/integrations/ttn',
     integrationTheThingsIndustries: helpBaseUrl +  '/docs/user-guide/integrations/tti',
+    integrationChirpStack: helpBaseUrl +  '/docs/user-guide/integrations/chirpstack',
     integrationAzureEventHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-event-hub',
     integrationAzureIoTHub: helpBaseUrl +  '/docs/user-guide/integrations/azure-iot-hub',
     integrationOpcUa:  helpBaseUrl +  '/docs/user-guide/integrations/opc-ua',
@@ -180,6 +181,7 @@ export const HelpLinks = {
     integrationKafka:  helpBaseUrl +  '/docs/user-guide/integrations/kafka',
     integrationRabbitmq:  helpBaseUrl +  '/docs/user-guide/integrations/rabbitmq',
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
+    integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/user-guide/groups',

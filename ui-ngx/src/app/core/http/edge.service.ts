@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,10 +35,10 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { EntitySubtype, EntityType } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeSearchQuery } from "@shared/models/edge.models";
-import { Event } from "@shared/models/event.models";
-import { EdgeId } from "@shared/models/id/edge-id";
+import { EntitySubtype } from '@app/shared/models/entity-type.models';
+import { Edge, EdgeSearchQuery } from '@shared/models/edge.models';
+import { Event } from '@shared/models/event.models';
+import { EdgeId } from '@shared/models/id/edge-id';
 
 @Injectable({
   providedIn: 'root'

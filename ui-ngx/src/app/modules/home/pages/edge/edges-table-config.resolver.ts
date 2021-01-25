@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -67,7 +67,7 @@ import {
 } from '../../dialogs/add-entities-to-customer-dialog.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { Edge } from "@shared/models/edge.models";
-import { EdgeService } from "@core/http/edge.service";
+import { EdgeService } from '@core/http/edge.service';
 import { EdgeTableHeaderComponent } from "@home/pages/edge/edge-table-header.component";
 import { EdgeId } from "@shared/models/id/edge-id";
 import { EdgeTabsComponent } from "@home/pages/edge/edge-tabs.component";

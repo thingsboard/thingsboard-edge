@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,7 +34,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { EdgeId } from '@shared/models/id/edge-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
-import { RuleChainId } from "@shared/models/id/rule-chain-id";
+import { RuleChainId } from '@shared/models/id/rule-chain-id';
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;

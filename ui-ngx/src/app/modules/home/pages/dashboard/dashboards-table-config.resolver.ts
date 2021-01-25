@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -62,7 +62,7 @@ import {
   isPublicDashboard
 } from '@app/shared/models/dashboard.models';
 import { DashboardService } from '@app/core/http/dashboard.service';
-import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
+// import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 
@@ -84,7 +84,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
     this.config.entityType = EntityType.DASHBOARD;
     // this.config.entityComponent = DashboardFormComponent;
-    this.config.entityTabsComponent = DashboardTabsComponent;
+    // this.config.entityTabsComponent = DashboardTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.DASHBOARD);
     this.config.entityResources = entityTypeResources.get(EntityType.DASHBOARD);
 

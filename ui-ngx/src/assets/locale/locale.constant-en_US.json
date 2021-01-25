@@ -580,7 +580,10 @@
         "type-assigned-from-tenant": "Assigned from Tenant",
         "type-assigned-to-tenant": "Assigned to Tenant",
         "type-provision-success": "Device provisioned",
-        "type-provision-failure": "Device provisioning was failed"
+        "type-provision-failure": "Device provisioning was failed",
+        "type-timeseries-updated": "Telemetry updated",
+        "type-timeseries-deleted": "Telemetry deleted",
+        "type-owner-changed": "Owner changed"
     },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
@@ -1070,6 +1073,7 @@
         "unable-delete-device-alias-title": "Unable to delete device alias",
         "unable-delete-device-alias-text": "Device alias '{{deviceAlias}}' can't be deleted as it used by the following widget(s):<br/>{{widgetsList}}",
         "is-gateway": "Is gateway",
+        "overwrite-activity-time": "Overwrite activity time for connected device",
         "public": "Public",
         "device-public": "Device is public",
         "select-device": "Select device",
@@ -2199,6 +2203,7 @@
             "entity-field": "Entity field",
             "access-token": "Access token",
             "isgateway": "Is Gateway",
+            "activity-time-from-gateway-device": "Activity time from gateway device",
             "description": "Description"
         },
         "stepper-text":{
@@ -2319,6 +2324,9 @@
         "virtual-host": "Virtual host",
         "rabbit-mq-poll-interval": "Poll interval, ms",
         "rabbit-mq-poll-interval-min": "Invalid poll interval value.",
+        "application-server-url": "Application server URL",
+        "application-server-api-token": "Application server API Token",
+        "application-server-api-token-required": "Application server API Token is required.",
         "bootstrap-servers": "Bootstrap servers",
         "bootstrap-servers-required": "Bootstrap servers is required.",
         "poll-interval": "Poll interval",
@@ -2412,6 +2420,7 @@
         "type-ibm-watson-iot": "IBM Watson IoT",
         "type-ttn": "TheThingsNetwork",
         "type-tti": "The Things Stack",
+        "type-chirpstack": "ChirpStack",
         "type-azure-event-hub": "Azure Event Hub",
         "type-azure-iot-hub": "Azure IoT Hub",
         "type-opc-ua": "OPC-UA",
@@ -2420,6 +2429,7 @@
         "type-tcp": "TCP",
         "type-kafka": "Kafka",
         "type-rabbitmq": "RabbitMQ",
+        "type-pubsub": "Pub/Sub",
         "opc-ua-application-name": "Application name",
         "opc-ua-application-uri": "Application uri",
         "opc-ua-scan-period-in-seconds": "Scan period in seconds",
@@ -2541,6 +2551,12 @@
         "user-id-required": "User ID is required.",
         "token": "Token",
         "token-required": "Token is required.",
+        "project-id": "Project ID",
+        "project-id-required": "Project ID is required.",
+        "subscription-id": "Subscription ID",
+        "subscription-id-required": "Subscription ID is required.",
+        "service-account-key": "Service Account key file",
+        "service-account-key-required": "Service Account key file is required.",
         "tcp": {
             "system-line-separator": "System Line Separator",
             "nul-delimiter": "Nul Delimiter",
@@ -3437,7 +3453,14 @@
         "target-dashboard-state-required": "Target dashboard state is required",
         "set-entity-from-widget": "Set entity from widget",
         "target-dashboard": "Target dashboard",
-        "open-right-layout": "Open right dashboard layout (mobile view)"
+        "open-right-layout": "Open right dashboard layout (mobile view)",
+        "open-in-separate-dialog": "Open in separate dialog",
+        "dialog-title": "Dialog title",
+        "dialog-hide-dashboard-toolbar": "Hide dashboard toolbar in dialog",
+        "dialog-width": "Dialog width in percents relative to viewport width",
+        "dialog-height": "Dialog height in percents relative to viewport height",
+        "dialog-size-range-error": "Dialog size percent value should be in a range from 1 to 100.",
+        "open-new-browser-tab": "Open in a new browser tab"
     },
     "widgets-bundle": {
         "current": "Current bundle",
@@ -3724,7 +3747,7 @@
             "zh_TW": "繁體中文",
             "en_US": "English",
             "it_IT": "Italiano",
-            "ko_KR": "한글",
+            "ko_KR": "한국어",
             "ru_RU": "Русский",
             "es_ES": "Español",
             "ja_JA": "日本語",
@@ -3736,7 +3759,8 @@
             "ro_RO": "Română",
             "lv_LV": "Latviešu",
             "ka_GE": "ქართული",
-            "pt_BR": "Português do Brasil"
+            "pt_BR": "Português do Brasil",
+            "sl_SI": "Slovenščina"
         }
     }
 }

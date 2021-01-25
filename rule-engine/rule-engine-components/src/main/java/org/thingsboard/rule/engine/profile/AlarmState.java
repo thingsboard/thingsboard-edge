@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -305,5 +305,12 @@ class AlarmState {
             }
         }
         return updated;
+    }
+
+    public void processAckAlarm(Alarm alarm) {
+        if (currentAlarm != null && currentAlarm.getId().equals(alarm.getId())) {
+            currentAlarm.setStatus(alarm.getStatus());
+            currentAlarm.setAckTs(alarm.getAckTs());
+        }
     }
 }

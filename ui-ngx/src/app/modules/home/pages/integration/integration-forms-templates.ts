@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,6 +141,8 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
       integrationForm.get('httpEndpoint').disable({emitEvent: false});
     } else if (type === IntegrationType.TTN) {
       integrationForm.get('topicFilters').disable({emitEvent: false});
+    } else if (type === IntegrationType.CHIRPSTACK) {
+      integrationForm.get('clientConfiguration.httpEndpoint').disable({emitEvent: false});
     }
   }
 }
@@ -391,6 +393,19 @@ export const templates = {
       topicFilters: [Validators.required]
     }
   },
+  [IntegrationType.CHIRPSTACK]: {
+    clientConfiguration: {
+      baseUrl: baseUrl(),
+      applicationServerUrl: '',
+      replaceNoContentToOk: true,
+      applicationServerAPIToken: '',
+      httpEndpoint: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.baseUrl': [Validators.required],
+      'clientConfiguration.applicationServerAPIToken': [Validators.required],
+    }
+  },
   [IntegrationType.TTN]: {
     clientConfiguration: {
       host: '',
@@ -622,6 +637,21 @@ export const templates = {
       'clientConfiguration.maxNumMessages': [Validators.required],
       'clientConfiguration.maxNumBytes': [Validators.required],
       'clientConfiguration.timeoutInMs': [Validators.required],
+    }
+  },
+
+  [IntegrationType.PUB_SUB]: {
+    clientConfiguration: {
+      projectId: '',
+      subscriptionId: '',
+      serviceAccountKey: '',
+      serviceAccountKeyFileName: ''
+    },
+    fieldValidators: {
+      'clientConfiguration.projectId': [Validators.required],
+      'clientConfiguration.subscriptionId': [Validators.required],
+      'clientConfiguration.serviceAccountKey': [Validators.required],
+      'clientConfiguration.serviceAccountKeyFileName': [Validators.required]
     }
   },
 

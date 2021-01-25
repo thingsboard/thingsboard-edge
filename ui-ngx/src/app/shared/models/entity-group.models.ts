@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,17 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {EntityType} from '@shared/models/entity-type.models';
-import {EntityId} from '@shared/models/id/entity-id';
-import {BaseData} from '@shared/models/base-data';
-import {EntityGroupId} from '@shared/models/id/entity-group-id';
-import {WidgetActionDescriptor, WidgetActionSource, WidgetActionType} from '@shared/models/widget.models';
-import {ActivatedRouteSnapshot} from '@angular/router';
-import {isEqual, isUndefinedOrNull} from '@core/utils';
-import {Customer} from '@shared/models/customer.model';
-import {EntityData, EntityDataPageLink, EntityKey, EntityKeyType} from '@shared/models/query/query.models';
-import {PageLink} from '@shared/models/page/page-link';
-import {RoleId} from '@shared/models/id/role-id';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { BaseData } from '@shared/models/base-data';
+import { EntityGroupId } from '@shared/models/id/entity-group-id';
+import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { isEqual, isUndefinedOrNull } from '@core/utils';
+import { Customer } from '@shared/models/customer.model';
+import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
+import { PageLink } from '@shared/models/page/page-link';
+import { RoleId } from '@shared/models/id/role-id';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,

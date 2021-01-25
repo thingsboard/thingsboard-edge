@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,60 +29,66 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Injectable} from '@angular/core';
-import {EMPTY, forkJoin, Observable, of, throwError} from 'rxjs';
-import {HttpClient} from '@angular/common/http';
-import {PageLink, TimePageLink} from '@shared/models/page/page-link';
-import {AliasEntityType, EntityType} from '@shared/models/entity-type.models';
-import {BaseData} from '@shared/models/base-data';
-import {EntityId} from '@shared/models/id/entity-id';
-import {DeviceService} from '@core/http/device.service';
-import {TenantService} from '@core/http/tenant.service';
-import {CustomerService} from '@core/http/customer.service';
-import {UserService} from './user.service';
-import {DashboardService} from '@core/http/dashboard.service';
-import {Direction} from '@shared/models/page/sort-order';
-import {PageData} from '@shared/models/page/page-data';
-import {getCurrentAuthUser} from '@core/auth/auth.selectors';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {Authority} from '@shared/models/authority.enum';
-import {Tenant} from '@shared/models/tenant.model';
-import {catchError, concatMap, expand, map, mergeMap, toArray} from 'rxjs/operators';
-import {Customer} from '@app/shared/models/customer.model';
-import {AssetService} from '@core/http/asset.service';
-import {EntityViewService} from '@core/http/entity-view.service';
-import {AttributeScope, DataKeyType} from '@shared/models/telemetry/telemetry.models';
-import {defaultHttpOptionsFromConfig, RequestConfig} from '@core/http/http-utils';
-import {RuleChainService} from '@core/http/rule-chain.service';
-import {AliasInfo, StateParams, SubscriptionInfo} from '@core/api/widget-api.models';
-import {Datasource, DatasourceType, KeyInfo} from '@app/shared/models/widget.models';
-import {UtilsService} from '@core/services/utils.service';
-import {AliasFilterType, EntityAlias, EntityAliasFilter, EntityAliasFilterResult} from '@shared/models/alias.models';
-import {entityFields, EntityInfo, ImportEntitiesResultInfo, ImportEntityData} from '@shared/models/entity.models';
-import {EntityRelationService} from '@core/http/entity-relation.service';
-import {deepClone, isDefined, isDefinedAndNotNull} from '@core/utils';
-import {Asset} from '@shared/models/asset.models';
-import {Device, DeviceCredentialsType} from '@shared/models/device.models';
-import {EntityView} from '@shared/models/entity-view.models';
-import {AttributeService} from '@core/http/attribute.service';
-import {ConverterService} from '@core/http/converter.service';
-import {IntegrationService} from '@core/http/integration.service';
-import {SchedulerEventService} from '@core/http/scheduler-event.service';
-import {BlobEntityService} from '@core/http/blob-entity.service';
-import {RoleService} from '@core/http/role.service';
-import {EntityGroupService} from '@core/http/entity-group.service';
-import {Dashboard} from '@shared/models/dashboard.models';
-import {User} from '@shared/models/user.model';
-import {RuleChain} from '@shared/models/rule-chain.models';
-import {Converter} from '@shared/models/converter.models';
-import {Integration} from '@shared/models/integration.models';
-import {SchedulerEvent} from '@shared/models/scheduler-event.models';
-import {Role} from '@shared/models/role.models';
-import {UserPermissionsService} from '@core/http/user-permissions.service';
-import {Operation, resourceByEntityType, RoleType} from '@shared/models/security.models';
-import {EntityGroup} from '@shared/models/entity-group.models';
-import {CustomerId} from '@shared/models/id/customer-id';
+import { Injectable } from '@angular/core';
+import { EMPTY, forkJoin, Observable, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { PageLink, TimePageLink } from '@shared/models/page/page-link';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
+import { BaseData } from '@shared/models/base-data';
+import { EntityId } from '@shared/models/id/entity-id';
+import { DeviceService } from '@core/http/device.service';
+import { TenantService } from '@core/http/tenant.service';
+import { CustomerService } from '@core/http/customer.service';
+import { UserService } from './user.service';
+import { DashboardService } from '@core/http/dashboard.service';
+import { Direction } from '@shared/models/page/sort-order';
+import { PageData } from '@shared/models/page/page-data';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Authority } from '@shared/models/authority.enum';
+import { Tenant } from '@shared/models/tenant.model';
+import { catchError, concatMap, expand, map, mergeMap, toArray } from 'rxjs/operators';
+import { Customer } from '@app/shared/models/customer.model';
+import { AssetService } from '@core/http/asset.service';
+import { EntityViewService } from '@core/http/entity-view.service';
+import { AttributeScope, DataKeyType } from '@shared/models/telemetry/telemetry.models';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { RuleChainService } from '@core/http/rule-chain.service';
+import { AliasInfo, StateParams, SubscriptionInfo } from '@core/api/widget-api.models';
+import { DataKey, Datasource, DatasourceType, KeyInfo } from '@app/shared/models/widget.models';
+import { UtilsService } from '@core/services/utils.service';
+import { AliasFilterType, EntityAlias, EntityAliasFilter, EntityAliasFilterResult } from '@shared/models/alias.models';
+import {
+  EntitiesKeysByQuery,
+  entityFields,
+  EntityInfo,
+  ImportEntitiesResultInfo,
+  ImportEntityData
+} from '@shared/models/entity.models';
+import { EntityRelationService } from '@core/http/entity-relation.service';
+import { deepClone, isDefined, isDefinedAndNotNull } from '@core/utils';
+import { Asset } from '@shared/models/asset.models';
+import { Device, DeviceCredentialsType } from '@shared/models/device.models';
+import { EntityView } from '@shared/models/entity-view.models';
+import { AttributeService } from '@core/http/attribute.service';
+import { ConverterService } from '@core/http/converter.service';
+import { IntegrationService } from '@core/http/integration.service';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { BlobEntityService } from '@core/http/blob-entity.service';
+import { RoleService } from '@core/http/role.service';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { User } from '@shared/models/user.model';
+import { RuleChain } from '@shared/models/rule-chain.models';
+import { Converter } from '@shared/models/converter.models';
+import { Integration } from '@shared/models/integration.models';
+import { SchedulerEvent } from '@shared/models/scheduler-event.models';
+import { Role } from '@shared/models/role.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, resourceByEntityType, RoleType } from '@shared/models/security.models';
+import { EntityGroup } from '@shared/models/entity-group.models';
+import { CustomerId } from '@shared/models/id/customer-id';
 import {
   AlarmData,
   AlarmDataQuery,
@@ -100,11 +106,11 @@ import {
   singleEntityDataPageLink,
   StringOperation
 } from '@shared/models/query/query.models';
-import {alarmFields} from '@shared/models/alarm.models';
-import {Router} from "@angular/router";
-import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
-import {EdgeService} from "@core/http/edge.service";
-import {Edge} from "@shared/models/edge.models";
+import { alarmFields } from '@shared/models/alarm.models';
+import { Router } from '@angular/router';
+import { EdgeRuleChainService } from '@core/http/edge-rule-chain.service';
+import { EdgeService } from '@core/http/edge.service';
+import { Edge } from '@shared/models/edge.models';
 
 @Injectable({
   providedIn: 'root'
@@ -685,6 +691,13 @@ export class EntityService {
     return this.http.post<PageData<EntityData>>('/api/entitiesQuery/find', query, defaultHttpOptionsFromConfig(config));
   }
 
+  public findEntityKeysByQuery(query: EntityDataQuery, attributes = true, timeseries = true,
+                               config?: RequestConfig): Observable<EntitiesKeysByQuery> {
+    return this.http.post<EntitiesKeysByQuery>(
+      `/api/entitiesQuery/find/keys?attributes=${attributes}&timeseries=${timeseries}`,
+      query, defaultHttpOptionsFromConfig(config));
+  }
+
   public findAlarmDataByQuery(query: AlarmDataQuery, config?: RequestConfig): Observable<PageData<AlarmData>> {
     return this.http.post<PageData<AlarmData>>('/api/alarmsQuery/find', query, defaultHttpOptionsFromConfig(config));
   }
@@ -949,7 +962,7 @@ export class EntityService {
     return entityTypes;
   }
 
-  private getEntityFieldKeys(entityType: EntityType, searchText: string): Array<string> {
+  private getEntityFieldKeys(entityType: EntityType, searchText: string = ''): Array<string> {
     const entityFieldKeys: string[] = [entityFields.createdTime.keyName];
     const query = searchText.toLowerCase();
     switch (entityType) {
@@ -1004,7 +1017,7 @@ export class EntityService {
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;
   }
 
-  private getAlarmKeys(searchText: string): Array<string> {
+  private getAlarmKeys(searchText: string = ''): Array<string> {
     const alarmKeys: string[] = Object.keys(alarmFields);
     const query = searchText.toLowerCase();
     return query ? alarmKeys.filter((alarmField) => alarmField.toLowerCase().indexOf(query) === 0) : alarmKeys;
@@ -1037,6 +1050,59 @@ export class EntityService {
           }
         )
       );
+  }
+
+  public getEntityKeysByEntityFilter(filter: EntityFilter, types: DataKeyType[], config?: RequestConfig): Observable<Array<DataKey>> {
+    if (!types.length) {
+      return of([]);
+    }
+    let entitiesKeysByQuery$: Observable<EntitiesKeysByQuery>;
+    if (filter !== null && types.some(type => [DataKeyType.timeseries, DataKeyType.attribute].includes(type))) {
+      const dataQuery = {
+        entityFilter: filter,
+        pageLink: createDefaultEntityDataPageLink(100),
+      };
+      entitiesKeysByQuery$ = this.findEntityKeysByQuery(dataQuery, types.includes(DataKeyType.attribute),
+        types.includes(DataKeyType.timeseries), config);
+    } else {
+      entitiesKeysByQuery$ = of({
+        attribute: [],
+        timeseries: [],
+        entityTypes: [],
+      });
+    }
+    return entitiesKeysByQuery$.pipe(
+      map((entitiesKeys) => {
+        const dataKeys: Array<DataKey> = [];
+        types.forEach(type => {
+          let keys: Array<string>;
+          switch (type) {
+            case DataKeyType.entityField:
+              if (entitiesKeys.entityTypes.length) {
+                const entitiesFields = [];
+                entitiesKeys.entityTypes.forEach(entityType => entitiesFields.push(...this.getEntityFieldKeys(entityType)));
+                keys = Array.from(new Set(entitiesFields));
+              }
+              break;
+            case DataKeyType.alarm:
+              keys = this.getAlarmKeys();
+              break;
+            case DataKeyType.attribute:
+            case DataKeyType.timeseries:
+              if (entitiesKeys[type].length) {
+                keys = entitiesKeys[type];
+              }
+              break;
+          }
+          if (keys) {
+            dataKeys.push(...keys.map(key => {
+              return {name: key, type};
+            }));
+          }
+        });
+        return dataKeys;
+      })
+    );
   }
 
   public createDatasourcesFromSubscriptionsInfo(subscriptionsInfo: Array<SubscriptionInfo>): Array<Datasource> {
@@ -1300,7 +1366,7 @@ export class EntityService {
           return findEntityObservable.pipe(
             mergeMap((entity) => {
               const tasks: Observable<any>[] = [];
-              const result: Device | Asset = entity as (Device | Asset);
+              const result: Device & Asset = entity as (Device | Asset);
               const additionalInfo = result.additionalInfo || {};
               if (result.label !== entityData.label ||
                 result.type !== entityData.type ||
@@ -1312,6 +1378,9 @@ export class EntityService {
                 result.additionalInfo.description = entityData.description;
                 if (result.id.entityType === EntityType.DEVICE) {
                   result.additionalInfo.gateway = entityData.gateway;
+                }
+                if (result.id.entityType === EntityType.DEVICE && result.deviceProfileId) {
+                  delete result.deviceProfileId;
                 }
                 switch (result.id.entityType) {
                   case EntityType.DEVICE:

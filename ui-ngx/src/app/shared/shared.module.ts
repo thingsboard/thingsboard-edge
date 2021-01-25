@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -168,7 +168,7 @@ import { ContactComponent } from '@shared/components/contact.component';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
-import { EdgeEntityGroupListComponent } from "@shared/components/group/edge-entity-group-list.component";
+import { EdgeEntityGroupListComponent } from '@shared/components/group/edge-entity-group-list.component';
 
 @NgModule({
   providers: [

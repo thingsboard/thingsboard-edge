@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,6 @@ import { TranslateService } from "@ngx-translate/core";
 import { ActionNotificationShow } from "@core/notification/notification.actions";
 import { guid, isUndefined } from "@core/utils";
 import { GroupEntityTableConfig } from "@home/models/group/group-entities-table-config.models";
-import { WINDOW } from "@core/services/window.service";
 import { GroupEntityComponent } from "@home/components/group/group-entity.component";
 
 @Component({
@@ -57,9 +56,8 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
-              protected fb: FormBuilder,
-              @Inject(WINDOW) protected window: Window) {
-    super(store, fb, entityValue, entitiesTableConfigValue, window);
+              protected fb: FormBuilder) {
+    super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
@@ -93,7 +91,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         name: [entity ? entity.name : '', [Validators.required]],
         type: [entity ? entity.type : null, [Validators.required]],
         label: [entity ? entity.label : ''],
-        cloudEndpoint: [this.window.location.origin, [Validators.required]],
+        cloudEndpoint: [window.location.origin, [Validators.required]],
         edgeLicenseKey: ['', [Validators.required]],
         routingKey: guid(),
         secret: this.generateSecret(20),

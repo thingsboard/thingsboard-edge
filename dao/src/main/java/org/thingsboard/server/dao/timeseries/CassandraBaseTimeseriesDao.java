@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -43,7 +43,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -214,17 +213,18 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         }
         ttl = computeTtl(ttl);
         long partition = toPartitionTs(tsKvEntryTs);
-        log.debug("Saving partition {} for the entity [{}-{}] and key {}", partition, entityId.getEntityType(), entityId.getId(), key);
-        BoundStatementBuilder stmtBuilder = new BoundStatementBuilder((ttl == 0 ? getPartitionInsertStmt() : getPartitionInsertTtlStmt()).bind());
-        stmtBuilder.setString(0, entityId.getEntityType().name())
-                .setUuid(1, entityId.getId())
-                .setLong(2, partition)
-                .setString(3, key);
-        if (ttl > 0) {
-            stmtBuilder.setInt(4, (int) ttl);
+        if (cassandraTsPartitionsCache == null) {
+            return doSavePartition(tenantId, entityId, key, ttl, partition);
+        } else {
+            CassandraPartitionCacheKey partitionSearchKey = new CassandraPartitionCacheKey(entityId, key, partition);
+            if (!cassandraTsPartitionsCache.has(partitionSearchKey)) {
+                ListenableFuture<Integer> result = doSavePartition(tenantId, entityId, key, ttl, partition);
+                Futures.addCallback(result, new CacheCallback<>(partitionSearchKey), MoreExecutors.directExecutor());
+                return result;
+            } else {
+                return Futures.immediateFuture(0);
+            }
         }
-        BoundStatement stmt = stmtBuilder.build();
-        return getFuture(executeAsyncWrite(tenantId, stmt), rs -> 0);
     }
 
     @Override
@@ -498,6 +498,38 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         }
         BoundStatement stmt = stmtBuilder.build();
         return getFuture(executeAsyncWrite(tenantId, stmt), rs -> null);
+    }
+
+    private ListenableFuture<Integer> doSavePartition(TenantId tenantId, EntityId entityId, String key, long ttl, long partition) {
+        log.debug("Saving partition {} for the entity [{}-{}] and key {}", partition, entityId.getEntityType(), entityId.getId(), key);
+        PreparedStatement preparedStatement = ttl == 0 ? getPartitionInsertStmt() : getPartitionInsertTtlStmt();
+        BoundStatement stmt = preparedStatement.bind();
+        stmt = stmt.setString(0, entityId.getEntityType().name())
+                .setUuid(1, entityId.getId())
+                .setLong(2, partition)
+                .setString(3, key);
+        if (ttl > 0) {
+            stmt = stmt.setInt(4, (int) ttl);
+        }
+        return getFuture(executeAsyncWrite(tenantId, stmt), rs -> 0);
+    }
+
+    private class CacheCallback<Void> implements FutureCallback<Void> {
+        private final CassandraPartitionCacheKey key;
+
+        private CacheCallback(CassandraPartitionCacheKey key) {
+            this.key = key;
+        }
+
+        @Override
+        public void onSuccess(Void result) {
+            cassandraTsPartitionsCache.put(key);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+
+        }
     }
 
     private long computeTtl(long ttl) {

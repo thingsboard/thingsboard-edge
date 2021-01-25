@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -111,7 +111,6 @@ public class ThingsboardInstallService {
                 } else if ("3.0.1-cassandra".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
-                    log.info("Updating system data...");
                 } else {
                     switch (upgradeFromVersion) {
                         case "1.2.3": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
@@ -223,6 +222,7 @@ public class ThingsboardInstallService {
                             }
                             databaseEntitiesUpgradeService.upgradeDatabase("3.1.1");
                             dataUpdateService.updateData("3.1.1");
+                            systemDataLoaderService.createOAuth2Templates();
                         case "3.2.0":
                             log.info("Upgrading ThingsBoard from version 3.2.0 to 3.2.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.2.0");
@@ -234,7 +234,6 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.2.1");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
-                            systemDataLoaderService.createOAuth2Templates();
                             break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);

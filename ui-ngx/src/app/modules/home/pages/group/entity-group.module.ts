@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -42,7 +42,7 @@ import { DashboardModule } from '@home/pages/dashboard/dashboard.module';
 import { UserModule } from '@home/pages/user/user.module';
 import { CustomerModule } from '@home/pages/customer/customer.module';
 import { CustomersHierarchyComponent } from './customers-hierarchy.component';
-import {EdgeModule} from "@home/pages/edge/edge.module";
+import { EdgeModule } from '@home/pages/edge/edge.module';
 
 @NgModule({
   declarations: [
@@ -56,11 +56,11 @@ import {EdgeModule} from "@home/pages/edge/edge.module";
     DeviceModule,
     AssetModule,
     EntityViewModule,
-    EdgeModule,
     DashboardModule,
     UserModule,
     CustomerModule,
-    EntityGroupRoutingModule
+    EntityGroupRoutingModule,
+    EdgeModule
   ],
   providers: [
   ]

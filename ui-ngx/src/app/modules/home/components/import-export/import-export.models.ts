@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -185,7 +185,7 @@ function splitCSV(str: string, sep: string): string[] {
 
 function isNumeric(str: any): boolean {
   str = str.replace(',', '.');
-  return !isNaN(parseFloat(str)) && isFinite(str);
+  return (str - parseFloat(str) + 1) >= 0 && Number(str).toString() === str;
 }
 
 function convertStringToJSType(str: string): any {

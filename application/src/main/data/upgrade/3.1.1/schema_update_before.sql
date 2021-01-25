@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS oauth2_client_registration_info (
     basic_customer_name_pattern varchar(255),
     basic_default_dashboard_name varchar(255),
     basic_always_full_screen boolean,
+    basic_parent_customer_name_pattern varchar(255),
+    basic_user_groups_name_pattern varchar(1024),
     custom_url varchar(255),
     custom_username varchar(255),
     custom_password varchar(255),
@@ -91,12 +93,15 @@ CREATE TABLE IF NOT EXISTS oauth2_client_registration_template (
     basic_customer_name_pattern varchar(255),
     basic_default_dashboard_name varchar(255),
     basic_always_full_screen boolean,
+    basic_parent_customer_name_pattern varchar(255),
+    basic_user_groups_name_pattern varchar(1024),
     comment varchar,
     login_button_icon varchar(255),
     login_button_label varchar(255),
     help_link varchar(255),
     CONSTRAINT oauth2_template_provider_id_unq_key UNIQUE (provider_id)
 );
+
 
 CREATE TABLE IF NOT EXISTS device_profile (
     id uuid NOT NULL CONSTRAINT device_profile_pkey PRIMARY KEY,

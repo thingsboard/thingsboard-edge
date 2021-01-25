@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -235,7 +235,7 @@ export class KeyFilterDialogComponent extends
       let keyNameObservable: Observable<Array<string>>;
       switch (this.keyFilterFormGroup.get('key.type').value) {
         case EntityKeyType.ENTITY_FIELD:
-          keyNameObservable = of(Object.values(entityFields).map(entityField => entityField.keyName).sort());
+          keyNameObservable = of(Object.keys(entityFields).map(itm => entityFields[itm]).map(entityField => entityField.keyName).sort());
           break;
         case EntityKeyType.ATTRIBUTE:
           keyNameObservable = this.deviceProfileService.getDeviceProfileDevicesAttributesKeys(

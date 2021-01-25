@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.audit;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -54,15 +53,16 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.audit.sink.AuditLogSink;
+import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 
@@ -70,6 +70,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -78,8 +79,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @Service
 @ConditionalOnProperty(prefix = "audit-log", value = "enabled", havingValue = "true")
 public class AuditLogServiceImpl implements AuditLogService {
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     private static final int INSERTS_PER_ENTRY = 3;
@@ -303,8 +302,34 @@ public class AuditLogServiceImpl implements AuditLogService {
             case PROVISION_FAILURE:
                 ProvisionRequest request = extractParameter(ProvisionRequest.class, additionalInfo);
                 if (request != null) {
-                    actionData.set("provisionRequest", objectMapper.valueToTree(request));
+                    actionData.set("provisionRequest", JacksonUtil.valueToTree(request));
                 }
+                break;
+            case TIMESERIES_UPDATED:
+                actionData.put("entityId", entityId.toString());
+                List<TsKvEntry> updatedTimeseries = extractParameter(List.class, 0, additionalInfo);
+                if (updatedTimeseries != null) {
+                    ArrayNode result = actionData.putArray("timeseries");
+                    updatedTimeseries.stream()
+                            .collect(Collectors.groupingBy(TsKvEntry::getTs))
+                            .forEach((k, v) -> {
+                                ObjectNode element = JacksonUtil.newObjectNode();
+                                element.put("ts", k);
+                                ObjectNode values = element.putObject("values");
+                                v.forEach(kvEntry -> values.put(kvEntry.getKey(), kvEntry.getValueAsString()));
+                                result.add(element);
+                            });
+                }
+                break;
+            case TIMESERIES_DELETED:
+                actionData.put("entityId", entityId.toString());
+                List<String> timeseriesKeys = extractParameter(List.class, 0, additionalInfo);
+                if (timeseriesKeys != null) {
+                    ArrayNode timeseriesArrayNode = actionData.putArray("timeseries");
+                    timeseriesKeys.forEach(timeseriesArrayNode::add);
+                }
+                actionData.put("startTs", extractParameter(Long.class, 1, additionalInfo));
+                actionData.put("endTs", extractParameter(Long.class, 2, additionalInfo));
                 break;
             case ASSIGNED_TO_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
+import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -65,6 +66,7 @@ import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
+import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
 import org.thingsboard.integration.http.oc.OceanConnectIntegration;
 import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
@@ -1016,6 +1018,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 return new TMobileIotCdpIntegration();
             case MQTT:
                 return new BasicMqttIntegration();
+            case PUB_SUB:
+                return new PubSubIntegration();
             case AWS_IOT:
                 return new AwsIotIntegration();
             case AWS_SQS:
@@ -1025,6 +1029,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             case TTN:
             case TTI:
                 return new TtnIntegration();
+            case CHIRPSTACK:
+                return new ChirpStackIntegration();
             case AZURE_EVENT_HUB:
                 return new AzureEventHubIntegration();
             case AZURE_IOT_HUB:
