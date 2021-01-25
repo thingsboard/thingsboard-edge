@@ -385,16 +385,23 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
             } else if (authority === 'TENANT_ADMIN') {
                 sections.push(
                     {
-                        name: 'edge.info',
+                        name: 'home.home',
+                        type: 'link',
+                        state: 'home.links',
+                        icon: 'home',
+                        disabled: disabledItems.indexOf('home') > -1
+                    },
+                    {
+                        name: 'edge.edge',
                         type: 'toggle',
                         state: 'home.edge',
                         icon: 'router',
                         height: '80px',
                         pages: [
                             {
-                                name: 'edge.information',
+                                name: 'edge.status',
                                 type: 'link',
-                                state: 'home.edge.information',
+                                state: 'home.edge.status',
                                 icon: 'info',
                                 disabled: false
                             },
@@ -406,13 +413,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                 disabled: false
                             }
                         ]
-                    },
-                    {
-                        name: 'home.home',
-                        type: 'link',
-                        state: 'home.links',
-                        icon: 'home',
-                        disabled: disabledItems.indexOf('home') > -1
                     }
                 );
                 if (userPermissionsService.hasReadGenericPermission(securityTypes.resource.ruleChain)) {
@@ -592,12 +592,18 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                 }
                     homeSections.push(
                         {
-                            name: 'edge.info',
+                            name: 'edge.edge',
                             places: [
                                 {
-                                    name: 'edge.info',
+                                    name: 'edge.status',
                                     icon: 'router',
-                                    state: 'home.edge',
+                                    state: 'home.edge.status',
+                                    disabled: false
+                                },
+                                {
+                                    name: 'edge.cloud-events',
+                                    icon: 'date_range',
+                                    state: 'home.edge.cloudEvents',
                                     disabled: false
                                 }
                             ]

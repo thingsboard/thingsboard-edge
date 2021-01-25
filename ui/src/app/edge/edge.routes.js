@@ -43,11 +43,11 @@ export default function EdgeRoutes($stateProvider) {
             auth: ['TENANT_ADMIN'],
             redirectTo: 'home.information',
             ncyBreadcrumb: {
-                label: '{"icon": "router", "label": "edge.info"}'
+                label: '{"icon": "router", "label": "edge.edge"}'
             }
         })
-        .state('home.edge.information', {
-        url: '/information',
+        .state('home.edge.status', {
+        url: '/status',
         module: 'private',
         auth: ['TENANT_ADMIN'],
         views: {
@@ -58,10 +58,10 @@ export default function EdgeRoutes($stateProvider) {
             }
         },
         data: {
-            pageTitle: 'edge.info'
+            pageTitle: 'edge.status'
         },
         ncyBreadcrumb: {
-            label: '{"icon": "router", "label": "edge.info"}'
+            label: '{"icon": "router", "label": "edge.status"}'
         }
     })
 }

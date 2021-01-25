@@ -493,11 +493,11 @@ function WhiteLabelingService($rootScope, $q, $http, store, themeProvider, $mdTh
         var primaryPalette = paletteSettings.primaryPalette;
         var accentPalette = paletteSettings.accentPalette;
 
-        if (primaryPalette.type == 'tb-primary' &&
+        /* if (primaryPalette.type == 'tb-primary' &&
             accentPalette.type == 'tb-accent') {
             $rootScope.currentLoginTheme = 'tb-dark';
             return;
-        }
+        } */
 
         cleanupPalettes('custom-login-');
 

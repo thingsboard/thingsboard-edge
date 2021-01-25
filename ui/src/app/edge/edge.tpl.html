@@ -42,6 +42,10 @@
             <fieldset ng-disabled="true">
                 <form name="theForm" disabled>
                     <md-input-container class="md-block" ng-class="edge-label">
+                        <label translate>edge.name</label>
+                        <input ng-model="vm.edgeSettings.name">
+                    </md-input-container>
+                    <md-input-container class="md-block" ng-class="edge-label">
                         <label translate>edge.id</label>
                         <input ng-model="vm.edgeSettings.edgeId">
                     </md-input-container>
