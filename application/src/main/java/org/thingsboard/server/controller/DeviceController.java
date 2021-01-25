@@ -124,6 +124,7 @@ public class DeviceController extends BaseController {
             Device savedDevice = saveGroupEntity(device, strEntityGroupId,
                     device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
 
+            tbClusterService.onDeviceChange(savedDevice, null);
             tbClusterService.pushMsgToCore(new DeviceNameOrTypeUpdateMsg(savedDevice.getTenantId(),
                     savedDevice.getId(), savedDevice.getName(), savedDevice.getType()), null);
             tbClusterService.onEntityStateChange(savedDevice.getTenantId(), savedDevice.getId(),
@@ -152,6 +153,9 @@ public class DeviceController extends BaseController {
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), deviceId);
 
             deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
+
+            tbClusterService.onDeviceDeleted(device, null);
+            tbClusterService.onEntityStateChange(device.getTenantId(), deviceId, ComponentLifecycleEvent.DELETED);
 
             logEntityAction(deviceId, device,
                     device.getCustomerId(),

@@ -88,7 +88,7 @@ export class MailServerComponent extends PageComponent implements OnInit, HasCon
         if (this.isTenantAdmin()) {
           this.mailSettings.get('useSystemMailSettings').setValue(
             isDefined(this.adminSettings.jsonValue.useSystemMailSettings) ?
-              this.adminSettings.jsonValue.useSystemMailSettings: true, {emitEvent: false}
+              this.adminSettings.jsonValue.useSystemMailSettings : true, {emitEvent: false}
           );
         }
         this.updateValidators();

@@ -56,7 +56,8 @@
         <module>aws</module>
         <module>tcp-udp</module>
         <module>kafka</module>
-        <module>pulsar</module>
+        <module>apache-pulsar</module>
+        <module>rabbitmq</module>
     </modules>
 
     <build>

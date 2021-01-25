@@ -1423,14 +1423,40 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         MergedGroupTypePermissionInfo groupTypePermissionInfo = ctx.getSecurityCtx().getMergedReadGroupPermissionsByEntityType();
         String where;
         if (groupTypePermissionInfo.isHasGenericRead() || !groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-
+            EntityId customOwnerId = entityFilter.getOwnerId();
+            if (customOwnerId != null && !customOwnerId.getEntityType().equals(EntityType.TENANT) && !customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                customOwnerId = null;
+            }
             String allowedGroupIdsSelect = "(";
+            boolean genericPartAdded = false;
             if (groupTypePermissionInfo.isHasGenericRead()) {
-                allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
-                ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                if (customOwnerId == null || ctx.getOwnerId().equals(customOwnerId.getId())) {
+                    // No custom owner - just select a list of groups that belong to current owner
+                    allowedGroupIdsSelect += "owner_id = :where_group_owner_id";
+                    ctx.addUuidParameter("where_group_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (ctx.isTenantUser()) {
+                    // Tenant user with different custom owner id. We need to check that this is our customer.
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id)";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                } else if (customOwnerId.getEntityType().equals(EntityType.CUSTOMER)) {
+                    // Customer user with different custom owner id. We need to check the hierarchy now
+                    allowedGroupIdsSelect += "owner_id in (select id from customer where id = :where_group_owner_id and tenant_id = :where_real_tenant_id and id in ";
+                    allowedGroupIdsSelect += "(WITH RECURSIVE customers_ids(id) AS" +
+                            " (SELECT id id FROM customer WHERE tenant_id = :where_real_tenant_id and id = :where_real_owner_id" +
+                            " UNION SELECT c.id id FROM customer c, customers_ids parent WHERE c.tenant_id = :where_real_tenant_id" +
+                            " and c.parent_customer_id = parent.id) SELECT id FROM customers_ids)";
+                    allowedGroupIdsSelect += ")";
+                    ctx.addUuidParameter("where_group_owner_id", customOwnerId.getId());
+                    ctx.addUuidParameter("where_real_tenant_id", ctx.getTenantId().getId());
+                    ctx.addUuidParameter("where_real_owner_id", ctx.getOwnerId());
+                    genericPartAdded = true;
+                }
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-                if (groupTypePermissionInfo.isHasGenericRead()) {
+                if (genericPartAdded) {
                     allowedGroupIdsSelect += " or ";
                 }
                 allowedGroupIdsSelect += "id in (:where_group_ids)";

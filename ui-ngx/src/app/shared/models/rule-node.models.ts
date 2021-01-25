@@ -452,6 +452,7 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.rabbitmq.TbRabbitMqNode': 'ruleNodeRabbitMq',
   'org.thingsboard.rule.engine.rest.TbRestApiCallNode': 'ruleNodeRestApiCall',
   'org.thingsboard.rule.engine.mail.TbSendEmailNode': 'ruleNodeSendEmail',
+  'org.thingsboard.rule.engine.sms.TbSendSmsNode': 'ruleNodeSendSms',
   'org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode': 'ruleNodeIntegrationDownlink',
   'org.thingsboard.rule.engine.action.TbAddToGroupNode': 'ruleNodeAddToGroup',
   'org.thingsboard.rule.engine.action.TbRemoveFromGroupNode': 'ruleNodeRemoveFromGroup',

@@ -41,6 +41,7 @@ export interface MenuSection extends HasUUID{
   path: string;
   queryParams?: {[k: string]: any};
   icon: string;
+  notExact?: boolean;
   iconUrl?: string;
   isMdiIcon?: boolean;
   asyncPages?: Observable<Array<MenuSection>>;

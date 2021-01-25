@@ -143,6 +143,8 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         entityFieldKeys = ['title', 'email', 'country', 'state', 'city', 'address', 'address2', 'zip', 'phone'];
         break;
       case EntityType.ASSET:
+        entityFieldKeys = ['name', 'type', 'label', 'assigned_customer'];
+        break;
       case EntityType.DEVICE:
         entityFieldKeys = ['name', 'device_profile', 'label', 'assigned_customer'];
         break;

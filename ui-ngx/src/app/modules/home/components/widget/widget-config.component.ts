@@ -833,7 +833,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
                   return dataKeys;
                 }
                 ),
-                catchError(val => of([]))
+                catchError(() => of([]))
             ));
           }
           return forkJoin(fetchEntityTasks).pipe(
@@ -845,11 +845,23 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
               return result;
             }
           ));
+        } else if (dataKeyTypes.includes(DataKeyType.alarm)) {
+          return this.entityService.getEntityKeys(null, query, DataKeyType.alarm).pipe(
+            map((keys) => {
+                const dataKeys: Array<DataKey> = [];
+                for (const key of keys) {
+                  dataKeys.push({name: key, type: DataKeyType.alarm});
+                }
+                return dataKeys;
+              }
+            ),
+            catchError(() => of([]))
+          );
         } else {
           return of([]);
         }
       }),
-      catchError(val => of([] as Array<DataKey>))
+      catchError(() => of([] as Array<DataKey>))
     );
   }
 

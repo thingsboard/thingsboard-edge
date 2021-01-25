@@ -48,7 +48,9 @@ public class MqttTopicFilterFactory {
             throw new IllegalArgumentException("Topic filter can't be empty!");
         }
         return filters.computeIfAbsent(topicFilter, filter -> {
-            if (filter.contains("+") || filter.contains("#")) {
+            if (filter.equals("#")) {
+                return new AlwaysTrueTopicFilter();
+            } else if (filter.contains("+") || filter.contains("#")) {
                 String regex = filter
                         .replace("\\", "\\\\")
                         .replace("+", "[^/]+")

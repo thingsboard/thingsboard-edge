@@ -225,6 +225,8 @@ public final class IntegrationGrpcSession implements Closeable {
                             .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
                             .setDeviceName(device.getName())
                             .setDeviceType(device.getType())
+                            .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
+                            .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
                             .build();
 
                     if (data.hasPostTelemetryMsg()) {
@@ -439,9 +441,9 @@ public final class IntegrationGrpcSession implements Closeable {
                 }
             }
         }
-        ctx.getTelemetrySubscriptionService().saveAndNotify(configuration.getTenantId(), configuration.getId(), statsTs, new FutureCallback<Void>() {
+        ctx.getTelemetrySubscriptionService().saveAndNotifyInternal(configuration.getTenantId(), configuration.getId(), statsTs, new FutureCallback<Integer>() {
             @Override
-            public void onSuccess(@Nullable Void result) {
+            public void onSuccess(@Nullable Integer result) {
                 log.trace("[{}] Persisted statistics telemetry!", configuration.getId());
             }
 

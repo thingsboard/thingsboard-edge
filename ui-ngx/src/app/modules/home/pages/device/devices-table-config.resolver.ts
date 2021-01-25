@@ -46,7 +46,7 @@ import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Device, DeviceCredentials } from '@app/shared/models/device.models';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { select, Store } from '@ngrx/store';
 import { selectAuthUser } from '@core/auth/auth.selectors';
 import { map, mergeMap, take, tap } from 'rxjs/operators';
@@ -66,6 +66,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { UtilsService } from '@core/services/utils.service';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable()
 export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Device>> {
@@ -119,7 +120,8 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
     const routeParams = route.params;
     this.config.componentsData = {
       deviceScope: route.data.devicesType,
-      deviceProfileId: null
+      deviceProfileId: null,
+      deviceCredentials$: new Subject<DeviceCredentials>()
     };
     this.customerId = routeParams.customerId;
     return this.store.pipe(select(selectAuthUser), take(1)).pipe(
@@ -478,6 +480,10 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       data: {
         deviceId: device.id.id,
         isReadOnly: this.config.componentsData.deviceScope === 'customer_user'
+      }
+    }).afterClosed().subscribe(deviceCredentials => {
+      if (isDefinedAndNotNull(deviceCredentials)) {
+        this.config.componentsData.deviceCredentials$.next(deviceCredentials);
       }
     });
   }

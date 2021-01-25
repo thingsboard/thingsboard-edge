@@ -545,12 +545,12 @@ function cleanupThemeStyle(isLoginTheme: boolean) {
 }
 
 function applyThemeStyle(themeCss: string, isLoginTheme: boolean) {
-  const favicon = $('link[rel="icon"]');
+  const initialStyle = $('style#initial');
   const target = isLoginTheme ? 'tb-login-theme' : 'tb-app-theme';
   let targetStyle = $(`#${target}`);
   if (!targetStyle.length) {
     targetStyle = $(`<style id="${target}"></style>`);
-    let afterStyle = favicon.next('style, link');
+    let afterStyle = initialStyle.next('style, link');
     if (isLoginTheme) {
       afterStyle = afterStyle.next('style, link');
       if (afterStyle.attr('id') === 'tb-app-theme') {

@@ -204,6 +204,9 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           entityViewNameFilter: [filter ? filter.entityViewNameFilter : '', []],
         });
         break;
+      case AliasFilterType.apiUsageState:
+        this.filterFormGroup = this.fb.group({});
+        break;
       case AliasFilterType.edgeType:
         this.filterFormGroup = this.fb.group({
           edgeType: [filter ? filter.edgeType : null, [Validators.required]],
@@ -257,7 +260,7 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
 
   private filterTypeChanged(type: AliasFilterType) {
     let resolveMultiple = true;
-    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity ||
+    if (type === AliasFilterType.singleEntity || type === AliasFilterType.stateEntity || type === AliasFilterType.apiUsageState ||
         type === AliasFilterType.stateEntityOwner) {
       resolveMultiple = false;
     }

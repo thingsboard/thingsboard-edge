@@ -118,6 +118,7 @@ export interface EntitiesByGroupNameFilter {
   groupStateEntity?: boolean;
   stateEntityParamName?: string;
   groupType?: EntityType;
+  ownerId?: EntityId;
   entityGroupNameFilter?: string;
 }
 
@@ -173,6 +174,7 @@ export interface EntitySearchQueryFilter {
   fetchLastLevelOnly?: boolean;
 }
 
+// tslint:disable-next-line:no-empty-interface
 export interface ApiUsageStateFilter {
 
 }

@@ -39,7 +39,7 @@
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.integration</groupId>
-    <artifactId>pulsar</artifactId>
+    <artifactId>apache-pulsar</artifactId>
     <packaging>jar</packaging>
 
     <name>Thingsboard PE Apache Pulsar Integration Service</name>

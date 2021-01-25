@@ -584,8 +584,12 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return column.def;
   }
 
-  public trackByRowIndex(index: number) {
-    return index;
+  public trackByAlarmId(index: number, alarm: AlarmData) {
+    return alarm.id.id;
+  }
+
+  public trackByActionCellDescriptionId(index: number, action: WidgetActionDescriptor) {
+    return action.id;
   }
 
   public headerStyle(key: EntityColumn): any {

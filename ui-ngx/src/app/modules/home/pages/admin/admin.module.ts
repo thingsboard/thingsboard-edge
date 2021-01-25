@@ -47,6 +47,8 @@ import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.compone
 import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settings.component';
+import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
+import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
 
 @NgModule({
   declarations:
@@ -54,6 +56,8 @@ import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settin
       GeneralSettingsComponent,
       MailServerComponent,
       MailTemplatesComponent,
+      SmsProviderComponent,
+      SendTestSmsDialogComponent,
       CustomTranslationComponent,
       CustomMenuComponent,
       WhiteLabelingComponent,

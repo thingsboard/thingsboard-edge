@@ -36,7 +36,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Device } from '@shared/models/device.models';
 import {
   createDeviceConfiguration,
-  createDeviceTransportConfiguration,
+  createDeviceTransportConfiguration, DeviceCredentials,
   DeviceData,
   DeviceProfileInfo,
   DeviceProfileType,
@@ -49,6 +49,7 @@ import { DeviceService } from '@core/http/device.service';
 import { ClipboardService } from 'ngx-clipboard';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'tb-device',
@@ -58,6 +59,8 @@ import { GroupEntityComponent } from '@home/components/group/group-entity.compon
 export class DeviceComponent extends GroupEntityComponent<Device> {
 
   entityType = EntityType;
+
+  deviceCredentials$: Subject<DeviceCredentials>;
 
 //  deviceScope: 'tenant' | 'customer' | 'customer_user';
 
@@ -73,6 +76,7 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   ngOnInit() {
     // this.deviceScope = this.entitiesTableConfig.componentsData.deviceScope;
+    this.deviceCredentials$ = this.entitiesTableConfigValue.componentsData.deviceCredentials$;
     super.ngOnInit();
   }
 
@@ -141,26 +145,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  copyAccessToken($event) {
-    if (this.entity.id) {
-      this.deviceService.getDeviceCredentials(this.entity.id.id, true).subscribe(
-        (deviceCredentials) => {
-          const credentialsId = deviceCredentials.credentialsId;
-          if (this.clipboardService.copyFromContent(credentialsId)) {
-            this.store.dispatch(new ActionNotificationShow(
-              {
-                message: this.translate.instant('device.accessTokenCopiedMessage'),
-                type: 'success',
-                duration: 750,
-                verticalPosition: 'bottom',
-                horizontalPosition: 'right'
-              }));
-          }
-        }
-      );
-    }
   }
 
   onDeviceProfileUpdated() {

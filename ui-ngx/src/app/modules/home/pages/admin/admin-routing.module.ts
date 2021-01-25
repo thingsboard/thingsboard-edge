@@ -32,6 +32,7 @@
 import { Injectable, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
+import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { Authority } from '@shared/models/authority.enum';
 import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.component';
@@ -173,6 +174,19 @@ const routes: Routes = [
         },
         resolve: {
           adminSettings: MailTemplateSettingsResolver
+        }
+      },
+      {
+        path: 'sms-provider',
+        component: SmsProviderComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          title: 'admin.sms-provider-settings',
+          breadcrumb: {
+            label: 'admin.sms-provider',
+            icon: 'sms'
+          }
         }
       },
       {

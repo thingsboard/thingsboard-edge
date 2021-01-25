@@ -127,8 +127,14 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
       if (!headersFilter.value) {
         headersFilter.patchValue({});
       }
+      if (this.integrationTypeLoriot) {
+        enableFields(this.form, ['headersFilter']);
+      }
     } else {
       headersFilter.patchValue({});
+      if (this.integrationTypeLoriot) {
+        disableFields(this.form, ['headersFilter']);
+      }
     }
   }
 
@@ -165,11 +171,11 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
     if (createLoriotOutput || sendDownlink) {
       enableFields(this.form, fields);
     } else {
-      disableFields(this.form, fields);
+      disableFields(this.form, fields, false);
     }
 
-    createLoriotOutput ? enableFields(this.form, createAppFields) : disableFields(this.form, createAppFields);
-    sendDownlink ? enableFields(this.form, downlinkFields) : disableFields(this.form, downlinkFields);
+    createLoriotOutput ? enableFields(this.form, createAppFields) : disableFields(this.form, createAppFields, false);
+    sendDownlink ? enableFields(this.form, downlinkFields) : disableFields(this.form, downlinkFields, false);
   }
 
   onHttpEndpointCopied() {
