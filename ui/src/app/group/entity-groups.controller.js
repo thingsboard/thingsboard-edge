@@ -415,7 +415,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             } else if (entityGroup.type == types.entityType.entityView) {
                 targetState = 'entityViewGroups.entityViewGroup';
             } else if (entityGroup.type == types.entityType.edge) {
-                targetState = 'edges.edgeGroups.edgeGroup';
+                targetState = vm.customerId ? 'edgeGroups.edgeGroup' : 'edges.edgeGroups.edgeGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
             } else if (entityGroup.type == types.entityType.rulechain) {
