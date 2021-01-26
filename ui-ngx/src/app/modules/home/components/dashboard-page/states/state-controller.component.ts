@@ -41,6 +41,7 @@ import { StateObject, StateParams } from '@app/core/api/widget-api.models';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { UtilsService } from '@core/services/utils.service';
 
+// @dynamic
 @Directive()
 export abstract class StateControllerComponent implements IStateControllerComponent, OnInit, OnDestroy {
 
