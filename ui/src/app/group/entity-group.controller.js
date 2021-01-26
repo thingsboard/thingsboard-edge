@@ -1263,7 +1263,7 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
 }
 
 /*@ngInject*/
-function AddEntityController($scope, $mdDialog, types, helpLinks, entityService, entityGroupService, entityGroup) {
+function AddEntityController($scope, $mdDialog, types, helpLinks, entityService, entityGroupService, entityGroup, userService) {
 
     var vm = this;
 
@@ -1278,6 +1278,7 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
 
     vm.translations = types.entityTypeTranslations[vm.entityType];
     vm.resources = types.entityTypeResources[vm.entityType];
+    vm.isTenantAdmin = isTenantAdmin;
 
     vm.entityHelpLinkId = entityHelpLinkId;
     vm.add = add;
@@ -1312,5 +1313,9 @@ function AddEntityController($scope, $mdDialog, types, helpLinks, entityService,
             $scope.theForm.$setPristine();
             $mdDialog.hide(vm.entity);
         });
+    }
+
+    function isTenantAdmin() {
+        return userService.getAuthority() === 'TENANT_ADMIN';
     }
 }
