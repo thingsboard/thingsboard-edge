@@ -79,7 +79,7 @@ export default function EdgeDownlinksDirective($compile, $templateCache, $rootSc
 
             fetchMoreItems_: function () {
                 if (scope.downlinks.hasNext && !scope.downlinks.pending) {
-                    if (scope.entityType && scope.entityId && scope.tenantId) {
+                    if (scope.entityType && scope.entityId) {
                         scope.loadEdgeInfo();
                         scope.downlinks.pending = true;
                         edgeService.getEdgeEvents(scope.entityId, scope.downlinks.nextPageLink).then(

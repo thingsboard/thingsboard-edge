@@ -45,6 +45,7 @@ export default angular.module('thingsboard.securityTypes', [])
                 customer: "CUSTOMER",
                 dashboard: "DASHBOARD",
                 entityView: "ENTITY_VIEW",
+                edge: "EDGE",
                 tenant: "TENANT",
                 ruleChain: "RULE_CHAIN",
                 user: "USER",
