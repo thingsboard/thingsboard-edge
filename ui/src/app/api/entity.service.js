@@ -1336,7 +1336,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
             }
         }
-        if (!userService.isEdgesSupportEnabled()) {
+        if (!userService.isEdgesSupportEnabled() || !userPermissionsService.hasGenericPermission(securityTypes.resource.edgeGroup, securityTypes.operation.read)) {
             delete entityTypes.edge;
         }
         return entityTypes;

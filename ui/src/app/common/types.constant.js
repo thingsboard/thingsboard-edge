@@ -1952,6 +1952,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "CUSTOM_TRANSLATION": {
                     name: "edge-event.custom-translation",
+                },
+                "ROLE": {
+                    name: "edge-event.type-role",
                 }
             }
         }
