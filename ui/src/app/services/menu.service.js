@@ -110,7 +110,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
 
     var edgeGroups = {
         name: 'entity-group.edge-groups',
-        type: 'link',
+        type: 'toggle',
         state: 'home.edges.edgeGroups',
         height: '0px',
         icon: 'router',
@@ -492,7 +492,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             name: 'edge.management',
                             type: 'toggle',
                             state: 'home.edges',
-                            height: '120px',
+                            height: '0px',
                             icon: 'router',
                             pages: [
                                 edgeGroups,
