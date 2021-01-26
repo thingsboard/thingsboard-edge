@@ -70,20 +70,20 @@ import {
   XLSX_TYPE,
   ZIP_TYPE
 } from './import-export.models';
-import { EntityType } from '@shared/models/entity-type.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { UtilsService } from '@core/services/utils.service';
 import { WidgetService } from '@core/http/widget.service';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
 import { ImportEntitiesResultInfo, ImportEntityData } from '@shared/models/entity.models';
 import { RequestConfig } from '@core/http/http-utils';
-import { RuleChain, RuleChainImport, RuleChainMetaData } from '@shared/models/rule-chain.models';
+import { RuleChain, RuleChainImport, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { ConverterService } from '@core/http/converter.service';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
-import { Column, Borders, Workbook} from 'exceljs';
+import { Borders, Column, Workbook } from 'exceljs';
 import * as moment_ from 'moment';
 
 const moment = moment_;
@@ -431,7 +431,7 @@ export class ImportExportService {
     );
   }
 
-  public importRuleChain(): Observable<RuleChainImport> {
+  public importRuleChain(expectedRuleChainType: RuleChainType): Observable<RuleChainImport> {
     return this.openImportDialog('rulechain.import', 'rulechain.rulechain-file').pipe(
       mergeMap((ruleChainImport: RuleChainImport) => {
         if (!this.validateImportedRuleChain(ruleChainImport)) {
@@ -439,6 +439,11 @@ export class ImportExportService {
             {message: this.translate.instant('rulechain.invalid-rulechain-file-error'),
               type: 'error'}));
           throw new Error('Invalid rule chain file');
+        } else if (ruleChainImport.ruleChain.type !== expectedRuleChainType) {
+          this.store.dispatch(new ActionNotificationShow(
+            {message: this.translate.instant('rulechain.invalid-rulechain-type-error', { expectedRuleChainType: expectedRuleChainType }),
+              type: 'error'}));
+          throw new Error('Invalid rule chain type');
         } else {
           return this.ruleChainService.resolveRuleChainMetadata(ruleChainImport.metadata).pipe(
             map((resolvedMetadata) => {
@@ -661,6 +666,9 @@ export class ImportExportService {
       || isUndefined(ruleChainImport.ruleChain.name)) {
       return false;
     }
+    if (isUndefined(ruleChainImport.ruleChain.type)) {
+      ruleChainImport.ruleChain.type = RuleChainType.CORE;
+    }
     return true;
   }
 
@@ -792,6 +800,9 @@ export class ImportExportService {
 
   private editMissingAliases(widgets: Array<Widget>, isSingleWidget: boolean,
                              customTitle: string, missingEntityAliases: EntityAliases): Observable<EntityAliases> {
+    let allowedEntityTypes: Array<EntityType | AliasEntityType> =
+      this.entityService.prepareAllowedEntityTypesList(null, true);
+
     return this.dialog.open<EntityAliasesDialogComponent, EntityAliasesDialogData,
       EntityAliases>(EntityAliasesDialogComponent, {
       disableClose: true,
@@ -801,7 +812,8 @@ export class ImportExportService {
         widgets,
         customTitle,
         isSingleWidget,
-        disableAdd: true
+        disableAdd: true,
+        allowedEntityTypes: allowedEntityTypes
       }
     }).afterClosed().pipe(
       map((updatedEntityAliases) => {

@@ -118,6 +118,7 @@ import { Operation } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 
 // @dynamic
 @Component({
@@ -172,6 +173,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   isToolbarOpened = false;
   isToolbarOpenedAnimate = false;
   isRightLayoutOpened = false;
+
+  allowedEntityTypes: Array<EntityType | AliasEntityType> = null;
 
   editingWidget: Widget = null;
   editingWidgetLayout: WidgetLayout = null;
@@ -347,6 +350,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       };
       this.window.parent.postMessage(JSON.stringify(message), '*');
     }
+
+    this.allowedEntityTypes = this.entityService.prepareAllowedEntityTypesList(null, true);
   }
 
   private reset() {
@@ -565,7 +570,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       data: {
         entityAliases: deepClone(this.dashboard.configuration.entityAliases),
         widgets: this.dashboardUtils.getWidgetsArray(this.dashboard),
-        isSingleEntityAlias: false
+        isSingleEntityAlias: false,
+        allowedEntityTypes: this.allowedEntityTypes
       }
     }).afterClosed().subscribe((entityAliases) => {
       if (entityAliases) {

@@ -477,6 +477,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("input_widgets");
         this.deleteSystemWidgetBundle("date");
         this.deleteSystemWidgetBundle("entity_admin_widgets");
+        this.deleteSystemWidgetBundle("edge_widgets");
         installScripts.loadSystemWidgets();
     }
 

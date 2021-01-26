@@ -55,6 +55,8 @@ import org.thingsboard.server.common.data.query.DeviceSearchQueryFilter;
 import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntitiesByGroupNameFilter;
+import org.thingsboard.server.common.data.query.EdgeSearchQueryFilter;
+import org.thingsboard.server.common.data.query.EdgeTypeFilter;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
@@ -301,7 +303,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             " WHEN entity.entity_type = 'ENTITY_VIEW'" +
             " THEN (select name from entity_view where id = entity_id)" +
             " WHEN entity.entity_type = 'EDGE'" +
-            " THEN (select name from edge where id = entity_id)" +
+            " THEN (select label from edge where id = entity_id)" +
             " END as label";
     private static final String SELECT_ADDITIONAL_INFO = " CASE" +
             " WHEN entity.entity_type = 'TENANT'" +
@@ -332,7 +334,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.ASSET, "asset");
         entityTableMap.put(EntityType.DEVICE, "device");
         entityTableMap.put(EntityType.ENTITY_VIEW, "entity_view");
-        entityTableMap.put(EntityType.EDGE, "edge");
         entityTableMap.put(EntityType.DASHBOARD, "dashboard");
         entityTableMap.put(EntityType.CUSTOMER, "customer");
         entityTableMap.put(EntityType.USER, "tb_user");
@@ -343,6 +344,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.BLOB_ENTITY, "blob_entity");
         entityTableMap.put(EntityType.ROLE, "role");
         entityTableMap.put(EntityType.API_USAGE_STATE, SELECT_API_USAGE_STATE);
+        entityTableMap.put(EntityType.EDGE, "edge");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
@@ -1283,6 +1285,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case ENTITY_GROUP:
             case ENTITY_GROUP_NAME:
                 return this.defaultPermissionQuery(ctx);
@@ -1323,6 +1326,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ASSET_TYPE:
             case DEVICE_TYPE:
             case ENTITY_VIEW_TYPE:
+            case EDGE_TYPE:
                 return this.typeQuery(ctx, entityFilter);
             case STATE_ENTITY_OWNER:
                 return this.singleEntityByStateOwner(ctx);
@@ -1333,6 +1337,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case DEVICE_SEARCH_QUERY:
             case ASSET_SEARCH_QUERY:
             case ENTITY_VIEW_SEARCH_QUERY:
+            case EDGE_SEARCH_QUERY:
             case API_USAGE_STATE:
                 return "";
             default:
@@ -1367,6 +1372,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_SEARCH_QUERY:
                 EntityViewSearchQueryFilter entityViewQuery = (EntityViewSearchQueryFilter) entityFilter;
                 return entitySearchQuery(ctx, entityViewQuery, EntityType.ENTITY_VIEW, entityViewQuery.getEntityViewTypes());
+            case EDGE_SEARCH_QUERY:
+                EdgeSearchQueryFilter edgeQuery = (EdgeSearchQueryFilter) entityFilter;
+                return entitySearchQuery(ctx, edgeQuery, EntityType.EDGE, edgeQuery.getEdgeTypes());
             default:
                 return entityTableMap.get(ctx.getEntityType());
         }
@@ -1734,6 +1742,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case ENTITY_VIEW_TYPE:
             case ENTITY_VIEW_SEARCH_QUERY:
                 return EntityType.ENTITY_VIEW;
+            case EDGE_TYPE:
+            case EDGE_SEARCH_QUERY:
+                return EntityType.EDGE;
             case RELATIONS_QUERY:
                 return ((RelationsQueryFilter) entityFilter).getRootEntity().getEntityType();
             case API_USAGE_STATE:

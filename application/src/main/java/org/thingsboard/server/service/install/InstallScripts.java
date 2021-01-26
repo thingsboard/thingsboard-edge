@@ -138,7 +138,7 @@ public class InstallScripts {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, ROOT_RULE_CHAIN_DIR, ROOT_RULE_CHAIN_JSON);
     }
 
-    public Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
+    private Path getDeviceProfileDefaultRuleChainTemplateFilePath() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DEVICE_PROFILE_DIR, "rule_chain_template.json");
     }
 
@@ -318,12 +318,18 @@ public class InstallScripts {
     }
 
     public void loadDemoRuleChains(TenantId tenantId) throws Exception {
-        createDefaultRuleChains(tenantId);
-        createDefaultRuleChain(tenantId, "Thermostat");
+        try {
+            createDefaultRuleChains(tenantId);
+            createDefaultRuleChain(tenantId, "Thermostat");
 
 
-        // TODO: voba - verify this
-        loadEdgeDemoRuleChains(tenantId);
+            // TODO: voba - verify this
+            loadEdgeDemoRuleChains(tenantId);
+        } catch (Exception e) {
+            // TODO: voba DASHBOARD?
+            log.error("Unable to load dashboard from json", e);
+            throw new RuntimeException("Unable to load dashboard from json", e);
+        }
     }
 
     private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {

@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.io.Serializable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -43,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = AnyTimeSchedule.class, name = "ANY_TIME"),
         @JsonSubTypes.Type(value = SpecificTimeSchedule.class, name = "SPECIFIC_TIME"),
         @JsonSubTypes.Type(value = CustomTimeSchedule.class, name = "CUSTOM")})
-public interface AlarmSchedule {
+public interface AlarmSchedule extends Serializable {
 
     AlarmScheduleType getType();
 

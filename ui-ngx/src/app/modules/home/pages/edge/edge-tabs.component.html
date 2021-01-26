@@ -56,6 +56,11 @@
   <tb-event-table [defaultEventType]="eventTypes.ERROR" [active]="eventsTab.isActive" [tenantId]="entity.tenantId.id"
                   [entityId]="entity.id"></tb-event-table>
 </mat-tab>
+<mat-tab *ngIf="entity && authUser.authority === authorities.TENANT_ADMIN"
+         label="{{ 'edge.downlinks' | translate }}" #downLinksTab="matTab">
+  <tb-edge-downlink-table [active]="downLinksTab.isActive" [tenantId]="entity.tenantId.id"
+                  [entityId]="entity.id"></tb-edge-downlink-table>
+</mat-tab>
 <mat-tab *ngIf="entity"
          label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
   <tb-relation-table [active]="relationsTab.isActive" [entityId]="entity.id"></tb-relation-table>

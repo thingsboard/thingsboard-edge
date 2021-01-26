@@ -129,9 +129,7 @@ export const inputNodeComponent: RuleNodeComponentDescriptor = {
   clazz: 'tb.internal.Input'
 };
 
-export declare type RuleChainType = 'CORE' | 'EDGE';
-
-export enum ruleChainType {
-  core = 'CORE',
-  edge = 'EDGE'
+export enum RuleChainType {
+  CORE = 'CORE',
+  EDGE = 'EDGE'
 }

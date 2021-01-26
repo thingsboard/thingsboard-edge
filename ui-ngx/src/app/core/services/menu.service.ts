@@ -398,33 +398,14 @@ export class MenuService {
       }
     );
     if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
-      const pages: Array<MenuSection> = [
-        {
-          id: guid(),
-          name: 'rulechain.core-rulechains',
-          type: 'link',
-          path: '/ruleChains/core',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('core_rule_chains') > -1 //TODO deaflynx verify
-        },
-        {
-          id: guid(),
-          name: 'rulechain.edge-rulechains',
-          type: 'link',
-          path: '/ruleChains/edge',
-          icon: 'router',
-          disabled: disabledItems.indexOf('edge_rule_chains') > -1  //TODO deaflynx verify
-        }
-      ]
       sections.push(
         {
           id: guid(),
           name: 'rulechain.rulechains',
-          type: 'toggle',
+          type: 'link',
           path: '/ruleChains',
           icon: 'settings_ethernet',
-          pages,
-          asyncPages: of(pages)
+          disabled: disabledItems.indexOf('rule_chains') > -1
         }
       );
     }
@@ -504,8 +485,32 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
-      sections.push(this.createEntityGroupSection(EntityType.EDGE));
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+      const pages: Array<MenuSection> = [];
+      pages.push(this.createEntityGroupSection(EntityType.EDGE));
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.rulechain-templates',
+          type: 'link',
+          path: '/edges/ruleChains',
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('edge_groups') > -1 // TODO: voba - add separate item to config
+        }
+      );
+      sections.push(
+        {
+          id: guid(),
+          name: 'edge.management',
+          type: 'toggle',
+          path: '/edges',
+          icon: 'router',
+          pages,
+          asyncPages: of(pages),
+          disabled: disabledItems.indexOf('edge_groups') > -1
+        }
+      );
+      sections.push();
     }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)) {
       sections.push(
@@ -799,7 +804,7 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
           name: 'edge.management',
@@ -808,6 +813,12 @@ export class MenuService {
               name: 'edge.edges',
               icon: 'router',
               path: '/edgeGroups',
+              disabled: disabledItems.indexOf('edge_groups') > -1
+            },
+            {
+              name: 'edge.rulechain-templates',
+              icon: 'settings_ethernet',
+              path: '/edges/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]
@@ -1011,8 +1022,32 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
-      sections.push(this.createEntityGroupSection(EntityType.EDGE));
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
+      const pages: Array<MenuSection> = [];
+      pages.push(this.createEntityGroupSection(EntityType.EDGE));
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.rulechain-templates',
+          type: 'link',
+          path: '/edges/ruleChains',
+          icon: 'settings_ethernet',
+          disabled: disabledItems.indexOf('edge_groups') > -1 // TODO: voba - add separate item to config
+        }
+      );
+      sections.push(
+        {
+          id: guid(),
+          name: 'edge.management',
+          type: 'toggle',
+          path: '/edges',
+          icon: 'router',
+          pages,
+          asyncPages: of(pages),
+          disabled: disabledItems.indexOf('edge_groups') > -1
+        }
+      );
+      sections.push();
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
@@ -1189,7 +1224,7 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
+    if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
           name: 'edge.management',
@@ -1198,6 +1233,12 @@ export class MenuService {
               name: 'edge.edges',
               icon: 'router',
               path: '/edgeGroups',
+              disabled: disabledItems.indexOf('edge_groups') > -1
+            },
+            {
+              name: 'edge.rulechain-templates',
+              icon: 'settings_ethernet',
+              path: '/edges/ruleChains',
               disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]

@@ -31,15 +31,15 @@
 
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AppState } from "@core/core.state";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
-import { EntityType } from "@shared/models/entity-type.models";
-import { Edge } from "@shared/models/edge.models";
-import { TranslateService } from "@ngx-translate/core";
-import { ActionNotificationShow } from "@core/notification/notification.actions";
-import { guid, isUndefined } from "@core/utils";
-import { GroupEntityTableConfig } from "@home/models/group/group-entities-table-config.models";
-import { GroupEntityComponent } from "@home/components/group/group-entity.component";
+import { AppState } from '@core/core.state';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { EntityType } from '@shared/models/entity-type.models';
+import { TranslateService } from '@ngx-translate/core';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { generateSecret, guid } from '@core/utils';
+import { GroupEntityComponent } from '@home/components/group/group-entity.component';
+import { Edge } from '@shared/models/edge.models';
+import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 
 @Component({
   selector: 'tb-edge',
@@ -56,12 +56,16 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
-              protected fb: FormBuilder) {
+              public fb: FormBuilder) {
     super(store, fb, entityValue, entitiesTableConfigValue);
   }
 
   ngOnInit() {
+    // TODO: voba check this
     // this.edgeScope = this.entitiesTableConfig.componentsData.edgeScope;
+    this.entityForm.patchValue({
+      cloudEndpoint: window.location.origin
+    });
     super.ngOnInit();
   }
 
@@ -86,15 +90,15 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   } */
 
   buildForm(entity: Edge): FormGroup {
-    return this.fb.group(
+    const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required]],
-        type: [entity ? entity.type : null, [Validators.required]],
+        type: [entity?.type ? entity.type : 'default', [Validators.required]],
         label: [entity ? entity.label : ''],
-        cloudEndpoint: [window.location.origin, [Validators.required]],
+        cloudEndpoint: [null, [Validators.required]],
         edgeLicenseKey: ['', [Validators.required]],
-        routingKey: guid(),
-        secret: this.generateSecret(20),
+        routingKey: this.fb.control({value: entity ? entity.routingKey : null, disabled: true}),
+        secret: this.fb.control({value: entity ? entity.secret : null, disabled: true}),
         additionalInfo: this.fb.group(
           {
             description: [entity && entity.additionalInfo ? entity.additionalInfo.description : '']
@@ -102,18 +106,37 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         )
       }
     );
+    this.checkIsNewEdge(entity, form);
+    return form;
   }
 
   updateForm(entity: Edge) {
-    this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type});
-    this.entityForm.patchValue({label: entity.label});
-    this.entityForm.patchValue({cloudEndpoint: entity.cloudEndpoint});
-    this.entityForm.patchValue({edgeLicenseKey: entity.edgeLicenseKey});
-    this.entityForm.patchValue({routingKey: entity.routingKey});
-    this.entityForm.patchValue({secret: entity.secret});
-    this.entityForm.patchValue({additionalInfo: {
-      description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
+    this.entityForm.patchValue({
+      name: entity.name,
+      type: entity.type,
+      label: entity.label,
+      cloudEndpoint: entity.cloudEndpoint ? entity.cloudEndpoint : window.location.origin,
+      edgeLicenseKey: entity.edgeLicenseKey,
+      routingKey: entity.routingKey,
+      secret: entity.secret,
+      additionalInfo: {
+        description: entity.additionalInfo ? entity.additionalInfo.description : ''
+      }
+    });
+    this.checkIsNewEdge(entity, this.entityForm);
+  }
+
+  updateFormState() {
+    super.updateFormState();
+    this.entityForm.get('routingKey').disable({emitEvent: false});
+    this.entityForm.get('secret').disable({emitEvent: false});
+  }
+
+  private checkIsNewEdge(entity: Edge, form: FormGroup) {
+    if (entity && !entity.id) {
+      form.get('routingKey').patchValue(guid(), {emitEvent: false});
+      form.get('secret').patchValue(generateSecret(20), {emitEvent: false});
+    }
   }
 
   onEdgeIdCopied($event) {
@@ -123,41 +146,20 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'right'
       }));
   }
 
-  onEdgeKeyCopied($event) {
+  onEdgeInfoCopied(type: string) {
+    const message = type === 'key' ? 'edge.edge-key-copied-message'
+      : 'edge.edge-secret-copied-message';
     this.store.dispatch(new ActionNotificationShow(
       {
-        message: this.translate.instant('edge.edge-key-copied-message'),
+        message: this.translate.instant(message),
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'right'
       }));
-  }
-
-  onEdgeSecretCopied($event) {
-    this.store.dispatch(new ActionNotificationShow(
-      {
-        message: this.translate.instant('edge.edge-secret-copied-message'),
-        type: 'success',
-        duration: 750,
-        verticalPosition: 'bottom',
-        horizontalPosition: 'left'
-      }));
-  }
-
-  generateSecret(length): string {
-    if (isUndefined(length) || length == null) {
-      length = 1;
-    }
-    var l = length > 10 ? 10 : length;
-    var str =  Math.random().toString(36).substr(2, l);
-    if (str.length >= length) {
-      return str;
-    }
-    return str.concat(this.generateSecret(length - str.length));
   }
 }

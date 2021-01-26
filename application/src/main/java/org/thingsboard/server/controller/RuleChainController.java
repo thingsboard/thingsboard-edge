@@ -463,7 +463,7 @@ public class RuleChainController extends BaseController {
     public void importRuleChains(@RequestBody RuleChainData ruleChainData, @RequestParam(required = false, defaultValue = "false") boolean overwrite) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
-            List<RuleChainImportResult> importResults = ruleChainService.importTenantRuleChains(tenantId, ruleChainData, overwrite, RuleChainType.CORE);
+            List<RuleChainImportResult> importResults = ruleChainService.importTenantRuleChains(tenantId, ruleChainData, RuleChainType.CORE, overwrite);
             if (!CollectionUtils.isEmpty(importResults)) {
                 for (RuleChainImportResult importResult : importResults) {
                     tbClusterService.onEntityStateChange(importResult.getTenantId(), importResult.getRuleChainId(), importResult.getLifecycleEvent());

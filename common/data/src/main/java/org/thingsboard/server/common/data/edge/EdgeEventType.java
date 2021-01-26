@@ -34,6 +34,7 @@ public enum EdgeEventType {
     DASHBOARD,
     ASSET,
     DEVICE,
+    DEVICE_PROFILE,
     ENTITY_VIEW,
     ALARM,
     RULE_CHAIN,

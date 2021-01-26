@@ -45,6 +45,8 @@ public final class EdgeUtils {
                 return EdgeEventType.EDGE;
             case DEVICE:
                 return EdgeEventType.DEVICE;
+            case DEVICE_PROFILE:
+                return EdgeEventType.DEVICE_PROFILE;
             case ASSET:
                 return EdgeEventType.ASSET;
             case ENTITY_VIEW:

@@ -389,6 +389,14 @@
         formControlName="deviceTypes">
       </tb-entity-subtype-list>
     </ng-template>
+    <ng-template [ngSwitchCase]="aliasFilterType.edgeSearchQuery">
+      <div class="mat-caption tb-required" style="color: rgba(0,0,0,0.57);" translate>edge.edge-types</div>
+      <tb-entity-subtype-list
+        required
+        [entityType]="entityType.EDGE"
+        formControlName="edgeTypes">
+      </tb-entity-subtype-list>
+    </ng-template>
     <ng-template [ngSwitchCase]="aliasFilterType.entityViewSearchQuery">
       <div class="mat-caption tb-required" style="color: rgba(0,0,0,0.57);" translate>entity-view.entity-view-types</div>
       <tb-entity-subtype-list

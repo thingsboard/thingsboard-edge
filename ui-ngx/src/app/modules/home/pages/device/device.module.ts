@@ -36,6 +36,10 @@ import { DeviceComponent } from '@modules/home/pages/device/device.component';
 import { DeviceCredentialsDialogComponent } from '@modules/home/pages/device/device-credentials-dialog.component';
 import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
+import { SecurityConfigComponent } from '@home/pages/device/lwm2m/security-config.component';
+// TODO: @nickAS21 move to device profile
+import { SecurityConfigServerComponent } from '@home/pages/device/lwm2m/security-config-server.component';
 import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
 import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { DefaultDeviceConfigurationComponent } from './data/default-device-configuration.component';
@@ -56,7 +60,10 @@ import { Lwm2mDeviceTransportConfigurationComponent } from './data/lwm2m-device-
     DeviceTransportConfigurationComponent,
     DeviceDataComponent,
     DeviceComponent,
-    DeviceCredentialsDialogComponent
+    DeviceTabsComponent,
+    DeviceCredentialsDialogComponent,
+    SecurityConfigComponent,
+    SecurityConfigServerComponent
   ],
   imports: [
     CommonModule,

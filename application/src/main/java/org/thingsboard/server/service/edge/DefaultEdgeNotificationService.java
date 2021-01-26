@@ -215,6 +215,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case USER:
                 case ASSET:
                 case DEVICE:
+                case DEVICE_PROFILE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case CUSTOMER:
@@ -435,7 +436,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             case UNASSIGNED_FROM_EDGE:
                 saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                 if (type.equals(EdgeEventType.RULE_CHAIN)) {
-                    updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId, new TimePageLink(DEFAULT_LIMIT));
+                    updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
                 }
                 break;
             case CHANGE_OWNER:
@@ -546,35 +547,46 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 break;
             case DELETED:
                 processActionForAllEdges(tenantId, type, actionType, entityId);
+// TODO: voba - check this
+//            case ASSIGNED_TO_EDGE:
+//            case UNASSIGNED_FROM_EDGE:
+//                saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+//                if (type.equals(EdgeEventType.RULE_CHAIN)) {
+//                    updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
+//                }
                 break;
         }
     }
 
-    private void updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId, TimePageLink pageLink) {
-        PageData<RuleChain> pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
-        if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-            for (RuleChain ruleChain : pageData.getData()) {
-                if (!ruleChain.getId().equals(processingRuleChainId)) {
-                    List<RuleChainConnectionInfo> connectionInfos =
-                            ruleChainService.loadRuleChainMetaData(ruleChain.getTenantId(), ruleChain.getId()).getRuleChainConnections();
-                    if (connectionInfos != null && !connectionInfos.isEmpty()) {
-                        for (RuleChainConnectionInfo connectionInfo : connectionInfos) {
-                            if (connectionInfo.getTargetRuleChainId().equals(processingRuleChainId)) {
-                                saveEdgeEvent(tenantId,
-                                        edgeId,
-                                        EdgeEventType.RULE_CHAIN_METADATA,
-                                        EdgeEventActionType.UPDATED,
-                                        ruleChain.getId(),
-                                        null);
+    private void updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId) {
+        TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
+        PageData<RuleChain> pageData;
+        do {
+            pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (RuleChain ruleChain : pageData.getData()) {
+                    if (!ruleChain.getId().equals(processingRuleChainId)) {
+                        List<RuleChainConnectionInfo> connectionInfos =
+                                ruleChainService.loadRuleChainMetaData(ruleChain.getTenantId(), ruleChain.getId()).getRuleChainConnections();
+                        if (connectionInfos != null && !connectionInfos.isEmpty()) {
+                            for (RuleChainConnectionInfo connectionInfo : connectionInfos) {
+                                if (connectionInfo.getTargetRuleChainId().equals(processingRuleChainId)) {
+                                    saveEdgeEvent(tenantId,
+                                            edgeId,
+                                            EdgeEventType.RULE_CHAIN_METADATA,
+                                            EdgeEventActionType.UPDATED,
+                                            ruleChain.getId(),
+                                            null);
+                                }
                             }
                         }
                     }
                 }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
             }
-            if (pageData.hasNext()) {
-                updateDependentRuleChains(tenantId, processingRuleChainId, edgeId, pageLink.nextPageLink());
-            }
-        }
+        } while (pageData != null && pageData.hasNext());
     }
 
     private EntityGroupId constructEntityGroupId(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {

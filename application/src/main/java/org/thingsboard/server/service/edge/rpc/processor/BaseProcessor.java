@@ -58,6 +58,8 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
+import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DeviceStateService;
 
@@ -71,6 +73,9 @@ public abstract class BaseProcessor {
 
     @Autowired
     protected DeviceService deviceService;
+
+    @Autowired
+    protected TbDeviceProfileCache deviceProfileCache;
 
     @Autowired
     protected DashboardService dashboardService;

@@ -29,21 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Component, Inject, OnInit, SkipSelf} from '@angular/core';
-import {ErrorStateMatcher} from '@angular/material/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {Store} from '@ngrx/store';
-import {AppState} from '@core/core.state';
-import {FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
-import {DeviceService} from '@core/http/device.service';
-import {EntityType} from '@shared/models/entity-type.models';
-import {forkJoin, Observable, of} from 'rxjs';
-import {AssetService} from '@core/http/asset.service';
-import {EntityViewService} from '@core/http/entity-view.service';
-import {DashboardService} from '@core/http/dashboard.service';
-import {DialogComponent} from '@shared/components/dialog.component';
-import {Router} from '@angular/router';
-import {EdgeRuleChainService} from "@core/http/edge-rule-chain.service";
+import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { ErrorStateMatcher } from '@angular/material/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { EntityType } from '@shared/models/entity-type.models';
+import { forkJoin, Observable } from 'rxjs';
+import { DialogComponent } from '@shared/components/dialog.component';
+import { Router } from '@angular/router';
+import { RuleChainType } from '@shared/models/rule-chain.models';
+import { RuleChainService } from '@core/http/rule-chain.service';
 
 export interface AddEntitiesToEdgeDialogData {
   edgeId: string;
@@ -56,14 +53,14 @@ export interface AddEntitiesToEdgeDialogData {
   providers: [{provide: ErrorStateMatcher, useExisting: AddEntitiesToEdgeDialogComponent}],
   styleUrls: []
 })
-export class AddEntitiesToEdgeDialogComponent extends
-  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
   submitted = false;
 
   entityType: EntityType;
+  subType: string;
   edgeId: string;
 
   assignToEdgeTitle: string;
@@ -72,7 +69,7 @@ export class AddEntitiesToEdgeDialogComponent extends
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: AddEntitiesToEdgeDialogData,
-              private edgeRuleChainService: EdgeRuleChainService,
+              private ruleChainService: RuleChainService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, boolean>,
               public fb: FormBuilder) {
@@ -87,6 +84,7 @@ export class AddEntitiesToEdgeDialogComponent extends
     });
     this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
     this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+    this.subType = RuleChainType.EDGE;
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -105,7 +103,7 @@ export class AddEntitiesToEdgeDialogComponent extends
     const tasks: Observable<any>[] = [];
     entityIds.forEach(
       (entityId) => {
-        tasks.push(this.edgeRuleChainService.assignRuleChainToEdge(this.edgeId, entityId));
+        tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
       }
     );
     forkJoin(tasks).subscribe(

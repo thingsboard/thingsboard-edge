@@ -50,6 +50,7 @@ import { TripAnimationComponent } from './trip-animation/trip-animation.componen
 import { PhotoCameraInputWidgetComponent } from './lib/photo-camera-input.component';
 import { GatewayFormComponent } from './lib/gateway/gateway-form.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-overview-widget.component';
 
 @NgModule({
   declarations:
@@ -60,6 +61,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
       AlarmsTableWidgetComponent,
       TimeseriesTableWidgetComponent,
       EntitiesHierarchyWidgetComponent,
+      EdgesOverviewWidgetComponent,
       DateRangeNavigatorWidgetComponent,
       DateRangeNavigatorPanelComponent,
       MultipleInputWidgetComponent,
@@ -78,6 +80,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
     AlarmsTableWidgetComponent,
     TimeseriesTableWidgetComponent,
     EntitiesHierarchyWidgetComponent,
+    EdgesOverviewWidgetComponent,
     RpcWidgetsModule,
     SharedHomeComponentsModule,
     DateRangeNavigatorWidgetComponent,

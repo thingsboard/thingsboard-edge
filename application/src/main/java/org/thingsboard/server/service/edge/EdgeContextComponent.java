@@ -42,6 +42,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -65,6 +66,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProt
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.DeviceProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
@@ -110,6 +112,10 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private DeviceService deviceService;
+
+    @Lazy
+    @Autowired
+    private DeviceProfileService deviceProfileService;
 
     @Lazy
     @Autowired
@@ -202,6 +208,10 @@ public class EdgeContextComponent {
     @Lazy
     @Autowired
     private DeviceMsgConstructor deviceMsgConstructor;
+
+    @Lazy
+    @Autowired
+    private DeviceProfileMsgConstructor deviceProfileMsgConstructor;
 
     @Lazy
     @Autowired

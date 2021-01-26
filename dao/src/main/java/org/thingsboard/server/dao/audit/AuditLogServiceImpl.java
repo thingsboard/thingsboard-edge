@@ -333,23 +333,19 @@ public class AuditLogServiceImpl implements AuditLogService {
                 break;
             case ASSIGNED_TO_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
-                String strEntityName = extractParameter(String.class, 1, additionalInfo);
-                String assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
-                String assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
+                String strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                String strEdgeName = extractParameter(String.class, 2, additionalInfo);
                 actionData.put("entityId", strEntityId);
-                actionData.put("entityName", strEntityName);
-                actionData.put("assignedEdgeId", assignedEdgeId);
-                actionData.put("assignedEdgeName", assignedEdgeName);
+                actionData.put("assignedEdgeId", strEdgeId);
+                actionData.put("assignedEdgeName", strEdgeName);
                 break;
             case UNASSIGNED_FROM_EDGE:
                 strEntityId = extractParameter(String.class, 0, additionalInfo);
-                strEntityName = extractParameter(String.class, 1, additionalInfo);
-                assignedEdgeId = extractParameter(String.class, 2, additionalInfo);
-                assignedEdgeName = extractParameter(String.class, 3, additionalInfo);
+                strEdgeId = extractParameter(String.class, 1, additionalInfo);
+                strEdgeName = extractParameter(String.class, 2, additionalInfo);
                 actionData.put("entityId", strEntityId);
-                actionData.put("entityName", strEntityName);
-                actionData.put("unassignedEdgeId", assignedEdgeId);
-                actionData.put("unassignedEdgeName", assignedEdgeName);
+                actionData.put("unassignedEdgeId", strEdgeId);
+                actionData.put("unassignedEdgeName", strEdgeName);
                 break;
         }
         return actionData;

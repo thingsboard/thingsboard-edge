@@ -202,7 +202,8 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
             savedEdge = edgeDao.save(edge.getTenantId(), edge);
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
-            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("edge_name_unq_key")) {
+            if (e != null && e.getConstraintName() != null
+                    && e.getConstraintName().equalsIgnoreCase("edge_name_unq_key")) {
                 throw new DataValidationException("Edge with such name already exists!");
             } else {
                 throw t;
@@ -486,12 +487,15 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
     @Override
     public ListenableFuture<List<EdgeId>> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, String groupTypeStr) {
         log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}]", tenantId, entityId);
-        if (EntityType.TENANT.equals(entityId.getEntityType()) || EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+        if (EntityType.TENANT.equals(entityId.getEntityType()) ||
+                EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
+                EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
             List<EdgeId> result = new ArrayList<>();
             PageLink pageLink = new PageLink(DEFAULT_LIMIT);
             PageData<Edge> pageData;
             do {
-                if (EntityType.TENANT.equals(entityId.getEntityType())) {
+                if (EntityType.TENANT.equals(entityId.getEntityType()) ||
+                        EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
                     pageData = findEdgesByTenantId(tenantId, pageLink);
                 } else {
                     pageData = findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink);
@@ -612,19 +616,15 @@ public class EdgeServiceImpl extends AbstractEntityService implements EdgeServic
         List<RuleChain> result = new ArrayList<>();
         TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
         PageData<RuleChain> pageData;
-        try {
-            do {
-                pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
-                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                    result.addAll(pageData.getData());
-                    if (pageData.hasNext()) {
-                        pageLink = pageLink.nextPageLink();
-                    }
+        do {
+            pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                result.addAll(pageData.getData());
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
                 }
-            } while (pageData != null && pageData.hasNext());
-        } catch (Exception e) {
-            log.error("[{}] Can't find edge rule chains [{}]", tenantId, edgeId, e);
-        }
+            }
+        } while (pageData != null && pageData.hasNext());
         return result;
     }
 

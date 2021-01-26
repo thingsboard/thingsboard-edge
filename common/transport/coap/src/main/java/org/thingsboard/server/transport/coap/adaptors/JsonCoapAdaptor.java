@@ -40,22 +40,12 @@ import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.adaptor.AdaptorException;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToDeviceRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
+import org.thingsboard.server.common.transport.adaptor.AdaptorException;
+import org.thingsboard.server.common.transport.adaptor.JsonConverter;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
+
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -69,7 +59,7 @@ import java.util.UUID;
 public class JsonCoapAdaptor implements CoapTransportAdaptor {
 
     @Override
-    public PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound) throws AdaptorException {
         String payload = validatePayload(sessionId, inbound, false);
         try {
             return JsonConverter.convertToTelemetryProto(new JsonParser().parse(payload));
@@ -79,7 +69,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound) throws AdaptorException {
         String payload = validatePayload(sessionId, inbound, false);
         try {
             return JsonConverter.convertToAttributesProto(new JsonParser().parse(payload));
@@ -89,9 +79,9 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public GetAttributeRequestMsg convertToGetAttributes(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.GetAttributeRequestMsg convertToGetAttributes(UUID sessionId, Request inbound) throws AdaptorException {
         List<String> queryElements = inbound.getOptions().getUriQuery();
-        GetAttributeRequestMsg.Builder result = GetAttributeRequestMsg.newBuilder();
+        TransportProtos.GetAttributeRequestMsg.Builder result = TransportProtos.GetAttributeRequestMsg.newBuilder();
         if (queryElements != null && queryElements.size() > 0) {
             Set<String> clientKeys = toKeys(queryElements, "clientKeys");
             Set<String> sharedKeys = toKeys(queryElements, "sharedKeys");
@@ -106,22 +96,22 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.ToDeviceRpcResponseMsg convertToDeviceRpcResponse(UUID sessionId, Request inbound) throws AdaptorException {
         Optional<Integer> requestId = CoapTransportResource.getRequestId(inbound);
         String payload = validatePayload(sessionId, inbound, false);
         JsonObject response = new JsonParser().parse(payload).getAsJsonObject();
-        return ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId.orElseThrow(() -> new AdaptorException("Request id is missing!")))
+        return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId.orElseThrow(() -> new AdaptorException("Request id is missing!")))
                 .setPayload(response.toString()).build();
     }
 
     @Override
-    public ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.ToServerRpcRequestMsg convertToServerRpcRequest(UUID sessionId, Request inbound) throws AdaptorException {
         String payload = validatePayload(sessionId, inbound, false);
         return JsonConverter.convertToServerRpcRequest(new JsonParser().parse(payload), 0);
     }
 
     @Override
-    public ClaimDeviceMsg convertToClaimDevice(UUID sessionId, Request inbound, SessionInfoProto sessionInfo) throws AdaptorException {
+    public TransportProtos.ClaimDeviceMsg convertToClaimDevice(UUID sessionId, Request inbound, TransportProtos.SessionInfoProto sessionInfo) throws AdaptorException {
         DeviceId deviceId = new DeviceId(new UUID(sessionInfo.getDeviceIdMSB(), sessionInfo.getDeviceIdLSB()));
         String payload = validatePayload(sessionId, inbound, true);
         try {
@@ -132,17 +122,17 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, AttributeUpdateNotificationMsg msg) throws AdaptorException {
+    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.AttributeUpdateNotificationMsg msg) throws AdaptorException {
         return getObserveNotification(session.getNextSeqNumber(), JsonConverter.toJson(msg));
     }
 
     @Override
-    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, ToDeviceRpcRequestMsg msg) throws AdaptorException {
+    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.ToDeviceRpcRequestMsg msg) throws AdaptorException {
         return getObserveNotification(session.getNextSeqNumber(), JsonConverter.toJson(msg, true));
     }
 
     @Override
-    public Response convertToPublish(CoapTransportResource.CoapSessionListener coapSessionListener, ToServerRpcResponseMsg msg) throws AdaptorException {
+    public Response convertToPublish(CoapTransportResource.CoapSessionListener coapSessionListener, TransportProtos.ToServerRpcResponseMsg msg) throws AdaptorException {
         Response response = new Response(CoAP.ResponseCode.CONTENT);
         JsonElement result = JsonConverter.toJson(msg);
         response.setPayload(result.toString());
@@ -150,7 +140,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public ProvisionDeviceRequestMsg convertToProvisionRequestMsg(UUID sessionId, Request inbound) throws AdaptorException {
+    public TransportProtos.ProvisionDeviceRequestMsg convertToProvisionRequestMsg(UUID sessionId, Request inbound) throws AdaptorException {
         String payload = validatePayload(sessionId, inbound, false);
         try {
             return JsonConverter.convertToProvisionRequestMsg(payload);
@@ -160,7 +150,7 @@ public class JsonCoapAdaptor implements CoapTransportAdaptor {
     }
 
     @Override
-    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, GetAttributeResponseMsg msg) throws AdaptorException {
+    public Response convertToPublish(CoapTransportResource.CoapSessionListener session, TransportProtos.GetAttributeResponseMsg msg) throws AdaptorException {
         if (msg.getClientAttributeListCount() == 0 && msg.getSharedAttributeListCount() == 0) {
             return new Response(CoAP.ResponseCode.NOT_FOUND);
         } else {

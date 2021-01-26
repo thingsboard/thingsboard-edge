@@ -31,19 +31,21 @@
 
 import { Injectable } from '@angular/core';
 
-import {ActivatedRouteSnapshot, Resolve, Router} from '@angular/router';
+import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
-  DateEntityTableColumn, defaultEntityTablePermissions,
+  DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
-  EntityTableConfig, HeaderActionDescriptor
+  EntityTableConfig,
+  HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { EntityAction } from '@home/models/entity/entity-component.models';
-import { RuleChain, ruleChainType } from '@shared/models/rule-chain.models';
+import { RuleChain, RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleChainComponent } from '@modules/home/pages/rulechain/rulechain.component';
 import { DialogService } from '@core/services/dialog.service';
@@ -54,7 +56,6 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UtilsService } from '@core/services/utils.service';
 import { PageLink } from "@shared/models/page/page-link";
-import { EdgeRuleChainService } from "@core/http/edge-rule-chain.service";
 import { map } from "rxjs/operators";
 import { forkJoin, Observable } from "rxjs";
 import {
@@ -73,7 +74,6 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
   private edge: Edge;
 
   constructor(private ruleChainService: RuleChainService,
-              private edgeRuleChainService: EdgeRuleChainService,
               private edgeService: EdgeService,
               private dialogService: DialogService,
               private dialog: MatDialog,
@@ -113,7 +113,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
     this.config.deleteEntitiesTitle = count => this.translate.instant('rulechain.delete-rulechains-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('rulechain.delete-rulechains-text');
     this.config.loadEntity = id => this.ruleChainService.getRuleChain(id.id);
-    this.config.saveEntity = ruleChain => this.ruleChainService.saveRuleChain({...ruleChain, type: ruleChainType.edge});
+    this.config.saveEntity = ruleChain => this.ruleChainService.saveRuleChain({...ruleChain, type: RuleChainType.EDGE});
     this.config.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
     this.config.onEntityAction = action => this.onRuleChainAction(action);
   }
@@ -133,7 +133,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
         });
       }
       this.config.entitySelectionEnabled = (ruleChain) => this.edge.rootRuleChainId.id != ruleChain.id.id;
-      this.config.entitiesFetchFunction = pageLink => this.edgeRuleChainService.getEdgeRuleChains(this.edgeId, pageLink);
+      this.config.entitiesFetchFunction = pageLink => this.ruleChainService.getEdgeRuleChains(this.edgeId, pageLink);
       this.config.groupActionDescriptors.push(
         {
           name: this.translate.instant('rulechain.unassign-rulechains'),
@@ -161,7 +161,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
     if ($event) {
       $event.stopPropagation();
     }
-    this.importExport.importRuleChain().subscribe((ruleChainImport) => {
+    this.importExport.importRuleChain(RuleChainType.EDGE).subscribe((ruleChainImport) => {
       if (ruleChainImport) {
         this.itembuffer.storeRuleChainImport(ruleChainImport);
         this.router.navigateByUrl(`ruleChains/edge/ruleChain/import`);
@@ -198,7 +198,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
           const tasks: Observable<any>[] = [];
           ruleChains.forEach(
             (ruleChain) => {
-              tasks.push(this.edgeRuleChainService.unassignRuleChainFromEdge(this.edgeId, ruleChain.id.id));
+              tasks.push(this.ruleChainService.unassignRuleChainFromEdge(this.edgeId, ruleChain.id.id));
             }
           );
           forkJoin(tasks).subscribe(
@@ -223,7 +223,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       true
     ).subscribe((res) => {
         if (res) {
-          this.edgeRuleChainService.setRootRuleChain(this.edgeId, ruleChain.id.id).subscribe(
+          this.ruleChainService.setEdgeRootRuleChain(this.edgeId, ruleChain.id.id).subscribe(
             (edge) => {
               this.edge = edge;
               this.config.table.updateData();
@@ -362,10 +362,10 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
   // TODO move to service & fix router includes
   fetchEdgeRuleChains(pageLink: PageLink) {
     let defaultEdgeRuleChainIds: Array<string> = [];
-    this.edgeRuleChainService.getDefaultEdgeRuleChains().subscribe(ruleChains => {
+    this.ruleChainService.getAutoAssignToEdgeRuleChains().subscribe(ruleChains => {
         ruleChains.map(ruleChain => defaultEdgeRuleChainIds.push(ruleChain.id.id))
     });
-    return this.edgeRuleChainService.getRuleChains(pageLink).pipe(
+    return this.ruleChainService.getRuleChains(pageLink).pipe(
       map(response => {
         response.data.map(ruleChain =>
           ruleChain.isDefault = defaultEdgeRuleChainIds.some(id => ruleChain.id.id.includes(id))
@@ -387,7 +387,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       true
     ).subscribe((res) => {
         if (res) {
-          this.edgeRuleChainService.setDefaultRootEdgeRuleChain(ruleChain.id.id).subscribe(
+          this.ruleChainService.setEdgeTemplateRootRuleChain(ruleChain.id.id).subscribe(
             () => {
               this.config.table.updateData();
             }
@@ -409,7 +409,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       true
     ).subscribe((res) => {
         if (res) {
-          this.edgeRuleChainService.addDefaultEdgeRuleChain(ruleChain.id.id).subscribe(
+          this.ruleChainService.setAutoAssignToEdgeRuleChain(ruleChain.id.id).subscribe(
             () => {
               this.config.table.updateData();
             }
@@ -431,7 +431,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       true
     ).subscribe((res) => {
         if (res) {
-          this.edgeRuleChainService.removeDefaultEdgeRuleChain(ruleChain.id.id).subscribe(
+          this.ruleChainService.unsetAutoAssignToEdgeRuleChain(ruleChain.id.id).subscribe(
             () => {
               this.config.table.updateData();
             }
@@ -453,7 +453,7 @@ export class EdgesRuleChainsTableConfigResolver implements Resolve<EntityTableCo
       true
     ).subscribe((res) => {
         if (res) {
-          this.edgeRuleChainService.unassignRuleChainFromEdge(this.edgeId, ruleChain.id.id).subscribe(
+          this.ruleChainService.unassignRuleChainFromEdge(this.edgeId, ruleChain.id.id).subscribe(
             () => {
               this.config.table.updateData();
             }

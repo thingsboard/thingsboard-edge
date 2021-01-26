@@ -75,6 +75,12 @@
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageEdges')"
+          [fxShow]="!isEdit">
+    {{'customer.manage-edges' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
           [fxShow]="!hideDelete() && !isEdit && !isPublic">

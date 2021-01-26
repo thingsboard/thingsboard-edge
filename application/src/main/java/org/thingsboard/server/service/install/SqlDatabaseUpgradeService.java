@@ -279,6 +279,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
+
+
+            // TODO: voba - this is required?
             case "2.5.5":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
@@ -463,6 +466,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
+              // TODO: voba - verify this upgrade
+//            case "3.2.1":
+//                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+//                    log.info("Updating schema ...");
+//                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.1", SCHEMA_UPDATE_SQL);
+//                    loadSql(schemaUpdateFile, conn);
+//                    try {
+//                        conn.createStatement().execute("ALTER TABLE rule_chain ADD type varchar(255) DEFAULT 'CORE'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+//                    } catch (Exception e) {}
+//                    log.info("Schema updated.");
+//                }
+//                break;
             case "3.2.1":
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.1pe", SCHEMA_UPDATE_SQL);

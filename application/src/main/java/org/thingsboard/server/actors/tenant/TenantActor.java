@@ -256,7 +256,7 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-        if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
+       if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
             IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
             PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {

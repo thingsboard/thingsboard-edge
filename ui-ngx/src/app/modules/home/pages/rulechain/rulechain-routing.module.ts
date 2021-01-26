@@ -46,7 +46,10 @@ import { Authority } from '@shared/models/authority.enum';
 import { RuleChainsTableConfigResolver } from '@modules/home/pages/rulechain/rulechains-table-config.resolver';
 import { from, Observable } from 'rxjs';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
-import { ResolvedRuleChainMetaData, RuleChain, ruleChainType } from '@shared/models/rule-chain.models';
+import {
+  ResolvedRuleChainMetaData,
+  RuleChain, RuleChainType
+} from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
 import { RuleNodeComponentDescriptor } from '@shared/models/rule-node.models';
@@ -146,12 +149,11 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: '/ruleChains/core',
-        pathMatch: 'full',
         component: EntitiesTableComponent,
         data: {
           auth: [Authority.TENANT_ADMIN],
-          title: 'rulechain.rulechains'
+          title: 'rulechain.rulechains',
+          ruleChainsType: 'tenant'
         },
         resolve: {
           entitiesTableConfig: RuleChainsTableConfigResolver
@@ -168,7 +170,8 @@ const routes: Routes = [
           } as BreadCrumbConfig<RuleChainPageComponent>,
           auth: [Authority.TENANT_ADMIN],
           title: 'rulechain.rulechain',
-          import: false
+          import: false,
+          ruleChainType: RuleChainType.CORE
         },
         resolve: {
           ruleChain: RuleChainResolver,
@@ -189,7 +192,8 @@ const routes: Routes = [
           } as BreadCrumbConfig<RuleChainPageComponent>,
           auth: [Authority.TENANT_ADMIN],
           title: 'rulechain.rulechain',
-          import: true
+          import: true,
+          ruleChainType: RuleChainType.CORE
         },
         resolve: {
           ruleNodeComponents: RuleNodeComponentsResolver,

@@ -43,7 +43,7 @@ import { UserService } from './user.service';
 import { DashboardService } from '@core/http/dashboard.service';
 import { Direction } from '@shared/models/page/sort-order';
 import { PageData } from '@shared/models/page/page-data';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
@@ -80,7 +80,7 @@ import { RoleService } from '@core/http/role.service';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
-import { RuleChain } from '@shared/models/rule-chain.models';
+import { RuleChain, RuleChainType } from '@shared/models/rule-chain.models';
 import { Converter } from '@shared/models/converter.models';
 import { Integration } from '@shared/models/integration.models';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
@@ -107,9 +107,8 @@ import {
   StringOperation
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
+import { EdgeService } from "@core/http/edge.service";
 import { Router } from '@angular/router';
-import { EdgeRuleChainService } from '@core/http/edge-rule-chain.service';
-import { EdgeService } from '@core/http/edge.service';
 import { Edge } from '@shared/models/edge.models';
 
 @Injectable({
@@ -138,9 +137,7 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
-    private utils: UtilsService,
-    private edgeRuleChainService: EdgeRuleChainService,
-    private router: Router
+    private utils: UtilsService
   ) {
   }
 
@@ -486,10 +483,11 @@ export class EntityService {
         break;
       case EntityType.RULE_CHAIN:
         pageLink.sortOrder.property = 'name';
-        if (this.router.url.includes('edge')) {
-          entitiesObservable = this.edgeRuleChainService.getRuleChains(pageLink, config);
+        if (RuleChainType[subType]) {
+          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, subType as RuleChainType, config);
         } else {
-          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, config);
+          // safe fallback to default core type
+          entitiesObservable = this.ruleChainService.getRuleChains(pageLink, RuleChainType.CORE, config);
         }
         break;
       case EntityType.DASHBOARD:
@@ -882,6 +880,8 @@ export class EntityService {
         return entityType === EntityType.EDGE;
       case AliasFilterType.relationsQuery:
         return true;
+      case AliasFilterType.apiUsageState:
+        return true;
       case AliasFilterType.assetSearchQuery:
         return entityType === EntityType.ASSET;
       case AliasFilterType.deviceSearchQuery:
@@ -896,17 +896,19 @@ export class EntityService {
 
   public prepareAllowedEntityTypesList(allowedEntityTypes: Array<EntityType | AliasEntityType>,
                                        useAliasEntityTypes?: boolean, operation?: Operation): Array<EntityType | AliasEntityType> {
-    const authUser = getCurrentAuthUser(this.store);
+    const authState = getCurrentAuthState(this.store);
     const entityTypes: Array<EntityType | AliasEntityType> = [];
-    switch (authUser.authority) {
+    switch (authState.authUser.authority) {
       case Authority.SYS_ADMIN:
         entityTypes.push(EntityType.TENANT);
         break;
       case Authority.TENANT_ADMIN:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
+        if (authState.edgesSupportEnabled) {
+          entityTypes.push(EntityType.EDGE);
+        }
         entityTypes.push(EntityType.ENTITY_VIEW);
-        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.TENANT);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
@@ -924,8 +926,10 @@ export class EntityService {
       case Authority.CUSTOMER_USER:
         entityTypes.push(EntityType.DEVICE);
         entityTypes.push(EntityType.ASSET);
+        if (authState.edgesSupportEnabled) {
+          entityTypes.push(EntityType.EDGE);
+        }
         entityTypes.push(EntityType.ENTITY_VIEW);
-        entityTypes.push(EntityType.EDGE);
         entityTypes.push(EntityType.CUSTOMER);
         entityTypes.push(EntityType.DASHBOARD);
         entityTypes.push(EntityType.USER);
@@ -938,7 +942,7 @@ export class EntityService {
     }
     if (useAliasEntityTypes) {
       entityTypes.push(AliasEntityType.CURRENT_USER);
-      if (authUser.authority !== Authority.SYS_ADMIN) {
+      if (authState.authUser.authority !== Authority.SYS_ADMIN) {
         entityTypes.push(AliasEntityType.CURRENT_USER_OWNER);
       }
     }
@@ -1231,10 +1235,10 @@ export class EntityService {
       case AliasFilterType.entityViewType:
         result.entityFilter = deepClone(filter);
         return of(result);
-      case AliasFilterType.edgeType:
+      case AliasFilterType.apiUsageState:
         result.entityFilter = deepClone(filter);
         return of(result);
-      case AliasFilterType.apiUsageState:
+      case AliasFilterType.edgeType:
         result.entityFilter = deepClone(filter);
         return of(result);
       case AliasFilterType.relationsQuery:
@@ -1623,5 +1627,29 @@ export class EntityService {
       const dataKey = this.utils.createKey(keyInfo, type);
       datasource.dataKeys.push(dataKey);
     });
+  }
+
+  public getAssignedToEdgeEntitiesByType(edgeId: string, entityType: EntityType, pageLink: PageLink): Observable<PageData<any>> {
+    let entitiesObservable: Observable<PageData<any>>;
+
+    // TODO: voba - implement this
+    // switch (entityType) {
+    //   case (EntityType.ASSET):
+    //     entitiesObservable = this.assetService.getEdgeAssets(edgeId, pageLink);
+    //     break;
+    //   case (EntityType.DEVICE):
+    //     entitiesObservable = this.deviceService.getEdgeDevices(edgeId, pageLink);
+    //     break;
+    //   case (EntityType.ENTITY_VIEW):
+    //     entitiesObservable = this.entityViewService.getEdgeEntityViews(edgeId, pageLink);
+    //     break;
+    //   case (EntityType.DASHBOARD):
+    //     entitiesObservable = this.dashboardService.getEdgeDashboards(edgeId, pageLink);
+    //     break;
+    //   case (EntityType.RULE_CHAIN):
+    //     entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink);
+    //     break;
+    // }
+    return entitiesObservable;
   }
 }

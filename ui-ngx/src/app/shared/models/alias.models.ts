@@ -213,8 +213,8 @@ export type EntityFilters =
   AssetSearchQueryFilter &
   DeviceSearchQueryFilter &
   EntityViewSearchQueryFilter &
-  EdgeSearchQueryFilter &
-  EntitySearchQueryFilter;
+  EntitySearchQueryFilter &
+  EdgeSearchQueryFilter;
 
 export interface EntityAliasFilter extends EntityFilters {
   type?: AliasFilterType;

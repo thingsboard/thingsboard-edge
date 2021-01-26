@@ -32,7 +32,7 @@
 import { BaseData, HasId } from '@shared/models/base-data';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
-import {Directive, EventEmitter, Inject, Input, OnInit, Output} from '@angular/core';
+import { Directive, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityAction } from '@home/models/entity/entity-component.models';

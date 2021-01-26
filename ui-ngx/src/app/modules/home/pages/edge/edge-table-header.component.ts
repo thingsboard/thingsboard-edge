@@ -30,10 +30,10 @@
 ///
 
 import { Component } from '@angular/core';
-import { EntityTableHeaderComponent } from "@home/components/entity/entity-table-header.component";
-import { EntityType } from "@shared/models/entity-type.models";
-import { Store } from "@ngrx/store";
-import { AppState } from "@core/core.state";
+import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
+import { EntityType } from '@shared/models/entity-type.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 import { Edge } from "@shared/models/edge.models";
 
 @Component({

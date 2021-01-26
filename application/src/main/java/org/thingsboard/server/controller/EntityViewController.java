@@ -241,7 +241,7 @@ public class EntityViewController extends BaseController {
     private ListenableFuture<List<Void>> copyLatestFromEntityToEntityView(EntityView entityView, SecurityUser user) {
         EntityViewId entityId = entityView.getId();
         List<String> keys = entityView.getKeys() != null && entityView.getKeys().getTimeseries() != null ?
-             entityView.getKeys().getTimeseries() : Collections.emptyList();
+                entityView.getKeys().getTimeseries() : Collections.emptyList();
         long startTs = entityView.getStartTimeMs();
         long endTs = entityView.getEndTimeMs() == 0 ? Long.MAX_VALUE : entityView.getEndTimeMs();
         ListenableFuture<List<String>> keysFuture;

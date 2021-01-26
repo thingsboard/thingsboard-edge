@@ -53,4 +53,5 @@ export class EventService {
               `${pageLink.toQuery()}&tenantId=${tenantId}`,
       defaultHttpOptionsFromConfig(config));
   }
+
 }

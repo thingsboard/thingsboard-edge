@@ -315,20 +315,16 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
         } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
-            forwardToAppActor(id, toCoreNotification.getEdgeEventUpdateMsg().toByteArray(), callback);
+            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray());
+            if (actorMsg.isPresent()) {
+                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+                actorContext.tellWithHighPriority(actorMsg.get());
+            }
+            callback.onSuccess();
         }
         if (statsEnabled) {
             stats.logToCoreNotification();
         }
-    }
-
-    private void forwardToAppActor(UUID id, byte[] msgBytes, TbCallback callback) {
-        Optional<TbActorMsg> actorMsg = encodingService.decode(msgBytes);
-        if (actorMsg.isPresent()) {
-            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-            actorContext.tellWithHighPriority(actorMsg.get());
-        }
-        callback.onSuccess();
     }
 
     private void launchUsageStatsConsumer() {

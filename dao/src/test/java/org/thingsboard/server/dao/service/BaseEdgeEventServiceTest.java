@@ -57,7 +57,7 @@ public abstract class BaseEdgeEventServiceTest extends AbstractServiceTest {
     public void saveEdgeEvent() throws Exception {
         EdgeId edgeId = new EdgeId(Uuids.timeBased());
         DeviceId deviceId = new DeviceId(Uuids.timeBased());
-        EdgeEvent edgeEvent = generateEdgeEvent(null, edgeId, deviceId,  EdgeEventActionType.ADDED);
+        EdgeEvent edgeEvent = generateEdgeEvent(null, edgeId, deviceId, EdgeEventActionType.ADDED);
         EdgeEvent saved = edgeEventService.saveAsync(edgeEvent).get();
         Assert.assertEquals(saved.getTenantId(), edgeEvent.getTenantId());
         Assert.assertEquals(saved.getEdgeId(), edgeEvent.getEdgeId());

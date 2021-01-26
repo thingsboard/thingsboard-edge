@@ -93,7 +93,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
                 "<br><code>ALARM</code><br><br>" +
                 "Message will be routed via <b>Failure</b> route if node was not able to save edge event to database or unsupported originator type/message type arrived. " +
                 "In case successful storage edge event to database message will be routed via <b>Success</b> route.",
-        uiResources = {"static/rulenode/rulenode-core-config.js", "static/rulenode/rulenode-core-config.css"},
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbNodeEmptyConfig",
         icon = "cloud_download",
         ruleChainTypes = RuleChainType.CORE

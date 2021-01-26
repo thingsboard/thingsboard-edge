@@ -193,6 +193,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsDefaultRuleChainUpdater.updateEntities(null);
                 break;
             case "2.5.5":
+                // TODO: voba - verify this
                 log.info("Updating data from version 2.5.5 to 2.6.0 ...");
                 tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
                 break;
@@ -223,6 +224,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
+
+                // TODO: voba - verify this
+                tenantsDefaultEdgeRuleChainUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);

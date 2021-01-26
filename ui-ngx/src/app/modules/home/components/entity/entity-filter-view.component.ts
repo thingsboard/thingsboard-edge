@@ -263,6 +263,16 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
             this.filterDisplayValue = this.translate.instant('alias.filter-type-device-search-query-description',
               translationValues
             );
+          } else if (this.filter.type === AliasFilterType.edgeSearchQuery) {
+            const edgeTypesQuoted = [];
+            this.filter.edgeTypes.forEach((filterEdgeType) => {
+              edgeTypesQuoted.push(`'${filterEdgeType}'`);
+            });
+            const edgeTypesText = edgeTypesQuoted.join(', ');
+            translationValues.edgeTypes = edgeTypesText;
+            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-search-query-description',
+              translationValues
+            );
           } else if (this.filter.type === AliasFilterType.entityViewSearchQuery) {
             const entityViewTypesQuoted = [];
             this.filter.entityViewTypes.forEach((filterEntityViewType) => {
