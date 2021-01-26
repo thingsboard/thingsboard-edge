@@ -40,6 +40,7 @@ import { GroupContactBasedComponent } from '@home/components/group/group-contact
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { isDefined } from '@core/utils';
+import { AuthState } from '@core/auth/auth.models';
 
 @Component({
   selector: 'tb-customer',
@@ -48,6 +49,8 @@ import { isDefined } from '@core/utils';
 export class CustomerComponent extends GroupContactBasedComponent<Customer> {
 
   isPublic = false;
+
+  authState: AuthState = getCurrentAuthState(this.store);
 
   allowCustomerWhiteLabeling = getCurrentAuthState(this.store).customerWhiteLabelingAllowed;
 
@@ -151,4 +154,8 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
       }));
   }
 
+  // TODO: voba - is this still valid?
+  edgesSupportEnabled() {
+    return this.authState.edgesSupportEnabled;
+  }
 }

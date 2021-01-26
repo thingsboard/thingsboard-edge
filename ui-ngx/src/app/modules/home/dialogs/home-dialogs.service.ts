@@ -84,6 +84,8 @@ export class HomeDialogsService {
         return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'device.import', 'device.device-file');
       case EntityType.ASSET:
         return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'asset.import', 'asset.asset-file');
+      case EntityType.EDGE:
+        return this.openImportDialogCSV(customerId, entityType, entityGroupId, 'edge.import', 'edge.edge-file');
     }
   }
 

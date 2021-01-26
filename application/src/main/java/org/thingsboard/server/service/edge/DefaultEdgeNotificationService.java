@@ -378,6 +378,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         }
                     }
                 } while (pageData != null && pageData.hasNext());
+                break;
             case DELETED:
                 EdgeId edgeId = new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
                 saveEdgeEvent(tenantId, edgeId, type, actionType, customerId, null);
@@ -559,7 +560,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
     }
 
     private void updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId) {
-        TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
+        PageLink pageLink = new PageLink(DEFAULT_LIMIT);
         PageData<RuleChain> pageData;
         do {
             pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);

@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -388,7 +387,6 @@ public class DefaultMailService implements MailService {
         }
     }
 
-    @NotNull
     private String getValueAsString(long value) {
         if (value > _1M && value % _1M < _10K) {
             return value / _1M + "M";
