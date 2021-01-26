@@ -54,7 +54,6 @@ import {
   RuleNodeComponentsResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
 import { UsersTableConfigResolver } from "@home/pages/user/users-table-config.resolver";
-import { EdgesRuleChainsTableConfigResolver } from "@home/pages/rulechain/edges-rulechains-table-config.resolver";
 
 const routes: Routes = [
   {
@@ -89,21 +88,7 @@ const routes: Routes = [
           },
         },
         resolve: {
-          entitiesTableConfig: EdgesRuleChainsTableConfigResolver
-        }
-      },
-      {
-        path: ':edgeId/users',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          breadcrumb: {
-            label: 'edge.users',
-            icon: 'account_circle'
-          }
-        },
-        resolve: {
-          entitiesTableConfig: UsersTableConfigResolver
+          entitiesTableConfig: RuleChainsTableConfigResolver
         }
       },
       {
