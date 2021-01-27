@@ -1584,7 +1584,7 @@ class EntityGroupSection {
         break;
       case EntityType.EDGE:
         name = 'entity-group.edge-groups';
-        path = '/edgeGroups';
+        path = '/edges/edgeGroups';
         icon = 'router';
         break;
       case EntityType.DASHBOARD:
