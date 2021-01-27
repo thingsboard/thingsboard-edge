@@ -116,6 +116,7 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
               private entityGroupService: EntityGroupService,
               @Inject(MAT_DIALOG_DATA) public data: AddEntityGroupsToEdgeDialogData,
               private fb: FormBuilder) {
+    this.entityGroups = this.data.assignedEntityGroups;
     this.edgeEntityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
       entityGroup: [null]
@@ -249,7 +250,6 @@ export class EdgeEntityGroupListComponent implements ControlValueAccessor, OnIni
   getEntityGroups(): Observable<Array<EntityGroupInfo>> {
       return this.entityGroupService.getEntityGroupsByOwnerId(this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, {ignoreLoading: true})
         .pipe(map(data => {
-
           if (data) {
             if (this.excludeGroupAll) {
               return data.filter(group => !group.groupAll);
