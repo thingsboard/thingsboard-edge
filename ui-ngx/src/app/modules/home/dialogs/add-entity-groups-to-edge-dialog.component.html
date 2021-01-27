@@ -47,12 +47,12 @@
     <fieldset [disabled]="isLoading$ | async">
       <section fxLayout="column">
         <span translate style="padding-bottom: 10px;">entity-group.select-existing</span>
-<!--        <tb-edge-entity-group-list-->
-<!--          required-->
-<!--          [groupType]="childGroupType"-->
-<!--          [excludeGroupAll]="true"-->
-<!--          formControlName="edgeEntityGroupIds">-->
-<!--        </tb-edge-entity-group-list>-->
+        <tb-edge-entity-group-list
+          required
+          [groupType]="childGroupType"
+          [excludeGroupAll]="true"
+          formControlName="edgeEntityGroupIds">
+        </tb-edge-entity-group-list>
       </section>
     </fieldset>
   </div>
