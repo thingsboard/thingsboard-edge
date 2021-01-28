@@ -59,7 +59,7 @@ import {EntityId} from "@shared/models/id/entity-id";
 @Component({
   selector: 'tb-edge-entity-group-list',
   templateUrl: './edge-entity-group-list.component.html',
-  styleUrls: ['./entity-group-list.component.scss'],
+  styleUrls: ['./edge-entity-group-list.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -428,7 +428,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   addSchedulerEvent($event: Event) {
-    this.openSchedulerEventDialog($event);
+    let schedulerScope = this.route.snapshot.data.schedulerScope;
+    if (schedulerScope) {
+      this.openAssignSchedulerEventToEdgeDialog($event);
+    } else {
+      this.openSchedulerEventDialog($event);
+    }
   }
 
   editSchedulerEvent($event, schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo) {
@@ -452,6 +457,46 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   openSchedulerEventDialog($event: Event, schedulerEvent?: SchedulerEvent, readonly = false) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    let isAdd = false;
+    if (!schedulerEvent || !schedulerEvent.id) {
+      isAdd = true;
+      if (!schedulerEvent) {
+        schedulerEvent = {
+          name: null,
+          type: null,
+          schedule: null,
+          configuration: {
+            originatorId: null,
+            msgType: null,
+            msgBody: {},
+            metadata: {}
+          }
+        };
+      }
+    }
+    this.dialog.open<SchedulerEventDialogComponent, SchedulerEventDialogData, boolean>(SchedulerEventDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        schedulerEventConfigTypes: this.schedulerEventConfigTypes,
+        isAdd,
+        readonly,
+        schedulerEvent,
+        defaultEventType: this.defaultEventType
+      }
+    }).afterClosed().subscribe(
+      (res) => {
+        if (res) {
+          this.reloadSchedulerEvents();
+        }
+      }
+    );
+  }
+
+  openAssignSchedulerEventToEdgeDialog($event: Event, schedulerEvent?: SchedulerEvent, readonly = false) {
     if ($event) {
       $event.stopPropagation();
     }
