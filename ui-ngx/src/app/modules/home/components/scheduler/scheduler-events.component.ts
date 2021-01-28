@@ -94,6 +94,7 @@ import * as _moment from 'moment';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
 import { getUserZone } from '@shared/models/time/time.models';
+import { ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -176,7 +177,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private schedulerEventService: SchedulerEventService,
               private userPermissionsService: UserPermissionsService,
               private dialogService: DialogService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private route: ActivatedRoute) {
     super(store);
   }
 
@@ -197,7 +199,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
-      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+      this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
     }
   }
 
@@ -278,7 +280,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
         }
       }
     ];
-    this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes);
+    this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
     this.dataSource.selection.changed.subscribe(() => {
       const hideTitlePanel = !this.dataSource.selection.isEmpty() || this.textSearchMode;
       if (this.ctx.hideTitlePanel !== hideTitlePanel) {
@@ -801,7 +803,8 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
   public dataLoading = true;
 
   constructor(private schedulerEventService: SchedulerEventService,
-              private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType}) {
+              private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType},
+              private route: ActivatedRoute) {
   }
 
   connect(collectionViewer: CollectionViewer):
@@ -857,7 +860,15 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {
     if (!this.allEntities) {
-      this.allEntities = this.schedulerEventService.getSchedulerEvents(eventType).pipe(
+      let schedulerScope: string = this.route.snapshot.data.schedulerScope;
+      let edgeId: string = this.route.snapshot.params.edgeId;
+      let fetchObservable: Observable<Array<SchedulerEventWithCustomerInfo>>;
+      if (schedulerScope) {
+        fetchObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
+      } else {
+        fetchObservable = this.schedulerEventService.getSchedulerEvents(eventType);
+      }
+      this.allEntities = fetchObservable.pipe(
         map((schedulerEvents) => {
           schedulerEvents.forEach((schedulerEvent) => {
             let typeName = schedulerEvent.type;

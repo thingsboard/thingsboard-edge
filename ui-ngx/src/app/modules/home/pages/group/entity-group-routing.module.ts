@@ -671,6 +671,7 @@ const routes: Routes = [
                 path: ':edgeId/scheduler',
                 component: SchedulerEventsComponent,
                 data: {
+                  schedulerScope: 'edge',
                   groupType: EntityType.SCHEDULER_EVENT,
                   auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
                   breadcrumb: {
