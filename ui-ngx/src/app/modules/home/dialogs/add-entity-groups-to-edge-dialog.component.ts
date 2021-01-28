@@ -53,7 +53,6 @@ export interface AddEntityGroupsToEdgeDialogData {
   confirmSelectTitle: string;
   notFoundText: string;
   requiredText: string;
-  assignedEntityGroups: EntityGroupInfo[];
 }
 
 @Component({

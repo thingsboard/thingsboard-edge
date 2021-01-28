@@ -68,7 +68,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   customerId: string;
   edgeId: string;
   groupType: EntityType;
-  assignedEntityGroups: EntityGroupInfo[];
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,
@@ -138,10 +137,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         fetchObservable = this.entityGroupService.getEntityGroups(this.groupType);
       }
       return fetchObservable.pipe(
-        map((entityGroups) => {
-          this.assignedEntityGroups = entityGroups;
-          return pageLink.filterData(entityGroups)
-        })
+        map((entityGroups) => pageLink.filterData(entityGroups)
+        )
       );
     };
 
@@ -315,7 +312,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         ownerId: ownerId,
         childGroupType: this.params.childGroupType,
         edgeId: this.params.edgeId,
-        assignedEntityGroups: this.assignedEntityGroups,
         addEntityGroupsToEdgeTitle: 'edge.add-groups-to-edge',
         confirmSelectTitle: 'action.add',
         notFoundText: 'entity-group.no-entity-groups-matching',
