@@ -151,8 +151,10 @@ import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
@@ -286,6 +288,8 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private final ConcurrentMap<IntegrationId, ComponentLifecycleEvent> integrationEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<IntegrationId, Pair<ThingsboardPlatformIntegration<?>, IntegrationContext>> integrationsByIdMap = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, ThingsboardPlatformIntegration<?>> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
+    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
+    private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
 
     private ConcurrentMap<TenantId, TbRateLimits> perTenantLimits = new ConcurrentHashMap<>();
     private ConcurrentMap<DeviceId, TbRateLimits> perDeviceLimits = new ConcurrentHashMap<>();
@@ -294,15 +298,18 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
 
+
+
     @PostConstruct
     public void init() {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         this.callbackExecutor = Executors.newWorkStealingPool(20);
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultDeviceStateService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
-            reinitExecutorService.scheduleAtFixedRate(this::reinitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
+            reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -542,23 +549,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private volatile boolean clusterUpdatePending = false;
-    private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
-
     @Override
     public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            myPartitions.clear();
-            myPartitions.addAll(partitionChangeEvent.getPartitions());
-            synchronized (this) {
-                if (!clusterUpdatePending) {
-                    clusterUpdatePending = true;
-                    refreshExecutorService.submit(() -> {
-                        clusterUpdatePending = false;
-                        refreshAllIntegrations();
-                    });
-                }
-            }
+            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 
@@ -911,7 +905,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
     }
 
-    private synchronized void refreshAllIntegrations() {
+    private synchronized void refreshAllIntegrations(Set<TopicPartitionInfo> partitions) {
+        Set<TopicPartitionInfo> newPartitions = ConcurrentHashMap.newKeySet();
+        newPartitions.addAll(partitions);
+        myPartitions = newPartitions;
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
             Integration integration = integrationsByIdMap.get(integrationId).getFirst().getConfiguration();
@@ -951,7 +948,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         initialized = true;
     }
 
-    private void reinitIntegrations() {
+    private void reInitIntegrations() {
         if (initialized) {
             integrationsByIdMap.forEach((integrationId, integration) -> {
                 if (integrationEvents.getOrDefault(integrationId, ComponentLifecycleEvent.STARTED).equals(ComponentLifecycleEvent.FAILED)) {

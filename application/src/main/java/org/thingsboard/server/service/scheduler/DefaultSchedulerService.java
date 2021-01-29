@@ -57,6 +57,8 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
+import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -90,9 +92,9 @@ public class DefaultSchedulerService implements SchedulerService {
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
     private final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
+    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
     private ListeningScheduledExecutorService queueExecutor;
 
-    private volatile boolean clusterUpdatePending = false;
     private volatile boolean firstRun = true;
 
     public DefaultSchedulerService(TenantService tenantService, TbClusterService clusterService, PartitionService partitionService, SchedulerEventService schedulerEventService) {
@@ -106,6 +108,7 @@ public class DefaultSchedulerService implements SchedulerService {
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultDeviceStateService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 
     @PreDestroy
@@ -156,15 +159,7 @@ public class DefaultSchedulerService implements SchedulerService {
     @Override
     public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            synchronized (this) {
-                if (!clusterUpdatePending) {
-                    clusterUpdatePending = true;
-                    queueExecutor.submit(() -> {
-                        clusterUpdatePending = false;
-                        initStateFromDB(partitionChangeEvent.getPartitions());
-                    });
-                }
-            }
+            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 
