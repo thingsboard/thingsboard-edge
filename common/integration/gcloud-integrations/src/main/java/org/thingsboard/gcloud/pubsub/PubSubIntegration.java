@@ -94,7 +94,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
-                    log.debug("[{}] Processing uplink data", data);
+                    log.trace("[{}] Processing uplink data", data);
                 }
             }
             if (configuration.isDebugMode()) {

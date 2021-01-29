@@ -372,7 +372,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
+                log.trace("[{}] Processing uplink data: {}", configuration.getId(), data);
             }
         }
     }
