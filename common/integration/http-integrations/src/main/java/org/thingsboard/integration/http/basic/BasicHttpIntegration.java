@@ -204,7 +204,6 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
                 processUplinkData(context, uplinkData);
                 result.put(uplinkData.getDeviceName(), uplinkData);
                 log.trace("[{}] Processing uplink data", uplinkData);
-                System.out.println();
             }
             return result;
         } else {
