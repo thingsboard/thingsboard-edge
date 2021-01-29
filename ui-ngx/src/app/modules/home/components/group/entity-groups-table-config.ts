@@ -174,7 +174,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.groupActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-groups-from-edge'),
-          icon: 'portable_wifi_off',
+          icon: 'assignment_return',
           isEnabled: true,
           onAction: ($event, entities) => {
             this.unassignEntityGroupsFromEdge($event, entities);
@@ -227,7 +227,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         },
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
-          icon: 'portable_wifi_off',
+          icon: 'assignment_return',
           isEnabled: (entity) => true,
           onAction: ($event, entity) => this.unassignEntityGroupFromEdge($event, entity)
         }

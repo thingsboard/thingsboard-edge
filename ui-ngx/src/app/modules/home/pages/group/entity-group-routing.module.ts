@@ -222,6 +222,49 @@ const ENTITY_VIEW_GROUPS_ROUTE: Route = {
   ]
 };
 
+const EDGE_GROUPS_ROUTE: Route =
+  {
+    path: 'edgeGroups',
+    data: {
+      groupType: EntityType.EDGE,
+      breadcrumb: {
+        label: 'entity-group.edge-groups',
+        icon: 'router'
+      }
+    },
+    children: [
+      {
+        path: '',
+        component: EntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.edge-groups',
+          groupType: EntityType.EDGE
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver,
+          entitiesTableConfig: EntityGroupsTableConfigResolver
+        }
+      },
+      {
+        path: ':entityGroupId',
+        component: GroupEntitiesTableComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'entity-group.edge-group',
+          groupType: EntityType.EDGE,
+          breadcrumb: {
+            icon: 'router',
+            labelFunction: groupEntitiesLabelFunction
+          } as BreadCrumbConfig<GroupEntitiesTableComponent>
+        },
+        resolve: {
+          entityGroup: EntityGroupResolver
+        }
+      }
+    ]
+  };
+
 const USER_GROUPS_ROUTE: Route = {
   path: 'userGroups',
   data: {
@@ -483,6 +526,18 @@ const routes: Routes = [
                 }
               }
             }
+          },
+          { ...EDGE_GROUPS_ROUTE, ...{
+              path: ':customerId/edgeGroups',
+              data: {
+                breadcrumb: {
+                  labelFunction: (route, translate, component, data) => {
+                    return data.entityGroup.customerGroupsTitle;
+                  },
+                  icon: 'router'
+                }
+              }
+            }
           }
         ]
       }
@@ -690,7 +745,7 @@ const routes: Routes = [
                 component: EntitiesTableComponent,
                 data: {
                   ruleChainsType: 'edge',
-                  title: 'rulechain.edge-rulechains',
+                  title: 'edge.rulechains',
                   groupType: EntityType.RULE_CHAIN,
                   auth: [Authority.TENANT_ADMIN],
                   breadcrumb: {
