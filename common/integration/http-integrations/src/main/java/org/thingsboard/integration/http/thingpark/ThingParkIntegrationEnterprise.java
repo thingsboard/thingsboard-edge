@@ -132,7 +132,7 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         if (uplinkDataList != null) {
             uplinkDataList.stream().forEach(data -> {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data", data);
+                log.trace("[{}] Processing uplink data", data);
             });
         }
         return fromStatus(HttpStatus.OK);

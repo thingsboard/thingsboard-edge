@@ -113,7 +113,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
-                    log.info("[{}] Processing uplink data", data);
+                    log.trace("[{}] Processing uplink data", data);
                 }
             }
             return fromStatus(HttpStatus.OK);
