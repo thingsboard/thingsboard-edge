@@ -689,7 +689,7 @@ const routes: Routes = [
                 path: ':edgeId/ruleChains',
                 component: EntitiesTableComponent,
                 data: {
-                  ruleChainsType: 'edges',
+                  ruleChainsType: 'edge',
                   title: 'rulechain.edge-rulechains',
                   groupType: EntityType.RULE_CHAIN,
                   auth: [Authority.TENANT_ADMIN],

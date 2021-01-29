@@ -1480,7 +1480,7 @@
         "unassign-scheduler-event-from-edge-title": "Are you sure you want to unassign scheduler event '{{schedulerEventName}}'?",
         "unassign-scheduler-event-from-edge-text": "After the confirmation the scheduler event will be unassigned and won't be accessible by the edge.",
         "unassign-scheduler-events-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 scheduler event} other {# scheduler events} }?",
-        "unassign-scheduler-events-from-edge-text": "After the confirmation scheduler events will be unassigned and won't be accessible by the edge."
+        "unassign-scheduler-events-from-edge-text": "After the confirmation all selected scheduler events will be unassigned and won't be accessible by the edge."
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
