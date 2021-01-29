@@ -487,7 +487,7 @@ export class MenuService {
     }
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
       const pages: Array<MenuSection> = [];
-      pages.push(this.createEntityGroupSection(EntityType.EDGE));
+      sections.push(this.createEntityGroupSection(EntityType.EDGE));
       pages.push(
         {
           id: guid(),
@@ -812,7 +812,7 @@ export class MenuService {
             {
               name: 'edge.edges',
               icon: 'router',
-              path: '/edges/edgeGroups',
+              path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
             },
             {
@@ -1232,7 +1232,7 @@ export class MenuService {
             {
               name: 'edge.edges',
               icon: 'router',
-              path: '/edges/edgeGroups',
+              path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
             },
             {
@@ -1584,7 +1584,7 @@ class EntityGroupSection {
         break;
       case EntityType.EDGE:
         name = 'entity-group.edge-groups';
-        path = '/edges/edgeGroups';
+        path = '/edgeGroups';
         icon = 'router';
         break;
       case EntityType.DASHBOARD:
