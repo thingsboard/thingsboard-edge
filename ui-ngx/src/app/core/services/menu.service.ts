@@ -812,7 +812,7 @@ export class MenuService {
             {
               name: 'edge.edges',
               icon: 'router',
-              path: '/edgeGroups',
+              path: '/edges/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
             },
             {
@@ -1232,7 +1232,7 @@ export class MenuService {
             {
               name: 'edge.edges',
               icon: 'router',
-              path: '/edgeGroups',
+              path: '/edges/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
             },
             {
