@@ -203,7 +203,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             for (UplinkData uplinkData : uplinkDataList) {
                 processUplinkData(context, uplinkData);
                 result.put(uplinkData.getDeviceName(), uplinkData);
-                log.info("[{}] Processing uplink data", uplinkData);
+                log.trace("[{}] Processing uplink data", uplinkData);
             }
             return result;
         } else {
