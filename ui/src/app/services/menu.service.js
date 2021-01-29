@@ -111,12 +111,12 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
     var edgeGroups = {
         name: 'entity-group.edge-groups',
         type: 'toggle',
-        state: 'home.edges.edgeGroups',
+        state: 'home.edgeGroups',
         height: '0px',
         icon: 'router',
         pages: [],
         loaded: false,
-        childState: 'home.edges.edgeGroups.edgeGroup',
+        childState: 'home.edgeGroups.edgeGroup',
         groupType: types.entityType.edge
     };
 
@@ -487,6 +487,8 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                         state: 'home.edges.ruleChains',
                         icon: 'settings_ethernet'
                     };
+                    sections.push(edgeGroups);
+                    entityGroupSections.push(edgeGroups);
                     sections.push(
                         {
                             name: 'edge.management',
@@ -495,7 +497,6 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                             height: '0px',
                             icon: 'router',
                             pages: [
-                                edgeGroups,
                                 edgeRuleChainsSection
                             ]
                         }
@@ -757,7 +758,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'entity-group.edge-groups',
                                     icon: 'router',
                                     //state: 'home.edges',
-                                    state: 'home.edges.edgeGroups',
+                                    state: 'home.edgeGroups',
                                     disabled: disabledItems.indexOf('edge_groups') > -1
                                 },
                                 {
@@ -1132,7 +1133,7 @@ function Menu(userService, $state, $rootScope, $q, types, securityTypes, userPer
                                     name: 'entity-group.edge-group',
                                     icon: 'router',
                                     //state: 'home.edges',
-                                    state: 'home.edges.edgeGroups',
+                                    state: 'home.edgeGroups',
                                     disabled: disabledItems.indexOf('edge_groups') > -1
                                 }
                             ]

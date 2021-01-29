@@ -397,7 +397,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         } else {
             var targetStatePrefix = 'home.';
             if (vm.edgeId && !vm.customerId) {
-                targetStatePrefix = 'home.edges.edgeGroups.edgeGroup.';
+                targetStatePrefix = 'home.edgeGroups.edgeGroup.';
             } else if (vm.customerId && !vm.edgeId) {
                 targetStatePrefix = 'home.customerGroups.customerGroup.';
             } else if (vm.edgeId && vm.customerId) {
@@ -415,7 +415,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
             } else if (entityGroup.type == types.entityType.entityView) {
                 targetState = 'entityViewGroups.entityViewGroup';
             } else if (entityGroup.type == types.entityType.edge) {
-                targetState = vm.customerId ? 'edgeGroups.edgeGroup' : 'edges.edgeGroups.edgeGroup';
+                targetState = 'edgeGroups.edgeGroup';
             } else if (entityGroup.type == types.entityType.dashboard) {
                 targetState = 'dashboardGroups.dashboardGroup';
             } else if (entityGroup.type == types.entityType.rulechain) {

@@ -291,7 +291,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 icon: 'add'
             },
             {
-                name: 'edge.assign-to-edge',
+                name: 'edge.assign-to-edge-scheduler-events',
                 show: true,
                 onAction: function(event) {
                     vm.assignToEdgeSchedulerEvent(event);
@@ -801,7 +801,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
 
     function addSchedulerEventTitle() {
         if (vm.schedulerScope === 'edge') {
-            return $translate.instant('edge.assign-to-edge');
+            return $translate.instant('edge.assign-to-edge-scheduler-events');
         } else {
             return $translate.instant('scheduler.add-scheduler-event');
         }

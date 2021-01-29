@@ -1050,7 +1050,8 @@
         "list-of-groups": "{ count, plural, 1 {One edge group} other {List of # edge groups} }",
         "group-name-starts-with": "Edge groups whose names start with '{{prefix}}'",
         "assign-scheduler-to-edge": "Please select the scheduler event(s) to assign to the edge",
-        "rulechains": "Rule chains"
+        "rulechains": "Rule chains",
+        "assign-to-edge-scheduler-events": "Assign new scheduler event"
     },
     "edge-event": {
       "type-dashboard": "Dashboard",
