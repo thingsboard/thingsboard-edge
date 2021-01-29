@@ -41,6 +41,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 import { RuleChainService } from '@core/http/rule-chain.service';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
 
 export interface AddEntitiesToEdgeDialogData {
   edgeId: string;
@@ -70,6 +71,7 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: AddEntitiesToEdgeDialogData,
               private ruleChainService: RuleChainService,
+              private schedulerEventService: SchedulerEventService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
               public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, boolean>,
               public fb: FormBuilder) {
@@ -82,8 +84,16 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
     this.addEntitiesToEdgeFormGroup = this.fb.group({
       entityIds: [null, [Validators.required]]
     });
-    this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
-    this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+    switch (this.entityType) {
+      case EntityType.RULE_CHAIN:
+        this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
+        this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        this.assignToEdgeTitle = 'rulechain.assign-scheduler-event-to-edge-title';
+        this.assignToEdgeText = 'rulechain.assign-scheduler-event-to-edge-text';
+        break;
+    }
     this.subType = RuleChainType.EDGE;
   }
 
@@ -103,7 +113,14 @@ export class AddEntitiesToEdgeDialogComponent extends DialogComponent<AddEntitie
     const tasks: Observable<any>[] = [];
     entityIds.forEach(
       (entityId) => {
-        tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
+        switch (this.entityType) {
+          case EntityType.RULE_CHAIN:
+            tasks.push(this.ruleChainService.assignRuleChainToEdge(this.edgeId, entityId));
+            break;
+          case EntityType.SCHEDULER_EVENT:
+            tasks.push(this.schedulerEventService.assignSchedulerEventToEdge(this.edgeId, entityId));
+            break;
+        }
       }
     );
     forkJoin(tasks).subscribe(

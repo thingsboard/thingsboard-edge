@@ -1475,7 +1475,12 @@
         "unassign-entity-group-from-edge": "Unassign entity group from edge",
         "unassign-entity-groups-from-edge-title": "Are you sure you want to unassign {{count}} entity groups?",
         "unassign-entity-groups-from-edge-text": "After the confirmation entity groups will be unassigned and won't be accessible by the edge.",
-        "unassign-entity-groups-from-edge": "Unassign entity groups from edge"
+        "unassign-entity-groups-from-edge": "Unassign entity groups from edge",
+        "assign-to-edge-scheduler-events": "Assign new scheduler event",
+        "unassign-scheduler-event-from-edge-title": "Are you sure you want to unassign scheduler event '{{schedulerEventName}}'?",
+        "unassign-scheduler-event-from-edge-text": "After the confirmation the scheduler event will be unassigned and won't be accessible by the edge.",
+        "unassign-scheduler-events-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 scheduler event} other {# scheduler events} }?",
+        "unassign-scheduler-events-from-edge-text": "After the confirmation scheduler events will be unassigned and won't be accessible by the edge."
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -2905,7 +2910,9 @@
         "unassign-rulechains-from-edge-text": "After the confirmation all selected rulechains will be unassigned and won't be accessible by the edge.",
         "assign-rulechain-to-edge-title": "Assign Rule Chain(s) To Edge",
         "assign-rulechain-to-edge-text": "Please select the rulechains to assign to the edge",
-        "set-edge-template-root-rulechain": "Make rule chain as edge template root",
+        "assign-scheduler-event-to-edge-title": "Assign Scheduler(s) To Edge",
+        "assign-scheduler-event-to-edge-text": "Please select the scheduler events to assign to the edge",
+        "set-edge-tscheduler-eventemplate-root-rulechain": "Make rule chain as edge template root",
         "set-edge-template-root-rulechain-title": "Are you sure you want to make the rule chain '{{ruleChainName}}' edge template root?",
         "set-edge-template-root-rulechain-text": "After the confirmation the rule chain will become edge template root and will be root rule chain for a newly created edges.",
         "invalid-rulechain-type-error": "Unable to import rule chain: Invalid rule chain type. Expected type is {{expectedRuleChainType}}.",
@@ -3078,6 +3085,7 @@
                 "CUSTOMER": "Customer",
                 "DASHBOARD": "Dashboard",
                 "ENTITY_VIEW": "Entity View",
+                "EDGE": "Edge",
                 "TENANT": "Tenant",
                 "TENANT_PROFILE": "Tenant Profile",
                 "RULE_CHAIN": "Rule Chain",

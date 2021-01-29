@@ -42,7 +42,8 @@ import {
   SchedulerEvent,
   SchedulerEventWithCustomerInfo,
   SchedulerRepeatType,
-  schedulerRepeatTypeToUnitMap, schedulerTimeUnitRepeatTranslationMap,
+  schedulerRepeatTypeToUnitMap,
+  schedulerTimeUnitRepeatTranslationMap,
   schedulerWeekday
 } from '@shared/models/scheduler-event.models';
 import { CollectionViewer, DataSource, SelectionModel } from '@angular/cdk/collections';
@@ -95,6 +96,11 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { EventHandlerArg } from '@fullcalendar/core/types/input-types';
 import { getUserZone } from '@shared/models/time/time.models';
 import { ActivatedRoute } from "@angular/router";
+import {
+  AddEntitiesToEdgeDialogComponent,
+  AddEntitiesToEdgeDialogData
+} from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -123,6 +129,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
+
+  edgeId = this.route.snapshot.params.edgeId;
+  edgeScope = this.route.snapshot.data.schedulerScope === 'edge';
+  assignToEdgeEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ) && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
 
   authUser = getCurrentAuthUser(this.store);
 
@@ -200,6 +210,10 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
+      if (this.edgeScope) {
+        this.deleteEnabled = false;
+        this.editEnabled = false;
+      }
     }
   }
 
@@ -496,36 +510,17 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     );
   }
 
-  openAssignSchedulerEventToEdgeDialog($event: Event, schedulerEvent?: SchedulerEvent, readonly = false) {
+  openAssignSchedulerEventToEdgeDialog($event: Event) {
     if ($event) {
       $event.stopPropagation();
     }
-    let isAdd = false;
-    if (!schedulerEvent || !schedulerEvent.id) {
-      isAdd = true;
-      if (!schedulerEvent) {
-        schedulerEvent = {
-          name: null,
-          type: null,
-          schedule: null,
-          configuration: {
-            originatorId: null,
-            msgType: null,
-            msgBody: {},
-            metadata: {}
-          }
-        };
-      }
-    }
-    this.dialog.open<SchedulerEventDialogComponent, SchedulerEventDialogData, boolean>(SchedulerEventDialogComponent, {
+    this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
+      boolean>(AddEntitiesToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        schedulerEventConfigTypes: this.schedulerEventConfigTypes,
-        isAdd,
-        readonly,
-        schedulerEvent,
-        defaultEventType: this.defaultEventType
+        edgeId: this.edgeId,
+        entityType: EntityType.SCHEDULER_EVENT
       }
     }).afterClosed().subscribe(
       (res) => {
@@ -829,6 +824,49 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       info += this.translate.instant('scheduler.until') + ' ';
       info += _moment.utc(event.schedule.repeat.endsOn).local().format('MMM DD, YYYY');
       return info;
+    }
+  }
+
+  unassignFromEdge($event: Event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const title = this.translate.instant('edge.unassign-scheduler-event-from-edge-title', {schedulerEventName: schedulerEvent.name});
+    const content = this.translate.instant('edge.unassign-scheduler-event-from-edge-text');
+    this.dialogService.confirm(title, content,
+      this.translate.instant('action.no'),
+      this.translate.instant('action.yes')).subscribe((result) => {
+      if (result) {
+        this.schedulerEventService.unassignSchedulerEventFromEdge(this.edgeId, schedulerEvent.id.id).subscribe(
+          () => {
+            this.reloadSchedulerEvents();
+          }
+        );
+      }
+    });
+  }
+
+  unassignFromEdgeSchedulerEvents($event: Event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const selectedSchedulerEvents = this.dataSource.selection.selected;
+    if (selectedSchedulerEvents && selectedSchedulerEvents.length) {
+      const title = this.translate.instant('edge.unassign-scheduler-events-from-edge-title', {count: selectedSchedulerEvents.length});
+      const content = this.translate.instant('edge.unassign-scheduler-events-from-edge-text');
+      this.dialogService.confirm(title, content,
+        this.translate.instant('action.no'),
+        this.translate.instant('action.yes')).subscribe((result) => {
+        if (result) {
+          const tasks = selectedSchedulerEvents.map((schedulerEvent) =>
+            this.schedulerEventService.unassignSchedulerEventFromEdge(this.edgeId, schedulerEvent.id.id));
+          forkJoin(tasks).subscribe(
+            () => {
+              this.reloadSchedulerEvents();
+            }
+          );
+        }
+      });
     }
   }
 
