@@ -741,7 +741,7 @@ const routes: Routes = [
     data: {
       breadcrumb: {
         label: 'edge.management',
-        icon: 'router'
+        icon: 'settings_input_antenna'
       }
     },
     children: [

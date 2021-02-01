@@ -504,7 +504,7 @@ export class MenuService {
           name: 'edge.management',
           type: 'toggle',
           path: '/edges',
-          icon: 'router',
+          icon: 'settings_input_antenna',
           pages,
           asyncPages: of(pages),
           disabled: disabledItems.indexOf('edge_groups') > -1
@@ -1041,7 +1041,7 @@ export class MenuService {
           name: 'edge.management',
           type: 'toggle',
           path: '/edges',
-          icon: 'router',
+          icon: 'settings_input_antenna',
           pages,
           asyncPages: of(pages),
           disabled: disabledItems.indexOf('edge_groups') > -1
