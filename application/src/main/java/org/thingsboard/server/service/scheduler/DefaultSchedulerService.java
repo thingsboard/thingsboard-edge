@@ -108,7 +108,7 @@ public class DefaultSchedulerService implements SchedulerService {
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
-        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultDeviceStateService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultSchedulerService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 
     @PreDestroy

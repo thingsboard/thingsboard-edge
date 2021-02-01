@@ -44,6 +44,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -306,7 +307,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         this.callbackExecutor = Executors.newWorkStealingPool(20);
         refreshExecutorService = MoreExecutors.listeningDecorator(Executors.newWorkStealingPool(4));
-        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultDeviceStateService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor();
             reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
@@ -409,6 +410,10 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Override
     public ListenableFuture<Void> deleteIntegration(IntegrationId integrationId) {
+        return stopIntegration(integrationId, ComponentLifecycleEvent.DELETED);
+    }
+
+    private ListenableFuture<Void> stopIntegration(IntegrationId integrationId, ComponentLifecycleEvent event) {
         return refreshExecutorService.submit(() -> {
             Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.remove(integrationId);
             integrationEvents.remove(integrationId);
@@ -417,9 +422,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 try {
                     integrationsByRoutingKeyMap.remove(configuration.getRoutingKey());
                     integration.getFirst().destroy();
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.DELETED, null);
+                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, null);
                 } catch (Exception e) {
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.DELETED, e);
+                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, e);
                     throw e;
                 }
             }
@@ -915,7 +920,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             if (integration.getType().isSingleton()) {
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
                 if (!myPartitions.contains(tpi)) {
-                    deleteIntegration(integrationId);
+                    stopIntegration(integrationId, ComponentLifecycleEvent.STOPPED);
                 }
             }
         }
