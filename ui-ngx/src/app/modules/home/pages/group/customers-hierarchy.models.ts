@@ -34,10 +34,11 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
+import { Edge } from '@shared/models/edge.models';
 
-export type CustomersHierarchyViewMode = 'groups' | 'group';
+export type CustomersHierarchyViewMode = 'groups' | 'group' | 'edgeGroups';
 
-export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer';
+export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups';
 
 export interface BaseCustomersHierarchyNodeData {
   type: CustomersHierarchyNodeType;
@@ -61,7 +62,18 @@ export interface CustomerNodeData extends BaseCustomersHierarchyNodeData {
   entity: Customer;
 }
 
-export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData;
+export interface EdgeNodeData extends BaseCustomersHierarchyNodeData {
+  type: 'edge';
+  entity: Edge;
+}
+
+export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
+  type: 'edgeGroups';
+  groupsType: EntityType;
+  edge: Edge;
+}
+
+export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;
 
 export interface CustomersHierarchyNode extends NavTreeNode {
   data?: CustomersHierarchyNodeData;
@@ -75,6 +87,11 @@ export function entityGroupNodeText(entityGroup: EntityGroupInfo): string {
 export function customerNodeText(customer: Customer): string {
   const nodeIcon = materialIconByEntityType(EntityType.CUSTOMER);
   return nodeIcon + customer.title;
+}
+
+export function edgeNodeText(edge: Edge): string {
+  const nodeIcon = materialIconByEntityType(EntityType.EDGE);
+  return nodeIcon + edge.name;
 }
 
 export function entityGroupsNodeText(translate: TranslateService, groupType: EntityType) {
@@ -99,6 +116,10 @@ function textForGroupType(translate: TranslateService, groupType: EntityType): s
       return translate.instant('entity-group.edge-groups');
     case EntityType.DASHBOARD:
       return translate.instant('entity-group.dashboard-groups');
+    case EntityType.SCHEDULER_EVENT:
+      return translate.instant('entity.type-scheduler-event');
+    case EntityType.RULE_CHAIN:
+      return translate.instant('entity.type-rulechains');
   }
   return '';
 }
@@ -126,6 +147,12 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.EDGE:
       materialIcon = 'router';
+      break;
+    case EntityType.SCHEDULER_EVENT:
+      materialIcon = 'schedule';
+      break;
+    case EntityType.RULE_CHAIN:
+      materialIcon = 'settings_ethernet';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
