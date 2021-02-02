@@ -227,7 +227,10 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
     } else {
-      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
+      const url = params.customerId
+        ? `customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`
+        : `edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`;
+      this.router.navigateByUrl(url);
     }
   }
 

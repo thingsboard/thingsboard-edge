@@ -86,7 +86,7 @@ export class EntityGroupConfigResolver {
   }
 
   private resolveParentGroupInfo<T>(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<T>): Observable<EntityGroupStateInfo<T>> {
-    if (params.customerId) {
+    if (params.customerId && !params.edgeId) {
       const groupType: EntityType = params.childGroupType || params.groupType;
       return this.customerService.getShortCustomerInfo(params.customerId).pipe(
         mergeMap((info) => {
