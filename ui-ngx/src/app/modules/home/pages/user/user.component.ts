@@ -35,7 +35,7 @@ import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { User } from '@shared/models/user.model';
-import { selectAuth } from '@core/auth/auth.selectors';
+import { selectAuth, selectAuthUser } from '@core/auth/auth.selectors';
 import { map } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
 import { isDefinedAndNotNull, isUndefined } from '@core/utils';
@@ -58,6 +58,11 @@ export class UserComponent extends EntityComponent<User> {
   whiteLabelingAllowed$ = this.store.pipe(
     select(selectAuth),
     map((auth) => auth.whiteLabelingAllowed)
+  );
+
+  isSysAdmin$ = this.store.pipe(
+    select(selectAuthUser),
+    map((auth) => auth.authority === Authority.SYS_ADMIN)
   );
 
   constructor(protected store: Store<AppState>,

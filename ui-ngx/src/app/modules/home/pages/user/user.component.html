@@ -111,7 +111,7 @@
               {{ 'user.always-fullscreen' | translate }}
             </mat-checkbox>
           </section>
-          <section *ngIf="(whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
+          <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
               placeholder="{{ 'dashboard.home-dashboard' | translate }}"

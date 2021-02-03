@@ -394,6 +394,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -946,6 +947,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );

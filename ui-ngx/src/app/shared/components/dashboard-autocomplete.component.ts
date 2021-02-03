@@ -205,13 +205,9 @@ export class DashboardAutocompleteComponent implements ControlValueAccessor, OnI
   getDashboards(pageLink: PageLink): Observable<PageData<DashboardInfo>> {
     let dashboardsObservable: Observable<PageData<DashboardInfo>>;
     const authUser = getCurrentAuthUser(this.store);
-    if (authUser.authority === Authority.SYS_ADMIN) {
-      if (this.tenantId) {
-        dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
-          {ignoreLoading: true});
-      } else {
-        dashboardsObservable = of(emptyPageData());
-      }
+    if (authUser.authority === Authority.SYS_ADMIN && this.tenantId) {
+      dashboardsObservable = this.dashboardService.getTenantDashboardsByTenantId(this.tenantId, pageLink,
+        {ignoreLoading: true});
     } else {
       let userId = this.userId;
       if (!userId) {
