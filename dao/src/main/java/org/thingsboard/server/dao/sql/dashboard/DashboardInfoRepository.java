@@ -51,6 +51,13 @@ public interface DashboardInfoRepository extends PagingAndSortingRepository<Dash
                                              @Param("searchText") String searchText,
                                              Pageable pageable);
 
+    @Query("SELECT di FROM DashboardInfoEntity di WHERE di.tenantId = :tenantId AND di.customerId = :customerId " +
+            "AND LOWER(di.searchText) LIKE LOWER(CONCAT(:searchText, '%'))")
+    Page<DashboardInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                          @Param("customerId") UUID customerId,
+                                                          @Param("searchText") String searchText,
+                                                          Pageable pageable);
+
     @Query("SELECT di FROM DashboardInfoEntity di, " +
             "RelationEntity re " +
             "WHERE di.id = re.toId AND re.toType = 'DASHBOARD' " +

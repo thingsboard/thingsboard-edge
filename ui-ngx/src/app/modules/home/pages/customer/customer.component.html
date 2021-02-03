@@ -110,6 +110,21 @@
                       fxFlex formControlName="allowWhiteLabeling" style="padding-bottom: 16px;">
           {{ 'customer.allow-white-labeling' | translate }}
         </mat-checkbox>
+        <section [fxShow]="allowCustomerWhiteLabeling"
+                 class="tb-default-dashboard" fxFlex fxLayout="column"
+                 *ngIf="entity?.id && whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)">
+          <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <tb-dashboard-autocomplete
+              fxFlex
+              placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+              formControlName="homeDashboardId"
+              [selectFirstDashboard]="false"
+            ></tb-dashboard-autocomplete>
+            <mat-checkbox fxFlex formControlName="homeDashboardHideToolbar">
+              {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
+            </mat-checkbox>
+          </section>
+        </section>
       </div>
       <tb-contact [parentForm]="entityForm" [isEdit]="isEdit"></tb-contact>
     </fieldset>

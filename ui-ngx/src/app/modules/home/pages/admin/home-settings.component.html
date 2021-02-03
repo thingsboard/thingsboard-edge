@@ -30,27 +30,39 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [fxShow]="!(isLoading$ | async) && widgetsData.widgets.length === 0" fxLayoutAlign="center center"
-         style="display: flex; z-index: 1;"
-         class="tb-absolute-fill">
-  <button mat-button *ngIf="!isReadOnly" class="tb-add-new-widget" (click)="addWidgetType($event)">
-    <mat-icon class="tb-mat-96">add</mat-icon>
-    {{ 'widget.add-widget-type' | translate }}
-  </button>
-  <span translate *ngIf="isReadOnly"
-        fxLayoutAlign="center center"
-        style="display: flex;"
-        class="mat-headline tb-absolute-fill">widgets-bundle.empty</span>
-</section>
-<tb-dashboard #dashboard
-              [aliasController]="aliasController"
-              [widgets]="widgetsData.widgets"
-              [widgetLayouts]="widgetsData.widgetLayouts"
-              [isEdit]="false"
-              [isEditActionEnabled]="editEnabled"
-              [isExportActionEnabled]="true"
-              [isRemoveActionEnabled]="!isReadOnly && deleteEnabled"
-              [disableWidgetInteraction]="true"
-              [callbacks]="dashboardCallbacks"></tb-dashboard>
-<tb-footer-fab-buttons [fxShow]="!isReadOnly && addEnabled" [footerFabButtons]="footerFabButtons">
-</tb-footer-fab-buttons>
+<div>
+  <mat-card class="settings-card">
+    <mat-card-title>
+      <div fxLayout="row">
+        <span class="mat-headline" translate>admin.home-settings</span>
+      </div>
+    </mat-card-title>
+    <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+    </mat-progress-bar>
+    <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+    <mat-card-content style="padding-top: 16px;">
+      <form [formGroup]="homeSettings" (ngSubmit)="save()">
+        <fieldset [disabled]="(isLoading$ | async) || readonly">
+          <section class="tb-default-dashboard" fxFlex fxLayout="column">
+            <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
+              <tb-dashboard-autocomplete
+                fxFlex
+                placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+                formControlName="dashboardId"
+                [selectFirstDashboard]="false"
+              ></tb-dashboard-autocomplete>
+              <mat-checkbox fxFlex formControlName="hideDashboardToolbar">
+                {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
+              </mat-checkbox>
+            </section>
+          </section>
+          <div fxLayout="row" fxLayoutAlign="end center" style="width: 100%;" class="layout-wrap">
+            <button *ngIf="!readonly" mat-button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || homeSettings.invalid || !homeSettings.dirty"
+                    type="submit">{{'action.save' | translate}}
+            </button>
+          </div>
+        </fieldset>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

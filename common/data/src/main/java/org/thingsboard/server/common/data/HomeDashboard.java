@@ -28,73 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+package org.thingsboard.server.common.data;
 
-:host {
-  width: 100%;
-  height: 100%;
+import lombok.Data;
+
+@Data
+public class HomeDashboard extends Dashboard {
+
+    private boolean hideDashboardToolbar;
+
+    public HomeDashboard(Dashboard dashboard, boolean hideDashboardToolbar) {
+        super(dashboard);
+        this.hideDashboardToolbar = hideDashboardToolbar;
+    }
+
 }
-
-:host ::ng-deep {
-  .tb-home-links {
-    .mat-headline {
-      font-size: 20px;
-      @media #{$mat-gt-xmd} {
-        font-size: 24px;
-      }
-    }
-    mat-card {
-      padding: 0;
-      margin: 8px;
-      mat-card-title {
-        margin: 0;
-        padding: 24px 16px 16px;
-      }
-      mat-card-title+mat-card-content {
-        padding-top: 0;
-      }
-      mat-card-content {
-        padding: 16px;
-      }
-    }
-    .tb-card-button {
-      width: 100%;
-      height: 100%;
-      max-width: 240px;
-      &:hover {
-        border-bottom: none;
-      }
-      &:focus {
-        border-bottom: none;
-      }
-      .mat-button-wrapper {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        mat-icon {
-          margin: auto;
-        }
-        span {
-          height: 18px;
-          min-height: 36px;
-          max-height: 36px;
-          padding: 0 0 20px 0;
-          margin: auto;
-          font-size: 18px;
-          font-weight: 400;
-          line-height: 18px;
-          white-space: normal;
-        }
-      }
-      &.mat-raised-button.mat-primary {
-        .mat-ripple-element {
-          opacity: 0.3;
-          background-color: rgba(255, 255, 255, 0.3);
-        }
-      }
-    }
-  }
-}
-

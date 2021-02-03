@@ -77,6 +77,7 @@
     "admin": {
         "general": "General",
         "general-settings": "General Settings",
+        "home-settings": "Home Settings",
         "outgoing-mail": "Mail Server",
         "outgoing-mail-settings": "Outgoing Mail Server Settings",
         "system-settings": "System Settings",
@@ -921,6 +922,8 @@
         "state-controller": "State controller",
         "selected-dashboards": "{ count, plural, 1 {1 dashboard} other {# dashboards} } selected",
         "search": "Search dashboards",
+        "home-dashboard": "Home dashboard",
+        "home-dashboard-hide-toolbar": "Hide home dashboard toolbar",
         "select-group-to-add": "Select target group to add selected dashboards",
         "select-group-to-move": "Select target group to move selected dashboards",
         "remove-dashboards-from-group": "Are you sure you want to remove { count, plural, 1 {1 dashboard} other {# dashboards} } from group '{{entityGroup}}'?",

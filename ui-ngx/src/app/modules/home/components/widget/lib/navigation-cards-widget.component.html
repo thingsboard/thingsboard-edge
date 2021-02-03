@@ -30,27 +30,23 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [fxShow]="!(isLoading$ | async) && widgetsData.widgets.length === 0" fxLayoutAlign="center center"
-         style="display: flex; z-index: 1;"
-         class="tb-absolute-fill">
-  <button mat-button *ngIf="!isReadOnly" class="tb-add-new-widget" (click)="addWidgetType($event)">
-    <mat-icon class="tb-mat-96">add</mat-icon>
-    {{ 'widget.add-widget-type' | translate }}
-  </button>
-  <span translate *ngIf="isReadOnly"
-        fxLayoutAlign="center center"
-        style="display: flex;"
-        class="mat-headline tb-absolute-fill">widgets-bundle.empty</span>
-</section>
-<tb-dashboard #dashboard
-              [aliasController]="aliasController"
-              [widgets]="widgetsData.widgets"
-              [widgetLayouts]="widgetsData.widgetLayouts"
-              [isEdit]="false"
-              [isEditActionEnabled]="editEnabled"
-              [isExportActionEnabled]="true"
-              [isRemoveActionEnabled]="!isReadOnly && deleteEnabled"
-              [disableWidgetInteraction]="true"
-              [callbacks]="dashboardCallbacks"></tb-dashboard>
-<tb-footer-fab-buttons [fxShow]="!isReadOnly && addEnabled" [footerFabButtons]="footerFabButtons">
-</tb-footer-fab-buttons>
+<mat-grid-list *ngIf="cols" class="tb-navigation-cards" [cols]="cols" rowHeight="280px">
+  <mat-grid-tile [colspan]="sectionColspan(section)" *ngFor="let section of showHomeSections$| async">
+    <mat-card style="width: 100%;">
+      <mat-card-title>
+        <span translate class="mat-headline">{{section.name}}</span>
+      </mat-card-title>
+      <mat-card-content>
+        <mat-grid-list rowHeight="170px" [cols]="sectionPlaces(section).length">
+          <mat-grid-tile *ngFor="let place of sectionPlaces(section)">
+            <a mat-raised-button color="primary" class="tb-card-button" href="{{place.path}}" (click)="navigate($event, place.path)">
+              <mat-icon *ngIf="!place.isMdiIcon" class="material-icons tb-mat-96">{{place.icon}}</mat-icon>
+              <mat-icon *ngIf="place.isMdiIcon" class="tb-mat-96" [svgIcon]="place.icon"></mat-icon>
+              <span translate>{{place.name}}</span>
+            </a>
+          </mat-grid-tile>
+        </mat-grid-list>
+      </mat-card-content>
+    </mat-card>
+  </mat-grid-tile>
+</mat-grid-list>

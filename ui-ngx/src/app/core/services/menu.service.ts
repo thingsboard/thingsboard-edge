@@ -516,6 +516,14 @@ export class MenuService {
       const pages: Array<MenuSection> = [
         {
           id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
+        {
+          id: guid(),
           name: 'admin.outgoing-mail',
           type: 'link',
           path: '/settings/outgoing-mail',
@@ -828,6 +836,12 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
+            {
               name: 'admin.outgoing-mail',
               icon: 'mail',
               path: '/settings/outgoing-mail',
@@ -991,6 +1005,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'custom-translation.custom-translation',
@@ -1182,6 +1204,12 @@ export class MenuService {
         {
           name: 'white-labeling.white-labeling',
           places: [
+            {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
             {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',

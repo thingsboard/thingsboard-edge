@@ -29,7 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Inject, Input, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  forwardRef,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  StaticProvider,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-string.pipe';
@@ -47,7 +58,7 @@ import {
   TimewindowPanelComponent,
   TimewindowPanelData
 } from '@shared/components/time/timewindow-panel.component';
-import { ComponentPortal, PortalInjector } from '@angular/cdk/portal';
+import { ComponentPortal } from '@angular/cdk/portal';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { WINDOW } from '@core/services/window.service';
@@ -244,12 +255,12 @@ export class TimewindowComponent implements OnInit, OnDestroy, ControlValueAcces
     });
   }
 
-  private _createTimewindowPanelInjector(overlayRef: OverlayRef, data: TimewindowPanelData): PortalInjector {
-    const injectionTokens = new WeakMap<any, any>([
-      [TIMEWINDOW_PANEL_DATA, data],
-      [OverlayRef, overlayRef]
-    ]);
-    return new PortalInjector(this.viewContainerRef.injector, injectionTokens);
+  private _createTimewindowPanelInjector(overlayRef: OverlayRef, data: TimewindowPanelData): Injector {
+    const providers: StaticProvider[] = [
+      {provide: TIMEWINDOW_PANEL_DATA, useValue: data},
+      {provide: OverlayRef, useValue: overlayRef}
+    ];
+    return Injector.create({parent: this.viewContainerRef.injector, providers});
   }
 
   registerOnChange(fn: any): void {

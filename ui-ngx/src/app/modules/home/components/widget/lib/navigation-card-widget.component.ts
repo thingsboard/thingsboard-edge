@@ -29,49 +29,53 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { Resolve, RouterModule, Routes } from '@angular/router';
+import { PageComponent } from '@shared/components/page.component';
+import { Component, Input, NgZone, OnInit } from '@angular/core';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Router } from '@angular/router';
+import { UtilsService } from '@core/services/utils.service';
 
-import { HomeLinksComponent } from './home-links.component';
-import { Authority } from '@shared/models/authority.enum';
-import { Observable } from 'rxjs';
-import { HomeDashboard } from '@shared/models/dashboard.models';
-import { DashboardService } from '@core/http/dashboard.service';
-
-@Injectable()
-export class HomeDashboardResolver implements Resolve<HomeDashboard> {
-
-  constructor(private dashboardService: DashboardService) {
-  }
-
-  resolve(): Observable<HomeDashboard> {
-    return this.dashboardService.getHomeDashboard();
-  }
+interface NavigationCardWidgetSettings {
+  name: string;
+  icon: string;
+  path: string;
 }
 
-const routes: Routes = [
-  {
-    path: 'home',
-    component: HomeLinksComponent,
-    data: {
-      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      title: 'home.home',
-      breadcrumb: {
-        label: 'home.home',
-        icon: 'home'
-      }
-    },
-    resolve: {
-      homeDashboard: HomeDashboardResolver
-    }
-  }
-];
-
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-  providers: [
-    HomeDashboardResolver
-  ]
+@Component({
+  selector: 'tb-navigation-card-widget',
+  templateUrl: './navigation-card-widget.component.html',
+  styleUrls: ['./navigation-card-widget.component.scss']
 })
-export class HomeLinksRoutingModule { }
+export class NavigationCardWidgetComponent extends PageComponent implements OnInit {
+
+  settings: NavigationCardWidgetSettings;
+
+  translatedName: string;
+
+  @Input()
+  ctx: WidgetContext;
+
+  constructor(protected store: Store<AppState>,
+              private utils: UtilsService,
+              private ngZone: NgZone,
+              private router: Router) {
+    super(store);
+  }
+
+  ngOnInit(): void {
+    this.ctx.$scope.navigationCardWidget = this;
+    this.settings = this.ctx.settings;
+    this.translatedName = this.utils.customTranslation(this.settings.name, this.settings.name);
+  }
+
+
+  navigate($event: Event, path: string) {
+    $event.preventDefault();
+    this.ngZone.run(() => {
+      this.router.navigateByUrl(path);
+    });
+  }
+
+}

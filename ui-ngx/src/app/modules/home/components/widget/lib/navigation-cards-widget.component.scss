@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+@import '../../../../../../scss/constants';
 
 :host {
   width: 100%;
@@ -36,7 +36,7 @@
 }
 
 :host ::ng-deep {
-  .tb-home-links {
+  .tb-navigation-cards {
     .mat-headline {
       font-size: 20px;
       @media #{$mat-gt-xmd} {

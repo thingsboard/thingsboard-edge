@@ -29,21 +29,27 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { PageComponent } from '@shared/components/page.component';
+import { Component, Input, NgZone, OnInit } from '@angular/core';
+import { WidgetContext } from '@home/models/widget-component.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 import { MenuService } from '@core/services/menu.service';
-import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { MediaBreakpoints } from '@shared/models/constants';
 import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
+import { Router } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { ActivatedRoute } from '@angular/router';
-import { HomeDashboard } from '@shared/models/dashboard.models';
+
+interface NavigationCardsWidgetSettings {
+  filterType: 'all' | 'include' | 'exclude';
+  filter: string[];
+}
 
 @Component({
-  selector: 'tb-home-links',
-  templateUrl: './home-links.component.html',
-  styleUrls: ['./home-links.component.scss']
+  selector: 'tb-navigation-cards-widget',
+  templateUrl: './navigation-cards-widget.component.html',
+  styleUrls: ['./navigation-cards-widget.component.scss']
 })
-export class HomeLinksComponent implements OnInit {
+export class NavigationCardsWidgetComponent extends PageComponent implements OnInit {
 
   homeSections$ = this.menuService.homeSections();
   showHomeSections$ = this.homeSections$.pipe(
@@ -52,40 +58,65 @@ export class HomeLinksComponent implements OnInit {
     })
   );
 
-  cols = 2;
+  cols = null;
 
-  homeDashboard: HomeDashboard = this.route.snapshot.data.homeDashboard;
+  settings: NavigationCardsWidgetSettings;
 
-  constructor(private menuService: MenuService,
-              public breakpointObserver: BreakpointObserver,
-              private route: ActivatedRoute) {
+  @Input()
+  ctx: WidgetContext;
+
+  constructor(protected store: Store<AppState>,
+              private menuService: MenuService,
+              private ngZone: NgZone,
+              private router: Router) {
+    super(store);
   }
 
-  ngOnInit() {
-    if (!this.homeDashboard) {
-      this.updateColumnCount();
-      this.breakpointObserver
-        .observe([MediaBreakpoints.lg, MediaBreakpoints['gt-lg']])
-        .subscribe((state: BreakpointState) => this.updateColumnCount());
-    }
+  ngOnInit(): void {
+    this.ctx.$scope.navigationCardsWidget = this;
+    this.settings = this.ctx.settings;
+  }
+
+  resize() {
+    this.updateColumnCount();
   }
 
   private updateColumnCount() {
     this.cols = 2;
-    if (this.breakpointObserver.isMatched(MediaBreakpoints.lg)) {
+    const width = this.ctx.width;
+    if (width >= 1280) {
       this.cols = 3;
+      if (width >= 1920) {
+        this.cols = 4;
+      }
     }
-    if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-lg'])) {
-      this.cols = 4;
-    }
+    this.ctx.detectChanges();
+  }
+
+  navigate($event: Event, path: string) {
+    $event.preventDefault();
+    this.ngZone.run(() => {
+      this.router.navigateByUrl(path);
+    });
   }
 
   sectionPlaces(section: HomeSection): HomeSectionPlace[] {
-    return section && section.places ? section.places.filter((place) => !place.disabled) : [];
+    return section && section.places ? section.places.filter((place) => this.filterPlace(place)) : [];
+  }
+
+  private filterPlace(place: HomeSectionPlace): boolean {
+    if (place.disabled) {
+      return false;
+    } else if (this.settings.filterType === 'include') {
+      return this.settings.filter.includes(place.path);
+    } else if (this.settings.filterType === 'exclude') {
+      return !this.settings.filter.includes(place.path);
+    }
+    return true;
   }
 
   sectionColspan(section: HomeSection): number {
-    if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm'])) {
+    if (this.ctx.width >= 960) {
       let colspan = this.cols;
       const places = this.sectionPlaces(section);
       if (places.length <= colspan) {
@@ -96,4 +127,5 @@ export class HomeLinksComponent implements OnInit {
       return 2;
     }
   }
+
 }
