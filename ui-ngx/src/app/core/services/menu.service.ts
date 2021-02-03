@@ -1282,11 +1282,14 @@ export class MenuService {
         name: customMenuItem.name,
         icon: customMenuItem.materialIcon,
         iconUrl: customMenuItem.iconUrl,
+        notExact: true,
         path: '/iframeView'
       } as MenuSection;
       customMenuSection.queryParams = {
         stateId,
         iframeUrl: customMenuItem.iframeUrl,
+        dashboardId: customMenuItem.dashboardId,
+        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
         setAccessToken: customMenuItem.setAccessToken
       };
       if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
@@ -1303,14 +1306,19 @@ export class MenuService {
             type: 'link',
             icon: customMenuChildItem.materialIcon,
             iconUrl: customMenuChildItem.iconUrl,
+            notExact: true,
             path: '/iframeView/child'
           };
           customMenuChildSection.queryParams = {
             stateId,
             iframeUrl: customMenuItem.iframeUrl,
+            dashboardId: customMenuItem.dashboardId,
+            hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
             setAccessToken: customMenuItem.setAccessToken,
             childStateId,
             childIframeUrl: customMenuChildItem.iframeUrl,
+            childDashboardId: customMenuChildItem.dashboardId,
+            childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
             childSetAccessToken: customMenuChildItem.setAccessToken
           };
           pages.push(customMenuChildSection);

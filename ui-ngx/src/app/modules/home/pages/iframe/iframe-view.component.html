@@ -30,4 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<iframe frameborder="0" height="100%" width="100%" [src]="safeIframeUrl"></iframe>
+<tb-dashboard-page *ngIf="dashboard; else iframe" [embedded]="true" [dashboard]="dashboard" [hideToolbar]="dashboard.hideDashboardToolbar"></tb-dashboard-page>
+<ng-template #iframe>
+  <iframe *ngIf="!loading" frameborder="0" height="100%" width="100%" [src]="safeIframeUrl"></iframe>
+</ng-template>

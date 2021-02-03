@@ -44,6 +44,8 @@ public class CustomMenuItem {
     private String iconUrl;
     private String materialIcon;
     private String iframeUrl;
+    private String dashboardId;
+    private Boolean hideDashboardToolbar;
     private boolean setAccessToken;
     private List<CustomMenuItem> childMenuItems = new ArrayList<>();
 
