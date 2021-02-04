@@ -332,49 +332,6 @@ const DASHBOARD_GROUPS_ROUTE: Route =   {
   ]
 };
 
-const EDGE_GROUPS_ROUTE: Route =
-  {
-    path: 'edgeGroups',
-    data: {
-      groupType: EntityType.EDGE,
-      breadcrumb: {
-        label: 'entity-group.edge-groups',
-        icon: 'router'
-      }
-    },
-    children: [
-      {
-        path: '',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'entity-group.edge-groups',
-          groupType: EntityType.EDGE
-        },
-        resolve: {
-          entityGroup: EntityGroupResolver,
-          entitiesTableConfig: EntityGroupsTableConfigResolver
-        }
-      },
-      {
-        path: ':entityGroupId',
-        component: GroupEntitiesTableComponent,
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'entity-group.edge-group',
-          groupType: EntityType.EDGE,
-          breadcrumb: {
-            icon: 'router',
-            labelFunction: groupEntitiesLabelFunction
-          } as BreadCrumbConfig<GroupEntitiesTableComponent>
-        },
-        resolve: {
-          entityGroup: EntityGroupResolver
-        }
-      }
-    ]
-  };
-
 const routes: Routes = [
   {
     path: 'customerGroups',
@@ -526,7 +483,50 @@ const routes: Routes = [
                 }
               }
             }
-          }
+          },
+          {
+            path: ':customerId/edgeGroups',
+            data: {
+              groupType: EntityType.EDGE,
+              breadcrumb: {
+                labelFunction: (route, translate, component, data) => {
+                  return data.entityGroup.customerGroupsTitle;
+                },
+                icon: 'router'
+              }
+            },
+            children: [
+              {
+                path: '',
+                component: EntitiesTableComponent,
+                data: {
+                  auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                  title: 'entity-group.edge-groups',
+                  groupType: EntityType.EDGE
+                },
+                resolve: {
+                  entityGroup: EntityGroupResolver,
+                  entitiesTableConfig: EntityGroupsTableConfigResolver
+                }
+              },
+              {
+                path: ':entityGroupId',
+                component: GroupEntitiesTableComponent,
+                data: {
+                  auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+                  title: 'entity-group.edge-group',
+                  groupType: EntityType.EDGE,
+                  breadcrumb: {
+                    icon: 'router',
+                    labelFunction: groupEntitiesLabelFunction
+                  } as BreadCrumbConfig<GroupEntitiesTableComponent>
+                },
+                resolve: {
+                  entityGroup: EntityGroupResolver
+                }
+              }
+            ]
+          },
         ]
       }
     ]
