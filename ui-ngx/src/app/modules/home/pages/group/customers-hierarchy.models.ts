@@ -117,7 +117,7 @@ function textForGroupType(translate: TranslateService, groupType: EntityType): s
     case EntityType.DASHBOARD:
       return translate.instant('entity-group.dashboard-groups');
     case EntityType.SCHEDULER_EVENT:
-      return translate.instant('entity.type-scheduler-event');
+      return translate.instant('entity.type-scheduler-events');
     case EntityType.RULE_CHAIN:
       return translate.instant('entity.type-rulechains');
   }

@@ -41,7 +41,10 @@ import {
   CustomerNodeData,
   customerNodeText,
   CustomersHierarchyNode,
-  CustomersHierarchyViewMode, EdgeEntityGroupsNodeData, EdgeNodeData, edgeNodeText,
+  CustomersHierarchyViewMode,
+  EdgeEntityGroupsNodeData,
+  EdgeNodeData,
+  edgeNodeText,
   EntityGroupNodeData,
   entityGroupNodeText,
   EntityGroupsNodeData,
@@ -59,6 +62,11 @@ import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-ta
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { Edge } from '@shared/models/edge.models';
+import { Observable } from 'rxjs';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { RuleChainService } from '@core/http/rule-chain.service';
+import { PageLink } from '@shared/models/page/page-link';
+import { map } from 'rxjs/operators';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -141,6 +149,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
               private ngZone: NgZone,
               private entityGroupService: EntityGroupService,
               private entityService: EntityService,
+              private schedulerEventService: SchedulerEventService,
+              private ruleChainService: RuleChainService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
@@ -192,8 +202,26 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         });
       } else if (node.data.type === 'edgeGroups') {
         const edge = node.data.edge;
+        const groupsType = node.data.groupsType;
         const parentEntityGroupId = node.data.parentEntityGroupId;
-        this.entityGroupService.getEdgeEntityGroups(edge.id.id, node.data.groupsType, {ignoreLoading: true}).subscribe((entityGroups) => {
+        let entityGroupsObservable: Observable<any>;
+        switch (groupsType) {
+          case EntityType.SCHEDULER_EVENT:
+            entityGroupsObservable = this.schedulerEventService.getEdgeSchedulerEvents(edge.id.id);
+            break;
+          case EntityType.RULE_CHAIN:
+            let pageLink = new PageLink(10);
+            entityGroupsObservable = this.ruleChainService.getEdgeRuleChains(edge.id.id, pageLink).pipe(
+              map((result) => {
+                return result.data;
+              }
+            ));
+            break;
+          default:
+            entityGroupsObservable = this.entityGroupService.getEdgeEntityGroups(edge.id.id, groupsType, {ignoreLoading: true});
+            break;
+        }
+        entityGroupsObservable.subscribe((entityGroups) => {
           cb(this.entityGroupsToNodes(node.id, parentEntityGroupId, entityGroups));
         });
       }
@@ -218,7 +246,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.nodeId = '#';
         entityGroupParams.internalId = '#';
         this.updateGroupsView(entityGroupParams);
-      } else if (node.data.type === 'groups' || node.data.type === 'group' || node.data.type === 'edgeGroups') {
+      } else if (node.data.type === 'groups' || (node.data.type === 'group' && node.data.entity.id.entityType === EntityType.ENTITY_GROUP) || node.data.type === 'edgeGroups') {
         if (node.data.type === 'groups') {
           const parentEntityGroupId = node.data.parentEntityGroupId;
           if (parentEntityGroupId) {
@@ -338,7 +366,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       id: (++this.nodeIdCounter)+'',
       icon: false,
       text: entityGroupNodeText(entityGroup),
-      children: entityGroup.type === EntityType.CUSTOMER || entityGroup.type === EntityType.EDGE,
+      children: entityGroup.type === EntityType.CUSTOMER || (entityGroup.type === EntityType.EDGE && entityGroup.id.entityType === EntityType.ENTITY_GROUP),
       data: {
         type: 'group',
         entity: entityGroup,
