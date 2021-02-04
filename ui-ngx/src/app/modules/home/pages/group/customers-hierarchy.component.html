@@ -78,7 +78,7 @@
         </mat-drawer>
         <mat-drawer-content>
           <div class="tb-absolute-fill mat-content tb-customers-hierarchy-content" fxLayout="column">
-            <tb-entities-table *ngIf="viewMode === 'groups'"
+            <tb-entities-table *ngIf="viewMode === 'groups' || viewMode === 'edgeGroups'"
                                [entitiesTableConfig]="entityGroupsTableConfig">
             </tb-entities-table>
             <tb-group-entities-table *ngIf="viewMode === 'group'"
