@@ -69,8 +69,9 @@ export interface EdgeNodeData extends BaseCustomersHierarchyNodeData {
 
 export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
   type: 'edgeGroups';
-  groupsType: EntityType;
   edge: Edge;
+  groupsType?: EntityType;
+  entityType?: EntityType;
 }
 
 export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;
@@ -100,6 +101,12 @@ export function entityGroupsNodeText(translate: TranslateService, groupType: Ent
   return nodeIcon + nodeText;
 }
 
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType) {
+  const nodeIcon = materialIconByEntityType(entityType);
+  const nodeText = translate.instant('entity.type-scheduler-events');
+  return nodeIcon + nodeText;
+}
+
 function textForGroupType(translate: TranslateService, groupType: EntityType): string {
   switch (groupType) {
     case EntityType.USER:
@@ -116,10 +123,6 @@ function textForGroupType(translate: TranslateService, groupType: EntityType): s
       return translate.instant('entity-group.edge-groups');
     case EntityType.DASHBOARD:
       return translate.instant('entity-group.dashboard-groups');
-    case EntityType.SCHEDULER_EVENT:
-      return translate.instant('entity.type-scheduler-events');
-    case EntityType.RULE_CHAIN:
-      return translate.instant('entity.type-rulechains');
   }
   return '';
 }
@@ -150,9 +153,6 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.SCHEDULER_EVENT:
       materialIcon = 'schedule';
-      break;
-    case EntityType.RULE_CHAIN:
-      materialIcon = 'settings_ethernet';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
