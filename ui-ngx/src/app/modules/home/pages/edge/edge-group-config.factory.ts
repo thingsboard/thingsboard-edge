@@ -140,14 +140,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           icon: 'schedule',
           isEnabled: config.manageSchedulerEventsEnabled,
           onAction: ($event, entity) => this.manageSchedulerEvents($event, entity, config, params)
-        },
-        {
-          name: this.translate.instant('edge.manage-edge-rule-chains'),
-          icon: 'settings_ethernet',
-          isEnabled: config.manageRuleChainsEnabled,
-          onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
         }
-      )
+      );
+      if (!config.customerId) {
+        config.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('edge.manage-edge-rule-chains'),
+            icon: 'settings_ethernet',
+            isEnabled: config.manageRuleChainsEnabled,
+            onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
+          }
+        );
+      }
     }
 
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));

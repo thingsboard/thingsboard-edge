@@ -64,9 +64,6 @@ import { EntityGroupConfigResolver } from '@home/components/group/entity-group-c
 import { Edge } from '@shared/models/edge.models';
 import { Observable } from 'rxjs';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
-import { RuleChainService } from '@core/http/rule-chain.service';
-import { PageLink } from '@shared/models/page/page-link';
-import { map } from 'rxjs/operators';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -84,8 +81,7 @@ const edgeGroupTypes: EntityType[] = [
   EntityType.DEVICE,
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD,
-  EntityType.SCHEDULER_EVENT,
-  EntityType.RULE_CHAIN
+  EntityType.SCHEDULER_EVENT
 ];
 
 @Component({
@@ -150,7 +146,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
               private entityGroupService: EntityGroupService,
               private entityService: EntityService,
               private schedulerEventService: SchedulerEventService,
-              private ruleChainService: RuleChainService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
@@ -208,14 +203,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         switch (groupsType) {
           case EntityType.SCHEDULER_EVENT:
             entityGroupsObservable = this.schedulerEventService.getEdgeSchedulerEvents(edge.id.id);
-            break;
-          case EntityType.RULE_CHAIN:
-            let pageLink = new PageLink(10);
-            entityGroupsObservable = this.ruleChainService.getEdgeRuleChains(edge.id.id, pageLink).pipe(
-              map((result) => {
-                return result.data;
-              }
-            ));
             break;
           default:
             entityGroupsObservable = this.entityGroupService.getEdgeEntityGroups(edge.id.id, groupsType, {ignoreLoading: true});
