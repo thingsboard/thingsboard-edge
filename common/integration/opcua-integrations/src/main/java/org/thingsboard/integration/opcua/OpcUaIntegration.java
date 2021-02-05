@@ -508,8 +508,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             } catch (Exception e) {
                 if (connected) {
                     String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
-                    log.error(message);
-                    log.error(e.getMessage(), e);
+                    log.error(message, e);
                     sendConnectionFailedMessageToRuleEngine();
                     scheduleReconnect = true;
                     scheduleScan();
