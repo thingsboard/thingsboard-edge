@@ -89,7 +89,9 @@ public class OpcUaDevice {
 
     public void updateTag(NodeId tagId, DataValue dataValue) {
         String tag = tagIdsMap.get(tagId);
-        tagValues.put(tag, dataValue.getValue().getValue().toString());
+        if (dataValue != null && dataValue.getValue() != null && dataValue.getValue().getValue() != null) {
+            tagValues.put(tag, dataValue.getValue().getValue().toString());
+        }
     }
 
     public void updateScanTs() {
