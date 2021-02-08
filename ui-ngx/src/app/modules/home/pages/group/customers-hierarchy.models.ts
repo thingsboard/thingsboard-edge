@@ -36,7 +36,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
 import { Edge } from '@shared/models/edge.models';
 
-export type CustomersHierarchyViewMode = 'groups' | 'group' | 'edgeGroups';
+export type CustomersHierarchyViewMode = 'groups' | 'group' | 'schedulerEvents';
 
 export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups';
 

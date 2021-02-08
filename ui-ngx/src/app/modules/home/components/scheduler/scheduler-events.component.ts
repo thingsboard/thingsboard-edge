@@ -124,14 +124,14 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   @Input()
   ctx: WidgetContext;
 
+  @Input()
+  edgeId: string = this.route.snapshot.params.edgeId;
+
   settings: SchedulerEventsWidgetSettings;
 
   editEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.WRITE);
   addEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.CREATE);
   deleteEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.DELETE);
-
-  edgeId = this.route.snapshot.params.edgeId;
-  edgeScope = this.route.snapshot.data.schedulerScope === 'edge';
   assignToEdgeEnabled = this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ) && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE);
 
   authUser = getCurrentAuthUser(this.store);
@@ -210,7 +210,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       this.pageLink = new PageLink(this.defaultPageSize, 0, null, sortOrder);
       this.schedulerEventConfigTypes = deepClone(defaultSchedulerEventConfigTypes);
       this.dataSource = new SchedulerEventsDatasource(this.schedulerEventService, this.schedulerEventConfigTypes, this.route);
-      if (this.edgeScope) {
+      if (this.edgeId) {
         this.deleteEnabled = false;
         this.editEnabled = false;
       }
@@ -358,6 +358,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
+    this.dataSource.edgeId = this.edgeId;
     this.dataSource.loadEntities(this.pageLink, this.defaultEventType, reload).subscribe(
       (data) => {
         this.updateCalendarEvents(data.data);
@@ -442,12 +443,11 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   }
 
   addSchedulerEvent($event: Event) {
-    let schedulerScope = this.route.snapshot.data.schedulerScope;
-    if (schedulerScope) {
-      this.openAssignSchedulerEventToEdgeDialog($event);
-    } else {
       this.openSchedulerEventDialog($event);
-    }
+  }
+
+  assignToEdgeSchedulerEvent($event: Event) {
+    this.openAssignSchedulerEventToEdgeDialog($event);
   }
 
   editSchedulerEvent($event, schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo) {
@@ -885,6 +885,8 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   public dataLoading = true;
 
+  public edgeId: string;
+
   constructor(private schedulerEventService: SchedulerEventService,
               private schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType},
               private route: ActivatedRoute) {
@@ -943,11 +945,9 @@ class SchedulerEventsDatasource implements DataSource<SchedulerEventWithCustomer
 
   getAllEntities(eventType: string): Observable<Array<SchedulerEventWithCustomerInfo>> {
     if (!this.allEntities) {
-      let schedulerScope: string = this.route.snapshot.data.schedulerScope;
-      let edgeId: string = this.route.snapshot.params.edgeId;
       let fetchObservable: Observable<Array<SchedulerEventWithCustomerInfo>>;
-      if (schedulerScope) {
-        fetchObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
+      if (this.edgeId) {
+        fetchObservable = this.schedulerEventService.getEdgeSchedulerEvents(this.edgeId);
       } else {
         fetchObservable = this.schedulerEventService.getSchedulerEvents(eventType);
       }
