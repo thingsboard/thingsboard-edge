@@ -56,6 +56,14 @@ import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { Edge, edgeEntityTypes } from "@shared/models/edge.models";
+import {
+  CustomersHierarchyNode,
+  EdgeEntityGroupsNodeData, entitiesNodeText,
+  entityGroupsNodeText
+} from "@home/pages/group/customers-hierarchy.models";
+import { groupResourceByGroupType, Operation, resourceByEntityType } from "@shared/models/security.models";
+import { UserPermissionsService } from "@core/http/user-permissions.service";
 
 @Component({
   selector: 'tb-edges-overview-widget',
@@ -79,11 +87,18 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   private entityNodesMap: {[parentNodeId: string]: {[edgeId: string]: string}} = {};
   private entityGroupsNodesMap: {[edgeNodeId: string]: {[groupType: string]: string}} = {};
 
+  private allowedEdgeGroupTypes = edgeGroupsTypes.filter((groupType) =>
+    this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
+
+  private allowedEdgeEntityTypes = edgeEntityTypes.filter((entityType) =>
+    this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
+
   constructor(protected store: Store<AppState>,
               private edgeService: EdgeService,
               private entityService: EntityService,
               private translateService: TranslateService,
               private utils: UtilsService,
+              private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef) {
     super(store);
   }
@@ -131,27 +146,32 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     const nodes: EdgeOverviewNode[] = [];
     const nodesMap = {};
     this.entityGroupsNodesMap[parentNodeId] = nodesMap;
-    const authUser = getCurrentAuthUser(this.store);
-    var allowedGroupTypes: EntityType[] = edgeGroupsTypes;
-    if (authUser.authority === Authority.CUSTOMER_USER) {
-      allowedGroupTypes = edgeGroupsTypes.filter(type => type !== EntityType.RULE_CHAIN);
-    }
-    allowedGroupTypes.forEach((entityType) => {
-      const node: EdgeOverviewNode = {
-        id: (++this.nodeIdCounter)+'',
-        icon: false,
-        text: edgeGroupsNodeText(this.translateService, entityType),
-        children: true,
-        data: {
-          entityType,
-          entity,
-          internalId: entity.id.id + '_' + entityType
-        } as EdgeGroupNodeData
-      };
+    this.allowedEdgeGroupTypes.forEach((entityType) => {
+      const node: EdgeOverviewNode = this.createEdgeGroupNode(entityType, entity);
+      nodes.push(node);
+      nodesMap[entityType] = node.id;
+    });
+    this.allowedEdgeEntityTypes.forEach((entityType) => {
+      const node: EdgeOverviewNode = this.createEdgeGroupNode(entityType, entity);
       nodes.push(node);
       nodesMap[entityType] = node.id;
     });
     return nodes;
+  }
+
+  private createEdgeGroupNode(entityType: EntityType, entity: BaseData<HasId>): EdgeOverviewNode {
+    return {
+      id: (++this.nodeIdCounter)+'',
+      icon: false,
+      text: entityGroupsNodeText(this.translateService, entityType),
+      children: true,
+      data: {
+        type: 'edgeGroups',
+        entityType,
+        entity,
+        internalId: entity.id.id + '_' + entityType
+      } as EdgeGroupNodeData
+    };
   }
 
   private createEntityNode(parentNodeId: string, entity: BaseData<HasId>): EdgeOverviewNode {

@@ -37,6 +37,7 @@ import { EntitySearchQuery } from '@shared/models/relation.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
+import { EntityType } from "@shared/models/entity-type.models";
 
 export interface Edge extends BaseData<EdgeId> {
   tenantId?: TenantId;
@@ -172,3 +173,16 @@ export interface EdgeEvent extends BaseData<EventId> {
   uid: string;
   body: string;
 }
+
+export const edgeEntityGroupTypes: EntityType[] = [
+  EntityType.USER,
+  EntityType.ASSET,
+  EntityType.DEVICE,
+  EntityType.ENTITY_VIEW,
+  EntityType.DASHBOARD
+];
+
+export const edgeEntityTypes: EntityType[] = [
+  EntityType.SCHEDULER_EVENT,
+  EntityType.RULE_CHAIN
+];

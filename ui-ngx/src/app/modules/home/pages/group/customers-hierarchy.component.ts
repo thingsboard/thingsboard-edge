@@ -62,7 +62,7 @@ import { deepClone } from '@core/utils';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
-import { Edge } from '@shared/models/edge.models';
+import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -72,14 +72,6 @@ const groupTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD,
   EntityType.EDGE
-];
-
-const edgeGroupTypes: EntityType[] = [
-  EntityType.USER,
-  EntityType.ASSET,
-  EntityType.DEVICE,
-  EntityType.ENTITY_VIEW,
-  EntityType.DASHBOARD
 ];
 
 @Component({
@@ -137,7 +129,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   private allowedGroupTypes = groupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
-  private allowedEdgeGroupTypes = edgeGroupTypes.filter((groupType) =>
+  private allowedEdgeGroupTypes = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
   private allowedScheduler = this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ);
@@ -187,7 +179,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         cb(this.loadNodesForCustomer(node.id, parentEntityGroupId, customer));
       } else if (node.data.type === 'edge') {
         const edge = node.data.entity;
-        this.edgeId = edge.id.id;
         const parentEntityGroupId = node.data.parentEntityGroupId;
         cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge));
       } else if (node.data.type === 'groups') {
@@ -481,6 +472,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodes: CustomersHierarchyNode[] = [];
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
+    this.edgeId = edge.id.id;
     this.allowedEdgeGroupTypes.forEach((groupType) => {
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',

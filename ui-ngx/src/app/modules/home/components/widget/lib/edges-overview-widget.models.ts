@@ -101,7 +101,7 @@ export const edgeGroupsTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD,
   EntityType.RULE_CHAIN
-]
+];
 
 export interface EdgeOverviewNode extends NavTreeNode {
   data?: EdgeOverviewNodeData;
@@ -110,6 +110,7 @@ export interface EdgeOverviewNode extends NavTreeNode {
 export type EdgeOverviewNodeData = EdgeGroupNodeData | EntityNodeData;
 
 export interface EdgeGroupNodeData extends BaseEdgeOverviewNodeData {
+  type: 'edgeGroups';
   entityType: EntityType;
   entity: BaseData<HasId>;
 }
