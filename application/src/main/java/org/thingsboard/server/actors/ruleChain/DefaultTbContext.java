@@ -632,11 +632,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public RedisTemplate<String, Object> getRedisTemplate() {
-        return mainCtx.getRedisTemplate();
-    }
-
-    @Override
     public PageData<RuleNodeState> findRuleNodeStates(PageLink pageLink) {
         if (log.isDebugEnabled()) {
             log.debug("[{}][{}] Fetch Rule Node States.", getTenantId(), getSelfId());

@@ -418,7 +418,7 @@ public abstract class BaseAlarmServiceTest extends AbstractBeforeTest {
     }
 
     private AlarmDataQuery toQuery(AlarmDataPageLink pageLink){
-        return toQuery(pageLink, Collections.EMPTY_LIST);
+        return toQuery(pageLink, Collections.emptyList());
     }
 
     private AlarmDataQuery toQuery(AlarmDataPageLink pageLink, List<EntityKey> alarmFields){

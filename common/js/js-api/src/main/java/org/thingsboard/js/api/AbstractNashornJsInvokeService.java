@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,6 +47,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Optional;
 import java.util.UUID;
@@ -114,8 +114,8 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
             sandbox.allowLoadFunctions(true);
             sandbox.setMaxPreparedStatements(30);
         } else {
-            NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-            engine = factory.getScriptEngine(new String[]{"--no-java"});
+            ScriptEngineManager factory = new ScriptEngineManager();
+            engine = factory.getEngineByName("nashorn");
         }
     }
 
