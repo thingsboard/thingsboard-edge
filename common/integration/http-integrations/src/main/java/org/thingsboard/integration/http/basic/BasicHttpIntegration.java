@@ -156,17 +156,17 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
     private ResponseEntity convertJson(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/json");
-        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
     }
 
     private ResponseEntity convertText(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "text/plain");
-        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
     }
 
     private ResponseEntity convertBinary(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/octet-stream");
-        return new ResponseEntity(downlink.getData(), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(downlink.getData(), responseHeaders, HttpStatus.OK);
     }
 
     private HttpHeaders getHttpHeaders(DownlinkData downlink, String defaultContentType) {

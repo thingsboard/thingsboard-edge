@@ -269,6 +269,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception {

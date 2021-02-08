@@ -73,7 +73,7 @@ public class JacksonUtils {
                         continue;
                     }
 
-                    ((ObjectNode) mainNode).put(fieldName, value);
+                    ((ObjectNode) mainNode).set(fieldName, value);
                 }
             }
         }

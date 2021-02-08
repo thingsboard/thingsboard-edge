@@ -82,7 +82,7 @@ public class TbChangeOwnerNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         config = TbNodeUtils.convert(configuration, TbChangeOwnerNodeConfiguration.class);
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
         if (config.getOwnerCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getOwnerCacheExpiration(), TimeUnit.SECONDS);
         }

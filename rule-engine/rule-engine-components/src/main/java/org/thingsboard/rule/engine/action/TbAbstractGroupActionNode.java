@@ -65,7 +65,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadGroupNodeActionConfig(configuration);
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
         if (this.config.getGroupCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getGroupCacheExpiration(), TimeUnit.SECONDS);
         }

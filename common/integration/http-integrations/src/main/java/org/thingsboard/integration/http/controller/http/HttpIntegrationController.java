@@ -133,6 +133,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         );
     }
 
+    @SuppressWarnings("unchecked")
     private <T> DeferredResult<ResponseEntity> processRequest(String routingKey,
                                                               Optional<String> suffix,
                                                               Map<String, String> requestHeaders,
@@ -177,7 +178,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
         return fileArrayNode;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}", method = {RequestMethod.GET})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> checkStatus(@PathVariable("routingKey") String routingKey,
