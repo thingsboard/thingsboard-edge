@@ -40,10 +40,10 @@ import { UtilsService } from '@core/services/utils.service';
 import { LoadNodesCallback } from '@shared/components/nav-tree.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
-  EdgeGroupNodeData,
+  EdgeGroupsNodeData,
   edgeGroupsNodeText,
-  EdgeOverviewNode,
-  entityGroupNodeText,
+  EdgeOverviewNode, EntityGroupNodeData,
+  entityGroupNodeText, EntityGroupsNodeData,
   EntityNodeDatasource,
   entityNodeText
 } from '@home/components/widget/lib/edges-overview-widget.models';
@@ -54,15 +54,10 @@ import { PageLink } from '@shared/models/page/page-link';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { edgeEntityGroupTypes, edgeEntityTypes } from "@shared/models/edge.models";
-import { EntityGroupNodeData } from "@home/pages/group/customers-hierarchy.models";
 import { groupResourceByGroupType, Operation, resourceByEntityType } from "@shared/models/security.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
-import { Observable } from 'rxjs';
-import { SchedulerEventService } from '@core/http/scheduler-event.service';
-import { RuleChainService } from '@core/http/rule-chain.service';
-import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-edges-overview-widget',
@@ -83,18 +78,16 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private nodeIdCounter = 0;
 
-  private allowedGroupTypes = edgeEntityGroupTypes.filter((groupType) =>
+  private allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
-  private allowedEntityTypes = edgeEntityTypes.filter((entityType) =>
+  private allowedEntityTypes: Array<EntityType> = edgeEntityTypes.filter((entityType) =>
     this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
 
   constructor(protected store: Store<AppState>,
               private edgeService: EdgeService,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
-              private schedulerEventService: SchedulerEventService,
-              private ruleChainService: RuleChainService,
               private translateService: TranslateService,
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService) {
@@ -112,39 +105,27 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     const datasource: Datasource = this.datasources[0];
     if (datasource) {
       const pageLink = datasource.pageLink ? new PageLink(datasource.pageLink.pageSize) : null;
+      const groupType = node.data ? node.data.groupType : null;
       if (node.id === '#') {
         if (datasource.type === DatasourceType.entity && datasource.entity.id.entityType === EntityType.EDGE) {
-          var selectedEdge: BaseData<EntityId> = datasource.entity;
-          cb(this.loadNodesForEdge(selectedEdge));
+          const selectedEdge: BaseData<EntityId> = datasource.entity;
+          cb(this.loadNodesForEdge(selectedEdge, groupType));
         } else if (datasource.type === DatasourceType.function) {
-          cb(this.loadNodesForEdge(datasource.entity));
+          cb(this.loadNodesForEdge(datasource.entity, groupType));
         } else {
           this.edgeIsDatasource = false;
           cb([]);
         }
-      } else if (node.data && node.data.type === 'edgeGroup' && datasource.type === DatasourceType.entity) {
-        let entitiesObservable: Observable<any>;
-        const edgeId = node.data.entity.id.id;
-        const entityType = node.data.entityType;
-        switch (entityType) {
-          case (EntityType.SCHEDULER_EVENT):
-            entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
-            break;
-          case (EntityType.RULE_CHAIN):
-            entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
-            break;
-          default:
-            entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, {ignoreLoading: true});
-        }
-        entitiesObservable.subscribe((entityGroups) => {
-          cb(this.entityGroupsToNodes(entityGroups));
+      } else if (node.data && node.data.type === 'edgeGroups' && datasource.type === DatasourceType.entity) {
+        const edgeId = node.data.group.id.id;
+        this.entityService.getAssignedToEdgeEntitiesByType(edgeId, groupType, pageLink).subscribe((entityGroups) => {
+          cb(this.entityGroupsToNodes(entityGroups, groupType));
         });
-      } else if (node.data && node.data.type === 'group') {
-        const entityId = node.data.entity.id.id;
-        const entityType = node.data.entity.type;
-        this.entityGroupService.getEntityGroupEntities(entityId, pageLink, entityType).subscribe(
+      } else if (node.data && node.data.type === 'groups') {
+        const entityId = node.data.group.id.id;
+        this.entityGroupService.getEntityGroupEntities(entityId, pageLink, groupType).subscribe(
           (entities) => {
-            cb(this.entitiesToNodes(entities.data, entityType));
+            cb(this.entitiesToNodes(entities.data, groupType));
           }
         );
       } else {
@@ -155,75 +136,77 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     }
   }
 
-  private loadNodesForEdge(entity: BaseData<HasId>): EdgeOverviewNode[] {
+  private loadNodesForEdge(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
-    const allowedTypes = this.allowedGroupTypes.concat(this.allowedEntityTypes);
-    allowedTypes.forEach((entityType) => {
-      const node: EdgeOverviewNode = this.createEdgeGroupNode(entityType, entity);
+    const allowedGroupAndEntityTypes: Array<any> = this.allowedGroupTypes.concat(this.allowedEntityTypes);
+    allowedGroupAndEntityTypes.forEach((groupType) => {
+      const node: EdgeOverviewNode = this.createEdgeGroupsNode(group, groupType);
       nodes.push(node);
     });
     return nodes;
   }
 
-  private createEdgeGroupNode(entityType: EntityType, entity: BaseData<HasId>): EdgeOverviewNode {
+  private createEdgeGroupsNode(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
-      text: edgeGroupsNodeText(this.translateService, entityType),
+      text: edgeGroupsNodeText(this.translateService, groupType),
       children: true,
       data: {
-        type: 'edgeGroup',
-        entityType,
-        entity
-      } as EdgeGroupNodeData
+        type: 'edgeGroups',
+        group,
+        groupType
+      } as EdgeGroupsNodeData
     };
   }
 
-  private entityGroupsToNodes(entityGroups: EntityGroupInfo[]): EdgeOverviewNode[] {
+  private entityGroupsToNodes(entityGroups: EntityGroupInfo[], groupType: EntityType): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
     if (entityGroups) {
       entityGroups.forEach((entityGroup) => {
-        const node = this.createEntityGroupNode(entityGroup);
+        const node = this.createEntityGroupsNode(entityGroup, groupType);
         nodes.push(node);
       });
     }
     return nodes;
   }
 
-  private createEntityGroupNode(entityGroup: EntityGroupInfo): EdgeOverviewNode {
+  private createEntityGroupsNode(group: EntityGroupInfo, groupType: EntityType): EdgeOverviewNode {
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
-      text: entityGroup.id.entityType === EntityType.ENTITY_GROUP ? entityGroupNodeText(entityGroup) : entityNodeText(entityGroup),
-      children: entityGroup.id.entityType === EntityType.ENTITY_GROUP,
+      text: group.id.entityType === EntityType.ENTITY_GROUP ? entityGroupNodeText(group) : entityNodeText(group),
+      children: group.id.entityType === EntityType.ENTITY_GROUP,
       data: {
-        type: 'group',
-        entity: entityGroup
-      } as EntityGroupNodeData
+        type: 'groups',
+        group: group,
+        groupType
+      } as EntityGroupsNodeData
     } as EdgeOverviewNode;
   }
 
-  private entitiesToNodes(entities: BaseData<HasId>[], entityType: EntityType): EdgeOverviewNode[] {
+  private entitiesToNodes(entities: BaseData<HasId>[], groupType: EntityType): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
     if (entities) {
       entities.forEach((entity) => {
-        const node = this.createEntityNode(entity, entityType);
+        const node = this.createEntityGroupNode(entity, groupType);
         nodes.push(node);
       });
     }
     return nodes;
   }
 
-  private createEntityNode(entity: BaseData<HasId>, entityType: EntityType): EdgeOverviewNode {
+  private createEntityGroupNode(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
-      text: entityNodeText(entity),
+      text: entityNodeText(group),
       children: false,
       data: {
-        entityType,
-        entity
-      } as EdgeGroupNodeData
+        type: 'group',
+        group,
+        groupType
+      } as EntityGroupNodeData
     } as EdgeOverviewNode;
   }
 

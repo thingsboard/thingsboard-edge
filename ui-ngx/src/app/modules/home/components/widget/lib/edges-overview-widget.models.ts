@@ -40,29 +40,43 @@ export interface EntityNodeDatasource extends Datasource {
 }
 
 export interface EdgeOverviewNode extends NavTreeNode {
-  data?: EdgeGroupNodeData;
+  data?: BaseEdgeNodeData;
 }
 
-export interface EdgeGroupNodeData {
-  type: 'edgeGroup' | 'group';
-  entity: BaseData<HasId>;
-  entityType?: EntityType;
+export interface BaseEdgeNodeData {
+  type: EdgeNodeType;
+  group: BaseData<HasId>;
+  groupType: EntityType;
+}
+
+export type EdgeNodeType = 'group' | 'groups' | 'edgeGroups';
+
+export interface EntityGroupNodeData extends BaseEdgeNodeData {
+  type: 'group';
+}
+
+export interface EntityGroupsNodeData extends BaseEdgeNodeData {
+  type: 'groups';
+}
+
+export interface EdgeGroupsNodeData extends BaseEdgeNodeData {
+  type: 'edgeGroups';
 }
 
 export function edgeGroupsNodeText(translate: TranslateService, entityType: EntityType): string {
   const nodeIcon = materialIconByEntityType(entityType);
-  const nodeText = textForEdgeGroupsType(translate, entityType);
-  return nodeIcon + nodeText;
-}
-
-export function entityNodeText(entity: any): string {
-  const nodeIcon = materialIconByEntityType(entity.id.entityType);
-  const nodeText = entity.name;
+  const nodeText = textForEntityGroupsType(translate, entityType);
   return nodeIcon + nodeText;
 }
 
 export function entityGroupNodeText(entity: any): string {
   const nodeIcon = materialIconByEntityType(entity.type);
+  const nodeText = entity.name;
+  return nodeIcon + nodeText;
+}
+
+export function entityNodeText(entity: any): string {
+  const nodeIcon = materialIconByEntityType(entity.id.entityType);
   const nodeText = entity.name;
   return nodeIcon + nodeText;
 }
@@ -95,8 +109,8 @@ export function materialIconByEntityType(entityType: EntityType): string {
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
 }
 
-export function textForEdgeGroupsType(translate: TranslateService, entityType: EntityType): string {
-  let textForEdgeGroupsType: string = '';
+export function textForEntityGroupsType(translate: TranslateService, entityType: EntityType): string {
+  let textForEntityGroupsType: string = '';
   switch (entityType) {
     case EntityType.USER:
       return translate.instant('entity-group.user-groups');
@@ -113,5 +127,5 @@ export function textForEdgeGroupsType(translate: TranslateService, entityType: E
     case EntityType.RULE_CHAIN:
       return translate.instant('entity.type-rulechains');
   }
-  return translate.instant(textForEdgeGroupsType);
+  return translate.instant(textForEntityGroupsType);
 }
