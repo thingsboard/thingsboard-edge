@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -42,11 +42,11 @@ import { EntityType } from '@shared/models/entity-type.models';
 import {
   EdgeGroupNodeData,
   edgeGroupsNodeText,
-  edgeGroupsTypes,
-  entityNodeText,
   EdgeOverviewNode,
+  entityGroupNodeText,
   EntityNodeData,
-  EntityNodeDatasource
+  EntityNodeDatasource,
+  entityNodeText
 } from '@home/components/widget/lib/edges-overview-widget.models';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityService } from '@core/http/entity.service';
@@ -54,16 +54,16 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageLink } from '@shared/models/page/page-link';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
-import { Edge, edgeEntityTypes } from "@shared/models/edge.models";
-import {
-  CustomersHierarchyNode,
-  EdgeEntityGroupsNodeData, entitiesNodeText,
-  entityGroupsNodeText
-} from "@home/pages/group/customers-hierarchy.models";
+import { edgeEntityGroupTypes, edgeEntityTypes } from "@shared/models/edge.models";
+import { EntityGroupNodeData } from "@home/pages/group/customers-hierarchy.models";
 import { groupResourceByGroupType, Operation, resourceByEntityType } from "@shared/models/security.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { Observable } from 'rxjs';
+import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { RuleChainService } from '@core/http/rule-chain.service';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-edges-overview-widget',
@@ -85,21 +85,23 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   private nodeIdCounter = 0;
 
   private entityNodesMap: {[parentNodeId: string]: {[edgeId: string]: string}} = {};
-  private entityGroupsNodesMap: {[edgeNodeId: string]: {[groupType: string]: string}} = {};
+  private entityGroupNodesMap: {[edgeNodeId: string]: {[groupType: string]: string}} = {};
 
-  private allowedEdgeGroupTypes = edgeGroupsTypes.filter((groupType) =>
+  private allowedGroupTypes = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
-  private allowedEdgeEntityTypes = edgeEntityTypes.filter((entityType) =>
+  private allowedEntityTypes = edgeEntityTypes.filter((entityType) =>
     this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
 
   constructor(protected store: Store<AppState>,
               private edgeService: EdgeService,
               private entityService: EntityService,
+              private entityGroupService: EntityGroupService,
+              private schedulerEventService: SchedulerEventService,
+              private ruleChainService: RuleChainService,
               private translateService: TranslateService,
               private utils: UtilsService,
-              private userPermissionsService: UserPermissionsService,
-              private cd: ChangeDetectorRef) {
+              private userPermissionsService: UserPermissionsService) {
     super(store);
   }
 
@@ -112,31 +114,46 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   public loadNodes: LoadNodesCallback = (node, cb) => {
     const datasource: Datasource = this.datasources[0];
-    if (node.id === '#' && datasource) {
-      if (datasource.type === DatasourceType.entity && datasource.entity.id.entityType === EntityType.EDGE) {
-        var selectedEdge: BaseData<EntityId> = datasource.entity;
-        this.ctx.widgetTitle = `${selectedEdge.name} Quick Overview`;
-        cb(this.loadNodesForEdge(selectedEdge.id.id, selectedEdge));
-      } else if (datasource.type === DatasourceType.function) {
-        cb(this.loadNodesForEdge(datasource.entityId, datasource.entity));
+    if (datasource) {
+      const pageLink = new PageLink(datasource.pageLink.pageSize);
+      if (node.id === '#') {
+        if (datasource.type === DatasourceType.entity && datasource.entity.id.entityType === EntityType.EDGE) {
+          var selectedEdge: BaseData<EntityId> = datasource.entity;
+          cb(this.loadNodesForEdge(selectedEdge.id.id, selectedEdge));
+        } else if (datasource.type === DatasourceType.function) {
+          cb(this.loadNodesForEdge(datasource.entityId, datasource.entity));
+        } else {
+          this.edgeIsDatasource = false;
+          cb([]);
+        }
+      } else if (node.data && node.data.type === 'edgeGroup') {
+        let entitiesObservable: Observable<any>;
+        const edgeId = node.data.entity.id.id;
+        const entityType = node.data.entityType;
+        switch (entityType) {
+          case (EntityType.SCHEDULER_EVENT):
+            entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
+            break;
+          case (EntityType.RULE_CHAIN):
+            entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
+            break;
+          default:
+            entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, {ignoreLoading: true});
+        }
+        entitiesObservable.subscribe((entityGroups) => {
+          cb(this.entityGroupsToNodes(node.id, entityGroups));
+        });
+      } else if (node.data && node.data.type === 'group') {
+        const entityId = node.data.entity.id.id;
+        const entityType = node.data.entity.type;
+        this.entityGroupService.getEntityGroupEntities(entityId, pageLink, entityType).subscribe(
+          (entities) => {
+            cb(this.entitiesToNodes(node.id, entities.data, entityType));
+          }
+        );
       } else {
-        this.edgeIsDatasource = false;
         cb([]);
       }
-    }
-    else if (node.data && node.data.entity.id.entityType === EntityType.EDGE) {
-      const edgeId = node.data.entity.id.id;
-      const entityType = node.data.entityType;
-      const pageLink = new PageLink(datasource.pageLink.pageSize);
-      this.entityService.getAssignedToEdgeEntitiesByType(edgeId, entityType, pageLink).subscribe(
-        (entities) => {
-          if (entities.data.length > 0) {
-            cb(this.entitiesToNodes(node.id, entities.data));
-          } else {
-            cb([]);
-          }
-        }
-      )
     } else {
       cb([]);
     }
@@ -145,13 +162,13 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   private loadNodesForEdge(parentNodeId: string, entity: BaseData<HasId>): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
     const nodesMap = {};
-    this.entityGroupsNodesMap[parentNodeId] = nodesMap;
-    this.allowedEdgeGroupTypes.forEach((entityType) => {
+    this.entityGroupNodesMap[parentNodeId] = nodesMap;
+    this.allowedGroupTypes.forEach((entityType) => {
       const node: EdgeOverviewNode = this.createEdgeGroupNode(entityType, entity);
       nodes.push(node);
       nodesMap[entityType] = node.id;
     });
-    this.allowedEdgeEntityTypes.forEach((entityType) => {
+    this.allowedEntityTypes.forEach((entityType) => {
       const node: EdgeOverviewNode = this.createEdgeGroupNode(entityType, entity);
       nodes.push(node);
       nodesMap[entityType] = node.id;
@@ -163,10 +180,10 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
-      text: entityGroupsNodeText(this.translateService, entityType),
+      text: edgeGroupsNodeText(this.translateService, entityType),
       children: true,
       data: {
-        type: 'edgeGroups',
+        type: 'edgeGroup',
         entityType,
         entity,
         internalId: entity.id.id + '_' + entityType
@@ -174,7 +191,52 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     };
   }
 
-  private createEntityNode(parentNodeId: string, entity: BaseData<HasId>): EdgeOverviewNode {
+  private entityGroupsToNodes(parentNodeId: string, entityGroups: EntityGroupInfo[]): EdgeOverviewNode[] {
+    const nodes: EdgeOverviewNode[] = [];
+    this.entityGroupNodesMap[parentNodeId] = {};
+    if (entityGroups) {
+      entityGroups.forEach((entityGroup) => {
+        const node = this.createEntityGroupNode(parentNodeId, entityGroup);
+        nodes.push(node);
+      });
+    }
+    return nodes;
+  }
+
+  private createEntityGroupNode(parentNodeId: string, entityGroup: EntityGroupInfo): EdgeOverviewNode {
+    let nodesMap = this.entityGroupNodesMap[parentNodeId];
+    if (!nodesMap) {
+      nodesMap = {};
+      this.entityGroupNodesMap[parentNodeId] = nodesMap;
+    }
+    const node: EdgeOverviewNode = {
+      id: (++this.nodeIdCounter)+'',
+      icon: false,
+      text: entityGroup.id.entityType === EntityType.ENTITY_GROUP ? entityGroupNodeText(entityGroup) : entityNodeText(entityGroup),
+      children: entityGroup.id.entityType === EntityType.ENTITY_GROUP,
+      data: {
+        type: 'group',
+        entity: entityGroup,
+        internalId: entityGroup.id.id
+      } as EntityGroupNodeData
+    };
+    nodesMap[entityGroup.id.id] = node.id;
+    return node;
+  }
+
+  private entitiesToNodes(parentNodeId: string, entities: BaseData<HasId>[], entityType: EntityType): EdgeOverviewNode[] {
+    const nodes: EdgeOverviewNode[] = [];
+    this.entityNodesMap[parentNodeId] = {};
+    if (entities) {
+      entities.forEach((entity) => {
+        const node = this.createEntityNode(parentNodeId, entity, entityType);
+        nodes.push(node);
+      });
+    }
+    return nodes;
+  }
+
+  private createEntityNode(parentNodeId: string, entity: BaseData<HasId>, entityType: EntityType): EdgeOverviewNode {
     let nodesMap = this.entityNodesMap[parentNodeId];
     if (!nodesMap) {
       nodesMap = {};
@@ -185,11 +247,9 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       icon: false,
       text: entityNodeText(entity),
       children: false,
-      state: {
-        disabled: false
-      },
       data: {
-        entity: entity,
+        entityType,
+        entity,
         internalId: entity.id.id
       } as EntityNodeData
     };
@@ -197,15 +257,4 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     return node;
   }
 
-  private entitiesToNodes(parentNodeId: string, entities: BaseData<HasId>[]): EdgeOverviewNode[] {
-    const nodes: EdgeOverviewNode[] = [];
-    this.entityNodesMap[parentNodeId] = {};
-    if (entities) {
-      entities.forEach((entity) => {
-        const node = this.createEntityNode(parentNodeId, entity);
-        nodes.push(node);
-      });
-    }
-    return nodes;
-  }
 }
