@@ -156,7 +156,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
     }
 
     protected String processPattern(TbMsg msg, String pattern) {
-        return TbNodeUtils.processPattern(pattern, msg.getMetaData());
+        return TbNodeUtils.processPattern(pattern, msg);
     }
 
     @Data
