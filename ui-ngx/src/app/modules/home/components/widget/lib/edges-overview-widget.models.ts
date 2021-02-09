@@ -40,23 +40,13 @@ export interface EntityNodeDatasource extends Datasource {
 }
 
 export interface EdgeOverviewNode extends NavTreeNode {
-  data?: EdgeOverviewNodeData;
+  data?: EdgeGroupNodeData;
 }
 
-export interface EdgeGroupNodeData extends BaseEdgeOverviewNodeData, EntityNodeData {
-  type: 'group' | 'edgeGroup';
-  entityType: EntityType;
-  internalId: string;
-}
-
-export interface EntityNodeData extends BaseEdgeOverviewNodeData {
+export interface EdgeGroupNodeData {
+  type: 'edgeGroup' | 'group';
   entity: BaseData<HasId>;
-}
-
-export type EdgeOverviewNodeData = EdgeGroupNodeData | EntityNodeData;
-
-export interface BaseEdgeOverviewNodeData {
-  internalId: string;
+  entityType?: EntityType;
 }
 
 export function edgeGroupsNodeText(translate: TranslateService, entityType: EntityType): string {

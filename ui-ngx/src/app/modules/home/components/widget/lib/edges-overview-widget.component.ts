@@ -44,7 +44,6 @@ import {
   edgeGroupsNodeText,
   EdgeOverviewNode,
   entityGroupNodeText,
-  EntityNodeData,
   EntityNodeDatasource,
   entityNodeText
 } from '@home/components/widget/lib/edges-overview-widget.models';
@@ -175,8 +174,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       data: {
         type: 'edgeGroup',
         entityType,
-        entity,
-        internalId: entity.id.id + '_' + entityType
+        entity
       } as EdgeGroupNodeData
     };
   }
@@ -200,8 +198,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       children: entityGroup.id.entityType === EntityType.ENTITY_GROUP,
       data: {
         type: 'group',
-        entity: entityGroup,
-        internalId: entityGroup.id.id
+        entity: entityGroup
       } as EntityGroupNodeData
     } as EdgeOverviewNode;
   }
@@ -225,9 +222,8 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       children: false,
       data: {
         entityType,
-        entity,
-        internalId: entity.id.id
-      } as EntityNodeData
+        entity
+      } as EdgeGroupNodeData
     } as EdgeOverviewNode;
   }
 
