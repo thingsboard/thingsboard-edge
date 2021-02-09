@@ -53,6 +53,8 @@ import {Edge} from "@shared/models/edge.models";
 import {EdgeService} from "@core/http/edge.service";
 import {EdgeComponent} from "@home/pages/edge/edge.component";
 import {Router} from "@angular/router";
+import { Browser } from 'leaflet';
+import edge = Browser.edge;
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
@@ -91,6 +93,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     config.deleteEntity = id => this.edgeService.deleteEdge(id.id);
 
     config.onEntityAction = action => this.onEdgeAction(action, config, params);
+
+    if (params.hierarchyView) {
+      config.entityAdded = edge => {
+        params.hierarchyCallbacks.edgeAdded(params.nodeId, edge);
+      };
+      config.entityUpdated = edge => {
+        params.hierarchyCallbacks.edgeUpdated(edge);
+      };
+      config.entitiesDeleted = edgeIds => {
+        params.hierarchyCallbacks.edgesDeleted(edgeIds.map(id => id.id));
+      };
+    }
 
     if (this.userPermissionsService.hasGroupEntityPermission(Operation.CREATE, config.entityGroup)) {
       config.headerActionDescriptors.push(

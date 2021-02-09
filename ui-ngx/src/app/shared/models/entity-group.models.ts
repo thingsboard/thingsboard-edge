@@ -40,6 +40,7 @@ import { Customer } from '@shared/models/customer.model';
 import { EntityData, EntityDataPageLink, EntityKey, EntityKeyType } from '@shared/models/query/query.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { RoleId } from '@shared/models/id/role-id';
+import { Edge } from '@shared/models/edge.models';
 
 export const entityGroupTypes: EntityType[] = [
   EntityType.CUSTOMER,
@@ -486,6 +487,9 @@ export interface HierarchyCallbacks {
   customerAdded?: (parentNodeId: string, customer: Customer) => void;
   customerUpdated?: (customer: Customer) => void;
   customersDeleted?: (customerIds: string[]) => void;
+  edgeAdded?: (parentNodeId: string, edge: Edge) => void;
+  edgeUpdated?: (edge: Edge) => void;
+  edgesDeleted?: (edgeIds: string[]) => void;
 }
 
 export interface EntityGroupParams {

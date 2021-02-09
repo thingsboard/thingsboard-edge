@@ -110,7 +110,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     groupAdded: this.groupAdded.bind(this),
     customerAdded: this.customerAdded.bind(this),
     customerUpdated: this.customerUpdated.bind(this),
-    customersDeleted: this.customersDeleted.bind(this)
+    customersDeleted: this.customersDeleted.bind(this),
+    edgeAdded: this.edgeAdded.bind(this),
+    edgeUpdated: this.edgeUpdated.bind(this),
+    edgesDeleted: this.edgesDeleted.bind(this),
   };
 
   viewMode: CustomersHierarchyViewMode = 'groups';
@@ -717,6 +720,50 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     if (!this.nodeEditCallbacks.nodeIsOpen(nodeId)) {
       this.nodeEditCallbacks.openNode(nodeId, openCb);
     }
+  }
+
+  private edgeAdded(parentNodeId: string, edge: Edge) {
+    const parentInternalId = this.nodeIdToInternalId[parentNodeId];
+    const parentNodeIds = this.internalIdToNodeIds[parentInternalId];
+    if (parentNodeIds) {
+      const targetParentNodeIds = deepClone(parentNodeIds);
+      parentNodeIds.forEach((nodeId) => {
+        const groupAllParentId = this.nodeEditCallbacks.getParentNodeId(nodeId);
+        if (groupAllParentId) {
+          const groupAllNodeId = this.parentIdToGroupAllNodeId[groupAllParentId];
+          if (groupAllNodeId && targetParentNodeIds.indexOf(groupAllNodeId) === -1) {
+            targetParentNodeIds.push(groupAllNodeId);
+          }
+        }
+      });
+      targetParentNodeIds.forEach((targetParentNodeId) => {
+        if (this.nodeEditCallbacks.nodeIsLoaded(targetParentNodeId)) {
+          const groupId = this.nodeIdToInternalId[targetParentNodeId];
+          if (groupId) {
+            const node = this.createEdgeNode(targetParentNodeId, edge, groupId);
+            this.nodeEditCallbacks.createNode(targetParentNodeId, node, 'last');
+          }
+        }
+      });
+    }
+  }
+
+  private edgeUpdated(edge: Edge) {
+    const nodeIds = this.internalIdToNodeIds[edge.id.id];
+    if (nodeIds) {
+      nodeIds.forEach((nodeId) => {
+        this.nodeEditCallbacks.updateNode(nodeId, edgeNodeText(edge));
+      });
+    }
+  }
+
+  private edgesDeleted(edgeIds: string[]) {
+    edgeIds.forEach((edgeId) => {
+      const nodeIds = this.internalIdToNodeIds[edgeId];
+      nodeIds.forEach((nodeId) => {
+        this.nodeEditCallbacks.deleteNode(nodeId);
+      });
+    });
   }
 
 }
