@@ -118,23 +118,29 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                     devicesDownlinkData.get(entityName).add(downlinkData);
                 }
 
-                ChannelHandlerContext ctx = connectedDevicesContexts.get(entityName);
-                if (ctx != null && !ctx.isRemoved()) {
-                    for (DownlinkData downlinkData : devicesDownlinkData.get(entityName)) {
-                        ctx.write(Unpooled.wrappedBuffer(downlinkData.getData()));
-                    }
-                    ctx.flush();
-                    devicesDownlinkData.remove(entityName);
-                    connectedDevicesContexts.remove(entityName);
-                } else {
-                    log.warn("Device context not found, downlink data will be send when uplink message will be arrived.");
-                }
+                downlinkWriter(entityName);
             } catch (Exception e) {
                 log.warn("Failed to process downLink message", e);
                 exception = e;
                 status = "ERROR";
                 reportDownlinkError(context, msg, status, exception);
             }
+        }
+    }
+
+    private void downlinkWriter(String entityName) {
+        ChannelHandlerContext ctx = connectedDevicesContexts.get(entityName);
+        if (ctx != null && !ctx.isRemoved()) {
+            for (DownlinkData downlinkData : devicesDownlinkData.get(entityName)) {
+                ctx.write(Unpooled.wrappedBuffer(downlinkData.getData()));
+                ctx.write(Unpooled.wrappedBuffer(System.lineSeparator().getBytes()));
+            }
+            ctx.flush();
+            ctx.close();
+            devicesDownlinkData.remove(entityName);
+            connectedDevicesContexts.remove(entityName);
+        } else {
+            log.warn("Device context not found, downlink data will be send when uplink message will be arrived.");
         }
     }
 
@@ -149,6 +155,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         try {
             List<UplinkData> upLinkDataList = getUplinkDataList(context, msg);
 
+            processUplinkData(context, upLinkDataList);
+
             if (downlinkConverter != null) {
                 for (UplinkData uplinkData : upLinkDataList) {
                     String entityName;
@@ -158,10 +166,13 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                         entityName = uplinkData.getDeviceName();
                     }
                     connectedDevicesContexts.put(entityName, ctx);
+
+                    if(!devicesDownlinkData.isEmpty() && devicesDownlinkData.get(entityName) != null) {
+                        downlinkWriter(entityName);
+                    }
                 }
             }
 
-            processUplinkData(context, upLinkDataList);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
