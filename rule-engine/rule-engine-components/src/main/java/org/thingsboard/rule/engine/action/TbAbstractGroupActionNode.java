@@ -100,7 +100,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     protected abstract void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId);
 
     private ListenableFuture<EntityGroupId> getEntityGroup(TbContext ctx, TbMsg msg, EntityId ownerId) {
-        String groupName = TbNodeUtils.processPattern(this.config.getGroupNamePattern(), msg.getMetaData());
+        String groupName = TbNodeUtils.processPattern(this.config.getGroupNamePattern(), msg);
         GroupKey key = new GroupKey(msg.getOriginator().getEntityType(), groupName, ownerId);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             Optional<EntityGroupId> groupId = groupIdCache.get(key);

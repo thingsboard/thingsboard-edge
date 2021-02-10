@@ -115,7 +115,7 @@ public class TbChangeOwnerNode implements TbNode {
         String ownerName;
         EntityType entityType = EntityType.valueOf(this.config.getOwnerType());
         if(entityType.equals(EntityType.CUSTOMER)) {
-            ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg.getMetaData());
+            ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
         } else {
             //Maybe set tenant name?
             ownerName = null;

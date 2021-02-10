@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.js.api.JsScriptType;
@@ -121,10 +120,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
     public final static ObjectMapper mapper = new ObjectMapper();
 
     private final ActorSystemContext mainCtx;
+    private final String ruleChainName;
     private final RuleNodeCtx nodeCtx;
 
-    public DefaultTbContext(ActorSystemContext mainCtx, RuleNodeCtx nodeCtx) {
+    public DefaultTbContext(ActorSystemContext mainCtx, String ruleChainName, RuleNodeCtx nodeCtx) {
         this.mainCtx = mainCtx;
+        this.ruleChainName = ruleChainName;
         this.nodeCtx = nodeCtx;
     }
 
@@ -148,13 +149,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
             relationTypes.forEach(relationType -> mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, relationType, th));
         }
         msg.getCallback().onProcessingEnd(nodeCtx.getSelf().getId());
-        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), relationTypes, msg, th != null ? th.getMessage() : null));
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId(), relationTypes, msg, th != null ? th.getMessage() : null));
     }
 
     @Override
     public void tellSelf(TbMsg msg, long delayMs) {
         //TODO: add persistence layer
-        mainCtx.scheduleMsgWithDelay(nodeCtx.getSelfActor(), new RuleNodeToSelfMsg(msg), delayMs);
+        mainCtx.scheduleMsgWithDelay(nodeCtx.getSelfActor(), new RuleNodeToSelfMsg(this, msg), delayMs);
     }
 
     @Override
@@ -286,7 +287,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
         } else {
             failureMessage = null;
         }
-        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getId(), Collections.singleton(TbRelationTypes.FAILURE),
+        nodeCtx.getChainActor().tell(new RuleNodeToRuleChainTellNextMsg(nodeCtx.getSelf().getRuleChainId(),
+                nodeCtx.getSelf().getId(), Collections.singleton(TbRelationTypes.FAILURE),
                 msg, failureMessage));
     }
 
@@ -331,6 +333,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleNodeId getSelfId() {
         return nodeCtx.getSelf().getId();
+    }
+
+    @Override
+    public RuleNode getSelf() {
+        return nodeCtx.getSelf();
+    }
+
+    @Override
+    public String getRuleChainName() {
+        return ruleChainName;
     }
 
     @Override

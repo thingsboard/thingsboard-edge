@@ -28,31 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.actors.ruleChain;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.msg.TbActorStopReason;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbRuleEngineActorMsg;
+import org.thingsboard.server.common.msg.queue.RuleNodeException;
 
-import java.util.Set;
+@EqualsAndHashCode(callSuper = true)
+public abstract class TbToRuleNodeActorMsg extends TbRuleEngineActorMsg {
 
-/**
- * @author Andrew Shvayka
- */
-@Data
-public class DeviceCredentialsUpdateNotificationMsg implements ToDeviceActorNotificationMsg {
+    @Getter
+    private final TbContext ctx;
 
-    private static final long serialVersionUID = -3956907402411126990L;
-
-    private final TenantId tenantId;
-    private final DeviceId deviceId;
+    public TbToRuleNodeActorMsg(TbContext ctx, TbMsg tbMsg) {
+        super(tbMsg);
+        this.ctx = ctx;
+    }
 
     @Override
-    public MsgType getMsgType() {
-        return MsgType.DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG;
+    public void onTbActorStopped(TbActorStopReason reason) {
+        String message = reason == TbActorStopReason.STOPPED ? "Rule node stopped" : "Failed to initialize rule node!";
+        msg.getCallback().onFailure(new RuleNodeException(message, ctx.getRuleChainName(), ctx.getSelf()));
     }
 }

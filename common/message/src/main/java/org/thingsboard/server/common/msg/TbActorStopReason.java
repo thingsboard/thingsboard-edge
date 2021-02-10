@@ -28,31 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api.msg;
+package org.thingsboard.server.common.msg;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.msg.MsgType;
+public enum TbActorStopReason {
 
-import java.util.Set;
+    INIT_FAILED, STOPPED
 
-/**
- * @author Andrew Shvayka
- */
-@Data
-public class DeviceCredentialsUpdateNotificationMsg implements ToDeviceActorNotificationMsg {
-
-    private static final long serialVersionUID = -3956907402411126990L;
-
-    private final TenantId tenantId;
-    private final DeviceId deviceId;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.DEVICE_CREDENTIALS_UPDATE_TO_DEVICE_ACTOR_MSG;
-    }
 }
