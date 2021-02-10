@@ -233,6 +233,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.internalId = node.data.internalId;
           this.updateGroupsView(entityGroupParams, node.data.customer);
         } else if (node.data.type === 'edgeGroups') {
+          this.edgeId = node.data.edge.id.id;
           const parentEntityGroupId = node.data.parentEntityGroupId;
           if (parentEntityGroupId) {
             entityGroupParams.entityGroupId = parentEntityGroupId;
@@ -247,10 +248,10 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           const entityType = node.data.entityType;
           switch (entityType) {
             case EntityType.SCHEDULER_EVENT:
-              this.updateSchedulerView('schedulerEvents', node.data.edge.id.id);
+              this.updateSchedulerView('schedulerEvents');
               break;
             default:
-              this.updateEdgeGroupsView(entityGroupParams, node.data.edge);
+              this.updateGroupsView(entityGroupParams, null, node.data.edge);
               break;
           }
         } else {
@@ -278,23 +279,14 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     }
   }
 
-  private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer) {
-    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, customer?.title);
+  private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer, edge?: Edge) {
+    const title = customer ? customer.title : edge.name;
+    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, title);
     this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
   }
 
-  private updateEdgeGroupsView(entityGroupParams: EntityGroupParams, edge?: Edge) {
-    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, edge?.name);
-    this.edgeId = edge.id.id;
-    this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
-  }
-
-  private updateSchedulerView(viewMode: CustomersHierarchyViewMode, edgeId: string) {
-    setTimeout(() => {
-      this.viewMode = viewMode;
-      this.edgeId = edgeId;
-      this.cd.detectChanges();
-    }, 0);
+  private updateSchedulerView(viewMode: CustomersHierarchyViewMode) {
+    this.viewMode = viewMode;
   }
 
   private updateGroupView(entityGroupParams: EntityGroupParams, entityGroup: EntityGroupInfo) {
@@ -475,7 +467,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodes: CustomersHierarchyNode[] = [];
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
-    this.edgeId = edge.id.id;
     this.allowedEdgeGroupTypes.forEach((groupType) => {
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',

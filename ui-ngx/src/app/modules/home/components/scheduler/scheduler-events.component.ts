@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation, OnChanges, SimpleChanges } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -108,7 +108,7 @@ import { EntityType } from '@shared/models/entity-type.models';
   styleUrls: ['./scheduler-events.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit {
+export class SchedulerEventsComponent extends PageComponent implements OnInit, AfterViewInit, OnChanges {
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -213,6 +213,17 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       if (this.edgeId) {
         this.deleteEnabled = false;
         this.editEnabled = false;
+      }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.previousValue && change.currentValue !== change.previousValue) {
+        if (propName === 'edgeId') {
+          this.reloadSchedulerEvents();
+        }
       }
     }
   }
