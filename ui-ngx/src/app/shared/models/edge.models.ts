@@ -77,7 +77,8 @@ export enum EdgeEventType {
   RELATION = "RELATION",
   WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
   WIDGET_TYPE = "WIDGET_TYPE",
-  ADMIN_SETTINGS = "ADMIN_SETTINGS"
+  ADMIN_SETTINGS = "ADMIN_SETTINGS",
+  ENTITY_GROUP = "ENTITY_GROUP"
 }
 
 export enum EdgeEventActionType {
@@ -123,7 +124,8 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.RELATION, 'edge-event.type-relation'],
     [EdgeEventType.WIDGETS_BUNDLE, 'edge-event.type-widgets-bundle'],
     [EdgeEventType.WIDGET_TYPE, 'edge-event.type-widgets-type'],
-    [EdgeEventType.ADMIN_SETTINGS, 'edge-event.type-admin-settings']
+    [EdgeEventType.ADMIN_SETTINGS, 'edge-event.type-admin-settings'],
+    [EdgeEventType.ENTITY_GROUP, 'edge-event.type-entity-group']
   ]
 );
 
