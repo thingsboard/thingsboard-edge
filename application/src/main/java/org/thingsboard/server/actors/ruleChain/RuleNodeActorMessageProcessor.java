@@ -35,6 +35,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.TbActorRef;
+import org.thingsboard.server.actors.TbRuleNodeUpdateException;
 import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -91,7 +92,11 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
             if (tbNode != null) {
                 tbNode.destroy();
             }
-            start(context);
+            try {
+                start(context);
+            } catch (Exception e) {
+                throw new TbRuleNodeUpdateException("Failed to update rule node", e);
+            }
         }
     }
 

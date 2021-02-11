@@ -32,6 +32,7 @@ package org.thingsboard.server.actors;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbActorStopReason;
 
@@ -88,7 +89,7 @@ public final class TbActorMailbox implements TbActorCtx {
             if (strategy.isStop() || (settings.getMaxActorInitAttempts() > 0 && attemptIdx > settings.getMaxActorInitAttempts())) {
                 log.info("[{}] Failed to init actor, attempt {}, going to stop attempts.", selfId, attempt, t);
                 stopReason = TbActorStopReason.INIT_FAILED;
-                system.stop(selfId);
+                destroy();
             } else if (strategy.getRetryDelay() > 0) {
                 log.info("[{}] Failed to init actor, attempt {}, going to retry in attempts in {}ms", selfId, attempt, strategy.getRetryDelay());
                 log.debug("[{}] Error", selfId, t);
@@ -110,7 +111,19 @@ public final class TbActorMailbox implements TbActorCtx {
             }
             tryProcessQueue(true);
         } else {
-            msg.onTbActorStopped(stopReason);
+            if (highPriority && msg.getMsgType().equals(MsgType.RULE_NODE_UPDATED_MSG)) {
+                synchronized (this) {
+                    if (stopReason == TbActorStopReason.INIT_FAILED) {
+                        destroyInProgress.set(false);
+                        stopReason = null;
+                        initActor();
+                    } else {
+                        msg.onTbActorStopped(stopReason);
+                    }
+                }
+            } else {
+                msg.onTbActorStopped(stopReason);
+            }
         }
     }
 
@@ -141,6 +154,9 @@ public final class TbActorMailbox implements TbActorCtx {
                 try {
                     log.debug("[{}] Going to process message: {}", selfId, msg);
                     actor.process(msg);
+                } catch (TbRuleNodeUpdateException updateException){
+                    stopReason = TbActorStopReason.INIT_FAILED;
+                    destroy();
                 } catch (Throwable t) {
                     log.debug("[{}] Failed to process message: {}", selfId, msg, t);
                     ProcessFailureStrategy strategy = actor.onProcessFailure(t);
