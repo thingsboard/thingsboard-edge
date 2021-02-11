@@ -188,3 +188,5 @@ export const edgeEntityTypes: EntityType[] = [
   EntityType.SCHEDULER_EVENT,
   EntityType.RULE_CHAIN
 ];
+
+export const edgeAllEntityTypes: EntityType[] = edgeEntityGroupTypes.concat(edgeEntityTypes);

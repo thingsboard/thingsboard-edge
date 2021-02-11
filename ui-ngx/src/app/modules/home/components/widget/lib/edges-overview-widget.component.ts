@@ -42,8 +42,10 @@ import { EntityType } from '@shared/models/entity-type.models';
 import {
   EdgeGroupsNodeData,
   edgeGroupsNodeText,
-  EdgeOverviewNode, EntityGroupNodeData,
-  entityGroupNodeText, EntityGroupsNodeData,
+  EdgeOverviewNode,
+  EntityGroupNodeData,
+  entityGroupNodeText,
+  EntityGroupsNodeData,
   EntityNodeDatasource,
   entityNodeText
 } from '@home/components/widget/lib/edges-overview-widget.models';
@@ -53,11 +55,13 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageLink } from '@shared/models/page/page-link';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { edgeEntityGroupTypes, edgeEntityTypes } from "@shared/models/edge.models";
+import { edgeAllEntityTypes, edgeEntityGroupTypes, edgeEntityTypes } from "@shared/models/edge.models";
 import { groupResourceByGroupType, Operation, resourceByEntityType } from "@shared/models/security.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-edges-overview-widget',
@@ -78,9 +82,10 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private nodeIdCounter = 0;
 
+  private isSysAdmin: boolean = getCurrentAuthState(this.store).authUser.authority === Authority.SYS_ADMIN;
+
   private allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
-
   private allowedEntityTypes: Array<EntityType> = edgeEntityTypes.filter((entityType) =>
     this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
 
@@ -138,7 +143,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private loadNodesForEdge(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
-    const allowedGroupAndEntityTypes: Array<any> = this.allowedGroupTypes.concat(this.allowedEntityTypes);
+    const allowedGroupAndEntityTypes: Array<EntityType> = this.isSysAdmin ? edgeAllEntityTypes : this.allowedGroupTypes.concat(this.allowedEntityTypes);
     allowedGroupAndEntityTypes.forEach((groupType) => {
       const node: EdgeOverviewNode = this.createEdgeGroupsNode(group, groupType);
       nodes.push(node);
