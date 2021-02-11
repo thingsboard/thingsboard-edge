@@ -62,6 +62,11 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { isDefined } from '@core/utils';
+
+interface EdgesOverviewWidgetSettings {
+  enableDefaultTitle: boolean;
+}
 
 @Component({
   selector: 'tb-edges-overview-widget',
@@ -79,6 +84,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
   private datasources: Array<EntityNodeDatasource>;
+  private settings: EdgesOverviewWidgetSettings;
 
   private nodeIdCounter = 0;
 
@@ -86,6 +92,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
+
   private allowedEntityTypes: Array<EntityType> = edgeEntityTypes.filter((entityType) =>
     this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
 
@@ -103,6 +110,8 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     this.widgetConfig = this.ctx.widgetConfig;
     this.subscription = this.ctx.defaultSubscription;
     this.datasources = this.subscription.datasources as Array<EntityNodeDatasource>;
+    this.settings = this.ctx.settings;
+    this.initializeConfig();
     this.ctx.updateWidgetParams();
   }
 
@@ -114,9 +123,10 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       if (node.id === '#') {
         if (datasource.type === DatasourceType.entity && datasource.entity.id.entityType === EntityType.EDGE) {
           const selectedEdge: BaseData<EntityId> = datasource.entity;
-          cb(this.loadNodesForEdge(selectedEdge, groupType));
+          this.updateTitle(selectedEdge);
+          cb(this.loadNodesForEdge(selectedEdge));
         } else if (datasource.type === DatasourceType.function) {
-          cb(this.loadNodesForEdge(datasource.entity, groupType));
+          cb(this.loadNodesForEdge(datasource.entity));
         } else {
           this.edgeIsDatasource = false;
           cb([]);
@@ -141,7 +151,20 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     }
   }
 
-  private loadNodesForEdge(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode[] {
+  private initializeConfig(): void {
+    const edgeIsDatasource: boolean = this.datasources[0] && this.datasources[0].type === DatasourceType.entity && this.datasources[0].entity.id.entityType === EntityType.EDGE;
+    if (edgeIsDatasource) {
+      const edge = this.datasources[0].entity;
+      this.updateTitle(edge);
+    }
+  }
+
+  private updateTitle(edge: BaseData<EntityId>): void {
+    const displayDefaultTitle: boolean = isDefined(this.settings.enableDefaultTitle) ? this.settings.enableDefaultTitle : false;
+    this.ctx.widgetTitle = displayDefaultTitle ? `${edge.name} Quick Overview` : this.widgetConfig.title;
+  }
+
+  private loadNodesForEdge(group: BaseData<HasId>): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
     const allowedGroupAndEntityTypes: Array<EntityType> = this.isSysAdmin ? edgeAllEntityTypes : this.allowedGroupTypes.concat(this.allowedEntityTypes);
     allowedGroupAndEntityTypes.forEach((groupType) => {
