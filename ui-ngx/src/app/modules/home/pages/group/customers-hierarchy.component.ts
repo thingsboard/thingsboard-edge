@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, NgZone, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -63,6 +63,7 @@ import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-ta
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { Edge, edgeEntityGroupTypes } from '@shared/models/edge.models';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -136,6 +137,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
   private allowedScheduler = this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ);
+
+  private edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
@@ -441,6 +444,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodes: CustomersHierarchyNode[] = [];
     const nodesMap = {};
     this.customerGroupsNodesMap[parentNodeId] = nodesMap;
+    if (!this.edgesSupportEnabled) {
+      this.allowedGroupTypes = this.allowedGroupTypes.filter((entityType: EntityType) => entityType !== EntityType.EDGE);
+    }
     this.allowedGroupTypes.forEach((groupType) => {
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',

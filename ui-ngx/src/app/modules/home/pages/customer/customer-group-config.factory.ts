@@ -50,6 +50,9 @@ import { CustomerComponent } from '@home/pages/customer/customer.component';
 import { Router } from '@angular/router';
 import { Operation, Resource } from '@shared/models/security.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Injectable()
 export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory<Customer> {
@@ -61,7 +64,8 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
               private customerService: CustomerService,
-              private router: Router) {
+              private router: Router,
+              private store: Store<AppState>) {
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
@@ -150,7 +154,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && getCurrentAuthState(this.store).edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('customer.manage-customer-edge-groups'),
