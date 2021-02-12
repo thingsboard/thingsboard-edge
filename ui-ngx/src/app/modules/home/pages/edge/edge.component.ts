@@ -133,10 +133,10 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   }
 
   private checkIsNewEdge(entity: Edge, form: FormGroup) {
-      if (entity && (!entity.id || (entity.id && !entity.id.id))) {
-        form.get('routingKey').patchValue(guid(), {emitEvent: false});
-        form.get('secret').patchValue(generateSecret(20), {emitEvent: false});
-      }
+    if (entity && (!entity.id || (entity.id && !entity.id.id))) {
+      form.get('routingKey').patchValue(guid(), {emitEvent: false});
+      form.get('secret').patchValue(generateSecret(20), {emitEvent: false});
+    }
   }
 
   onEdgeIdCopied($event) {

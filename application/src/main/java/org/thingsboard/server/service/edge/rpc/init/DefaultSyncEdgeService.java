@@ -73,9 +73,7 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
@@ -201,31 +199,20 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     public void sync(TenantId tenantId, Edge edge) {
         log.trace("[{}][{}] Staring edge sync process", tenantId, edge.getId());
         try {
-//            syncEdgeOwner(tenantId, edge);
-//            syncRoles(tenantId, edge);
-//            syncWidgetsBundles(tenantId, edge);
-//            // TODO: voba - implement this functionality
-//            // syncAdminSettings(edge);
-//            syncDeviceProfiles(tenantId, edge);
-//            syncRuleChains(tenantId, edge);
-//            syncUsers(tenantId, edge);
-//            syncAssets(tenantId, edge);
-//            syncEntityViews(tenantId, edge);
-//            syncDashboards(tenantId, edge);
-//            syncWidgetsTypes(tenantId, edge);
-//            syncDevices(tenantId, edge);
-//
-//            syncEdgeOwner(tenantId, edge);
-//            syncRoles(tenantId, edge);
-//            syncWidgetsBundles(tenantId, edge);
-//            syncLoginWhiteLabeling(tenantId, edge);
-//            syncWhiteLabeling(tenantId, edge);
-//            syncCustomTranslation(tenantId, edge);
-//            syncAdminSettings(tenantId, edge);
-//            syncRuleChains(tenantId, edge);
-//            syncEntityGroups(tenantId, edge);
-//            syncSchedulerEvents(tenantId, edge);
-//            syncWidgetsTypes(tenantId, edge);
+
+            syncEdgeOwner(tenantId, edge);
+            syncRoles(tenantId, edge);
+            syncWidgetsBundles(tenantId, edge);
+            syncDeviceProfiles(tenantId, edge);
+            syncLoginWhiteLabeling(tenantId, edge);
+            syncWhiteLabeling(tenantId, edge);
+            syncCustomTranslation(tenantId, edge);
+            // TODO: voba - implement this
+            // syncAdminSettings(tenantId, edge);
+            syncRuleChains(tenantId, edge);
+            syncEntityGroups(tenantId, edge);
+            syncSchedulerEvents(tenantId, edge);
+            syncWidgetsTypes(tenantId, edge);
         } catch (Exception e) {
             log.error("[{}][{}] Exception during sync process", tenantId, edge.getId(), e);
         }
@@ -406,33 +393,11 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             log.error("Exception during loading edge rule chain(s) on sync!", e);
         }
     }
-//
-//    private void syncDevices(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncDevices [{}]", tenantId, edge.getName());
-//        try {
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<Device> pageData;
-//            do {
-//                pageData = deviceService.findDevicesByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] device(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (Device device : pageData.getData()) {
-//                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.ADDED, device.getId(), null);
-//                    }
-//                    if (pageData.hasNext()) {
-//                        pageLink = pageLink.nextPageLink();
-//                    }
-//                }
-//            } while (pageData != null && pageData.hasNext());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge device(s) on sync!", e);
-//        }
-//    }
 
     private void syncDeviceProfiles(TenantId tenantId, Edge edge) {
         log.trace("[{}] syncDeviceProfiles [{}]", tenantId, edge.getName());
         try {
-            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
             PageData<DeviceProfile> pageData;
             do {
                 pageData = deviceProfileService.findDeviceProfiles(tenantId, pageLink);
@@ -450,90 +415,6 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             log.error("Exception during loading device profile(s) on sync!", e);
         }
     }
-//
-//    private void syncAssets(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncAssets [{}]", tenantId, edge.getName());
-//        try {
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<Asset> pageData;
-//            do {
-//                pageData = assetService.findAssetsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] asset(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (Asset asset : pageData.getData()) {
-//                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ASSET, EdgeEventActionType.ADDED, asset.getId(), null);
-//                    }
-//                    if (pageData.hasNext()) {
-//                        pageLink = pageLink.nextPageLink();
-//                    }
-//                }
-//            } while (pageData != null && pageData.hasNext());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge entity groups(s) on sync!", e);
-//        }
-//    }
-//
-//    private void syncEntityViews(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncEntityViews [{}]", tenantId, edge.getName());
-//        try {
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<EntityView> pageData;
-//            do {
-//                pageData = entityViewService.findEntityViewsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] entity view(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (EntityView entityView : pageData.getData()) {
-//                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_VIEW, EdgeEventActionType.ADDED, entityView.getId(), null);
-//                    }
-//                    if (pageData.hasNext()) {
-//                        pageLink = pageLink.nextPageLink();
-//                    }
-//                }
-//            } while (pageData != null && pageData.hasNext());
-//        } catch (Exception e) {
-//            log.error("Exception during loading edge scheduler event(s) on sync!");
-//        }
-//    }
-
-//    private void syncDashboards(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncDashboards [{}]", tenantId, edge.getName());
-//        try {
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<DashboardInfo> pageData;
-//            do {
-//                pageData = dashboardService.findDashboardsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
-//                if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-//                    log.trace("[{}] [{}] dashboard(s) are going to be pushed to edge.", edge.getId(), pageData.getData().size());
-//                    for (DashboardInfo dashboardInfo : pageData.getData()) {
-//                        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DASHBOARD, EdgeEventActionType.ADDED, dashboardInfo.getId(), null);
-//                    }
-//                    if (pageData.hasNext()) {
-//                        pageLink = pageLink.nextPageLink();
-//                    }
-//                }
-//            } while (pageData != null && pageData.hasNext());
-//        } catch (Exception e) {
-//            log.error("Can't load login white labeling params", e);
-//        }
-//    }
-//
-//    private void syncUsers(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncUsers [{}]", tenantId, edge.getName());
-//        try {
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<User> pageData;
-//            do {
-//                pageData = userService.findTenantAdmins(tenantId, pageLink);
-//                pushUsersToEdge(tenantId, pageData, edge);
-//                if (pageData.hasNext()) {
-//                    pageLink = pageLink.nextPageLink();
-//                }
-//            } while (pageData.hasNext());
-//            syncCustomerUsers(tenantId, edge);
-//        } catch (Exception e) {
-//            log.error("Can't load white labeling params", e);
-//        }
-//    }
 
     private void syncCustomTranslation(TenantId tenantId, Edge edge) {
         try {
@@ -559,26 +440,26 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             log.error("Can't load custom translation", e);
         }
     }
-//
-//    private void syncAdminSettings(TenantId tenantId, Edge edge) {
-//        try {
-//            List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
-//            for (String key : adminSettingsKeys) {
-//                AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
-//                saveAdminSettingsEdgeEvent(edge, sysAdminMainSettings);
-//                Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, key).get();
-//                if (tenantMailSettingsAttr.isPresent()) {
-//                    AdminSettings tenantMailSettings = new AdminSettings();
-//                    tenantMailSettings.setKey(key);
-//                    String value = tenantMailSettingsAttr.get().getValueAsString();
-//                    tenantMailSettings.setJsonValue(mapper.readTree(value));
-//                    saveAdminSettingsEdgeEvent(edge, tenantMailSettings);
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error("Can't load admin settings", e);
-//        }
-//    }
+
+    private void syncAdminSettings(TenantId tenantId, Edge edge) {
+        try {
+            List<String> adminSettingsKeys = Arrays.asList("mail", "mailTemplates");
+            for (String key : adminSettingsKeys) {
+                AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
+                saveAdminSettingsEdgeEvent(edge, sysAdminMainSettings);
+                Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(edge.getTenantId(), edge.getTenantId(), DataConstants.SERVER_SCOPE, key).get();
+                if (tenantMailSettingsAttr.isPresent()) {
+                    AdminSettings tenantMailSettings = new AdminSettings();
+                    tenantMailSettings.setKey(key);
+                    String value = tenantMailSettingsAttr.get().getValueAsString();
+                    tenantMailSettings.setJsonValue(mapper.readTree(value));
+                    saveAdminSettingsEdgeEvent(edge, tenantMailSettings);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Can't load admin settings", e);
+        }
+    }
 
     private void saveAdminSettingsEdgeEvent(Edge edge, AdminSettings adminSettings) {
         log.info(String.valueOf(adminSettings));
@@ -591,22 +472,20 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
                 null);
     }
 
-//    private void syncCustomerUsers(TenantId tenantId, Edge edge) {
-//        if (edge.getCustomerId() != null && !EntityId.NULL_UUID.equals(edge.getCustomerId().getId())) {
-//            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getCustomerId(), null);
-//            TimePageLink pageLink = new TimePageLink(DEFAULT_LIMIT);
-//            PageData<User> pageData;
-//            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
-//            PageData<User> pageData;
-//            do {
-//                pageData = userService.findCustomerUsers(tenantId, edge.getCustomerId(), pageLink);
-//                pushUsersToEdge(tenantId, pageData, edge);
-//                if (pageData != null && pageData.hasNext()) {
-//                    pageLink = pageLink.nextPageLink();
-//                }
-//            } while (pageData != null && pageData.hasNext());
-//        }
-//    }
+    private void syncCustomerUsers(TenantId tenantId, Edge edge) {
+        if (edge.getCustomerId() != null && !EntityId.NULL_UUID.equals(edge.getCustomerId().getId())) {
+            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getCustomerId(), null);
+            PageLink pageLink = new PageLink(DEFAULT_LIMIT);
+            PageData<User> pageData;
+            do {
+                pageData = userService.findCustomerUsers(tenantId, edge.getCustomerId(), pageLink);
+                pushUsersToEdge(tenantId, pageData, edge);
+                if (pageData != null && pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            } while (pageData != null && pageData.hasNext());
+        }
+    }
 
     private void pushUsersToEdge(TenantId tenantId, PageData<User> pageData, Edge edge) {
         if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
@@ -648,66 +527,6 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
             log.error("Exception during loading widgets type(s) on sync!", e);
         }
     }
-//
-//    private void syncAdminSettings(TenantId tenantId, Edge edge) {
-//        log.trace("[{}] syncAdminSettings [{}]", tenantId, edge.getName());
-//        try {
-//            AdminSettings systemMailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-//            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS, EdgeEventActionType.UPDATED, null, mapper.valueToTree(systemMailSettings));
-//            AdminSettings tenantMailSettings = convertToTenantAdminSettings(systemMailSettings.getKey(), (ObjectNode) systemMailSettings.getJsonValue());
-//            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS, EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailSettings));
-//            AdminSettings systemMailTemplates = loadMailTemplates();
-//            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS, EdgeEventActionType.UPDATED, null, mapper.valueToTree(systemMailTemplates));
-//            AdminSettings tenantMailTemplates = convertToTenantAdminSettings(systemMailTemplates.getKey(), (ObjectNode) systemMailTemplates.getJsonValue());
-//            saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS, EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailTemplates));
-//        } catch (Exception e) {
-//            log.error("Can't load admin settings", e);
-//        }
-//    }
-//
-//    private AdminSettings loadMailTemplates() throws Exception {
-//        Map<String, Object> mailTemplates = new HashMap<>();
-//        Pattern startPattern = Pattern.compile("<div class=\"content\".*?>");
-//        Pattern endPattern = Pattern.compile("<div class=\"footer\".*?>");
-//        File[] files = new DefaultResourceLoader().getResource("classpath:/templates/").getFile().listFiles();
-//        for (File file: files) {
-//            Map<String, String> mailTemplate = new HashMap<>();
-//            String name = validateName(file.getName());
-//            String stringTemplate = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
-//            Matcher start = startPattern.matcher(stringTemplate);
-//            Matcher end = endPattern.matcher(stringTemplate);
-//            if (start.find() && end.find()) {
-//                String body = StringUtils.substringBetween(stringTemplate, start.group(), end.group()).replaceAll("\t", "");
-//                String subject = StringUtils.substringBetween(body, "<h2>", "</h2>");
-//                mailTemplate.put("subject", subject);
-//                mailTemplate.put("body", body);
-//                mailTemplates.put(name, mailTemplate);
-//            } else {
-//                log.error("Can't load mail template from file {}", file.getName());
-//            }
-//        }
-//        AdminSettings adminSettings = new AdminSettings();
-//        adminSettings.setId(new AdminSettingsId(Uuids.timeBased()));
-//        adminSettings.setKey("mailTemplates");
-//        adminSettings.setJsonValue(mapper.convertValue(mailTemplates, JsonNode.class));
-//        return adminSettings;
-//    }
-//
-//    private String validateName(String name) throws Exception {
-//        StringBuilder nameBuilder = new StringBuilder();
-//        name = name.replace(".vm", "");
-//        String[] nameParts = name.split("\\.");
-//        if (nameParts.length >= 1) {
-//            nameBuilder.append(nameParts[0]);
-//            for (int i = 1; i < nameParts.length; i++) {
-//                String word = WordUtils.capitalize(nameParts[i]);
-//                nameBuilder.append(word);
-//            }
-//            return nameBuilder.toString();
-//        } else {
-//            throw new Exception("Error during filename validation");
-//        }
-//    }
 
     private AdminSettings convertToTenantAdminSettings(String key, ObjectNode jsonValue) {
         AdminSettings tenantMailSettings = new AdminSettings();
@@ -917,7 +736,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
     public ListenableFuture<Void> processEntityGroupEntitiesRequest(TenantId tenantId, Edge edge, EntityGroupRequestMsg entityGroupEntitiesRequestMsg) {
         if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
-            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                 EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
                 switch (groupType) {
@@ -962,7 +781,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private ListenableFuture<Void> processUserGroupPermissionsRequest(Edge edge, EntityGroupId userGroupId) {
         PageData<GroupPermission> groupPermissionsData =
-                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new TimePageLink(Integer.MAX_VALUE));
+                groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(edge.getTenantId(), userGroupId, new PageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
@@ -1001,7 +820,7 @@ public class DefaultSyncEdgeService implements SyncEdgeService {
 
     private ListenableFuture<Void> processEntityGroupPermissionsRequest(Edge edge, EntityGroupId entityGroupId, EntityType entityGroupType) {
         PageData<GroupPermission> groupPermissionsData =
-                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                groupPermissionService.findGroupPermissionByTenantIdAndEntityGroupId(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
         if (!groupPermissionsData.getData().isEmpty()) {
             List<ListenableFuture<Void>> result = new ArrayList<>();
             for (GroupPermission groupPermission : groupPermissionsData.getData()) {
