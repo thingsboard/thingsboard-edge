@@ -189,4 +189,4 @@ export const edgeEntityTypes: EntityType[] = [
   EntityType.RULE_CHAIN
 ];
 
-export const edgeAllEntityTypes: EntityType[] = edgeEntityGroupTypes.concat(edgeEntityTypes);
+export const edgeAllEntityTypes: EntityType[] = [...edgeEntityGroupTypes, ...edgeEntityTypes];

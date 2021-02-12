@@ -166,7 +166,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private loadNodesForEdge(group: BaseData<HasId>): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
-    const allowedGroupAndEntityTypes: Array<EntityType> = this.isSysAdmin ? edgeAllEntityTypes : this.allowedGroupTypes.concat(this.allowedEntityTypes);
+    const allowedGroupAndEntityTypes: Array<EntityType> = this.isSysAdmin ? edgeAllEntityTypes : [...this.allowedGroupTypes, ...this.allowedEntityTypes];
     allowedGroupAndEntityTypes.forEach((groupType) => {
       const node: EdgeOverviewNode = this.createEdgeGroupsNode(group, groupType);
       nodes.push(node);
