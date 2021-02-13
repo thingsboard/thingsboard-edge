@@ -248,13 +248,17 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.edgeId = node.data.edge.id.id;
           entityGroupParams.nodeId = node.id;
           entityGroupParams.internalId = node.data.internalId;
-          const entityType = node.data.entityType;
-          switch (entityType) {
+          const groupsType = node.data.groupsType;
+          switch (groupsType) {
+            case EntityType.USER:
+            case EntityType.ASSET:
+            case EntityType.DEVICE:
+            case EntityType.ENTITY_VIEW:
+            case EntityType.DASHBOARD:
+              this.updateGroupsView(entityGroupParams, null, node.data.edge);
+              break;
             case EntityType.SCHEDULER_EVENT:
               this.updateSchedulerView('schedulerEvents');
-              break;
-            default:
-              this.updateGroupsView(entityGroupParams, null, node.data.edge);
               break;
           }
         } else {
@@ -445,24 +449,24 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodesMap = {};
     this.customerGroupsNodesMap[parentNodeId] = nodesMap;
     if (!this.edgesSupportEnabled) {
-      this.allowedGroupTypes = this.allowedGroupTypes.filter((entityType: EntityType) => entityType !== EntityType.EDGE);
+      this.allowedGroupTypes = this.allowedGroupTypes.filter((groupType: EntityType) => groupType !== EntityType.EDGE);
     }
-    this.allowedGroupTypes.forEach((groupType) => {
+    this.allowedGroupTypes.forEach((groupsType) => {
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
         icon: false,
-        text: entityGroupsNodeText(this.translate, groupType),
+        text: entityGroupsNodeText(this.translate, groupsType),
         children: true,
         data: {
           type: 'groups',
-          groupsType: groupType,
+          groupsType,
           customer,
           parentEntityGroupId,
-          internalId: customer.id.id + '_' + groupType
+          internalId: customer.id.id + '_' + groupsType
         } as EntityGroupsNodeData
       };
       nodes.push(node);
-      nodesMap[groupType] = node.id;
+      nodesMap[groupsType] = node.id;
       this.registerNode(node, parentNodeId);
     });
     return nodes;
@@ -473,41 +477,41 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodes: CustomersHierarchyNode[] = [];
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
-    this.allowedEdgeGroupTypes.forEach((groupType) => {
+    this.allowedEdgeGroupTypes.forEach((groupsType) => {
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
         icon: false,
-        text: entityGroupsNodeText(this.translate, groupType),
+        text: entityGroupsNodeText(this.translate, groupsType),
         children: true,
         data: {
           type: 'edgeGroups',
-          groupsType: groupType,
+          groupsType,
           edge,
           parentEntityGroupId,
-          internalId: edge.id.id + '_' + groupType
+          internalId: edge.id.id + '_' + groupsType
         } as EdgeEntityGroupsNodeData
       };
       nodes.push(node);
-      nodesMap[groupType] = node.id;
+      nodesMap[groupsType] = node.id;
       this.registerNode(node, parentNodeId);
     });
     if (this.allowedScheduler) {
-      const entityType = EntityType.SCHEDULER_EVENT;
+      const groupsType = EntityType.SCHEDULER_EVENT;
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
         icon: false,
-        text: entitiesNodeText(this.translate, entityType),
+        text: entitiesNodeText(this.translate, groupsType),
         children: false,
         data: {
           type: 'edgeGroups',
-          entityType: entityType,
+          groupsType,
           edge,
           parentEntityGroupId,
-          internalId: edge.id.id + '_' + entityType
+          internalId: edge.id.id + '_' + groupsType
         } as EdgeEntityGroupsNodeData
       };
       nodes.push(node);
-      nodesMap[entityType] = node.id;
+      nodesMap[groupsType] = node.id;
       this.registerNode(node, parentNodeId);
     }
     return nodes;

@@ -1713,19 +1713,11 @@ export class EntityService {
     const ignoreLoading: boolean = true;
     switch (entityType) {
       case (EntityType.USER):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: ignoreLoading });
-        break;
       case (EntityType.ASSET):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: ignoreLoading });
-        break;
       case (EntityType.DEVICE):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: ignoreLoading });
-        break;
       case (EntityType.ENTITY_VIEW):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: ignoreLoading });
-        break;
       case (EntityType.DASHBOARD):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: ignoreLoading });
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading });
         break;
       case (EntityType.SCHEDULER_EVENT):
         entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
@@ -1733,6 +1725,8 @@ export class EntityService {
       case (EntityType.RULE_CHAIN):
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
+      default:
+        console.error(`Edge does not support EntityType ${entityType}`);
     }
     return entitiesObservable;
   }

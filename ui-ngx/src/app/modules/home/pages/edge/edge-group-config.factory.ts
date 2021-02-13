@@ -29,32 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {Observable, of} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {UtilsService} from '@core/services/utils.service';
+import { Observable, of } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { UtilsService } from '@core/services/utils.service';
 import {
   EntityGroupStateConfigFactory,
   EntityGroupStateInfo,
   GroupEntityTableConfig
 } from '@home/models/group/group-entities-table-config.models';
-import {Injectable} from '@angular/core';
-import {EntityType} from '@shared/models/entity-type.models';
-import {tap} from 'rxjs/operators';
-import {BroadcastService} from '@core/services/broadcast.service';
-import {EntityAction} from '@home/models/entity/entity-component.models';
-import {MatDialog} from '@angular/material/dialog';
-import {UserPermissionsService} from '@core/http/user-permissions.service';
-import {EntityGroupParams, ShortEntityView} from '@shared/models/entity-group.models';
-import {HomeDialogsService} from '@home/dialogs/home-dialogs.service';
-import {CustomerId} from '@shared/models/id/customer-id';
-import {GroupConfigTableConfigService} from '@home/components/group/group-config-table-config.service';
-import {Operation, Resource} from '@shared/models/security.models';
-import {Edge} from "@shared/models/edge.models";
-import {EdgeService} from "@core/http/edge.service";
-import {EdgeComponent} from "@home/pages/edge/edge.component";
-import {Router} from "@angular/router";
-import { Browser } from 'leaflet';
-import edge = Browser.edge;
+import { Injectable } from '@angular/core';
+import { EntityType } from '@shared/models/entity-type.models';
+import { tap } from 'rxjs/operators';
+import { BroadcastService } from '@core/services/broadcast.service';
+import { EntityAction } from '@home/models/entity/entity-component.models';
+import { MatDialog } from '@angular/material/dialog';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { EntityGroupParams, ShortEntityView } from '@shared/models/entity-group.models';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { CustomerId } from '@shared/models/id/customer-id';
+import { GroupConfigTableConfigService } from '@home/components/group/group-config-table-config.service';
+import { Operation, Resource } from '@shared/models/security.models';
+import { Edge } from "@shared/models/edge.models";
+import { EdgeService } from "@core/http/edge.service";
+import { EdgeComponent } from "@home/pages/edge/edge.component";
+import { Router } from "@angular/router";
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
