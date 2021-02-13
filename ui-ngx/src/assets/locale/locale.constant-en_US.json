@@ -2924,6 +2924,7 @@
         "assign-rulechain-to-edge-text": "Please select the rulechains to assign to the edge",
         "assign-scheduler-event-to-edge-title": "Assign Scheduler(s) To Edge",
         "assign-scheduler-event-to-edge-text": "Please select the scheduler events to assign to the edge",
+        "set-edge-template-root-rulechain": "Make rule chain as edge template root",
         "set-edge-tscheduler-eventemplate-root-rulechain": "Make rule chain as edge template root",
         "set-edge-template-root-rulechain-title": "Are you sure you want to make the rule chain '{{ruleChainName}}' edge template root?",
         "set-edge-template-root-rulechain-text": "After the confirmation the rule chain will become edge template root and will be root rule chain for a newly created edges.",
