@@ -59,7 +59,7 @@ import {
   importRuleChainBreadcumbLabelFunction,
   ResolvedRuleChainMetaDataResolver,
   ruleChainBreadcumbLabelFunction, RuleChainImportGuard,
-  RuleChainResolver, RuleNodeComponentsResolver
+  RuleChainResolver, RuleNodeComponentsResolver, TooltipsterResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 
@@ -790,7 +790,8 @@ const routes: Routes = [
             resolve: {
               ruleChain: RuleChainResolver,
               ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-              ruleNodeComponents: RuleNodeComponentsResolver
+              ruleNodeComponents: RuleNodeComponentsResolver,
+              tooltipster: TooltipsterResolver
             }
           },
           {
@@ -809,7 +810,8 @@ const routes: Routes = [
               ruleChainType: RuleChainType.EDGE
             },
             resolve: {
-              ruleNodeComponents: RuleNodeComponentsResolver
+              ruleNodeComponents: RuleNodeComponentsResolver,
+              tooltipster: TooltipsterResolver
             }
           }
         ]
