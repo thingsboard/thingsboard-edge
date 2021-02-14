@@ -64,14 +64,12 @@
           [fxShow]="!hideManageCredentials() && !isEdit">
     {{ 'device.view-credentials' | translate }}
   </button>
-  <button mat-raised-button color="primary"
+  <!--button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
-          [fxShow]="!isEdit">
-    <!--  TODO: voba - from CE version-->
-    <!--  [fxShow]="!isEdit && deviceScope === 'edge'">-->
+          [fxShow]="!isEdit && deviceScope === 'edge'">
     {{ 'edge.unassign-from-edge' | translate }}
-  </button>
+  <button-->
   <button mat-raised-button color="primary" fxFlex.xs
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
