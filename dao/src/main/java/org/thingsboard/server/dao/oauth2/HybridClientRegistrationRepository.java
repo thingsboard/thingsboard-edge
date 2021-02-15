@@ -68,7 +68,7 @@ public class HybridClientRegistrationRepository implements ClientRegistrationRep
                 .userNameAttributeName(localClientRegistration.getUserNameAttributeName())
                 .jwkSetUri(localClientRegistration.getJwkSetUri())
                 .clientAuthenticationMethod(new ClientAuthenticationMethod(localClientRegistration.getClientAuthenticationMethod()))
-                .redirectUriTemplate(defaultRedirectUriTemplate)
+                .redirectUri(defaultRedirectUriTemplate)
                 .build();
     }
 }

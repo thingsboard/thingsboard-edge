@@ -886,6 +886,15 @@ export const pointSchema =
                 title: 'Point color',
                 type: 'string'
             },
+            useColorPointFunction: {
+                title: 'Use color point function',
+                type: 'boolean',
+                default: false
+            },
+            colorPointFunction: {
+                title: 'Color point function: f(data, dsData, dsIndex)',
+                type: 'string'
+            },
             pointSize: {
                 title: 'Point size (px)',
                 type: 'number',
@@ -913,6 +922,11 @@ export const pointSchema =
         {
             key: 'pointColor',
             type: 'color'
+        },
+        'useColorPointFunction',
+        {
+          key: 'colorPointFunction',
+          type: 'javascript'
         },
         'pointSize',
         'usePointAsAnchor',

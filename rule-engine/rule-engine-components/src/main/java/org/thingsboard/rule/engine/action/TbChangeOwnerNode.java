@@ -82,7 +82,7 @@ public class TbChangeOwnerNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         config = TbNodeUtils.convert(configuration, TbChangeOwnerNodeConfiguration.class);
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
         if (config.getOwnerCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getOwnerCacheExpiration(), TimeUnit.SECONDS);
         }
@@ -115,7 +115,7 @@ public class TbChangeOwnerNode implements TbNode {
         String ownerName;
         EntityType entityType = EntityType.valueOf(this.config.getOwnerType());
         if(entityType.equals(EntityType.CUSTOMER)) {
-            ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg.getMetaData());
+            ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
         } else {
             //Maybe set tenant name?
             ownerName = null;

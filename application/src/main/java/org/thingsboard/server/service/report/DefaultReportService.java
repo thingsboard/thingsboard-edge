@@ -98,6 +98,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
+@SuppressWarnings("deprecation")
 public class DefaultReportService implements ReportService {
 
     private static ObjectMapper mapper = new ObjectMapper();

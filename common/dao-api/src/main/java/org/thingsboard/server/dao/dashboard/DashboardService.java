@@ -66,6 +66,8 @@ public interface DashboardService {
 
     PageData<DashboardInfo> findDashboardsByTenantId(TenantId tenantId, PageLink pageLink);
 
+    PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
     void deleteDashboardsByTenantId(TenantId tenantId);
 
     void deleteDashboardsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);

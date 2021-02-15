@@ -69,7 +69,7 @@ export class FilterPredicateValueComponent implements ControlValueAccessor, OnIn
     if (allow) {
       this.dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_USER);
     } else {
-      this.dynamicValueSourceTypes = [DynamicValueSourceType.CURRENT_DEVICE];
+      this.dynamicValueSourceTypes.push(DynamicValueSourceType.CURRENT_DEVICE);
     }
   }
 

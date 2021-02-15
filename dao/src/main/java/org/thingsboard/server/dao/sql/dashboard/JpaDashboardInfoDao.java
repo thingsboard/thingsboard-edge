@@ -59,12 +59,12 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
     private DashboardInfoRepository dashboardInfoRepository;
 
     @Override
-    protected Class getEntityClass() {
+    protected Class<DashboardInfoEntity> getEntityClass() {
         return DashboardInfoEntity.class;
     }
 
     @Override
-    protected CrudRepository getCrudRepository() {
+    protected CrudRepository<DashboardInfoEntity, UUID> getCrudRepository() {
         return dashboardInfoRepository;
     }
 
@@ -75,6 +75,16 @@ public class JpaDashboardInfoDao extends JpaAbstractSearchTextDao<DashboardInfoE
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, DashboardInfoEntity.dashboardColumnMap)));
+    }
+
+    @Override
+    public PageData<DashboardInfo> findDashboardsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(dashboardInfoRepository
+                .findByTenantIdAndCustomerId(
+                        tenantId,
+                        customerId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override

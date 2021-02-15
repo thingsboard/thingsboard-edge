@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.http.sigfox;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -68,8 +69,24 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                 return fromStatus(HttpStatus.BAD_REQUEST);
             } else {
                 Entry<String, UplinkData> entry = result.entrySet().stream().findFirst().get();
-                String deviceIdAttributeName = metadataTemplate.getKvMap().getOrDefault("SigFoxDeviceIdAttributeName", "device");
-                String sigFoxDeviceId = msg.getMsg().get(deviceIdAttributeName).asText();
+                String sigFoxDeviceId;
+                String deviceIdAttributeName = metadataTemplate.getKvMap().get("SigFoxDeviceIdAttributeName");
+                JsonNode msgBody = msg.getMsg();
+                if (deviceIdAttributeName != null) {
+                    if (msgBody.has(deviceIdAttributeName)) {
+                        sigFoxDeviceId = msgBody.get(deviceIdAttributeName).asText();
+                    } else {
+                        throw new RuntimeException("Incoming message does not have the '" + deviceIdAttributeName + "' field!");
+                    }
+                } else {
+                    if (msgBody.has("device")) {
+                        sigFoxDeviceId = msgBody.get("device").asText();
+                    } else if (msgBody.has("Device")) {
+                        sigFoxDeviceId = msgBody.get("Device").asText();
+                    } else {
+                        throw new RuntimeException("Incoming message should contain either 'device' or 'Device' field!");
+                    }
+                }
                 return processDownLinkData(context, entry.getKey(), msg, sigFoxDeviceId);
             }
         } else {
@@ -95,7 +112,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                     json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
                     HttpHeaders responseHeaders = new HttpHeaders();
                     responseHeaders.add("Content-Type", "application/json");
-                    ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
+                    ResponseEntity<JsonNode> response = new ResponseEntity<>(json, responseHeaders, HttpStatus.OK);
                     logDownlink(context, "Downlink", response);
                     return response;
                 }

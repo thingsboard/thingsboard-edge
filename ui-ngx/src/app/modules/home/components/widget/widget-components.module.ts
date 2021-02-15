@@ -50,6 +50,8 @@ import { TripAnimationComponent } from './trip-animation/trip-animation.componen
 import { PhotoCameraInputWidgetComponent } from './lib/photo-camera-input.component';
 import { GatewayFormComponent } from './lib/gateway/gateway-form.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { NavigationCardsWidgetComponent } from '@home/components/widget/lib/navigation-cards-widget.component';
+import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navigation-card-widget.component';
 import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-overview-widget.component';
 
 @NgModule({
@@ -67,7 +69,9 @@ import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-
       MultipleInputWidgetComponent,
       TripAnimationComponent,
       PhotoCameraInputWidgetComponent,
-      GatewayFormComponent
+      GatewayFormComponent,
+      NavigationCardsWidgetComponent,
+      NavigationCardWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -87,7 +91,9 @@ import { EdgesOverviewWidgetComponent } from '@home/components/widget/lib/edges-
     MultipleInputWidgetComponent,
     TripAnimationComponent,
     PhotoCameraInputWidgetComponent,
-    GatewayFormComponent
+    GatewayFormComponent,
+    NavigationCardsWidgetComponent,
+    NavigationCardWidgetComponent
   ],
   providers: [
     CustomDialogService,

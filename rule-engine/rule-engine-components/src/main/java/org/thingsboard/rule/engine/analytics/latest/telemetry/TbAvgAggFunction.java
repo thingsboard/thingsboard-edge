@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class TbAvgAggFunction extends TbBaseAggFunction {
 
@@ -47,7 +48,7 @@ public class TbAvgAggFunction extends TbBaseAggFunction {
 
     @Override
     protected double prepareResult() {
-        return sum.divide(BigDecimal.valueOf(count), 2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        return sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP).doubleValue();
     }
 
 }

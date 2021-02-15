@@ -351,6 +351,8 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise");
             case TMOBILE_IOT_CDP:
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
+            case CHIRPSTACK:
+                return newInstance("org.thingsboard.integration.http.chirpstack.ChirpStackIntegration");
             case MQTT:
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:
@@ -390,7 +392,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
-        return (ThingsboardPlatformIntegration) Class.forName(clazz).newInstance();
+        return (ThingsboardPlatformIntegration) Class.forName(clazz).getDeclaredConstructor().newInstance();
     }
 
     private void processHandleMessages() {
