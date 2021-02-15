@@ -36,11 +36,10 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Customer } from '@shared/models/customer.model';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { GroupContactBasedComponent } from '@home/components/group/group-contact-based.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { isDefined } from '@core/utils';
-import { isDefinedAndNotNull } from '@core/utils';
 import { AuthState } from '@core/auth/auth.models';
 
 @Component({

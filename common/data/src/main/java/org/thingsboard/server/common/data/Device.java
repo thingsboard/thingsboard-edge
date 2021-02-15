@@ -80,6 +80,17 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setDeviceData(device.getDeviceData());
     }
 
+    public Device updateDevice(Device device) {
+        this.tenantId = device.getTenantId();
+        this.customerId = device.getCustomerId();
+        this.name = device.getName();
+        this.type = device.getType();
+        this.label = device.getLabel();
+        this.deviceProfileId = device.getDeviceProfileId();
+        this.setDeviceData(device.getDeviceData());
+        return this;
+    }
+
     public TenantId getTenantId() {
         return tenantId;
     }

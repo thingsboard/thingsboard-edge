@@ -246,6 +246,7 @@
   },
   "defaultProject": "thingsboard",
   "cli": {
-    "packageManager": "yarn"
+    "packageManager": "yarn",
+    "analytics": false
   }
 }
