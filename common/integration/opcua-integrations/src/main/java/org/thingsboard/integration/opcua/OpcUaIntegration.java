@@ -416,7 +416,6 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.debug("[{}] Scheduling next scan in {} seconds!", this.configuration.getId(), opcUaServerConfiguration.getScanPeriodInSeconds());
                 scheduleScan();
             }
-            disconnect();
         } catch (Throwable e) {
             log.warn("[{}] Periodic device scan failed!", this.configuration.getId(), e);
             scheduleReconnect = true;
