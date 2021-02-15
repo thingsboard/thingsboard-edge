@@ -336,6 +336,10 @@
         "filter-type-entity-view-search-query": "Consulta de búsqueda de vista de entidad",
         "filter-type-entity-view-search-query-description": "Vistas de entidad con tipos {{entityViewTypes}} que tienen tipo de relación {{relationType}} con dirección {{direction}} {{rootEntity}}",
         "filter-type-apiUsageState": "Uso de API",
+        "filter-type-edge-search-query": "Consultar búsqueda de borde",
+        "filter-type-edge-search-query-description": "Bordes con tipos {{edgeTypes}} que tienen {{relationType}} relación {{direction}} {{rootEntity}}",
+        "type-assigned-to-edge": "Asignado a borde",
+        "type-unassigned-from-edge": "Sin asignar desde bordes",
         "entity-filter": "Filtro por entidad",
         "resolve-multiple": "Tomar como múltiples entidades",
         "filter-type": "Filtro por tipo",
@@ -428,7 +432,15 @@
         "asset-file": "Archivo del activo",
         "search": "Buscar activos",
         "selected-assets": "{ count, plural, 1 {1 activo} other {# activos} } seleccionados",
-        "label": "Etiqueta"
+        "label": "Etiqueta",
+        "assign-asset-to-edge": "Asignar activo(s) al borde",
+        "assign-asset-to-edge-text":"Por favor, seleccione los activos para asignar al borde",
+        "unassign-asset-from-edge": "Anular activo de bodre",
+        "unassign-asset-from-edge-title": "¿Está seguro de que desea desasignar el activo '{{assetName}}'?",
+        "unassign-asset-from-edge-text": "Después de la confirmación, el activo no será asignado y el borde no podrá acceder a él",
+        "unassign-assets-from-edge-action-title": "Anular asignación {count, plural, 1 {1 activo} other {# activos}} desde el borde",
+        "unassign-assets-from-edge-title": "¿Está seguro de que desea desasignar {count, plural, 1 {1 activo} other {# activos}}?",
+        "unassign-assets-from-edge-text": "Después de la confirmación, todos los activos seleccionados quedarán sin asignar y el borde no podrá acceder a ellos."
     },
     "attribute": {
         "attributes": "Atributos",
@@ -1011,6 +1023,8 @@
         "public": "Público",
         "device-public": "El dispositivo es público",
         "select-device": "Seleccionar dispositivo",
+        "import": "Importar dispositivo",
+        "device-file": "Archivo de dispositivo",
         "selected-devices": "{ count, plural, 1 {1 device} other {# devices} } seleccionados",
         "search": "Buscar dispositivos",
         "select-group-to-add": "Seleccioar grupo objetivo para agregar dispositivos seleccionados",
@@ -1019,7 +1033,6 @@
         "group": "Grupo de dispositivos",
         "list-of-groups": "{ count, plural, 1 {One device group} other {List of # device groups} }",
         "group-name-starts-with": "Grupo de dispositivos cuyos nombres comienzan con '{{prefix}}'",
-        "device-file": "Archivo de dispositivo",
         "device-configuration": "Configuración del dispositivo",
         "transport-configuration": "Configuración del transporte",
         "wizard": {
@@ -1031,7 +1044,6 @@
             "customer-to-assign-device": "Cliente al que asignar el dispositivo",
             "add-credential": "Añadir credencial"
         },
-        "import": "Importar dispositivo",
         "assign-device-to-edge-text": "Seleccione los dispositivos para asignar al borde",
         "unassign-device-from-edge-title": "¿Está seguro de que desea desasignar el dispositivo '{{deviceName}}'?",
         "unassign-device-from-edge-text": "Después de la confirmación, el dispositivo no será asignado y el borde no podrá acceder a él",
@@ -1472,7 +1484,11 @@
         "type-integrations": "Integraciones",
         "list-of-integrations": "{ count, plural, 1 {One integration} other {List of # integrations} }",
         "integration-name-starts-with": "Integraciones cuyos nombres comienzan con '{{prefix}}'",
-        "type-api-usage-state": "Estado de uso de la API"
+        "type-api-usage-state": "Estado de uso de la API",
+        "type-edge": "Borde",
+        "type-edges": "Bordes",
+        "list-of-edges": "{cuenta, plural, 1 {Un borde} other {Lista de # bordes}}",
+        "edge-name-starts-with": "Bordes cuyos nombres comienzan con '{{prefijo}}'"
     },
     "entity-group": {
         "entity-group": "Grupo de entidades",
@@ -1695,7 +1711,15 @@
         "make-private-entity-view-title": "¿Está seguro de que desea que la vista de entidad '{{entityViewName}}' sea privada?",
         "make-private-entity-view-text": "Tras la confirmación, la vista de la entidad y todos sus datos se harán privados y no serán accesibles para otros.",
         "search": "Buscar vistas de entidad",
-        "selected-entity-views": "{ count, plural, 1 {1 vista de entidad} other {# vistas de entidad} } seleccionadas"
+        "selected-entity-views": "{ count, plural, 1 {1 vista de entidad} other {# vistas de entidad} } seleccionadas",
+        "assign-entity-view-to-edge": "Asignar vista (s) de entidad a borde",
+        "assign-entity-view-to-edge-text": "Seleccione las vistas de entidad para asignar al borde",
+        "unassign-entity-view-from-edge-title": "¿Está seguro de que desea anular la asignación de la vista de entidad '{{entityViewName}}'?",
+        "unassign-entity-view-from-edge-text": "Después de la confirmación, la vista de entidad quedará sin asignar y el borde no podrá acceder a ella",
+        "unassign-entity-views-from-edge-action-title": "Anular asignación {recuento, plural, 1 {1 vista de entidad} otras {# vistas de entidad}} del borde",
+        "unassign-entity-view-from-edge": "Anular asignación de vista de entidad",
+        "unassign-entity-views-from-edge-title": "¿Está seguro de que desea desasignar {count, plural, 1 {1 vista de entidad} other {# vistas de entidad}}?",
+        "unassign-entity-views-from-edge-text": "Después de la confirmación, todas las vistas de entidad seleccionadas no serán asignadas y el borde no podrá acceder a ellas"
     },
     "event": {
         "events": "Eventos",

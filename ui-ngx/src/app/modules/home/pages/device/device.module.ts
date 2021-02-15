@@ -38,7 +38,6 @@ import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { DeviceTabsComponent } from '@home/pages/device/device-tabs.component';
 import { SecurityConfigComponent } from '@home/pages/device/lwm2m/security-config.component';
-// TODO: @nickAS21 move to device profile
 import { SecurityConfigServerComponent } from '@home/pages/device/lwm2m/security-config-server.component';
 import { DeviceGroupConfigFactory } from '@home/pages/device/device-group-config.factory';
 import { DEVICE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';

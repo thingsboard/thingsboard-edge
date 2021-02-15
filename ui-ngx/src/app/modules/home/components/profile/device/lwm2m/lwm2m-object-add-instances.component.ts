@@ -31,12 +31,11 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { ControlValueAccessor, FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface Lwm2mObjectAddInstancesData {
   instancesIds: Set<number>;
@@ -46,14 +45,11 @@ export interface Lwm2mObjectAddInstancesData {
 
 @Component({
   selector: 'tb-lwm2m-object-add-instances',
-  templateUrl: './lwm2m-object-add-instances.component.html',
-  styleUrls: []
+  templateUrl: './lwm2m-object-add-instances.component.html'
 })
 export class Lwm2mObjectAddInstancesComponent extends DialogComponent<Lwm2mObjectAddInstancesComponent, object> implements OnInit {
 
-  jsonFormGroup: FormGroup;
-  // title: string;
-
+  instancesFormGroup: FormGroup;
   submitted = false;
 
   constructor(protected store: Store<AppState>,
@@ -64,11 +60,10 @@ export class Lwm2mObjectAddInstancesComponent extends DialogComponent<Lwm2mObjec
     super(store, router, dialogRef);
   }
 
-
   ngOnInit(): void {
-    this.jsonFormGroup = this.fb.group({
+    this.instancesFormGroup = this.fb.group({
       instancesIds: this.data.instancesIds
-    })
+    });
   }
 
   cancel(): void {
@@ -76,7 +71,7 @@ export class Lwm2mObjectAddInstancesComponent extends DialogComponent<Lwm2mObjec
   }
 
   add(): void {
-    this.data.instancesIds = this.jsonFormGroup.get('instancesIds').value
+    this.data.instancesIds = this.instancesFormGroup.get('instancesIds').value;
     this.dialogRef.close(this.data);
   }
 }

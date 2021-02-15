@@ -58,8 +58,10 @@ public abstract class TransportContext {
 
     @Autowired
     private TransportService transportService;
+
     @Autowired
     private TbServiceInfoProvider serviceInfoProvider;
+
     @Autowired
     private SchedulerComponent scheduler;
 
