@@ -88,8 +88,7 @@ export enum CloudEventType {
   CUSTOMER = "CUSTOMER",
   RELATION = "RELATION",
   ENTITY_GROUP = "ENTITY_GROUP",
-  EDGE = "EDGE",
-  SCHEDULER_EVENT = "SCHEDULER_EVENT"
+  EDGE = "EDGE"
 }
 
 export enum CloudEventActionType {
@@ -143,8 +142,7 @@ export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
     [CloudEventType.EDGE, 'cloud-event.cloud-event-type-edge'],
     [CloudEventType.USER, 'cloud-event.cloud-event-type-user'],
     [CloudEventType.CUSTOMER, 'cloud-event.cloud-event-type-customer'],
-    [CloudEventType.RELATION, 'cloud-event.cloud-event-type-relation'],
-    [CloudEventType.SCHEDULER_EVENT, 'cloud-event.cloud-event-type-scheduler-event']
+    [CloudEventType.RELATION, 'cloud-event.cloud-event-type-relation']
   ]
 );
 
