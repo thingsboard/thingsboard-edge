@@ -51,7 +51,7 @@ import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 /**
  * Created by ashvayka on 02.12.17.
  */
-public interface PlatformIntegrationService extends ApplicationListener<PartitionChangeEvent> {
+public interface PlatformIntegrationService {
 
     void validateIntegrationConfiguration(Integration integration);
 

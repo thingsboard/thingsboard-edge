@@ -31,7 +31,6 @@
 package org.thingsboard.server.transport.lwm2m.secure;
 
 import com.google.gson.JsonObject;
-import lombok.Builder;
 import lombok.Data;
 import org.eclipse.leshan.server.bootstrap.BootstrapConfig;
 import org.eclipse.leshan.server.security.SecurityInfo;
@@ -44,7 +43,6 @@ import static org.thingsboard.server.transport.lwm2m.secure.LwM2MSecurityMode.DE
 public class ReadResultSecurityStore {
     private ValidateDeviceCredentialsResponseMsg msg;
     private SecurityInfo securityInfo;
-    @Builder.Default
     private int securityMode = DEFAULT_MODE.code;
 
     /** bootstrap */

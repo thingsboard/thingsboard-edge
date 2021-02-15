@@ -210,6 +210,9 @@ public abstract class BaseController {
 
     private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
 
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
+
     private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
@@ -1027,6 +1030,7 @@ public abstract class BaseController {
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
+    @SuppressWarnings("unchecked")
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
@@ -1180,8 +1184,9 @@ public abstract class BaseController {
                     entityNode = json.createObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<AttributeKvEntry> attributes = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         if (attributes != null) {
                             for (AttributeKvEntry attr : attributes) {
                                 addKvEntry(entityNode, attr);
@@ -1189,16 +1194,19 @@ public abstract class BaseController {
                         }
                     } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<String> keys = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         ArrayNode attrsArrayNode = entityNode.putArray("attributes");
                         if (keys != null) {
                             keys.forEach(attrsArrayNode::add);
                         }
                     } else if (actionType == ActionType.TIMESERIES_UPDATED) {
+                        @SuppressWarnings("unchecked")
                         List<TsKvEntry> timeseries = extractParameter(List.class, 0, additionalInfo);
                         addTimeseries(entityNode, timeseries);
                     } else if (actionType == ActionType.TIMESERIES_DELETED) {
+                        @SuppressWarnings("unchecked")
                         List<String> keys = extractParameter(List.class, 0, additionalInfo);
                         if (keys != null) {
                             ArrayNode timeseriesArrayNode = entityNode.putArray("timeseries");

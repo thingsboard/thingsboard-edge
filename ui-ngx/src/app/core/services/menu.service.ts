@@ -394,6 +394,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -541,6 +542,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'admin.outgoing-mail',
@@ -876,6 +885,12 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
+            {
               name: 'admin.outgoing-mail',
               icon: 'mail',
               path: '/settings/outgoing-mail',
@@ -980,6 +995,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -1066,6 +1082,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'custom-translation.custom-translation',
@@ -1279,6 +1303,12 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
+            {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
               path: '/settings/whiteLabel',
@@ -1348,11 +1378,14 @@ export class MenuService {
         name: customMenuItem.name,
         icon: customMenuItem.materialIcon,
         iconUrl: customMenuItem.iconUrl,
+        notExact: true,
         path: '/iframeView'
       } as MenuSection;
       customMenuSection.queryParams = {
         stateId,
         iframeUrl: customMenuItem.iframeUrl,
+        dashboardId: customMenuItem.dashboardId,
+        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
         setAccessToken: customMenuItem.setAccessToken
       };
       if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
@@ -1369,14 +1402,19 @@ export class MenuService {
             type: 'link',
             icon: customMenuChildItem.materialIcon,
             iconUrl: customMenuChildItem.iconUrl,
+            notExact: true,
             path: '/iframeView/child'
           };
           customMenuChildSection.queryParams = {
             stateId,
             iframeUrl: customMenuItem.iframeUrl,
+            dashboardId: customMenuItem.dashboardId,
+            hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
             setAccessToken: customMenuItem.setAccessToken,
             childStateId,
             childIframeUrl: customMenuChildItem.iframeUrl,
+            childDashboardId: customMenuChildItem.dashboardId,
+            childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
             childSetAccessToken: customMenuChildItem.setAccessToken
           };
           pages.push(customMenuChildSection);

@@ -39,7 +39,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgP
 /**
  * Created by ashvayka on 25.06.18.
  */
-public interface SchedulerService extends ApplicationListener<PartitionChangeEvent> {
+public interface SchedulerService {
 
     void onSchedulerEventAdded(SchedulerEventInfo event);
 

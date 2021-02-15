@@ -379,6 +379,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.warn("Error: ", e);
             }
             client = null;
+            connected = false;
             log.info("[{}] OPC-UA client disconnected", this.configuration.getName());
         }
     }
@@ -506,7 +507,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 }
             } catch (Exception e) {
                 if (connected) {
-                    log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), node, e.getMessage(), e);
+                    String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
+                    log.error(message, e);
                     sendConnectionFailedMessageToRuleEngine();
                     scheduleReconnect = true;
                     scheduleScan();
@@ -534,10 +536,15 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             if (newTags.size() > 0) {
                 for (NodeId tagId : newTags.values()) {
                     devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
-                    VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
-                    DataValue dataValue = varNode.readValue().get();
-                    if (dataValue != null) {
-                        device.updateTag(tagId, dataValue);
+                    if (client != null && client.getAddressSpace() != null) {
+                        VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
+                        DataValue dataValue = varNode.readValue().get();
+                        if (dataValue != null) {
+                            device.updateTag(tagId, dataValue);
+                        }
+                    } else {
+                        String msg = String.format("Error scan device: Client: [%s] Address Space: [%s]", client, client != null ? client.getAddressSpace() : null);
+                        log.error(msg);
                     }
                 }
                 log.debug("[{}] Going to subscribe to tags: {}", this.configuration.getName(), newTags);
@@ -653,8 +660,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 // recursively browse children
                 values.putAll(lookupTags(childId, deviceNodeName, tags));
             }
+        } catch (ExecutionException e) {
+            String message = String.format("[%s] ExecutionException while Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+            log.error(message, e);
+            log.error("Scheduling reconnect");
+            reconnect();
         } catch (Exception e) {
-            log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), nodeId, e.getMessage(), e);
+            String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+            log.error(message, e);
         }
         return values;
     }
@@ -686,7 +699,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                     try {
                                         nodeId = NodeId.parseSafe(writeValueJson.get("nodeId").asText());
                                     } catch (Exception e) {
-                                        log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), nodeId, e.getMessage(), e);
+                                        String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+                                        log.error(message, e);
                                     }
                                 }
                                 if (writeValueJson.has("value")) {

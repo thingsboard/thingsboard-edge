@@ -175,7 +175,8 @@
                      [length]="dataSource.total() | async"
                      [pageIndex]="pageLink.page"
                      [pageSize]="pageLink.pageSize"
-                     [pageSizeOptions]="pageSizeOptions"></mat-paginator>
+                     [pageSizeOptions]="pageSizeOptions"
+                     showFirstLastButtons></mat-paginator>
     </div>
   </div>
   <span [fxShow]="!showData" fxLayoutAlign="center center"

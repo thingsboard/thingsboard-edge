@@ -37,7 +37,9 @@ import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
 import java.util.Set;
 
 
-public class ClusterTopologyChangeEvent extends ApplicationEvent {
+public class ClusterTopologyChangeEvent extends TbApplicationEvent {
+
+    private static final long serialVersionUID = -2441739930040282254L;
 
     @Getter
     private final Set<ServiceQueueKey> serviceQueueKeys;

@@ -279,8 +279,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
-
-
             // TODO: voba - this is required?
             case "2.5.5":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
@@ -466,7 +464,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.info("Schema updated.");
                 }
                 break;
-              // TODO: voba - verify this upgrade
+            // TODO: voba - verify this upgrade
 //            case "3.2.1":
 //                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
 //                    log.info("Updating schema ...");
@@ -478,9 +476,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 //                    log.info("Schema updated.");
 //                }
 //                break;
-            case "3.2.1":
+            case "3.3.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.2.1pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {

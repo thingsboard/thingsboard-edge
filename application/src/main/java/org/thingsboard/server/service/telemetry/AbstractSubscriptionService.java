@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
@@ -76,7 +77,7 @@ import java.util.function.Consumer;
  * Created by ashvayka on 27.03.18.
  */
 @Slf4j
-public abstract class AbstractSubscriptionService implements ApplicationListener<PartitionChangeEvent> {
+public abstract class AbstractSubscriptionService extends TbApplicationEventListener<PartitionChangeEvent>{
 
     protected final Set<TopicPartitionInfo> currentPartitions = ConcurrentHashMap.newKeySet();
 
@@ -112,8 +113,7 @@ public abstract class AbstractSubscriptionService implements ApplicationListener
     }
 
     @Override
-    @EventListener(PartitionChangeEvent.class)
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             currentPartitions.clear();
             currentPartitions.addAll(partitionChangeEvent.getPartitions());

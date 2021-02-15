@@ -77,7 +77,7 @@ public class BasicPulsarIntegration extends AbstractPulsarIntegration<BasicPulsa
         if (uplinkDataList != null) {
             for (UplinkData data : uplinkDataList) {
                 processUplinkData(context, data);
-                log.info("[{}] Processing uplink data: {}", configuration.getId(), data);
+                log.trace("[{}] Processing uplink data: {}", configuration.getId(), data);
             }
         }
     }
