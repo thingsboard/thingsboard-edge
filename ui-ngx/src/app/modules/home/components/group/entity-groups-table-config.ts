@@ -35,25 +35,25 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import {EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle} from '@shared/models/entity-group.models';
-import {EntityGroupService} from '@core/http/entity-group.service';
-import {CustomerService} from '@core/http/customer.service';
-import {UserPermissionsService} from '@core/http/user-permissions.service';
-import {BroadcastService} from '@core/services/broadcast.service';
-import {TranslateService} from '@ngx-translate/core';
-import {DatePipe} from '@angular/common';
-import {UtilsService} from '@core/services/utils.service';
-import {ActivatedRoute, Router} from '@angular/router';
-import {HomeDialogsService} from '@home/dialogs/home-dialogs.service';
-import {EntityType, entityTypeResources, entityTypeTranslations} from '@shared/models/entity-type.models';
-import {isDefinedAndNotNull} from '@core/utils';
-import {Observable} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
-import {Operation, publicGroupTypes, Resource, sharableGroupTypes} from '@shared/models/security.models';
-import {AddEntityDialogData, EntityAction} from '@home/models/entity/entity-component.models';
-import {EntityGroupComponent} from '@home/components/group/entity-group.component';
-import {EntityGroupTabsComponent} from '@home/components/group/entity-group-tabs.component';
-import {MatDialog} from '@angular/material/dialog';
+import { EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { CustomerService } from '@core/http/customer.service';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { BroadcastService } from '@core/services/broadcast.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
+import { UtilsService } from '@core/services/utils.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
+import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
+import { isDefinedAndNotNull } from '@core/utils';
+import { Observable } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { Operation, publicGroupTypes, Resource, sharableGroupTypes } from '@shared/models/security.models';
+import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
+import { EntityGroupComponent } from '@home/components/group/entity-group.component';
+import { EntityGroupTabsComponent } from '@home/components/group/entity-group-tabs.component';
+import { MatDialog } from '@angular/material/dialog';
 import {
   EntityGroupWizardDialogComponent,
   EntityGroupWizardDialogResult
@@ -212,6 +212,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
     if (this.params.edgeId && this.groupType === EntityType.USER) { //TODO deaflynx is it possible to add USER group to sharableGroupTypes ?
       this.addEntity = () => this.addEntityGroupsToEdge();
+    }
+    if (this.params.groupScope && this.params.groupScope === 'edge') {
+      this.componentsData = {
+        isEdgeScope: true
+      }
     }
   }
 

@@ -248,6 +248,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.edgeId = node.data.edge.id.id;
           entityGroupParams.nodeId = node.id;
           entityGroupParams.internalId = node.data.internalId;
+          entityGroupParams.groupScope = node.data.groupScope;
           const groupsType = node.data.groupsType;
           switch (groupsType) {
             case EntityType.USER:
@@ -486,6 +487,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         data: {
           type: 'edgeGroups',
           groupsType,
+          groupScope: 'edge',
           edge,
           parentEntityGroupId,
           internalId: edge.id.id + '_' + groupsType
