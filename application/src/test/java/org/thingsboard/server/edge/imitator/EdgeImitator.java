@@ -41,8 +41,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.edge.rpc.EdgeGrpcClient;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.gen.edge.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceCredentialsRequestMsg;
@@ -53,14 +55,20 @@ import org.thingsboard.server.gen.edge.DownlinkMsg;
 import org.thingsboard.server.gen.edge.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.EntityDataProto;
+import org.thingsboard.server.gen.edge.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.RelationUpdateMsg;
+import org.thingsboard.server.gen.edge.RoleProto;
 import org.thingsboard.server.gen.edge.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.RuleChainUpdateMsg;
+import org.thingsboard.server.gen.edge.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.UplinkMsg;
 import org.thingsboard.server.gen.edge.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.UserUpdateMsg;
+import org.thingsboard.server.gen.edge.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.WidgetsBundleUpdateMsg;
 
@@ -255,6 +263,47 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(deviceCredentialsRequestMsg));
             }
         }
+        if (downlinkMsg.getEntityGroupUpdateMsgList() != null && !downlinkMsg.getEntityGroupUpdateMsgList().isEmpty()) {
+            for (EntityGroupUpdateMsg entityGroupUpdateMsg: downlinkMsg.getEntityGroupUpdateMsgList()) {
+                result.add(saveDownlinkMsg(entityGroupUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getCustomTranslationMsgCount() > 0) {
+            for (CustomTranslationProto customTranslationProto : downlinkMsg.getCustomTranslationMsgList()) {
+                result.add(saveDownlinkMsg(customTranslationProto));
+            }
+        }
+        if (downlinkMsg.getWhiteLabelingParamsCount() > 0) {
+            for (WhiteLabelingParamsProto whiteLabelingParamsProto : downlinkMsg.getWhiteLabelingParamsList()) {
+                result.add(saveDownlinkMsg(whiteLabelingParamsProto));
+            }
+        }
+        if (downlinkMsg.getLoginWhiteLabelingParamsCount() > 0) {
+            for (LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto : downlinkMsg.getLoginWhiteLabelingParamsList()) {
+                result.add(saveDownlinkMsg(loginWhiteLabelingParamsProto));
+            }
+        }
+        if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
+            for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
+                result.add(saveDownlinkMsg(schedulerEventUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
+            for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
+                result.add(saveDownlinkMsg(adminSettingsUpdateMsg));
+            }
+        }
+        if (downlinkMsg.getRoleMsgCount() > 0) {
+            for (RoleProto roleProto : downlinkMsg.getRoleMsgList()) {
+                result.add(saveDownlinkMsg(roleProto));
+            }
+        }
+        if (downlinkMsg.getGroupPermissionMsgCount() > 0) {
+            for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
+                result.add(saveDownlinkMsg(groupPermissionProto));
+            }
+        }
+
         return Futures.allAsList(result);
     }
 
@@ -272,7 +321,11 @@ public class EdgeImitator {
     }
 
     public void waitForMessages() throws InterruptedException {
-        messagesLatch.await(5, TimeUnit.SECONDS);
+        waitForMessages(5);
+    }
+
+    public void waitForMessages(long timeout) throws InterruptedException {
+        messagesLatch.await(timeout, TimeUnit.SECONDS);
     }
 
     public void expectMessageAmount(int messageAmount) {
