@@ -1510,6 +1510,7 @@
         "type-widgets-bundle": "Widgets Bundle",
         "type-widgets-type": "Widgets Type",
         "type-admin-settings": "Admin Settings",
+        "type-scheduler-event": "Scheduler event",
         "action-type-added": "Added",
         "action-type-deleted": "Deleted",
         "action-type-updated": "Updated",
