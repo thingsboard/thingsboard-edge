@@ -216,9 +216,9 @@ export const templates = {
       server: [Validators.required],
       appId: [Validators.required],
       token: [Validators.required],
-      'credentials.email': [Validators.required],
-      'credentials.password': [Validators.required],
-      'credentials.token': [Validators.required]
+      'credentials.email': [],
+      'credentials.password': [],
+      'credentials.token': []
     }
   },
   [IntegrationType.MQTT]: {
