@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,7 @@ public class TbClearAlarmNode extends TbAbstractAlarmNode<TbClearAlarmNodeConfig
 
     @Override
     protected ListenableFuture<TbAlarmResult> processAlarm(TbContext ctx, TbMsg msg) {
-        String alarmType = TbNodeUtils.processPattern(this.config.getAlarmType(), msg.getMetaData());
+        String alarmType = TbNodeUtils.processPattern(this.config.getAlarmType(), msg);
         ListenableFuture<Alarm> alarmFuture;
         if (msg.getOriginator().getEntityType().equals(EntityType.ALARM)) {
             alarmFuture = ctx.getAlarmService().findAlarmByIdAsync(ctx.getTenantId(), new AlarmId(msg.getOriginator().getId()));

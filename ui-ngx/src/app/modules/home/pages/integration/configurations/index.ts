@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,8 @@ import { CustomIntegrationFormComponent } from './custom-integration-form/custom
 import { AzureIotHubIntegrationFormComponent } from '@home/pages/integration/configurations/azure-iot-hub-integration-form/azure-iot-hub-integration-form.component';
 import { PulsarIntegrationFormComponent } from './apache-pulsar-integration-form/pulsar-integration-form.component';
 import { RabbitmqIntegrationFormComponent } from '@home/pages/integration/configurations/rabbitmq-integration-form/rabbitmq-integration-form.component';
+import { ChirpstackIntegrationFormComponent } from './chirpstack-integration-form/chirpstack-integration-form.component';
+import { PubSubIntegrationFormComponent } from '@home/pages/integration/configurations/gcp-pubsub-integration-form/pubsub-integration-form.component';
 
 export const integrations = [
     CertUploadComponent,
@@ -67,7 +69,9 @@ export const integrations = [
     RabbitmqIntegrationFormComponent,
     TcpIntegrationFormComponent,
     TtnIntegrationFormComponent,
+    ChirpstackIntegrationFormComponent,
     UdpIntegrationFormComponent,
     OpcUaSubscriptionTagsComponent,
-    PulsarIntegrationFormComponent
+    PulsarIntegrationFormComponent,
+    PubSubIntegrationFormComponent
 ];

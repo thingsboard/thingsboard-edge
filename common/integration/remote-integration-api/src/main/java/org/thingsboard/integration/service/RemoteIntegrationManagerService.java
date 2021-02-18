@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -351,10 +351,14 @@ public class RemoteIntegrationManagerService {
                 return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise");
             case TMOBILE_IOT_CDP:
                 return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
+            case CHIRPSTACK:
+                return newInstance("org.thingsboard.integration.http.chirpstack.ChirpStackIntegration");
             case MQTT:
                 return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
             case AWS_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
+            case PUB_SUB:
+                return newInstance("org.thingsboard.gcloud.pubsub.PubSubIntegration");
             case IBM_WATSON_IOT:
                 return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
             case TTI:
@@ -388,7 +392,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
-        return (ThingsboardPlatformIntegration) Class.forName(clazz).newInstance();
+        return (ThingsboardPlatformIntegration) Class.forName(clazz).getDeclaredConstructor().newInstance();
     }
 
     private void processHandleMessages() {

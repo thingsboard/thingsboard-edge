@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -304,7 +304,9 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         Map<Integer, TbAbstractDataSubCtx> sessionSubs = subscriptionsBySessionId.computeIfAbsent(sessionRef.getSessionId(), k -> new HashMap<>());
         TbEntityDataSubCtx ctx = new TbEntityDataSubCtx(serviceId, wsService, entityService, localSubscriptionService,
                 attributesService, stats, sessionRef, cmd.getCmdId(), maxEntitiesPerDataSubscription);
-        ctx.setAndResolveQuery(cmd.getQuery());
+        if (cmd.getQuery() != null) {
+            ctx.setAndResolveQuery(cmd.getQuery());
+        }
         sessionSubs.put(cmd.getCmdId(), ctx);
         return ctx;
     }
@@ -318,6 +320,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         return ctx;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends TbAbstractDataSubCtx> T getSubCtx(String sessionId, int cmdId) {
         Map<Integer, TbAbstractDataSubCtx> sessionSubs = subscriptionsBySessionId.get(sessionId);
         if (sessionSubs != null) {
@@ -424,7 +427,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void cancelAllSessionSubscriptions(String sessionId) {
         Map<Integer, TbAbstractDataSubCtx> sessionSubs = subscriptionsBySessionId.remove(sessionId);
         if (sessionSubs != null) {
-            sessionSubs.values().stream().filter(sub -> sub instanceof TbEntityDataSubCtx).map(sub -> (TbEntityDataSubCtx) sub).forEach(this::cleanupAndCancel);
+            sessionSubs.values().forEach(this::cleanupAndCancel);
         }
     }
 

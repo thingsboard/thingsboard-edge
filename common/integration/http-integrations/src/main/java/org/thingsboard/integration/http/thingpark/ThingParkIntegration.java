@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -67,6 +67,7 @@ import java.util.concurrent.TimeUnit;
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
+@SuppressWarnings("deprecation")
 public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
@@ -113,7 +114,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
             if (uplinkDataList != null) {
                 for (UplinkData data : uplinkDataList) {
                     processUplinkData(context, data);
-                    log.info("[{}] Processing uplink data", data);
+                    log.trace("[{}] Processing uplink data", data);
                 }
             }
             return fromStatus(HttpStatus.OK);
@@ -174,11 +175,11 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                         String token = getToken(params + securityAsKey);
                         params += "&Token=" + token;
                     }
-                    ListenableFuture<ResponseEntity<String>> future = httpClient.postForEntity(downlinkUrl + "?" + params, new HttpEntity(""), String.class);
-                    future.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
+                    ListenableFuture<ResponseEntity<String>> future = httpClient.postForEntity(downlinkUrl + "?" + params, new HttpEntity<>(""), String.class);
+                    future.addCallback(new ListenableFutureCallback<>() {
                         @Override
                         public void onFailure(Throwable throwable) {
-                            if(throwable instanceof UnknownHttpStatusCodeException) {
+                            if (throwable instanceof UnknownHttpStatusCodeException) {
                                 UnknownHttpStatusCodeException exception = (UnknownHttpStatusCodeException) throwable;
                                 reportDownlinkError(context, msg, "ERROR", new Exception(exception.getResponseBodyAsString()));
                             } else {

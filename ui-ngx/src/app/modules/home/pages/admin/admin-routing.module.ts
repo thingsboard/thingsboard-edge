@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -56,6 +56,7 @@ import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.compone
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 import { OAuth2SettingsComponent } from '@home/pages/admin/oauth2-settings.component';
 import { OAuth2Service } from '@core/http/oauth2.service';
+import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -129,8 +130,8 @@ const routes: Routes = [
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           redirectTo: {
             SYS_ADMIN: '/settings/general',
-            TENANT_ADMIN: '/settings/outgoing-mail',
-            CUSTOMER_USER: '/settings/customTranslation'
+            TENANT_ADMIN: '/settings/home',
+            CUSTOMER_USER: '/settings/home'
           }
         }
       },
@@ -289,6 +290,19 @@ const routes: Routes = [
         },
         resolve: {
           loginProcessingUrl: OAuth2LoginProcessingUrlResolver
+        }
+      },
+      {
+        path: 'home',
+        component: HomeSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'admin.home-settings',
+          breadcrumb: {
+            label: 'admin.home-settings',
+            icon: 'settings_applications'
+          }
         }
       }
     ]

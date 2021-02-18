@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -168,7 +168,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         generalSettings.setKey("general");
         ObjectNode node = objectMapper.createObjectNode();
         node.put("baseUrl", "http://localhost:8080");
-        node.put("prohibitDifferentUrl", true);
+        node.put("prohibitDifferentUrl", false);
         generalSettings.setJsonValue(node);
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, generalSettings);
 
@@ -236,6 +236,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         this.deleteSystemWidgetBundle("input_widgets");
         this.deleteSystemWidgetBundle("date");
         this.deleteSystemWidgetBundle("entity_admin_widgets");
+        this.deleteSystemWidgetBundle("navigation_widgets");
         installScripts.loadSystemWidgets();
     }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -63,6 +63,7 @@ public class DefaultTbApiUsageReportClient implements TbApiUsageReportClient {
     @Value("${usage.stats.report.interval:10}")
     private int interval;
 
+    @SuppressWarnings("unchecked")
     private final ConcurrentMap<TenantId, AtomicLong>[] values = new ConcurrentMap[ApiUsageRecordKey.values().length];
     private final PartitionService partitionService;
     private final SchedulerComponent scheduler;

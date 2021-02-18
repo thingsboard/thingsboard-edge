@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -33,24 +33,16 @@
 <section [formGroup]="scheduleConfigFormGroup" fxLayout="column">
   <span style="height: 16px;"></span>
   <tb-timezone-select
-    [defaultTimezone]="defaultTimezone"
+    userTimezoneByDefault
     required
     formControlName="timezone">
   </tb-timezone-select>
-  <label translate class="tb-small">scheduler.start</label>
-  <span style="height: 8px;"></span>
   <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start start" fxLayoutGap="16px">
     <mat-form-field>
-      <mat-placeholder translate>scheduler.date</mat-placeholder>
+      <mat-placeholder translate>scheduler.start-time</mat-placeholder>
       <mat-datetimepicker-toggle [for]="startDatePicker" matPrefix></mat-datetimepicker-toggle>
-      <mat-datetimepicker #startDatePicker type="date" openOnFocus="true"></mat-datetimepicker>
+      <mat-datetimepicker #startDatePicker type="datetime" openOnFocus="true"></mat-datetimepicker>
       <input required matInput formControlName="startDate" [matDatetimepicker]="startDatePicker">
-    </mat-form-field>
-    <mat-form-field>
-      <mat-placeholder translate>scheduler.time</mat-placeholder>
-      <mat-datetimepicker-toggle [for]="startTimePicker" matPrefix></mat-datetimepicker-toggle>
-      <mat-datetimepicker #startTimePicker type="time" openOnFocus="true"></mat-datetimepicker>
-      <input required matInput formControlName="startDate" [matDatetimepicker]="startTimePicker">
     </mat-form-field>
   </section>
   <mat-checkbox fxFlex formControlName="repeat" style="padding-bottom: 16px;">

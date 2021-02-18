@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -32,11 +32,12 @@
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { AfterViewInit, DoCheck, Inject, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { AfterViewInit, Directive, DoCheck, Inject, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
 import { deepClone, isEqual } from '@core/utils';
 import { ControlValueAccessor, NgForm } from '@angular/forms';
 
+@Directive()
 export class CustomSchedulerEventConfigComponent extends PageComponent implements OnInit, AfterViewInit, DoCheck, ControlValueAccessor {
 
   @ViewChildren(NgForm, {read: NgForm}) forms: QueryList<NgForm>;

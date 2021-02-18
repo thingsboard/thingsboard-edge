@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { LatLngTuple } from 'leaflet';
 import { Datasource } from '@app/shared/models/widget.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import tinycolor from 'tinycolor2';
@@ -62,7 +61,7 @@ export type MapSettings = {
     provider?: MapProviders;
     credentials?: any; // declare credentials format
     gmApiKey?: string;
-    defaultCenterPosition?: LatLngTuple;
+    defaultCenterPosition?: [number, number];
     markerClusteringSetting?;
     useDefaultCenterPosition?: boolean;
     gmDefaultMapType?: string;
@@ -202,16 +201,23 @@ export type TripAnimationSettings = {
     usePointAsAnchor: boolean;
     normalizationStep: number;
     showPolygon: boolean;
+    showLabel: boolean;
+    showTooltip: boolean;
     latKeyName: string;
     lngKeyName: string;
     rotationAngle: number;
     label: string;
     tooltipPattern: string;
+    tooltipColor: string;
+    tooltipOpacity: number;
+    tooltipFontColor: string;
     useTooltipFunction: boolean;
     useLabelFunction: boolean;
     pointAsAnchorFunction: GenericFunction;
     tooltipFunction: GenericFunction;
     labelFunction: GenericFunction;
+    useColorPointFunction: boolean;
+    colorPointFunction: GenericFunction;
 };
 
 export type actionsHandler = ($event: Event, datasource: Datasource) => void;

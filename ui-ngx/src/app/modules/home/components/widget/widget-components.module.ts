@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -50,6 +50,8 @@ import { TripAnimationComponent } from './trip-animation/trip-animation.componen
 import { PhotoCameraInputWidgetComponent } from './lib/photo-camera-input.component';
 import { GatewayFormComponent } from './lib/gateway/gateway-form.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { NavigationCardsWidgetComponent } from '@home/components/widget/lib/navigation-cards-widget.component';
+import { NavigationCardWidgetComponent } from '@home/components/widget/lib/navigation-card-widget.component';
 
 @NgModule({
   declarations:
@@ -65,7 +67,9 @@ import { ImportExportService } from '@home/components/import-export/import-expor
       MultipleInputWidgetComponent,
       TripAnimationComponent,
       PhotoCameraInputWidgetComponent,
-      GatewayFormComponent
+      GatewayFormComponent,
+      NavigationCardsWidgetComponent,
+      NavigationCardWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -84,7 +88,9 @@ import { ImportExportService } from '@home/components/import-export/import-expor
     MultipleInputWidgetComponent,
     TripAnimationComponent,
     PhotoCameraInputWidgetComponent,
-    GatewayFormComponent
+    GatewayFormComponent,
+    NavigationCardsWidgetComponent,
+    NavigationCardWidgetComponent
   ],
   providers: [
     CustomDialogService,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -119,6 +119,7 @@ public class JwtTokenFactory {
         Jws<Claims> jwsClaims = rawAccessToken.parseClaims(settings.getTokenSigningKey());
         Claims claims = jwsClaims.getBody();
         String subject = claims.getSubject();
+        @SuppressWarnings("unchecked")
         List<String> scopes = claims.get(SCOPES, List.class);
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("JWT Token doesn't have any scopes");
@@ -179,6 +180,7 @@ public class JwtTokenFactory {
         Jws<Claims> jwsClaims = rawAccessToken.parseClaims(settings.getTokenSigningKey());
         Claims claims = jwsClaims.getBody();
         String subject = claims.getSubject();
+        @SuppressWarnings("unchecked")
         List<String> scopes = claims.get(SCOPES, List.class);
         if (scopes == null || scopes.isEmpty()) {
             throw new IllegalArgumentException("Refresh Token doesn't have any scopes");

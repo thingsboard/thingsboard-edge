@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -190,7 +190,7 @@ export class TbFlot {
         autoHighlight: this.tooltipIndividual === true,
         markings: []
       },
-      selection : { mode : ctx.isMobile ? null : 'x' },
+      selection : { mode : 'x' },
       legend : {
         show: false
       }
@@ -403,7 +403,7 @@ export class TbFlot {
         item.settings = {};
       });
       subscription.datasources.forEach((item) => {
-        let datasource: Datasource = {
+        const datasource: Datasource = {
           type: item.type,
           entityType: item.entityType,
           entityId: item.entityId,
@@ -717,7 +717,7 @@ export class TbFlot {
   }
 
   public checkMouseEvents() {
-    const enabled = !this.ctx.isMobile &&  !this.ctx.isEdit;
+    const enabled = !this.ctx.isEdit;
     if (isUndefined(this.mouseEventsEnabled) || this.mouseEventsEnabled !== enabled) {
       this.mouseEventsEnabled = enabled;
       if (this.$element) {
@@ -733,6 +733,10 @@ export class TbFlot {
 
   public destroy() {
     this.cleanup();
+    if (this.tooltip) {
+      this.tooltip.stop(true);
+      this.tooltip.hide();
+    }
     if (this.plot) {
       this.plot.destroy();
       this.plot = null;
@@ -840,7 +844,7 @@ export class TbFlot {
       useDashboardTimewindow: false,
       type: widgetType.latest,
       callbacks: {
-        onDataUpdated: (subscription) => {this.thresholdsSourcesDataUpdated(subscription.data)}
+        onDataUpdated: (subscription) => this.thresholdsSourcesDataUpdated(subscription.data)
       }
     };
     this.ctx.subscriptionApi.createSubscription(thresholdsSourcesSubscriptionOptions, true).subscribe(
@@ -907,7 +911,7 @@ export class TbFlot {
       type: widgetType.latest,
       callbacks: {
         onDataUpdated: (subscription) => {
-          this.labelPatternsParamsDataUpdated(subscription.data)
+          this.labelPatternsParamsDataUpdated(subscription.data);
         }
       }
     };
@@ -929,22 +933,22 @@ export class TbFlot {
   }
 
   private substituteLabelPatterns(series: TbFlotSeries, seriesIndex: number) {
-    let seriesLabelPatternsSourcesData = this.labelPatternsSourcesData.filter((item) => {
+    const seriesLabelPatternsSourcesData = this.labelPatternsSourcesData.filter((item) => {
       return item.datasource.entityId === series.datasource.entityId;
     });
     let label = createLabelFromDatasource(series.datasource, series.dataKey.pattern);
     for (let i = 0; i < seriesLabelPatternsSourcesData.length; i++) {
-      let keyData = seriesLabelPatternsSourcesData[i];
+      const keyData = seriesLabelPatternsSourcesData[i];
       if (keyData && keyData.data && keyData.data[0]) {
-        let attrValue = keyData.data[0][1];
-        let attrName = keyData.dataKey.name;
+        const attrValue = keyData.data[0][1];
+        const attrName = keyData.dataKey.name;
         if (isDefined(attrValue) && (attrValue !== null)) {
           label = insertVariable(label, attrName, attrValue);
         }
       }
     }
     if (isDefined(this.subscription.legendData)) {
-      let targetLegendKeyIndex = this.subscription.legendData.keys.findIndex((key) => {
+      const targetLegendKeyIndex = this.subscription.legendData.keys.findIndex((key) => {
         return key.dataIndex === seriesIndex;
       });
       if (targetLegendKeyIndex !== -1) {
@@ -1109,7 +1113,7 @@ export class TbFlot {
               flex: '1'
             });
             let columnContent = '';
-            for (let i = c*maxRows; i < (c+1)*maxRows; i++) {
+            for (let i = c * maxRows; i < (c + 1) * maxRows; i++) {
               if (i >= hoverData.seriesHover.length) {
                 break;
               }
@@ -1185,7 +1189,7 @@ export class TbFlot {
     if (!this.plot) {
       return;
     }
-    if (!this.tooltipIndividual || item) {
+    if ((!this.tooltipIndividual || item) && !this.ctx.isEdit) {
       const multipleModeTooltip = !this.tooltipIndividual;
       if (multipleModeTooltip) {
         this.plot.unhighlight();
@@ -1298,7 +1302,7 @@ export class TbFlot {
     let minTimeHistorical: any;
     let hoverData: TbFlotSeriesHoverInfo;
     let value: any;
-    let lastValue: any;
+    let lastValue = 0;
     let minDistanceHistorical: number;
     const results: TbFlotHoverInfo[] = [{
       seriesHover: []

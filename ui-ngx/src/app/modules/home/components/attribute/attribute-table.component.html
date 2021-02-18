@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -212,7 +212,8 @@
                    [length]="dataSource.total() | async"
                    [pageIndex]="pageLink.page"
                    [pageSize]="pageLink.pageSize"
-                   [pageSizeOptions]="[10, 20, 30]"></mat-paginator>
+                   [pageSizeOptions]="[10, 20, 30]"
+                   showFirstLastButtons></mat-paginator>
     <ngx-hm-carousel fxFlex *ngIf="mode === 'widget' && widgetsList.length > 0"
                      #carousel
                      [(ngModel)]="widgetsCarouselIndex"

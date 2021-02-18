@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -316,6 +316,7 @@ public class BaseRelationService implements RelationService {
         fromAndTypeGroup.add(EntitySearchDirection.FROM.name());
 
         Cache cache = cacheManager.getCache(RELATIONS_CACHE);
+        @SuppressWarnings("unchecked")
         List<EntityRelation> fromCache = cache.get(fromAndTypeGroup, List.class);
         if (fromCache != null) {
             return Futures.immediateFuture(fromCache);
@@ -397,6 +398,7 @@ public class BaseRelationService implements RelationService {
         toAndTypeGroup.add(EntitySearchDirection.TO.name());
 
         Cache cache = cacheManager.getCache(RELATIONS_CACHE);
+        @SuppressWarnings("unchecked")
         List<EntityRelation> fromCache = cache.get(toAndTypeGroup, List.class);
         if (fromCache != null) {
             return Futures.immediateFuture(fromCache);

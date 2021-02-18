@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,8 @@ package org.thingsboard.rule.engine.rest;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.credentials.AnonymousCredentials;
+import org.thingsboard.rule.engine.credentials.ClientCredentials;
 
 import java.util.Collections;
 import java.util.Map;
@@ -57,6 +59,7 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
     private String proxyUser;
     private String proxyPassword;
     private String proxyScheme;
+    private ClientCredentials credentials;
 
     @Override
     public TbRestApiCallNodeConfiguration defaultConfiguration() {
@@ -70,6 +73,15 @@ public class TbRestApiCallNodeConfiguration implements NodeConfiguration<TbRestA
         configuration.setUseRedisQueueForMsgPersistence(false);
         configuration.setTrimQueue(false);
         configuration.setEnableProxy(false);
+        configuration.setCredentials(new AnonymousCredentials());
         return configuration;
+    }
+
+    public ClientCredentials getCredentials() {
+        if (this.credentials == null) {
+            return new AnonymousCredentials();
+        } else {
+            return this.credentials;
+        }
     }
 }

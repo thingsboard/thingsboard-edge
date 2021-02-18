@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -156,17 +156,17 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
 
     private ResponseEntity convertJson(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/json");
-        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
     }
 
     private ResponseEntity convertText(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "text/plain");
-        return new ResponseEntity(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(new String(downlink.getData(), StandardCharsets.UTF_8), responseHeaders, HttpStatus.OK);
     }
 
     private ResponseEntity convertBinary(DownlinkData downlink) {
         HttpHeaders responseHeaders = getHttpHeaders(downlink, "application/octet-stream");
-        return new ResponseEntity(downlink.getData(), responseHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(downlink.getData(), responseHeaders, HttpStatus.OK);
     }
 
     private HttpHeaders getHttpHeaders(DownlinkData downlink, String defaultContentType) {
@@ -203,7 +203,7 @@ public class BasicHttpIntegration extends AbstractHttpIntegration<HttpIntegratio
             for (UplinkData uplinkData : uplinkDataList) {
                 processUplinkData(context, uplinkData);
                 result.put(uplinkData.getDeviceName(), uplinkData);
-                log.info("[{}] Processing uplink data", uplinkData);
+                log.trace("[{}] Processing uplink data", uplinkData);
             }
             return result;
         } else {

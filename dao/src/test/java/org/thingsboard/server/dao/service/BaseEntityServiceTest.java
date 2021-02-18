@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -968,10 +968,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
                     .getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue());
         }
         List<String> deviceTemperatures = temperatures.stream().map(aDouble -> Double.toString(aDouble)).collect(Collectors.toList());
-        if (DaoTestUtil.getSqlDbType(template) == SqlDbType.H2) {
-            // in H2 double values are stored with E0 in the end of the string
-            loadedTemperatures = loadedTemperatures.stream().map(s -> s.substring(0, s.length() - 2)).collect(Collectors.toList());
-        }
+
         Assert.assertEquals(deviceTemperatures, loadedTemperatures);
 
         pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
@@ -999,10 +996,6 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
                 entityData.getLatest().get(EntityKeyType.TIME_SERIES).get("temperature").getValue()).collect(Collectors.toList());
         List<String> deviceHighTemperatures = highTemperatures.stream().map(aDouble -> Double.toString(aDouble)).collect(Collectors.toList());
 
-        if (DaoTestUtil.getSqlDbType(template) == SqlDbType.H2) {
-            // in H2 double values are stored with E0 in the end of the string
-            loadedHighTemperatures = loadedHighTemperatures.stream().map(s -> s.substring(0, s.length() - 2)).collect(Collectors.toList());
-        }
         Assert.assertEquals(deviceHighTemperatures, loadedHighTemperatures);
 
         deviceService.deleteDevicesByTenantId(tenantId);
@@ -1341,7 +1334,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
         EntityDataPageLink pageLink = new EntityDataPageLink(100, 0, null, sortOrder);
         EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, deviceTypeFilters);
-        PageData data = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
+        PageData<EntityData> data = entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
         List<EntityData> loadedEntities = getLoadedEntities(data, query);
         Assert.assertEquals(devices.size(), loadedEntities.size());
 
@@ -1368,7 +1361,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
         return A.containsAll(B) && B.containsAll(A);
     }
 
-    private List<EntityData> getLoadedEntities(PageData data, EntityDataQuery query) {
+    private List<EntityData> getLoadedEntities(PageData<EntityData> data, EntityDataQuery query) {
         List<EntityData> loadedEntities = new ArrayList<>(data.getData());
 
         while (data.hasNext()) {

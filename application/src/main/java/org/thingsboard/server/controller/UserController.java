@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -193,6 +194,28 @@ public class UserController extends BaseController {
                 accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
             } else {
                 checkEntity(user.getId(), user, Resource.USER, entityGroupId);
+            }
+
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
+                String prevHomeDashboardId = null;
+                boolean prevHideDashboardToolbar = true;
+                if (user.getId() != null) {
+                    User prevUser = userService.findUserById(getTenantId(), user.getId());
+                    JsonNode additionalInfo = prevUser.getAdditionalInfo();
+                    if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                        prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                        if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                            prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                        }
+                    }
+                }
+                JsonNode additionalInfo = user.getAdditionalInfo();
+                if (additionalInfo == null) {
+                    additionalInfo = JacksonUtil.newObjectNode();
+                    user.setAdditionalInfo(additionalInfo);
+                }
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
+                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
             }
 
             boolean sendEmail = user.getId() == null && sendActivationMail;

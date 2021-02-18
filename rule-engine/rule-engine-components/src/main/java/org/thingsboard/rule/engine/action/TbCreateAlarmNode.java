@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -85,7 +85,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
         final Alarm msgAlarm;
 
         if (!config.isUseMessageAlarmData()) {
-            alarmType = TbNodeUtils.processPattern(this.config.getAlarmType(), msg.getMetaData());
+            alarmType = TbNodeUtils.processPattern(this.config.getAlarmType(), msg);
             msgAlarm = null;
         } else {
             try {
@@ -166,7 +166,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .status(AlarmStatus.ACTIVE_UNACK)
                 .severity(config.getSeverity())
                 .propagate(config.isPropagate())
-                .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg.getMetaData()))
+                .type(TbNodeUtils.processPattern(this.config.getAlarmType(), msg))
                 .propagateRelationTypes(relationTypes)
                 //todo-vp: alarm date should be taken from Message or current Time should be used?
 //                .startTs(System.currentTimeMillis())

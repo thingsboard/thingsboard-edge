@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,9 +35,11 @@ import {
   Directive,
   ElementRef, HostBinding,
   Inject,
+  Injector,
   Input,
   NgZone,
   OnDestroy, Optional,
+  StaticProvider,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
@@ -49,7 +51,6 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { MatButton } from '@angular/material/button';
 import Timeout = NodeJS.Timeout;
-import { PortalInjector } from '@angular/cdk/portal';
 
 @Directive({
   selector: '[tb-toast]'
@@ -153,10 +154,10 @@ export class ToastDirective implements AfterViewInit, OnDestroy {
           this.toastComponentRef.destroy();
         }
       };
-      const injectionTokens = new WeakMap<any, any>([
-        [MAT_SNACK_BAR_DATA, data]
-      ]);
-      const injector = new PortalInjector(this.viewContainerRef.injector, injectionTokens);
+      const providers: StaticProvider[] = [
+        {provide: MAT_SNACK_BAR_DATA, useValue: data}
+      ];
+      const injector = Injector.create({parent: this.viewContainerRef.injector, providers});
       this.toastComponentRef = this.viewContainerRef.createComponent(componentFactory, 0, injector);
       this.cd.detectChanges();
 

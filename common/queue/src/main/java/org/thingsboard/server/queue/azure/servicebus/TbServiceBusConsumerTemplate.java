@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -169,6 +169,7 @@ public class TbServiceBusConsumerTemplate<T extends TbQueueMsg> extends Abstract
     }
 
     private <V> CompletableFuture<List<V>> fromList(List<CompletableFuture<V>> futures) {
+        @SuppressWarnings("unchecked")
         CompletableFuture<Collection<V>>[] arrayFuture = new CompletableFuture[futures.size()];
         futures.toArray(arrayFuture);
 

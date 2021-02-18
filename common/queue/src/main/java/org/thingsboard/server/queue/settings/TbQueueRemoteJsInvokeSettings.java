@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -48,9 +48,6 @@ public class TbQueueRemoteJsInvokeSettings {
 
     @Value("${queue.js.response_poll_interval}")
     private int responsePollInterval;
-
-    @Value("${queue.js.response_auto_commit_interval}")
-    private int autoCommitInterval;
 
     @Value("${queue.js.max_requests_timeout}")
     private long maxRequestsTimeout;

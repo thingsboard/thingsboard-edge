@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,8 @@ export interface CustomMenuItem {
   iconUrl: string;
   materialIcon: string;
   iframeUrl: string;
+  dashboardId: string;
+  hideDashboardToolbar: boolean;
   setAccessToken: boolean;
   childMenuItems: CustomMenuItem[];
 }

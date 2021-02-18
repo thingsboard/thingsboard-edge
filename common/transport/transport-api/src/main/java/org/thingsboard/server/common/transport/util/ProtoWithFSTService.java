@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -47,6 +47,7 @@ public class ProtoWithFSTService implements DataDecodingEncodingService {
     @Override
     public <T> Optional<T> decode(byte[] byteArray) {
         try {
+            @SuppressWarnings("unchecked")
             T msg = (T) config.asObject(byteArray);
             return Optional.of(msg);
         } catch (IllegalArgumentException e) {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -89,6 +89,7 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource,
                                                                              Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
@@ -98,6 +99,7 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <I extends EntityId, T extends TenantEntity> void checkPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity, EntityGroupId entityGroupId) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, true);
         if (!permissionChecker.hasPermission(user, operation, entityId, entity, entityGroupId)) {
@@ -106,6 +108,7 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <I extends EntityId, T extends TenantEntity> boolean hasPermission(SecurityUser user, Resource resource, Operation operation, I entityId, T entity) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), resource, false);
         if (permissionChecker != null) {

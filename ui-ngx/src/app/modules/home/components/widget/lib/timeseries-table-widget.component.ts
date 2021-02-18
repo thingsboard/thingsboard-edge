@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,7 +141,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
   private defaultPageSize = 10;
   private defaultSortOrder = '-0';
   private hideEmptyLines = false;
-  private showTimestamp = true;
+  public showTimestamp = true;
   private dateFormatFilter: string;
 
   private searchAction: WidgetAction = {
@@ -225,7 +225,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
     this.hideEmptyLines = isDefined(this.settings.hideEmptyLines) ? this.settings.hideEmptyLines : false;
     this.showTimestamp = this.settings.showTimestamp !== false;
-    this.dateFormatFilter = (this.settings.showMilliseconds !== true) ? 'yyyy-MM-dd HH:mm:ss' :  'yyyy-MM-dd HH:mm:ss.sss';
+    this.dateFormatFilter = (this.settings.showMilliseconds !== true) ? 'yyyy-MM-dd HH:mm:ss' :  'yyyy-MM-dd HH:mm:ss.SSS';
 
     const pageSize = this.settings.defaultPageSize;
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
@@ -561,7 +561,7 @@ class TimeseriesDatasource implements DataSource<TimeseriesRow> {
         }
       }
     } else {
-      rows = Object.values(rowsMap);
+      rows = Object.keys(rowsMap).map(itm => rowsMap[itm]);
     }
     return rows;
   }

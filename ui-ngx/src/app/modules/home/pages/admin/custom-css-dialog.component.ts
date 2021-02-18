@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -34,12 +34,13 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
-import * as ace from 'ace-builds';
+import { Ace } from 'ace-builds';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { CancelAnimationFrame, RafService } from '@core/services/raf.service';
-import { css_beautify } from 'js-beautify';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { getAce } from '@shared/models/ace/ace.models';
+import { beautifyCss } from '@shared/models/beautify.models';
 
 export interface CustomCssDialogData {
   customCss: string;
@@ -56,7 +57,7 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
   @ViewChild('cssEditor', {static: true})
   cssEditorElmRef: ElementRef;
 
-  private cssEditor: ace.Ace.Editor;
+  private cssEditor: Ace.Editor;
   private editorsResizeCaf: CancelAnimationFrame;
   private editorResize$: ResizeObserver;
 
@@ -81,7 +82,7 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
     this.readonly = this.data.readonly;
 
     const editorElement = this.cssEditorElmRef.nativeElement;
-    let editorOptions: Partial<ace.Ace.EditorOptions> = {
+    let editorOptions: Partial<Ace.EditorOptions> = {
       mode: `ace/mode/css`,
       showGutter: true,
       showPrintMargin: true,
@@ -96,20 +97,24 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
 
     editorOptions = {...editorOptions, ...advancedOptions};
 
-    this.cssEditor = ace.edit(editorElement, editorOptions);
-    this.cssEditor.session.setUseWrapMode(true);
-    this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
-    this.cssEditor.on('change', () => {
-      this.updateValue();
-    });
-    // @ts-ignore
-    this.cssEditor.session.on('changeAnnotation', () => {
-      this.validate();
-    });
-    this.editorResize$ = new ResizeObserver(() => {
-      this.onAceEditorResize();
-    });
-    this.editorResize$.observe(editorElement);
+    getAce().subscribe(
+      (ace) => {
+        this.cssEditor = ace.edit(editorElement, editorOptions);
+        this.cssEditor.session.setUseWrapMode(true);
+        this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
+        this.cssEditor.on('change', () => {
+          this.updateValue();
+        });
+        // @ts-ignore
+        this.cssEditor.session.on('changeAnnotation', () => {
+          this.validate();
+        });
+        this.editorResize$ = new ResizeObserver(() => {
+          this.onAceEditorResize();
+        });
+        this.editorResize$.observe(editorElement);
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -147,12 +152,15 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
   }
 
   beautifyCss(): void {
-    const res = css_beautify(this.customCss, {indent_size: 4});
-    if (this.customCss !== res) {
-      this.isDirty = true;
-      this.customCss = res;
-      this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
-    }
+    beautifyCss(this.customCss, {indent_size: 4}).subscribe(
+      (res) => {
+        if (this.customCss !== res) {
+          this.isDirty = true;
+          this.customCss = res;
+          this.cssEditor.setValue(this.customCss ? this.customCss : '', -1);
+        }
+      }
+    );
   }
 
   onFullscreen() {

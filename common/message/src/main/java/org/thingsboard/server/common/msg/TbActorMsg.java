@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,5 +36,13 @@ package org.thingsboard.server.common.msg;
 public interface TbActorMsg {
 
     MsgType getMsgType();
+
+    /**
+     * Executed when the target TbActor is stopped or destroyed.
+     * For example, rule node failed to initialize or removed from rule chain.
+     * Implementation should cleanup the resources.
+     */
+    default void onTbActorStopped(TbActorStopReason reason) {
+    }
 
 }

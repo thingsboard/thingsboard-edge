@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import org.thingsboard.server.actors.app.AppInitMsg;
 import org.thingsboard.server.actors.stats.StatsActor;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -58,7 +59,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Service
 @Slf4j
-public class DefaultActorService implements ActorService {
+public class DefaultActorService extends TbApplicationEventListener<PartitionChangeEvent> implements ActorService {
 
     public static final String APP_DISPATCHER_NAME = "app-dispatcher";
     public static final String TENANT_DISPATCHER_NAME = "tenant-dispatcher";
@@ -135,10 +136,10 @@ public class DefaultActorService implements ActorService {
         appActor.tellWithHighPriority(new AppInitMsg());
     }
 
-    @EventListener(PartitionChangeEvent.class)
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
         log.info("Received partition change event.");
-        this.appActor.tellWithHighPriority(new PartitionChangeMsg(partitionChangeEvent.getServiceQueueKey(), partitionChangeEvent.getPartitions()));
+        this.appActor.tellWithHighPriority(new PartitionChangeMsg(event.getServiceQueueKey(), event.getPartitions()));
     }
 
     @PreDestroy

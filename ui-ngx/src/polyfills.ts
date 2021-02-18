@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -90,7 +90,6 @@
 import './zone-flags';
 import 'zone.js/dist/zone';  // Included with Angular CLI.
 import 'core-js/es/array';
-import moment from 'moment';
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
@@ -102,26 +101,4 @@ import moment from 'moment';
  * WIDGETS IMPORTS
  */
 
-import cssjs from '@core/css/css';
-import { TbFlot } from '@home/components/widget/lib/flot-widget';
-import { TbAnalogueCompass } from '@home/components/widget/lib/analogue-compass';
-import { TbAnalogueRadialGauge } from '@home/components/widget/lib/analogue-radial-gauge';
-import { TbAnalogueLinearGauge } from '@home/components/widget/lib/analogue-linear-gauge';
-import { TbCanvasDigitalGauge } from '@home/components/widget/lib/digital-gauge';
-import { TbMapWidgetV2 } from '@home/components/widget/lib/maps/map-widget2';
-import { TbTripAnimationWidget } from '@app/modules/home/components/widget/trip-animation/trip-animation.component';
-
-import * as tinycolor_ from 'tinycolor2';
-
-const tinycolor = tinycolor_;
-
-(window as any).tinycolor = tinycolor;
-(window as any).cssjs = cssjs;
-(window as any).moment = moment;
-(window as any).TbFlot = TbFlot;
-(window as any).TbAnalogueCompass = TbAnalogueCompass;
-(window as any).TbAnalogueRadialGauge = TbAnalogueRadialGauge;
-(window as any).TbAnalogueLinearGauge = TbAnalogueLinearGauge;
-(window as any).TbCanvasDigitalGauge = TbCanvasDigitalGauge;
-(window as any).TbMapWidgetV2 = TbMapWidgetV2;
-(window as any).TbTripAnimationWidget = TbTripAnimationWidget;
+(window as any).GAUGES_NO_AUTO_INIT = true;

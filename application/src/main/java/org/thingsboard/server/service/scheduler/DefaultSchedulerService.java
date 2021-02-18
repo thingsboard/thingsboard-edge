@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -56,7 +56,10 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.service.queue.TbClusterService;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
+import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -79,7 +82,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-public class DefaultSchedulerService implements SchedulerService {
+public class DefaultSchedulerService extends TbApplicationEventListener<PartitionChangeEvent> implements SchedulerService {
 
     private final TenantService tenantService;
     private final TbClusterService clusterService;
@@ -90,9 +93,9 @@ public class DefaultSchedulerService implements SchedulerService {
     private final ConcurrentMap<TenantId, List<SchedulerEventId>> tenantEvents = new ConcurrentHashMap<>();
     private final ConcurrentMap<SchedulerEventId, SchedulerEventMetaData> eventsMetaData = new ConcurrentHashMap<>();
     private final ConcurrentMap<TopicPartitionInfo, Set<TenantId>> partitionedTenants = new ConcurrentHashMap<>();
+    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
     private ListeningScheduledExecutorService queueExecutor;
 
-    private volatile boolean clusterUpdatePending = false;
     private volatile boolean firstRun = true;
 
     public DefaultSchedulerService(TenantService tenantService, TbClusterService clusterService, PartitionService partitionService, SchedulerEventService schedulerEventService) {
@@ -106,6 +109,7 @@ public class DefaultSchedulerService implements SchedulerService {
     public void init() {
         // Should be always single threaded due to absence of locks.
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor());
+        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultSchedulerService.class.getSimpleName(), queueExecutor, this::initStateFromDB);
     }
 
     @PreDestroy
@@ -154,17 +158,9 @@ public class DefaultSchedulerService implements SchedulerService {
     }
 
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            synchronized (this) {
-                if (!clusterUpdatePending) {
-                    clusterUpdatePending = true;
-                    queueExecutor.submit(() -> {
-                        clusterUpdatePending = false;
-                        initStateFromDB(partitionChangeEvent.getPartitions());
-                    });
-                }
-            }
+            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 

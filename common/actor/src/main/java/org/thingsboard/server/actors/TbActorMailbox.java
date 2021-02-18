@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,7 +32,9 @@ package org.thingsboard.server.actors;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.msg.MsgType;
 import org.thingsboard.server.common.msg.TbActorMsg;
+import org.thingsboard.server.common.msg.TbActorStopReason;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -64,6 +66,7 @@ public final class TbActorMailbox implements TbActorCtx {
     private final AtomicBoolean busy = new AtomicBoolean(FREE);
     private final AtomicBoolean ready = new AtomicBoolean(NOT_READY);
     private final AtomicBoolean destroyInProgress = new AtomicBoolean();
+    private volatile TbActorStopReason stopReason;
 
     public void initActor() {
         dispatcher.getExecutor().execute(() -> tryInit(1));
@@ -85,7 +88,8 @@ public final class TbActorMailbox implements TbActorCtx {
             InitFailureStrategy strategy = actor.onInitFailure(attempt, t);
             if (strategy.isStop() || (settings.getMaxActorInitAttempts() > 0 && attemptIdx > settings.getMaxActorInitAttempts())) {
                 log.info("[{}] Failed to init actor, attempt {}, going to stop attempts.", selfId, attempt, t);
-                system.stop(selfId);
+                stopReason = TbActorStopReason.INIT_FAILED;
+                destroy();
             } else if (strategy.getRetryDelay() > 0) {
                 log.info("[{}] Failed to init actor, attempt {}, going to retry in attempts in {}ms", selfId, attempt, strategy.getRetryDelay());
                 log.debug("[{}] Error", selfId, t);
@@ -99,12 +103,28 @@ public final class TbActorMailbox implements TbActorCtx {
     }
 
     private void enqueue(TbActorMsg msg, boolean highPriority) {
-        if (highPriority) {
-            highPriorityMsgs.add(msg);
+        if (!destroyInProgress.get()) {
+            if (highPriority) {
+                highPriorityMsgs.add(msg);
+            } else {
+                normalPriorityMsgs.add(msg);
+            }
+            tryProcessQueue(true);
         } else {
-            normalPriorityMsgs.add(msg);
+            if (highPriority && msg.getMsgType().equals(MsgType.RULE_NODE_UPDATED_MSG)) {
+                synchronized (this) {
+                    if (stopReason == TbActorStopReason.INIT_FAILED) {
+                        destroyInProgress.set(false);
+                        stopReason = null;
+                        initActor();
+                    } else {
+                        msg.onTbActorStopped(stopReason);
+                    }
+                }
+            } else {
+                msg.onTbActorStopped(stopReason);
+            }
         }
-        tryProcessQueue(true);
     }
 
     private void tryProcessQueue(boolean newMsg) {
@@ -134,6 +154,9 @@ public final class TbActorMailbox implements TbActorCtx {
                 try {
                     log.debug("[{}] Going to process message: {}", selfId, msg);
                     actor.process(msg);
+                } catch (TbRuleNodeUpdateException updateException){
+                    stopReason = TbActorStopReason.INIT_FAILED;
+                    destroy();
                 } catch (Throwable t) {
                     log.debug("[{}] Failed to process message: {}", selfId, msg, t);
                     ProcessFailureStrategy strategy = actor.onProcessFailure(t);
@@ -195,11 +218,16 @@ public final class TbActorMailbox implements TbActorCtx {
     }
 
     public void destroy() {
+        if (stopReason == null) {
+            stopReason = TbActorStopReason.STOPPED;
+        }
         destroyInProgress.set(true);
         dispatcher.getExecutor().execute(() -> {
             try {
                 ready.set(NOT_READY);
                 actor.destroy();
+                highPriorityMsgs.forEach(msg -> msg.onTbActorStopped(stopReason));
+                normalPriorityMsgs.forEach(msg -> msg.onTbActorStopped(stopReason));
             } catch (Throwable t) {
                 log.warn("[{}] Failed to destroy actor: {}", selfId, t);
             }

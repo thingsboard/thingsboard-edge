@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -82,6 +82,22 @@ export class DeviceProfileService {
       url += `&transportType=${transportType}`;
     }
     return this.http.get<PageData<DeviceProfileInfo>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfileDevicesAttributesKeys(deviceProfileId?: string, config?: RequestConfig): Observable<Array<string>> {
+    let url = `/api/deviceProfile/devices/keys/attributes`;
+    if (isDefinedAndNotNull(deviceProfileId)) {
+      url += `?deviceProfileId=${deviceProfileId}`;
+    }
+    return this.http.get<Array<string>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfileDevicesTimeseriesKeys(deviceProfileId?: string, config?: RequestConfig): Observable<Array<string>> {
+    let url = `/api/deviceProfile/devices/keys/timeseries`;
+    if (isDefinedAndNotNull(deviceProfileId)) {
+      url += `?deviceProfileId=${deviceProfileId}`;
+    }
+    return this.http.get<Array<string>>(url, defaultHttpOptionsFromConfig(config));
   }
 
 }

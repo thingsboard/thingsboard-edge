@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -59,6 +59,7 @@ import { DashboardService } from '@core/http/dashboard.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { CustomActionEditorCompleter } from '@home/components/widget/action/custom-action.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 export interface WidgetActionDialogData {
   isAdd: boolean;
@@ -163,12 +164,38 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
           );
           if (type === WidgetActionType.openDashboard) {
             this.actionTypeFormGroup.addControl(
+              'openNewBrowserTab',
+              this.fb.control(action ? action.openNewBrowserTab : false, [])
+            );
+            this.actionTypeFormGroup.addControl(
               'targetDashboardId',
               this.fb.control(action ? action.targetDashboardId : null,
                 [Validators.required])
             );
             this.setupSelectedDashboardStateIds(action ? action.targetDashboardId : null);
           } else {
+            if (type === WidgetActionType.openDashboardState) {
+              this.actionTypeFormGroup.addControl(
+                'openInSeparateDialog',
+                this.fb.control(action ? action.openInSeparateDialog : false, [])
+              );
+              this.actionTypeFormGroup.addControl(
+                'dialogTitle',
+                this.fb.control(action ? action.dialogTitle : '', [])
+              );
+              this.actionTypeFormGroup.addControl(
+                'dialogHideDashboardToolbar',
+                this.fb.control(action && isDefinedAndNotNull(action.dialogHideDashboardToolbar) ? action.dialogHideDashboardToolbar : true, [])
+              );
+              this.actionTypeFormGroup.addControl(
+                'dialogWidth',
+                this.fb.control(action ? action.dialogWidth : null, [Validators.min(1), Validators.max(100)])
+              );
+              this.actionTypeFormGroup.addControl(
+                'dialogHeight',
+                this.fb.control(action ? action.dialogHeight : null, [Validators.min(1), Validators.max(100)])
+              );
+            }
             this.actionTypeFormGroup.addControl(
               'openRightLayout',
               this.fb.control(action ? action.openRightLayout : false, [])

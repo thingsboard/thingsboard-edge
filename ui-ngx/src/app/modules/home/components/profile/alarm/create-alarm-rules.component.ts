@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -45,7 +45,8 @@ import {
 import { AlarmRule, alarmRuleValidator } from '@shared/models/device.models';
 import { MatDialog } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { AlarmSeverity, alarmSeverityTranslations } from '../../../../../shared/models/alarm.models';
+import { AlarmSeverity, alarmSeverityTranslations } from '@shared/models/alarm.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Component({
   selector: 'tb-create-alarm-rules',
@@ -73,6 +74,9 @@ export class CreateAlarmRulesComponent implements ControlValueAccessor, OnInit, 
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  deviceProfileId: EntityId;
 
   createAlarmRulesFormGroup: FormGroup;
 

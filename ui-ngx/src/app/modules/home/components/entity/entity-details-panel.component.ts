@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -59,7 +59,7 @@ import { EntityAction } from '@home/models/entity/entity-component.models';
 import { Subscription } from 'rxjs';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { EntityTabsComponent } from '@home/components/entity/entity-tabs.component';
-import { deepClone } from '@core/utils';
+import { deepClone, mergeDeep } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-details-panel',
@@ -295,7 +295,7 @@ export class EntityDetailsPanelComponent extends PageComponent implements OnInit
 
   saveEntity() {
     if (this.detailsForm.valid) {
-      const editingEntity = {...this.editingEntity, ...this.entityComponent.entityFormValue()};
+      const editingEntity = mergeDeep(this.editingEntity, this.entityComponent.entityFormValue());
       this.entitiesTableConfig.saveEntity(editingEntity).subscribe(
         (entity) => {
           this.entity = entity;

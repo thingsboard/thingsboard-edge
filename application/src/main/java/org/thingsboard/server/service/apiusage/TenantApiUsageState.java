@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -196,7 +196,7 @@ public class TenantApiUsageState {
             long threshold = getProfileThreshold(recordKey);
             long warnThreshold = getProfileWarnThreshold(recordKey);
             ApiUsageStateValue tmpValue;
-            if (threshold == 0 || value < warnThreshold) {
+            if (threshold == 0 || value == 0 || value < warnThreshold) {
                 tmpValue = ApiUsageStateValue.ENABLED;
             } else if (value < threshold) {
                 tmpValue = ApiUsageStateValue.WARNING;

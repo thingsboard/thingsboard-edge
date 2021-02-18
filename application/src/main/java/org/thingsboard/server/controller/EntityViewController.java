@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -82,8 +82,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Created by Victor Basanets on 8/28/2017.

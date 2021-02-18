@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -117,11 +117,11 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
   ctx: WidgetContext;
 
   private formResize$: ResizeObserver;
-  private settings: MultipleInputWidgetSettings;
+  public settings: MultipleInputWidgetSettings;
   private widgetConfig: WidgetConfig;
   private subscription: IWidgetSubscription;
   private datasources: Array<Datasource>;
-  private sources: Array<MultipleInputWidgetSource> = [];
+  public sources: Array<MultipleInputWidgetSource> = [];
 
   isVerticalAlignment: boolean;
   inputWidthSettings: string;

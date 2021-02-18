@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,11 +32,13 @@ package org.thingsboard.rule.engine.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.header.internals.RecordHeaders;
@@ -88,8 +90,8 @@ public class TbKafkaNode implements TbNode {
         Properties properties = new Properties();
         properties.put(ProducerConfig.CLIENT_ID_CONFIG, "producer-tb-kafka-node-" + ctx.getSelfId().getId().toString() + "-" + ctx.getServiceId());
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.getBootstrapServers());
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, config.getValueSerializer());
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, config.getKeySerializer());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, getKafkaSerializerClass(config.getValueSerializer()));
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, getKafkaSerializerClass(config.getKeySerializer()));
         properties.put(ProducerConfig.ACKS_CONFIG, config.getAcks());
         properties.put(ProducerConfig.RETRIES_CONFIG, config.getRetries());
         properties.put(ProducerConfig.BATCH_SIZE_CONFIG, config.getBatchSize());
@@ -107,9 +109,22 @@ public class TbKafkaNode implements TbNode {
         }
     }
 
+    private Class<?> getKafkaSerializerClass(String serializerClassName) {
+        Class<?> serializerClass = null;
+        if (!StringUtils.isEmpty(serializerClassName)) {
+            try {
+                serializerClass = Class.forName(serializerClassName);
+            } catch (ClassNotFoundException e) {}
+        }
+        if (serializerClass == null) {
+            serializerClass = StringSerializer.class;
+        }
+        return serializerClass;
+    }
+
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        String topic = TbNodeUtils.processPattern(config.getTopicPattern(), msg.getMetaData());
+        String topic = TbNodeUtils.processPattern(config.getTopicPattern(), msg);
         try {
             ctx.getExternalCallExecutor().executeAsync(() -> {
                 publish(ctx, msg, topic);

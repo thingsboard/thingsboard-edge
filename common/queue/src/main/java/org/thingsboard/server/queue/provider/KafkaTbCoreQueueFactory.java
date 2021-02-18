@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -162,7 +162,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         consumerBuilder.settings(kafkaSettings);
         consumerBuilder.topic(coreSettings.getTopic());
         consumerBuilder.clientId("tb-core-consumer-" + serviceInfoProvider.getServiceId());
-        consumerBuilder.groupId("tb-core-node-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId("tb-core-node");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(coreAdmin);
         return consumerBuilder.build();
@@ -241,7 +241,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         consumerBuilder.settings(kafkaSettings);
         consumerBuilder.topic(coreSettings.getUsageStatsTopic());
         consumerBuilder.clientId("tb-core-us-consumer-" + serviceInfoProvider.getServiceId());
-        consumerBuilder.groupId("tb-core-us-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId("tb-core-us-consumer");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToUsageStatsServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(coreAdmin);
         return consumerBuilder.build();

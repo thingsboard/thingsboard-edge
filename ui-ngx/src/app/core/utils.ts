@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -435,7 +435,7 @@ export function padValue(val: any, dec: number): string {
 
 export function removeEmptyObjects(obj: object): object {
   for (const key of Object.keys(obj)) {
-    if (obj[key] === null || obj[key] === undefined || obj[key] === ' ') {
+    if (obj[key] === null || obj[key] === undefined) {
       delete obj[key];
     } else if (Array.isArray(obj[key])) {
         obj[key] = obj[key].filter(el => !!removeEmptyObjects(el));

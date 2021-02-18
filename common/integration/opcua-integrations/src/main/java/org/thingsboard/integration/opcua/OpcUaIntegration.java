@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfigBuilder;
@@ -306,6 +307,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 t = e.getCause();
             }
             log.error("[{}] Failed to connect to OPC-UA server. Reason: {}", this.configuration.getName(), t.getMessage(), t);
+            disconnect();
             throw new OpcUaIntegrationException("Failed to connect to OPC-UA server. Reason: " + t.getMessage(), e);
         }
     }
@@ -379,6 +381,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 log.warn("Error: ", e);
             }
             client = null;
+            connected = false;
             log.info("[{}] OPC-UA client disconnected", this.configuration.getName());
         }
     }
@@ -506,7 +509,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 }
             } catch (Exception e) {
                 if (connected) {
-                    log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), node, e.getMessage(), e);
+                    String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), node.getNodeId(), e.getMessage());
+                    log.error(message, e);
                     sendConnectionFailedMessageToRuleEngine();
                     scheduleReconnect = true;
                     scheduleScan();
@@ -534,10 +538,15 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             if (newTags.size() > 0) {
                 for (NodeId tagId : newTags.values()) {
                     devicesByTags.computeIfAbsent(tagId, key -> new ArrayList<>()).add(device);
-                    VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
-                    DataValue dataValue = varNode.readValue().get();
-                    if (dataValue != null) {
-                        device.updateTag(tagId, dataValue);
+                    if (client != null && client.getAddressSpace() != null) {
+                        VariableNode varNode = client.getAddressSpace().createVariableNode(tagId);
+                        DataValue dataValue = varNode.readValue().get();
+                        if (dataValue != null) {
+                            device.updateTag(tagId, dataValue);
+                        }
+                    } else {
+                        String msg = String.format("Error scan device: Client: [%s] Address Space: [%s]", client, client != null ? client.getAddressSpace() : null);
+                        log.error(msg);
                     }
                 }
                 log.debug("[{}] Going to subscribe to tags: {}", this.configuration.getName(), newTags);
@@ -646,6 +655,12 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 } else {
                     name = rd.getBrowseName().getName();
                 }
+
+                if (StringUtils.isEmpty(name) || name.endsWith("//")) {
+                    log.trace("[{}] Ignoring self-referenced node: {}", this.configuration.getName(), rd.getNodeId());
+                    continue;
+                }
+
                 log.trace("[{}] Found tag: [{}].[{}]", this.configuration.getName(), nodeId, name);
                 if (tags.contains(name)) {
                     values.put(name, childId);
@@ -653,8 +668,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 // recursively browse children
                 values.putAll(lookupTags(childId, deviceNodeName, tags));
             }
+        } catch (ExecutionException e) {
+            String message = String.format("[%s] ExecutionException while Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+            log.error(message, e);
+            log.error("Scheduling reconnect");
+            reconnect();
         } catch (Exception e) {
-            log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), nodeId, e.getMessage(), e);
+            String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+            log.error(message, e);
         }
         return values;
     }
@@ -686,7 +707,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                                     try {
                                         nodeId = NodeId.parseSafe(writeValueJson.get("nodeId").asText());
                                     } catch (Exception e) {
-                                        log.error("[{}] Browsing nodeId={} failed: {}", this.configuration.getName(), nodeId, e.getMessage(), e);
+                                        String message = String.format("[%s] Browsing nodeId=%s failed: %s", this.configuration.getName(), nodeId, e.getMessage());
+                                        log.error(message, e);
                                     }
                                 }
                                 if (writeValueJson.has("value")) {

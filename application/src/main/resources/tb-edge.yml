@@ -1,7 +1,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -79,9 +79,9 @@ server:
       # Minimum value of the server side RPC timeout. May override value provided in the REST API call.
       # Since 2.5 migration to queues, the RPC delay depends on the size of the pending messages in the queue,
       # so default UI parameter of 500ms may not be sufficient for loaded environments.
-      min_timeout:  "${MIN_SERVER_SIDE_RPC_TIMEOUT:5000}"
+      min_timeout: "${MIN_SERVER_SIDE_RPC_TIMEOUT:5000}"
       # Default value of the server side RPC timeout.
-      default_timeout:  "${DEFAULT_SERVER_SIDE_RPC_TIMEOUT:10000}"
+      default_timeout: "${DEFAULT_SERVER_SIDE_RPC_TIMEOUT:10000}"
 
 cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
@@ -149,6 +149,15 @@ security:
     loginProcessingUrl: "${SECURITY_OAUTH2_LOGIN_PROCESSING_URL:/login/oauth2/code/}"
     githubMapper:
       emailUrl: "${SECURITY_OAUTH2_GITHUB_MAPPER_EMAIL_URL_KEY:https://api.github.com/user/emails}"
+
+# Usage statistics parameters
+usage:
+  stats:
+    report:
+      enabled: "${USAGE_STATS_REPORT_ENABLED:true}"
+      interval: "${USAGE_STATS_REPORT_INTERVAL:10}"
+    check:
+      cycle: "${USAGE_STATS_CHECK_CYCLE:60000}"
 
 # Dashboard parameters
 dashboard:
@@ -319,8 +328,8 @@ caffeine:
       timeToLiveInMinutes: 1440
       maxSize: 100000
     claimDevices:
-      timeToLiveInMinutes: 1
-      maxSize: 0
+      timeToLiveInMinutes: 1440
+      maxSize: 1000
     securitySettings:
       timeToLiveInMinutes: 1440
       maxSize: 1
@@ -521,7 +530,7 @@ transport:
     # Maximum allowed string value length when processing Telemetry/Attributes JSON (0 value disables string value length check)
     max_string_value_length: "${JSON_MAX_STRING_VALUE_LENGTH:0}"
   client_side_rpc:
-    timeout:  "${CLIENT_SIDE_RPC_TIMEOUT:60000}"
+    timeout: "${CLIENT_SIDE_RPC_TIMEOUT:60000}"
   # Enable/disable http/mqtt/coap transport protocols (has higher priority than certain protocol's 'enabled' property)
   api_enabled: "${TB_TRANSPORT_API_ENABLED:true}"
   # Local HTTP transport parameters
@@ -594,7 +603,7 @@ queue:
     linger.ms: "${TB_KAFKA_LINGER_MS:1}"
     buffer.memory: "${TB_BUFFER_MEMORY:33554432}"
     replication_factor: "${TB_QUEUE_KAFKA_REPLICATION_FACTOR:1}"
-    max_poll_interval_ms: "${TB_QUEUE_KAFKA_MAX_POLL_INTERVAL_MS:0}"
+    max_poll_interval_ms: "${TB_QUEUE_KAFKA_MAX_POLL_INTERVAL_MS:300000}"
     max_poll_records: "${TB_QUEUE_KAFKA_MAX_POLL_RECORDS:8192}"
     max_partition_fetch_bytes: "${TB_QUEUE_KAFKA_MAX_PARTITION_FETCH_BYTES:16777216}"
     fetch_max_bytes: "${TB_QUEUE_KAFKA_FETCH_MAX_BYTES:134217728}"
@@ -694,8 +703,6 @@ queue:
     max_requests_timeout: "${REMOTE_JS_MAX_REQUEST_TIMEOUT:10000}"
     # JS response poll interval
     response_poll_interval: "${REMOTE_JS_RESPONSE_POLL_INTERVAL_MS:25}"
-    # JS response auto commit interval
-    response_auto_commit_interval: "${REMOTE_JS_RESPONSE_AUTO_COMMIT_INTERVAL_MS:100}"
   rule-engine:
     topic: "${TB_QUEUE_RULE_ENGINE_TOPIC:tb_rule_engine}"
     poll-interval: "${TB_QUEUE_RULE_ENGINE_POLL_INTERVAL_MS:25}"
@@ -756,6 +763,10 @@ queue:
     # For high priority notifications that require minimum latency and processing time
     notifications_topic: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_TOPIC:tb_transport.notifications}"
     poll_interval: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_POLL_INTERVAL_MS:25}"
+
+event:
+  debug:
+    max-symbols: "${TB_MAX_DEBUG_EVENT_SYMBOLS:4096}"
 
 service:
   type: "${TB_SERVICE_TYPE:monolith}" # monolith or tb-core or tb-rule-engine

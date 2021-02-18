@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -65,7 +65,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadGroupNodeActionConfig(configuration);
-        CacheBuilder cacheBuilder = CacheBuilder.newBuilder();
+        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
         if (this.config.getGroupCacheExpiration() > 0) {
             cacheBuilder.expireAfterWrite(this.config.getGroupCacheExpiration(), TimeUnit.SECONDS);
         }
@@ -100,7 +100,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     protected abstract void doProcessEntityGroupAction(TbContext ctx, TbMsg msg, EntityGroupId entityGroupId);
 
     private ListenableFuture<EntityGroupId> getEntityGroup(TbContext ctx, TbMsg msg, EntityId ownerId) {
-        String groupName = TbNodeUtils.processPattern(this.config.getGroupNamePattern(), msg.getMetaData());
+        String groupName = TbNodeUtils.processPattern(this.config.getGroupNamePattern(), msg);
         GroupKey key = new GroupKey(msg.getOriginator().getEntityType(), groupName, ownerId);
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             Optional<EntityGroupId> groupId = groupIdCache.get(key);

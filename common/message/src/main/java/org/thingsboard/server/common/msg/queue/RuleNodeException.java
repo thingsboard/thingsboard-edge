@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,9 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 
 @Slf4j
 public class RuleNodeException extends RuleEngineException {
+
+    private static final long serialVersionUID = -1776681087370749776L;
+
     @Getter
     private final String ruleChainName;
     @Getter
@@ -47,6 +50,7 @@ public class RuleNodeException extends RuleEngineException {
     private final RuleChainId ruleChainId;
     @Getter
     private final RuleNodeId ruleNodeId;
+
 
     public RuleNodeException(String message, String ruleChainName, RuleNode ruleNode) {
         super(message);

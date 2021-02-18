@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -54,12 +54,12 @@ public class JpaRuleNodeStateDao extends JpaAbstractDao<RuleNodeStateEntity, Rul
     private RuleNodeStateRepository ruleNodeStateRepository;
 
     @Override
-    protected Class getEntityClass() {
+    protected Class<RuleNodeStateEntity> getEntityClass() {
         return RuleNodeStateEntity.class;
     }
 
     @Override
-    protected CrudRepository getCrudRepository() {
+    protected CrudRepository<RuleNodeStateEntity, UUID> getCrudRepository() {
         return ruleNodeStateRepository;
     }
 

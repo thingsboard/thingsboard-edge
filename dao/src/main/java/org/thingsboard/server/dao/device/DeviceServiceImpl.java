@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -221,6 +221,8 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         } catch (Exception t) {
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_name_unq_key")) {
+                // remove device from cache in case null value cached in the distributed redis.
+                removeDeviceFromCache(device.getTenantId(), device.getName());
                 throw new DataValidationException("Device with such name already exists!");
             } else {
                 throw t;
@@ -286,13 +288,17 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         }
         deleteEntityRelations(tenantId, deviceId);
 
-        List<Object> list = new ArrayList<>();
-        list.add(device.getTenantId());
-        list.add(device.getName());
-        Cache cache = cacheManager.getCache(DEVICE_CACHE);
-        cache.evict(list);
+        removeDeviceFromCache(tenantId, device.getName());
 
         deviceDao.removeById(tenantId, deviceId.getId());
+    }
+
+    private void removeDeviceFromCache(TenantId tenantId, String name) {
+        List<Object> list = new ArrayList<>();
+        list.add(tenantId);
+        list.add(name);
+        Cache cache = cacheManager.getCache(DEVICE_CACHE);
+        cache.evict(list);
     }
 
     @Override

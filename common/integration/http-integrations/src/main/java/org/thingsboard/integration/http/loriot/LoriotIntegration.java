@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -56,7 +57,6 @@ import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@SuppressWarnings("deprecation")
 public class LoriotIntegration extends BasicHttpIntegration {
     private static final String EUI = "EUI";
     private static final String PORT = "port";
@@ -187,8 +188,13 @@ public class LoriotIntegration extends BasicHttpIntegration {
                     if (eui.length() != 16) {
                         throw new RuntimeException("Device EUI, 16 hex digits (without dashes)!");
                     }
-                    int port = Integer.parseInt(metadata.get(PORT));
 
+                    String portStr = metadata.get(PORT);
+                    if (StringUtils.isEmpty(portStr)) {
+                        throw new RuntimeException("Port is missing in the downlink metadata!");
+                    }
+
+                    int port = Integer.parseInt(portStr);
                     if (port < 1 || port > 223) {
                         throw new RuntimeException("Port should be on the range from 1 to 223!");
                     }
@@ -243,6 +249,6 @@ public class LoriotIntegration extends BasicHttpIntegration {
     }
 
     public String toHex(String data) {
-        return String.format("%x", new BigInteger(1, data.getBytes(StandardCharsets.UTF_8)));
+        return Hex.toHexString(data.getBytes());
     }
 }

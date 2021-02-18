@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ public class SkipPathRequestMatcher implements RequestMatcher {
     private RequestMatcher processingMatcher;
 
     public SkipPathRequestMatcher(List<String> pathsToSkip, String processingPath) {
-        Assert.notNull(pathsToSkip);
+        Assert.notNull(pathsToSkip, "List of paths to skip is required.");
         List<RequestMatcher> m = pathsToSkip.stream().map(path -> new AntPathRequestMatcher(path)).collect(Collectors.toList());
         matchers = new OrRequestMatcher(m);
         processingMatcher = new AntPathRequestMatcher(processingPath);

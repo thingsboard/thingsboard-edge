@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.TbActorRef;
+import org.thingsboard.server.actors.TbRuleNodeUpdateException;
 import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -67,7 +68,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         this.ruleChainName = ruleChainName;
         this.self = self;
         this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
-        this.defaultCtx = new DefaultTbContext(systemContext, new RuleNodeCtx(tenantId, parent, self, ruleNode));
+        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, parent, self, ruleNode));
         this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, ruleNode != null ? ruleNode.getName() : "Unknown");
     }
 
@@ -91,7 +92,11 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
             if (tbNode != null) {
                 tbNode.destroy();
             }
-            start(context);
+            try {
+                start(context);
+            } catch (Exception e) {
+                throw new TbRuleNodeUpdateException("Failed to update rule node", e);
+            }
         }
     }
 
@@ -160,7 +165,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         TbNode tbNode = null;
         if (ruleNode != null) {
             Class<?> componentClazz = Class.forName(ruleNode.getType());
-            tbNode = (TbNode) (componentClazz.newInstance());
+            tbNode = (TbNode) (componentClazz.getDeclaredConstructor().newInstance());
             tbNode.init(defaultCtx, new TbNodeConfiguration(ruleNode.getConfiguration()));
         }
         return tbNode;

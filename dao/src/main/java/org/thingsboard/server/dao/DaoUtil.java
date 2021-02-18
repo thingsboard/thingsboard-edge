@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -62,11 +62,11 @@ public abstract class DaoUtil {
 
     public static <T> PageData<T> toPageData(Page<? extends ToData<T>> page) {
         List<T> data = convertDataList(page.getContent());
-        return new PageData(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
+        return new PageData<>(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
     public static <T> PageData<T> pageToPageData(Page<T> page) {
-        return new PageData(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
+        return new PageData<>(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
     public static Pageable toPageable(PageLink pageLink) {

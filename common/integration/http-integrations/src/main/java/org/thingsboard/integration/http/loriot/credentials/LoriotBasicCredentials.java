@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,15 +36,18 @@ import lombok.Data;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class LoriotBasicCredentials implements LoriotCredentials {
+public class LoriotBasicCredentials implements LoriotCredentials, ClientHttpRequestInterceptor {
 
     private String email;
     private String password;
@@ -52,20 +55,17 @@ public class LoriotBasicCredentials implements LoriotCredentials {
     @JsonIgnore
     private String session;
 
+    @JsonIgnore
+    private RestTemplate restTemplate;
+
+    @JsonIgnore
+    private String baseUrl;
+
     @Override
     public void setInterceptor(RestTemplate restTemplate, String baseUrl) {
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            HttpRequest wrapper = new HttpRequestWrapper(request);
-            wrapper.getHeaders().set(AUTH_HEADER_PARAM, "Session " + session);
-            ClientHttpResponse response = execution.execute(wrapper, body);
-            if (response.getStatusCode() == HttpStatus.FORBIDDEN) {
-                    restTemplate.getInterceptors().remove(this);
-                    refreshSession(restTemplate, baseUrl);
-                    wrapper.getHeaders().set(AUTH_HEADER_PARAM, "Session " + session);
-                    return execution.execute(wrapper, body);
-            }
-            return response;
-        });
+        this.restTemplate = restTemplate;
+        this.baseUrl = baseUrl;
+        refreshSession(restTemplate, baseUrl);
     }
 
     private void refreshSession(RestTemplate restTemplate, String baseUrl) {
@@ -75,8 +75,25 @@ public class LoriotBasicCredentials implements LoriotCredentials {
         ResponseEntity<JsonNode> sessionInfo = restTemplate.postForEntity(baseUrl + "1/pub/login", loginRequest, JsonNode.class);
         if (sessionInfo.getStatusCode().equals(HttpStatus.OK)) {
             session = sessionInfo.getBody().get("session").asText();
+            restTemplate.getInterceptors().add(this);
         } else {
-            throw new RuntimeException(sessionInfo.getBody().asText());
+            throw new RuntimeException(sessionInfo.getBody().get("error").asText());
         }
+    }
+
+    @Override
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        HttpRequest wrapper = new HttpRequestWrapper(request);
+        wrapper.getHeaders().set(AUTH_HEADER_PARAM, "Session " + session);
+        ClientHttpResponse response = execution.execute(wrapper, body);
+        if (response.getStatusCode() == HttpStatus.FORBIDDEN) {
+            synchronized (this) {
+                restTemplate.getInterceptors().remove(this);
+                refreshSession(restTemplate, baseUrl);
+                wrapper.getHeaders().set(AUTH_HEADER_PARAM, "Session " + session);
+                return execution.execute(wrapper, body);
+            }
+        }
+        return response;
     }
 }

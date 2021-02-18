@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgP
 /**
  * Created by ashvayka on 25.06.18.
  */
-public interface SchedulerService extends ApplicationListener<PartitionChangeEvent> {
+public interface SchedulerService {
 
     void onSchedulerEventAdded(SchedulerEventInfo event);
 

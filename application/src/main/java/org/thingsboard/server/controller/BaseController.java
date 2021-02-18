@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -102,6 +102,8 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -184,11 +186,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
@@ -199,6 +203,9 @@ public abstract class BaseController {
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     private static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
+
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
 
     private static final ObjectMapper json = new ObjectMapper();
 
@@ -1000,6 +1007,7 @@ public abstract class BaseController {
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
+    @SuppressWarnings("unchecked")
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
@@ -1041,6 +1049,9 @@ public abstract class BaseController {
             case ASSIGNED_TO_CUSTOMER:
                 msgType = DataConstants.ENTITY_ASSIGNED;
                 break;
+            case CHANGE_OWNER:
+                msgType = DataConstants.OWNER_CHANGED;
+                break;
             case UNASSIGNED_FROM_CUSTOMER:
                 msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
@@ -1073,6 +1084,12 @@ public abstract class BaseController {
                 break;
             case PROVISION_FAILURE:
                 msgType = DataConstants.PROVISION_FAILURE;
+                break;
+            case TIMESERIES_UPDATED:
+                msgType = DataConstants.TIMESERIES_UPDATED;
+                break;
+            case TIMESERIES_DELETED:
+                msgType = DataConstants.TIMESERIES_DELETED;
                 break;
         }
         if (!StringUtils.isEmpty(msgType)) {
@@ -1113,6 +1130,10 @@ public abstract class BaseController {
                     String strTenantName = extractParameter(String.class, 1, additionalInfo);
                     metaData.putValue("assignedToTenantId", strTenantId);
                     metaData.putValue("assignedToTenantName", strTenantName);
+                } else if (actionType == ActionType.CHANGE_OWNER) {
+                    EntityId targetOwnerId = extractParameter(EntityId.class, 0, additionalInfo);
+                    metaData.putValue("targetOwnerId", targetOwnerId.toString());
+                    metaData.putValue("targetOwnerType", targetOwnerId.getEntityType().name());
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
@@ -1124,31 +1145,36 @@ public abstract class BaseController {
                     entityNode = json.createObjectNode();
                     if (actionType == ActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<AttributeKvEntry> attributes = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         if (attributes != null) {
                             for (AttributeKvEntry attr : attributes) {
-                                if (attr.getDataType() == DataType.BOOLEAN) {
-                                    entityNode.put(attr.getKey(), attr.getBooleanValue().get());
-                                } else if (attr.getDataType() == DataType.DOUBLE) {
-                                    entityNode.put(attr.getKey(), attr.getDoubleValue().get());
-                                } else if (attr.getDataType() == DataType.LONG) {
-                                    entityNode.put(attr.getKey(), attr.getLongValue().get());
-                                } else if (attr.getDataType() == DataType.JSON) {
-                                    entityNode.set(attr.getKey(), json.readTree(attr.getJsonValue().get()));
-                                } else {
-                                    entityNode.put(attr.getKey(), attr.getValueAsString());
-                                }
+                                addKvEntry(entityNode, attr);
                             }
                         }
                     } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
+                        @SuppressWarnings("unchecked")
                         List<String> keys = extractParameter(List.class, 1, additionalInfo);
-                        metaData.putValue("scope", scope);
+                        metaData.putValue(DataConstants.SCOPE, scope);
                         ArrayNode attrsArrayNode = entityNode.putArray("attributes");
                         if (keys != null) {
                             keys.forEach(attrsArrayNode::add);
                         }
+                    } else if (actionType == ActionType.TIMESERIES_UPDATED) {
+                        @SuppressWarnings("unchecked")
+                        List<TsKvEntry> timeseries = extractParameter(List.class, 0, additionalInfo);
+                        addTimeseries(entityNode, timeseries);
+                    } else if (actionType == ActionType.TIMESERIES_DELETED) {
+                        @SuppressWarnings("unchecked")
+                        List<String> keys = extractParameter(List.class, 0, additionalInfo);
+                        if (keys != null) {
+                            ArrayNode timeseriesArrayNode = entityNode.putArray("timeseries");
+                            keys.forEach(timeseriesArrayNode::add);
+                        }
+                        entityNode.put("startTs", extractParameter(Long.class, 1, additionalInfo));
+                        entityNode.put("endTs", extractParameter(Long.class, 2, additionalInfo));
                     }
                 }
                 TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, metaData, TbMsgDataType.JSON, json.writeValueAsString(entityNode));
@@ -1162,6 +1188,22 @@ public abstract class BaseController {
             } catch (Exception e) {
                 log.warn("[{}] Failed to push entity action to rule engine: {}", entityId, actionType, e);
             }
+        }
+    }
+
+    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
+        if (kvEntry.getDataType() == DataType.BOOLEAN) {
+            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
+            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.LONG) {
+            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
+        } else if (kvEntry.getDataType() == DataType.JSON) {
+            if (kvEntry.getJsonValue().isPresent()) {
+                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
+            }
+        } else {
+            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
         }
     }
 
@@ -1243,6 +1285,22 @@ public abstract class BaseController {
         return null;
     }
 
+    private void addTimeseries(ObjectNode entityNode, List<TsKvEntry> timeseries) throws Exception {
+        if (timeseries != null && !timeseries.isEmpty()) {
+            ArrayNode result = entityNode.putArray("timeseries");
+            Map<Long, List<TsKvEntry>> groupedTelemetry = timeseries.stream()
+                    .collect(Collectors.groupingBy(TsKvEntry::getTs));
+            for (Map.Entry<Long, List<TsKvEntry>> entry : groupedTelemetry.entrySet()) {
+                ObjectNode element = json.createObjectNode();
+                element.put("ts", entry.getKey());
+                ObjectNode values = element.putObject("values");
+                for (TsKvEntry tsKvEntry : entry.getValue()) {
+                    addKvEntry(values, tsKvEntry);
+                }
+                result.add(element);
+            }
+        }
+    }
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
         try {
             sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);

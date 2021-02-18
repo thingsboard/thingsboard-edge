@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,11 +40,14 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.profile.state.PersistedAlarmRuleState;
 import org.thingsboard.rule.engine.profile.state.PersistedAlarmState;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -72,10 +75,12 @@ class AlarmState {
     private volatile TbMsgMetaData lastMsgMetaData;
     private volatile String lastMsgQueueName;
     private volatile DataSnapshot dataSnapshot;
+    private final DynamicPredicateValueCtx dynamicPredicateValueCtx;
 
-    AlarmState(ProfileState deviceProfile, EntityId originator, DeviceProfileAlarm alarmDefinition, PersistedAlarmState alarmState) {
+    AlarmState(ProfileState deviceProfile, EntityId originator, DeviceProfileAlarm alarmDefinition, PersistedAlarmState alarmState, DynamicPredicateValueCtx dynamicPredicateValueCtx) {
         this.deviceProfile = deviceProfile;
         this.originator = originator;
+        this.dynamicPredicateValueCtx = dynamicPredicateValueCtx;
         this.updateState(alarmDefinition, alarmState);
     }
 
@@ -203,12 +208,12 @@ class AlarmState {
                 }
             }
             createRulesSortedBySeverityDesc.add(new AlarmRuleState(severity, rule,
-                    deviceProfile.getCreateAlarmKeys(alarm.getId(), severity), ruleState));
+                    deviceProfile.getCreateAlarmKeys(alarm.getId(), severity), ruleState, dynamicPredicateValueCtx));
         });
         createRulesSortedBySeverityDesc.sort(Comparator.comparingInt(state -> state.getSeverity().ordinal()));
         PersistedAlarmRuleState ruleState = alarmState == null ? null : alarmState.getClearRuleState();
         if (alarmDefinition.getClearRule() != null) {
-            clearState = new AlarmRuleState(null, alarmDefinition.getClearRule(), deviceProfile.getClearAlarmKeys(alarm.getId()), ruleState);
+            clearState = new AlarmRuleState(null, alarmDefinition.getClearRule(), deviceProfile.getClearAlarmKeys(alarm.getId()), ruleState, dynamicPredicateValueCtx);
         }
     }
 
@@ -238,7 +243,11 @@ class AlarmState {
             currentAlarm.setType(alarmDefinition.getAlarmType());
             currentAlarm.setStatus(AlarmStatus.ACTIVE_UNACK);
             currentAlarm.setSeverity(severity);
-            currentAlarm.setStartTs(System.currentTimeMillis());
+            long startTs = dataSnapshot.getTs();
+            if (startTs == 0L) {
+                startTs = System.currentTimeMillis();
+            }
+            currentAlarm.setStartTs(startTs);
             currentAlarm.setEndTs(currentAlarm.getStartTs());
             currentAlarm.setDetails(createDetails(ruleState));
             currentAlarm.setOriginator(originator);
@@ -305,5 +314,12 @@ class AlarmState {
             }
         }
         return updated;
+    }
+
+    public void processAckAlarm(Alarm alarm) {
+        if (currentAlarm != null && currentAlarm.getId().equals(alarm.getId())) {
+            currentAlarm.setStatus(alarm.getStatus());
+            currentAlarm.setAckTs(alarm.getAckTs());
+        }
     }
 }

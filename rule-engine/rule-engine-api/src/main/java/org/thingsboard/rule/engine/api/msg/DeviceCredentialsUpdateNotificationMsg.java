@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,8 @@ import java.util.Set;
  */
 @Data
 public class DeviceCredentialsUpdateNotificationMsg implements ToDeviceActorNotificationMsg {
+
+    private static final long serialVersionUID = -3956907402411126990L;
 
     private final TenantId tenantId;
     private final DeviceId deviceId;

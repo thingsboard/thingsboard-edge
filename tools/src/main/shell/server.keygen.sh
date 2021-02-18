@@ -2,7 +2,7 @@
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
-# Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+# Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 #
 # NOTICE: All information contained herein is, and remains
 # the property of ThingsBoard, Inc. and its suppliers,
@@ -107,8 +107,8 @@ keytool -genkeypair -v \
   -keystore $SERVER_FILE_PREFIX.jks \
   -keypass $SERVER_KEY_PASSWORD \
   -storepass $SERVER_KEYSTORE_PASSWORD \
-  -keyalg RSA \
-  -keysize 2048 \
+  -keyalg $SERVER_KEY_ALG \
+  -keysize $SERVER_KEY_SIZE \
   -validity 9999
 
 status=$?

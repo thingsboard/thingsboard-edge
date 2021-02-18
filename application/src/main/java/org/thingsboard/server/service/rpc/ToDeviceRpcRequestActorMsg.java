@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,6 +45,8 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 @ToString
 @RequiredArgsConstructor
 public class ToDeviceRpcRequestActorMsg implements ToDeviceActorNotificationMsg {
+
+    private static final long serialVersionUID = -8592877558138716589L;
 
     @Getter
     private final String serviceId;

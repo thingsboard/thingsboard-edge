@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,8 +39,8 @@ public enum ActionType {
     UPDATED(false), // log entity
     ATTRIBUTES_UPDATED(false), // log attributes/values
     ATTRIBUTES_DELETED(false), // log attributes
+    TIMESERIES_UPDATED(false), // log timeseries update
     TIMESERIES_DELETED(false), // log timeseries
-    TIMESERIES_UPDATED(false), // log timeseries
     RPC_CALL(false), // log method and params
     CREDENTIALS_UPDATED(false), // log new credentials
     ASSIGNED_TO_CUSTOMER(false), // log customer name

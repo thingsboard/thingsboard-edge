@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -96,6 +96,8 @@ public class LocalIntegrationContext implements IntegrationContext {
                 .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
                 .setDeviceName(device.getName())
                 .setDeviceType(device.getType())
+                .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
+                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
                 .build();
 
         if (data.hasPostTelemetryMsg()) {

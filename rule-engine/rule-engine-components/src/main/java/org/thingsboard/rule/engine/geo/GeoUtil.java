@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -77,7 +77,7 @@ public class GeoUtil {
         }
         polygonBuilder.pointXY(jtsCtx.getShapeFactory().normX(firstLng), jtsCtx.getShapeFactory().normY(firstLat));
         Shape shape = polygonBuilder.buildOrRect();
-        Point point = jtsCtx.makePoint(coordinates.getLongitude(), coordinates.getLatitude());
+        Point point = jtsCtx.getShapeFactory().pointXY(coordinates.getLongitude(), coordinates.getLatitude());
         return shape.relate(point).equals(SpatialRelation.CONTAINS);
     }
 }

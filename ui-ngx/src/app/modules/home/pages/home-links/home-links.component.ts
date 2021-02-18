@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -35,6 +35,8 @@ import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
 import { map } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
+import { HomeDashboard } from '@shared/models/dashboard.models';
 import { EdgeService } from "@core/http/edge.service";
 
 @Component({
@@ -53,17 +55,22 @@ export class HomeLinksComponent implements OnInit {
   edgeName: string;
   cols = 2;
 
+  homeDashboard: HomeDashboard = this.route.snapshot.data.homeDashboard;
+
   constructor(private menuService: MenuService,
-              private edgeService: EdgeService,
-              public breakpointObserver: BreakpointObserver) {
+              public breakpointObserver: BreakpointObserver,
+              private route: ActivatedRoute,
+              private edgeService: EdgeService) {
   }
 
   ngOnInit() {
-    this.updateColumnCount();
-    this.breakpointObserver
-      .observe([MediaBreakpoints.lg, MediaBreakpoints['gt-lg']])
-      .subscribe((state: BreakpointState) => this.updateColumnCount());
-    this.edgeService.getEdgeSettings().subscribe(edgeSettings => this.edgeName = edgeSettings.name);
+    if (!this.homeDashboard) {
+      this.updateColumnCount();
+      this.breakpointObserver
+        .observe([MediaBreakpoints.lg, MediaBreakpoints['gt-lg']])
+        .subscribe((state: BreakpointState) => this.updateColumnCount());
+      this.edgeService.getEdgeSettings().subscribe(edgeSettings => this.edgeName = edgeSettings.name);
+    }
   }
 
   private updateColumnCount() {

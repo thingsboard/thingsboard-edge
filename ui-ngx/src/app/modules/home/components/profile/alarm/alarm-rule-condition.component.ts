@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -48,6 +48,7 @@ import {
   AlarmRuleConditionDialogData
 } from '@home/components/profile/alarm/alarm-rule-condition-dialog.component';
 import { TimeUnit } from '@shared/models/time/time.models';
+import { EntityId } from '@shared/models/id/entity-id';
 
 @Component({
   selector: 'tb-alarm-rule-condition',
@@ -70,6 +71,9 @@ export class AlarmRuleConditionComponent implements ControlValueAccessor, OnInit
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  deviceProfileId: EntityId;
 
   alarmRuleConditionFormGroup: FormGroup;
 
@@ -138,7 +142,8 @@ export class AlarmRuleConditionComponent implements ControlValueAccessor, OnInit
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         readonly: this.disabled,
-        condition: this.disabled ? this.modelValue : deepClone(this.modelValue)
+        condition: this.disabled ? this.modelValue : deepClone(this.modelValue),
+        entityId: this.deviceProfileId
       }
     }).afterClosed().subscribe((result) => {
       if (result) {

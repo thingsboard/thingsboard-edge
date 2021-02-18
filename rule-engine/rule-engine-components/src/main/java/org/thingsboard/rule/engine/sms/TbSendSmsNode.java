@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -87,8 +87,8 @@ public class TbSendSmsNode implements TbNode {
     }
 
     private void sendSms(TbContext ctx, TbMsg msg) throws Exception {
-        String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersToTemplate(), msg.getMetaData());
-        String message = TbNodeUtils.processPattern(this.config.getSmsMessageTemplate(), msg.getMetaData());
+        String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersToTemplate(), msg);
+        String message = TbNodeUtils.processPattern(this.config.getSmsMessageTemplate(), msg);
         String[] numbersToList = numbersTo.split(",");
         if (this.config.isUseSystemSmsSettings()) {
             ctx.getSmsService().sendSms(ctx.getTenantId(), numbersToList, message);

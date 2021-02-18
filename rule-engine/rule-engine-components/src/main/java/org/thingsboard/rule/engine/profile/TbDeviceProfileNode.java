@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2020 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -140,14 +140,17 @@ public class TbDeviceProfileNode implements TbNode {
                 DeviceId deviceId = new DeviceId(msg.getOriginator().getId());
                 if (msg.getType().equals(DataConstants.ENTITY_UPDATED)) {
                     invalidateDeviceProfileCache(deviceId, msg.getData());
+                    ctx.tellSuccess(msg);
                 } else if (msg.getType().equals(DataConstants.ENTITY_DELETED)) {
                     removeDeviceState(deviceId);
+                    ctx.tellSuccess(msg);
                 } else {
                     DeviceState deviceState = getOrCreateDeviceState(ctx, deviceId, null);
                     if (deviceState != null) {
                         deviceState.process(ctx, msg);
                     } else {
-                        ctx.tellFailure(msg, new IllegalStateException("Device profile for device [" + deviceId + "] not found!"));
+                        log.info("Device was not found! Most probably device [" + deviceId + "] has been removed from the database. Acknowledging msg.");
+                        ctx.ack(msg);
                     }
                 }
             } else {
