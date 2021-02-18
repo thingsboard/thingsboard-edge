@@ -306,8 +306,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     for (SchedulerEventInfo schedulerEventInfo : schedulerEventInfos) {
                         if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
                             schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
-                            // TODO: voba - remove of the customer should remove scheduler events as well - double check this
-                            // saveEdgeEvent(tenantId, edgeId, EdgeEventType.SCHEDULER_EVENT, ActionType.UNASSIGNED_FROM_EDGE, schedulerEventInfo.getId(), null);
+                            saveEdgeEvent(tenantId, edgeId, EdgeEventType.SCHEDULER_EVENT, EdgeEventActionType.UNASSIGNED_FROM_EDGE, schedulerEventInfo.getId(), null);
                         }
                     }
                 }
