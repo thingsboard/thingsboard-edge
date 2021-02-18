@@ -221,7 +221,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.nodeId = '#';
         entityGroupParams.internalId = '#';
         this.updateGroupsView(entityGroupParams);
-      } else if (node.data.type === 'groups' || (node.data.type === 'group' && node.data.entity.id.entityType === EntityType.ENTITY_GROUP) || node.data.type === 'edgeGroups') {
+      } else if (node.data.type === 'groups'
+        || (node.data.type === 'group' && node.data.entity.id.entityType === EntityType.ENTITY_GROUP)) {
         if (node.data.type === 'groups') {
           const parentEntityGroupId = node.data.parentEntityGroupId;
           if (parentEntityGroupId) {
@@ -235,32 +236,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.nodeId = node.id;
           entityGroupParams.internalId = node.data.internalId;
           this.updateGroupsView(entityGroupParams, node.data.customer);
-        } else if (node.data.type === 'edgeGroups') {
-          this.edgeId = node.data.edge.id.id;
-          const parentEntityGroupId = node.data.parentEntityGroupId;
-          if (parentEntityGroupId) {
-            entityGroupParams.entityGroupId = parentEntityGroupId;
-            entityGroupParams.groupType = EntityType.EDGE;
-            entityGroupParams.childGroupType = node.data.groupsType;
-          } else {
-            entityGroupParams.groupType = node.data.groupsType;
-          }
-          entityGroupParams.edgeId = node.data.edge.id.id;
-          entityGroupParams.nodeId = node.id;
-          entityGroupParams.internalId = node.data.internalId;
-          const groupsType = node.data.groupsType;
-          switch (groupsType) {
-            case EntityType.USER:
-            case EntityType.ASSET:
-            case EntityType.DEVICE:
-            case EntityType.ENTITY_VIEW:
-            case EntityType.DASHBOARD:
-              this.updateGroupsView(entityGroupParams, null, node.data.edge);
-              break;
-            case EntityType.SCHEDULER_EVENT:
-              this.updateSchedulerView('schedulerEvents');
-              break;
-          }
         } else {
           const entityGroup = node.data.entity;
           const parentEntityGroupId = node.data.parentEntityGroupId;
@@ -281,6 +256,32 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.nodeId = node.id;
           entityGroupParams.internalId = node.data.internalId;
           this.updateGroupView(entityGroupParams, entityGroup);
+        }
+      } else if (node.data.type === 'edgeGroups') {
+        this.edgeId = node.data.edge.id.id;
+        const parentEntityGroupId = node.data.parentEntityGroupId;
+        if (parentEntityGroupId) {
+          entityGroupParams.entityGroupId = parentEntityGroupId;
+          entityGroupParams.groupType = EntityType.EDGE;
+          entityGroupParams.childGroupType = node.data.groupsType;
+        } else {
+          entityGroupParams.groupType = node.data.groupsType;
+        }
+        entityGroupParams.edgeId = node.data.edge.id.id;
+        entityGroupParams.nodeId = node.id;
+        entityGroupParams.internalId = node.data.internalId;
+        const groupsType = node.data.groupsType;
+        switch (groupsType) {
+          case EntityType.USER:
+          case EntityType.ASSET:
+          case EntityType.DEVICE:
+          case EntityType.ENTITY_VIEW:
+          case EntityType.DASHBOARD:
+            this.updateGroupsView(entityGroupParams, null, node.data.edge);
+            break;
+          case EntityType.SCHEDULER_EVENT:
+            this.updateSchedulerView('schedulerEvents');
+            break;
         }
       }
     }
