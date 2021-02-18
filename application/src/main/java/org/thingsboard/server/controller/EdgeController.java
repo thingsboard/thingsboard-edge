@@ -93,7 +93,7 @@ public class EdgeController extends BaseController {
         try {
             EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
             Edge edge = checkEdgeId(edgeId, Operation.READ);
-            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 cleanUpSensitiveData(edge);
             }
             return edge;
@@ -293,6 +293,7 @@ public class EdgeController extends BaseController {
             TenantId tenantId = user.getTenantId();
             CustomerId customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             PageData<Edge> result;
             if (type != null && type.trim().length() > 0) {
@@ -300,8 +301,7 @@ public class EdgeController extends BaseController {
             } else {
                 result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
             }
-            // TODO: voba - check permission instead of authority
-            if (Authority.CUSTOMER_USER.equals(user.getAuthority())) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : result.getData()) {
                     cleanUpSensitiveData(edge);
                 }
@@ -354,7 +354,7 @@ public class EdgeController extends BaseController {
                 edgesFuture = edgeService.findEdgesByTenantIdCustomerIdAndIdsAsync(tenantId, customerId, edgeIds);
             }
             List<Edge> edges = edgesFuture.get();
-            if (Authority.CUSTOMER_USER.equals(user.getAuthority())) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
                     cleanUpSensitiveData(edge);
                 }
@@ -385,7 +385,7 @@ public class EdgeController extends BaseController {
                     return false;
                 }
             }).collect(Collectors.toList());
-            if (Authority.CUSTOMER_USER.equals(user.getAuthority())) {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.EDGE, Operation.WRITE)) {
                 for (Edge edge : edges) {
                     cleanUpSensitiveData(edge);
                 }

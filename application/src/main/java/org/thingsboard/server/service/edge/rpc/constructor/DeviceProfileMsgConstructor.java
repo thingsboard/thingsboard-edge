@@ -58,14 +58,17 @@ public class DeviceProfileMsgConstructor {
                 .setTransportType(deviceProfile.getTransportType().name())
                 .setProvisionType(deviceProfile.getProvisionType().name())
                 .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(deviceProfile.getProfileData())));
-        // TODO: voba - should this be always null at the moment??
-//        if (deviceProfile.getDefaultRuleChainId() != null) {
-//            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
-//                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
-//        }
-//        if (deviceProfile.getDefaultQueueName() != null) {
-//            builder.setDefaultQueueName(deviceProfile.getDefaultQueueName());
-//        }
+
+        /* TODO: voba - support of rule chain and queue name on the edge planned for next releases
+        if (deviceProfile.getDefaultRuleChainId() != null) {
+            builder.setDefaultRuleChainIdMSB(deviceProfile.getDefaultRuleChainId().getId().getMostSignificantBits())
+                    .setDefaultRuleChainIdLSB(deviceProfile.getDefaultRuleChainId().getId().getLeastSignificantBits());
+        }
+        if (deviceProfile.getDefaultQueueName() != null) {
+            builder.setDefaultQueueName(deviceProfile.getDefaultQueueName());
+        }
+        */
+
         if (deviceProfile.getDescription() != null) {
             builder.setDescription(deviceProfile.getDescription());
         }
