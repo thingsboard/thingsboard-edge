@@ -77,8 +77,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     public static final String JSON_PAYLOAD = "JSON";
     public static final String HEX_PAYLOAD = "HEX";
 
-    protected HashMap<String, List<DownlinkData>> devicesDownlinkData = new HashMap<>();
-    protected HashMap<String, ChannelHandlerContext> connectedDevicesContexts = new HashMap<>();
+    protected Map<String, List<DownlinkData>> devicesDownlinkData = new HashMap<>();
+    protected Map<String, ChannelHandlerContext> connectedDevicesContexts = new HashMap<>();
 
     protected Cache<String, SocketAddress> deviceSenderAddress;
 
@@ -146,9 +146,6 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                 }
 
                 downlinkWriter(entityName);
-            } catch (InterruptedException e) {
-                log.error("Cannot write data to device context channel.", e);
-                reportDownlinkError(context, msg, "ERROR", e);
             } catch (Exception e) {
                 log.warn("Failed to process downLink message", e);
                 exception = e;
