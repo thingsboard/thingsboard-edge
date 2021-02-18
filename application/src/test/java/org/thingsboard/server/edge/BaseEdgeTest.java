@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -1443,13 +1444,33 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void installation() throws Exception {
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
 
-        Device savedDevice = saveDevice("Edge Device 1");
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/device/" + savedDevice.getId().getId().toString(), Device.class);
+        createAndAssignEntityAndEntityGroupToEdge(EntityType.DEVICE, "DeviceGroup", "Edge Device 1", "test");
+        createAndAssignEntityAndEntityGroupToEdge(EntityType.ASSET, "DeviceGroup", "Edge Asset 1", "test");
+    }
 
-        Asset savedAsset = saveAsset("Edge Asset 1");
+    private void createAndAssignEntityAndEntityGroupToEdge(EntityType entityGroupType, String entityGroupName, String entityName, String entityType) throws Exception {
+        EntityGroup savedEntityGroup = new EntityGroup();
+        savedEntityGroup.setType(entityGroupType);
+        savedEntityGroup.setName(entityGroupName);
+        savedEntityGroup = doPost("/api/entityGroup", savedEntityGroup, EntityGroup.class);
+
+        switch (entityGroupType) {
+            case DEVICE:
+                Device device = new Device();
+                device.setName(entityName);
+                device.setType(entityType);
+                Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedEntityGroup.getId().getId().toString());
+                break;
+            case ASSET:
+                Asset asset = new Asset();
+                asset.setName(entityName);
+                asset.setType(entityType);
+                Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedEntityGroup.getId().getId().toString());
+                break;
+        }
+
         doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/asset/" + savedAsset.getId().getId().toString(), Asset.class);
+                + "/entityGroup/" + savedEntityGroup.getId().getId().toString() + "/" + entityGroupType.name(), EntityGroup.class);
     }
 
     private EdgeEvent constructEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventActionType edgeEventAction, UUID entityId, EdgeEventType edgeEventType, JsonNode entityBody) {
