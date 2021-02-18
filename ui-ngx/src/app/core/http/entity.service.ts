@@ -1708,27 +1708,28 @@ export class EntityService {
     });
   }
 
-  public getAssignedToEdgeEntitiesByType(edgeId: string, entityType: EntityType, pageLink: PageLink): Observable<PageData<any>> {
-    let entitiesObservable: Observable<PageData<any>>;
-
-    // TODO: voba - implement this
-    // switch (entityType) {
-    //   case (EntityType.ASSET):
-    //     entitiesObservable = this.assetService.getEdgeAssets(edgeId, pageLink);
-    //     break;
-    //   case (EntityType.DEVICE):
-    //     entitiesObservable = this.deviceService.getEdgeDevices(edgeId, pageLink);
-    //     break;
-    //   case (EntityType.ENTITY_VIEW):
-    //     entitiesObservable = this.entityViewService.getEdgeEntityViews(edgeId, pageLink);
-    //     break;
-    //   case (EntityType.DASHBOARD):
-    //     entitiesObservable = this.dashboardService.getEdgeDashboards(edgeId, pageLink);
-    //     break;
-    //   case (EntityType.RULE_CHAIN):
-    //     entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink);
-    //     break;
-    // }
+  public getAssignedToEdgeEntitiesByType(edgeId: string, entityType?: EntityType, pageLink?: PageLink): Observable<any> {
+    let entitiesObservable: Observable<any>;
+    const ignoreLoading: boolean = true;
+    switch (entityType) {
+      case (EntityType.USER):
+      case (EntityType.ASSET):
+      case (EntityType.DEVICE):
+      case (EntityType.ENTITY_VIEW):
+      case (EntityType.DASHBOARD):
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading });
+        break;
+      case (EntityType.SCHEDULER_EVENT):
+        entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
+        break;
+      case (EntityType.RULE_CHAIN):
+        entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
+        break;
+      default:
+        entitiesObservable = of(null);
+        console.error(`Edge does not support EntityType ${entityType}`);
+        break;
+    }
     return entitiesObservable;
   }
 }

@@ -34,21 +34,16 @@ import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm } from '@angular/forms';
 import { EntityId } from '@shared/models/id/entity-id';
-import {forkJoin, Observable} from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
-import {EntityType} from "@shared/models/entity-type.models";
-import {UserPermissionsService} from "@core/http/user-permissions.service";
-import {EntityGroupService} from "@core/http/entity-group.service";
-import {BroadcastService} from "@core/services/broadcast.service";
-import {Operation} from "@shared/models/security.models";
-import {EntityGroup, EntityGroupInfo} from "@shared/models/entity-group.models";
-import {
-  SelectEntityGroupDialogData,
-  SelectEntityGroupDialogResult
-} from "@home/dialogs/select-entity-group-dialog.component";
+import { EntityType } from "@shared/models/entity-type.models";
+import { UserPermissionsService } from "@core/http/user-permissions.service";
+import { EntityGroupService } from "@core/http/entity-group.service";
+import { BroadcastService } from "@core/services/broadcast.service";
+import { EntityGroupInfo } from "@shared/models/entity-group.models";
 
 export interface AddEntityGroupsToEdgeDialogData {
   ownerId: EntityId;

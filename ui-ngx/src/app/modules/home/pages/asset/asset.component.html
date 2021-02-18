@@ -48,15 +48,13 @@
           (click)="onEntityAction($event, 'unassignFromCustomer')"
           [fxShow]="!isEdit && (assetScope === 'customer' || assetScope === 'tenant') && isAssignedToCustomer(entity)">
     {{ (entity?.customerIsPublic ? 'asset.make-private' : 'asset.unassign-from-customer') | translate }}
-  </button-->
+  </button>
   <button mat-raised-button color="primary" fxFlex.xs
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassignFromEdge')"
-          [fxShow]="!isEdit">
-    <!--  TODO: voba - from CE version-->
-<!--          [fxShow]="!isEdit && assetScope === 'edge'">-->
+          [fxShow]="!isEdit && assetScope === 'edge'">
     {{ 'edge.unassign-from-edge' | translate }}
-  </button>
+  </button-->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

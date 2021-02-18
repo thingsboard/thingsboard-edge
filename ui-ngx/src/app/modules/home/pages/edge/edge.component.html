@@ -51,57 +51,70 @@
   </button> -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'openEdgeUsers')"
+          (click)="onEntityAction($event, 'manageUsers')"
+          *ngIf="resource.USER_GROUP | hasGenericPermission: operation.READ"
           [fxShow]="!isEdit">
-    {{'edge.manage-edge-users' | translate }}
+    {{'edge.manage-user-groups' | translate }}
   </button>
-  <button mat-raised-button color="primary" fxFlex.xs
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'delete')"
-          *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
-          [fxShow]="!hideDelete() && !isEdit">
-    {{'edge.delete' | translate }}
+          (click)="onEntityAction($event, 'manageAssets')"
+          *ngIf="resource.ASSET_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!isEdit">
+    <!--  TODO: voba - from CE version-->
+    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
+    {{'edge.manage-asset-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageDevices')"
+          *ngIf="resource.DEVICE_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!isEdit">
+    <!--  TODO: voba - from CE version-->
+    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
+    {{'edge.manage-device-groups' | translate }}
+  </button>
+  <button mat-raised-button color="primary"
+          [disabled]="(isLoading$ | async)"
+          (click)="onEntityAction($event, 'manageEntityViews')"
+          *ngIf="resource.ENTITY_VIEW_GROUP | hasGenericPermission: operation.READ"
+          [fxShow]="!isEdit">
+    <!--  TODO: voba - from CE version-->
+    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
+    {{'edge.manage-entity-view-groups' | translate }}
   </button>
   <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'openEdgeAssets')"
+            (click)="onEntityAction($event, 'manageDashboards')"
+            *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
             [fxShow]="!isEdit">
       <!--  TODO: voba - from CE version-->
 <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-edge-assets' | translate }}
+      {{'edge.manage-dashboard-groups' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'openEdgeDevices')"
+            (click)="onEntityAction($event, 'manageSchedulerEvents')"
+            *ngIf="resource.SCHEDULER_EVENT | hasGenericPermission: operation.READ"
             [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-edge-devices' | translate }}
+      {{'edge.manage-scheduler-events' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'openEdgeEntityViews')"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-edge-entity-views' | translate }}
-    </button>
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'openEdgeDashboards')"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-edge-dashboards' | translate }}
-    </button>
-    <button mat-raised-button color="primary"
-            [disabled]="(isLoading$ | async)"
-            (click)="onEntityAction($event, 'openEdgeRuleChains')"
+            (click)="onEntityAction($event, 'manageRuleChains')"
+            *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.READ"
             [fxShow]="!isEdit">
       <!--  TODO: voba - from CE version-->
 <!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
-      {{'edge.manage-edge-rulechains' | translate }}
+      {{'edge.manage-rulechains' | translate }}
+    </button>
+    <button mat-raised-button color="primary" fxFlex.xs
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'delete')"
+            *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
+            [fxShow]="!hideDelete() && !isEdit">
+      {{'edge.delete' | translate }}
     </button>
   </div>
   <div fxLayout="row" fxLayout.xs="column">

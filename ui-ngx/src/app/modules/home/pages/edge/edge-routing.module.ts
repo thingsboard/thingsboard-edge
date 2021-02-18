@@ -51,7 +51,7 @@ import {
   ruleChainBreadcumbLabelFunction,
   RuleChainImportGuard,
   RuleChainResolver,
-  RuleNodeComponentsResolver
+  RuleNodeComponentsResolver, TooltipsterResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
 import { UsersTableConfigResolver } from "@home/pages/user/users-table-config.resolver";
 
@@ -212,7 +212,8 @@ const routes: Routes = [
             resolve: {
               ruleChain: RuleChainResolver,
               ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-              ruleNodeComponents: RuleNodeComponentsResolver
+              ruleNodeComponents: RuleNodeComponentsResolver,
+              tooltipster: TooltipsterResolver
             }
           },
           {
@@ -231,7 +232,8 @@ const routes: Routes = [
               ruleChainType: RuleChainType.EDGE
             },
             resolve: {
-              ruleNodeComponents: RuleNodeComponentsResolver
+              ruleNodeComponents: RuleNodeComponentsResolver,
+              tooltipster: TooltipsterResolver
             }
           }
         ]

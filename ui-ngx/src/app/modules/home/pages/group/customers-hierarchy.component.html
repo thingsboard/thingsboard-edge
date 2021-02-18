@@ -85,6 +85,9 @@
                                      [groupParams]="entityGroupParams"
                                      [entityGroup]="entityGroupStateInfo"
             ></tb-group-entities-table>
+            <tb-scheduler-events *ngIf="viewMode === 'schedulerEvents'"
+                                 [edgeId]="edgeId">
+            </tb-scheduler-events>
           </div>
         </mat-drawer-content>
       </mat-drawer-container>

@@ -34,10 +34,11 @@ import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { NavTreeNode } from '@shared/components/nav-tree.component';
+import { Edge } from '@shared/models/edge.models';
 
-export type CustomersHierarchyViewMode = 'groups' | 'group';
+export type CustomersHierarchyViewMode = 'groups' | 'group' | 'schedulerEvents';
 
-export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer';
+export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups';
 
 export interface BaseCustomersHierarchyNodeData {
   type: CustomersHierarchyNodeType;
@@ -61,7 +62,19 @@ export interface CustomerNodeData extends BaseCustomersHierarchyNodeData {
   entity: Customer;
 }
 
-export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData;
+export interface EdgeNodeData extends BaseCustomersHierarchyNodeData {
+  type: 'edge';
+  entity: Edge;
+}
+
+export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData {
+  type: 'edgeGroups';
+  edge: Edge;
+  groupsType?: EntityType;
+  entityType?: EntityType;
+}
+
+export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;
 
 export interface CustomersHierarchyNode extends NavTreeNode {
   data?: CustomersHierarchyNodeData;
@@ -77,9 +90,20 @@ export function customerNodeText(customer: Customer): string {
   return nodeIcon + customer.title;
 }
 
+export function edgeNodeText(edge: Edge): string {
+  const nodeIcon = materialIconByEntityType(EntityType.EDGE);
+  return nodeIcon + edge.name;
+}
+
 export function entityGroupsNodeText(translate: TranslateService, groupType: EntityType) {
   const nodeIcon = materialIconByEntityType(groupType);
   const nodeText = textForGroupType(translate, groupType);
+  return nodeIcon + nodeText;
+}
+
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType) {
+  const nodeIcon = materialIconByEntityType(entityType);
+  const nodeText = translate.instant('entity.type-scheduler-events');
   return nodeIcon + nodeText;
 }
 
@@ -126,6 +150,9 @@ function materialIconByEntityType (entityType: EntityType): string {
       break;
     case EntityType.EDGE:
       materialIcon = 'router';
+      break;
+    case EntityType.SCHEDULER_EVENT:
+      materialIcon = 'schedule';
       break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
