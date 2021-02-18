@@ -1300,6 +1300,7 @@
       "cloud-event-type-device": "Device",
       "cloud-event-type-device-profile": "Device Profile",
       "cloud-event-type-entity-view": "Entity View",
+      "cloud-event-type-entity-group": "Entity Group",
       "cloud-event-type-alarm": "Alarm",
       "cloud-event-type-rule-chain": "Rule Chain",
       "cloud-event-type-rule-chain-metadata": "Rule Chain Metadata",

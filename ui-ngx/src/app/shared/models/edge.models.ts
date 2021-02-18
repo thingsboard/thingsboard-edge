@@ -135,6 +135,7 @@ export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
     [CloudEventType.DEVICE, 'cloud-event.cloud-event-type-device'],
     [CloudEventType.DEVICE_PROFILE, 'cloud-event.cloud-event-type-device-profile'],
     [CloudEventType.ENTITY_VIEW, 'cloud-event.cloud-event-type-entity-view'],
+    [CloudEventType.ENTITY_GROUP, 'cloud-event.cloud-event-type-entity-group'],
     [CloudEventType.ALARM, 'cloud-event.cloud-event-type-alarm'],
     [CloudEventType.RULE_CHAIN, 'cloud-event.cloud-event-type-rule-chain'],
     [CloudEventType.RULE_CHAIN_METADATA, 'cloud-event.cloud-event-type-rule-chain-metadata'],

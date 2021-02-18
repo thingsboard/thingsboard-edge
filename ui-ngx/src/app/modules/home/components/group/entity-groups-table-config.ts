@@ -192,7 +192,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         onAction: ($event, entity) => this.open($event, entity)
       }
     );
-    if (sharableGroupTypes.has(this.groupType) &&
+    /* if (sharableGroupTypes.has(this.groupType) &&
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
       this.cellActionDescriptors.push(
         {
@@ -224,7 +224,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
           onAction: ($event, entity) => this.makePrivate($event, entity)
         }
       );
-    }
+    } */
   }
 
   private entityGroupWizard(): Observable<EntityGroupInfo> {
