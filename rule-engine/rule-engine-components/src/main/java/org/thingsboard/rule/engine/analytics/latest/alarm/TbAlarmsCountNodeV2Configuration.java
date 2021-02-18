@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2021 ThingsBoard, Inc. All Rights Reserved.
@@ -28,36 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const forwardUrl = "http://localhost:8080";
-const wsForwardUrl = "ws://localhost:8080";
-const ruleNodeUiforwardUrl = "http://localhost:5000";
+package org.thingsboard.rule.engine.analytics.latest.alarm;
 
-const PROXY_CONFIG = {
-  "/api": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/static/rulenode": {
-    "target": ruleNodeUiforwardUrl,
-    "secure": false,
-  },
-  "/static/widgets": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/oauth2": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/login/oauth2": {
-    "target": forwardUrl,
-    "secure": false,
-  },
-  "/api/ws": {
-    "target": wsForwardUrl,
-    "ws": true,
-    "secure": false
-  },
-};
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-module.exports = PROXY_CONFIG;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAlarmsCountNodeV2Configuration> {
+    private List<AlarmsCountMapping> alarmsCountMappings;
+    private boolean countAlarmsForPropagationEntities;
+
+    @Override
+    public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
+        TbAlarmsCountNodeV2Configuration configuration = new TbAlarmsCountNodeV2Configuration();
+        List<AlarmsCountMapping> alarmsCountMappings = new ArrayList<>();
+        AlarmsCountMapping alarmsCountMapping = new AlarmsCountMapping();
+        alarmsCountMapping.setTarget("alarmsCount");
+        alarmsCountMappings.add(alarmsCountMapping);
+
+        configuration.setCountAlarmsForPropagationEntities(true);
+        configuration.setAlarmsCountMappings(alarmsCountMappings);
+        return configuration;
+    }
+}
