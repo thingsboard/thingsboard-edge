@@ -67,7 +67,7 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
-        name = "alarms count v2",
+        name = "alarms count",
         configClazz = TbAlarmsCountNodeV2Configuration.class,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
