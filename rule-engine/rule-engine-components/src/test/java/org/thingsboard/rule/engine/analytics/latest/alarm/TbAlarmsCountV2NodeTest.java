@@ -48,7 +48,6 @@ import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.mockito.stubbing.Stubber;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
@@ -86,7 +85,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -106,9 +104,6 @@ public class TbAlarmsCountV2NodeTest {
 
     @Mock
     private TbContext ctx;
-
-    @Mock
-    private ListeningExecutor executor;
 
     @Mock
     private RelationService relationService;
@@ -134,27 +129,6 @@ public class TbAlarmsCountV2NodeTest {
     public void init() {
         TbAlarmsCountNodeV2Configuration config = new TbAlarmsCountNodeV2Configuration();
         node = new TbAlarmsCountNodeV2();
-
-        when(ctx.getDbCallbackExecutor()).thenReturn(executor);
-
-        Stubber executorAnswer = doAnswer(invocationOnMock -> {
-            try {
-                Object arg = (invocationOnMock.getArguments())[0];
-                Object result = null;
-                if (arg instanceof Callable) {
-                    Callable task = (Callable) arg;
-                    result = task.call();
-                } else if (arg instanceof Runnable) {
-                    Runnable task = (Runnable) arg;
-                    task.run();
-                }
-                return Futures.immediateFuture(result);
-            } catch (Throwable th) {
-                return Futures.immediateFailedFuture(th);
-            }
-        });
-
-        executorAnswer.when(executor).execute(ArgumentMatchers.any(Runnable.class));
 
         when(ctx.getRelationService()).thenReturn(relationService);
 

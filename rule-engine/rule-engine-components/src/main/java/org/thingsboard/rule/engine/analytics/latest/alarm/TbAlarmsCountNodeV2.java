@@ -31,9 +31,6 @@
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -53,7 +50,6 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
@@ -63,12 +59,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.common.util.DonAsynchron.withCallback;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
@@ -93,7 +86,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+    public void onMsg(TbContext ctx, TbMsg msg) {
         String msgType = msg.getType();
         EntityType entityType = msg.getOriginator().getEntityType();
         if ((msgType.equals("ENTITY_CREATED") && entityType.equals(EntityType.ALARM))
@@ -109,41 +102,19 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private void process(TbContext ctx, TbMsg msg) {
         Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
-        Map<EntityId, List<ListenableFuture<Optional<ObjectNode>>>> result = new HashMap<>();
-        getPropagationEntityIds(ctx, alarm).forEach(entityId -> {
-            List<ListenableFuture<Optional<ObjectNode>>> aggregateFutures = new ArrayList<>();
-            ObjectNode data = countAlarms(ctx, entityId);
-            aggregateFutures.add(Futures.immediateFuture(Optional.of(data)));
-            result.put(entityId, aggregateFutures);
-        });
+        Map<EntityId, ObjectNode> result = new HashMap<>();
+        getPropagationEntityIds(ctx, alarm).forEach(entityId -> result.put(entityId, countAlarms(ctx, entityId)));
 
-        List<ListenableFuture<Void>> msgFutures = new ArrayList<>();
         String dataTs = Long.toString(System.currentTimeMillis());
 
-        result.forEach((entityId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
-            ListenableFuture<Optional<ObjectNode>>
-                    aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                        entityId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
-                ctx.enqueueForTellFailure(newMsg, e.getMessage());
-                return Optional.empty();
-            }, MoreExecutors.directExecutor());
-
-            ListenableFuture<Void> msgFuture = Futures.transform(aggregateFutureWithFallback, element -> {
-                if (element.isPresent()) {
-                    TbMsgMetaData metaData = new TbMsgMetaData();
-                    metaData.putValue("ts", dataTs);
-                    ObjectNode messageData = element.get();
-                    TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
-                            entityId, metaData, JacksonUtil.toString(messageData));
-                    ctx.enqueueForTellNext(newMsg, SUCCESS);
-                }
-                return null;
-            }, MoreExecutors.directExecutor());
-            msgFutures.add(msgFuture);
-        }));
-
-        withCallback(Futures.allAsList(msgFutures), m -> ctx.ack(msg), t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
+        result.forEach((entityId, data) -> {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("ts", dataTs);
+            TbMsg newMsg = TbMsg.newMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                    entityId, metaData, JacksonUtil.toString(data));
+            ctx.enqueueForTellNext(newMsg, SUCCESS);
+        });
+        ctx.ack(msg);
     }
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {
