@@ -28,29 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.query;
+package org.thingsboard.server.queue.kafka;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
-import java.io.Serializable;
-
-@Data
-@RequiredArgsConstructor
-public class DynamicValue<T> implements Serializable {
-
-    @JsonIgnore
-    private T resolvedValue;
-
-    private final DynamicValueSourceType sourceType;
-    private final String sourceAttribute;
-    private final boolean inherit;
-
-    public DynamicValue(DynamicValueSourceType sourceType, String sourceAttribute) {
-        this.sourceAttribute = sourceAttribute;
-        this.sourceType = sourceType;
-        this.inherit = false;
-    }
-
+@Component
+@ConditionalOnProperty(prefix = "queue", value = "type", havingValue = "kafka")
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TbKafkaConsumerStatisticConfig {
+    @Value("${queue.kafka.consumer-stats.enabled:true}")
+    private Boolean enabled;
+    @Value("${queue.kafka.consumer-stats.print-interval-ms:60000}")
+    private Long printIntervalMs;
+    @Value("${queue.kafka.consumer-stats.kafka-response-timeout-ms:1000}")
+    private Long kafkaResponseTimeoutMs;
 }

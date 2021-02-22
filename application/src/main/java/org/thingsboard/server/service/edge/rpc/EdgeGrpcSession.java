@@ -152,7 +152,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Data
-public final class EdgeGrpcSession implements Closeable {
+public final class  EdgeGrpcSession implements Closeable {
 
     private static final ReentrantLock downlinkMsgLock = new ReentrantLock();
 

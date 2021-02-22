@@ -213,6 +213,9 @@ public abstract class BaseController {
     protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
     protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
 
+    protected static final String DEFAULT_DASHBOARD = "defaultDashboardId";
+    protected static final String HOME_DASHBOARD = "homeDashboardId";
+
     private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
@@ -1447,4 +1450,14 @@ public abstract class BaseController {
         }
         return result;
     }
+
+    protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {
+        String dashboardId = additionalInfo.has(requiredFields) ? additionalInfo.get(requiredFields).asText() : null;
+        if(dashboardId != null && !dashboardId.equals("null")) {
+            if(dashboardService.findDashboardById(getTenantId(), new DashboardId(UUID.fromString(dashboardId))) == null) {
+                additionalInfo.remove(requiredFields);
+            }
+        }
+    }
+
 }

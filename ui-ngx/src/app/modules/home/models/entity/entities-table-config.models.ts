@@ -45,6 +45,7 @@ import { EntitiesTableComponent } from '@home/components/entity/entities-table.c
 import { EntityTableHeaderComponent } from '@home/components/entity/entity-table-header.component';
 import { ActivatedRoute } from '@angular/router';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
+import { DAY, historyInterval } from '@shared/models/time/time.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, resourceByEntityType } from '@shared/models/security.models';
 
@@ -152,6 +153,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   onLoadAction: (route: ActivatedRoute) => void = null;
   table: EntitiesTableComponent = null;
   useTimePageLink = false;
+  defaultTimewindowInterval = historyInterval(DAY);
   entityType: EntityType = null;
   tableTitle = '';
   selectionEnabled = true;
@@ -179,7 +181,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   dataSource: (dataLoadedFunction: (col?: number, row?: number) => void)
     => EntitiesDataSource<L> = (dataLoadedFunction: (col?: number, row?: number) => void) => {
     return new EntitiesDataSource(this.entitiesFetchFunction, this.entitySelectionEnabled, dataLoadedFunction);
-  };
+  }
   detailsReadonly: EntityBooleanFunction<T> = () => false;
   entitySelectionEnabled: EntityBooleanFunction<L> = () => true;
   deleteEnabled: EntityBooleanFunction<T | L> = () => true;

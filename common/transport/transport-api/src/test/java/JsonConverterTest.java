@@ -28,29 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.query;
+import com.google.gson.JsonParser;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+@RunWith(MockitoJUnitRunner.class)
+public class JsonConverterTest {
 
-import java.io.Serializable;
+    private static final JsonParser JSON_PARSER = new JsonParser();
 
-@Data
-@RequiredArgsConstructor
-public class DynamicValue<T> implements Serializable {
+    @Test
+    public void testParseBigDecimalAsLong() {
+        var result = JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 1E+1}"), 0L);
+        Assert.assertEquals(10L, result.get(0L).get(0).getLongValue().get().longValue());
+    }
 
-    @JsonIgnore
-    private T resolvedValue;
+    @Test
+    public void testParseBigDecimalAsDouble() {
+        var result = JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 101E-1}"), 0L);
+        Assert.assertEquals(10.1, result.get(0L).get(0).getDoubleValue().get(), 0.0);
+    }
 
-    private final DynamicValueSourceType sourceType;
-    private final String sourceAttribute;
-    private final boolean inherit;
+    @Test
+    public void testParseAsDouble() {
+        var result = JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 1.1}"), 0L);
+        Assert.assertEquals(1.1, result.get(0L).get(0).getDoubleValue().get(), 0.0);
+    }
 
-    public DynamicValue(DynamicValueSourceType sourceType, String sourceAttribute) {
-        this.sourceAttribute = sourceAttribute;
-        this.sourceType = sourceType;
-        this.inherit = false;
+    @Test
+    public void testParseAsLong() {
+        var result = JsonConverter.convertToTelemetry(JSON_PARSER.parse("{\"meterReadingDelta\": 11}"), 0L);
+        Assert.assertEquals(11L, result.get(0L).get(0).getLongValue().get().longValue());
     }
 
 }
