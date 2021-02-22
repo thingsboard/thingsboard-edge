@@ -333,6 +333,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         return ctx;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends TbAbstractDataSubCtx> T getSubCtx(String sessionId, int cmdId) {
         Map<Integer, TbAbstractDataSubCtx> sessionSubs = subscriptionsBySessionId.get(sessionId);
         if (sessionSubs != null) {
@@ -490,7 +491,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void cancelAllSessionSubscriptions(String sessionId) {
         Map<Integer, TbAbstractDataSubCtx> sessionSubs = subscriptionsBySessionId.remove(sessionId);
         if (sessionSubs != null) {
-            sessionSubs.values().stream().filter(sub -> sub instanceof TbEntityDataSubCtx).map(sub -> (TbEntityDataSubCtx) sub).forEach(this::cleanupAndCancel);
+            sessionSubs.values().forEach(this::cleanupAndCancel);
         }
     }
 

@@ -392,7 +392,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
-        return (ThingsboardPlatformIntegration) Class.forName(clazz).newInstance();
+        return (ThingsboardPlatformIntegration) Class.forName(clazz).getDeclaredConstructor().newInstance();
     }
 
     private void processHandleMessages() {

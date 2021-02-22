@@ -407,7 +407,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     private void replaceOverwriteDashboardIds(List<Dashboard> dashboards, List<DashboardInfo> persistentDashboards) throws Exception {
-        Map<DashboardId, DashboardId> idMapping = new HashMap();
+        Map<DashboardId, DashboardId> idMapping = new HashMap<>();
         for (Dashboard dashboard : dashboards) {
             Optional<DashboardInfo> overwriteDashboardInfoOpt = persistentDashboards.stream().filter(d -> d.getTitle().equals(dashboard.getTitle())).findAny();
             DashboardId importDashboardId = dashboard.getId();
@@ -434,7 +434,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     }
 
     List<Dashboard> replaceDashboardIds(List<Dashboard> dashboards) throws Exception {
-        Map<DashboardId, DashboardId> idMapping = new HashMap();
+        Map<DashboardId, DashboardId> idMapping = new HashMap<>();
         for (Dashboard dashboard : dashboards) {
             if (dashboard.getId() != null) {
                 DashboardId oldId = dashboard.getId();

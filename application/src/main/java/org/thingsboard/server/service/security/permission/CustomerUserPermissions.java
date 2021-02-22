@@ -229,6 +229,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!super.hasPermission(user, operation, entityId, entity)) {
                 return false;

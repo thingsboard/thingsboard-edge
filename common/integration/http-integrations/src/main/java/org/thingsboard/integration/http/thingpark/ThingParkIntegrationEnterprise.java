@@ -271,8 +271,8 @@ public class ThingParkIntegrationEnterprise extends AbstractHttpIntegration<Thin
         getResult(url, HttpMethod.POST, body, true, downlink, msg);
     }
 
-    private ResponseEntity getResult(String url, HttpMethod method, String body, boolean token, DownlinkData downlink, TbMsg msg) {
-        ResponseEntity result = sendRestHttp(url, method, body, token, msg);
+    private ResponseEntity<String> getResult(String url, HttpMethod method, String body, boolean token, DownlinkData downlink, TbMsg msg) {
+        ResponseEntity<String> result = sendRestHttp(url, method, body, token, msg);
         if (result != null) {//            Access
             if (result.getStatusCode().is2xxSuccessful()) {
                 log.info("[{}] ResponseEntity is2xxSuccessful", result);

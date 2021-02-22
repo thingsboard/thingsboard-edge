@@ -48,6 +48,7 @@ public class MiscUtils {
         return "The " + propertyName + " property need to be set!";
     }
 
+    @SuppressWarnings("deprecation")
     public static HashFunction forName(String name) {
         switch (name) {
             case "murmur3_32":

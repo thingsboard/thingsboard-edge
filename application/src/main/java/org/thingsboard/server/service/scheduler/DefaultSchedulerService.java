@@ -56,6 +56,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.service.queue.TbClusterService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.utils.EventDeduplicationExecutor;
@@ -81,7 +82,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 @Slf4j
-public class DefaultSchedulerService implements SchedulerService {
+public class DefaultSchedulerService extends TbApplicationEventListener<PartitionChangeEvent> implements SchedulerService {
 
     private final TenantService tenantService;
     private final TbClusterService clusterService;
@@ -157,7 +158,7 @@ public class DefaultSchedulerService implements SchedulerService {
     }
 
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }

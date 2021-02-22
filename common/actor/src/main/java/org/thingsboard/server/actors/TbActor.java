@@ -45,7 +45,7 @@ public interface TbActor {
     }
 
     default InitFailureStrategy onInitFailure(int attempt, Throwable t) {
-        return InitFailureStrategy.retryWithDelay(5000 * attempt);
+        return InitFailureStrategy.retryWithDelay(5000L * attempt);
     }
 
     default ProcessFailureStrategy onProcessFailure(Throwable t) {

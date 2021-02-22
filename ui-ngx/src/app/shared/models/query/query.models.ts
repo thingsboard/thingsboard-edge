@@ -300,6 +300,7 @@ export const dynamicValueSourceTypeTranslationMap = new Map<DynamicValueSourceTy
 export interface DynamicValue<T> {
   sourceType: DynamicValueSourceType;
   sourceAttribute: string;
+  inherit?: boolean;
 }
 
 export interface FilterPredicateValue<T> {

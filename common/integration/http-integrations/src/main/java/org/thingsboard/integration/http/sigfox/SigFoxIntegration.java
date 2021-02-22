@@ -112,7 +112,7 @@ public class SigFoxIntegration extends BasicHttpIntegration {
                     json.putObject(sigFoxDeviceId).put("downlinkData", new String(downlink.getData(), StandardCharsets.UTF_8));
                     HttpHeaders responseHeaders = new HttpHeaders();
                     responseHeaders.add("Content-Type", "application/json");
-                    ResponseEntity response = new ResponseEntity(json, responseHeaders, HttpStatus.OK);
+                    ResponseEntity<JsonNode> response = new ResponseEntity<>(json, responseHeaders, HttpStatus.OK);
                     logDownlink(context, "Downlink", response);
                     return response;
                 }

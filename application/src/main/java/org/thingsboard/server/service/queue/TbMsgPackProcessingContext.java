@@ -162,4 +162,10 @@ public class TbMsgPackProcessingContext {
                     .forEach(info -> log.info("[{}][{}] execution count: {}. {}", queueName, info.getRuleNodeId(), info.getExecutionCount(), info.getLabel()));
         }
     }
+
+    public void cleanup() {
+        pendingMap.clear();
+        successMap.clear();
+        failedMap.clear();
+    }
 }

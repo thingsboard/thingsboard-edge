@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM thingsboard/openjdk8
+FROM thingsboard/openjdk11
 
 COPY start-tb-aws-integration.sh ${pkg.name}.deb /tmp/
 

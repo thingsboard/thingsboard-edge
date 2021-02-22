@@ -145,6 +145,7 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionChangeEvent;
 import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -182,7 +183,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -555,7 +556,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void onApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
+    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }

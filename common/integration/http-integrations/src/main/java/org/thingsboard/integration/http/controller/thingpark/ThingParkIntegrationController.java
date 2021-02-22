@@ -85,6 +85,7 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
         return getResult (allRequestParams, IntegrationType.TPE, request, requestHeaders, routingKey, msg);
     }
 
+    @SuppressWarnings("unchecked")
     private DeferredResult<ResponseEntity> getResult(Map<String, String> allRequestParams, IntegrationType typeIntegration,
                                                      HttpServletRequest request, Map<String, String>  requestHeaders, String routingKey, JsonNode msg) {
         final ObjectMapper mapper = new ObjectMapper();

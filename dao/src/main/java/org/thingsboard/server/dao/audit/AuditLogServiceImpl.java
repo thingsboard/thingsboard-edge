@@ -205,6 +205,7 @@ public class AuditLogServiceImpl implements AuditLogService {
             case ATTRIBUTES_UPDATED:
                 actionData.put("entityId", entityId.toString());
                 String scope = extractParameter(String.class, 0, additionalInfo);
+                @SuppressWarnings("unchecked")
                 List<AttributeKvEntry> attributes = extractParameter(List.class, 1, additionalInfo);
                 actionData.put("scope", scope);
                 ObjectNode attrsNode = JacksonUtil.newObjectNode();
@@ -220,6 +221,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.put("entityId", entityId.toString());
                 scope = extractParameter(String.class, 0, additionalInfo);
                 actionData.put("scope", scope);
+                @SuppressWarnings("unchecked")
                 List<String> keys = extractParameter(List.class, 1, additionalInfo);
                 ArrayNode attrsArrayNode = actionData.putArray("attributes");
                 if (keys != null) {
@@ -307,6 +309,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 break;
             case TIMESERIES_UPDATED:
                 actionData.put("entityId", entityId.toString());
+                @SuppressWarnings("unchecked")
                 List<TsKvEntry> updatedTimeseries = extractParameter(List.class, 0, additionalInfo);
                 if (updatedTimeseries != null) {
                     ArrayNode result = actionData.putArray("timeseries");
@@ -323,6 +326,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                 break;
             case TIMESERIES_DELETED:
                 actionData.put("entityId", entityId.toString());
+                @SuppressWarnings("unchecked")
                 List<String> timeseriesKeys = extractParameter(List.class, 0, additionalInfo);
                 if (timeseriesKeys != null) {
                     ArrayNode timeseriesArrayNode = actionData.putArray("timeseries");

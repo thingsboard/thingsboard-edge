@@ -189,6 +189,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByTenantId(EntityType entityType, String type, TenantId tenantId, PageLink pageLink) {
         switch (entityType) {
             case DEVICE:
@@ -224,6 +225,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         return getEntityPageDataByCustomerIdOrOtherGroupIds(entityType, type, tenantId, customerId, Collections.emptyList(), pageLink);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByCustomerIdOrOtherGroupIds(
             EntityType entityType, String type, TenantId tenantId, CustomerId customerId, List<EntityGroupId> groupIds, PageLink pageLink) {
         if (type != null && type.trim().length() == 0) {
@@ -436,6 +438,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         };
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends GroupEntity<? extends EntityId>> PageData<T> getEntityPageDataByGroupIds(EntityType entityType, String type,
                                                                                                 List<EntityGroupId> groupIds, PageLink pageLink) {
         if (!groupIds.isEmpty()) {
