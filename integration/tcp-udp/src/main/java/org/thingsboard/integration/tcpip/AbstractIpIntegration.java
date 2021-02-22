@@ -104,14 +104,21 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         int timeToLiveInMinutes = 1440;
         int cacheSize = 1000;
 
-        JsonNode timeToLiveInMinutesJson = params.getConfiguration().getConfiguration().get("timeToLiveInMinutes");
-        if (timeToLiveInMinutesJson != null) {
-            timeToLiveInMinutes = timeToLiveInMinutesJson.asInt();
-        }
+        JsonNode handlerConfiguration;
+        if(params.getConfiguration().getConfiguration().has("clientConfiguration")
+                && params.getConfiguration().getConfiguration().get("clientConfiguration").has("handlerConfiguration")) {
 
-        JsonNode cacheSizeJson = params.getConfiguration().getConfiguration().get("cacheSize");
-        if (cacheSizeJson != null) {
-            cacheSize = cacheSizeJson.asInt();
+            handlerConfiguration = params.getConfiguration().getConfiguration().get("clientConfiguration").get("handlerConfiguration");
+            JsonNode timeToLiveInMinutesJson = handlerConfiguration.get("timeToLiveInMinutes");
+
+            if (timeToLiveInMinutesJson != null) {
+                timeToLiveInMinutes = timeToLiveInMinutesJson.asInt();
+            }
+
+            JsonNode cacheSizeJson = handlerConfiguration.get("cacheSize");
+            if (cacheSizeJson != null) {
+                cacheSize = cacheSizeJson.asInt();
+            }
         }
 
         deviceSenderAddress = Caffeine.newBuilder()

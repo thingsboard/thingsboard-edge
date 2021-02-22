@@ -527,7 +527,9 @@ export const templates = {
       handlerConfiguration: {
         handlerType: handlerConfigurationTypes.binary.value,
         charsetName: 'UTF-8',
-        maxFrameLength: 128
+        maxFrameLength: 128,
+        cacheSize: 1000,
+        timeToLiveInMinutes: 1440
       }
     },
     fieldValidators: {
@@ -535,7 +537,9 @@ export const templates = {
       'clientConfiguration.soRcvBuf': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.handlerConfiguration.handlerType': [Validators.required],
       'clientConfiguration.handlerConfiguration.charsetName': [Validators.required],
-      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)]
+      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.handlerConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.handlerConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.TCP]: {
@@ -556,7 +560,9 @@ export const templates = {
         initialBytesToStrip: 0,
         failFast: false,
         stripDelimiter: true,
-        messageSeparator: tcpTextMessageSeparator.systemLineSeparator.value
+        messageSeparator: tcpTextMessageSeparator.systemLineSeparator.value,
+        cacheSize: 1000,
+        timeToLiveInMinutes: 1440
       }
     },
     fieldValidators: {
@@ -569,7 +575,9 @@ export const templates = {
       'clientConfiguration.handlerConfiguration.lengthFieldOffset': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthFieldLength': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthAdjustment': [Validators.required, Validators.min(0), Validators.max(8)],
-      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)]
+      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)],
+      'clientConfiguration.handlerConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.handlerConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.KAFKA]: {

@@ -2439,7 +2439,9 @@
             "nul-delimiter": "Nul Delimiter",
             "byte-order-little-endian": "Little Endian",
             "byte-order-big-endian": "Big Endian"
-        }
+        },
+        "cache-size": "Cache Size",
+        "cache-time-to-live": "Cache time to live in minutes"
     },
     "item": {
         "selected": "Selected"
