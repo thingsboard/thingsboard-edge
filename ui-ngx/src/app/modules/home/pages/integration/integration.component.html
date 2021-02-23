@@ -172,11 +172,11 @@
         </tb-azure-iot-hub-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.TCP">
-        <tb-tcp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-tcp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-tcp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.UDP">
-        <tb-udp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-udp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-udp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.KAFKA">

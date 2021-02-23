@@ -231,16 +231,16 @@
                             {{ 'integration.fail-fast' | translate }}
                         </mat-checkbox>
                     </section>
-                  <mat-form-field fxFlex="100" class="mat-block">
-                    <mat-label translate>integration.cache-size</mat-label>
-                    <input matInput type="number" min="1" value="1000" formControlName="cacheSize">
-                  </mat-form-field>
-                  <mat-form-field fxFlex="100" class="mat-block">
-                    <mat-label translate>integration.cache-time-to-live</mat-label>
-                    <input matInput type="number" min="1" value="1440" formControlName="timeToLiveInMinutes">
-                  </mat-form-field>
                 </div>
             </mat-expansion-panel>
+          <mat-form-field *ngIf="isSetDownlink" fxFlex="100" class="mat-block">
+            <mat-label translate>integration.cache-size</mat-label>
+            <input matInput type="number" min="1" value="1000" formControlName="cacheSize">
+          </mat-form-field>
+          <mat-form-field *ngIf="isSetDownlink" fxFlex="100" class="mat-block">
+            <mat-label translate>integration.cache-time-to-live</mat-label>
+            <input matInput type="number" min="1" value="1440" formControlName="timeToLiveInMinutes">
+          </mat-form-field>
         </mat-accordion>
     </fieldset>
     <div style="height: 30px;"></div>

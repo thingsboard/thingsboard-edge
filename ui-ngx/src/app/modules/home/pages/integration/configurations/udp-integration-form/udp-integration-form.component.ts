@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import {Component, Input} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { handlerConfigurationTypes } from '../../integration-forms-templates';
 import { disableFields, enableFields } from '../../integration-utils';
@@ -42,6 +42,7 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
 })
 export class UdpIntegrationFormComponent extends IntegrationFormComponent {
 
+  @Input() isSetDownlink: boolean;
   handlerConfigurationTypes = handlerConfigurationTypes;
 
   defaultHandlerConfigurations = {

@@ -93,7 +93,9 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        initCache(params);
+        if(downlinkConverter != null) {
+            initCache(params);
+        }
         this.ctx = params.getContext();
         if (serverChannel != null) {
             destroy();
@@ -104,21 +106,15 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         int timeToLiveInMinutes = 1440;
         int cacheSize = 1000;
 
-        JsonNode handlerConfiguration;
-        if(params.getConfiguration().getConfiguration().has("clientConfiguration")
-                && params.getConfiguration().getConfiguration().get("clientConfiguration").has("handlerConfiguration")) {
 
-            handlerConfiguration = params.getConfiguration().getConfiguration().get("clientConfiguration").get("handlerConfiguration");
-            JsonNode timeToLiveInMinutesJson = handlerConfiguration.get("timeToLiveInMinutes");
+        JsonNode timeToLiveInMinutesJson = params.getConfiguration().getConfiguration().get("clientConfiguration").get("timeToLiveInMinutes");
+        if (timeToLiveInMinutesJson != null) {
+            timeToLiveInMinutes = timeToLiveInMinutesJson.asInt();
+        }
 
-            if (timeToLiveInMinutesJson != null) {
-                timeToLiveInMinutes = timeToLiveInMinutesJson.asInt();
-            }
-
-            JsonNode cacheSizeJson = handlerConfiguration.get("cacheSize");
-            if (cacheSizeJson != null) {
-                cacheSize = cacheSizeJson.asInt();
-            }
+        JsonNode cacheSizeJson = params.getConfiguration().getConfiguration().get("clientConfiguration").get("cacheSize");
+        if (cacheSizeJson != null) {
+            cacheSize = cacheSizeJson.asInt();
         }
 
         deviceSenderAddress = Caffeine.newBuilder()
