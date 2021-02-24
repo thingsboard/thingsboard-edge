@@ -192,10 +192,10 @@ public class BasicUdpIntegration extends AbstractIpIntegration {
                 deviceCtx.write(new DatagramPacket(Unpooled.wrappedBuffer(downlinkData.getData()), (InetSocketAddress) address));
                 deviceCtx.write(new DatagramPacket(Unpooled.wrappedBuffer(System.lineSeparator().getBytes()), (InetSocketAddress) address));
             }
+            deviceCtx.flush();
+            devicesDownlinkData.remove(entityName);
+            connectedDevicesContexts.remove(entityName);
         }
-        deviceCtx.flush();
-        devicesDownlinkData.remove(entityName);
-        connectedDevicesContexts.remove(entityName);
     }
 
     @AllArgsConstructor
