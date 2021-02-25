@@ -28,23 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.attributes;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String SESSIONS_CACHE = "sessions";
-    public static final String ASSET_CACHE = "assets";
-    public static final String DOWNLINK_CACHE = "downlink";
-    public static final String ENTITY_VIEW_CACHE = "entityViews";
-    public static final String ROLE_CACHE = "roles";
-    public static final String USER_PERMISSIONS_CACHE = "permissions";
-    public static final String ENTITY_OWNERS_CACHE = "owners";
-    public static final String CLAIM_DEVICES_CACHE = "claimDevices";
-    public static final String SECURITY_SETTINGS_CACHE = "securitySettings";
-    public static final String TENANT_PROFILE_CACHE = "tenantProfiles";
-    public static final String DEVICE_PROFILE_CACHE = "deviceProfiles";
-    public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
-    public static final String ATTRIBUTES_CACHE = "attributes";
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.thingsboard.server.common.data.id.EntityId;
+
+import java.io.Serializable;
+
+@EqualsAndHashCode
+@Getter
+@AllArgsConstructor
+public class AttributeCacheKey implements Serializable {
+    private static final long serialVersionUID = 2013369077925351881L;
+
+    private final String scope;
+    private final EntityId entityId;
+    private final String key;
+
+    @Override
+    public String toString() {
+        return entityId + "_" + scope + "_" + key;
+    }
 }

@@ -28,23 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.attributes;
 
-public class CacheConstants {
-    public static final String DEVICE_CREDENTIALS_CACHE = "deviceCredentials";
-    public static final String RELATIONS_CACHE = "relations";
-    public static final String DEVICE_CACHE = "devices";
-    public static final String SESSIONS_CACHE = "sessions";
-    public static final String ASSET_CACHE = "assets";
-    public static final String DOWNLINK_CACHE = "downlink";
-    public static final String ENTITY_VIEW_CACHE = "entityViews";
-    public static final String ROLE_CACHE = "roles";
-    public static final String USER_PERMISSIONS_CACHE = "permissions";
-    public static final String ENTITY_OWNERS_CACHE = "owners";
-    public static final String CLAIM_DEVICES_CACHE = "claimDevices";
-    public static final String SECURITY_SETTINGS_CACHE = "securitySettings";
-    public static final String TENANT_PROFILE_CACHE = "tenantProfiles";
-    public static final String DEVICE_PROFILE_CACHE = "deviceProfiles";
-    public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
-    public static final String ATTRIBUTES_CACHE = "attributes";
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.service.Validator;
+
+public class AttributeUtils {
+    public static void validate(EntityId id, String scope) {
+        Validator.validateId(id.getId(), "Incorrect id " + id);
+        Validator.validateString(scope, "Incorrect scope " + scope);
+    }
+
+    public static void validate(AttributeKvEntry kvEntry) {
+        if (kvEntry == null) {
+            throw new IncorrectParameterException("Key value entry can't be null");
+        } else if (kvEntry.getDataType() == null) {
+            throw new IncorrectParameterException("Incorrect kvEntry. Data type can't be null");
+        } else {
+            Validator.validateString(kvEntry.getKey(), "Incorrect kvEntry. Key can't be empty");
+            Validator.validatePositiveNumber(kvEntry.getLastUpdateTs(), "Incorrect last update ts. Ts should be positive");
+        }
+    }
 }
