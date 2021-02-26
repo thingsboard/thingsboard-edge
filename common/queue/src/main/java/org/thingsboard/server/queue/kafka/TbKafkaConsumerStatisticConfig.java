@@ -28,33 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.server.queue.kafka;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class CalculateDeltaNodeConfiguration implements NodeConfiguration<CalculateDeltaNodeConfiguration> {
-    private String inputValueKey;
-    private String outputValueKey;
-    private boolean useCache;
-    private boolean addPeriodBetweenMsgs;
-    private String periodValueKey;
-    private Integer round;
-    private boolean tellFailureIfDeltaIsNegative;
-
-    @Override
-    public CalculateDeltaNodeConfiguration defaultConfiguration() {
-        CalculateDeltaNodeConfiguration configuration = new CalculateDeltaNodeConfiguration();
-        configuration.setInputValueKey("pulseCounter");
-        configuration.setOutputValueKey("delta");
-        configuration.setUseCache(true);
-        configuration.setAddPeriodBetweenMsgs(false);
-        configuration.setPeriodValueKey("periodInMs");
-        configuration.setTellFailureIfDeltaIsNegative(true);
-        return configuration;
-    }
-
+@Component
+@ConditionalOnProperty(prefix = "queue", value = "type", havingValue = "kafka")
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class TbKafkaConsumerStatisticConfig {
+    @Value("${queue.kafka.consumer-stats.enabled:true}")
+    private Boolean enabled;
+    @Value("${queue.kafka.consumer-stats.print-interval-ms:60000}")
+    private Long printIntervalMs;
+    @Value("${queue.kafka.consumer-stats.kafka-response-timeout-ms:1000}")
+    private Long kafkaResponseTimeoutMs;
 }

@@ -119,7 +119,12 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));
-            return checkUserId(userId, Operation.READ);
+            User user = checkUserId(userId, Operation.READ);
+            if(!user.getAdditionalInfo().isNull()) {
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), DEFAULT_DASHBOARD);
+                processDashboardIdFromAdditionalInfo((ObjectNode) user.getAdditionalInfo(), HOME_DASHBOARD);
+            }
+            return user;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -492,4 +497,5 @@ public class UserController extends BaseController {
             }
         }).collect(Collectors.toList());
     }
+
 }
