@@ -28,33 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.server.dao.attributes;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class CalculateDeltaNodeConfiguration implements NodeConfiguration<CalculateDeltaNodeConfiguration> {
-    private String inputValueKey;
-    private String outputValueKey;
-    private boolean useCache;
-    private boolean addPeriodBetweenMsgs;
-    private String periodValueKey;
-    private Integer round;
-    private boolean tellFailureIfDeltaIsNegative;
+import java.io.Serializable;
+
+@EqualsAndHashCode
+@Getter
+@AllArgsConstructor
+public class AttributeCacheKey implements Serializable {
+    private static final long serialVersionUID = 2013369077925351881L;
+
+    private final String scope;
+    private final EntityId entityId;
+    private final String key;
 
     @Override
-    public CalculateDeltaNodeConfiguration defaultConfiguration() {
-        CalculateDeltaNodeConfiguration configuration = new CalculateDeltaNodeConfiguration();
-        configuration.setInputValueKey("pulseCounter");
-        configuration.setOutputValueKey("delta");
-        configuration.setUseCache(true);
-        configuration.setAddPeriodBetweenMsgs(false);
-        configuration.setPeriodValueKey("periodInMs");
-        configuration.setTellFailureIfDeltaIsNegative(true);
-        return configuration;
+    public String toString() {
+        return entityId + "_" + scope + "_" + key;
     }
-
 }

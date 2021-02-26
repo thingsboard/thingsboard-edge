@@ -28,33 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.server.dao.attributes;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
+import org.thingsboard.server.dao.service.Validator;
 
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class CalculateDeltaNodeConfiguration implements NodeConfiguration<CalculateDeltaNodeConfiguration> {
-    private String inputValueKey;
-    private String outputValueKey;
-    private boolean useCache;
-    private boolean addPeriodBetweenMsgs;
-    private String periodValueKey;
-    private Integer round;
-    private boolean tellFailureIfDeltaIsNegative;
-
-    @Override
-    public CalculateDeltaNodeConfiguration defaultConfiguration() {
-        CalculateDeltaNodeConfiguration configuration = new CalculateDeltaNodeConfiguration();
-        configuration.setInputValueKey("pulseCounter");
-        configuration.setOutputValueKey("delta");
-        configuration.setUseCache(true);
-        configuration.setAddPeriodBetweenMsgs(false);
-        configuration.setPeriodValueKey("periodInMs");
-        configuration.setTellFailureIfDeltaIsNegative(true);
-        return configuration;
+public class AttributeUtils {
+    public static void validate(EntityId id, String scope) {
+        Validator.validateId(id.getId(), "Incorrect id " + id);
+        Validator.validateString(scope, "Incorrect scope " + scope);
     }
 
+    public static void validate(AttributeKvEntry kvEntry) {
+        if (kvEntry == null) {
+            throw new IncorrectParameterException("Key value entry can't be null");
+        } else if (kvEntry.getDataType() == null) {
+            throw new IncorrectParameterException("Incorrect kvEntry. Data type can't be null");
+        } else {
+            Validator.validateString(kvEntry.getKey(), "Incorrect kvEntry. Key can't be empty");
+            Validator.validatePositiveNumber(kvEntry.getLastUpdateTs(), "Incorrect last update ts. Ts should be positive");
+        }
+    }
 }

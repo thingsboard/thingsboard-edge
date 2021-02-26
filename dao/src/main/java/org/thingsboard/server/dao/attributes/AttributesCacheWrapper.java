@@ -28,48 +28,51 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.dao.attributes;
 
-import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.NoSqlTsDao;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+
+import static org.thingsboard.server.common.data.CacheConstants.ATTRIBUTES_CACHE;
 
 @Service
-@NoSqlTsDao
-@Profile("install")
+@ConditionalOnProperty(prefix = "cache.attributes", value = "enabled", havingValue = "true")
+@Primary
 @Slf4j
-public class CassandraTsDatabaseUpgradeService extends AbstractCassandraDatabaseUpgradeService implements DatabaseTsUpgradeService {
+public class AttributesCacheWrapper {
+    private final Cache attributesCache;
 
-    @Override
-    public void upgradeDatabase(String fromVersion) throws Exception {
-        switch (fromVersion) {
-            case "2.4.3":
-                log.info("Updating schema ...");
-                String updateTsKvTableStmt = "alter table ts_kv_cf add json_v text";
-                String updateTsKvLatestTableStmt = "alter table ts_kv_latest_cf add json_v text";
+    public AttributesCacheWrapper(CacheManager cacheManager) {
+        this.attributesCache = cacheManager.getCache(ATTRIBUTES_CACHE);
+    }
 
-                try {
-                    log.info("Updating ts ...");
-                    cluster.getSession().execute(updateTsKvTableStmt);
-                    Thread.sleep(2500);
-                    log.info("Ts updated.");
-                    log.info("Updating ts latest ...");
-                    cluster.getSession().execute(updateTsKvLatestTableStmt);
-                    Thread.sleep(2500);
-                    log.info("Ts latest updated.");
-                } catch (InvalidQueryException e) {
-                }
-                log.info("Schema updated.");
-                break;
-            case "2.5.0":
-            case "3.1.1":
-            case "3.2.1":
-                break;
-            default:
-                throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);
+    public Cache.ValueWrapper get(AttributeCacheKey attributeCacheKey) {
+        try {
+            return attributesCache.get(attributeCacheKey);
+        } catch (Exception e) {
+            log.debug("Failed to retrieve element from cache for key {}. Reason - {}.", attributeCacheKey, e.getMessage());
+            return null;
         }
     }
 
+    public void put(AttributeCacheKey attributeCacheKey, AttributeKvEntry attributeKvEntry) {
+        try {
+            attributesCache.put(attributeCacheKey, attributeKvEntry);
+        } catch (Exception e) {
+            log.debug("Failed to put element from cache for key {}. Reason - {}.", attributeCacheKey, e.getMessage());
+        }
+    }
+
+    public void evict(AttributeCacheKey attributeCacheKey) {
+        try {
+            attributesCache.evict(attributeCacheKey);
+        } catch (Exception e) {
+            log.debug("Failed to evict element from cache for key {}. Reason - {}.", attributeCacheKey, e.getMessage());
+        }
+    }
 }
