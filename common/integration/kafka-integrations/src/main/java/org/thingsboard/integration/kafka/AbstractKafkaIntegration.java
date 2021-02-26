@@ -131,7 +131,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         kafkaLock.lock();
         try {
             kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
-            kafkaConsumer.listTopics();
+            kafkaConsumer.partitionsFor(configuration.getTopics());
         }
         catch(Exception e) {
             throw new RuntimeException("Connection to node could not be established. Broker may not be available.", e);
