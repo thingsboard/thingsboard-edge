@@ -61,7 +61,6 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   }
 
   ngOnInit() {
-    // TODO: voba check this
     // this.edgeScope = this.entitiesTableConfig.componentsData.edgeScope;
     this.entityForm.patchValue({
       cloudEndpoint: window.location.origin

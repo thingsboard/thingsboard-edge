@@ -174,7 +174,6 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
       new EntityTableColumn<Edge>('type', 'edge.edge-type', '25%'),
       new EntityTableColumn<Edge>('label', 'edge.label', '25%')
     ];
-    // TODO: voba - check this
     // if (edgeScope === 'tenant') {
     //   columns.push(
     //     new EntityTableColumn<EdgeInfo>('customerTitle', 'customer.customer', '25%'),
@@ -313,7 +312,6 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<Edge>
       );
     }
 
-    // TODO: voba - check this
     // if (edgeScope === 'customer_user') {
     //   actions.push(
     //     {

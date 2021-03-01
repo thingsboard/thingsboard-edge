@@ -54,7 +54,7 @@
           (click)="onEntityAction($event, 'manageUsers')"
           *ngIf="resource.USER_GROUP | hasGenericPermission: operation.READ"
           [fxShow]="!isEdit">
-    {{'edge.manage-user-groups' | translate }}
+    {{ 'edge.manage-user-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
@@ -63,7 +63,7 @@
           [fxShow]="!isEdit">
     <!--  TODO: voba - from CE version-->
     <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-asset-groups' | translate }}
+    {{ 'edge.manage-asset-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
@@ -72,7 +72,7 @@
           [fxShow]="!isEdit">
     <!--  TODO: voba - from CE version-->
     <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-device-groups' | translate }}
+    {{ 'edge.manage-device-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
@@ -81,7 +81,7 @@
           [fxShow]="!isEdit">
     <!--  TODO: voba - from CE version-->
     <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-entity-view-groups' | translate }}
+    {{ 'edge.manage-entity-view-groups' | translate }}
   </button>
   <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button color="primary"
@@ -91,14 +91,14 @@
             [fxShow]="!isEdit">
       <!--  TODO: voba - from CE version-->
 <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-dashboard-groups' | translate }}
+      {{ 'edge.manage-dashboard-groups' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'manageSchedulerEvents')"
             *ngIf="resource.SCHEDULER_EVENT | hasGenericPermission: operation.READ"
             [fxShow]="!isEdit">
-      {{'edge.manage-scheduler-events' | translate }}
+      {{ 'edge.manage-scheduler-events' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
@@ -107,14 +107,14 @@
             [fxShow]="!isEdit">
       <!--  TODO: voba - from CE version-->
 <!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
-      {{'edge.manage-rulechains' | translate }}
+      {{ 'edge.manage-rulechains' | translate }}
     </button>
     <button mat-raised-button color="primary" fxFlex.xs
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'delete')"
             *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
             [fxShow]="!hideDelete() && !isEdit">
-      {{'edge.delete' | translate }}
+      {{ 'edge.delete' | translate }}
     </button>
   </div>
   <div fxLayout="row" fxLayout.xs="column">
