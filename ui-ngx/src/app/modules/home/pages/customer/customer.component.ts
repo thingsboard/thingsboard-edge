@@ -112,6 +112,14 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     }
   }
 
+  hideManageEdges() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageEdgesEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
   hideManageDashboards() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);

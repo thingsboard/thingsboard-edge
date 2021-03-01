@@ -84,6 +84,64 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     }
   }
 
+  hideManageUsers() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageUsersEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideManageAssets() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageAssetsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideManageDevices() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageDevicesEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideManageEntityViews() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageEntityViewsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideManageDashboards() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideManageSchedulerEvents() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageSchedulerEventsEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
+  hideTenantAdminsActions() {
+    if (this.entitiesTableConfig) {
+      const ownerType = this.entitiesTableConfig.entityGroup.ownerId.entityType;
+      const isTenantAdmins = ownerType === EntityType.TENANT;
+      return !isTenantAdmins;
+    } else {
+      return false;
+    }
+  }
+
   /* isAssignedToCustomer(entity: EdgeInfo): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */
@@ -127,14 +185,14 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   updateFormState() {
     super.updateFormState();
-    this.entityForm.get('routingKey').disable({emitEvent: false});
-    this.entityForm.get('secret').disable({emitEvent: false});
+    this.entityForm.get('routingKey').disable({ emitEvent: false });
+    this.entityForm.get('secret').disable({ emitEvent: false });
   }
 
   private checkIsNewEdge(entity: Edge, form: FormGroup) {
     if (entity && (!entity.id || (entity.id && !entity.id.id))) {
-      form.get('routingKey').patchValue(guid(), {emitEvent: false});
-      form.get('secret').patchValue(generateSecret(20), {emitEvent: false});
+      form.get('routingKey').patchValue(guid(), { emitEvent: false });
+      form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
     }
   }
 
