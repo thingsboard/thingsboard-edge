@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@SuppressWarnings("deprecation")
 public class LoriotIntegration extends BasicHttpIntegration {
     private static final String EUI = "EUI";
     private static final String PORT = "port";

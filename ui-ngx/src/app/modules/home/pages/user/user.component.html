@@ -111,6 +111,18 @@
               {{ 'user.always-fullscreen' | translate }}
             </mat-checkbox>
           </section>
+          <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
+            <tb-dashboard-autocomplete
+              fxFlex
+              placeholder="{{ 'dashboard.home-dashboard' | translate }}"
+              formControlName="homeDashboardId"
+              [userId]="entity?.id.id"
+              [selectFirstDashboard]="false"
+            ></tb-dashboard-autocomplete>
+            <mat-checkbox fxFlex formControlName="homeDashboardHideToolbar">
+              {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
+            </mat-checkbox>
+          </section>
         </section>
       </div>
     </fieldset>

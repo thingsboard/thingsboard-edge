@@ -189,22 +189,22 @@ public class ThingsboardInstallService {
 
                         // TODO: voba - verify TB update
 
-                        case "2.5.5":
-                            log.info("Upgrading ThingsBoard from version 2.5.5 to 2.6.0 ...");
-                            if (databaseTsUpgradeService != null) {
-                                databaseTsUpgradeService.upgradeDatabase("2.5.5");
-                            }
-                            databaseEntitiesUpgradeService.upgradeDatabase("2.5.5");
-
-                            dataUpdateService.updateData("2.5.5");
-                        case "2.6.0": // to 2.6.0PE
-                            log.info("Upgrading ThingsBoard from version 2.6.0 to 2.6.0PE ...");
-
-                            databaseEntitiesUpgradeService.upgradeDatabase("2.6.0");
-
-                            dataUpdateService.updateData("2.6.0");
-
-                            // log.info("Upgrading ThingsBoard from version 2.6.0 to 3.0.0 ...");
+//                        case "2.5.5":
+//                            log.info("Upgrading ThingsBoard from version 2.5.5 to 2.6.0 ...");
+//                            if (databaseTsUpgradeService != null) {
+//                                databaseTsUpgradeService.upgradeDatabase("2.5.5");
+//                            }
+//                            databaseEntitiesUpgradeService.upgradeDatabase("2.5.5");
+//
+//                            dataUpdateService.updateData("2.5.5");
+//                        case "2.6.0": // to 2.6.0PE
+//                            log.info("Upgrading ThingsBoard from version 2.6.0 to 2.6.0PE ...");
+//
+//                            databaseEntitiesUpgradeService.upgradeDatabase("2.6.0");
+//
+//                            dataUpdateService.updateData("2.6.0");
+//
+//                            // log.info("Upgrading ThingsBoard from version 2.6.0 to 3.0.0 ...");
 
                          // TODO: voba - verify TB update
 
@@ -228,11 +228,17 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.2.0");
                         case "3.2.1":
                             log.info("Upgrading ThingsBoard from version 3.2.1 to 3.3.0 ...");
-                            if (databaseTsUpgradeService != null) {
-                                databaseTsUpgradeService.upgradeDatabase("3.2.1");
-                            }
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.1");
-                            dataUpdateService.updateData("3.2.1");
+                        case "3.3.0": // to 3.3.0PE
+                            log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.0PE ...");
+                            // TODO: voba - verify
+                            //if (databaseTsUpgradeService != null) {
+                            //    databaseTsUpgradeService.upgradeDatabase("3.2.1");
+                            //}
+
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.3.0");
+
+                            dataUpdateService.updateData("3.3.0");
+
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
                             break;

@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -59,6 +60,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -126,6 +128,28 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public Customer saveCustomer(@RequestBody Customer customer,
                                  @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
+            String prevHomeDashboardId = null;
+            boolean prevHideDashboardToolbar = true;
+            if (customer.getId() != null) {
+                Customer prevCustomer = customerService.findCustomerById(getTenantId(), customer.getId());
+                JsonNode additionalInfo = prevCustomer.getAdditionalInfo();
+                if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                    prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                    if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                        prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                    }
+                }
+            }
+            JsonNode additionalInfo = customer.getAdditionalInfo();
+            if (additionalInfo == null) {
+                additionalInfo = JacksonUtil.newObjectNode();
+                customer.setAdditionalInfo(additionalInfo);
+            }
+            ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
+            ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
+        }
         return saveGroupEntity(customer, strEntityGroupId, customerService::saveCustomer);
     }
 

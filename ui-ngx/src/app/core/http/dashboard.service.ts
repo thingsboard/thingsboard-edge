@@ -35,7 +35,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
-import { Dashboard, DashboardInfo } from '@shared/models/dashboard.models';
+import { Dashboard, DashboardInfo, HomeDashboard, HomeDashboardInfo } from '@shared/models/dashboard.models';
 import { WINDOW } from '@core/services/window.service';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter, map, publishReplay, refCount } from 'rxjs/operators';
@@ -173,6 +173,28 @@ export class DashboardService {
       }
       url += `/dashboard/${dashboard.id.id}?publicId=${publicCustomerId}`;
       return url;
+  }
+
+  public getHomeDashboard(config?: RequestConfig): Observable<HomeDashboard> {
+    return this.http.get<HomeDashboard>('/api/dashboard/home', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getTenantHomeDashboardInfo(config?: RequestConfig): Observable<HomeDashboardInfo> {
+    return this.http.get<HomeDashboardInfo>('/api/tenant/dashboard/home/info', defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomerHomeDashboardInfo(config?: RequestConfig): Observable<HomeDashboardInfo> {
+    return this.http.get<HomeDashboardInfo>('/api/customer/dashboard/home/info', defaultHttpOptionsFromConfig(config));
+  }
+
+  public setTenantHomeDashboardInfo(homeDashboardInfo: HomeDashboardInfo, config?: RequestConfig): Observable<any> {
+    return this.http.post<any>('/api/tenant/dashboard/home/info', homeDashboardInfo,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public setCustomerHomeDashboardInfo(homeDashboardInfo: HomeDashboardInfo, config?: RequestConfig): Observable<any> {
+    return this.http.post<any>('/api/customer/dashboard/home/info', homeDashboardInfo,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public getServerTimeDiff(): Observable<number> {

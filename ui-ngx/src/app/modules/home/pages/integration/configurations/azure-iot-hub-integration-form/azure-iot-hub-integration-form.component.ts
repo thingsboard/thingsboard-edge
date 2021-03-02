@@ -61,7 +61,7 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationFormComponen
   mqttCredentialsTypeChanged() {
     const form = this.form.get('credentials') as FormGroup;
     const type: azureIotHubCredentialsType = form.get('type').value;
-    changeRequiredAzureCredentialsFields(form, type)
+    changeRequiredAzureCredentialsFields(form, type);
   }
 
 }

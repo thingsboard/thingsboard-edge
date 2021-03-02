@@ -134,7 +134,9 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       } else if (node.data && node.data.type === 'edgeGroups' && datasource.type === DatasourceType.entity) {
         const edgeId = node.data.group.id.id;
         this.entityService.getAssignedToEdgeEntitiesByType(edgeId, groupType, pageLink).subscribe((entityGroups) => {
-          cb(this.entityGroupsToNodes(entityGroups, groupType));
+          if (entityGroups) {
+            cb(this.entityGroupsToNodes(entityGroups, groupType));
+          }
         });
       } else if (node.data && node.data.type === 'groups') {
         const entityId = node.data.group.id.id;

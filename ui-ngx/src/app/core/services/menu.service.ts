@@ -394,6 +394,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -541,6 +542,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'admin.outgoing-mail',
@@ -876,6 +885,12 @@ export class MenuService {
           name: 'white-labeling.white-labeling',
           places: [
             {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
+            {
               name: 'admin.outgoing-mail',
               icon: 'mail',
               path: '/settings/outgoing-mail',
@@ -980,6 +995,7 @@ export class MenuService {
         type: 'link',
         path: '/home',
         icon: 'home',
+        notExact: true,
         disabled: disabledItems.indexOf('home') > -1
       }
     );
@@ -1023,31 +1039,7 @@ export class MenuService {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
-      const pages: Array<MenuSection> = [];
-      pages.push(this.createEntityGroupSection(EntityType.EDGE));
-      pages.push(
-        {
-          id: guid(),
-          name: 'edge.rulechain-templates',
-          type: 'link',
-          path: '/edges/ruleChains',
-          icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('edge_groups') > -1 // TODO: voba - add separate item to config
-        }
-      );
-      sections.push(
-        {
-          id: guid(),
-          name: 'edge.management',
-          type: 'toggle',
-          path: '/edges',
-          icon: 'settings_input_antenna',
-          pages,
-          asyncPages: of(pages),
-          disabled: disabledItems.indexOf('edge_groups') > -1
-        }
-      );
-      sections.push();
+      sections.push(this.createEntityGroupSection(EntityType.EDGE));
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
@@ -1066,6 +1058,14 @@ export class MenuService {
     }
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       const pages: Array<MenuSection> = [
+        {
+          id: guid(),
+          name: 'admin.home-settings',
+          type: 'link',
+          path: '/settings/home',
+          icon: 'settings_applications',
+          disabled: disabledItems.indexOf('home_settings') > -1
+        },
         {
           id: guid(),
           name: 'custom-translation.custom-translation',
@@ -1234,12 +1234,6 @@ export class MenuService {
               icon: 'router',
               path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
-            },
-            {
-              name: 'edge.rulechain-templates',
-              icon: 'settings_ethernet',
-              path: '/edges/ruleChains',
-              disabled: disabledItems.indexOf('edge_groups') > -1
             }
           ]
         }
@@ -1278,6 +1272,12 @@ export class MenuService {
         {
           name: 'white-labeling.white-labeling',
           places: [
+            {
+              name: 'admin.home-settings',
+              icon: 'settings_applications',
+              path: '/settings/home',
+              disabled: disabledItems.indexOf('home_settings') > -1
+            },
             {
               name: 'white-labeling.white-labeling',
               icon: 'format_paint',
@@ -1348,11 +1348,14 @@ export class MenuService {
         name: customMenuItem.name,
         icon: customMenuItem.materialIcon,
         iconUrl: customMenuItem.iconUrl,
+        notExact: true,
         path: '/iframeView'
       } as MenuSection;
       customMenuSection.queryParams = {
         stateId,
         iframeUrl: customMenuItem.iframeUrl,
+        dashboardId: customMenuItem.dashboardId,
+        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
         setAccessToken: customMenuItem.setAccessToken
       };
       if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
@@ -1369,14 +1372,19 @@ export class MenuService {
             type: 'link',
             icon: customMenuChildItem.materialIcon,
             iconUrl: customMenuChildItem.iconUrl,
+            notExact: true,
             path: '/iframeView/child'
           };
           customMenuChildSection.queryParams = {
             stateId,
             iframeUrl: customMenuItem.iframeUrl,
+            dashboardId: customMenuItem.dashboardId,
+            hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
             setAccessToken: customMenuItem.setAccessToken,
             childStateId,
             childIframeUrl: customMenuChildItem.iframeUrl,
+            childDashboardId: customMenuChildItem.dashboardId,
+            childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
             childSetAccessToken: customMenuChildItem.setAccessToken
           };
           pages.push(customMenuChildSection);

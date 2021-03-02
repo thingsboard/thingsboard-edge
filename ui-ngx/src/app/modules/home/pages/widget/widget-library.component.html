@@ -50,6 +50,7 @@
               [isEditActionEnabled]="editEnabled"
               [isExportActionEnabled]="true"
               [isRemoveActionEnabled]="!isReadOnly && deleteEnabled"
+              [disableWidgetInteraction]="true"
               [callbacks]="dashboardCallbacks"></tb-dashboard>
 <tb-footer-fab-buttons [fxShow]="!isReadOnly && addEnabled" [footerFabButtons]="footerFabButtons">
 </tb-footer-fab-buttons>

@@ -1726,7 +1726,9 @@ export class EntityService {
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
       default:
+        entitiesObservable = of(null);
         console.error(`Edge does not support EntityType ${entityType}`);
+        break;
     }
     return entitiesObservable;
   }

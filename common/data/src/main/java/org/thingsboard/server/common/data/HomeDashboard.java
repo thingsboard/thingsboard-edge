@@ -28,25 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.ruleChain;
+package org.thingsboard.server.common.data;
 
 import lombok.Data;
-import org.thingsboard.server.common.msg.MsgType;
-import org.thingsboard.server.common.msg.TbActorMsg;
-import org.thingsboard.server.common.msg.TbMsg;
 
-/**
- * Created by ashvayka on 19.03.18.
- */
 @Data
-final class RuleNodeToSelfErrorMsg implements TbActorMsg {
+public class HomeDashboard extends Dashboard {
 
-    private final TbMsg msg;
-    private final Throwable error;
+    private boolean hideDashboardToolbar;
 
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.RULE_TO_SELF_ERROR_MSG;
+    public HomeDashboard(Dashboard dashboard, boolean hideDashboardToolbar) {
+        super(dashboard);
+        this.hideDashboardToolbar = hideDashboardToolbar;
     }
 
 }

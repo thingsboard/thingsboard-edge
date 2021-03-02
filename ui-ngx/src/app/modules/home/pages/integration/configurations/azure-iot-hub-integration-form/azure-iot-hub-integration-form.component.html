@@ -40,7 +40,7 @@
             </mat-form-field>
         <mat-form-field class="mat-block">
             <mat-label translate>integration.device-id</mat-label>
-            <input required matInput formControlName="clientId" autocomplete="new-clientId" maxlength="23">
+            <input required matInput formControlName="clientId" autocomplete="new-clientId" maxlength="65535">
           <mat-error translate *ngIf="form.get('clientId').hasError('required')">
             integration.device-id-required
           </mat-error>

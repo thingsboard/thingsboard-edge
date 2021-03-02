@@ -116,12 +116,15 @@ public class OwnerController extends BaseController {
         CustomerId targetOwnerId = new CustomerId(UUID.fromString(ownerIdStr));
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
 
-        Customer targetOwner = customerService.findCustomerById(getCurrentUser().getTenantId(), targetOwnerId);
-        Set<EntityId> targetOwnerOwners = ownersCacheService.getOwners(getCurrentUser().getTenantId(), targetOwnerId, targetOwner);
-        if (!targetOwnerOwners.contains(currentUserOwnerId)) {
-            // Customer/Tenant Changes Owner from Customer to Sub-Customer - OK.
-            // Sub-Customer Changes Owner from Sub-Customer to Customer - NOT OK.
-            throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
+        if (!currentUserOwnerId.equals(targetOwnerId)) {
+            Customer targetOwner = customerService.findCustomerById(getCurrentUser().getTenantId(), targetOwnerId);
+            Set<EntityId> targetOwnerOwners = ownersCacheService.getOwners(getCurrentUser().getTenantId(), targetOwnerId, targetOwner);
+            if (!targetOwnerOwners.contains(currentUserOwnerId)) {
+                // Customer/Tenant Changes Owner from Customer to Sub-Customer - OK.
+                // Customer/Tenant Changes Owner from Sub-Customer to Customer - OK.
+                // Sub-Customer Changes Owner from Sub-Customer to Customer - NOT OK.
+                throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
+            }
         }
         try {
             EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);

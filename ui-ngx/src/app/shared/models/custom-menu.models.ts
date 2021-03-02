@@ -35,6 +35,8 @@ export interface CustomMenuItem {
   iconUrl: string;
   materialIcon: string;
   iframeUrl: string;
+  dashboardId: string;
+  hideDashboardToolbar: boolean;
   setAccessToken: boolean;
   childMenuItems: CustomMenuItem[];
 }

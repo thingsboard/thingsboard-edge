@@ -28,35 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.common.msg;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-@Data
-public class AttrTelemetryObserveValue {
-    /**
-     * {"keyName": {
-     *       "/3/0/1": "modelNumber",
-     *       "/3/0/0": "manufacturer",
-     *       "/3/0/2": "serialNumber"
-     *       }
-    **/
-    JsonObject postKeyNameProfile;
+@EqualsAndHashCode
+public abstract class TbRuleEngineActorMsg implements TbActorMsg {
 
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postAttributeProfile;
+    @Getter
+    protected final TbMsg msg;
 
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postTelemetryProfile;
-
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postObserveProfile;
+    public TbRuleEngineActorMsg(TbMsg msg) {
+        this.msg = msg;
+    }
 }

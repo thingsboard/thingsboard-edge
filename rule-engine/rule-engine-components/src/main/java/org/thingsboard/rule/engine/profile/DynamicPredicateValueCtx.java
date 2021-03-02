@@ -28,26 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.rule.engine.profile;
 
-import lombok.Builder;
-import lombok.Data;
+public interface DynamicPredicateValueCtx {
 
-@Data
-public class ResultIds {
-    @Builder.Default
-    int objectId = -1;
-    @Builder.Default
-    int instanceId = -1;
-    @Builder.Default
-    int resourceId = -1;
+    EntityKeyValue getTenantValue(String key);
 
-    public ResultIds (String path) {
-        String[] paths = path.split("/");
-        if (paths != null && paths.length > 1) {
-            this.objectId = (paths.length > 1) ? Integer.parseInt(paths[1]) :  this.objectId;
-            this.instanceId = (paths.length > 2) ? Integer.parseInt(paths[2]) : this.instanceId;
-            this.resourceId = (paths.length > 3) ? Integer.parseInt(paths[3]) : this.resourceId;
-        }
-    }
+    EntityKeyValue getCustomerValue(String key);
+
+    void resetCustomer();
 }

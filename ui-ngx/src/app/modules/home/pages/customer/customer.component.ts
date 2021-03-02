@@ -36,15 +36,16 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Customer } from '@shared/models/customer.model';
 import { ActionNotificationShow } from '@app/core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { GroupContactBasedComponent } from '@home/components/group/group-contact-based.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { isDefined } from '@core/utils';
 import { AuthState } from '@core/auth/auth.models';
 
 @Component({
   selector: 'tb-customer',
-  templateUrl: './customer.component.html'
+  templateUrl: './customer.component.html',
+  styleUrls: ['./customer.component.scss']
 })
 export class CustomerComponent extends GroupContactBasedComponent<Customer> {
 
@@ -53,6 +54,7 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
   authState: AuthState = getCurrentAuthState(this.store);
 
   allowCustomerWhiteLabeling = getCurrentAuthState(this.store).customerWhiteLabelingAllowed;
+  whiteLabelingAllowed = getCurrentAuthState(this.store).whiteLabelingAllowed;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -110,6 +112,14 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     }
   }
 
+  hideManageEdges() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageEdgesEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
   hideManageDashboards() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
@@ -127,6 +137,9 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
             description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
             allowWhiteLabeling: [entity && entity.additionalInfo
             && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true],
+            homeDashboardId: [entity && entity.additionalInfo ? entity.additionalInfo.homeDashboardId : null],
+            homeDashboardHideToolbar: [entity && entity.additionalInfo &&
+            isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true]
           }
         )
       }
@@ -139,7 +152,10 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     this.entityForm.patchValue({additionalInfo: {
         description: entity.additionalInfo ? entity.additionalInfo.description : '',
         allowWhiteLabeling: entity.additionalInfo
-        && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true
+        && isDefined(entity.additionalInfo.allowWhiteLabeling) ? entity.additionalInfo.allowWhiteLabeling : true,
+        homeDashboardId: entity.additionalInfo ? entity.additionalInfo.homeDashboardId : null,
+        homeDashboardHideToolbar: entity.additionalInfo &&
+        isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true
       }});
   }
 

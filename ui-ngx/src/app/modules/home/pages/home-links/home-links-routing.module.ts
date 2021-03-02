@@ -29,11 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Injectable, NgModule } from '@angular/core';
+import { Resolve, RouterModule, Routes } from '@angular/router';
 
 import { HomeLinksComponent } from './home-links.component';
 import { Authority } from '@shared/models/authority.enum';
+import { Observable } from 'rxjs';
+import { HomeDashboard } from '@shared/models/dashboard.models';
+import { DashboardService } from '@core/http/dashboard.service';
+
+@Injectable()
+export class HomeDashboardResolver implements Resolve<HomeDashboard> {
+
+  constructor(private dashboardService: DashboardService) {
+  }
+
+  resolve(): Observable<HomeDashboard> {
+    return this.dashboardService.getHomeDashboard();
+  }
+}
 
 const routes: Routes = [
   {
@@ -46,12 +60,18 @@ const routes: Routes = [
         label: 'home.home',
         icon: 'home'
       }
+    },
+    resolve: {
+      homeDashboard: HomeDashboardResolver
     }
   }
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
+  providers: [
+    HomeDashboardResolver
+  ]
 })
 export class HomeLinksRoutingModule { }

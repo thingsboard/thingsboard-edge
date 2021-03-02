@@ -56,7 +56,7 @@ import java.util.Map;
 @Slf4j
 public class ChirpStackIntegrationController extends BaseIntegrationController {
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(

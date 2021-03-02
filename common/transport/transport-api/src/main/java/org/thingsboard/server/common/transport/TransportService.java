@@ -114,7 +114,7 @@ public interface TransportService {
 
     SessionMetaData registerSyncSession(SessionInfoProto sessionInfo, SessionMsgListener listener, long timeout);
 
-    void reportActivity(SessionInfoProto sessionInfo);
+    SessionMetaData reportActivity(SessionInfoProto sessionInfo);
 
     void deregisterSession(SessionInfoProto sessionInfo);
 }

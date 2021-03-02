@@ -79,6 +79,8 @@ export class CustomMenuComponent extends PageComponent implements OnInit, HasDir
             iconUrl:null,
             materialIcon:'menu',
             iframeUrl:'https://thingsboard.io',
+            dashboardId: '<YOUR DASHBOARD ID HERE>',
+            hideDashboardToolbar: true,
             setAccessToken:false,
             childMenuItems:[
 
