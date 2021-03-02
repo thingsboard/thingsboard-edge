@@ -1417,7 +1417,7 @@
     "management": "Regelverwaltung",
     "debug-mode": "Modus zur Fehlersuche",
     "assign-rulechains": "Regelketten zuweisen",
-    "assign-new-rulechain": "Neues Regelkette zuweisen",
+    "assign-rulechains": "Neues Regelkette zuweisen",
     "delete-rulechains": "Regelketten löschen",
     "unassign-rulechain": "Nicht zugeordnete Regelkette",
     "unassign-rulechains": "Nicht zugeordnete Regelketten",
