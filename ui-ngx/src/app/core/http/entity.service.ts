@@ -1712,17 +1712,17 @@ export class EntityService {
     let entitiesObservable: Observable<any>;
     const ignoreLoading: boolean = true;
     switch (entityType) {
-      case (EntityType.USER):
-      case (EntityType.ASSET):
-      case (EntityType.DEVICE):
-      case (EntityType.ENTITY_VIEW):
-      case (EntityType.DASHBOARD):
+      case EntityType.USER:
+      case EntityType.ASSET:
+      case EntityType.DEVICE:
+      case EntityType.ENTITY_VIEW:
+      case EntityType.DASHBOARD:
         entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading });
         break;
-      case (EntityType.SCHEDULER_EVENT):
+      case EntityType.SCHEDULER_EVENT:
         entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
         break;
-      case (EntityType.RULE_CHAIN):
+      case EntityType.RULE_CHAIN:
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
       default:
