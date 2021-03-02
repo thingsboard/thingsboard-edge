@@ -47,7 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityId } from '@shared/models/id/entity-id';
-import { EntityTypeResource } from '@shared/models/entity-type.models';
+import { EntityType, EntityTypeResource } from '@shared/models/entity-type.models';
 import { Observable, of } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Direction } from '@shared/models/page/sort-order';
@@ -68,6 +68,7 @@ import { AssetService } from '@core/http/asset.service';
 import { DeviceService } from '@core/http/device.service';
 import { EntityViewService } from '@core/http/entity-view.service';
 import { EventTableHeaderComponent } from '@home/components/event/event-table-header.component';
+import { EntityService } from '@core/http/entity.service';
 
 export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePageLink> {
 
@@ -76,9 +77,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
   constructor(private edgeService: EdgeService,
               private dialogService: DialogService,
               private translate: TranslateService,
-              private deviceService: DeviceService,
-              private assetService: AssetService,
-              private entityViewService: EntityViewService,
+              private entityService: EntityService,
               private ruleChainService: RuleChainService,
               private attributeService: AttributeService,
               private datePipe: DatePipe,
@@ -135,7 +134,8 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
           isEnabled: (entity) => this.isEdgeEventHasData(entity.type),
           onAction: ($event, entity) =>
             {
-              this.prepareEdgeEventContent(entity).subscribe((content) => {
+              this.prepareEdgeEventContent(entity).subscribe(
+                (content) => {
                 this.showEdgeEventContent($event, content,'event.data');
               });
             }
@@ -170,59 +170,63 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
 
   isEdgeEventHasData(edgeEventType: EdgeEventType) {
     switch (edgeEventType) {
-      case EdgeEventType.WIDGET_TYPE:
+      case EdgeEventType.DEVICE_PROFILE:
       case EdgeEventType.WIDGETS_BUNDLE:
+      case EdgeEventType.WIDGET_TYPE:
       case EdgeEventType.ADMIN_SETTINGS:
+      case EdgeEventType.GROUP_PERMISSION:
+      case EdgeEventType.CUSTOM_TRANSLATION:
+      case EdgeEventType.WHITE_LABELING:
+      case EdgeEventType.LOGIN_WHITE_LABELING:
         return false;
       default:
         return true;
     }
   }
 
-  prepareEdgeEventContent(entity) {
-    // TODO: voba - extend this function with different cases based on action and entity type
+  prepareEdgeEventContent(entity: any) {
     switch (entity.type) {
+      case EdgeEventType.DASHBOARD:
+      case EdgeEventType.ALARM:
+      case EdgeEventType.RULE_CHAIN:
+      case EdgeEventType.EDGE:
+      case EdgeEventType.USER:
+      case EdgeEventType.CUSTOMER:
+      case EdgeEventType.ENTITY_GROUP:
+      case EdgeEventType.SCHEDULER_EVENT:
+      case EdgeEventType.ROLE:
+      case EdgeEventType.TENANT:
+      case EdgeEventType.ASSET:
+      case EdgeEventType.DEVICE:
+      case EdgeEventType.ENTITY_VIEW:
+        return this.entityService.getEntity(entity.type as EntityType, entity.entityId, { ignoreLoading: true, ignoreErrors: true }).pipe(
+          map((entity) => {
+            return JSON.stringify(entity);
+          })
+        );
       case EdgeEventType.RELATION:
         return of(JSON.stringify(entity.body));
-      case EdgeEventType.ASSET:
-        return this.assetService.getAsset(entity.entityId, null).pipe(
-          map((asset) => {
-            return JSON.stringify(asset);
-          })
-        );
-      case EdgeEventType.DEVICE:
-        return this.deviceService.getDevice(entity.entityId, null).pipe(
-          map((device) => {
-            return JSON.stringify(device);
-          })
-        );
-      case EdgeEventType.ENTITY_VIEW:
-        return this.entityViewService.getEntityView(entity.entityId, null).pipe(
-          map((entityView) => {
-            return JSON.stringify(entityView);
-          })
-        );
       case EdgeEventType.RULE_CHAIN_METADATA:
-        return this.ruleChainService.getRuleChainMetadata(entity.entityId, null).pipe(
+        return this.ruleChainService.getRuleChainMetadata(entity.entityId).pipe(
           map((ruleChainMetaData) => {
             return JSON.stringify(ruleChainMetaData.nodes);
           })
         );
-      default:
-        return of(JSON.stringify(entity));
+      case EdgeEventType.DEVICE_PROFILE:
+      case EdgeEventType.WIDGETS_BUNDLE:
+      case EdgeEventType.WIDGET_TYPE:
+      case EdgeEventType.ADMIN_SETTINGS:
+      case EdgeEventType.GROUP_PERMISSION:
+      case EdgeEventType.CUSTOM_TRANSLATION:
+      case EdgeEventType.WHITE_LABELING:
+      case EdgeEventType.LOGIN_WHITE_LABELING:
+        return of(null);
     }
   }
 
-  showEdgeEventContent($event: MouseEvent, content: string, title: string, sortKeys = false): void {
+  showEdgeEventContent($event: MouseEvent, content: string, title: string): void {
     if ($event) {
       $event.stopPropagation();
-    }
-    var contentType = ContentType.JSON;
-    if (contentType === ContentType.JSON && sortKeys) {
-      try {
-        content = JSON.stringify(sortObjectKeys(JSON.parse(content)));
-      } catch (e) {
-      }
     }
     this.dialog.open<EventContentDialogComponent, EventContentDialogData>(EventContentDialogComponent, {
       disableClose: true,
@@ -230,7 +234,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
       data: {
         content,
         title,
-        contentType
+        contentType: ContentType.JSON
       }
     });
   }

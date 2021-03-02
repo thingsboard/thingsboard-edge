@@ -1514,7 +1514,12 @@
         "type-widgets-bundle": "Widgets Bundle",
         "type-widgets-type": "Widgets Type",
         "type-admin-settings": "Admin Settings",
-        "type-scheduler-event": "Scheduler event",
+        "type-scheduler-event": "Scheduler Event",
+        "type-white-labeling": "White Labeling",
+        "type-login-white-labeling": "Login White Labeling",
+        "type-custom-translation": "Custom Translation",
+        "type-role": "Role",
+        "type-group-permission": "Group Permission",
         "action-type-added": "Added",
         "action-type-deleted": "Deleted",
         "action-type-updated": "Updated",
@@ -1533,7 +1538,11 @@
         "action-type-assigned-to-edge": "Assigned to Edge",
         "action-type-unassigned-from-edge": "Unassigned from Edge",
         "action-type-credentials-request": "Credentials Request",
-        "action-type-entity-merge-request": "Entity Merge Request"
+        "action-type-entity-merge-request": "Entity Merge Request",
+        "action-type-added-to-entity-group": "Added to Entity Group",
+        "action-type-removed-from-entity-group": "Removed from Entity Group",
+        "action-type-change-owner": "Change owner",
+        "action-type-relations-deleted": "Relations deleted"
     },
     "error": {
         "unable-to-connect": "Unable to connect to the server! Please check your internet connection.",
