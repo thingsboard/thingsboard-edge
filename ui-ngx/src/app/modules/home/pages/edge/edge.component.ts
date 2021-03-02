@@ -76,14 +76,6 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   hideManageUsers() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageUsersEnabled(this.entity);
