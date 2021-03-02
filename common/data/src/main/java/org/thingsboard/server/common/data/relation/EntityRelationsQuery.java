@@ -41,6 +41,6 @@ import java.util.List;
 public class EntityRelationsQuery {
 
     private RelationsSearchParameters parameters;
-    private List<EntityTypeFilter> filters;
+    private List<RelationEntityTypeFilter> filters;
 
 }

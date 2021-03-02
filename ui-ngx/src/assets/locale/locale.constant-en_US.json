@@ -326,6 +326,7 @@
         "filter-type-entity-group": "Group entities",
         "filter-type-entity-list": "Entity list",
         "filter-type-entity-name": "Entity name",
+        "filter-type-entity-type": "Entity type",
         "filter-type-entity-group-list": "Entity group list",
         "filter-type-entity-group-name": "Entity group name",
         "filter-type-entities-by-group-name": "Entities by group name",
@@ -962,6 +963,7 @@
     "datasource": {
         "type": "Datasource type",
         "name": "Name",
+        "label": "Label",
         "add-datasource-prompt": "Please add datasource"
     },
     "details": {
@@ -1262,6 +1264,7 @@
     "entity": {
         "entity": "Entity",
         "entities": "Entities",
+        "entities-count": "Entities count",
         "aliases": "Entity aliases",
         "entity-alias": "Entity alias",
         "unable-delete-entity-alias-title": "Unable to delete entity alias",
@@ -1916,7 +1919,8 @@
            "key-type": "Key type",
            "attribute": "Attribute",
            "timeseries": "Timeseries",
-           "entity-field": "Entity field"
+           "entity-field": "Entity field",
+           "constant": "Constant"
          },
          "value-type": {
            "value-type": "Value type",

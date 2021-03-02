@@ -176,6 +176,7 @@ export class KeyFilterListComponent implements ControlValueAccessor, OnInit {
           type: EntityKeyType.ATTRIBUTE
         },
         valueType: null,
+        value: null,
         predicates: []
       };
     }

@@ -100,6 +100,10 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
           this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).nameStartsWith,
             {prefix});
           break;
+        case AliasFilterType.entityType:
+          entityType = this.filter.entityType;
+          this.filterDisplayValue = this.translate.instant(entityTypeTranslations.get(entityType).typePlural);
+          break;
         case AliasFilterType.entityGroupList:
           entityType = this.filter.groupType;
           count = this.filter.entityGroupList.length;

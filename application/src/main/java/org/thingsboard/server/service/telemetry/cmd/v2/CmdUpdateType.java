@@ -28,22 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.relation;
+package org.thingsboard.server.service.telemetry.cmd.v2;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-
-import java.util.List;
-
-/**
- * Created by ashvayka on 02.05.17.
- */
-@Data
-@AllArgsConstructor
-public class EntityTypeFilter {
-
-    private String relationType;
-
-    private List<EntityType> entityTypes;
+public enum CmdUpdateType {
+    ENTITY_DATA,
+    ALARM_DATA,
+    COUNT_DATA
 }

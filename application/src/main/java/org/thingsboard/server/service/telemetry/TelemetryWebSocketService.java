@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.telemetry;
 
+import org.thingsboard.server.service.telemetry.cmd.v2.CmdUpdate;
 import org.thingsboard.server.service.telemetry.cmd.v2.DataUpdate;
 import org.thingsboard.server.service.telemetry.sub.TelemetrySubscriptionUpdate;
 
@@ -44,6 +45,6 @@ public interface TelemetryWebSocketService {
 
     void sendWsMsg(String sessionId, TelemetrySubscriptionUpdate update);
 
-    void sendWsMsg(String sessionId, DataUpdate update);
+    void sendWsMsg(String sessionId, CmdUpdate update);
 
 }

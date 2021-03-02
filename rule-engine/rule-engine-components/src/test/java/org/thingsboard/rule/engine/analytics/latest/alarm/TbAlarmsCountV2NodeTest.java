@@ -48,7 +48,6 @@ import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesRelationsQuery;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -68,7 +67,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
-import org.thingsboard.server.common.data.relation.EntityTypeFilter;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -143,7 +142,7 @@ public class TbAlarmsCountV2NodeTest {
         relationsQuery = new RelationsQuery();
         relationsQuery.setDirection(EntitySearchDirection.FROM);
         relationsQuery.setMaxLevel(1);
-        EntityTypeFilter entityTypeFilter = new EntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
+        RelationEntityTypeFilter entityTypeFilter = new RelationEntityTypeFilter(EntityRelation.CONTAINS_TYPE, Collections.emptyList());
         relationsQuery.setFilters(Collections.singletonList(entityTypeFilter));
 
         rootEntityId = new TenantId(Uuids.timeBased());

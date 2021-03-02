@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.service.telemetry.cmd.v2;
 
-public interface UnsubscribeCmd {
+import lombok.Data;
 
-    int getCmdId();
+@Data
+public class EntityCountUnsubscribeCmd implements UnsubscribeCmd {
+
+    private final int cmdId;
 
 }

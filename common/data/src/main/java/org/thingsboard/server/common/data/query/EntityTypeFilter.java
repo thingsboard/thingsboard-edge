@@ -28,10 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.telemetry.cmd.v2;
+package org.thingsboard.server.common.data.query;
 
-public interface UnsubscribeCmd {
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 
-    int getCmdId();
+@Data
+public class EntityTypeFilter implements EntityFilter {
+    @Override
+    public EntityFilterType getType() {
+        return EntityFilterType.ENTITY_TYPE;
+    }
+
+    private EntityType entityType;
 
 }

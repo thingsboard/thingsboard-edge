@@ -159,6 +159,11 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           entityNameFilter: [filter ? filter.entityNameFilter : '', [Validators.required]],
         });
         break;
+      case AliasFilterType.entityType:
+        this.filterFormGroup = this.fb.group({
+          entityType: [filter ? filter.entityType : null, [Validators.required]]
+        });
+        break;
       case AliasFilterType.entityGroupList:
         this.filterFormGroup = this.fb.group({
           groupType: [filter ? filter.groupType : null, [Validators.required]],

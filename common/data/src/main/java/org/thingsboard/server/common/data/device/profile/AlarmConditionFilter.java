@@ -28,9 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.telemetry.cmd.v2;
+package org.thingsboard.server.common.data.device.profile;
 
-public enum DataUpdateType {
-    ENTITY_DATA,
-    ALARM_DATA
+import lombok.Data;
+import org.thingsboard.server.common.data.query.EntityKeyValueType;
+import org.thingsboard.server.common.data.query.KeyFilterPredicate;
+
+@Data
+public class AlarmConditionFilter {
+
+    private AlarmConditionFilterKey key;
+    private EntityKeyValueType valueType;
+    private Object value;
+    private KeyFilterPredicate predicate;
+
 }
