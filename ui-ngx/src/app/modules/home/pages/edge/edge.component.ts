@@ -206,8 +206,8 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
   }
 
   private checkIsNewEdge() {
-    if (this.entityValue) {
-      return isDefinedAndNotNull(this.entityValue.id.id);
+    if (this.entity) {
+      return isDefinedAndNotNull(this.entity.id.id);
     }
   }
 
