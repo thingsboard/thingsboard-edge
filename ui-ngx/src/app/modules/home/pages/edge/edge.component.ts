@@ -36,7 +36,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { EntityType } from '@shared/models/entity-type.models';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { generateSecret, guid } from '@core/utils';
+import { generateSecret, guid, isDefinedAndNotNull } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Edge } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
@@ -132,8 +132,8 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     }
   }
 
-  hideTenantAdminsActions() {
-    if (this.entitiesTableConfig) {
+  hideTenantActionsAndFormFields() {
+    if (this.entitiesTableConfig && this.checkIsNewEdge()) {
       const ownerType = this.entitiesTableConfig.entityGroup.ownerId.entityType;
       const isTenantAdmins = ownerType === EntityType.TENANT;
       return !isTenantAdmins;
@@ -163,7 +163,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         )
       }
     );
-    this.checkIsNewEdge(entity, form);
+    this.generateRoutingKeyAndSecret(entity, form);
     return form;
   }
 
@@ -180,20 +180,13 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         description: entity.additionalInfo ? entity.additionalInfo.description : ''
       }
     });
-    this.checkIsNewEdge(entity, this.entityForm);
+    this.generateRoutingKeyAndSecret(entity, this.entityForm);
   }
 
   updateFormState() {
     super.updateFormState();
     this.entityForm.get('routingKey').disable({ emitEvent: false });
     this.entityForm.get('secret').disable({ emitEvent: false });
-  }
-
-  private checkIsNewEdge(entity: Edge, form: FormGroup) {
-    if (entity && (!entity.id || (entity.id && !entity.id.id))) {
-      form.get('routingKey').patchValue(guid(), { emitEvent: false });
-      form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
-    }
   }
 
   onEdgeIdCopied($event) {
@@ -218,5 +211,18 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  private checkIsNewEdge() {
+    if (this.entityValue) {
+      return isDefinedAndNotNull(this.entityValue.id.id);
+    }
+  }
+
+  private generateRoutingKeyAndSecret(entity: Edge, form: FormGroup) {
+    if (entity && (!entity.id || (entity.id && !entity.id.id))) {
+      form.get('routingKey').patchValue(guid(), { emitEvent: false });
+      form.get('secret').patchValue(generateSecret(20), { emitEvent: false });
+    }
   }
 }
