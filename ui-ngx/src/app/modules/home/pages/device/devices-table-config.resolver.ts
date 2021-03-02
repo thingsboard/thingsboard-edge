@@ -129,8 +129,6 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       deviceScope: route.data.devicesType,
       deviceProfileId: null,
       deviceCredentials$: new Subject<DeviceCredentials>(),
-
-      // TODO: voba - is this required
       // edgeId: routeParams.edgeId
     };
     this.customerId = routeParams.customerId;
@@ -140,7 +138,6 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
           this.config.componentsData.deviceScope = 'customer_user';
           this.customerId = authUser.customerId;
         }
-        // TODO: voba - check this
         // if (authUser.authority === Authority.CUSTOMER_USER) {
         //   if (route.data.devicesType === 'edge') {
         //     this.config.componentsData.deviceScope = 'edge_customer_user';
@@ -207,7 +204,6 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         this.deviceService.getTenantDevices(pageLink, this.config.componentsData.deviceType);
       this.config.deleteEntity = id => this.deviceService.deleteDevice(id.id);
     }
-    // TODO: voba check this
     // else if (deviceScope === 'edge' || deviceScope === 'edge_customer_user') {
     //   this.config.entitiesFetchFunction = pageLink =>
     //     this.deviceService.getEdgeDevices(this.config.componentsData.edgeId, pageLink, this.config.componentsData.edgeType);
@@ -277,7 +273,6 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
           }
         );
     }
-    // TODO: voba check this
     // if (deviceScope === 'customer_user' || deviceScope === 'edge_customer_user') {
     if (deviceScope === 'customer_user') {
       actions.push(
@@ -289,8 +284,6 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
         }
       );
     }
-
-    // TODO: voba check this
     // if (deviceScope === 'edge') {
     //   actions.push(
     //     {
@@ -325,19 +318,17 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
           onAction: ($event, entities) => this.unassignDevicesFromCustomer($event, entities)
         }
       );
+    }
+    if (deviceScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('device.unassign-devices-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignDevicesFromEdge($event, entities)
+        }
+      );
     }*/
-
-    // TODO: voba - check this
-    // if (deviceScope === 'edge') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('device.unassign-devices-from-edge'),
-    //       icon: 'assignment_return',
-    //       isEnabled: true,
-    //       onAction: ($event, entities) => this.unassignDevicesFromEdge($event, entities)
-    //     }
-    //   );
-    // }
     return actions;
   }
 

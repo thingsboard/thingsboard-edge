@@ -128,15 +128,14 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           this.config.componentsData.entityViewScope = 'customer_user';
           this.customerId = authUser.customerId;
         }
-        // TODO: voba - check this
-        // if (authUser.authority === Authority.CUSTOMER_USER) {
-        //   if (route.data.entityViewsType === 'edge') {
-        //     this.config.componentsData.entityViewScope = 'edge_customer_user';
-        //   } else {
-        //     this.config.componentsData.entityViewScope = 'customer_user';
-        //   }
-        //   this.customerId = authUser.customerId;
-        // }
+        /* if (authUser.authority === Authority.CUSTOMER_USER) {
+          if (route.data.entityViewsType === 'edge') {
+            this.config.componentsData.entityViewScope = 'edge_customer_user';
+          } else {
+            this.config.componentsData.entityViewScope = 'customer_user';
+          }
+          this.customerId = authUser.customerId;
+        }*/
       }),
       mergeMap(() =>
         this.customerId ? this.customerService.getCustomer(this.customerId) : of(null as Customer)
@@ -188,11 +187,10 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         this.entityViewService.getTenantEntityViews(pageLink, this.config.componentsData.entityViewType);
       this.config.deleteEntity = id => this.entityViewService.deleteEntityView(id.id);
     }
-    // TODO: voba - check this
-    // else if (entityViewScope === 'edge' || entityViewScope === 'edge_customer_user') {
-    //   this.config.entitiesFetchFunction = pageLink =>
-    //     this.entityViewService.getEdgeEntityViews(this.config.componentsData.edgeId, pageLink, this.config.componentsData.entityViewType);
-    // }
+    /* else if (entityViewScope === 'edge' || entityViewScope === 'edge_customer_user') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.entityViewService.getEdgeEntityViews(this.config.componentsData.edgeId, pageLink, this.config.componentsData.entityViewType);
+    }*/
     else {
       this.config.entitiesFetchFunction = pageLink =>
         this.entityViewService.getCustomerEntityViews(this.customerId, pageLink, this.config.componentsData.entityViewType);
@@ -245,19 +243,17 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity)
         }
       );
+    }
+    if (entityViewScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('edge.unassign-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
+        }
+      );
     }*/
-
-    // TODO: voba - check this
-    // if (entityViewScope === 'edge') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('edge.unassign-from-edge'),
-    //       icon: 'assignment_return',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.unassignFromEdge($event, entity)
-    //     }
-    //   );
-    // }
     return actions;
   }
 
@@ -282,19 +278,17 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
           onAction: ($event, entities) => this.unassignEntityViewsFromCustomer($event, entities)
         }
       );
+    }
+    if (entityViewScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('entity-view.unassign-entity-views-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignEntityViewsFromEdge($event, entities)
+        }
+      );
     }*/
-
-    // TODO: voba - check this
-    // if (entityViewScope === 'edge') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('entity-view.unassign-entity-views-from-edge'),
-    //       icon: 'assignment_return',
-    //       isEnabled: true,
-    //       onAction: ($event, entities) => this.unassignEntityViewsFromEdge($event, entities)
-    //     }
-    //   );
-    // }
     return actions;
   }
 
