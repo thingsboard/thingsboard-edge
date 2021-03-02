@@ -87,9 +87,8 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   @Input()
   entitiesRequiredText = 'entity.entity-list-empty';
 
-  // TODO: voba - check this
-  @Input()
-  subType: string;
+  // @Input()
+  // subType: string;
 
   private requiredValue: boolean;
   get required(): boolean {
