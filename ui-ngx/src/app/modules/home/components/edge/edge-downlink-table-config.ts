@@ -48,7 +48,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityTypeResource } from '@shared/models/entity-type.models';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Direction } from '@shared/models/page/sort-order';
 import { DialogService } from '@core/services/dialog.service';
@@ -103,7 +103,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     return this.edgeService.getEdgeEvents(this.entityId, pageLink);
   }
 
-  loadEdgeInfo() {
+  loadEdgeInfo(): void {
     this.attributeService.getEntityAttributes(this.entityId, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
       .subscribe(
         attributes => this.onUpdate(attributes)
@@ -156,7 +156,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     }
   }
 
-  updateEdgeEventStatus(createdTime) {
+  updateEdgeEventStatus(createdTime): string {
     if (this.queueStartTs && createdTime < this.queueStartTs) {
       return this.translate.instant('edge.deployed');
     } else {
@@ -168,7 +168,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     return createdTime > this.queueStartTs;
   }
 
-  isEdgeEventHasData(edgeEventType: EdgeEventType) {
+  isEdgeEventHasData(edgeEventType: EdgeEventType): boolean {
     switch (edgeEventType) {
       case EdgeEventType.ROLE:
       case EdgeEventType.ADMIN_SETTINGS:
@@ -181,7 +181,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     }
   }
 
-  prepareEdgeEventContent(entity: any) {
+  prepareEdgeEventContent(entity: any): Observable<string> {
     return this.entityService.getEdgeEventContentByEntityType(entity).pipe(
       map((result) => JSON.stringify(result))
     );
