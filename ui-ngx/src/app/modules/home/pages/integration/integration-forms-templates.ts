@@ -524,6 +524,8 @@ export const templates = {
       port: 11560,
       soBroadcast: true,
       soRcvBuf: 64,
+      cacheSize: 1000,
+      timeToLiveInMinutes: 1440,
       handlerConfiguration: {
         handlerType: handlerConfigurationTypes.binary.value,
         charsetName: 'UTF-8',
@@ -535,7 +537,9 @@ export const templates = {
       'clientConfiguration.soRcvBuf': [Validators.required, Validators.min(1), Validators.max(65535)],
       'clientConfiguration.handlerConfiguration.handlerType': [Validators.required],
       'clientConfiguration.handlerConfiguration.charsetName': [Validators.required],
-      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)]
+      'clientConfiguration.handlerConfiguration.maxFrameLength': [Validators.required, Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.TCP]: {
@@ -546,6 +550,8 @@ export const templates = {
       soSndBuf: 64,
       soKeepaliveOption: false,
       tcpNoDelay: true,
+      cacheSize: 1000,
+      timeToLiveInMinutes: 1440,
       handlerConfiguration: {
         handlerType: handlerConfigurationTypes.binary.value,
         byteOrder: tcpBinaryByteOrder.littleEndian.value,
@@ -569,7 +575,9 @@ export const templates = {
       'clientConfiguration.handlerConfiguration.lengthFieldOffset': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthFieldLength': [Validators.required, Validators.min(0), Validators.max(8)],
       'clientConfiguration.handlerConfiguration.lengthAdjustment': [Validators.required, Validators.min(0), Validators.max(8)],
-      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)]
+      'clientConfiguration.handlerConfiguration.initialBytesToStrip': [Validators.required, Validators.min(0), Validators.max(8)],
+      'clientConfiguration.cacheSize': [Validators.min(0)],
+      'clientConfiguration.timeToLiveInMinutes': [Validators.min(0), Validators.max(525600)]
     }
   },
   [IntegrationType.KAFKA]: {

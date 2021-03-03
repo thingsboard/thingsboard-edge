@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import {
   handlerConfigurationTypes,
@@ -46,6 +46,8 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
   styleUrls: ['./tcp-integration-form.component.scss']
 })
 export class TcpIntegrationFormComponent extends IntegrationFormComponent {
+
+  @Input() isSetDownlink: boolean;
 
   handlerConfigurationTypes = handlerConfigurationTypes;
   handlerTypes = _.cloneDeep(handlerConfigurationTypes);
@@ -71,7 +73,7 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
     [handlerConfigurationTypes.json.value]: {
       handlerType: handlerConfigurationTypes.json.value
     }
-  }
+  };
 
   constructor() {
     super();
@@ -111,6 +113,6 @@ export class TcpIntegrationFormComponent extends IntegrationFormComponent {
     disableFields(controls, [...fieldsSet.BINARY, ...fieldsSet.TEXT]);
     enableFields(controls, fieldsSet[type]);
     this.form.get('handlerConfiguration').patchValue(handlerConf, {emitEvent: false});
-  };
+  }
 
 }

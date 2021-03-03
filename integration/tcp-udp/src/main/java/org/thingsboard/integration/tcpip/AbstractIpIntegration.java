@@ -34,13 +34,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -53,6 +56,7 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.msg.TbMsg;
 
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,8 +77,10 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     public static final String JSON_PAYLOAD = "JSON";
     public static final String HEX_PAYLOAD = "HEX";
 
-    protected HashMap<String, List<DownlinkData>> devicesDownlinkData = new HashMap<String, List<DownlinkData>>();
-    protected HashMap<String, ChannelHandlerContext> connectedDevicesContexts = new HashMap<String, ChannelHandlerContext>();
+    protected Map<String, List<DownlinkData>> devicesDownlinkData = new HashMap<>();
+    protected Map<String, ChannelHandlerContext> connectedDevicesContexts = new HashMap<>();
+
+    protected Cache<String, SocketAddress> deviceSenderAddress;
 
     protected IntegrationContext ctx;
     protected Channel serverChannel;
@@ -87,10 +93,34 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
+        if(downlinkConverter != null) {
+            initCache(params);
+        }
         this.ctx = params.getContext();
         if (serverChannel != null) {
             destroy();
         }
+    }
+
+    private void initCache(TbIntegrationInitParams params) {
+        int timeToLiveInMinutes = 1440;
+        int cacheSize = 1000;
+
+
+        JsonNode timeToLiveInMinutesJson = params.getConfiguration().getConfiguration().get("clientConfiguration").get("timeToLiveInMinutes");
+        if (timeToLiveInMinutesJson != null) {
+            timeToLiveInMinutes = timeToLiveInMinutesJson.asInt();
+        }
+
+        JsonNode cacheSizeJson = params.getConfiguration().getConfiguration().get("clientConfiguration").get("cacheSize");
+        if (cacheSizeJson != null) {
+            cacheSize = cacheSizeJson.asInt();
+        }
+
+        deviceSenderAddress = Caffeine.newBuilder()
+                .expireAfterWrite(timeToLiveInMinutes, TimeUnit.MINUTES)
+                .maximumSize(cacheSize)
+                .build();
     }
 
     @Override
@@ -118,17 +148,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                     devicesDownlinkData.get(entityName).add(downlinkData);
                 }
 
-                ChannelHandlerContext ctx = connectedDevicesContexts.get(entityName);
-                if (ctx != null && !ctx.isRemoved()) {
-                    for (DownlinkData downlinkData : devicesDownlinkData.get(entityName)) {
-                        ctx.write(Unpooled.wrappedBuffer(downlinkData.getData()));
-                    }
-                    ctx.flush();
-                    devicesDownlinkData.remove(entityName);
-                    connectedDevicesContexts.remove(entityName);
-                } else {
-                    log.warn("Device context not found, downlink data will be send when uplink message will be arrived.");
-                }
+                downlinkWriter(entityName);
             } catch (Exception e) {
                 log.warn("Failed to process downLink message", e);
                 exception = e;
@@ -137,6 +157,17 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
             }
         }
     }
+
+    protected void downlinkWriter(String entityName) {
+        ChannelHandlerContext deviceCtx = connectedDevicesContexts.get(entityName);
+        if (deviceCtx == null) {
+            log.warn("Device context not found, downlink data will be send when uplink message will be arrived.");
+            return;
+        }
+        sendDownlink(deviceCtx, entityName);
+    }
+
+    protected abstract void sendDownlink(ChannelHandlerContext ctx, String entityName);
 
     @Override
     public void process(IpIntegrationMsg msg) {
@@ -149,6 +180,8 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         try {
             List<UplinkData> upLinkDataList = getUplinkDataList(context, msg);
 
+            processUplinkData(context, upLinkDataList);
+
             if (downlinkConverter != null) {
                 for (UplinkData uplinkData : upLinkDataList) {
                     String entityName;
@@ -158,10 +191,14 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
                         entityName = uplinkData.getDeviceName();
                     }
                     connectedDevicesContexts.put(entityName, ctx);
+                    deviceSenderAddress.put(entityName, msg.getAddress());
+
+                    if (!devicesDownlinkData.isEmpty() && devicesDownlinkData.get(entityName) != null) {
+                        downlinkWriter(entityName);
+                    }
                 }
             }
 
-            processUplinkData(context, upLinkDataList);
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
@@ -274,7 +311,15 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
     }
 
-    protected abstract class AbstractChannelHandler<T> extends SimpleChannelInboundHandler<T> {
+    @Data
+    protected class RawIpIntegrationMsg<T> {
+        @Getter
+        private final SocketAddress address;
+        @Getter
+        private final T data;
+    }
+
+    protected abstract class AbstractChannelHandler<T> extends SimpleChannelInboundHandler<RawIpIntegrationMsg<T>> {
 
         private Function<T, byte[]> transformer;
         private Predicate<T> predicate;
@@ -285,13 +330,13 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         }
 
         @Override
-        public void channelRead0(ChannelHandlerContext ctx, T msg) throws Exception {
+        public void channelRead0(ChannelHandlerContext ctx, RawIpIntegrationMsg<T> msg) throws Exception {
             try {
-                if (predicate.test(msg)) {
+                if (predicate.test(msg.getData())) {
                     log.debug("Message is ignored, because it's not supported by current integration. Message [{}]", msg);
                     return;
                 }
-                IpIntegrationMsg message = new IpIntegrationMsg(transformer.apply(msg));
+                IpIntegrationMsg message = new IpIntegrationMsg(msg.getAddress(), transformer.apply(msg.getData()));
                 process(message, ctx);
             } catch (Exception e) {
                 log.error("[{}] Exception happened during read messages from channel!", e.getMessage(), e);
@@ -310,6 +355,5 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
             log.error("Exception caught", cause);
         }
     }
-
 
 }
