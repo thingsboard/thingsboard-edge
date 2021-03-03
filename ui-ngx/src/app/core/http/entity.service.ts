@@ -109,7 +109,9 @@ import {
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from "@core/http/edge.service";
-import { Edge } from '@shared/models/edge.models';
+import { Edge, EdgeEventType } from '@shared/models/edge.models';
+import { WidgetService } from "@core/http/widget.service";
+import { DeviceProfileService } from "@core/http/device-profile.service";
 
 @Injectable({
   providedIn: 'root'
@@ -137,6 +139,8 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
+    private widgetService: WidgetService,
+    private deviceProfileService: DeviceProfileService,
     private utils: UtilsService
   ) {
   }
@@ -1710,19 +1714,18 @@ export class EntityService {
 
   public getAssignedToEdgeEntitiesByType(edgeId: string, entityType?: EntityType, pageLink?: PageLink): Observable<any> {
     let entitiesObservable: Observable<any>;
-    const ignoreLoading: boolean = true;
     switch (entityType) {
-      case (EntityType.USER):
-      case (EntityType.ASSET):
-      case (EntityType.DEVICE):
-      case (EntityType.ENTITY_VIEW):
-      case (EntityType.DASHBOARD):
-        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading });
+      case EntityType.USER:
+      case EntityType.ASSET:
+      case EntityType.DEVICE:
+      case EntityType.ENTITY_VIEW:
+      case EntityType.DASHBOARD:
+        entitiesObservable = this.entityGroupService.getEdgeEntityGroups(edgeId, entityType, { ignoreLoading: true });
         break;
-      case (EntityType.SCHEDULER_EVENT):
+      case EntityType.SCHEDULER_EVENT:
         entitiesObservable = this.schedulerEventService.getEdgeSchedulerEvents(edgeId);
         break;
-      case (EntityType.RULE_CHAIN):
+      case EntityType.RULE_CHAIN:
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
       default:
@@ -1731,5 +1734,46 @@ export class EntityService {
         break;
     }
     return entitiesObservable;
+  }
+
+  public getEdgeEventContentByEntityType(entity: any): Observable<any> {
+    let entityObservable: Observable<any>;
+    const entityId: string = entity.entityId;
+    const entityType: any = entity.type;
+    switch (entityType) {
+      case EdgeEventType.DASHBOARD:
+      case EdgeEventType.ALARM:
+      case EdgeEventType.RULE_CHAIN:
+      case EdgeEventType.EDGE:
+      case EdgeEventType.USER:
+      case EdgeEventType.CUSTOMER:
+      case EdgeEventType.ENTITY_GROUP:
+      case EdgeEventType.SCHEDULER_EVENT:
+      case EdgeEventType.TENANT:
+      case EdgeEventType.ASSET:
+      case EdgeEventType.DEVICE:
+      case EdgeEventType.ENTITY_VIEW:
+        entityObservable = this.getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
+        break;
+      case EdgeEventType.RULE_CHAIN_METADATA:
+        entityObservable = this.ruleChainService.getRuleChainMetadata(entityId);
+        break;
+      case EdgeEventType.WIDGET_TYPE:
+        entityObservable = this.widgetService.getWidgetTypeById(entityId);
+        break;
+      case EdgeEventType.WIDGETS_BUNDLE:
+        entityObservable = this.widgetService.getWidgetsBundle(entityId);
+        break;
+      case EdgeEventType.DEVICE_PROFILE:
+        entityObservable = this.deviceProfileService.getDeviceProfile(entityId);
+        break;
+      case EdgeEventType.GROUP_PERMISSION:
+        entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
+        break;
+      case EdgeEventType.RELATION:
+        entityObservable = of(entity.body);
+        break;
+    }
+    return entityObservable;
   }
 }

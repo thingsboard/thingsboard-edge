@@ -107,7 +107,6 @@ export interface EntityGroupSettings {
   enableDashboardsManagement: boolean;
   enableEdgesManagement: boolean;
   enableSchedulerEventsManagement: boolean;
-  enableRuleChainsManagement: boolean;
 }
 
 export enum EntityGroupSortOrder {
@@ -445,8 +444,7 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
         enableDevicesManagement: true,
         enableEntityViewsManagement: true,
         enableDashboardsManagement: true,
-        enableSchedulerEventsManagement: true,
-        enableRuleChainsManagement: true
+        enableSchedulerEventsManagement: true
       }, ...settings};
   }
   return settings;
@@ -503,6 +501,7 @@ export interface EntityGroupParams {
   internalId?: string;
   hierarchyCallbacks?: HierarchyCallbacks;
   edgeId?: string;
+  groupScope?: string;
 }
 
 export interface ShareGroupRequest {
@@ -534,6 +533,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     groupType: routeData.groupType,
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
-    edgeId: routeParams.edgeId
+    edgeId: routeParams.edgeId,
+    groupScope: routeData.groupScope
   }
 }

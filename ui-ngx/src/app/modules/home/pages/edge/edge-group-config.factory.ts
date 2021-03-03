@@ -70,6 +70,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
     const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
+    const manageRuleChainsEnabled = entityGroup.ownerId.entityType === EntityType.TENANT;
 
     config.entityComponent = EdgeComponent;
 
@@ -154,12 +155,12 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
           onAction: ($event, entity) => this.manageSchedulerEvents($event, entity, config, params)
         }
       );
-      if (!config.customerId) {
+      if (manageRuleChainsEnabled) {
         config.cellActionDescriptors.push(
           {
             name: this.translate.instant('edge.manage-edge-rule-chains'),
             icon: 'settings_ethernet',
-            isEnabled: config.manageRuleChainsEnabled,
+            isEnabled: () => true,
             onAction: ($event, entity) => this.manageRuleChains($event, entity, config, params)
           }
         );
@@ -243,10 +244,7 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
     } else {
-      const url = params.customerId
-        ? `customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`
-        : `edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`;
-      this.router.navigateByUrl(url);
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
   }
 

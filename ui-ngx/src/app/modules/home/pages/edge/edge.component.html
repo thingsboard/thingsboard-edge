@@ -53,68 +53,58 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
           *ngIf="resource.USER_GROUP | hasGenericPermission: operation.READ"
-          [fxShow]="!isEdit">
-    {{'edge.manage-user-groups' | translate }}
+          [fxShow]="!hideManageUsers() && !isEdit">
+    {{ 'edge.manage-user-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageAssets')"
           *ngIf="resource.ASSET_GROUP | hasGenericPermission: operation.READ"
-          [fxShow]="!isEdit">
-    <!--  TODO: voba - from CE version-->
-    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-asset-groups' | translate }}
+          [fxShow]="!hideManageAssets() && !isEdit">
+        {{ 'edge.manage-asset-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDevices')"
           *ngIf="resource.DEVICE_GROUP | hasGenericPermission: operation.READ"
-          [fxShow]="!isEdit">
-    <!--  TODO: voba - from CE version-->
-    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-device-groups' | translate }}
+          [fxShow]="!hideManageDevices() && !isEdit">
+    {{ 'edge.manage-device-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEntityViews')"
           *ngIf="resource.ENTITY_VIEW_GROUP | hasGenericPermission: operation.READ"
-          [fxShow]="!isEdit">
-    <!--  TODO: voba - from CE version-->
-    <!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-    {{'edge.manage-entity-view-groups' | translate }}
+          [fxShow]="!hideManageEntityViews() && !isEdit">
+    {{ 'edge.manage-entity-view-groups' | translate }}
   </button>
   <div fxLayout="row" fxLayout.xs="column">
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'manageDashboards')"
             *ngIf="resource.DASHBOARD_GROUP | hasGenericPermission: operation.READ"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && (edgeScope === 'tenant' || edgeScope === 'customer_user')">-->
-      {{'edge.manage-dashboard-groups' | translate }}
+            [fxShow]="!hideManageDashboards() && !isEdit">
+      {{ 'edge.manage-dashboard-groups' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'manageSchedulerEvents')"
             *ngIf="resource.SCHEDULER_EVENT | hasGenericPermission: operation.READ"
-            [fxShow]="!isEdit">
-      {{'edge.manage-scheduler-events' | translate }}
+            [fxShow]="!hideManageSchedulerEvents() && !isEdit">
+      {{ 'edge.manage-scheduler-events' | translate }}
     </button>
     <button mat-raised-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'manageRuleChains')"
             *ngIf="resource.RULE_CHAIN | hasGenericPermission: operation.READ"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
-      {{'edge.manage-rulechains' | translate }}
+            [fxShow]="!hideTenantActionsAndFormFields() && !isEdit">
+      {{ 'edge.manage-rulechains' | translate }}
     </button>
     <button mat-raised-button color="primary" fxFlex.xs
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'delete')"
             *ngIf="entityGroup | hasGroupEntityPermission: operation.DELETE"
             [fxShow]="!hideDelete() && !isEdit">
-      {{'edge.delete' | translate }}
+      {{ 'edge.delete' | translate }}
     </button>
   </div>
   <div fxLayout="row" fxLayout.xs="column">
@@ -130,9 +120,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('key')"
             [cbContent]="entity?.routingKey"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
+            [fxShow]="!hideTenantActionsAndFormFields() && !isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-key</span>
     </button>
@@ -140,9 +128,7 @@
             ngxClipboard
             (cbOnSuccess)="onEdgeInfoCopied('secret')"
             [cbContent]="entity?.secret"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
+            [fxShow]="!hideTenantActionsAndFormFields() && !isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>edge.copy-edge-secret</span>
     </button>
@@ -150,9 +136,7 @@
             ngxClipboard
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'syncEdge')"
-            [fxShow]="!isEdit">
-      <!--  TODO: voba - from CE version-->
-<!--            [fxShow]="!isEdit && edgeScope === 'tenant'">-->
+            [fxShow]="!hideTenantActionsAndFormFields() && !isEdit">
       <mat-icon svgIcon="mdi:sync"></mat-icon>
       <span translate>edge.sync</span>
     </button>
@@ -183,9 +167,7 @@
         [required]="true"
         [entityType]="entityType.EDGE">
       </tb-entity-subtype-autocomplete>
-      <!--  TODO: voba - from CE version-->
-<!--      <div [fxShow]="edgeScope === 'tenant'">-->
-      <div>
+      <div [fxShow]="!hideTenantActionsAndFormFields()">
         <div class="tb-hint" [innerHTML]="'edge.edge-license-key-hint' | translate"></div>
         <mat-form-field class="mat-block">
           <mat-label translate>edge.edge-license-key</mat-label>
@@ -195,9 +177,7 @@
           </mat-error>
         </mat-form-field>
       </div>
-      <!--  TODO: voba - from CE version-->
-<!--      <div [fxShow]="edgeScope === 'tenant'">-->
-      <div>
+      <div [fxShow]="!hideTenantActionsAndFormFields()">
         <div translate class="tb-hint">edge.cloud-endpoint-hint</div>
         <mat-form-field class="mat-block">
           <mat-label translate>edge.cloud-endpoint</mat-label>
@@ -208,9 +188,7 @@
         </mat-form-field>
       </div>
     </fieldset>
-    <!--  TODO: voba - from CE version-->
-<!--    <div fxLayout="row" [fxShow]="edgeScope === 'tenant'">-->
-    <div fxLayout="row">
+    <div [fxShow]="!hideTenantActionsAndFormFields()" fxLayout="row">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>edge.edge-key</mat-label>
           <input matInput formControlName="routingKey">
@@ -221,9 +199,7 @@
         <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       </button>
     </div>
-    <!--  TODO: voba - from CE version-->
-<!--    <div fxLayout="row" [fxShow]="edgeScope === 'tenant'">-->
-    <div fxLayout="row">
+    <div [fxShow]="!hideTenantActionsAndFormFields()" fxLayout="row">
         <mat-form-field class="mat-block" fxFlex>
           <mat-label translate>edge.edge-secret</mat-label>
           <input matInput formControlName="secret">

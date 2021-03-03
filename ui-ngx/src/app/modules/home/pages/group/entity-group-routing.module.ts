@@ -526,7 +526,7 @@ const routes: Routes = [
                 }
               }
             ]
-          },
+          }
         ]
       }
     ]
@@ -625,6 +625,7 @@ const routes: Routes = [
           { ...USER_GROUPS_ROUTE, ...{
               path: ':edgeId/userGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -637,6 +638,7 @@ const routes: Routes = [
           { ...ASSET_GROUPS_ROUTE, ...{
               path: ':edgeId/assetGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -649,6 +651,7 @@ const routes: Routes = [
           { ...DEVICE_GROUPS_ROUTE, ...{
               path: ':edgeId/deviceGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -661,6 +664,7 @@ const routes: Routes = [
           { ...ENTITY_VIEW_GROUPS_ROUTE, ...{
               path: ':edgeId/entityViewGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -673,6 +677,7 @@ const routes: Routes = [
           { ...USER_GROUPS_ROUTE, ...{
               path: ':edgeId/userGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.customerGroupsTitle;
@@ -685,6 +690,7 @@ const routes: Routes = [
           { ...DASHBOARD_GROUPS_ROUTE, ...{
               path: ':edgeId/dashboardGroups',
               data: {
+                groupScope: 'edge',
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
                     return data.entityGroup.edgeGroupsTitle;
@@ -698,7 +704,6 @@ const routes: Routes = [
             path: ':edgeId/scheduler',
             component: SchedulerEventsComponent,
             data: {
-              schedulerScope: 'edge',
               groupType: EntityType.SCHEDULER_EVENT,
               auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
               breadcrumb: {

@@ -52,5 +52,4 @@ public enum EdgeEventActionType {
     REMOVED_FROM_ENTITY_GROUP,
     CHANGE_OWNER,
     RELATIONS_DELETED
-
 }

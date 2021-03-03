@@ -139,4 +139,12 @@ export class EntityGroupComponent extends EntityComponent<EntityGroupInfo> {
       }));
   }
 
+  isEdgeScope() {
+    if (this.entitiesTableConfig) {
+      return this.entitiesTableConfig.componentsData.isEdgeScope;
+    } else {
+      return false;
+    }
+  }
+
 }

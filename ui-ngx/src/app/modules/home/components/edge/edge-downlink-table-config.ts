@@ -48,7 +48,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityId } from '@shared/models/id/entity-id';
 import { EntityTypeResource } from '@shared/models/entity-type.models';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { Direction } from '@shared/models/page/sort-order';
 import { DialogService } from '@core/services/dialog.service';
@@ -57,37 +57,29 @@ import {
   EventContentDialogComponent,
   EventContentDialogData
 } from '@home/components/event/event-content-dialog.component';
-import { sortObjectKeys } from '@core/utils';
-import { RuleChainService } from '@core/http/rule-chain.service';
 import { AttributeService } from '@core/http/attribute.service';
 import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
 import { EdgeService } from '@core/http/edge.service';
-import { map } from 'rxjs/operators';
-import { AssetService } from '@core/http/asset.service';
-import { DeviceService } from '@core/http/device.service';
-import { EntityViewService } from '@core/http/entity-view.service';
-import { EventTableHeaderComponent } from '@home/components/event/event-table-header.component';
+import { EntityService } from '@core/http/entity.service';
+import { map } from "rxjs/operators";
 
 export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePageLink> {
 
   queueStartTs: number;
 
-  constructor(private edgeService: EdgeService,
-              private dialogService: DialogService,
-              private translate: TranslateService,
-              private deviceService: DeviceService,
-              private assetService: AssetService,
-              private entityViewService: EntityViewService,
-              private ruleChainService: RuleChainService,
-              private attributeService: AttributeService,
+  constructor(private attributeService: AttributeService,
               private datePipe: DatePipe,
+              private dialogService: DialogService,
               private dialog: MatDialog,
-              public entityId: EntityId,
-              public tenantId: string) {
+              private edgeService: EdgeService,
+              private entityService: EntityService,
+              private translate: TranslateService,
+              public entityId: EntityId) {
     super();
-    this.loadDataOnInit = false;
+
     this.tableTitle = '';
+    this.loadDataOnInit = false;
     this.useTimePageLink = true;
     this.detailsPanelEnabled = false;
     this.selectionEnabled = false;
@@ -96,13 +88,11 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     this.entitiesDeleteEnabled = false;
 
     this.headerComponent = EdgeDownlinkTableHeaderComponent;
-
     this.entityTranslations = {
       noEntities: 'edge.no-downlinks-prompt'
     };
     this.entityResources = {} as EntityTypeResource<EdgeEvent>;
     this.entitiesFetchFunction = pageLink => this.fetchEvents(pageLink);
-
     this.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
 
     this.updateColumns();
@@ -111,6 +101,24 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
   fetchEvents(pageLink: TimePageLink): Observable<PageData<EdgeEvent>> {
     this.loadEdgeInfo();
     return this.edgeService.getEdgeEvents(this.entityId, pageLink);
+  }
+
+  loadEdgeInfo(): void {
+    this.attributeService.getEntityAttributes(this.entityId, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
+      .subscribe(
+        attributes => this.onUpdate(attributes)
+      );
+  }
+
+  onUpdate(attributes) {
+    this.queueStartTs = 0;
+    let edge = attributes.reduce(function (map, attribute) {
+      map[attribute.key] = attribute;
+      return map;
+    }, {});
+    if (edge.queueStartTs) {
+      this.queueStartTs = edge.queueStartTs.lastUpdateTs;
+    }
   }
 
   updateColumns(updateTableColumns: boolean = false): void {
@@ -135,7 +143,8 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
           isEnabled: (entity) => this.isEdgeEventHasData(entity.type),
           onAction: ($event, entity) =>
             {
-              this.prepareEdgeEventContent(entity).subscribe((content) => {
+              this.prepareEdgeEventContent(entity).subscribe(
+                (content) => {
                 this.showEdgeEventContent($event, content,'event.data');
               });
             }
@@ -147,95 +156,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     }
   }
 
-  showContent($event: MouseEvent, content: string, title: string, contentType: ContentType = null, sortKeys = false): void {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    if (contentType === ContentType.JSON && sortKeys) {
-      try {
-        content = JSON.stringify(sortObjectKeys(JSON.parse(content)));
-      } catch (e) {
-      }
-    }
-    this.dialog.open<EventContentDialogComponent, EventContentDialogData>(EventContentDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        content,
-        title,
-        contentType
-      }
-    });
-  }
-
-  isEdgeEventHasData(edgeEventType: EdgeEventType) {
-    switch (edgeEventType) {
-      case EdgeEventType.WIDGET_TYPE:
-      case EdgeEventType.WIDGETS_BUNDLE:
-      case EdgeEventType.ADMIN_SETTINGS:
-        return false;
-      default:
-        return true;
-    }
-  }
-
-  prepareEdgeEventContent(entity) {
-    // TODO: voba - extend this function with different cases based on action and entity type
-    switch (entity.type) {
-      case EdgeEventType.RELATION:
-        return of(JSON.stringify(entity.body));
-      case EdgeEventType.ASSET:
-        return this.assetService.getAsset(entity.entityId, null).pipe(
-          map((asset) => {
-            return JSON.stringify(asset);
-          })
-        );
-      case EdgeEventType.DEVICE:
-        return this.deviceService.getDevice(entity.entityId, null).pipe(
-          map((device) => {
-            return JSON.stringify(device);
-          })
-        );
-      case EdgeEventType.ENTITY_VIEW:
-        return this.entityViewService.getEntityView(entity.entityId, null).pipe(
-          map((entityView) => {
-            return JSON.stringify(entityView);
-          })
-        );
-      case EdgeEventType.RULE_CHAIN_METADATA:
-        return this.ruleChainService.getRuleChainMetadata(entity.entityId, null).pipe(
-          map((ruleChainMetaData) => {
-            return JSON.stringify(ruleChainMetaData.nodes);
-          })
-        );
-      default:
-        return of(JSON.stringify(entity));
-    }
-  }
-
-  showEdgeEventContent($event: MouseEvent, content: string, title: string, sortKeys = false): void {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    var contentType = ContentType.JSON;
-    if (contentType === ContentType.JSON && sortKeys) {
-      try {
-        content = JSON.stringify(sortObjectKeys(JSON.parse(content)));
-      } catch (e) {
-      }
-    }
-    this.dialog.open<EventContentDialogComponent, EventContentDialogData>(EventContentDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        content,
-        title,
-        contentType
-      }
-    });
-  }
-
-  updateEdgeEventStatus(createdTime) {
+  updateEdgeEventStatus(createdTime): string {
     if (this.queueStartTs && createdTime < this.queueStartTs) {
       return this.translate.instant('edge.deployed');
     } else {
@@ -247,22 +168,38 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     return createdTime > this.queueStartTs;
   }
 
-  loadEdgeInfo() {
-    this.attributeService.getEntityAttributes(this.entityId, AttributeScope.SERVER_SCOPE, ['queueStartTs'])
-      .subscribe(
-        attributes => this.onUpdate(attributes)
-      );
+  isEdgeEventHasData(edgeEventType: EdgeEventType): boolean {
+    switch (edgeEventType) {
+      case EdgeEventType.ROLE:
+      case EdgeEventType.ADMIN_SETTINGS:
+      case EdgeEventType.CUSTOM_TRANSLATION:
+      case EdgeEventType.WHITE_LABELING:
+      case EdgeEventType.LOGIN_WHITE_LABELING:
+        return false;
+      default:
+        return true;
+    }
   }
 
-  onUpdate(attributes) {
-    this.queueStartTs = 0;
-    let edge = attributes.reduce(function (map, attribute) {
-      map[attribute.key] = attribute;
-      return map;
-    }, {});
-    if (edge.queueStartTs) {
-      this.queueStartTs = edge.queueStartTs.lastUpdateTs;
+  prepareEdgeEventContent(entity: any): Observable<string> {
+    return this.entityService.getEdgeEventContentByEntityType(entity).pipe(
+      map((result) => JSON.stringify(result))
+    );
+  }
+
+  showEdgeEventContent($event: MouseEvent, content: string, title: string): void {
+    if ($event) {
+      $event.stopPropagation();
     }
+    this.dialog.open<EventContentDialogComponent, EventContentDialogData>(EventContentDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        content,
+        title,
+        contentType: ContentType.JSON
+      }
+    });
   }
 }
 

@@ -78,7 +78,14 @@ export enum EdgeEventType {
   WIDGETS_BUNDLE = "WIDGETS_BUNDLE",
   WIDGET_TYPE = "WIDGET_TYPE",
   ADMIN_SETTINGS = "ADMIN_SETTINGS",
-  ENTITY_GROUP = "ENTITY_GROUP"
+  ENTITY_GROUP = "ENTITY_GROUP",
+  SCHEDULER_EVENT = "SCHEDULER_EVENT",
+  TENANT = "TENANT",
+  WHITE_LABELING = "WHITE_LABELING",
+  LOGIN_WHITE_LABELING = "LOGIN_WHITE_LABELING",
+  CUSTOM_TRANSLATION = "CUSTOM_TRANSLATION",
+  ROLE = "ROLE",
+  GROUP_PERMISSION = "GROUP_PERMISSION"
 }
 
 export enum EdgeEventActionType {
@@ -90,8 +97,6 @@ export enum EdgeEventActionType {
   ATTRIBUTES_DELETED = "ATTRIBUTES_DELETED",
   TIMESERIES_UPDATED = "TIMESERIES_UPDATED",
   CREDENTIALS_UPDATED = "CREDENTIALS_UPDATED",
-  ASSIGNED_TO_CUSTOMER = "ASSIGNED_TO_CUSTOMER",
-  UNASSIGNED_FROM_CUSTOMER = "UNASSIGNED_FROM_CUSTOMER",
   RELATION_ADD_OR_UPDATE = "RELATION_ADD_OR_UPDATE",
   RELATION_DELETED = "RELATION_DELETED",
   RPC_CALL = "RPC_CALL",
@@ -100,7 +105,11 @@ export enum EdgeEventActionType {
   ASSIGNED_TO_EDGE = "ASSIGNED_TO_EDGE",
   UNASSIGNED_FROM_EDGE = "UNASSIGNED_FROM_EDGE",
   CREDENTIALS_REQUEST = "CREDENTIALS_REQUEST",
-  ENTITY_MERGE_REQUEST = "ENTITY_MERGE_REQUEST"
+  ENTITY_MERGE_REQUEST = "ENTITY_MERGE_REQUEST",
+  ADDED_TO_ENTITY_GROUP = "ADDED_TO_ENTITY_GROUP",
+  REMOVED_FROM_ENTITY_GROUP = "REMOVED_FROM_ENTITY_GROUP",
+  CHANGE_OWNER = "CHANGE_OWNER",
+  RELATIONS_DELETED = "RELATIONS_DELETED"
 }
 
 export enum EdgeEventStatus {
@@ -125,7 +134,14 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.WIDGETS_BUNDLE, 'edge-event.type-widgets-bundle'],
     [EdgeEventType.WIDGET_TYPE, 'edge-event.type-widgets-type'],
     [EdgeEventType.ADMIN_SETTINGS, 'edge-event.type-admin-settings'],
-    [EdgeEventType.ENTITY_GROUP, 'edge-event.type-entity-group']
+    [EdgeEventType.ENTITY_GROUP, 'edge-event.type-entity-group'],
+    [EdgeEventType.SCHEDULER_EVENT, 'edge-event.type-scheduler-event'],
+    [EdgeEventType.TENANT, 'edge-event.type-tenant'],
+    [EdgeEventType.WHITE_LABELING, 'edge-event.type-white-labeling'],
+    [EdgeEventType.LOGIN_WHITE_LABELING, 'edge-event.type-login-white-labeling'],
+    [EdgeEventType.CUSTOM_TRANSLATION, 'edge-event.type-custom-translation'],
+    [EdgeEventType.ROLE, 'edge-event.type-role'],
+    [EdgeEventType.GROUP_PERMISSION, 'edge-event.type-group-permission']
   ]
 );
 
@@ -139,8 +155,6 @@ export const edgeEventActionTypeTranslations = new Map<EdgeEventActionType, stri
     [EdgeEventActionType.ATTRIBUTES_DELETED, 'edge-event.action-type-attributes-deleted'],
     [EdgeEventActionType.TIMESERIES_UPDATED, 'edge-event.action-type-timeseries-updated'],
     [EdgeEventActionType.CREDENTIALS_UPDATED, 'edge-event.action-type-credentials-updated'],
-    [EdgeEventActionType.ASSIGNED_TO_CUSTOMER, 'edge-event.action-type-assigned-to-customer'],
-    [EdgeEventActionType.UNASSIGNED_FROM_CUSTOMER, 'edge-event.action-type-unassigned-from-customer'],
     [EdgeEventActionType.RELATION_ADD_OR_UPDATE, 'edge-event.action-type-relation-add-or-update'],
     [EdgeEventActionType.RELATION_DELETED, 'edge-event.action-type-relation-deleted'],
     [EdgeEventActionType.RPC_CALL, 'edge-event.action-type-rpc-call'],
@@ -149,7 +163,11 @@ export const edgeEventActionTypeTranslations = new Map<EdgeEventActionType, stri
     [EdgeEventActionType.ASSIGNED_TO_EDGE, 'edge-event.action-type-assigned-to-edge'],
     [EdgeEventActionType.UNASSIGNED_FROM_EDGE, 'edge-event.action-type-unassigned-from-edge'],
     [EdgeEventActionType.CREDENTIALS_REQUEST, 'edge-event.action-type-credentials-request'],
-    [EdgeEventActionType.ENTITY_MERGE_REQUEST, 'edge-event.action-type-entity-merge-request']
+    [EdgeEventActionType.ENTITY_MERGE_REQUEST, 'edge-event.action-type-entity-merge-request'],
+    [EdgeEventActionType.ADDED_TO_ENTITY_GROUP, 'edge-event.action-type-added-to-entity-group'],
+    [EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, 'edge-event.action-type-removed-from-entity-group'],
+    [EdgeEventActionType.CHANGE_OWNER, 'edge-event.action-type-change-owner'],
+    [EdgeEventActionType.RELATIONS_DELETED, 'edge-event.action-type-relations-deleted']
   ]
 );
 

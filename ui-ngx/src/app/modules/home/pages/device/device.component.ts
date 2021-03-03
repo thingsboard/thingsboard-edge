@@ -62,7 +62,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
 
   deviceCredentials$: Subject<DeviceCredentials>;
 
-  // TODO: voba - is this required?
 //  deviceScope: 'tenant' | 'customer' | 'customer_user' | 'edge';
 
   constructor(protected store: Store<AppState>,

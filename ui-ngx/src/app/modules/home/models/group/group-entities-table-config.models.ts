@@ -104,9 +104,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
   manageEntityViewsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableEntityViewsManagement;
   manageEdgesEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableEdgesManagement;
   manageDashboardsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableDashboardsManagement;
-  manageRuleChainsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableRuleChainsManagement;
   manageSchedulerEventsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableSchedulerEventsManagement;
-
 
   constructor(public entityGroup: EntityGroupStateInfo<T>,
               public groupParams: EntityGroupParams) {

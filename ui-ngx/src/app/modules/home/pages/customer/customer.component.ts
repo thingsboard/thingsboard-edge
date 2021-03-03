@@ -40,7 +40,6 @@ import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { GroupContactBasedComponent } from '@home/components/group/group-contact-based.component';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { AuthState } from '@core/auth/auth.models';
 
 @Component({
   selector: 'tb-customer',
@@ -51,10 +50,9 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
 
   isPublic = false;
 
-  authState: AuthState = getCurrentAuthState(this.store);
-
   allowCustomerWhiteLabeling = getCurrentAuthState(this.store).customerWhiteLabelingAllowed;
   whiteLabelingAllowed = getCurrentAuthState(this.store).whiteLabelingAllowed;
+  edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -112,6 +110,14 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
     }
   }
 
+  hideManageEdges() {
+    if (this.entitiesTableConfig) {
+      return !this.entitiesTableConfig.manageEdgesEnabled(this.entity);
+    } else {
+      return false;
+    }
+  }
+
   hideManageDashboards() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageDashboardsEnabled(this.entity);
@@ -160,10 +166,5 @@ export class CustomerComponent extends GroupContactBasedComponent<Customer> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  // TODO: voba - is this still valid?
-  edgesSupportEnabled() {
-    return this.authState.edgesSupportEnabled;
   }
 }

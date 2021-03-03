@@ -69,8 +69,8 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEdges')"
-          [fxShow]="!isEdit"
-          *ngIf="edgesSupportEnabled() || (resource.EDGE | hasGenericPermission: operation.READ)">
+          [fxShow]="!hideManageEdges() && !isEdit"
+          *ngIf="edgesSupportEnabled || (resource.EDGE | hasGenericPermission: operation.READ)">
     {{'customer.manage-edge-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"

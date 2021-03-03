@@ -64,11 +64,11 @@ import {
 import { DashboardService } from '@app/core/http/dashboard.service';
 // import { DashboardTabsComponent } from '@home/pages/dashboard/dashboard-tabs.component';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
-import { EdgeService } from '@core/http/edge.service';
-import {
-  AddEntitiesToEdgeDialogComponent,
-  AddEntitiesToEdgeDialogData
-} from '@home/dialogs/add-entities-to-edge-dialog.component';
+// import { EdgeService } from '@core/http/edge.service';
+// import {
+//   AddEntitiesToEdgeDialogComponent,
+//   AddEntitiesToEdgeDialogData
+// } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
 
 @Injectable()
@@ -180,7 +180,6 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         this.dashboardService.getTenantDashboards(pageLink);
       this.config.deleteEntity = id => this.dashboardService.deleteDashboard(id.id);
     }
-    // TODO: voba - is this required
     // else if (dashboardScope === 'edge' || dashboardScope === 'edge_customer_user') {
     //   this.config.entitiesFetchFunction = pageLink =>
     //     this.dashboardService.getEdgeDashboards(this.config.componentsData.edgeId, pageLink, this.config.componentsData.dashboardsType);
@@ -253,25 +252,22 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }*/
       );
     }
-
-    // TODO: voba - is this required?
-    // if (dashboardScope === 'edge') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('dashboard.export'),
-    //       icon: 'file_download',
-    //       isEnabled: () => true,
-    //       onAction: ($event, entity) => this.exportDashboard($event, entity)
-    //     },
-    //     {
-    //       name: this.translate.instant('edge.unassign-from-edge'),
-    //       icon: 'assignment_return',
-    //       isEnabled: (entity) => true,
-    //       onAction: ($event, entity) => this.unassignFromEdge($event, entity)
-    //     }
-    //   );
-    // }
-
+    /* if (dashboardScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('dashboard.export'),
+          icon: 'file_download',
+          isEnabled: () => true,
+          onAction: ($event, entity) => this.exportDashboard($event, entity)
+        },
+        {
+          name: this.translate.instant('edge.unassign-from-edge'),
+          icon: 'assignment_return',
+          isEnabled: (entity) => true,
+          onAction: ($event, entity) => this.unassignFromEdge($event, entity)
+        }
+      );
+    } */
     return actions;
   }
 
@@ -305,20 +301,17 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
             this.unassignDashboardsFromCustomer($event, entities.map((entity) => entity.id.id), this.config.componentsData.customerId)
         }
       );
+    }
+    if (dashboardScope === 'edge') {
+      actions.push(
+        {
+          name: this.translate.instant('dashboard.unassign-dashboards'),
+          icon: 'assignment_return',
+          isEnabled: true,
+          onAction: ($event, entities) => this.unassignDashboardsFromEdge($event, entities)
+        }
+      );
     }*/
-
-    // TODO: voba - is this required?
-    // if (dashboardScope === 'edge') {
-    //   actions.push(
-    //     {
-    //       name: this.translate.instant('dashboard.unassign-dashboards'),
-    //       icon: 'assignment_return',
-    //       isEnabled: true,
-    //       onAction: ($event, entities) => this.unassignDashboardsFromEdge($event, entities)
-    //     }
-    //   );
-    // }
-
     return actions;
   }
 
@@ -360,10 +353,9 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
     if (this.config.componentsData.dashboardScope === 'customer') {
       this.router.navigateByUrl(`customers/${this.config.componentsData.customerId}/dashboards/${dashboard.id.id}`);
     }
-    // TODO: voba - is this required?
-    // else if (this.config.componentsData.dashboardScope === 'edge') {
-    //   this.router.navigateByUrl(`edges/${this.config.componentsData.edgeId}/dashboards/${dashboard.id.id}`);
-    // }
+    /* else if (this.config.componentsData.dashboardScope === 'edge') {
+      this.router.navigateByUrl(`edges/${this.config.componentsData.edgeId}/dashboards/${dashboard.id.id}`);
+    }*/
     else {
       this.router.navigateByUrl(`dashboards/${dashboard.id.id}`);
     }

@@ -72,6 +72,7 @@ export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData
   edge: Edge;
   groupsType?: EntityType;
   entityType?: EntityType;
+  groupScope: string;
 }
 
 export type CustomersHierarchyNodeData = EntityGroupNodeData | EntityGroupsNodeData | CustomerNodeData | EdgeNodeData | EdgeEntityGroupsNodeData;

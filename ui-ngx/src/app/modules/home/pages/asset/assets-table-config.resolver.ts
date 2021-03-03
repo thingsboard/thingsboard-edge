@@ -178,11 +178,10 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         this.assetService.getTenantAssets(pageLink, this.config.componentsData.assetType);
       this.config.deleteEntity = id => this.assetService.deleteAsset(id.id);
     }
-    // TODO: voba - is this valid?
-    // else if (assetScope === 'edge' || assetScope === 'edge_customer_user') {
-    //   this.config.entitiesFetchFunction = pageLink =>
-    //     this.assetService.getEdgeAssets(this.config.componentsData.edgeId, pageLink, this.config.componentsData.assetType);
-    // }
+    /* else if (assetScope === 'edge' || assetScope === 'edge_customer_user') {
+      this.config.entitiesFetchFunction = pageLink =>
+        this.assetService.getEdgeAssets(this.config.componentsData.edgeId, pageLink, this.config.componentsData.assetType);
+    }*/
     else {
       this.config.entitiesFetchFunction = pageLink =>
         this.assetService.getCustomerAssets(this.customerId, pageLink, this.config.componentsData.assetType);
