@@ -488,7 +488,6 @@ export class MenuService {
     }
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE) && disabledItems.indexOf('edge_groups') === -1) {
       const pages: Array<MenuSection> = [];
-      sections.push(this.createEntityGroupSection(EntityType.EDGE));
       pages.push(
         {
           id: guid(),
@@ -496,9 +495,10 @@ export class MenuService {
           type: 'link',
           path: '/edges/ruleChains',
           icon: 'settings_ethernet',
-          disabled: disabledItems.indexOf('edge_groups') > -1 // TODO: voba - add separate item to config
+          disabled: disabledItems.indexOf('rulechain_templates') > -1
         }
       );
+      sections.push(this.createEntityGroupSection(EntityType.EDGE));
       sections.push(
         {
           id: guid(),
@@ -507,8 +507,7 @@ export class MenuService {
           path: '/edges',
           icon: 'settings_input_antenna',
           pages,
-          asyncPages: of(pages),
-          disabled: disabledItems.indexOf('edge_groups') > -1
+          asyncPages: of(pages)
         }
       );
       sections.push();
