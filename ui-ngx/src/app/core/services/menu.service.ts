@@ -818,7 +818,7 @@ export class MenuService {
           name: 'edge.management',
           places: [
             {
-              name: 'edge.edges',
+              name: 'edge.edge-instances',
               icon: 'router',
               path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
@@ -1229,7 +1229,7 @@ export class MenuService {
           name: 'edge.management',
           places: [
             {
-              name: 'edge.edges',
+              name: 'edge.edge-instances',
               icon: 'router',
               path: '/edgeGroups',
               disabled: disabledItems.indexOf('edge_groups') > -1
