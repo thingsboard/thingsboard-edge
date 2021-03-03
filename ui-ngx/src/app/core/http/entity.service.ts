@@ -1738,7 +1738,9 @@ export class EntityService {
 
   public getEdgeEventContentByEntityType(entity: any): Observable<any> {
     let entityObservable: Observable<any>;
-    switch (entity.type) {
+    const entityId: string = entity.entityId;
+    const entityType: any = entity.type;
+    switch (entityType) {
       case EdgeEventType.DASHBOARD:
       case EdgeEventType.ALARM:
       case EdgeEventType.RULE_CHAIN:
@@ -1751,22 +1753,22 @@ export class EntityService {
       case EdgeEventType.ASSET:
       case EdgeEventType.DEVICE:
       case EdgeEventType.ENTITY_VIEW:
-        entityObservable = this.getEntity(entity.type, entity.entityId, { ignoreLoading: true, ignoreErrors: true });
+        entityObservable = this.getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
         break;
       case EdgeEventType.RULE_CHAIN_METADATA:
-        entityObservable = this.ruleChainService.getRuleChainMetadata(entity.entityId);
+        entityObservable = this.ruleChainService.getRuleChainMetadata(entityId);
         break;
       case EdgeEventType.WIDGET_TYPE:
-        entityObservable = this.widgetService.getWidgetTypeById(entity.entityId);
+        entityObservable = this.widgetService.getWidgetTypeById(entityId);
         break;
       case EdgeEventType.WIDGETS_BUNDLE:
-        entityObservable = this.widgetService.getWidgetsBundle(entity.entityId);
+        entityObservable = this.widgetService.getWidgetsBundle(entityId);
         break;
       case EdgeEventType.DEVICE_PROFILE:
-        entityObservable = this.deviceProfileService.getDeviceProfile(entity.entityId);
+        entityObservable = this.deviceProfileService.getDeviceProfile(entityId);
         break;
       case EdgeEventType.GROUP_PERMISSION:
-        entityObservable = this.roleService.getGroupPermissionInfo(entity.entityId, false);
+        entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
         break;
       case EdgeEventType.RELATION:
         entityObservable = of(entity.body);
