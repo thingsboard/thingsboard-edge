@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.RoleProto;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 

@@ -28,42 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server.client;
+package org.thingsboard.server.cache;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import lombok.Data;
 
 @Data
-public class LwM2MClientProfile {
-    /**
-     * {"clientLwM2mSettings": {
-     *      clientUpdateValueAfterConnect: false;
-     *       }
-    **/
-    JsonObject postClientLwM2mSettings;
-
-    /**
-     * {"keyName": {
-     *       "/3/0/1": "modelNumber",
-     *       "/3/0/0": "manufacturer",
-     *       "/3/0/2": "serialNumber"
-     *       }
-    **/
-    JsonObject postKeyNameProfile;
-
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postAttributeProfile;
-
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postTelemetryProfile;
-
-    /**
-     * [ "/2/0/0", "/2/0/1"]
-     */
-    JsonArray postObserveProfile;
+public class CacheSpecs {
+    private Integer timeToLiveInMinutes;
+    private Integer maxSize;
 }

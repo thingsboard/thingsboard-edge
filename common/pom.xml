@@ -60,6 +60,7 @@
         <module>integration</module>
         <module>dao-api</module>
         <module>stats</module>
+        <module>cache</module>
         <module>edge-api</module>
     </modules>
 

@@ -110,8 +110,8 @@ import {
 import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from "@core/http/edge.service";
 import { Edge, EdgeEventType } from '@shared/models/edge.models';
-import { WidgetService } from "@core/http/widget.service";
-import { DeviceProfileService } from "@core/http/device-profile.service";
+import { WidgetService } from '@core/http/widget.service';
+import { DeviceProfileService } from '@core/http/device-profile.service';
 
 @Injectable({
   providedIn: 'root'
@@ -132,6 +132,8 @@ export class EntityService {
     private dashboardService: DashboardService,
     private entityRelationService: EntityRelationService,
     private attributeService: AttributeService,
+    private widgetService: WidgetService,
+    private deviceProfileService: DeviceProfileService,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
     private schedulerEventService: SchedulerEventService,
@@ -139,8 +141,6 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
-    private widgetService: WidgetService,
-    private deviceProfileService: DeviceProfileService,
     private utils: UtilsService
   ) {
   }

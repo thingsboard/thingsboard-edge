@@ -36,7 +36,8 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import {
-  EdgeEvent, edgeEventActionTypeTranslations,
+  EdgeEvent,
+  edgeEventActionTypeTranslations,
   EdgeEventStatus,
   edgeEventStatusColor,
   EdgeEventType,
@@ -202,4 +203,3 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
     });
   }
 }
-

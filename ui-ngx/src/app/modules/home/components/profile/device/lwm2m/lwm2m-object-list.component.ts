@@ -149,7 +149,7 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
   }
 
   private add(object: ObjectLwM2M): void {
-    if (this.modelValue.indexOf(object.id) === -1) {
+    if (isDefinedAndNotNull(this.modelValue) && this.modelValue.indexOf(object.id) === -1) {
       this.modelValue.push(object.id);
       this.objectsList.push(object);
       this.lwm2mListFormGroup.get('objectsList').setValue(this.objectsList);
@@ -166,9 +166,6 @@ export class Lwm2mObjectListComponent implements ControlValueAccessor, OnInit, V
       index = this.modelValue.indexOf(object.id);
       this.modelValue.splice(index, 1);
       this.removeList.next(object);
-      if (!this.modelValue.length) {
-        this.modelValue = null;
-      }
       this.clear();
     }
   }

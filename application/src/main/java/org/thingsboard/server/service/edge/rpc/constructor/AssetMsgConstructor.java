@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.dao.util.mapping.JacksonUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;

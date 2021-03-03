@@ -28,44 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.server;
+package org.thingsboard.server.transport.lwm2m.server.client;
 
-import org.eclipse.leshan.core.observation.Observation;
-import org.eclipse.leshan.core.response.ReadResponse;
-import org.eclipse.leshan.server.californium.LeshanServer;
 import org.eclipse.leshan.server.registration.Registration;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.Map;
+import java.util.UUID;
 
-public interface LwM2MTransportService {
+public interface LwM2mClientContext {
 
-    void onRegistered(LeshanServer lwServer, Registration registration, Collection<Observation> previousObsersations);
+    void delRemoveSessionAndListener(String registrationId);
 
-    void updatedReg(LeshanServer lwServer, Registration registration);
+    LwM2mClient getLwM2MClient(String endPoint, String identity);
 
-    void unReg(LeshanServer lwServer, Registration registration, Collection<Observation> observations);
+    LwM2mClient getLwM2MClient(TransportProtos.SessionInfoProto sessionInfo);
 
-    void onSleepingDev(Registration registration);
+    LwM2mClient getLwM2mClient(UUID sessionId);
 
-    void setCancelObservations(LeshanServer lwServer, Registration registration);
+    LwM2mClient getLwM2mClientWithReg(Registration registration, String registrationId);
 
-    void setCancelObservationRecourse(LeshanServer lwServer, Registration registration, String path);
+    LwM2mClient updateInSessionsLwM2MClient(Registration registration);
 
-    void onObservationResponse(Registration registration, String path, ReadResponse response);
+    LwM2mClient addLwM2mClientToSession(String identity);
 
-    void onAttributeUpdate(TransportProtos.AttributeUpdateNotificationMsg msg, TransportProtos.SessionInfoProto sessionInfo);
+    Registration getRegistration(String registrationId);
 
-    void onDeviceProfileUpdate(TransportProtos.SessionInfoProto sessionInfo, DeviceProfile deviceProfile);
+    Map<String, LwM2mClient> getLwM2mClients();
 
-    void onDeviceUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt);
+    Map<UUID, LwM2mClientProfile> getProfiles();
 
-    void doTrigger(LeshanServer lwServer, Registration registration, String path);
+    LwM2mClientProfile getProfile(UUID profileUuId);
 
-    void doDisconnect(TransportProtos.SessionInfoProto sessionInfo);
+    LwM2mClientProfile getProfile(Registration registration);
 
+    Map<UUID, LwM2mClientProfile> setProfiles(Map<UUID, LwM2mClientProfile> profiles);
 
+    boolean addUpdateProfileParameters(DeviceProfile deviceProfile);
 }

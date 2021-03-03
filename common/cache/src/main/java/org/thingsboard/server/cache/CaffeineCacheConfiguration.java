@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.server.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
@@ -41,7 +41,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCache;
-import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,14 +92,9 @@ public class CaffeineCacheConfiguration {
         return Ticker.systemTicker();
     }
 
-    @Bean
-    public KeyGenerator previousDeviceCredentialsId() {
-        return new PreviousDeviceCredentialsIdKeyGenerator();
-    }
-
     private Weigher<? super Object, ? super Object> collectionSafeWeigher() {
         return (Weigher<Object, Object>) (key, value) -> {
-            if(value instanceof Collection) {
+            if (value instanceof Collection) {
                 return ((Collection) value).size();
             }
             return 1;
