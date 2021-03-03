@@ -169,6 +169,7 @@ export interface WidgetTypeParameters {
   hasDataPageLink?: boolean;
   singleEntity?: boolean;
   warnOnPageDataOverflow?: boolean;
+  ignoreDataUpdateOnIntervalTick?: boolean;
 }
 
 export interface WidgetControllerDescriptor {

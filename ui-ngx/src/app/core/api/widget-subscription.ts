@@ -100,6 +100,7 @@ export class WidgetSubscription implements IWidgetSubscription {
   hasDataPageLink: boolean;
   singleEntity: boolean;
   warnOnPageDataOverflow: boolean;
+  ignoreDataUpdateOnIntervalTick: boolean;
 
   datasourcePages: PageData<Datasource>[];
   dataPages: PageData<Array<DatasourceData>>[];
@@ -217,6 +218,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.hasDataPageLink = options.hasDataPageLink;
       this.singleEntity = options.singleEntity;
       this.warnOnPageDataOverflow = options.warnOnPageDataOverflow;
+      this.ignoreDataUpdateOnIntervalTick = options.ignoreDataUpdateOnIntervalTick;
       this.datasourcePages = [];
       this.datasources = [];
       this.dataPages = [];
@@ -440,7 +442,7 @@ export class WidgetSubscription implements IWidgetSubscription {
         }
       };
       this.entityDataListeners.push(listener);
-      return this.ctx.entityDataService.prepareSubscription(listener);
+      return this.ctx.entityDataService.prepareSubscription(listener, this.ignoreDataUpdateOnIntervalTick);
     });
     return forkJoin(resolveResultObservables).pipe(
       map((resolveResults) => {
@@ -482,7 +484,15 @@ export class WidgetSubscription implements IWidgetSubscription {
         entityName = this.targetDeviceName;
       }
     } else if (this.type === widgetType.alarm) {
-      if (this.alarms && this.alarms.data.length) {
+      if (this.alarmSource && this.alarmSource.entityType && this.alarmSource.entityId) {
+        entityId = {
+          entityType: this.alarmSource.entityType,
+          id: this.alarmSource.entityId
+        };
+        entityName = this.alarmSource.entityName;
+        entityLabel = this.alarmSource.entityLabel;
+        entityDescription = this.alarmSource.entityDescription;
+      } else if (this.alarms && this.alarms.data.length) {
         const data = this.alarms.data[0];
         entityId = data.originator;
         entityName = data.originatorName;
@@ -832,7 +842,8 @@ export class WidgetSubscription implements IWidgetSubscription {
         }
       };
       this.entityDataListeners[datasourceIndex] = entityDataListener;
-      return this.ctx.entityDataService.subscribeForPaginatedData(entityDataListener, pageLink, keyFilters);
+      return this.ctx.entityDataService.subscribeForPaginatedData(entityDataListener, pageLink, keyFilters,
+                                                                  this.ignoreDataUpdateOnIntervalTick);
     } else {
       return of(null);
     }

@@ -84,6 +84,7 @@ export interface EntityDataSubscriptionOptions {
   type: widgetType;
   entityFilter?: EntityFilter;
   isPaginatedDataSubscription?: boolean;
+  ignoreDataUpdateOnIntervalTick?: boolean;
   pageLink?: EntityDataPageLink;
   keyFilters?: Array<KeyFilter>;
   additionalKeyFilters?: Array<KeyFilter>;
@@ -765,7 +766,8 @@ export class EntityDataSubscription {
       subsTw.aggregation.timeWindow,
       subsTw.aggregation.interval,
       subsTw.aggregation.stateData,
-      this.utils
+      this.utils,
+      this.entityDataSubscriptionOptions.ignoreDataUpdateOnIntervalTick
     );
   }
 
