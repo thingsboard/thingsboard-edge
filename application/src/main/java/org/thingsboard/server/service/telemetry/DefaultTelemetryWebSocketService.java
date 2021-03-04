@@ -104,6 +104,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -166,14 +168,23 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     private ExecutorService executor;
     private String serviceId;
 
+    private ScheduledExecutorService pingExecutor;
+
     @PostConstruct
     public void initExecutor() {
         serviceId = serviceInfoProvider.getServiceId();
         executor = Executors.newWorkStealingPool(50);
+
+        pingExecutor = Executors.newSingleThreadScheduledExecutor();
+        pingExecutor.scheduleWithFixedDelay(this::sendPing, 10000, 10000, TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
     public void shutdownExecutor() {
+        if (pingExecutor != null) {
+            pingExecutor.shutdownNow();
+        }
+
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -819,6 +830,17 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
         }
     }
 
+    private void sendPing() {
+        long currentTime = System.currentTimeMillis();
+        wsSessionsMap.values().forEach(md ->
+                executor.submit(() -> {
+                    try {
+                        msgEndpoint.sendPing(md.getSessionRef(), currentTime);
+                    } catch (IOException e) {
+                        log.warn("[{}] Failed to send ping: {}", md.getSessionRef().getSessionId(), e);
+                    }
+                }));
+    }
 
     private static Optional<Set<String>> getKeys(TelemetryPluginCmd cmd) {
         if (!StringUtils.isEmpty(cmd.getKeys())) {
