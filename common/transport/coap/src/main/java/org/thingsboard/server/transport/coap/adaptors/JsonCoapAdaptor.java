@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToServerRpcResponseM
 import org.thingsboard.server.gen.transport.TransportProtos.ProvisionDeviceRequestMsg;
 import org.thingsboard.server.transport.coap.CoapTransportResource;
 
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

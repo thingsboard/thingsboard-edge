@@ -121,4 +121,5 @@ public class GatewayDeviceSessionCtx extends MqttDeviceAwareSessionContext imple
     public void onToServerRpcResponse(ToServerRpcResponseMsg toServerResponse) {
         // This feature is not supported in the TB IoT Gateway yet.
     }
+
 }

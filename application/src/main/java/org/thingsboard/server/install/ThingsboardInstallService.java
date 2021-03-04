@@ -209,12 +209,12 @@ public class ThingsboardInstallService {
                             if (databaseTsUpgradeService != null) {
                                 databaseTsUpgradeService.upgradeDatabase("3.2.1");
                             }
-                        case "3.2.2": // to 3.2.2PE
-                            log.info("Upgrading ThingsBoard from version 3.2.2 to 3.2.2PE ...");
+                        case "3.3.0": // to 3.3.0PE
+                            log.info("Upgrading ThingsBoard from version 3.3.0 to 3.3.0PE ...");
 
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.2.2");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.3.0");
 
-                            dataUpdateService.updateData("3.2.2");
+                            dataUpdateService.updateData("3.3.0");
 
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
