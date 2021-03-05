@@ -165,6 +165,8 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
 import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 import { ContactComponent } from '@shared/components/contact.component';
+import { FileSizePipe } from '@shared/pipe/file-size.pipe';
+import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
@@ -177,6 +179,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -263,6 +266,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
@@ -272,6 +276,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent
@@ -446,6 +451,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TruncatePipe,
     TbJsonPipe,
     KeyboardShortcutPipe,
+    FileSizePipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -454,6 +460,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent

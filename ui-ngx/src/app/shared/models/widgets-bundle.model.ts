@@ -38,4 +38,5 @@ export interface WidgetsBundle extends BaseData<WidgetsBundleId> {
   alias: string;
   title: string;
   image: string;
+  description: string;
 }
