@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,11 +38,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
@@ -115,6 +118,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
+    @Autowired
+    private IntegrationRepository integrationRepository;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
@@ -509,8 +514,32 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+
+                    integrationRepository.findAll().forEach(integration -> {
+                        if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
+                            ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
+                            if (!clientConfiguration.isEmpty()) {
+                                String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
+                                        clientConfiguration.get("namespaceName").textValue(),
+                                        clientConfiguration.get("sasKeyName").textValue(),
+                                        clientConfiguration.get("sasKey").textValue(),
+                                        clientConfiguration.get("eventHubName").textValue());
+                                clientConfiguration.put("connectionString", connectionString);
+                                clientConfiguration.remove("namespaceName");
+                                clientConfiguration.remove("eventHubName");
+                                clientConfiguration.remove("sasKeyName");
+                                clientConfiguration.remove("sasKey");
+                            }
+                            integrationRepository.save(integration);
+                        }
+                    });
+
+                    conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3002002;");
+
+                    log.info("Schema updated.");
+                } catch(Exception e) {
+                    log.error("Failed to update schema!!!");
                 }
-                log.info("Schema updated.");
                 break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);

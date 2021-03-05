@@ -30,16 +30,13 @@
  */
 package org.thingsboard.integration.azure;
 
+import com.azure.core.amqp.implementation.ConnectionStringProperties;
+import com.azure.messaging.eventhubs.EventHubClientBuilder;
+import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
+import com.azure.messaging.eventhubs.models.EventPosition;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
-import com.microsoft.azure.eventhubs.EventData;
-import com.microsoft.azure.eventhubs.EventHubClient;
-import com.microsoft.azure.eventhubs.EventHubException;
-import com.microsoft.azure.eventhubs.EventHubRuntimeInformation;
-import com.microsoft.azure.eventhubs.PartitionReceiver;
-import com.microsoft.azure.eventhubs.impl.EventPositionImpl;
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement;
 import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
@@ -55,11 +52,13 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,25 +66,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubIntegrationMsg> {
 
-    private IntegrationContext context;
-    private EventHubClient ehClient;
     private ServiceClient serviceClient;
-    private List<PartitionReceiver> receivers;
-    private volatile boolean started = false;
-    private ExecutorService executorService;
-    private ScheduledExecutorService clientExecutor;
-    private List<Future> receiverFutures;
+    private EventHubConsumerAsyncClient receiver;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -93,30 +81,16 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (!this.configuration.isEnabled()) {
             return;
         }
-        clientExecutor = Executors.newSingleThreadScheduledExecutor();
+        receiver = initClient(this.configuration.getConfiguration().get("connectionString").textValue());
+        AzureEventHubClientConfiguration clientConfiguration = assemblyClientConfiguration();
 
-        this.context = params.getContext();
-        AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
-                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
-                AzureEventHubClientConfiguration.class);
-        ehClient = initClient(clientConfiguration);
-        EventHubRuntimeInformation runtimeInfo = ehClient.getRuntimeInformation().get();
-        receivers = new ArrayList<>();
-        for (String partitionId : runtimeInfo.getPartitionIds()) {
-            PartitionReceiver receiver = ehClient.createReceiverSync(
-                    EventHubClient.DEFAULT_CONSUMER_GROUP_NAME,
-                    partitionId,
-                    EventPositionImpl.fromEndOfStream());
-            receiver.setReceiveTimeout(Duration.ofSeconds(20));
-            receivers.add(receiver);
-        }
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
         }
-        started = true;
-        executorService = Executors.newFixedThreadPool(receivers.size());
-        receiverFutures = new ArrayList<>();
-        receiverFutures.addAll(receivers.stream().map(receiver -> executorService.submit(new ReceiverRunnable(receiver))).collect(Collectors.toList()));
+
+        receiver.receiveFromPartition("0", EventPosition.latest()).subscribe(event -> {
+            process(new AzureEventHubIntegrationMsg(event.getData()));
+        });
     }
 
     @Override
@@ -127,56 +101,17 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
     @Override
     public void destroy() {
-        started = false;
-        if (receiverFutures != null) {
-            for (Future receiverFuture : receiverFutures) {
-                receiverFuture.cancel(true);
-            }
-        }
-        if (executorService != null) {
-            executorService.shutdownNow();
-        }
-        if (receivers != null) {
-            receivers.forEach(PartitionReceiver::close);
-        }
-        if (ehClient != null) {
-            ehClient.close();
-        }
         if (serviceClient != null) {
             serviceClient.closeAsync();
         }
-        if (clientExecutor != null) {
-            try {
-                clientExecutor.awaitTermination(3, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("Failed to stop Event Hub Client!!!");
-            }
+
+        if(receiver != null) {
+            receiver.close();
         }
     }
 
-    class ReceiverRunnable implements Runnable {
+    public void process() {
 
-        private final PartitionReceiver receiver;
-
-        ReceiverRunnable(PartitionReceiver receiver) {
-            this.receiver = receiver;
-        }
-
-        @Override
-        public void run() {
-            while (started) {
-                try {
-                    Iterable<EventData> events = this.receiver.receiveSync(10);
-                    if (events != null) {
-                        for (EventData event : events) {
-                            process(new AzureEventHubIntegrationMsg(event));
-                        }
-                    }
-                } catch (EventHubException e) {
-                    log.error("Failed to receive events from Event Hub", e);
-                }
-            }
-        }
     }
 
     @Override
@@ -210,6 +145,27 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (downlinkConverter != null) {
             processDownLinkMsg(context, msg);
         }
+    }
+
+    @Override
+    public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
+        JsonNode connectionString = integration.getConfiguration().get("clientConfiguration").get("connectionString");
+        EventHubConsumerAsyncClient client = this.initClient(connectionString.textValue());
+        if(client == null) {
+            throw new ThingsboardException("Incorrect credentials included", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
+    private AzureEventHubClientConfiguration assemblyClientConfiguration() {
+        JsonNode clientConfiguration = this.configuration.getConfiguration().get("clientConfiguration");
+        AzureEventHubClientConfiguration configuration = new AzureEventHubClientConfiguration();
+        ConnectionStringProperties connectionStringProperties = new ConnectionStringProperties(clientConfiguration.get("connectionString").textValue());
+        configuration.setIotHubName(clientConfiguration.get("iotHubName").textValue());
+        configuration.setConnectTimeoutSec(clientConfiguration.get("connectTimeoutSec").intValue());
+        configuration.setSasKeyName(connectionStringProperties.getSharedAccessKeyName());
+        configuration.setSasKey(connectionStringProperties.getSharedAccessKey());
+        configuration.setEventHubName(connectionStringProperties.getEntityPath());
+        return configuration;
     }
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
@@ -281,23 +237,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private EventHubClient initClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {
-        ConnectionStringBuilder connStr = new ConnectionStringBuilder();
-        connStr.setNamespaceName(clientConfiguration.getNamespaceName());
-        connStr.setEventHubName(clientConfiguration.getEventHubName());
-        connStr.setSasKeyName(clientConfiguration.getSasKeyName());
-        connStr.setSasKey(clientConfiguration.getSasKey());
-
-        CompletableFuture<EventHubClient> ehClientFuture = EventHubClient.createFromConnectionString(connStr.toString(), clientExecutor);
-        EventHubClient ehClient;
-        try {
-            ehClient = ehClientFuture.get(clientConfiguration.getConnectTimeoutSec(), TimeUnit.SECONDS);
-        } catch (TimeoutException ex) {
-            ehClientFuture.cancel(true);
-            throw new RuntimeException(String.format("Failed to connect to the Event Hub Endpoint %s within specified timeout.",
-                    clientConfiguration.getEventHubName()));
-        }
-        return ehClient;
+    private EventHubConsumerAsyncClient initClient(String connectionString) {
+        return new EventHubClientBuilder()
+                .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
+                .connectionString(connectionString)
+                .buildAsyncConsumerClient();
     }
 
     private ServiceClient initServiceClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {

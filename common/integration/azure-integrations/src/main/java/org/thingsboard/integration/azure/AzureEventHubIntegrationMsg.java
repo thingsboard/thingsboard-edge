@@ -33,7 +33,8 @@ package org.thingsboard.integration.azure;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.microsoft.azure.eventhubs.EventData;
+//import com.microsoft.azure.eventhubs.EventData;
+import com.azure.messaging.eventhubs.EventData;
 import lombok.Data;
 
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class AzureEventHubIntegrationMsg {
     }
 
     public byte[] getPayload() {
-        return this.eventData.getBytes();
+        return this.eventData.getBody();
     }
 
     public Map<String, Object> getSystemProperties() {
@@ -60,7 +61,7 @@ public class AzureEventHubIntegrationMsg {
 
     public JsonNode toJson() {
         ObjectNode json = mapper.createObjectNode();
-        EventData.SystemProperties properties = this.eventData.getSystemProperties();
+        Map<String, Object> properties = this.eventData.getSystemProperties();
         ObjectNode sysPropsJson = mapper.createObjectNode();
         properties.forEach(
                 (key, val) -> {
@@ -72,13 +73,13 @@ public class AzureEventHubIntegrationMsg {
         json.set("systemProperties", sysPropsJson);
         JsonNode payloadJson = null;
         try {
-            payloadJson = mapper.readTree(this.eventData.getBytes());
+            payloadJson = mapper.readTree(this.eventData.getBody());
         } catch (IOException e) {
         }
         if (payloadJson != null) {
             json.set("payload", payloadJson);
         } else {
-            json.put("payload", this.eventData.getBytes());
+            json.put("payload", this.eventData.getBody());
         }
         return json;
     }
