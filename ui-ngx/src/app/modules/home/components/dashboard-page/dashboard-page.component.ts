@@ -139,7 +139,6 @@ import {
   DisplayWidgetTypesPanelData,
   WidgetTypes
 } from '@home/components/dashboard-page/widget-types-panel.component';
-import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 // @dynamic
 @Component({
@@ -309,7 +308,6 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private fb: FormBuilder,
               private dialog: MatDialog,
               private translate: TranslateService,
-              public whiteLabelingService: WhiteLabelingService,
               private ngZone: NgZone,
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
