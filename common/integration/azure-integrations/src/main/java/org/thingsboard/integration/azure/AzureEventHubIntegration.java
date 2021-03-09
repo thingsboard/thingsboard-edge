@@ -33,7 +33,7 @@ package org.thingsboard.integration.azure;
 import com.azure.core.amqp.implementation.ConnectionStringProperties;
 import com.azure.messaging.eventhubs.EventHubClientBuilder;
 import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
-import com.azure.messaging.eventhubs.models.EventPosition;
+import com.azure.messaging.eventhubs.EventHubConsumerClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -81,16 +81,12 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (!this.configuration.isEnabled()) {
             return;
         }
-        receiver = initClient(this.configuration.getConfiguration().get("connectionString").textValue());
-        AzureEventHubClientConfiguration clientConfiguration = assemblyClientConfiguration();
+
+        initReceiver(this.configuration.getConfiguration().get("clientConfiguration").get("connectionString").textValue());
 
         if (downlinkConverter != null) {
-            serviceClient = initServiceClient(clientConfiguration);
+            serviceClient = initServiceClient(assemblyClientConfiguration());
         }
-
-        receiver.receiveFromPartition("0", EventPosition.latest()).subscribe(event -> {
-            process(new AzureEventHubIntegrationMsg(event.getData()));
-        });
     }
 
     @Override
@@ -150,16 +146,25 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     @Override
     public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
         JsonNode connectionString = integration.getConfiguration().get("clientConfiguration").get("connectionString");
-        EventHubConsumerAsyncClient client = this.initClient(connectionString.textValue());
-        if(client == null) {
-            throw new ThingsboardException("Incorrect credentials included", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        EventHubClientBuilder builder = new EventHubClientBuilder()
+                .connectionString(connectionString.textValue())
+                .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME);
+
+        try(EventHubConsumerClient client = builder.buildConsumerClient()) {
+            if(client.getPartitionIds().stream().count() < 1) {
+                throw new ThingsboardException("Unable to connect", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+        } catch (Exception e) {
+            throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
     private AzureEventHubClientConfiguration assemblyClientConfiguration() {
         JsonNode clientConfiguration = this.configuration.getConfiguration().get("clientConfiguration");
         AzureEventHubClientConfiguration configuration = new AzureEventHubClientConfiguration();
-        ConnectionStringProperties connectionStringProperties = new ConnectionStringProperties(clientConfiguration.get("connectionString").textValue());
+        ConnectionStringProperties connectionStringProperties = new ConnectionStringProperties(
+                clientConfiguration.get("connectionString").textValue()
+        );
         configuration.setIotHubName(clientConfiguration.get("iotHubName").textValue());
         configuration.setConnectTimeoutSec(clientConfiguration.get("connectTimeoutSec").intValue());
         configuration.setSasKeyName(connectionStringProperties.getSharedAccessKeyName());
@@ -237,11 +242,16 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private EventHubConsumerAsyncClient initClient(String connectionString) {
-        return new EventHubClientBuilder()
+    private void initReceiver(String connectionString) {
+        this.receiver = new EventHubClientBuilder()
                 .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
                 .connectionString(connectionString)
                 .buildAsyncConsumerClient();
+
+        receiver.receive(false).subscribe(
+                event -> process(new AzureEventHubIntegrationMsg(event.getData())),
+                error -> log.error("It was trouble when receiving: " + error.getMessage()));
+
     }
 
     private ServiceClient initServiceClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {
