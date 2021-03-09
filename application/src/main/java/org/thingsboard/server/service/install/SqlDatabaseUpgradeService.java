@@ -518,7 +518,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
-                            if (!clientConfiguration.isEmpty()) {
+                            if (!clientConfiguration.isEmpty() && !clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
                                         clientConfiguration.get("namespaceName").textValue(),
                                         clientConfiguration.get("sasKeyName").textValue(),
@@ -533,8 +533,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             integrationRepository.save(integration);
                         }
                     });
-
-                    conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3002002;");
 
                     log.info("Schema updated.");
                 } catch(Exception e) {
