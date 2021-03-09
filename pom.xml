@@ -109,7 +109,7 @@
         <dbunit.version>2.5.3</dbunit.version>
         <spring-test-dbunit.version>1.2.1</spring-test-dbunit.version>
         <postgresql.driver.version>42.2.16</postgresql.driver.version>
-        <azure-eventhubs.version>3.2.2</azure-eventhubs.version>
+        <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
             org/thingsboard/server/extensions/core/plugin/telemetry/gen/**/*
@@ -1440,9 +1440,9 @@
                 <version>${netty-mqtt-client.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.microsoft.azure</groupId>
-                <artifactId>azure-eventhubs</artifactId>
-                <version>${azure-eventhubs.version}</version>
+                <groupId>com.azure</groupId>
+                <artifactId>azure-messaging-eventhubs</artifactId>
+                <version>${azure-messaging-eventhubs.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.microsoft.azure.sdk.iot</groupId>

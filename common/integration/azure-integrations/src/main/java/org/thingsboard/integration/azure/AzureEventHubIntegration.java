@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.azure;
 
+import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.core.amqp.implementation.ConnectionStringProperties;
 import com.azure.messaging.eventhubs.EventHubClientBuilder;
 import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
@@ -52,13 +53,12 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,7 +86,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
                 AzureEventHubClientConfiguration.class);
 
-        initReceiver(clientConfiguration.getConnectionString());
+        initReceiver(clientConfiguration);
 
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
@@ -148,18 +148,18 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     @Override
-    public void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
-        JsonNode connectionString = integration.getConfiguration().get("clientConfiguration").get("connectionString");
+    public void checkConnection(Integration integration, IntegrationContext ctx) throws RuntimeException {
+        JsonNode clientConfiguration = integration.getConfiguration().get("clientConfiguration");
         EventHubClientBuilder builder = new EventHubClientBuilder()
-                .connectionString(connectionString.textValue())
+                .connectionString(clientConfiguration.get("connectionString").textValue())
+                .retry(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(clientConfiguration.get("connectTimeoutSec").asLong())))
                 .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME);
 
         try(EventHubConsumerClient client = builder.buildConsumerClient()) {
-            if(client.getPartitionIds().stream().count() < 1) {
-                throw new ThingsboardException("Unable to connect", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
+            client.getPartitionIds().stream().findAny();
         } catch (Exception e) {
-            throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            throw new RuntimeException("Unable to connect. Check for correct Connection string or set bigger Timeout: "
+                    + e.getMessage());
         }
     }
 
@@ -232,11 +232,19 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private void initReceiver(String connectionString) {
+    private void initReceiver(AzureEventHubClientConfiguration configuration) throws RuntimeException {
+        Duration timeout = Duration.ofSeconds(configuration.getConnectTimeoutSec());
         this.receiver = new EventHubClientBuilder()
                 .consumerGroup(EventHubClientBuilder.DEFAULT_CONSUMER_GROUP_NAME)
-                .connectionString(connectionString)
+                .connectionString(configuration.getConnectionString())
+                .retry(new AmqpRetryOptions().setTryTimeout(timeout))
                 .buildAsyncConsumerClient();
+
+        try {
+            this.receiver.getPartitionIds().blockFirst(timeout);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to connect. Check for correct Connection string or try to set bigger Timeout " + e.getMessage());
+        }
 
         receiver.receive(false).subscribe(
                 event -> process(new AzureEventHubIntegrationMsg(event.getData())),

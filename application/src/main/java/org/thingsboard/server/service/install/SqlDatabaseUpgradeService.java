@@ -518,7 +518,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
-                            if (!clientConfiguration.isEmpty() && !clientConfiguration.has("connectionString")) {
+                            if (!clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
                                         clientConfiguration.get("namespaceName").textValue(),
                                         clientConfiguration.get("sasKeyName").textValue(),
