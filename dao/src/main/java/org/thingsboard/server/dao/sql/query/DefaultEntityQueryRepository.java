@@ -439,11 +439,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
                     return 0L;
                 }
-            } else if (query.getEntityFilter().getType().equals(EntityFilterType.API_USAGE_STATE)) {
-                if (!ctx.isTenantUser()) {
-                    return 0L;
-                }
             } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+                return 0L;
+            } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
                 return 0L;
             }
 
@@ -452,8 +450,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
                     .collect(Collectors.toList());
             List<EntityKeyMapping> entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest())
-                    .collect(Collectors.toList());
-            List<EntityKeyMapping> latestSelectionMapping = selectionMapping.stream().filter(EntityKeyMapping::isLatest)
                     .collect(Collectors.toList());
 
             List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
@@ -534,11 +530,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
                 return new PageData<>();
             }
-        } else if (query.getEntityFilter().getType().equals(EntityFilterType.API_USAGE_STATE)) {
-            if (!ctx.isTenantUser()) {
-                return new PageData<>();
-            }
         } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+            return new PageData<>();
+        } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
             return new PageData<>();
         }
         return transactionTemplate.execute(status -> {
@@ -666,6 +660,48 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
+    }
+
+    private boolean customerUserIsTryingToAccessTenantEntity(QueryContext ctx, EntityFilter entityFilter) {
+        if (ctx.isTenantUser()) {
+            return false;
+        } else {
+            switch (entityFilter.getType()) {
+                case SINGLE_ENTITY:
+                    SingleEntityFilter seFilter = (SingleEntityFilter) entityFilter;
+                    return isSystemOrTenantEntity(seFilter.getSingleEntity().getEntityType());
+                case ENTITY_LIST:
+                    EntityListFilter elFilter = (EntityListFilter) entityFilter;
+                    return isSystemOrTenantEntity(elFilter.getEntityType());
+                case ENTITY_NAME:
+                    EntityNameFilter enFilter = (EntityNameFilter) entityFilter;
+                    return isSystemOrTenantEntity(enFilter.getEntityType());
+                case ENTITY_TYPE:
+                    EntityTypeFilter etFilter = (EntityTypeFilter) entityFilter;
+                    return isSystemOrTenantEntity(etFilter.getEntityType());
+                case API_USAGE_STATE:
+                    return !ctx.isTenantUser();
+                default:
+                    return false;
+            }
+        }
+    }
+
+    private boolean isSystemOrTenantEntity(EntityType entityType) {
+        switch (entityType) {
+            case INTEGRATION:
+            case CONVERTER:
+            case DEVICE_PROFILE:
+            case RULE_CHAIN:
+            case SCHEDULER_EVENT:
+            case TENANT:
+            case TENANT_PROFILE:
+            case WIDGET_TYPE:
+            case WIDGETS_BUNDLE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter) {
