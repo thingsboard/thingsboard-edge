@@ -82,10 +82,14 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             return;
         }
 
-        initReceiver(this.configuration.getConfiguration().get("clientConfiguration").get("connectionString").textValue());
+        AzureEventHubClientConfiguration clientConfiguration = mapper.readValue(
+                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
+                AzureEventHubClientConfiguration.class);
+
+        initReceiver(clientConfiguration.getConnectionString());
 
         if (downlinkConverter != null) {
-            serviceClient = initServiceClient(assemblyClientConfiguration());
+            serviceClient = initServiceClient(clientConfiguration);
         }
     }
 
@@ -157,20 +161,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         } catch (Exception e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-    }
-
-    private AzureEventHubClientConfiguration assemblyClientConfiguration() {
-        JsonNode clientConfiguration = this.configuration.getConfiguration().get("clientConfiguration");
-        AzureEventHubClientConfiguration configuration = new AzureEventHubClientConfiguration();
-        ConnectionStringProperties connectionStringProperties = new ConnectionStringProperties(
-                clientConfiguration.get("connectionString").textValue()
-        );
-        configuration.setIotHubName(clientConfiguration.get("iotHubName").textValue());
-        configuration.setConnectTimeoutSec(clientConfiguration.get("connectTimeoutSec").intValue());
-        configuration.setSasKeyName(connectionStringProperties.getSharedAccessKeyName());
-        configuration.setSasKey(connectionStringProperties.getSharedAccessKey());
-        configuration.setEventHubName(connectionStringProperties.getEntityPath());
-        return configuration;
     }
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
@@ -258,9 +248,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (StringUtils.isEmpty(clientConfiguration.getIotHubName())) {
             return null;
         }
+        ConnectionStringProperties connectionStringProperties = new ConnectionStringProperties(clientConfiguration.getConnectionString());
+
         String iotHubConnectionString =
                 String.format("HostName=%s.azure-devices.net;SharedAccessKeyName=%s;SharedAccessKey=%s", clientConfiguration.getIotHubName(),
-                        clientConfiguration.getSasKeyName(), clientConfiguration.getSasKey());
+                        connectionStringProperties.getSharedAccessKeyName(), connectionStringProperties.getSharedAccessKey());
         ServiceClient serviceClient = ServiceClient.createFromConnectionString(iotHubConnectionString, IotHubServiceClientProtocol.AMQPS);
         CompletableFuture<Void> serviceClientFuture = serviceClient.openAsync();
         try {
