@@ -209,6 +209,8 @@ export class HttpIntegrationFormComponent extends IntegrationFormComponent {
         form.get('password').clearValidators();
         break;
     }
-    form.updateValueAndValidity();
+    form.get('token').updateValueAndValidity();
+    form.get('email').updateValueAndValidity();
+    form.get('password').updateValueAndValidity();
   }
 }
