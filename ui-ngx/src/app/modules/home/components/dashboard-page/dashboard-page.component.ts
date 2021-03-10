@@ -62,7 +62,7 @@ import {
 } from '@app/shared/models/dashboard.models';
 import { WINDOW } from '@core/services/window.service';
 import { WindowMessage } from '@shared/models/window-message.model';
-import { deepClone, isDefined } from '@app/core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull } from '@app/core/utils';
 import {
   DashboardContext,
   DashboardPageLayout,
@@ -76,6 +76,7 @@ import { MediaBreakpoints } from '@shared/models/constants';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import {
+  DatasourceType,
   Widget,
   WidgetConfig,
   WidgetInfo,
@@ -928,6 +929,12 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         const config: WidgetConfig = JSON.parse(widgetTypeInfo.defaultConfig);
         config.title = 'New ' + widgetTypeInfo.widgetName;
         config.datasources = [];
+        if (isDefinedAndNotNull(config.alarmSource)) {
+          config.alarmSource = {
+            type: DatasourceType.entity,
+            dataKeys: config.alarmSource.dataKeys || []
+          };
+        }
         const newWidget: Widget = {
           isSystemType: widget.isSystemType,
           bundleAlias: widget.bundleAlias,
