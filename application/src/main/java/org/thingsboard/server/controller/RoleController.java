@@ -91,11 +91,7 @@ public class RoleController extends BaseController {
             if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
                 role.setCustomerId(getCurrentUser().getCustomerId());
             }
-            Role before = (Role) checkEntity(role.getId(), role, Resource.ROLE, null);
-
-            if (role.getId() != null && isUsed(role.getId(), role.getTenantId()) && role.getType() != before.getType()) {
-                throw new ThingsboardException("Role type cannot be changed because role is in use", ThingsboardErrorCode.INVALID_ARGUMENTS);
-            }
+            checkEntity(role.getId(), role, Resource.ROLE, null);
 
             Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
 

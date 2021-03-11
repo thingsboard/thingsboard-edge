@@ -36,14 +36,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
@@ -112,28 +109,15 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testChangeRoleType_roleNotUsed() throws Exception {
+    public void testChangeRoleType_notAllowed() throws Exception {
         Role role = getNewSavedRole("Test role");
         assertEquals(RoleType.GENERIC, role.getType());
-
-        role.setType(RoleType.GROUP);
-
-        doPost("/api/role", role)
-                .andExpect(status().isOk());
-        assertEquals(RoleType.GROUP, getRole(role.getId()).getType());
-    }
-
-    @Test
-    public void testChangeRoleType_roleInUse() throws Exception {
-        Role role = getNewSavedRole("Test role");
-        assertEquals(RoleType.GENERIC, role.getType());
-        createGroupPermission(role, createUserGroup("group"));
 
         role.setType(RoleType.GROUP);
 
         doPost("/api/role", role)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("role is in use")));
+                .andExpect(statusReason(containsString("type cannot be changed")));
         assertEquals(RoleType.GENERIC, getRole(role.getId()).getType());
     }
 
@@ -224,20 +208,6 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
         Tenant tenant = new Tenant();
         tenant.setTitle(title);
         return tenant;
-    }
-
-    private GroupPermission createGroupPermission(Role role, EntityGroup userGroup) throws Exception {
-        GroupPermission groupPermission = new GroupPermission();
-        groupPermission.setRoleId(role.getId());
-        groupPermission.setUserGroupId(userGroup.getId());
-        return doPost("/api/groupPermission", groupPermission, GroupPermission.class);
-    }
-
-    private EntityGroup createUserGroup(String name) throws Exception {
-        EntityGroup group = new EntityGroup();
-        group.setType(EntityType.USER);
-        group.setName(name);
-        return doPost("/api/entityGroup", group, EntityGroup.class);
     }
 
     private Role getRole(RoleId roleId) throws Exception {
