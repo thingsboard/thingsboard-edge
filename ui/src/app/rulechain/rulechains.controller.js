@@ -146,6 +146,7 @@ export default function RuleChainsController(ruleChainService, userService, impo
     vm.setRootRuleChain = setRootRuleChain;
     vm.setAutoAssignToEdgeRuleChain = setAutoAssignToEdgeRuleChain;
     vm.unsetAutoAssignToEdgeRuleChain = unsetAutoAssignToEdgeRuleChain;
+    vm.unassignFromEdge = unassignFromEdge;
 
     initController();
 
@@ -658,7 +659,7 @@ export default function RuleChainsController(ruleChainService, userService, impo
             });
     }
 
-    function unassignFromEdge($event, ruleChain, edgeId) {
+    function unassignFromEdge($event, ruleChain) {
         if ($event) {
             $event.stopPropagation();
         }
