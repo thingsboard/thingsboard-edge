@@ -1890,6 +1890,17 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ENTITY_MERGE_REQUEST": {
                     name: "edge-event.action-type-entity-merge-request"
+                },
+                "ADDED_TO_ENTITY_GROUP": {
+                    name: "edge-event.action-type-added-to-entity-group"
+                },
+                "REMOVED_FROM_ENTITY_GROUP": {
+                    name: "edge-event.action-type-removed-from-entity-group"
+                },
+                "CHANGE_OWNER": {
+                    name: "edge-event.action-type-change-owner"
+                },"RELATIONS_DELETED": {
+                    name: "edge-event.action-type-relations-deleted"
                 }
             },
             edgeEventTypeTranslations:{
@@ -1901,6 +1912,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "DEVICE": {
                     name: "edge-event.type-device"
+                },
+                "DEVICE_PROFILE": {
+                    name: "edge-event.type-device-profile"
                 },
                 "ENTITY_VIEW": {
                     name: "edge-event.type-entity-view"
@@ -1955,6 +1969,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ROLE": {
                     name: "edge-event.type-role",
+                },
+                "GROUP_PERMISSION": {
+                    name: "edge-event.type-group-permission"
                 }
             }
         }

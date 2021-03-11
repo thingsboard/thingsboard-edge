@@ -98,9 +98,7 @@
             </md-tab>
             <md-tab ng-if="!vm.isEdit && vm.entityType === vm.types.entityType.edge && (vm.entityGroup | hasGroupEntityPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'edge.downlinks' | translate }}">
                 <tb-edge-downlinks-table flex
-                                     entity-type="vm.types.entityType.edge"
-                                     entity-id="vm.entityId"
-                                     tenant-id="vm.entity.tenantId.id">
+                                     entity-id="vm.entityId">
                 </tb-edge-downlinks-table>
             </md-tab>
             <md-tab ng-if="!vm.isEdit && vm.entity.additionalInfo.gateway && (vm.entityGroup | hasGroupEntityPermission:'readAttributes')" md-on-select="vm.triggerResize()" label="{{ 'extension.extensions' | translate }}">
