@@ -74,6 +74,8 @@ export class WidgetService {
 
   private widgetsBundleCacheSubject: ReplaySubject<any> = null;
 
+  private widgetTypeInfosCache = new Map<string, Array<WidgetTypeInfo>>();
+
   constructor(
     private http: HttpClient,
     private utils: UtilsService,
@@ -155,8 +157,15 @@ export class WidgetService {
 
   public getBundleWidgetTypeInfos(bundleAlias: string, isSystem: boolean,
                                   config?: RequestConfig): Observable<Array<WidgetTypeInfo>> {
-    return this.http.get<Array<WidgetTypeInfo>>(`/api/widgetTypesInfos?isSystem=${isSystem}&bundleAlias=${bundleAlias}`,
-      defaultHttpOptionsFromConfig(config));
+    const key = bundleAlias + (isSystem ? '_sys' : '');
+    if (this.widgetTypeInfosCache.has(key)) {
+      return of(this.widgetTypeInfosCache.get(key));
+    } else {
+      return this.http.get<Array<WidgetTypeInfo>>(`/api/widgetTypesInfos?isSystem=${isSystem}&bundleAlias=${bundleAlias}`,
+        defaultHttpOptionsFromConfig(config)).pipe(
+          tap((res) => this.widgetTypeInfosCache.set(key, res) )
+      );
+    }
   }
 
   public loadBundleLibraryWidgets(bundleAlias: string, isSystem: boolean,
@@ -337,6 +346,7 @@ export class WidgetService {
     this.systemWidgetsBundles = undefined;
     this.tenantWidgetsBundles = undefined;
     this.widgetsBundleCacheSubject = undefined;
+    this.widgetTypeInfosCache.clear();
   }
 
 }
