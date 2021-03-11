@@ -37,7 +37,7 @@
                                                                   vm.query.search === null">
             <div class="md-toolbar-tools">
                 <span translate>scheduler.scheduler-events</span>
-                <div ng-if="vm.schedulerScope !== 'edge'" class="tb-scheduler-events-view-type-toolbar" layout="row" layout-align="start center">
+                <div ng-if="!vm.isEdgeScope" class="tb-scheduler-events-view-type-toolbar" layout="row" layout-align="start center">
                     <div class="tb-toolbar-button" ng-class="{'tb-selected' : vm.mode === 'list'}">
                         <md-button class="md-icon-button"
                                    ng-click="vm.mode = 'list'">
@@ -58,10 +58,16 @@
                     </div>
                 </div>
                 <span flex></span>
-                <md-button ng-if="vm.addEnabled" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
+                <md-button ng-if="vm.addEnabled && !vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.addSchedulerEvent($event)">
                     <md-icon>add</md-icon>
                     <md-tooltip md-direction="top">
-                        {{ vm.addSchedulerEventTitle() }}
+                        {{ 'scheduler.add-scheduler-event' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button ng-if="vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.assignSchedulerEventsToEdge($event)">
+                    <md-icon>add</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'edge.assign-to-edge-scheduler-events' | translate }}
                     </md-tooltip>
                 </md-button>
                 <md-button ng-disabled="vm.disabled" class="md-icon-button" ng-click="vm.enterFilterMode($event)">
@@ -105,10 +111,16 @@
                       translate-values="{count: vm.selectedSchedulerEvents.length}"
                       translate-interpolation="messageformat">scheduler.selected-scheduler-events</span>
                 <span flex></span>
-                <md-button class="md-icon-button" ng-click="vm.deleteSchedulerEvents($event)">
+                <md-button ng-if="!vm.isEdgeScope" class="md-icon-button" ng-click="vm.deleteSchedulerEvents($event)">
                     <md-icon>delete</md-icon>
                     <md-tooltip md-direction="top">
-                        {{ vm.deleteSchedulerEventsTitle() }}
+                        {{ 'action.delete' | translate }}
+                    </md-tooltip>
+                </md-button>
+                <md-button ng-if="vm.isEdgeScope" class="md-icon-button" ng-click="vm.unassignSchedulerEventsFromEdge($event)">
+                    <md-icon>assignment_return</md-icon>
+                    <md-tooltip md-direction="top">
+                        {{ 'edge.unassign-from-edge' | translate }}
                     </md-tooltip>
                 </md-button>
             </div>
@@ -132,24 +144,31 @@
                         <td ng-if="vm.displayType" md-cell>{{schedulerEvent.typeName}}</td>
                         <td ng-if="vm.displayCustomer" md-cell>{{schedulerEvent.assignedCustomer.title}}</td>
                         <td md-cell class="tb-action-cell">
-                            <md-button ng-if="vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
+                            <md-button ng-if="vm.editEnabled && !vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.edit' | translate }}"
                                        ng-click="vm.editSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="{{ 'action.edit' | translate }}" class="material-icons">edit</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.edit-scheduler-event' | translate }}
                                 </md-tooltip>
                             </md-button>
-                            <md-button ng-if="!vm.editEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.view' | translate }}"
+                            <md-button ng-if="!vm.editEnabled || vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.view' | translate }}"
                                        ng-click="vm.viewSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="{{ 'action.view' | translate }}" class="material-icons">more_horiz</md-icon>
                                 <md-tooltip md-direction="top">
                                     {{ 'scheduler.view-scheduler-event' | translate }}
                                 </md-tooltip>
                             </md-button>
-                            <md-button ng-if="vm.deleteEnabled" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{'action.delete' | translate}}" ng-click="vm.deleteSchedulerEvent($event, schedulerEvent)">
+                            <md-button ng-if="vm.deleteEnabled && !vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.delete' | translate }}" ng-click="vm.deleteSchedulerEvent($event, schedulerEvent)">
                                 <md-icon aria-label="Delete" class="material-icons">delete</md-icon>
                                 <md-tooltip md-direction="top">
-                                    {{ vm.deleteSchedulerEventTitle() }}
+                                    {{ 'scheduler.delete-scheduler-event' | translate }}
+                                </md-tooltip>
+                            </md-button>
+                            <md-button ng-if="vm.isEdgeScope" ng-disabled="vm.disabled" class="md-icon-button" aria-label="{{ 'action.unassign' | translate }}"
+                                       ng-click="vm.unassignSchedulerEventFromEdge($event, schedulerEvent)">
+                                <md-icon aria-label="{{ 'action.unassign' | translate }}" class="material-icons">assignment_return</md-icon>
+                                <md-tooltip md-direction="top">
+                                    {{ 'edge.unassign-from-edge' | translate }}
                                 </md-tooltip>
                             </md-button>
                         </td>
