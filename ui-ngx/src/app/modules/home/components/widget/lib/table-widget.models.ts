@@ -43,6 +43,12 @@ type ColumnVisibilityOptions = 'visible' | 'hidden';
 
 type ColumnSelectionOptions = 'enabled' | 'disabled';
 
+export enum columnExportOptions {
+  always = 'always',
+  onlyVisible = 'onlyVisible',
+  never = 'never'
+}
+
 export interface TableWidgetSettings {
   enableSearch: boolean;
   enableStickyAction: boolean;
@@ -61,6 +67,7 @@ export interface TableWidgetDataKeySettings {
   cellContentFunction?: string;
   defaultColumnVisibility: ColumnVisibilityOptions;
   columnSelectionToDisplay: ColumnSelectionOptions;
+  columnExportOption?: columnExportOptions;
 }
 
 export interface EntityData {
