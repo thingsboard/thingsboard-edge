@@ -167,6 +167,7 @@ import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list
 import { ContactComponent } from '@shared/components/contact.component';
 import { FileSizePipe } from '@shared/pipe/file-size.pipe';
 import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
+import { SelectableColumnsPipe } from '@shared/pipe/selectable-columns.pipe';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
 import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
@@ -267,6 +268,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TruncatePipe,
     TbJsonPipe,
     FileSizePipe,
+    SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
@@ -452,6 +454,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TbJsonPipe,
     KeyboardShortcutPipe,
     FileSizePipe,
+    SelectableColumnsPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
