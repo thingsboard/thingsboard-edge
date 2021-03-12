@@ -2173,7 +2173,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 promise = widgetService.getWidgetsBundle(entityId);
                 break;
             case types.edgeEventType.relation:
-                promise = edgeService.getEdgeEventRelationPromise(entity);
+                promise = edgeService.transformEdgeEventToPromise(entity);
                 break;
         }
         return promise;

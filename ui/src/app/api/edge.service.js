@@ -53,7 +53,7 @@ function EdgeService($http, $q, $timeout, customerService) {
         getEdgeEvents: getEdgeEvents,
         syncEdge: syncEdge,
         findMissingToRelatedRuleChains: findMissingToRelatedRuleChains,
-        getEdgeEventRelationPromise: getEdgeEventRelationPromise
+        transformEdgeEventToPromise: transformEdgeEventToPromise
     };
 
     return service;
@@ -340,11 +340,11 @@ function EdgeService($http, $q, $timeout, customerService) {
         return deferred.promise;
     }
 
-    function getEdgeEventRelationPromise(entity) {
+    function transformEdgeEventToPromise(data) {
         var deferred = $q.defer();
         $timeout(function() {
-            if (entity.body) {
-                deferred.resolve(entity.body);
+            if (data.body) {
+                deferred.resolve(data.body);
             } else {
                 deferred.reject();
             }
