@@ -722,6 +722,7 @@ export default angular.module('thingsboard.types', [])
                 dashboard: "DASHBOARD",
                 asset: "ASSET",
                 device: "DEVICE",
+                deviceProfile: "DEVICE PROFILE",
                 entityView: "ENTITY_VIEW",
                 alarm: "ALARM",
                 rulechain: "RULE_CHAIN",
@@ -730,6 +731,7 @@ export default angular.module('thingsboard.types', [])
                 user: "USER",
                 customer: "CUSTOMER",
                 relation: "RELATION",
+                tenant: "TENANT",
                 entityGroup: "ENTITY_GROUP",
                 schedulerEvent: "SCHEDULER_EVENT",
                 whiteLabeling: "WHITE_LABELING",
@@ -737,7 +739,9 @@ export default angular.module('thingsboard.types', [])
                 customTranslation: "CUSTOM_TRANSLATION",
                 widgetsBundle: "WIDGETS_BUNDLE",
                 widgetType: "WIDGET_TYPE",
-                adminSettings: "ADMIN_SETTINGS"
+                adminSettings: "ADMIN_SETTINGS",
+                role: "ROLE",
+                groupPermission: "GROUP_PERMISSION"
             },
             edgeEventStatus: {
                 "DEPLOYED": {
@@ -1899,7 +1903,8 @@ export default angular.module('thingsboard.types', [])
                 },
                 "CHANGE_OWNER": {
                     name: "edge-event.action-type-change-owner"
-                },"RELATIONS_DELETED": {
+                },
+                "RELATIONS_DELETED": {
                     name: "edge-event.action-type-relations-deleted"
                 }
             },
@@ -1965,7 +1970,7 @@ export default angular.module('thingsboard.types', [])
                     name: "edge-event.type-login-white-labeling"
                 },
                 "CUSTOM_TRANSLATION": {
-                    name: "edge-event.custom-translation",
+                    name: "edge-event.type-custom-translation",
                 },
                 "ROLE": {
                     name: "edge-event.type-role",
