@@ -49,7 +49,7 @@ import java.util.List;
 @Slf4j
 @RuleNode(
         type = ComponentType.TRANSFORMATION,
-        name = "duplicate to group",
+        name = "duplicate to specific group",
         configClazz = TbDuplicateMsgToGroupNodeConfiguration.class,
         nodeDescription = "Duplicates message to all entities belonging to specific Entity Group",
         nodeDetails = "Entities are fetched from Entity Group detected according to the configuration. Entity Group can be specified directly or can be message originator entity itself. " +
