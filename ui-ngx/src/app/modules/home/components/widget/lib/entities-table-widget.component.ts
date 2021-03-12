@@ -71,6 +71,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import {
   CellContentInfo,
   CellStyleInfo,
+  columnExportOptions,
   constructTableCssString,
   DisplayColumn,
   EntityColumn,
@@ -165,6 +166,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private columnWidth: {[key: string]: string} = {};
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
+  private columnExportParameters: {[key: string]: columnExportOptions} = {};
 
   private rowStylesInfo: RowStyleInfo;
 
@@ -338,6 +340,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityName = '0px';
       this.columnDefaultVisibility.entityName = true;
       this.columnSelectionAvailability.entityName = true;
+      this.columnExportParameters.entityName = columnExportOptions.onlyVisible;
     }
     if (displayEntityLabel) {
       this.columns.push(
@@ -361,6 +364,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityLabel = '0px';
       this.columnDefaultVisibility.entityLabel = true;
       this.columnSelectionAvailability.entityLabel = true;
+      this.columnExportParameters.entityLabel = columnExportOptions.onlyVisible;
     }
     if (displayEntityType) {
       this.columns.push(
@@ -384,6 +388,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       this.columnWidth.entityType = '0px';
       this.columnDefaultVisibility.entityType = true;
       this.columnSelectionAvailability.entityType = true;
+      this.columnExportParameters.entityType = columnExportOptions.onlyVisible;
     }
 
     const dataKeys: Array<DataKey> = [];
@@ -418,6 +423,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
         this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
+        this.columnExportParameters[dataKey.def] = keySettings.columnExportOption;
         this.columns.push(dataKey);
       });
       this.displayedColumns.push(...this.columns.filter(column => this.columnDefaultVisibility[column.def])
@@ -707,12 +713,12 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         pageLink
       };
       const exportedColumns = this.columns.filter(
-        c => this.displayedColumns.indexOf(c.def) > -1 && c.entityKey);
+        c => this.includeColumnInExport(c) && c.entityKey);
 
       query.entityFields = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ENTITY_FIELD &&
                                                        entityFields[c.entityKey.key]).map(c => c.entityKey);
       query.latestValues = exportedColumns.filter(c => c.entityKey.type === EntityKeyType.ATTRIBUTE ||
-                                                       c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey)
+                                                       c.entityKey.type === EntityKeyType.TIME_SERIES).map(c => c.entityKey);
 
       return this.entityService.findEntityDataByQuery(query).pipe(
         expand(data => {
@@ -733,13 +739,24 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       entitiesToExport.forEach((entity) => {
         const dataObj: {[key: string]: any} = {};
         this.columns.forEach((column) => {
-          if (this.displayedColumns.indexOf(column.def) > -1) {
+          if (this.includeColumnInExport(column)) {
             dataObj[column.title] = this.cellContent(entity, column, false);
           }
         });
         exportedData.push(dataObj);
       });
       return exportedData;
+    }
+  }
+
+  private includeColumnInExport(column: EntityColumn): boolean {
+    switch (this.columnExportParameters[column.def]) {
+      case columnExportOptions.always:
+        return true;
+      case columnExportOptions.never:
+        return false;
+      default:
+        return this.displayedColumns.indexOf(column.def) > -1;
     }
   }
 
