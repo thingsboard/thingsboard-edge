@@ -117,6 +117,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -600,7 +601,7 @@ public abstract class BaseController {
         }
     }
 
-    protected <I extends EntityId, T extends TenantEntity> Object checkEntity(I entityId, T entity, Resource resource, EntityGroupId entityGroupId) throws ThingsboardException {
+    protected <I extends EntityId, T extends TenantEntity> void checkEntity(I entityId, T entity, Resource resource, EntityGroupId entityGroupId) throws ThingsboardException {
         if (entityId == null) {
             if (entityGroupId == null) {
                 accessControlService
@@ -609,59 +610,79 @@ public abstract class BaseController {
                 accessControlService
                         .checkPermission(getCurrentUser(), resource, Operation.CREATE, null, entity, entityGroupId);
             }
-            return null;
         } else {
-            return checkEntityId(entityId, Operation.WRITE);
+            checkEntityId(entityId, Operation.WRITE);
         }
     }
 
-    protected Object checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
+    protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             checkNotNull(entityId);
             validateId(entityId.getId(), "Incorrect entityId " + entityId);
             switch (entityId.getEntityType()) {
                 case ALARM:
-                    return checkAlarmId(new AlarmId(entityId.getId()), operation);
+                    checkAlarmId(new AlarmId(entityId.getId()), operation);
+                    return;
                 case DEVICE:
-                    return checkDeviceId(new DeviceId(entityId.getId()), operation);
+                    checkDeviceId(new DeviceId(entityId.getId()), operation);
+                    return;
                 case DEVICE_PROFILE:
-                    return checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
+                    checkDeviceProfileId(new DeviceProfileId(entityId.getId()), operation);
+                    return;
                 case CUSTOMER:
-                    return checkCustomerId(new CustomerId(entityId.getId()), operation);
+                    checkCustomerId(new CustomerId(entityId.getId()), operation);
+                    return;
                 case TENANT:
-                    return checkTenantId(new TenantId(entityId.getId()), operation);
+                    checkTenantId(new TenantId(entityId.getId()), operation);
+                    return;
                 case TENANT_PROFILE:
-                    return checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
+                    checkTenantProfileId(new TenantProfileId(entityId.getId()), operation);
+                    return;
                 case RULE_CHAIN:
-                    return checkRuleChain(new RuleChainId(entityId.getId()), operation);
+                    checkRuleChain(new RuleChainId(entityId.getId()), operation);
+                    return;
                 case RULE_NODE:
-                    return checkRuleNode(new RuleNodeId(entityId.getId()), operation);
+                    checkRuleNode(new RuleNodeId(entityId.getId()), operation);
+                    return;
                 case ASSET:
-                    return checkAssetId(new AssetId(entityId.getId()), operation);
+                    checkAssetId(new AssetId(entityId.getId()), operation);
+                    return;
                 case INTEGRATION:
-                    return checkIntegrationId(new IntegrationId(entityId.getId()), operation);
+                    checkIntegrationId(new IntegrationId(entityId.getId()), operation);
+                    return;
                 case CONVERTER:
-                    return checkConverterId(new ConverterId(entityId.getId()), operation);
+                    checkConverterId(new ConverterId(entityId.getId()), operation);
+                    return;
                 case DASHBOARD:
-                    return checkDashboardId(new DashboardId(entityId.getId()), operation);
+                    checkDashboardId(new DashboardId(entityId.getId()), operation);
+                    return;
                 case USER:
-                    return checkUserId(new UserId(entityId.getId()), operation);
+                    checkUserId(new UserId(entityId.getId()), operation);
+                    return;
                 case ENTITY_GROUP:
-                    return checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
+                    checkEntityGroupId(new EntityGroupId(entityId.getId()), operation);
+                    return;
                 case SCHEDULER_EVENT:
-                    return checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
+                    checkSchedulerEventInfoId(new SchedulerEventId(entityId.getId()), operation);
+                    return;
                 case BLOB_ENTITY:
-                    return checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
+                    checkBlobEntityInfoId(new BlobEntityId(entityId.getId()), operation);
+                    return;
                 case ENTITY_VIEW:
-                    return checkEntityViewId(new EntityViewId(entityId.getId()), operation);
+                    checkEntityViewId(new EntityViewId(entityId.getId()), operation);
+                    return;
                 case ROLE:
-                    return checkRoleId(new RoleId(entityId.getId()), operation);
+                    checkRoleId(new RoleId(entityId.getId()), operation);
+                    return;
                 case WIDGETS_BUNDLE:
-                    return checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
+                    checkWidgetsBundleId(new WidgetsBundleId(entityId.getId()), operation);
+                    return;
                 case WIDGET_TYPE:
-                    return checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                    checkWidgetTypeId(new WidgetTypeId(entityId.getId()), operation);
+                    return;
                 case GROUP_PERMISSION:
-                    return checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
+                    checkGroupPermissionId(new GroupPermissionId(entityId.getId()), operation);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
