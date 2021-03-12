@@ -34,6 +34,8 @@ import { Observable, Subject } from 'rxjs';
 import { finalize, share } from 'rxjs/operators';
 import { Type } from '@angular/core';
 import { Datasource } from '@app/shared/models/widget.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
 const varsRegex = /\${([^}]*)}/g;
 
@@ -507,4 +509,8 @@ export function generateSecret(length?: number): string {
     return str;
   }
   return str.concat(generateSecret(length - str.length));
+}
+
+export function validateEntityId(entityId: EntityId): boolean {
+  return isDefinedAndNotNull(entityId.id) && entityId.id !== NULL_UUID && isDefinedAndNotNull(entityId.entityType);
 }

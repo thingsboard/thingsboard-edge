@@ -29,11 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './enum-to-array.pipe';
-export * from './highlight.pipe';
-export * from './keyboard-shortcut.pipe';
-export * from './milliseconds-to-time-string.pipe';
-export * from './nospace.pipe';
-export * from './truncate.pipe';
-export * from './file-size.pipe';
-export * from './selectable-columns.pipe';
+import { Pipe, PipeTransform } from '@angular/core';
+import { DisplayColumn } from '@home/components/widget/lib/table-widget.models';
+
+@Pipe({ name: 'selectableColumns' })
+export class SelectableColumnsPipe implements PipeTransform {
+  transform(allColumns: DisplayColumn[]): DisplayColumn[] {
+    return allColumns.filter(column => column.selectable);
+  }
+}

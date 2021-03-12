@@ -81,8 +81,12 @@ import {
   fromEntityColumnDef,
   getCellContentInfo,
   getCellStyleInfo,
+  getColumnDefaultVisibility,
+  getColumnSelectionAvailability,
   getColumnWidth,
   getEntityValue,
+  getRowStyleInfo,
+  RowStyleInfo,
   TableWidgetDataKeySettings,
   TableWidgetSettings,
   widthStyle
@@ -112,6 +116,8 @@ import { EntityService } from '@core/http/entity.service';
 
 interface EntitiesTableWidgetSettings extends TableWidgetSettings {
   entitiesTitle: string;
+  enableSelectColumnDisplay: boolean;
+  defaultSortOrder: string;
   displayEntityName: boolean;
   entityNameColumnTitle: string;
   displayEntityLabel: boolean;
@@ -134,6 +140,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   @ViewChild(MatSort) sort: MatSort;
 
   public displayPagination = true;
+  public enableStickyHeader = true;
+  public enableStickyAction = true;
   public pageSizeOptions;
   public pageLink: EntityDataPageLink;
   public sortOrderProperty: string;
@@ -155,6 +163,10 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
   private contentsInfo: {[key: string]: CellContentInfo} = {};
   private stylesInfo: {[key: string]: CellStyleInfo} = {};
   private columnWidth: {[key: string]: string} = {};
+  private columnDefaultVisibility: {[key: string]: boolean} = {};
+  private columnSelectionAvailability: {[key: string]: boolean} = {};
+
+  private rowStylesInfo: RowStyleInfo;
 
   private searchAction: WidgetAction = {
     name: 'action.search',
@@ -254,7 +266,11 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
 
     this.searchAction.show = isDefined(this.settings.enableSearch) ? this.settings.enableSearch : true;
     this.displayPagination = isDefined(this.settings.displayPagination) ? this.settings.displayPagination : true;
+    this.enableStickyHeader = isDefined(this.settings.enableStickyHeader) ? this.settings.enableStickyHeader : true;
+    this.enableStickyAction = isDefined(this.settings.enableStickyAction) ? this.settings.enableStickyAction : true;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
+
+    this.rowStylesInfo = getRowStyleInfo(this.settings, 'entity, ctx');
 
     const pageSize = this.settings.defaultPageSize;
     if (isDefined(pageSize) && isNumber(pageSize) && pageSize > 0) {
@@ -320,6 +336,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         useCellStyleFunction: false
       };
       this.columnWidth.entityName = '0px';
+      this.columnDefaultVisibility.entityName = true;
+      this.columnSelectionAvailability.entityName = true;
     }
     if (displayEntityLabel) {
       this.columns.push(
@@ -341,6 +359,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         useCellStyleFunction: false
       };
       this.columnWidth.entityLabel = '0px';
+      this.columnDefaultVisibility.entityLabel = true;
+      this.columnSelectionAvailability.entityLabel = true;
     }
     if (displayEntityType) {
       this.columns.push(
@@ -362,6 +382,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         useCellStyleFunction: false
       };
       this.columnWidth.entityType = '0px';
+      this.columnDefaultVisibility.entityType = true;
+      this.columnSelectionAvailability.entityType = true;
     }
 
     const dataKeys: Array<DataKey> = [];
@@ -389,14 +411,17 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
           }
         }
 
-        this.stylesInfo[dataKey.def] = getCellStyleInfo(keySettings);
+        this.stylesInfo[dataKey.def] = getCellStyleInfo(keySettings, 'value, entity, ctx');
         this.contentsInfo[dataKey.def] = getCellContentInfo(keySettings, 'value, entity, ctx');
         this.contentsInfo[dataKey.def].units = dataKey.units;
         this.contentsInfo[dataKey.def].decimals = dataKey.decimals;
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
+        this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
+        this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
         this.columns.push(dataKey);
       });
-      this.displayedColumns.push(...this.columns.map(column => column.def));
+      this.displayedColumns.push(...this.columns.filter(column => this.columnDefaultVisibility[column.def])
+        .map(column => column.def));
     }
 
     if (this.settings.defaultSortOrder && this.settings.defaultSortOrder.length) {
@@ -443,7 +468,8 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       return {
         title: column.title,
         def: column.def,
-        display: this.displayedColumns.indexOf(column.def) > -1
+        display: this.displayedColumns.indexOf(column.def) > -1,
+        selectable: this.columnSelectionAvailability[column.def]
       };
     });
 
@@ -454,7 +480,9 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
           columns,
           columnsUpdated: (newColumns) => {
             this.displayedColumns = newColumns.filter(column => column.display).map(column => column.def);
-            this.displayedColumns.push('actions');
+            if (this.actionCellDescriptors.length) {
+              this.displayedColumns.push('actions');
+            }
           }
         } as DisplayColumnsPanelData
       },
@@ -530,6 +558,30 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
     return widthStyle(columnWidth);
   }
 
+  public rowStyle(entity: EntityData): any {
+    let style: any = {};
+    if (entity) {
+      if (this.rowStylesInfo.useRowStyleFunction && this.rowStylesInfo.rowStyleFunction) {
+        try {
+          style = this.rowStylesInfo.rowStyleFunction(entity, this.ctx);
+          if (!isObject(style)) {
+            throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
+          }
+          if (Array.isArray(style)) {
+            throw new TypeError(`Array instead of style object`);
+          }
+        } catch (e) {
+          style = {};
+          console.warn(`Row style function in widget '${this.ctx.widgetTitle}' ` +
+            `returns '${e}'. Please check your row style function.`);
+        }
+      } else {
+        style = {};
+      }
+    }
+    return style;
+  }
+
   public cellStyle(entity: EntityData, key: EntityColumn): any {
     let style: any = {};
     if (entity && key) {
@@ -537,7 +589,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       const value = getEntityValue(entity, key);
       if (styleInfo.useCellStyleFunction && styleInfo.cellStyleFunction) {
         try {
-          style = styleInfo.cellStyleFunction(value);
+          style = styleInfo.cellStyleFunction(value, entity, this.ctx);
           if (!isObject(style)) {
             throw new TypeError(`${style === null ? 'null' : typeof style} instead of style object`);
           }
@@ -578,6 +630,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
       if (!isDefined(content)) {
         return '';
       } else {
+        content = this.utils.customTranslation(content, content);
         switch (typeof content) {
           case 'string':
             return useSafeHtml ? this.domSanitizer.bypassSecurityTrustHtml(content) : content;
