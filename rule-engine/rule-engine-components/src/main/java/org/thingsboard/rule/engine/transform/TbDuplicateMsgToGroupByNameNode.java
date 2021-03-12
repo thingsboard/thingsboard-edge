@@ -58,6 +58,8 @@ import java.util.concurrent.ExecutionException;
                 "By default, rule node attempts to find the group by name that belongs to the same customer which owns the device (or other message originator). " +
                 "If no such group on the customer level, rule node will search for parent customer level and finally for the tenant level. " +
                 "You may configure rule node to search only tenant level entity groups.",
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        configDirective = "tbTransformationNodeDuplicateToGroupByNameConfig",
         icon = "call_split"
 )
 public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOriginatorsNode {
