@@ -103,7 +103,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   private hierarchyCallbacks: HierarchyCallbacks = {
     groupSelected: this.onGroupSelected.bind(this),
     customerGroupsSelected: this.onCustomerGroupsSelected.bind(this),
-    edgeGroupsSelected: this.onEdgeGroupsSelected.bind(this),
     refreshEntityGroups: this.refreshEntityGroups.bind(this),
     refreshCustomerGroups: this.refreshCustomerGroups.bind(this),
     groupUpdated: this.groupUpdated.bind(this),
@@ -112,6 +111,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     customerAdded: this.customerAdded.bind(this),
     customerUpdated: this.customerUpdated.bind(this),
     customersDeleted: this.customersDeleted.bind(this),
+    edgeGroupsSelected: this.onEdgeGroupsSelected.bind(this),
     edgeAdded: this.edgeAdded.bind(this),
     edgeUpdated: this.edgeUpdated.bind(this),
     edgesDeleted: this.edgesDeleted.bind(this),
@@ -277,7 +277,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           case EntityType.DEVICE:
           case EntityType.ENTITY_VIEW:
           case EntityType.DASHBOARD:
-            this.updateGroupsView(entityGroupParams, null, node.data.edge);
+            this.updateEdgeGroupsView(entityGroupParams, node.data.edge);
             break;
           case EntityType.SCHEDULER_EVENT:
             this.updateSchedulerView('schedulerEvents');
@@ -287,8 +287,14 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     }
   }
 
-  private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer, edge?: Edge) {
-    const title = customer ? customer.title : edge.name;
+  private updateGroupsView(entityGroupParams: EntityGroupParams, customer?: Customer) {
+    const title = customer.title;
+    const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, title);
+    this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
+  }
+
+  private updateEdgeGroupsView(entityGroupParams: EntityGroupParams, edge: Edge) {
+    const title = edge.name;
     const entityGroupsTableConfig = this.resolveEntityGroupTableConfig(entityGroupParams, title);
     this.updateView('groups', entityGroupParams, entityGroupsTableConfig, null);
   }
