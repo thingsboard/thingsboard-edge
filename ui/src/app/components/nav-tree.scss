@@ -152,6 +152,12 @@
           content: "router";
         }
       }
+
+      &.tb-edge-scheduler-event {
+        &::before {
+          content: "schedule";
+        }
+      }
     }
   }
 }

@@ -633,6 +633,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     $stateParams.hierarchyCallbacks.customerAdded($stateParams.nodeId, entity);
                 }
             }
+            if (vm.entityGroup.type === types.entityType.edge) {
+                if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.edgeAdded) {
+                    $stateParams.hierarchyCallbacks.edgeAdded($stateParams.nodeId, entity);
+                }
+            }
         }, function () {
         });
     }
@@ -773,6 +778,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                         $stateParams.hierarchyCallbacks.customerUpdated(entity);
                     }
                 }
+                if (vm.entityGroup.type === types.entityType.edge) {
+                    if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.edgeUpdated) {
+                        $stateParams.hierarchyCallbacks.edgeUpdated(entity);
+                    }
+                }
             }
         );
         if (reloadDetails) {
@@ -892,6 +902,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                             $stateParams.hierarchyCallbacks.customersDeleted([entity.id.id]);
                         }
                     }
+                    if (vm.entityGroup.type === types.entityType.edge) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.edgesDeleted) {
+                            $stateParams.hierarchyCallbacks.edgesDeleted([entity.id.id]);
+                        }
+                    }
                 });
             },
             function () {
@@ -921,6 +936,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     if (vm.entityGroup.type === types.entityType.customer) {
                         if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.customersDeleted) {
                             $stateParams.hierarchyCallbacks.customersDeleted(entityIds);
+                        }
+                    }
+                    if (vm.entityGroup.type === types.entityType.edge) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.edgesDeleted) {
+                            $stateParams.hierarchyCallbacks.edgesDeleted(entityIds);
                         }
                     }
                 });
@@ -1065,6 +1085,11 @@ export default function EntityGroupController($rootScope, $scope, $state, $injec
                     if (vm.entityGroup.type === types.entityType.customer) {
                         if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshCustomerGroups) {
                             $stateParams.hierarchyCallbacks.refreshCustomerGroups([selectedGroupData.groupId]);
+                        }
+                    }
+                    if (vm.entityGroup.type === types.entityType.edge) {
+                        if ($stateParams.hierarchyView && $stateParams.hierarchyCallbacks.refreshEdgeGroups) {
+                            $stateParams.hierarchyCallbacks.refreshEdgeGroups([selectedGroupData.groupId]);
                         }
                     }
                     deferred.resolve(data);
