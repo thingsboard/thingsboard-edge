@@ -400,6 +400,9 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                     }
                 );
             }
+        } else { //TODO deaflynx: is it possible to avoid adding "else statement"
+            vm.groupActionsList = [];
+            vm.groupActionsList.push(vm.config.groupActionsList);
         }
 
         vm.addItemText = vm.config.addItemText || function () {
@@ -647,7 +650,6 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             function () {
             });
     }
-
 
     function toggleItemSelection($event, item) {
         $event.stopPropagation();
