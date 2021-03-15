@@ -373,6 +373,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                 edgeId: entity.id.id,
                 customerId: params.customerId,
                 childEntityGroupId: params.childEntityGroupId,
+                entityGroupScope: params.entityGroupScope,
                 targetGroupType: targetGroupType
             };
         }
