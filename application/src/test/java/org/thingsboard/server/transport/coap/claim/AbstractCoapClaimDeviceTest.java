@@ -39,6 +39,9 @@ import org.eclipse.californium.elements.exception.ConnectorException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.transport.coap.AbstractCoapIntegrationTest;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
@@ -83,7 +86,11 @@ public abstract class AbstractCoapClaimDeviceTest extends AbstractCoapIntegratio
         user.setCustomerId(savedCustomer.getId());
         user.setEmail("customer@thingsboard.org");
 
-        customerAdmin = createUser(user, CUSTOMER_USER_PASSWORD);
+        EntityGroupInfo customerAdmins = doGet("/api/entityGroup/"+ EntityType.CUSTOMER +"/"+savedCustomer.getId().toString()+"/"+EntityType.USER+"/"+ EntityGroup.GROUP_CUSTOMER_ADMINS_NAME,
+                EntityGroupInfo.class);
+
+        customerAdmin = createUser(user, CUSTOMER_USER_PASSWORD, customerAdmins.getId());
+
         assertNotNull(customerAdmin);
         assertEquals(customerAdmin.getCustomerId(), savedCustomer.getId());
     }
