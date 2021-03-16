@@ -57,7 +57,8 @@ export class LoginComponent extends PageComponent implements OnInit {
     password: ''
   });
   oauth2Clients: Array<OAuth2ClientInfo> = null;
-
+  hidePassword = true;
+  
   constructor(protected store: Store<AppState>,
               private authService: AuthService,
               public wl: WhiteLabelingService,
