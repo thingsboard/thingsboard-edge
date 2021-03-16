@@ -229,7 +229,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                     details: function() { return $translate.instant('edge.unassign-from-edge') },
                     icon: "assignment_return",
                     isEnabled: function (item) {
-                        return !item.edgeGroupAll;
+                        return !item.edgeGroupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, item); //TODO deaflynx:
                     }
                 }
             ];

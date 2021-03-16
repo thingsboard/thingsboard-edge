@@ -337,7 +337,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             );
         }
 
-        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read) && manageRuleChainsEnabled()) {
+        if (manageRuleChainsEnabled()) {
             groupConfig.actionCellDescriptors.push(
                 {
                     name: $translate.instant('edge.manage-edge-rule-chains'),
@@ -379,11 +379,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
         }
 
         function manageRuleChainsEnabled() {
-            return isTenantAdmin() && !params.customerId;
-        }
-
-        function isTenantAdmin() {
-            return userService.getAuthority() === 'TENANT_ADMIN';
+            return userPermissionsService.hasGenericPermission(securityTypes.resource.edge, securityTypes.operation.write);
         }
 
         utils.groupConfigDefaults(groupConfig);
