@@ -176,6 +176,8 @@ export default function CustomersHierarchyController($scope, types, securityType
                         cb(entityGroupsToNodes(node.id, parentEntityGroupId, entityGroups));
                     }
                 );
+            } else if (node.data.type === "edgeSchedulerEvents") {
+                cb([]);
             }
         }
     }
@@ -583,7 +585,7 @@ export default function CustomersHierarchyController($scope, types, securityType
                 delete vm.groupsStateParams.childGroupType;
                 delete vm.groupsStateParams.customerId;
                 vm.groupsStateParams.hierarchyCallbacks.reload();
-            } else if (node.data.type === "groups" || node.data.type === "group" || node.data.type === "edgeGroups") {
+            } else if (node.data.type === "groups" || node.data.type === "group" || node.data.type === "edgeGroups" || node.data.type === "edgeSchedulerEvents") {
                 vm.viewLoading = true;
                 $mdUtil.nextTick(() => {
                     var parentEntityGroupId;
@@ -627,6 +629,8 @@ export default function CustomersHierarchyController($scope, types, securityType
                         vm.groupStateParams.internalId = node.data.internalId;
                         vm.groupStateParams.hierarchyCallbacks.reload();
                     } else if (node.data.type === "edgeGroups") {
+                        // const edgeEntityGroupType = node.data.groupsType;
+                        // defineViewMode(edgeEntityGroupType);
                         vm.viewMode = 'groups';
                         parentEntityGroupId = node.data.parentEntityGroupId;
                         if (parentEntityGroupId) {
@@ -641,6 +645,21 @@ export default function CustomersHierarchyController($scope, types, securityType
                         vm.groupsStateParams.internalId = node.data.internalId;
                         vm.groupsStateParams.parentType = node.data.type;
                         vm.groupsStateParams.hierarchyCallbacks.reload();
+                    } else if (node.data.type === "edgeSchedulerEvents") {
+                        // vm.viewMode = 'schedulerEvents';
+                        // parentEntityGroupId = node.data.parentEntityGroupId;
+                        // if (parentEntityGroupId) {
+                        //     vm.groupsStateParams.entityGroupId = parentEntityGroupId;
+                        //     vm.groupsStateParams.groupType = vm.types.entityType.edge;
+                        //     vm.groupsStateParams.childGroupType = node.data.groupsType;
+                        // } else {
+                        //     vm.groupsStateParams.groupType = node.data.groupsType;
+                        // }
+                        // vm.groupsStateParams.edgeId = node.data.edge.id.id;
+                        // vm.groupsStateParams.nodeId = node.id;
+                        // vm.groupsStateParams.internalId = node.data.internalId;
+                        // vm.groupsStateParams.parentType = node.data.type;
+                        // vm.groupsStateParams.hierarchyCallbacks.reload();
                     }
                 });
             }
@@ -763,23 +782,23 @@ export default function CustomersHierarchyController($scope, types, securityType
             }
         }
         if (vm.allowedSheduler) {
-            let groupType = types.entityType.schedulerEvent;
-            let node = {
-                id: ++vm.nodeIdCounter,
-                icon: 'material-icons ' + iconForGroupType(groupType),
-                text: textForGroupType(groupType),
-                children: false,
-                data: {
-                    type: "edgeGroups",
-                    groupsType: groupType,
-                    edge: edge,
-                    parentEntityGroupId: parentEntityGroupId,
-                    internalId: edge.id.id + '_' + groupType
-                }
-            };
-            nodes.push(node);
-            nodesMap[groupType] = node.id;
-            registerNode(node, parentNodeId);
+        //     let groupType = types.entityType.schedulerEvent;
+        //     let node = {
+        //         id: ++vm.nodeIdCounter,
+        //         icon: 'material-icons ' + iconForGroupType(groupType),
+        //         text: textForGroupType(groupType),
+        //         children: false,
+        //         data: {
+        //             type: "edgeSchedulerEvents",
+        //             groupsType: groupType,
+        //             edge: edge,
+        //             parentEntityGroupId: parentEntityGroupId,
+        //             internalId: edge.id.id + '_' + groupType
+        //         }
+        //     };
+        //     nodes.push(node);
+        //     nodesMap[groupType] = node.id;
+        //     registerNode(node, parentNodeId);
         }
         return nodes;
     }
@@ -798,4 +817,5 @@ export default function CustomersHierarchyController($scope, types, securityType
             }
         }
     }
+
 }

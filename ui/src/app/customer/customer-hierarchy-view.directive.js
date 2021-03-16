@@ -127,8 +127,7 @@ export default function CustomerHierarchyViewDirective($compile, $templateCache,
         link: linker,
         scope: {
             stateParams: '=',
-            locals: '=',
-            edgeId: '='
+            locals: '='
         }
     };
 }
