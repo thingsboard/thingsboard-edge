@@ -73,11 +73,11 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             manageDashboardsEnabled: () => {
                 return settings.enableDashboardsManagement;
             },
-            manageRuleChainsEnabled: () => {
-                return settings.enableRuleChainsManagement;
-            },
             manageSchedulerEventsEnabled: () => {
                 return settings.enableSchedulerEventsManagement;
+            },
+            manageRuleChainsEnabled: () => {
+                return !manageRuleChainsEnabled();
             },
             deleteEnabled: () => {
                 return settings.enableDelete;
@@ -337,13 +337,13 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             );
         }
 
-        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read) && (userService.getCurrentUser().authority === 'TENANT_ADMIN')) {
+        if (userPermissionsService.hasGenericPermission(securityTypes.resource.ruleChain, securityTypes.operation.read) && manageRuleChainsEnabled()) {
             groupConfig.actionCellDescriptors.push(
                 {
                     name: $translate.instant('edge.manage-edge-rule-chains'),
                     icon: 'settings_ethernet',
                     isEnabled: () => {
-                        return settings.enableRuleChainsManagement;
+                        return true;
                     },
                     onAction: ($event, entity) => {
                         groupConfig.onManageRuleChains($event, entity);
@@ -376,6 +376,10 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
                 entityGroupScope: params.entityGroupScope,
                 targetGroupType: targetGroupType
             };
+        }
+
+        function manageRuleChainsEnabled() {
+            return userService.getAuthority() === 'TENANT_ADMIN' && !params.customerId;
         }
 
         utils.groupConfigDefaults(groupConfig);

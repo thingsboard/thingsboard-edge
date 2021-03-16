@@ -124,8 +124,8 @@
           hide-manage-devices="!vm.entityGroupConfig.manageDevicesEnabled(vm.entity)"
           hide-manage-entity-views="!vm.entityGroupConfig.manageEntityViewsEnabled(vm.entity)"
           hide-manage-dashboards="!vm.entityGroupConfig.manageDashboardsEnabled(vm.entity)"
-          hide-manage-rule-chains="!vm.entityGroupConfig.manageRuleChainsEnabled(vm.entity)"
-          hide-manage-scheduler-events="!vm.entityGroupConfig.manageSchedulerEventsEnabled(vm.entity)">
+          hide-manage-scheduler-events="!vm.entityGroupConfig.manageSchedulerEventsEnabled(vm.entity)"
+          hide-manage-rule-chains="vm.entityGroupConfig.manageRuleChainsEnabled">
 </tb-edge>
 <tb-dashboard-details  ng-if="vm.entityType == vm.types.entityType.dashboard"
                  entity-group="vm.entityGroup"

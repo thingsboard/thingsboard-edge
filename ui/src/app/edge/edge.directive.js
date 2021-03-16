@@ -138,8 +138,8 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
             hideManageDevices: '=',
             hideManageEntityViews: '=',
             hideManageDashboards: '=',
-            hideManageRuleChains: '=',
-            hideManageSchedulerEvents: '='
+            hideManageSchedulerEvents: '=',
+            hideManageRuleChains: '='
         }
     };
 }
