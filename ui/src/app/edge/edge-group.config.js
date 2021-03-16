@@ -117,7 +117,7 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
             );
         };*/
 
-       /* groupConfig.groupActionDescriptors = [
+        /* groupConfig.groupActionDescriptors = [
             {
                 name: $translate.instant('entity-view.assign-entity-views'),
                 icon: "assignment_ind",
@@ -379,7 +379,11 @@ export default function EdgeGroupConfig($q, $translate, $state, $window, tbDialo
         }
 
         function manageRuleChainsEnabled() {
-            return userService.getAuthority() === 'TENANT_ADMIN' && !params.customerId;
+            return isTenantAdmin() && !params.customerId;
+        }
+
+        function isTenantAdmin() {
+            return userService.getAuthority() === 'TENANT_ADMIN';
         }
 
         utils.groupConfigDefaults(groupConfig);
