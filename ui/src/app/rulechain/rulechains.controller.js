@@ -85,10 +85,10 @@ export default function RuleChainsController(ruleChainService, userService, impo
 
     var vm = this;
 
-    vm.edgeId = $stateParams.edgeId;
-
     vm.types = types;
 
+    vm.edgeId = $stateParams.edgeId;
+    vm.groupType = $stateParams.groupType;
     vm.ruleChainsScope = $state.$current.data.ruleChainsType;
 
     vm.ruleChainGridConfig = {
@@ -436,8 +436,10 @@ export default function RuleChainsController(ruleChainService, userService, impo
             $event.stopPropagation();
         }
         var ruleChainParams = {ruleChainId: ruleChain.id.id};
-        if (vm.ruleChainsScope === 'edge') {
+        if (vm.ruleChainsScope === 'edge' && vm.groupType === types.entityType.edge) {
             $state.go('home.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edgeId});
+        } else if (vm.ruleChainsScope === 'edge' && vm.groupType === types.entityType.customer) {
+            $state.go('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains.ruleChain', {ruleChainId: ruleChain.id.id, edgeId: vm.edgeId});
         } else if (vm.ruleChainsScope === 'edges') {
             $state.go('home.edges.ruleChains.ruleChain', ruleChainParams);
         } else {

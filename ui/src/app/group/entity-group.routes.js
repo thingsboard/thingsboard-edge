@@ -817,6 +817,45 @@ export default function EntityGroupRoutes($stateProvider, types) {
                 label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
             }
         })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains.ruleChain', {
+            url: '/:ruleChainId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: ruleChainTemplate,
+                    controller: 'RuleChainController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver,
+                ruleChain:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChain($stateParams.ruleChainId);
+                    },
+                ruleChainMetaData:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChainMetaData($stateParams.ruleChainId);
+                    },
+                ruleNodeComponents:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
+                    }
+            },
+            data: {
+                import: false,
+                searchEnabled: false,
+                pageTitle: 'edge.rulechain'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
+            }
+        })
         .state('home.edges', {
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
@@ -1254,7 +1293,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         }
         })
         .state('home.edges.ruleChains', {
-            url: '/ruleChains',
+            url: '/edges/ruleChains',
             params: {'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN'],
@@ -1313,7 +1352,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         }
     })
         .state('home.edges.ruleChains.importRuleChain', {
-        url: '/edges/ruleChains/import',
+        url: '/ruleChain/import',
         reloadOnSearch: false,
         module: 'private',
         auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
