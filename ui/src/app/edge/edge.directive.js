@@ -48,7 +48,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
 
         scope.$watch('edge', function(newVal) {
             if (newVal) {
-                if (scope.edge.id && !scope.edge.id.id) {
+                if (scope.edge.id) { // TODO deaflynx: was (scope.edge.id && !scope.edge.id.id)
                     scope.edge.routingKey = utils.guid('');
                     scope.edge.secret = generateSecret(20);
                     scope.edge.cloudEndpoint = utils.baseUrl();

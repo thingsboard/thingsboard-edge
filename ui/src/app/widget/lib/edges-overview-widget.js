@@ -40,13 +40,11 @@ function EdgesOverviewWidget() {
 
 /*@ngInject*/
 function EdgesOverviewWidgetController($scope, $translate, types, utils, entityService, edgeService, customerService, userService, entityGroupService) {
-
     var vm = this;
 
     vm.showData = true;
 
     vm.nodeIdCounter = 0;
-    vm.selectedNodeId = -1;
 
     vm.entityNodesMap = {};
     vm.entityGroupsNodesMap = {};
@@ -54,7 +52,7 @@ function EdgesOverviewWidgetController($scope, $translate, types, utils, entityS
     vm.customerTitle = null;
     vm.edgeIsDatasource = true;
 
-    var groupTypes = [
+    var edgeGroupsTypes = [
         types.entityType.user,
         types.entityType.customer,
         types.entityType.asset,

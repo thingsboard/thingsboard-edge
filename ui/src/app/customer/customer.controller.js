@@ -36,7 +36,7 @@ import customerCard from './customer-card.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function CustomerController(customerService, $state, $stateParams, $translate, types, utils) {
+export default function CustomerController(customerService, $state, $stateParams, $translate, types, utils, userService) {
 
     var customerActionsList = [
         {
@@ -91,21 +91,29 @@ export default function CustomerController(customerService, $state, $stateParams
                 }
             },
             icon: "dashboard"
-        },
-        {
-            onAction: function ($event, item) {
-                openCustomerEdges($event, item);
-            },
-            name: function() { return $translate.instant('edge.edge-instances') },
-            details: function(customer) {
-                if (customer && customer.additionalInfo && customer.additionalInfo.isPublic) {
-                    return $translate.instant('customer.manage-public-edges')
-                } else {
-                    return $translate.instant('customer.manage-customer-edges')
-                }
-            },
-            icon: "router"
-        },
+        }];
+
+    if (userService.isEdgesSupportEnabled()) {
+        customerActionsList.push(
+            {
+                onAction: function ($event, item) {
+                    openCustomerEdges($event, item);
+                },
+                name: function() { return $translate.instant('edge.edge-instances') },
+                details: function(customer) {
+                    if (customer && customer.additionalInfo && customer.additionalInfo.isPublic) {
+                        return $translate.instant('customer.manage-public-edges')
+                    } else {
+                        return $translate.instant('customer.manage-customer-edges')
+                    }
+                },
+                icon: "router",
+                isEnabled: false
+            }
+        )
+    }
+
+    customerActionsList.push(
         {
             onAction: function ($event, item) {
                 vm.grid.deleteItem($event, item);
@@ -117,11 +125,13 @@ export default function CustomerController(customerService, $state, $stateParams
                 return customer && (!customer.additionalInfo || !customer.additionalInfo.isPublic);
             }
         }
-    ];
+    );
 
     var vm = this;
 
     vm.types = types;
+
+    vm.isEdgesSupportEnabled = userService.isEdgesSupportEnabled();
 
     vm.customerGridConfig = {
 
