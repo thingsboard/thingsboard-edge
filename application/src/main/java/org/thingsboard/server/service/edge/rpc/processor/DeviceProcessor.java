@@ -42,7 +42,6 @@ import org.apache.commons.lang.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.rule.engine.api.RpcError;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Edge;
@@ -62,7 +61,6 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JacksonUtil;
 import org.thingsboard.server.gen.edge.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.DeviceRpcCallMsg;
@@ -115,8 +113,6 @@ public class DeviceProcessor extends BaseProcessor {
                                 ObjectNode body = mapper.createObjectNode();
                                 body.put("conflictName", deviceName);
                                 saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.ENTITY_MERGE_REQUEST, device.getId(), body);
-                                // TODO: voba - fix this
-                                // deviceService.assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
                             }
                             futureToSet.set(null);
                         }
@@ -132,26 +128,14 @@ public class DeviceProcessor extends BaseProcessor {
                     log.info("[{}] Creating new device and replacing device entity on the edge [{}]", tenantId, deviceUpdateMsg);
                     device = createDevice(tenantId, edge, deviceUpdateMsg, deviceUpdateMsg.getName());
                     saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.ENTITY_MERGE_REQUEST, device.getId(), null);
-                    // TODO: voba - fix this
-                    // deviceService.assignDeviceToEdge(edge.getTenantId(), device.getId(), edge.getId());
                 }
-                // TODO: voba - assign device only in case device is not assigned yet. Missing functionality to check this relation prior assignment
-//               TODO: voba
-//                entityGroupService.addEntityToEntityGroupAll(device.getTenantId(), device.getOwnerId(), device.getId());
-//                addDeviceToDeviceGroup(tenantId, edge, device.getId());
                 break;
             case ENTITY_UPDATED_RPC_MESSAGE:
                 updateDevice(tenantId, edge, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
-                // TODO: voba
-                // removeDeviceFromDeviceGroup(tenantId, edge, edgeDeviceId);
-
-//                DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-//                Device deviceToDelete = deviceService.findDeviceById(tenantId, deviceId);
-//                if (deviceToDelete != null) {
-//                    deviceService.unassignDeviceFromEdge(tenantId, deviceId, edge.getId());
-//                }
+                DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
+                removeDeviceFromDeviceGroup(tenantId, edge, deviceId);
                 break;
             case UNRECOGNIZED:
                 log.error("Unsupported msg type {}", deviceUpdateMsg.getMsgType());
@@ -214,6 +198,7 @@ public class DeviceProcessor extends BaseProcessor {
             createRelationFromEdge(tenantId, edge.getId(), device.getId());
             deviceStateService.onDeviceAdded(device);
             pushDeviceCreatedEventToRuleEngine(tenantId, edge, device);
+            addDeviceToDeviceGroup(tenantId, edge, device.getId());
         } finally {
             deviceCreationLock.unlock();
         }
