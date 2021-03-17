@@ -404,7 +404,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
 
         if (!vm.config.groupActionsList) {
             vm.groupActionsList = [];
-            if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete) && !vm.config.unassignEntityGroupsEnabled) {
+            if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete) && !vm.config.unassignEnabled) {
                 vm.groupActionsList.push(
                     {
                         onAction: function ($event) {
@@ -415,7 +415,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                         icon: "delete"
                     }
                 );
-            } if (vm.config.unassignEntityGroupsEnabled) {
+            } if (vm.config.unassignEnabled) {
                 vm.groupActionsList.push(
                     {
                         onAction: function ($event) {
