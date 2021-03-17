@@ -35,7 +35,7 @@ import edgeFieldsetTemplate from './edge-fieldset.tpl.html';
 /* eslint-enable import/no-unresolved, import/default */
 
 /*@ngInject*/
-export default function EdgeDirective($compile, $templateCache, $translate, $mdDialog, $document, utils, toast, types, edgeService) {
+export default function EdgeDirective($compile, $templateCache, $translate, $mdDialog, $document, utils, toast, types, edgeService, userPermissionsService, securityTypes) {
     var linker = function (scope, element) {
         var template = $templateCache.get(edgeFieldsetTemplate);
         element.html(template);
@@ -44,6 +44,7 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
         /*scope.isAssignedToCustomer = false;
         scope.isPublic = false;
         scope.assignedCustomer = null;*/
+        scope.isTenantAdmin = userPermissionsService.hasGenericPermission(securityTypes.resource.edge, securityTypes.operation.write); //TODO deaflynx: move this to linker
 
         scope.$watch('edge', function(newVal) {
             if (newVal) {
@@ -138,8 +139,8 @@ export default function EdgeDirective($compile, $templateCache, $translate, $mdD
             hideManageDevices: '=',
             hideManageEntityViews: '=',
             hideManageDashboards: '=',
-            hideManageRuleChains: '=',
-            hideManageSchedulerEvents: '='
+            hideManageSchedulerEvents: '=',
+            hideManageRuleChains: '='
         }
     };
 }

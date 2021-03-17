@@ -64,9 +64,10 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.schedulerScope = $state.$current.data.schedulerScope;
     vm.edgeId = $stateParams.edgeId;
 
-    vm.editEnabled = editEnabled();
+    vm.editEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.write);
     vm.addEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.create);
     vm.deleteEnabled = userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.delete);
+    vm.isEdgeScope = vm.schedulerScope === 'edge';
 
     vm.showData = (userService.getAuthority() === 'TENANT_ADMIN' || userService.getAuthority() === 'CUSTOMER_USER') &&
         userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.read);
@@ -133,9 +134,9 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
     vm.reloadSchedulerEvents = reloadSchedulerEvents;
     vm.updateSchedulerEvents = updateSchedulerEvents;
 
-    vm.addSchedulerEventTitle = addSchedulerEventTitle;
-    vm.deleteSchedulerEventTitle = deleteSchedulerEventTitle;
-    vm.deleteSchedulerEventsTitle = deleteSchedulerEventsTitle;
+    vm.assignSchedulerEventsToEdge = assignSchedulerEventsToEdge;
+    vm.unassignSchedulerEventFromEdge = unassignSchedulerEventFromEdge;
+    vm.unassignSchedulerEventsFromEdge = unassignSchedulerEventsFromEdge;
 
     $scope.$watch("vm.query.search", function(newVal, prevVal) {
         if (!angular.equals(newVal, prevVal) && vm.query.search != null) {
@@ -168,20 +169,6 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
     });
 
-    initController();
-
-    function initController() {
-        if (vm.schedulerScope === 'edge') {
-            vm.addSchedulerEvent = assignSchedulerEventToEdge;
-            vm.deleteSchedulerEvent = unassignSchedulerEvent;
-            vm.deleteSchedulerEvents = unassignSchedulerEvents;
-        } else {
-            vm.addSchedulerEvent = addSchedulerEvent;
-            vm.deleteSchedulerEvent = deleteSchedulerEvent;
-            vm.deleteSchedulerEvents = deleteSchedulerEvents;
-        }
-    }
-
     vm.configTypes = {};
 
     if (vm.showData) {
@@ -204,14 +191,6 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             var w = angular.element($window);
             w.triggerHandler('resize');
         }, 100);
-    }
-
-    function editEnabled() {
-        if (vm.schedulerScope === 'edge') {
-            return false;
-        } else {
-            return userPermissionsService.hasGenericPermission(securityTypes.resource.schedulerEvent, securityTypes.operation.write)
-        }
     }
 
     function initializeWidgetConfig() {
@@ -291,7 +270,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
                 icon: 'add'
             },
             {
-                name: 'edge.assign-to-edge',
+                name: 'edge.assign-to-edge-scheduler-events',
                 show: true,
                 onAction: function(event) {
                     vm.assignToEdgeSchedulerEvent(event);
@@ -799,31 +778,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         calendarElem().fullCalendar('refetchEvents');
     }
 
-    function addSchedulerEventTitle() {
-        if (vm.schedulerScope === 'edge') {
-            return $translate.instant('edge.assign-to-edge');
-        } else {
-            return $translate.instant('scheduler.add-scheduler-event');
-        }
-    }
-
-    function deleteSchedulerEventTitle() {
-        if (vm.schedulerScope === 'edge') {
-            return $translate.instant('edge.unassign-from-edge');
-        } else {
-            return $translate.instant('scheduler.delete-scheduler-event');
-        }
-    }
-
-    function deleteSchedulerEventsTitle() {
-        if (vm.schedulerScope === 'edge') {
-            return $translate.instant('edge.unassign-from-edge');
-        } else {
-            return $translate.instant('action.delete');
-        }
-    }
-
-    function assignSchedulerEventToEdge($event) {
+    function assignSchedulerEventsToEdge($event) {
         if ($event) {
             $event.stopPropagation();
         }
@@ -851,7 +806,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
             });
     }
 
-    function unassignSchedulerEvent($event, schedulerEvent) {
+    function unassignSchedulerEventFromEdge($event, schedulerEvent) {
         if ($event) {
             $event.stopPropagation();
         }
@@ -876,7 +831,7 @@ function SchedulerEventsController($scope, $element, $compile, $q, $mdDialog, $m
         }
     }
 
-    function unassignSchedulerEvents($event) {
+    function unassignSchedulerEventsFromEdge($event) {
         if ($event) {
             $event.stopPropagation();
         }

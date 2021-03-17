@@ -79,7 +79,7 @@ export default function EdgeDownlinksDirective($compile, $templateCache, $rootSc
 
             fetchMoreItems_: function () {
                 if (scope.downlinks.hasNext && !scope.downlinks.pending) {
-                    if (scope.entityType && scope.entityId && scope.tenantId) {
+                    if (scope.entityId) {
                         scope.loadEdgeInfo();
                         scope.downlinks.pending = true;
                         edgeService.getEdgeEvents(scope.entityId, scope.downlinks.nextPageLink).then(
@@ -179,7 +179,7 @@ export default function EdgeDownlinksDirective($compile, $templateCache, $rootSc
 
         scope.loadEdgeInfo = function() {
             attributeService.getEntityAttributesValues(
-                scope.entityType,
+                types.entityType.edge,
                 scope.entityId,
                 types.attributesScope.server.value,
                 types.edgeAttributeKeys.queueStartTs,
@@ -202,9 +202,9 @@ export default function EdgeDownlinksDirective($compile, $templateCache, $rootSc
 
         scope.checkSubscription = function() {
             var newSubscriptionId = null;
-            if (scope.entityId && scope.entityType && types.attributesScope.server.value) {
+            if (scope.entityId && types.attributesScope.server.value) {
                 newSubscriptionId =
-                    attributeService.subscribeForEntityAttributes(scope.entityType, scope.entityId, types.attributesScope.server.value);
+                    attributeService.subscribeForEntityAttributes(types.entityType.edge, scope.entityId, types.attributesScope.server.value);
             }
             if (scope.subscriptionId && scope.subscriptionId != newSubscriptionId) {
                 attributeService.unsubscribeForEntityAttributes(scope.subscriptionId);
@@ -237,9 +237,7 @@ export default function EdgeDownlinksDirective($compile, $templateCache, $rootSc
         restrict: "E",
         link: linker,
         scope: {
-            entityType: '=',
-            entityId: '=',
-            tenantId: '='
+            entityId: '='
         }
     };
 }

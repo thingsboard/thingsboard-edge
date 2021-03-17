@@ -722,6 +722,7 @@ export default angular.module('thingsboard.types', [])
                 dashboard: "DASHBOARD",
                 asset: "ASSET",
                 device: "DEVICE",
+                deviceProfile: "DEVICE PROFILE",
                 entityView: "ENTITY_VIEW",
                 alarm: "ALARM",
                 rulechain: "RULE_CHAIN",
@@ -730,6 +731,7 @@ export default angular.module('thingsboard.types', [])
                 user: "USER",
                 customer: "CUSTOMER",
                 relation: "RELATION",
+                tenant: "TENANT",
                 entityGroup: "ENTITY_GROUP",
                 schedulerEvent: "SCHEDULER_EVENT",
                 whiteLabeling: "WHITE_LABELING",
@@ -737,7 +739,9 @@ export default angular.module('thingsboard.types', [])
                 customTranslation: "CUSTOM_TRANSLATION",
                 widgetsBundle: "WIDGETS_BUNDLE",
                 widgetType: "WIDGET_TYPE",
-                adminSettings: "ADMIN_SETTINGS"
+                adminSettings: "ADMIN_SETTINGS",
+                role: "ROLE",
+                groupPermission: "GROUP_PERMISSION"
             },
             edgeEventStatus: {
                 "DEPLOYED": {
@@ -1356,7 +1360,9 @@ export default angular.module('thingsboard.types', [])
                 core: "CORE",
                 edge: "EDGE"
             },
-            edgeGroupTypes: ["ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
+            edgeEntityGroupTypes: ["USER", "ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
+            edgeEntityTypes: ["USER", "ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD"],
+            edgeAllEntityTypes: ["USER", "ASSET", "DEVICE", "ENTITY_VIEW", "DASHBOARD", "SCHEDULER_EVENT", "RULE_CHAIN"],
             ruleNodeTypeComponentTypes: ["FILTER", "ENRICHMENT", "TRANSFORMATION", "ACTION", "EXTERNAL"],
             ruleChainNodeComponent: {
                 type: 'RULE_CHAIN',
@@ -1890,6 +1896,18 @@ export default angular.module('thingsboard.types', [])
                 },
                 "ENTITY_MERGE_REQUEST": {
                     name: "edge-event.action-type-entity-merge-request"
+                },
+                "ADDED_TO_ENTITY_GROUP": {
+                    name: "edge-event.action-type-added-to-entity-group"
+                },
+                "REMOVED_FROM_ENTITY_GROUP": {
+                    name: "edge-event.action-type-removed-from-entity-group"
+                },
+                "CHANGE_OWNER": {
+                    name: "edge-event.action-type-change-owner"
+                },
+                "RELATIONS_DELETED": {
+                    name: "edge-event.action-type-relations-deleted"
                 }
             },
             edgeEventTypeTranslations:{
@@ -1901,6 +1919,9 @@ export default angular.module('thingsboard.types', [])
                 },
                 "DEVICE": {
                     name: "edge-event.type-device"
+                },
+                "DEVICE_PROFILE": {
+                    name: "edge-event.type-device-profile"
                 },
                 "ENTITY_VIEW": {
                     name: "edge-event.type-entity-view"
@@ -1951,7 +1972,13 @@ export default angular.module('thingsboard.types', [])
                     name: "edge-event.type-login-white-labeling"
                 },
                 "CUSTOM_TRANSLATION": {
-                    name: "edge-event.custom-translation",
+                    name: "edge-event.type-custom-translation",
+                },
+                "ROLE": {
+                    name: "edge-event.type-role",
+                },
+                "GROUP_PERMISSION": {
+                    name: "edge-event.type-group-permission"
                 }
             }
         }

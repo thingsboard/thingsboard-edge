@@ -40,7 +40,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                        ruleChainService, dashboardService, entityGroupService,
                        converterService, integrationService, schedulerEventService, blobEntityService,
                        entityRelationService, attributeService, entityViewService, roleService, userPermissionsService,
-                       edgeService, securityTypes, types, utils) {
+                       edgeService, widgetService, securityTypes, types, utils) {
     var service = {
         getEntity: getEntity,
         saveEntity: saveEntity,
@@ -63,7 +63,9 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         deleteRelatedEntity: deleteRelatedEntity,
         moveEntity: moveEntity,
         copyEntity: copyEntity,
-        getEntityGroupEntities: getEntityGroupEntities
+        getEntityGroupEntities: getEntityGroupEntities,
+        getAssignedToEdgeEntitiesByType: getAssignedToEdgeEntitiesByType,
+        getEdgeEventContentByEntityType: getEdgeEventContentByEntityType
     };
 
     return service;
@@ -1336,7 +1338,7 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
                 }
             }
         }
-        if (!userService.isEdgesSupportEnabled()) {
+        if (!userService.isEdgesSupportEnabled() || !userPermissionsService.hasGenericPermission(securityTypes.resource.edgeGroup, securityTypes.operation.read)) {
             delete entityTypes.edge;
         }
         return entityTypes;
@@ -2100,6 +2102,81 @@ function EntityService($http, $q, $filter, $translate, $log, userService, device
         } else {
             return null;
         }
+    }
+
+    function getAssignedToEdgeEntitiesByType(edgeId, entityType, pageLink) {
+        var promise;
+        switch (entityType) {
+            case types.entityType.device:
+                promise = deviceService.getEdgeDevices(edgeId, pageLink, null);
+                break;
+            case types.entityType.asset:
+                promise = assetService.getEdgeAssets(edgeId, pageLink, null);
+                break;
+            case types.entityType.entityView:
+                promise = entityViewService.getEdgeEntityViews(edgeId, pageLink, null);
+                break;
+            case types.entityType.dashboard:
+                promise = dashboardService.getEdgeDashboards(edgeId, pageLink, null);
+                break;
+            case types.entityType.rulechain:
+                promise = ruleChainService.getEdgeRuleChains(edgeId, pageLink, null);
+                break;
+        }
+        return promise;
+    }
+
+    function getEdgeEventContentByEntityType(entity) {
+        var deferred = $q.defer();
+        var promise = getEdgeEventContentPromise(entity);
+        if (promise) {
+            promise.then(
+                function success(result) {
+                    deferred.resolve(result);
+                },
+                function fail() {
+                    deferred.reject();
+                }
+            );
+        } else {
+            deferred.reject();
+        }
+        return deferred.promise;
+    }
+
+    function getEdgeEventContentPromise(entity) {
+        var promise;
+        const entityId = entity.entityId;
+        const entityType = entity.type;
+        switch (entityType) {
+            case types.edgeEventType.dashboard:
+            case types.edgeEventType.alarm:
+            case types.edgeEventType.rulechain:
+            case types.edgeEventType.edge:
+            case types.edgeEventType.user:
+            case types.edgeEventType.customer:
+            case types.edgeEventType.entityGroup:
+            case types.edgeEventType.schedulerEvent:
+            case types.edgeEventType.tenant:
+            case types.edgeEventType.asset:
+            case types.edgeEventType.device:
+            case types.edgeEventType.entityView:
+                promise = getEntity(entityType, entityId, { ignoreLoading: true, ignoreErrors: true });
+                break;
+            case types.edgeEventType.ruleChainMetaData:
+                promise = ruleChainService.getRuleChainMetaData(entityId);
+                break;
+            case types.edgeEventType.widgetType:
+                promise = widgetService.getWidgetTypeById(entityId);
+                break;
+            case types.edgeEventType.widgetsBundle:
+                promise = widgetService.getWidgetsBundle(entityId);
+                break;
+            case types.edgeEventType.relation:
+                promise = edgeService.transformEdgeEventToPromise(entity);
+                break;
+        }
+        return promise;
     }
 
 }

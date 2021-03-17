@@ -334,6 +334,18 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                 return $translate.instant('grid.delete-items-text');
             };
 
+        vm.unassignFromEdgeItemsTitleFunc = vm.config.unassignFromEdgeItemsTitleFunc || function () {
+            return $translate.instant('entity-group.unassign-entity-groups-from-edge-title', {count: vm.items.selectedCount});
+        };
+
+        vm.unassignFromEdgeItemsActionTitleFunc = vm.config.unassignFromEdgeItemsActionTitleFunc || function (selectedCount) {
+            return $translate.instant('entity-group.unassign-entity-groups-action-title', {count: selectedCount}, 'messageformat');
+        };
+
+        vm.unassignFromEdgeItemsContentFunc = vm.config.unassignFromEdgeItemsContentFunc || function () {
+            return $translate.instant('entity-group.unassign-entity-groups-from-edge-text');
+        };
+
         vm.fetchItemsFunc = vm.config.fetchItemsFunc || function () {
                 return $q.when([]);
             };
@@ -347,6 +359,10 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             };
 
         vm.deleteItemFunc = vm.config.deleteItemFunc || function () {
+                return $q.when();
+            };
+
+        vm.unassignFromEdgeItemFunc = vm.config.unassignFromEdgeItemFunc || function () {
                 return $q.when();
             };
 
@@ -388,7 +404,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
 
         if (!vm.config.groupActionsList) {
             vm.groupActionsList = [];
-            if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete)) {
+            if (userPermissionsService.hasGenericPermission(vm.config.resource, securityTypes.operation.delete) && !vm.config.unassignEnabled) {
                 vm.groupActionsList.push(
                     {
                         onAction: function ($event) {
@@ -397,6 +413,17 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
                         name: function() { return $translate.instant('action.delete') },
                         details: vm.deleteItemsActionTitleFunc,
                         icon: "delete"
+                    }
+                );
+            } if (vm.config.unassignEnabled) {
+                vm.groupActionsList.push(
+                    {
+                        onAction: function ($event) {
+                            unassignItems($event);
+                        },
+                        name: function() { return $translate.instant('action.delete') },
+                        details: vm.unassignFromEdgeItemsActionTitleFunc,
+                        icon: "assignment_return"
                     }
                 );
             }
@@ -632,7 +659,7 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             .targetEvent($event)
             .title(vm.deleteItemsTitleFunc(vm.items.selectedCount))
             .htmlContent(vm.deleteItemsContentFunc())
-            .ariaLabel($translate.instant('grid.delete-items'))
+            .ariaLabel($translate.instant('edge.unassign-from-edge'))
             .cancel($translate.instant('action.no'))
             .ok($translate.instant('action.yes'));
         $mdDialog.show(confirm).then(function () {
@@ -647,7 +674,6 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
             function () {
             });
     }
-
 
     function toggleItemSelection($event, item) {
         $event.stopPropagation();
@@ -721,6 +747,27 @@ function GridController($scope, $state, $mdDialog, $document, $q, $mdUtil, $time
 
     function hasData() {
         return vm.items.data.length > 0;
+    }
+
+    function unassignItems($event) {
+        var confirm = $mdDialog.confirm()
+            .targetEvent($event)
+            .title(vm.unassignFromEdgeItemsTitleFunc(vm.items.selectedCount))
+            .htmlContent(vm.unassignFromEdgeItemsContentFunc())
+            .ariaLabel($translate.instant('grid.delete-items'))
+            .cancel($translate.instant('action.no'))
+            .ok($translate.instant('action.yes'));
+        $mdDialog.show(confirm).then(function () {
+                var tasks = [];
+                for (var id in vm.items.selections) {
+                    tasks.push(vm.unassignFromEdgeItemFunc(id));
+                }
+                $q.all(tasks).then(
+                    () => { refreshList(); },
+                    () => { refreshList(); });
+            },
+            function () {
+            });
     }
 
 }

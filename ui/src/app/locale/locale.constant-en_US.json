@@ -1050,7 +1050,8 @@
         "list-of-groups": "{ count, plural, 1 {One edge group} other {List of # edge groups} }",
         "group-name-starts-with": "Edge groups whose names start with '{{prefix}}'",
         "assign-scheduler-to-edge": "Please select the scheduler event(s) to assign to the edge",
-        "rulechains": "Rule chains"
+        "rulechains": "Rule chains",
+        "assign-to-edge-scheduler-events": "Assign scheduler events"
     },
     "edge-event": {
       "type-dashboard": "Dashboard",
@@ -1074,6 +1075,8 @@
       "type-widgets-bundle": "Widgets Bundle",
       "type-widgets-type": "Widgets Type",
       "type-admin-settings": "Admin Settings",
+      "type-role": "Role",
+      "type-group-permission": "Group Permission",
       "action-type-added": "Added",
       "action-type-deleted": "Deleted",
       "action-type-updated": "Updated",
@@ -1092,7 +1095,11 @@
       "action-type-assigned-to-edge": "Assigned to Edge",
       "action-type-unassigned-from-edge": "Unassigned from Edge",
       "action-type-credentials-request": "Credentials Request",
-      "action-type-entity-merge-request": "Entity Merge Request"
+      "action-type-entity-merge-request": "Entity Merge Request",
+      "action-type-added-to-entity-group": "Added to Entity Group",
+      "action-type-removed-from-entity-group": "Removed from Entity Group",
+      "action-type-change-owner": "Change owner",
+      "action-type-relations-deleted": "Relations deleted"
     },
     "error": {
         "unable-to-connect": "Unable to connect to the server! Please check your internet connection.",
@@ -1341,6 +1348,7 @@
         "enable-assets-management": "Enable assets management",
         "enable-devices-management": "Enable devices management",
         "enable-entity-views-management": "Enable entity views management",
+        "enable-edges-management": "Enable edge instances management",
         "enable-dashboards-management": "Enable dashboards management",
         "enable-rule-chains-management": "Enable rule chains management",
         "enable-scheduler-events-management": "Enable scheduler events management",
@@ -2530,6 +2538,7 @@
                 "CUSTOMER": "Customer",
                 "DASHBOARD": "Dashboard",
                 "ENTITY_VIEW": "Entity View",
+                "EDGE": "Edge",
                 "TENANT": "Tenant",
                 "RULE_CHAIN": "Rule Chain",
                 "USER": "User",
@@ -2544,6 +2553,7 @@
                 "ASSET_GROUP": "Asset Group",
                 "USER_GROUP": "User Group",
                 "ENTITY_VIEW_GROUP": "Entity View Group",
+                "EDGE_GROUP": "Edge Group",
                 "DASHBOARD_GROUP": "Dashboard Group",
                 "ROLE": "Role",
                 "GROUP_PERMISSION": "Group Permission",

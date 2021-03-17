@@ -87,7 +87,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.userGroups', {
             url: '/:customerId/userGroups',
-            params: {'childGroupType': types.entityType.user, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.user, 'entityGroupScope': types.entityType.customer, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -191,7 +191,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.assetGroups', {
             url: '/:customerId/assetGroups',
-            params: {'childGroupType': types.entityType.asset, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.asset, 'entityGroupScope': types.entityType.customer, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -243,7 +243,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.deviceGroups', {
             url: '/:customerId/deviceGroups',
-            params: {'childGroupType': types.entityType.device, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.device, 'entityGroupScope': types.entityType.customer, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -295,7 +295,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.entityViewGroups', {
             url: '/:customerId/entityViewGroups',
-            params: {'childGroupType': types.entityType.entityView, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.entityView, 'entityGroupScope': types.entityType.customer, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -347,7 +347,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.dashboardGroups', {
             url: '/:customerId/dashboardGroups',
-            params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.dashboard, 'entityGroupScope': types.entityType.customer, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -423,7 +423,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups', {
             url: '/:customerId/edgeGroups',
-            params: {'childGroupType': types.entityType.edge, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.edge, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -475,7 +475,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.userGroups', {
             url: '/edge/:edgeId/userGroups',
-            params: {'targetGroupType': types.entityType.user, 'topIndex': 0},
+            params: {'targetGroupType': types.entityType.user, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -527,7 +527,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.deviceGroups', {
             url: '/edge/:edgeId/deviceGroups',
-            params: {'targetGroupType': types.entityType.device, 'topIndex': 0},
+            params: {'targetGroupType': types.entityType.device, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -579,7 +579,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.assetGroups', {
             url: '/edge/:edgeId/assetGroups',
-            params: {'targetGroupType': types.entityType.asset, 'topIndex': 0},
+            params: {'targetGroupType': types.entityType.asset, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -631,7 +631,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.entityViewGroups', {
             url: '/edge/:edgeId/entityViewGroups',
-            params: {'targetGroupType': types.entityType.entityView, 'topIndex': 0},
+            params: {'targetGroupType': types.entityType.entityView, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -683,7 +683,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.dashboardGroups', {
             url: '/edge/:edgeId/dashboardGroups',
-            params: {'targetGroupType': types.entityType.dashboard, 'topIndex': 0},
+            params: {'targetGroupType': types.entityType.dashboard, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -760,7 +760,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.schedulerEvents', {
             url: '/:edgeId/schedulerEvents',
-            params: {'targetGroupType': types.entityType.schedulerEvent, 'customerId': null, 'entity': null},
+            params: {'targetGroupType': types.entityType.schedulerEvent, 'schedulerScope': types.entityType.edge, 'customerId': null, 'entity': null},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -811,10 +811,57 @@ export default function EntityGroupRoutes($stateProvider, types) {
             data: {
                 searchEnabled: true,
                 pageTitle: 'edge.rulechains',
-                ruleChainsType: 'edges'
+                ruleChainsType: 'edge'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'
+            }
+        })
+        .state('home.customerGroups.customerGroup.edgeGroups.edgeGroup.ruleChains.ruleChain', {
+            url: '/:ruleChainId',
+            reloadOnSearch: false,
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: ruleChainTemplate,
+                    controller: 'RuleChainController',
+                    controllerAs: 'vm'
+                }
+            },
+            resolve: {
+                entityGroup: EntityGroupResolver,
+                ruleChain:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChain($stateParams.ruleChainId);
+                    },
+                ruleChainMetaData:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleChainMetaData($stateParams.ruleChainId);
+                    },
+                ruleNodeComponents:
+                /*@ngInject*/
+                    function($stateParams, ruleChainService) {
+                        return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
+                    }
+            },
+            data: {
+                import: false,
+                searchEnabled: false,
+                pageTitle: 'edge.rulechain'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
+            }
+        })
+        .state('home.edges', {
+            module: 'private',
+            auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
+            redirectTo: 'home.edges.ruleChains',
+            ncyBreadcrumb: {
+                label: '{"icon": "router", "label": "edge.management"}'
             }
         })
         .state('home.edgeGroups', {
@@ -862,7 +909,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.userGroups', {
             url: '/edge/:edgeId/userGroups',
-            params: {'childGroupType': types.entityType.user, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.user, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -914,7 +961,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.assetGroups', {
             url: '/edge/:edgeId/assetGroups',
-            params: {'childGroupType': types.entityType.asset, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.asset, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -967,7 +1014,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         .state('home.edgeGroups.edgeGroup.deviceGroups', {
             url: '/edge/:edgeId/deviceGroups',
             // TODO: add customerId into request as well
-            params: {'childGroupType': types.entityType.device, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.device, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -1020,7 +1067,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         .state('home.edgeGroups.edgeGroup.entityViewGroups', {
             url: '/edge/:edgeId/entityViewGroups',
             // TODO: add customerId into request as well
-            params: {'childGroupType': types.entityType.entityView, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.entityView, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -1073,7 +1120,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         .state('home.edgeGroups.edgeGroup.dashboardGroups', {
             url: '/edge/:edgeId/dashboardGroups',
             // TODO: add customerId into request as well
-            params: {'childGroupType': types.entityType.dashboard, 'topIndex': 0},
+            params: {'childGroupType': types.entityType.dashboard, 'entityGroupScope': types.entityType.edge, 'topIndex': 0},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -1149,7 +1196,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
         })
         .state('home.edgeGroups.edgeGroup.schedulerEvents', {
             url: '/:edgeId/schedulerEvents',
-            params: {'childGroupType': types.entityType.schedulerEvent},
+            params: {'childGroupType': types.entityType.schedulerEvent, 'schedulerScope': types.entityType.edge,},
             module: 'private',
             auth: ['TENANT_ADMIN', 'CUSTOMER_USER'],
             views: {
@@ -1245,6 +1292,107 @@ export default function EntityGroupRoutes($stateProvider, types) {
             label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
         }
         })
+        .state('home.edges.ruleChains', {
+            url: '/edges/ruleChains',
+            params: {'topIndex': 0},
+            module: 'private',
+            auth: ['TENANT_ADMIN'],
+            views: {
+                "content@home": {
+                    templateUrl: ruleChainsTemplate,
+                    controllerAs: 'vm',
+                    controller: 'RuleChainsController'
+                }
+            },
+            data: {
+                searchEnabled: true,
+                pageTitle: 'edge.rulechain-templates',
+                ruleChainsType: 'edges'
+            },
+            ncyBreadcrumb: {
+                label: '{"icon": "settings_ethernet", "label": "edge.rulechain-templates"}'
+            }
+        })
+        .state('home.edges.ruleChains.ruleChain', {
+        url: '/:ruleChainId',
+        reloadOnSearch: false,
+        module: 'private',
+        auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
+        views: {
+            "content@home": {
+                templateUrl: ruleChainTemplate,
+                controller: 'RuleChainController',
+                controllerAs: 'vm'
+            }
+        },
+        resolve: {
+            ruleChain:
+            /*@ngInject*/
+                function($stateParams, ruleChainService) {
+                    return ruleChainService.getRuleChain($stateParams.ruleChainId);
+                },
+            ruleChainMetaData:
+            /*@ngInject*/
+                function($stateParams, ruleChainService) {
+                    return ruleChainService.getRuleChainMetaData($stateParams.ruleChainId);
+                },
+            ruleNodeComponents:
+            /*@ngInject*/
+                function($stateParams, ruleChainService) {
+                    return ruleChainService.getRuleNodeComponents(types.ruleChainType.edge);
+                }
+        },
+        data: {
+            import: false,
+            searchEnabled: false,
+            pageTitle: 'edge.rulechain-template'
+        },
+        ncyBreadcrumb: {
+            label: '{"icon": "settings_ethernet", "label": "{{ vm.ruleChain.name }}", "translate": "false"}'
+        }
+    })
+        .state('home.edges.ruleChains.importRuleChain', {
+        url: '/ruleChain/import',
+        reloadOnSearch: false,
+        module: 'private',
+        auth: ['SYS_ADMIN', 'TENANT_ADMIN'],
+        views: {
+            "content@home": {
+                templateUrl: ruleChainTemplate,
+                controller: 'RuleChainController',
+                controllerAs: 'vm'
+            }
+        },
+        params: {
+            ruleChainImport: {},
+            ruleChainType: {}
+        },
+        resolve: {
+            ruleChain:
+            /*@ngInject*/
+                function($stateParams) {
+                    return $stateParams.ruleChainImport.ruleChain;
+                },
+            ruleChainMetaData:
+            /*@ngInject*/
+                function($stateParams) {
+                    return $stateParams.ruleChainImport.metadata;
+                },
+            ruleNodeComponents:
+            /*@ngInject*/
+                function($stateParams, ruleChainService) {
+                    return ruleChainService.getRuleNodeComponents($stateParams.ruleChainType);
+                }
+        },
+        data: {
+            import: true,
+            searchEnabled: true,
+            pageTitle: 'edge.rulechain-template'
+        },
+        ncyBreadcrumb: {
+            label: '{"icon": "settings_ethernet", "label": "{{ (\'rulechain.import\' | translate) + \': \'+ vm.ruleChain.name }}", "translate": "false"}'
+        }
+    })
         .state('home.assetGroups', {
             url: '/assetGroups',
             params: {'groupType': types.entityType.asset, 'topIndex': 0},

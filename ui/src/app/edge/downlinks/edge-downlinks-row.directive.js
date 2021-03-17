@@ -37,7 +37,7 @@ import edgeDownlinlsRowTemplate from './edge-downlinks-row.tpl.html';
 
 /*@ngInject*/
 export default function EdgeDownlinksRowDirective($compile, $templateCache, $mdDialog, $document, $translate,
-                                          types, utils, toast, entityService, ruleChainService) {
+                                          types, utils, toast, entityService) {
 
     var linker = function (scope, element, attrs) {
 
@@ -49,44 +49,29 @@ export default function EdgeDownlinksRowDirective($compile, $templateCache, $mdD
         scope.types = types;
         scope.downlink = attrs.downlink;
 
-        scope.showEdgeEntityContent = function($event, title, contentType) {
+        scope.showEdgeEntityContent = function($event) {
             var onShowingCallback = {
-                onShowing: function(){}
+                onShowing: function () {
+                }
             }
-            if (!contentType) {
-                contentType = null;
-            }
-            var content = '';
-            switch(scope.downlink.type) {
-                case types.edgeEventType.relation:
-                    content = angular.toJson(scope.downlink.body);
+            var content = entityService.getEdgeEventContentByEntityType(scope.downlink).then(
+                function success(content) {
                     showDialog();
-                    break;
-                case types.edgeEventType.ruleChainMetaData:
-                    content = ruleChainService.getRuleChainMetaData(scope.downlink.entityId, {ignoreErrors: true}).then(
-                        function success(info) {
-                            showDialog();
-                            return angular.toJson(info);
-                        }, function fail() {
-                            showError();
-                        });
-                    break;
-                default:
-                    content = entityService.getEntity(scope.downlink.type, scope.downlink.entityId, {ignoreErrors: true}).then(
-                        function success(info) {
-                            showDialog();
-                            return angular.toJson(info);
-                        }, function fail() {
-                            showError();
-                        });
-                    break;
-            }
+                    return angular.toJson(content);
+                }, function fail() {
+                    showError();
+                });
             function showDialog() {
                 $mdDialog.show({
                     controller: 'EdgeDownlinksContentDialogController',
                     controllerAs: 'vm',
                     templateUrl: edgeDownlinksContentTemplate,
-                    locals: {content: content, title: title, contentType: contentType, showingCallback: onShowingCallback},
+                    locals: {
+                        content: content,
+                        title: $translate.instant('edge.entity-info'),
+                        contentType: types.contentType.JSON.value,
+                        showingCallback: onShowingCallback
+                    },
                     parent: angular.element($document[0].body),
                     fullscreen: true,
                     targetEvent: $event,
@@ -101,18 +86,16 @@ export default function EdgeDownlinksRowDirective($compile, $templateCache, $mdD
             }
         }
 
-        scope.checkEdgeDownlinksType = function (type) {
-            return !(type === types.edgeEventType.widgetType ||
+        scope.isEdgeEventHasData = function(type) {
+            return !(
+                type === types.edgeEventType.role ||
                 type === types.edgeEventType.adminSettings ||
-                type === types.edgeEventType.widgetsBundle );
-        }
-
-        scope.checkTooltip = function($event) {
-            var el = $event.target;
-            var $el = angular.element(el);
-            if(el.offsetWidth < el.scrollWidth && !$el.attr('title')){
-                $el.attr('title', $el.text());
-            }
+                type === types.edgeEventType.customTranslation ||
+                type === types.edgeEventType.whiteLabeling ||
+                type === types.edgeEventType.loginWhiteLabeling ||
+                type === types.edgeEventType.deviceProfile ||
+                type === types.edgeEventType.groupPermission
+            );
         }
 
         $compile(element.contents())(scope);

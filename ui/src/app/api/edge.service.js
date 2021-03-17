@@ -33,7 +33,7 @@ export default angular.module('thingsboard.api.edge', [])
     .name;
 
 /*@ngInject*/
-function EdgeService($http, $q, customerService) {
+function EdgeService($http, $q, $timeout, customerService) {
 
     var service = {
         getEdges: getEdges,
@@ -52,7 +52,8 @@ function EdgeService($http, $q, customerService) {
         setRootRuleChain: setRootRuleChain,
         getEdgeEvents: getEdgeEvents,
         syncEdge: syncEdge,
-        findMissingToRelatedRuleChains: findMissingToRelatedRuleChains
+        findMissingToRelatedRuleChains: findMissingToRelatedRuleChains,
+        transformEdgeEventToPromise: transformEdgeEventToPromise
     };
 
     return service;
@@ -336,6 +337,18 @@ function EdgeService($http, $q, customerService) {
         }, function fail(response) {
             deferred.reject(response.data);
         });
+        return deferred.promise;
+    }
+
+    function transformEdgeEventToPromise(data) {
+        var deferred = $q.defer();
+        $timeout(function() {
+            if (data.body) {
+                deferred.resolve(data.body);
+            } else {
+                deferred.reject();
+            }
+        }, 0);
         return deferred.promise;
     }
 }

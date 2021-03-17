@@ -60,6 +60,7 @@ export default function RuleChainDirective($compile, $templateCache, $mdDialog, 
             onSetAutoAssignToEdgeRuleChain: '&',
             onUnsetAutoAssignToEdgeRuleChain: '&',
             onSetRootRuleChain: '&',
+            onUnassignFromEdge: '&',
             onExportRuleChain: '&',
             onDeleteRuleChain: '&'
         }

@@ -95,6 +95,9 @@
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-entity-views-management' | translate }}"
                          ng-model="vm.settings.enableEntityViewsManagement">{{ 'entity-group.enable-entity-views-management' | translate }}
             </md-checkbox>
+            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-edges-management' | translate }}"
+                         ng-model="vm.settings.enableEdgesManagement">{{ 'entity-group.enable-edges-management' | translate }}
+            </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-dashboards-management' | translate }}"
                          ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}
             </md-checkbox>
@@ -114,9 +117,6 @@
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-dashboards-management' | translate }}"
                          ng-model="vm.settings.enableDashboardsManagement">{{ 'entity-group.enable-dashboards-management' | translate }}
-            </md-checkbox>
-            <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-rule-chains-management' | translate }}"
-                         ng-model="vm.settings.enableRuleChainsManagement">{{ 'entity-group.enable-rule-chains-management' | translate }}
             </md-checkbox>
             <md-checkbox ng-disabled="$root.loading || !vm.isEdit" flex aria-label="{{ 'entity-group.enable-scheduler-events-management' | translate }}"
                          ng-model="vm.settings.enableSchedulerEventsManagement">{{ 'entity-group.enable-scheduler-events-management' | translate }}

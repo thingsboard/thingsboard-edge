@@ -37,7 +37,7 @@ import entityFilterTemplate from './entity-filter.tpl.html';
 import './entity-filter.scss';
 
 /*@ngInject*/
-export default function EntityFilterDirective($compile, $templateCache, $q, $document, $mdDialog, types, entityService, userService) {
+export default function EntityFilterDirective($compile, $templateCache, $q, $document, $mdDialog, types, entityService, userService, userPermissionsService, securityTypes) {
 
     var linker = function (scope, element, attrs, ngModelCtrl) {
 
@@ -46,7 +46,8 @@ export default function EntityFilterDirective($compile, $templateCache, $q, $doc
 
         scope.ngModelCtrl = ngModelCtrl;
         scope.types = types;
-        if (!userService.isEdgesSupportEnabled()) {
+        // TODO: deaflynx consult if securityTypes.resource.edgeGroup OR securityTypes.resource.edge
+        if (!userService.isEdgesSupportEnabled() || !userPermissionsService.hasGenericPermission(securityTypes.resource.edgeGroup, securityTypes.operation.read)) {
             scope.allowedEntityTypes = Object.values(types.entityType).filter(entityType => entityType !== types.entityType.edge);
         }
         scope.aliasFilterTypes = entityService.getAliasFilterTypesByEntityTypes(scope.allowedEntityTypes);
