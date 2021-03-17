@@ -811,7 +811,7 @@ export default function EntityGroupRoutes($stateProvider, types) {
             data: {
                 searchEnabled: true,
                 pageTitle: 'edge.rulechains',
-                ruleChainsType: 'edges'
+                ruleChainsType: 'edge'
             },
             ncyBreadcrumb: {
                 label: '{"icon": "settings_ethernet", "label": "{{ vm.entityGroup.edgeGroupsTitle }}", "translate": "false"}'

@@ -202,16 +202,16 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
 
     function initController() {
         var entitiesDeleteEnabled;
-        var unassignEntityGroupsEnabled;
+        var unassignEnabled;
         var addItemAction;
         var actionsList = entityGroupActionsList;
         if ((vm.customerId && !vm.edgeId) || vm.parentType === 'groups') {
             entitiesDeleteEnabled = true;
-            unassignEntityGroupsEnabled = false;
+            unassignEnabled = false;
             addItemAction = undefined;
         } else if (vm.edgeId || vm.parentType === 'edgeGroups') {
             entitiesDeleteEnabled = false;
-            unassignEntityGroupsEnabled = true;
+            unassignEnabled = true;
             addItemAction = {
                 onAction: function ($event) {
                     addEntityGroupsToEdge($event);
@@ -229,7 +229,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
                     details: function() { return $translate.instant('edge.unassign-from-edge') },
                     icon: "assignment_return",
                     isEnabled: function (item) {
-                        return !item.edgeGroupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.delete, item); //TODO deaflynx:
+                        return !item.edgeGroupAll && userPermissionsService.hasEntityGroupPermission(securityTypes.operation.write, item);
                     }
                 }
             ];
@@ -237,7 +237,7 @@ export function EntityGroupsController($rootScope, $scope, $state, $document, $m
         vm.entityGroupGridConfig.entitiesDeleteEnabled = () => {
             return entitiesDeleteEnabled;
         };
-        vm.entityGroupGridConfig.unassignEntityGroupsEnabled = unassignEntityGroupsEnabled;
+        vm.entityGroupGridConfig.unassignEnabled = unassignEnabled;
         vm.entityGroupGridConfig.addItemAction = addItemAction;
         vm.entityGroupGridConfig.actionsList = actionsList;
     }
