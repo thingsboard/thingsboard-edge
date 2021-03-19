@@ -35,6 +35,7 @@ public enum AggIntervalType {
     HOUR,
     DAY,
     WEEK,
+    WEEK_SUN_SAT,
     MONTH,
     YEAR,
     CUSTOM;
