@@ -165,9 +165,13 @@ import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
 import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
 import { ContactComponent } from '@shared/components/contact.component';
+import { FileSizePipe } from '@shared/pipe/file-size.pipe';
+import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
+import { SelectableColumnsPipe } from '@shared/pipe/selectable-columns.pipe';
+import { QuickTimeIntervalComponent } from '@shared/components/time/quick-time-interval.component';
 import { GroupPermissionsComponent } from '@shared/components/role/group-permissions.component';
 import { GroupPermissionDialogComponent } from '@shared/components/role/group-permission-dialog.component';
-import { ShareEntityGroupComponent } from './components/group/share-entity-group.component';
+import { ShareEntityGroupComponent } from '@shared/components/group/share-entity-group.component';
 
 @NgModule({
   providers: [
@@ -177,6 +181,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -209,6 +214,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TimewindowComponent,
     TimewindowPanelComponent,
     TimeintervalComponent,
+    QuickTimeIntervalComponent,
     DashboardSelectComponent,
     DashboardSelectPanelComponent,
     DatetimePeriodComponent,
@@ -263,6 +269,8 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HighlightPipe,
     TruncatePipe,
     TbJsonPipe,
+    FileSizePipe,
+    SelectableColumnsPipe,
     KeyboardShortcutPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
@@ -272,6 +280,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent
@@ -346,6 +355,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TimewindowComponent,
     TimewindowPanelComponent,
     TimeintervalComponent,
+    QuickTimeIntervalComponent,
     DashboardSelectComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
@@ -446,6 +456,8 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     TruncatePipe,
     TbJsonPipe,
     KeyboardShortcutPipe,
+    FileSizePipe,
+    SelectableColumnsPipe,
     HasGenericPermissionPipe,
     HasEntityGroupPermissionPipe,
     HasGroupEntityPermissionPipe,
@@ -454,6 +466,7 @@ import { ShareEntityGroupComponent } from './components/group/share-entity-group
     HistorySelectorComponent,
     EntityGatewaySelectComponent,
     ContactComponent,
+    WidgetsBundleSearchComponent,
     GroupPermissionsComponent,
     GroupPermissionDialogComponent,
     ShareEntityGroupComponent

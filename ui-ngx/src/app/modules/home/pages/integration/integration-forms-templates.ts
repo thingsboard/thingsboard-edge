@@ -463,18 +463,12 @@ export const templates = {
   [IntegrationType.AZURE_EVENT_HUB]: {
     clientConfiguration: {
       connectTimeoutSec: 10,
-      namespaceName: '',
-      eventHubName: '',
-      sasKeyName: '',
-      sasKey: '',
+      connectionString: '',
       iotHubName: ''
     },
     fieldValidators: {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
-      'clientConfiguration.namespaceName': [Validators.required],
-      'clientConfiguration.eventHubName': [Validators.required],
-      'clientConfiguration.sasKeyName': [Validators.required],
-      'clientConfiguration.sasKey': [Validators.required]
+      'clientConfiguration.connectionString': [Validators.required]
     }
   },
   [IntegrationType.OPC_UA]: {

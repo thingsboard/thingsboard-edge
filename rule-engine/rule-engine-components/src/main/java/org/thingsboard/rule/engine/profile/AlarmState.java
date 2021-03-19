@@ -32,9 +32,12 @@ package org.thingsboard.rule.engine.profile;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.action.TbAlarmResult;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.profile.state.PersistedAlarmRuleState;
@@ -46,12 +49,10 @@ import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.query.EntityKeyType;
-import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
-import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.dao.alarm.AlarmOperationResult;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -130,8 +131,16 @@ class AlarmState {
                 for (AlarmRuleState state : createRulesSortedBySeverityDesc) {
                     stateUpdate = clearAlarmState(stateUpdate, state);
                 }
-                ctx.getAlarmService().clearAlarm(ctx.getTenantId(), currentAlarm.getId(), createDetails(clearState), System.currentTimeMillis());
-                pushMsg(ctx, new TbAlarmResult(false, false, true, currentAlarm));
+                ListenableFuture<AlarmOperationResult> alarmClearOperationResult = ctx.getAlarmService().clearAlarmForResult(
+                        ctx.getTenantId(), currentAlarm.getId(), createDetails(clearState), System.currentTimeMillis()
+                );
+                DonAsynchron.withCallback(alarmClearOperationResult,
+                        result -> {
+                            pushMsg(ctx, new TbAlarmResult(false, false, true, result.getAlarm()));
+                        },
+                        throwable -> {
+                            throw new RuntimeException(throwable);
+                        });
                 currentAlarm = null;
             } else if (AlarmEvalResult.FALSE.equals(evalResult)) {
                 stateUpdate = clearAlarmState(stateUpdate, clearState);
@@ -267,7 +276,9 @@ class AlarmState {
         if (StringUtils.isNotEmpty(alarmDetailsStr)) {
             for (var keyFilter : ruleState.getAlarmRule().getCondition().getCondition()) {
                 EntityKeyValue entityKeyValue = dataSnapshot.getValue(keyFilter.getKey());
-                alarmDetailsStr = alarmDetailsStr.replaceAll(String.format("\\$\\{%s}", keyFilter.getKey().getKey()), getValueAsString(entityKeyValue));
+                if (entityKeyValue != null) {
+                    alarmDetailsStr = alarmDetailsStr.replaceAll(String.format("\\$\\{%s}", keyFilter.getKey().getKey()), getValueAsString(entityKeyValue));
+                }
             }
             ObjectNode newDetails = JacksonUtil.newObjectNode();
             newDetails.put("data", alarmDetailsStr);

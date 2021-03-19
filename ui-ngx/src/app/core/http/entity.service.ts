@@ -1165,7 +1165,8 @@ export class EntityService {
       case AliasFilterType.entitiesByGroupName:
         result.stateEntity = filter.groupStateEntity;
         result.entityFilter = deepClone(filter);
-        if (stateEntityId && (stateEntityId.entityType === EntityType.TENANT || stateEntityId.entityType === EntityType.CUSTOMER)) {
+        if (filter.groupStateEntity && stateEntityId &&
+            (stateEntityId.entityType === EntityType.TENANT || stateEntityId.entityType === EntityType.CUSTOMER)) {
           result.entityFilter.ownerId = stateEntityId;
         }
         return of(result);

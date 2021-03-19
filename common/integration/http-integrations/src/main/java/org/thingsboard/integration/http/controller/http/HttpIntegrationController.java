@@ -102,7 +102,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
     }
 
     @SuppressWarnings("rawtypes")
-    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST}, consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping(value = {"/{routingKey}", "/{routingKey}/{suffix}"}, method = {RequestMethod.POST})
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,

@@ -45,6 +45,9 @@ import {
   TsValue
 } from '@shared/models/query/query.models';
 import { PageData } from '@shared/models/page/page-data';
+import { alarmFields } from '@shared/models/alarm.models';
+import { entityFields } from '@shared/models/entity.models';
+import { isUndefined } from '@core/utils';
 
 export enum DataKeyType {
   timeseries = 'timeseries',
@@ -445,6 +448,44 @@ export class EntityDataUpdate extends DataUpdate<EntityData> {
   constructor(msg: EntityDataUpdateMsg) {
     super(msg);
   }
+
+  public prepareData(tsOffset: number) {
+    if (this.data) {
+      this.processEntityData(this.data.data, tsOffset);
+    }
+    if (this.update) {
+      this.processEntityData(this.update, tsOffset);
+    }
+  }
+
+  private processEntityData(data: Array<EntityData>, tsOffset: number) {
+    for (const entityData of data) {
+      if (entityData.timeseries) {
+        for (const key of Object.keys(entityData.timeseries)) {
+          const tsValues = entityData.timeseries[key];
+          for (const tsValue of tsValues) {
+            if (tsValue.ts) {
+              tsValue.ts += tsOffset;
+            }
+          }
+        }
+      }
+      if (entityData.latest) {
+        for (const entityKeyType of Object.keys(entityData.latest)) {
+          const keyTypeValues = entityData.latest[entityKeyType];
+          for (const key of Object.keys(keyTypeValues)) {
+            const tsValue = keyTypeValues[key];
+            if (tsValue.ts) {
+              tsValue.ts += tsOffset;
+            }
+            if (key === entityFields.createdTime.keyName && tsValue.value) {
+              tsValue.value = (Number(tsValue.value) + tsOffset) + '';
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 export class AlarmDataUpdate extends DataUpdate<AlarmData> {
@@ -455,6 +496,48 @@ export class AlarmDataUpdate extends DataUpdate<AlarmData> {
     super(msg);
     this.allowedEntities = msg.allowedEntities;
     this.totalEntities = msg.totalEntities;
+  }
+
+  public prepareData(tsOffset: number) {
+    if (this.data) {
+      this.processAlarmData(this.data.data, tsOffset);
+    }
+    if (this.update) {
+      this.processAlarmData(this.update, tsOffset);
+    }
+  }
+
+  private processAlarmData(data: Array<AlarmData>, tsOffset: number) {
+    for (const alarmData of data) {
+      alarmData.createdTime += tsOffset;
+      if (alarmData.ackTs) {
+        alarmData.ackTs += tsOffset;
+      }
+      if (alarmData.clearTs) {
+        alarmData.clearTs += tsOffset;
+      }
+      if (alarmData.endTs) {
+        alarmData.endTs += tsOffset;
+      }
+      if (alarmData.latest) {
+        for (const entityKeyType of Object.keys(alarmData.latest)) {
+          const keyTypeValues = alarmData.latest[entityKeyType];
+          for (const key of Object.keys(keyTypeValues)) {
+            const tsValue = keyTypeValues[key];
+            if (tsValue.ts) {
+              tsValue.ts += tsOffset;
+            }
+            if (key in [entityFields.createdTime.keyName,
+                        alarmFields.startTime.keyName,
+                        alarmFields.endTime.keyName,
+                        alarmFields.ackTime.keyName,
+                        alarmFields.clearTime.keyName] && tsValue.value) {
+              tsValue.value = (Number(tsValue.value) + tsOffset) + '';
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -480,6 +563,8 @@ export class TelemetrySubscriber {
   private alarmDataSubject = new ReplaySubject<AlarmDataUpdate>(1);
   private entityCountSubject = new ReplaySubject<EntityCountUpdate>(1);
   private reconnectSubject = new Subject();
+
+  private tsOffset = undefined;
 
   public subscriptionCommands: Array<WebsocketCmd>;
 
@@ -534,6 +619,16 @@ export class TelemetrySubscriber {
     this.reconnectSubject.complete();
   }
 
+  public setTsOffset(tsOffset: number): boolean {
+    if (this.tsOffset !== tsOffset) {
+      const changed = !isUndefined(this.tsOffset);
+      this.tsOffset = tsOffset;
+      return changed;
+    } else {
+      return false;
+    }
+  }
+
   public onData(message: SubscriptionUpdate) {
     const cmdId = message.subscriptionId;
     let keys: string[];
@@ -557,6 +652,9 @@ export class TelemetrySubscriber {
   }
 
   public onEntityData(message: EntityDataUpdate) {
+    if (this.tsOffset) {
+      message.prepareData(this.tsOffset);
+    }
     if (this.zone) {
       this.zone.run(
         () => {
@@ -569,6 +667,9 @@ export class TelemetrySubscriber {
   }
 
   public onAlarmData(message: AlarmDataUpdate) {
+    if (this.tsOffset) {
+      message.prepareData(this.tsOffset);
+    }
     if (this.zone) {
       this.zone.run(
         () => {

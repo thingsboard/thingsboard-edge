@@ -65,8 +65,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.microsoft.azure</groupId>
-            <artifactId>azure-eventhubs</artifactId>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-messaging-eventhubs</artifactId>
         </dependency>
         <dependency>
             <groupId>com.microsoft.azure.sdk.iot</groupId>

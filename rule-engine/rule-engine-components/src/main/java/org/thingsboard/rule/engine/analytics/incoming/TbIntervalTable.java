@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
@@ -118,7 +119,7 @@ class TbIntervalTable {
     }
 
     //TODO: make this async
-    TbIntervalState getByEntityIdAndTs(EntityId entityId, long ts) throws ExecutionException, InterruptedException {
+    Pair<Long, TbIntervalState> getByEntityIdAndTs(EntityId entityId, long ts) throws ExecutionException, InterruptedException {
         long intervalStartTs = calculateIntervalStart(ts);
 
         Map<Long, TbIntervalState> tsStates = states.computeIfAbsent(entityId, k -> new ConcurrentHashMap<>());
@@ -127,7 +128,7 @@ class TbIntervalTable {
             state = fetchIntervalState(entityId, intervalStartTs).get();
             tsStates.put(intervalStartTs, state);
         }
-        return state;
+        return Pair.of(intervalStartTs, state);
     }
 
     ListenableFuture<Integer> saveIntervalState(EntityId entityId, long ts, TbIntervalState state) {
