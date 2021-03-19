@@ -65,6 +65,7 @@ import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**

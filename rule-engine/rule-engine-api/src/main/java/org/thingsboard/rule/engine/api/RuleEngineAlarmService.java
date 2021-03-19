@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.dao.alarm.AlarmOperationResult;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by ashvayka on 02.04.18.
