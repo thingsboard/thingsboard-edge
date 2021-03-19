@@ -778,7 +778,7 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     }
 
     private PageData<EntityData> searchEntities(EntityDataQuery query) {
-        return entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), query);
+        return entityService.findEntityDataByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, query);
     }
 
     private EntityDataQuery createDeviceSearchQuery(String deviceField, StringOperation operation, String searchQuery) {
