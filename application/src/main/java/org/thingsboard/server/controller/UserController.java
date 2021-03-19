@@ -35,8 +35,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiParam;
 import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
@@ -67,11 +68,12 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
@@ -83,6 +85,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.EntityGroupController.ENTITY_GROUP_ID;
 
+@RequiredArgsConstructor
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -96,21 +99,12 @@ public class UserController extends BaseController {
     @Getter
     private boolean userTokenAccessEnabled;
 
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private UserPermissionsService userPermissionsService;
-
-    @Autowired
-    private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private SystemSecurityService systemSecurityService;
-
+    private final MailService mailService;
+    private final UserPermissionsService userPermissionsService;
+    private final JwtTokenFactory tokenFactory;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final SystemSecurityService systemSecurityService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
@@ -471,6 +465,10 @@ public class UserController extends BaseController {
             checkUserId(userId, Operation.WRITE);
             TenantId tenantId = getCurrentUser().getTenantId();
             userService.setUserCredentialsEnabled(tenantId, userId, userCredentialsEnabled);
+
+            if (!userCredentialsEnabled) {
+                eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

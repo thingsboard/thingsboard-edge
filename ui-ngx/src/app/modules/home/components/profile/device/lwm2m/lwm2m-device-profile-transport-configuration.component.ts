@@ -29,24 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { DeviceProfileTransportConfiguration, DeviceTransportType } from '@shared/models/device.models';
-import { Component, forwardRef, Inject, Input } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { AppState } from '@app/core/core.state';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import {DeviceProfileTransportConfiguration, DeviceTransportType} from '@shared/models/device.models';
+import {Component, forwardRef, Inject, Input} from '@angular/core';
+import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators} from '@angular/forms';
+import {Store} from '@ngrx/store';
+import {AppState} from '@app/core/core.state';
+import {coerceBooleanProperty} from '@angular/cdk/coercion';
 import {
-  INSTANCES, RESOURCES, OBSERVE_ATTR_TELEMETRY, OBSERVE, ATTRIBUTE, TELEMETRY, KEY_NAME,
+  ATTRIBUTE,
   getDefaultProfileConfig,
+  INSTANCES,
+  KEY_NAME,
+  ModelValue,
   ObjectLwM2M,
+  OBSERVE,
+  OBSERVE_ATTR_TELEMETRY,
   ProfileConfigModels,
-  ModelValue
+  RESOURCES,
+  TELEMETRY
 } from './profile-config.models';
-import { DeviceProfileService } from '@core/http/device-profile.service';
-import { deepClone, isDefinedAndNotNull, isUndefined } from '@core/utils';
-import { WINDOW } from '@core/services/window.service';
-import { JsonObject } from '@angular/compiler-cli/ngcc/src/packages/entry_point';
-import { Direction } from '@shared/models/page/sort-order';
+import {DeviceProfileService} from '@core/http/device-profile.service';
+import {deepClone, isDefinedAndNotNull, isUndefined} from '@core/utils';
+import {WINDOW} from '@core/services/window.service';
+import {JsonArray, JsonObject} from '@angular/compiler-cli/ngcc/src/packages/entry_point';
+import {Direction} from '@shared/models/page/sort-order';
 
 @Component({
   selector: 'tb-profile-lwm2m-device-transport-configuration',
@@ -79,16 +85,14 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     this.requiredValue = coerceBooleanProperty(value);
   }
 
-  private propagateChange = (v: any) => {
-  }
+  private propagateChange = (v: any) => { }
 
   constructor(private store: Store<AppState>,
               private fb: FormBuilder,
               private deviceProfileService: DeviceProfileService,
               @Inject(WINDOW) private window: Window) {
     this.lwm2mDeviceProfileFormGroup = this.fb.group({
-      clientOnlyObserveAfterConnect: [true, []],
-      clientUpdateValueAfterConnect: [false, []],
+      clientOnlyObserveAfterConnect: [1, []],
       objectIds: [null, Validators.required],
       observeAttrTelemetry: [null, Validators.required],
       shortId: [null, Validators.required],
@@ -159,7 +163,6 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   private updateWriteValue = (value: ModelValue): void => {
     this.lwm2mDeviceProfileFormGroup.patchValue({
         clientOnlyObserveAfterConnect: this.configurationValue.clientLwM2mSettings.clientOnlyObserveAfterConnect,
-        clientUpdateValueAfterConnect: this.configurationValue.clientLwM2mSettings.clientUpdateValueAfterConnect,
         objectIds: value,
         observeAttrTelemetry: this.getObserveAttrTelemetryObjects(value['objectsList']),
         shortId: this.configurationValue.bootstrap.servers.shortId,
@@ -184,7 +187,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
 
   private updateObserveAttrTelemetryObjectFormGroup = (objectsList: ObjectLwM2M[]): void => {
     this.lwm2mDeviceProfileFormGroup.patchValue({
-        observeAttrTelemetry: this.getObserveAttrTelemetryObjects(objectsList)
+        observeAttrTelemetry: deepClone(this.getObserveAttrTelemetryObjects(objectsList))
       },
       {emitEvent: false});
   }
@@ -193,8 +196,6 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     if (this.lwm2mDeviceProfileFormGroup.valid) {
       this.configurationValue.clientLwM2mSettings.clientOnlyObserveAfterConnect =
         config.clientOnlyObserveAfterConnect;
-      this.configurationValue.clientLwM2mSettings.clientUpdateValueAfterConnect =
-        config.clientUpdateValueAfterConnect;
       this.updateObserveAttrTelemetryFromGroupToJson(config.observeAttrTelemetry.clientLwM2M);
       this.configurationValue.bootstrap.bootstrapServer = config.bootstrapServer;
       this.configurationValue.bootstrap.lwm2mServer = config.lwm2mServer;
@@ -209,30 +210,32 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     }
   }
 
-  private getObserveAttrTelemetryObjects = (listObject: ObjectLwM2M[]): object => {
-    const clientObserveAttrTelemetry = listObject;
-    if (this.configurationValue.observeAttr) {
+  private getObserveAttrTelemetryObjects = (objectList: ObjectLwM2M[]): object => {
+    const objectLwM2MS = deepClone(objectList);
+    if (this.configurationValue.observeAttr && objectLwM2MS.length > 0) {
       const observeArray = this.configurationValue.observeAttr.observe;
       const attributeArray = this.configurationValue.observeAttr.attribute;
       const telemetryArray = this.configurationValue.observeAttr.telemetry;
-      const keyNameJson = this.configurationValue.observeAttr.keyName;
+      let keyNameJson = this.configurationValue.observeAttr.keyName;
       if (this.includesNotZeroInstance(attributeArray, telemetryArray)) {
-        this.addInstances(attributeArray, telemetryArray, clientObserveAttrTelemetry);
+        this.addInstances(attributeArray, telemetryArray, objectLwM2MS);
       }
       if (isDefinedAndNotNull(observeArray)) {
-        this.updateObserveAttrTelemetryObjects(observeArray, clientObserveAttrTelemetry, OBSERVE);
+        this.updateObserveAttrTelemetryObjects(observeArray, objectLwM2MS, OBSERVE);
       }
       if (isDefinedAndNotNull(attributeArray)) {
-        this.updateObserveAttrTelemetryObjects(attributeArray, clientObserveAttrTelemetry, ATTRIBUTE);
+        this.updateObserveAttrTelemetryObjects(attributeArray, objectLwM2MS, ATTRIBUTE);
       }
       if (isDefinedAndNotNull(telemetryArray)) {
-        this.updateObserveAttrTelemetryObjects(telemetryArray, clientObserveAttrTelemetry, TELEMETRY);
+        this.updateObserveAttrTelemetryObjects(telemetryArray, objectLwM2MS, TELEMETRY);
       }
       if (isDefinedAndNotNull(keyNameJson)) {
-        this.updateKeyNameObjects(keyNameJson, clientObserveAttrTelemetry);
+        this.configurationValue.observeAttr.keyName = this.validateKeyNameObjects(keyNameJson, attributeArray, telemetryArray);
+        this.upDateJsonAllConfig();
+        this.updateKeyNameObjects(objectLwM2MS);
       }
     }
-    return {clientLwM2M: clientObserveAttrTelemetry};
+    return {clientLwM2M: objectLwM2MS};
   }
 
   private includesNotZeroInstance = (attribute: string[], telemetry: string[]): boolean => {
@@ -247,36 +250,51 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
       .sort(this.sortPath);
 
     new Set(instancesPath).forEach(path => {
-      const pathParameter = Array.from(path.split('/'), Number);
-      const objectLwM2M = clientObserveAttrTelemetry.find(x => x.id === pathParameter[0]);
+      const pathParameter = Array.from(path.split('/'), String);
+      const objectLwM2M = clientObserveAttrTelemetry.find(x => x.keyId === pathParameter[0]);
       if (objectLwM2M) {
         const instance = deepClone(objectLwM2M.instances[0]);
-        instance.id = pathParameter[1];
+        instance.id = +pathParameter[1];
         objectLwM2M.instances.push(instance);
       }
     });
   }
 
-  private updateObserveAttrTelemetryObjects = (parameters: string[], clientObserveAttrTelemetry: ObjectLwM2M[],
+  private updateObserveAttrTelemetryObjects = (parameters: string[], objectLwM2MS: ObjectLwM2M[],
                                                nameParameter: string): void => {
     parameters.forEach(parameter => {
-      const [objectId, instanceId, resourceId] = Array.from(parameter.substring(1).split('/'), Number);
-      clientObserveAttrTelemetry.find(objectLwm2m => objectLwm2m.id === objectId)
-        .instances.find(itrInstance => itrInstance.id === instanceId)
-        .resources.find(resource => resource.id === resourceId)
-        [nameParameter] = true;
+      const [objectKeyId, instanceId, resourceId] = Array.from(parameter.substring(1).split('/'), String);
+      const objectLwM2M = objectLwM2MS.find(objectLwm2m => objectLwm2m.keyId === objectKeyId);
+      if (objectLwM2M) {
+        objectLwM2M.instances.find(itrInstance => itrInstance.id === +instanceId)
+          .resources.find(resource => resource.id === +resourceId)
+          [nameParameter] = true;
+      }
     });
+
   }
 
-  private updateKeyNameObjects = (nameJson: JsonObject, clientObserveAttrTelemetry: ObjectLwM2M[]): void => {
+  private updateKeyNameObjects = (clientObserveAttrTelemetry: ObjectLwM2M[]): void => {
+    Object.keys(this.configurationValue.observeAttr.keyName).forEach(key => {
+      const [objectKeyId, instanceId, resourceId] = Array.from(key.substring(1).split('/'), String);
+      const objectLwM2M = clientObserveAttrTelemetry.find(objectLwm2m => objectLwm2m.keyId === objectKeyId)
+      if (objectLwM2M) {
+        objectLwM2M.instances.find(instance => instance.id === +instanceId)
+        .resources.find(resource => resource.id === +resourceId)
+        .keyName = this.configurationValue.observeAttr.keyName[key];
+    }});
+  }
+
+  private validateKeyNameObjects = (nameJson: JsonObject, attributeArray: JsonArray, telemetryArray: JsonArray): {} => {
     const keyName = JSON.parse(JSON.stringify(nameJson));
+    let keyNameValidate = {};
+    const keyAttrTelemetry = attributeArray.concat(telemetryArray) ;
     Object.keys(keyName).forEach(key => {
-      const [objectId, instanceId, resourceId] = Array.from(key.substring(1).split('/'), Number);
-      clientObserveAttrTelemetry.find(objectLwm2m => objectLwm2m.id === objectId)
-        .instances.find(instance => instance.id === instanceId)
-        .resources.find(resource => resource.id === resourceId)
-        .keyName = keyName[key];
+      if (keyAttrTelemetry.includes(key)) {
+        keyNameValidate[key] = keyName[key];
+      }
     });
+    return  keyNameValidate;
   }
 
   private updateObserveAttrTelemetryFromGroupToJson = (val: ObjectLwM2M[]): void => {
@@ -291,7 +309,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
           if (instance.hasOwnProperty(RESOURCES) && Array.isArray(instance.resources)) {
             instance.resources.forEach(resource => {
               if (resource.attribute || resource.telemetry) {
-                let pathRes = `/${obj.id}/${instance.id}/${resource.id}`;
+                let pathRes = `/${obj.keyId}/${instance.id}/${resource.id}`;
                 if (resource.observe) {
                   observeArray.push(pathRes);
                 }
@@ -346,22 +364,22 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     });
   }
 
-  private getObjectsFromJsonAllConfig = (): number[] => {
-    const objectsIds = new Set<number>();
+  private getObjectsFromJsonAllConfig = (): string[] => {
+    const objectsIds = new Set<string>();
     if (this.configurationValue.observeAttr) {
       if (this.configurationValue.observeAttr.observe) {
         this.configurationValue.observeAttr.observe.forEach(obj => {
-          objectsIds.add(Array.from(obj.substring(1).split('/'), Number)[0]);
+          objectsIds.add(Array.from(obj.substring(1).split('/'), String)[0]);
         });
       }
       if (this.configurationValue.observeAttr.attribute) {
         this.configurationValue.observeAttr.attribute.forEach(obj => {
-          objectsIds.add(Array.from(obj.substring(1).split('/'), Number)[0]);
+          objectsIds.add(Array.from(obj.substring(1).split('/'), String)[0]);
         });
       }
       if (this.configurationValue.observeAttr.telemetry) {
         this.configurationValue.observeAttr.telemetry.forEach(obj => {
-          objectsIds.add(Array.from(obj.substring(1).split('/'), Number)[0]);
+          objectsIds.add(Array.from(obj.substring(1).split('/'), String)[0]);
         });
       }
     }
@@ -380,21 +398,21 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
 
   removeObjectsList = (value: ObjectLwM2M): void => {
     const objectsOld = this.lwm2mDeviceProfileFormGroup.get(OBSERVE_ATTR_TELEMETRY).value.clientLwM2M;
-    const isIdIndex = (element) => element.id === value.id;
+    const isIdIndex = (element) => element.keyId === value.keyId;
     const index = objectsOld.findIndex(isIdIndex);
     if (index >= 0) {
       objectsOld.splice(index, 1);
     }
-    this.removeObserveAttrTelemetryFromJson(OBSERVE, value.id);
-    this.removeObserveAttrTelemetryFromJson(TELEMETRY, value.id);
-    this.removeObserveAttrTelemetryFromJson(ATTRIBUTE, value.id);
-    this.removeKeyNameFromJson(value.id);
+    this.removeObserveAttrTelemetryFromJson(OBSERVE, value.keyId);
+    this.removeObserveAttrTelemetryFromJson(TELEMETRY, value.keyId);
+    this.removeObserveAttrTelemetryFromJson(ATTRIBUTE, value.keyId);
+    this.removeKeyNameFromJson(value.keyId);
     this.updateObserveAttrTelemetryObjectFormGroup(objectsOld);
     this.upDateJsonAllConfig();
   }
 
-  private removeObserveAttrTelemetryFromJson = (observeAttrTel: string, id: number): void => {
-    const isIdIndex = (element) => element.startsWith(`/${id}`);
+  private removeObserveAttrTelemetryFromJson = (observeAttrTel: string, keyId: string): void => {
+    const isIdIndex = (element) => element.startsWith(`/${keyId}`);
     let index = this.configurationValue.observeAttr[observeAttrTel].findIndex(isIdIndex);
     while (index >= 0) {
       this.configurationValue.observeAttr[observeAttrTel].splice(index, 1);
@@ -402,10 +420,10 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
     }
   }
 
-  private removeKeyNameFromJson = (id: number): void => {
+  private removeKeyNameFromJson = (keyId: string): void => {
     const keyNameJson = this.configurationValue.observeAttr.keyName;
     Object.keys(keyNameJson).forEach(key => {
-      if (key.startsWith(`/${id}`)) {
+      if (key.startsWith(`/${keyId}`)) {
         delete keyNameJson[key];
       }
     });

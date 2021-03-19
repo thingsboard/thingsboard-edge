@@ -33,8 +33,9 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -56,6 +58,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -66,7 +70,6 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
-import org.thingsboard.server.service.security.model.token.JwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import ua_parser.Client;
@@ -79,25 +82,15 @@ import java.net.URISyntaxException;
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
+@RequiredArgsConstructor
 public class AuthController extends BaseController {
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private SystemSecurityService systemSecurityService;
-
-    @Autowired
-    private AuditLogService auditLogService;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtTokenFactory tokenFactory;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final MailService mailService;
+    private final SystemSecurityService systemSecurityService;
+    private final AuditLogService auditLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/auth/user", method = RequestMethod.GET)
@@ -121,8 +114,7 @@ public class AuthController extends BaseController {
     @PreAuthorize("isAuthenticated()")
     @RequestMapping(value = "/auth/changePassword", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public void changePassword(
-            @RequestBody JsonNode changePasswordRequest) throws ThingsboardException {
+    public ObjectNode changePassword(@RequestBody JsonNode changePasswordRequest) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
             String currentPassword = changePasswordRequest.get("currentPassword").asText();
@@ -138,6 +130,12 @@ public class AuthController extends BaseController {
             }
             userCredentials.setPassword(passwordEncoder.encode(newPassword));
             userService.replaceUserCredentials(securityUser.getTenantId(), userCredentials);
+
+            eventPublisher.publishEvent(new UserAuthDataChangedEvent(securityUser.getId()));
+            ObjectNode response = JacksonUtil.newObjectNode();
+            response.put("token", tokenFactory.createAccessJwtToken(securityUser).getToken());
+            response.put("refreshToken", tokenFactory.createRefreshToken(securityUser).getToken());
+            return response;
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -155,7 +153,7 @@ public class AuthController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/noauth/activate", params = {"activateToken"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/noauth/activate", params = { "activateToken" }, method = RequestMethod.GET)
     public ResponseEntity<String> checkActivateToken(
             @RequestParam(value = "activateToken") String activateToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -203,7 +201,7 @@ public class AuthController extends BaseController {
         }
     }
 
-    @RequestMapping(value = "/noauth/resetPassword", params = {"resetToken"}, method = RequestMethod.GET)
+    @RequestMapping(value = "/noauth/resetPassword", params = { "resetToken" }, method = RequestMethod.GET)
     public ResponseEntity<String> checkResetToken(
             @RequestParam(value = "resetToken") String resetToken) {
         HttpHeaders headers = new HttpHeaders();
@@ -294,6 +292,7 @@ public class AuthController extends BaseController {
                 String email = user.getEmail();
                 mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
 
+                eventPublisher.publishEvent(new UserAuthDataChangedEvent(securityUser.getId()));
                 JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
                 JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
 
