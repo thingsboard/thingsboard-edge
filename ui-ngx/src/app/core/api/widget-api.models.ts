@@ -227,6 +227,7 @@ export interface WidgetSubscriptionCallbacks {
   onDataUpdateError?: (subscription: IWidgetSubscription, e: any) => void;
   onSubscriptionMessage?: (subscription: IWidgetSubscription, message: SubscriptionMessage) => void;
   onInitialPageDataChanged?: (subscription: IWidgetSubscription, nextPageData: PageData<EntityData>) => void;
+  forceReInit?: () => void;
   dataLoading?: (subscription: IWidgetSubscription) => void;
   legendDataUpdated?: (subscription: IWidgetSubscription, detectChanges: boolean) => void;
   timeWindowUpdated?: (subscription: IWidgetSubscription, timeWindowConfig: Timewindow) => void;
@@ -287,6 +288,7 @@ export interface IWidgetSubscription {
   hiddenData?: Array<{data: DataSet}>;
   timeWindowConfig?: Timewindow;
   timeWindow?: WidgetTimewindow;
+  comparisonEnabled?: boolean;
   comparisonTimeWindow?: WidgetTimewindow;
 
   alarms?: PageData<AlarmData>;

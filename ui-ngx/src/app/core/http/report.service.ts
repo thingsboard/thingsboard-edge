@@ -69,21 +69,18 @@ export class ReportService {
 
   public downloadDashboardReport(dashboardId: string, reportType: ReportType, state?: string, timewindow?: Timewindow): Observable<any> {
     const url = `/api/report/${dashboardId}/download`;
-    return getDefaultTimezone().pipe(
-      mergeMap((defaultTz) => {
-        const reportParams: ReportParams = {
-          type: reportType,
-          timezone: defaultTz
-        };
-        if (state) {
-          reportParams.state = state;
-        }
-        if (timewindow) {
-          reportParams.timewindow = timewindow;
-        }
-        return this.downloadReport(url, reportParams);
-      })
-    );
+    const defaultTz = getDefaultTimezone();
+    const reportParams: ReportParams = {
+      type: reportType,
+      timezone: defaultTz
+    };
+    if (state) {
+      reportParams.state = state;
+    }
+    if (timewindow) {
+      reportParams.timewindow = timewindow;
+    }
+    return this.downloadReport(url, reportParams);
   }
 
   public downloadTestReport(reportConfig: ReportParams, reportsServerEndpointUrl?: string): Observable<any> {

@@ -28,39 +28,62 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.client.tools.migrator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.msg.TbMsg;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.script.ScriptException;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
-import java.util.Set;
 
-public interface ScriptEngine {
+public class DictionaryParser {
+    private Map<String, String> dictionaryParsed = new HashMap<>();
 
-    List<TbMsg> executeUpdate(TbMsg msg) throws ScriptException;
+    public DictionaryParser(File sourceFile) throws IOException {
+        parseDictionaryDump(FileUtils.lineIterator(sourceFile));
+    }
 
-    ListenableFuture<List<TbMsg>> executeUpdateAsync(TbMsg msg);
+    public String getKeyByKeyId(String keyId) {
+        return dictionaryParsed.get(keyId);
+    }
 
-    TbMsg executeGenerate(TbMsg prevMsg) throws ScriptException;
+    private boolean isBlockFinished(String line) {
+        return StringUtils.isBlank(line) || line.equals("\\.");
+    }
 
-    boolean executeFilter(TbMsg msg) throws ScriptException;
+    private boolean isBlockStarted(String line) {
+        return line.startsWith("COPY public.ts_kv_dictionary (");
+    }
 
-    boolean executeAttributesFilter(Map<String,String> attributes) throws ScriptException;
+    private void parseDictionaryDump(LineIterator iterator) {
+        try {
+            String tempLine;
+            while (iterator.hasNext()) {
+                tempLine = iterator.nextLine();
 
-    ListenableFuture<Boolean> executeFilterAsync(TbMsg msg);
+                if (isBlockStarted(tempLine)) {
+                    processBlock(iterator);
+                }
+            }
+        } finally {
+            iterator.close();
+        }
+    }
 
-    Set<String> executeSwitch(TbMsg msg) throws ScriptException;
+    private void processBlock(LineIterator lineIterator) {
+        String tempLine;
+        String[] lineSplited;
+        while(lineIterator.hasNext()) {
+            tempLine = lineIterator.nextLine();
+            if(isBlockFinished(tempLine)) {
+                return;
+            }
 
-    JsonNode executeJson(TbMsg msg) throws ScriptException;
-
-    ListenableFuture<JsonNode> executeJsonAsync(TbMsg msg) throws ScriptException;
-
-    String executeToString(TbMsg msg) throws ScriptException;
-
-    void destroy();
-
+            lineSplited = tempLine.split("\t");
+            dictionaryParsed.put(lineSplited[1], lineSplited[0]);
+        }
+    }
 }

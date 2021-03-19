@@ -65,8 +65,8 @@ export interface TableWidgetDataKeySettings {
   cellStyleFunction?: string;
   useCellContentFunction: boolean;
   cellContentFunction?: string;
-  defaultColumnVisibility: ColumnVisibilityOptions;
-  columnSelectionToDisplay: ColumnSelectionOptions;
+  defaultColumnVisibility?: ColumnVisibilityOptions;
+  columnSelectionToDisplay?: ColumnSelectionOptions;
   columnExportOption?: columnExportOptions;
 }
 
