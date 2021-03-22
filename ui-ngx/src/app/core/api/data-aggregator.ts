@@ -32,10 +32,9 @@
 import { SubscriptionData, SubscriptionDataHolder } from '@app/shared/models/telemetry/telemetry.models';
 import {
   AggregationType, calculateIntervalComparisonEndTime,
-  calculateIntervalEndTime,
-  calculateIntervalStartTime,
+  calculateIntervalEndTime, calculateIntervalStartEndTime,
   getCurrentTime,
-  getCurrentTimeForComparison,
+  getCurrentTimeForComparison, getTime,
   SubscriptionTimewindow
 } from '@shared/models/time/time.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -260,11 +259,12 @@ export class DataAggregator {
     this.startTs = this.subsTw.startTs + this.subsTw.tsOffset;
     if (this.subsTw.quickInterval) {
       if (this.subsTw.timeForComparison === 'previousInterval') {
+        const startDate = getTime(this.subsTw.startTs, this.subsTw.timezone);
         const currentDate = getCurrentTime(this.subsTw.timezone);
-        this.endTs = calculateIntervalComparisonEndTime(this.subsTw.quickInterval, currentDate) + this.subsTw.tsOffset;
+        this.endTs = calculateIntervalComparisonEndTime(this.subsTw.quickInterval, startDate, currentDate) + this.subsTw.tsOffset;
       } else {
-        const currentDate = this.getCurrentTime();
-        this.endTs = calculateIntervalEndTime(this.subsTw.quickInterval, currentDate) + this.subsTw.tsOffset;
+        const startDate = getTime(this.subsTw.startTs, this.subsTw.timezone);
+        this.endTs = calculateIntervalEndTime(this.subsTw.quickInterval, startDate, this.subsTw.timezone) + this.subsTw.tsOffset;
       }
     } else {
       this.endTs = this.startTs + this.subsTw.aggregation.timeWindow;
@@ -285,9 +285,9 @@ export class DataAggregator {
       if (delta || !this.data || rangeChanged) {
         const tickTs = delta * this.subsTw.aggregation.interval;
         if (this.subsTw.quickInterval) {
-          const currentDate = this.getCurrentTime();
-          this.startTs = calculateIntervalStartTime(this.subsTw.quickInterval, currentDate) + this.subsTw.tsOffset;
-          this.endTs = calculateIntervalEndTime(this.subsTw.quickInterval, currentDate) + this.subsTw.tsOffset;
+          const startEndTime = calculateIntervalStartEndTime(this.subsTw.quickInterval, this.subsTw.timezone);
+          this.startTs = startEndTime[0] + this.subsTw.tsOffset;
+          this.endTs = startEndTime[1] + this.subsTw.tsOffset;
         } else {
           this.startTs += tickTs;
           this.endTs += tickTs;
@@ -315,14 +315,14 @@ export class DataAggregator {
       const aggKeyData = this.aggregationMap.aggMap[key];
       let keyData = this.dataBuffer[key];
       aggKeyData.forEach((aggData, aggTimestamp) => {
-        if (aggTimestamp <= this.startTs) {
+        if (aggTimestamp < this.startTs) {
           if (this.subsTw.aggregation.stateData &&
             (!this.lastPrevKvPairData[key] || this.lastPrevKvPairData[key][0] < aggTimestamp)) {
             this.lastPrevKvPairData[key] = [aggTimestamp, aggData.aggValue];
           }
           aggKeyData.delete(aggTimestamp);
           this.updatedData = true;
-        } else if (aggTimestamp <= this.endTs) {
+        } else if (aggTimestamp < this.endTs) {
           const kvPair: [number, any] = [aggTimestamp, aggData.aggValue];
           keyData.push(kvPair);
         }
