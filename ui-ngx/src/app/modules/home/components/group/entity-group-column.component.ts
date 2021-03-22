@@ -112,7 +112,6 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
     this.columnFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-//TODO deaflynx test switch for edge
     switch (this.entityType) {
       case EntityType.USER:
       case EntityType.CUSTOMER:

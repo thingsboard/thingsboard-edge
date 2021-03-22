@@ -96,7 +96,7 @@ export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTabl
     } else if (config.customerId && customerTitle && !config.edgeId){
       config.tableTitle = customerTitle + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));
       return config;
-    } else if (config.edgeId && resolveCustomer) { //TODO deaflynx add getShortEdgeInfo class
+    } else if (config.edgeId && resolveCustomer) {
       return this.edgeService.getEdge(config.edgeId).pipe(
         map((info) => {
           config.tableTitle = info.name + ': ' + this.translate.instant(entityGroupsTitle(config.groupType));

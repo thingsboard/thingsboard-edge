@@ -1477,7 +1477,7 @@
         "set-root-rulechain-to-edges": "Set root rule chain for Edge(s)",
         "set-root-rulechain-to-edges-text": "Set root rule chain for { count, plural, 1 {1 edge} other {# edges} }",
         "delete-edges-action-title": "Delete { count, plural, 1 {1 edge} other {# edges} }",
-        "add-groups-to-edge": "Add groups to edge",
+        "add-entity-groups-to-edge": "Assign entity groups to edge",
         "unassign-entity-group-from-edge-title": "Are you sure you want to unassign the entity group '{{ entityGroupName }}'?",
         "unassign-entity-group-from-edge-text": "After the confirmation the entity group will be unassigned and won't be accessible by the edge.",
         "unassign-entity-group-from-edge": "Unassign entity group from edge",

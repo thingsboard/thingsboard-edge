@@ -201,10 +201,3 @@ export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD
 ];
-
-export const edgeEntityTypes: EntityType[] = [
-  EntityType.SCHEDULER_EVENT,
-  EntityType.RULE_CHAIN
-];
-
-export const edgeAllEntityTypes: EntityType[] = [...edgeEntityGroupTypes, ...edgeEntityTypes];

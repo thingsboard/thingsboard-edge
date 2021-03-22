@@ -130,7 +130,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       if (this.customerId) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
       }
-      else if (this.edgeId) {
+      else if (this.entityGroupHasEdgeScope()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
       }
       else {
@@ -169,7 +169,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
-    if (this.edgeId) {
+    if (this.entityGroupHasEdgeScope()) {
       this.deleteEnabled = () => false;
       this.groupActionDescriptors.push(
         {
@@ -194,7 +194,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.edgeId) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.entityGroupHasEdgeScope()) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
@@ -204,16 +204,11 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.tableTitle = this.translate.instant(entityGroupsTitle(this.groupType));
     if (sharableGroupTypes.has(this.groupType) &&
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
-      if (this.params.edgeId) {
-        this.addEntity = () => this.addEntityGroupsToEdge();
-      } else {
         this.addEntity = () => this.entityGroupWizard();
-      }
     }
-    if (this.params.edgeId && this.groupType === EntityType.USER) { //TODO deaflynx is it possible to add USER group to sharableGroupTypes ?
-      this.addEntity = () => this.addEntityGroupsToEdge();
-    }
-    if (this.params.groupScope && this.params.groupScope === 'edge') {
+    if (this.entityGroupHasEdgeScope() && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+      this.assignEnabled = true;
+      this.assignEntity = () => this.assignEntityGroupsToEdge();
       this.componentsData = {
         isEdgeScope: true
       }
@@ -222,14 +217,16 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
   private updateActionCellDescriptors() {
     this.cellActionDescriptors.splice(0);
-    if (this.edgeId) {
+    this.cellActionDescriptors.push(
+      {
+        name: this.translate.instant('action.open'),
+        icon: 'view_list',
+        isEnabled: (entity) => true,
+        onAction: ($event, entity) => this.open($event, entity)
+      }
+    );
+    if (this.entityGroupHasEdgeScope()) {
       this.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('action.open'),
-          icon: 'view_list',
-          isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.openEdgeEntity($event, entity)
-        },
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
           icon: 'assignment_return',
@@ -238,14 +235,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       );
     } else {
-      this.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('action.open'),
-          icon: 'view_list',
-          isEnabled: (entity) => true,
-          onAction: ($event, entity) => this.open($event, entity)
-        }
-      );
       if (sharableGroupTypes.has(this.groupType) &&
         this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.cellActionDescriptors.push(
@@ -278,7 +267,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
             onAction: ($event, entity) => this.makePrivate($event, entity)
           }
         );
-    }
+      }
     }
   }
 
@@ -300,7 +289,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     ));
   }
 
-  private addEntityGroupsToEdge(): Observable<EntityGroupInfo> {
+  private assignEntityGroupsToEdge(): Observable<EntityGroupInfo> {
     let ownerId = this.userPermissionsService.getUserOwnerId();
     if (this.params.customerId) {
       ownerId = {
@@ -317,7 +306,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         ownerId: ownerId,
         childGroupType: this.params.childGroupType,
         edgeId: this.params.edgeId,
-        addEntityGroupsToEdgeTitle: 'edge.add-groups-to-edge',
+        addEntityGroupsToEdgeTitle: 'edge.assign-to-edge',
         confirmSelectTitle: 'action.add',
         notFoundText: 'entity-group.no-entity-groups-matching',
         requiredText: 'entity-group.target-entity-group-required'
@@ -399,18 +388,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     }
   }
 
-  private openEdgeEntity($event: Event, entityGroup: EntityGroupInfo) {
-    if ($event) {
-      $event.stopPropagation();
-    }
-    if (this.params.hierarchyView) {
-      this.params.hierarchyCallbacks.groupSelected(this.params.nodeId, entityGroup.id.id);
-    } else {
-      const url = this.router.createUrlTree([entityGroup.id.id], {relativeTo: this.table.route});
-      this.router.navigateByUrl(url);
-    }
-  }
-
   private unassignEntityGroupFromEdge($event: Event, entityGroup: EntityGroup) {
     if ($event) {
       $event.stopPropagation();
@@ -457,6 +434,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         return true;
     }
     return false;
+  }
+
+  private entityGroupHasEdgeScope() {
+    return this.params.groupType && this.params.groupType === EntityType.EDGE && this.params.childGroupType;
   }
 
 }

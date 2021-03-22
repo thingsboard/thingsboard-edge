@@ -238,56 +238,52 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
 
   configureCellActions(ruleChainScope: string): Array<CellActionDescriptor<RuleChain>> {
     const actions: Array<CellActionDescriptor<RuleChain>> = [];
-    if (ruleChainScope === 'tenant' || ruleChainScope === 'edges') {
+    actions.push(
+      {
+        name: this.translate.instant('rulechain.open-rulechain'),
+        icon: 'settings_ethernet',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.openRuleChain($event, entity)
+      },
+      {
+        name: this.translate.instant('rulechain.export'),
+        icon: 'file_download',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.exportRuleChain($event, entity)
+      }
+    );
+    if (ruleChainScope === 'tenant') {
       actions.push(
         {
-          name: this.translate.instant('rulechain.open-rulechain'),
-          icon: 'settings_ethernet',
-          isEnabled: () => true,
-          onAction: ($event, entity) => this.openRuleChain($event, entity)
-        },
-        {
-          name: this.translate.instant('rulechain.export'),
-          icon: 'file_download',
-          isEnabled: () => true,
-          onAction: ($event, entity) => this.exportRuleChain($event, entity)
+          name: this.translate.instant('rulechain.set-root'),
+          icon: 'flag',
+          isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
+            this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
+          onAction: ($event, entity) => this.setRootRuleChain($event, entity)
         }
       );
-      if (ruleChainScope === 'tenant') {
-        actions.push(
-          {
-            name: this.translate.instant('rulechain.set-root'),
-            icon: 'flag',
-            isEnabled: (entity) => this.isNonRootRuleChain(entity) &&
-              this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.WRITE),
-            onAction: ($event, entity) => this.setRootRuleChain($event, entity)
-          }
-        );
-      }
-      if (ruleChainScope === 'edges') {
-        actions.push(
-          {
-            name: this.translate.instant('rulechain.set-edge-template-root-rulechain'),
-            icon: 'flag',
-            isEnabled: (entity) => this.isNonRootRuleChain(entity),
-            onAction: ($event, entity) => this.setEdgeTemplateRootRuleChain($event, entity)
-          },
-          {
-            name: this.translate.instant('rulechain.set-auto-assign-to-edge'),
-            icon: 'bookmark_outline',
-            isEnabled: (entity) => this.isNotAutoAssignToEdgeRuleChain(entity),
-            onAction: ($event, entity) => this.setAutoAssignToEdgeRuleChain($event, entity)
-          },
-          {
-            name: this.translate.instant('rulechain.unset-auto-assign-to-edge'),
-            icon: 'bookmark',
-            isEnabled: (entity) => this.isAutoAssignToEdgeRuleChain(entity),
-            onAction: ($event, entity) => this.unsetAutoAssignToEdgeRuleChain($event, entity)
-          }
-        );
-      }
-    }
-    if (ruleChainScope === 'edge') {
+    } else if (ruleChainScope === 'edges') {
+      actions.push(
+        {
+          name: this.translate.instant('rulechain.set-edge-template-root-rulechain'),
+          icon: 'flag',
+          isEnabled: (entity) => this.isNonRootRuleChain(entity),
+          onAction: ($event, entity) => this.setEdgeTemplateRootRuleChain($event, entity)
+        },
+        {
+          name: this.translate.instant('rulechain.set-auto-assign-to-edge'),
+          icon: 'bookmark_outline',
+          isEnabled: (entity) => this.isNotAutoAssignToEdgeRuleChain(entity),
+          onAction: ($event, entity) => this.setAutoAssignToEdgeRuleChain($event, entity)
+        },
+        {
+          name: this.translate.instant('rulechain.unset-auto-assign-to-edge'),
+          icon: 'bookmark',
+          isEnabled: (entity) => this.isAutoAssignToEdgeRuleChain(entity),
+          onAction: ($event, entity) => this.unsetAutoAssignToEdgeRuleChain($event, entity)
+        }
+      );
+    } else if (ruleChainScope === 'edge') {
       actions.push(
         {
           name: this.translate.instant('rulechain.set-root'),
@@ -327,7 +323,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    if (this.config.componentsData.ruleChainScope === 'edges') {
+    if (this.config.componentsData.ruleChainScope === 'edges' || this.config.componentsData.ruleChainScope === 'edge') {
       this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
     } else {
       this.router.navigateByUrl(`ruleChains/${ruleChain.id.id}`);
