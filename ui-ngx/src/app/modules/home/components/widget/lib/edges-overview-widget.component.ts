@@ -55,8 +55,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { PageLink } from '@shared/models/page/page-link';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { edgeAllEntityTypes, edgeEntityGroupTypes, edgeEntityTypes } from "@shared/models/edge.models";
-import { groupResourceByGroupType, Operation, resourceByEntityType } from "@shared/models/security.models";
+import { edgeEntityGroupTypes } from "@shared/models/edge.models";
+import { groupResourceByGroupType, Operation, Resource, resourceByEntityType } from "@shared/models/security.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
@@ -88,16 +88,8 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private nodeIdCounter = 0;
 
-  private isSysAdmin: boolean = getCurrentAuthState(this.store).authUser.authority === Authority.SYS_ADMIN;
-
-  private allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
-    this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
-
-  private allowedEntityTypes: Array<EntityType> = edgeEntityTypes.filter((entityType) =>
-    this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(entityType), Operation.READ));
-
   constructor(protected store: Store<AppState>,
-              private edgeService: EdgeService,
+              private edgeService: EdgeService, //TODO deaflynx: delete unused
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
               private translateService: TranslateService,
@@ -168,12 +160,26 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private loadNodesForEdge(group: BaseData<HasId>): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
-    const allowedGroupAndEntityTypes: Array<EntityType> = this.isSysAdmin ? edgeAllEntityTypes : [...this.allowedGroupTypes, ...this.allowedEntityTypes];
-    allowedGroupAndEntityTypes.forEach((groupType) => {
+    const allowedEntityGroupTypes: Array<EntityType> = this.getAllowedEntityGroupTypes();
+    allowedEntityGroupTypes.forEach((groupType) => {
       const node: EdgeOverviewNode = this.createEdgeGroupsNode(group, groupType);
       nodes.push(node);
     });
     return nodes;
+  }
+
+  private getAllowedEntityGroupTypes() {
+    const isSysAdmin: boolean = getCurrentAuthState(this.store).authUser.authority === Authority.SYS_ADMIN;
+    const allEntityGroupTypes: Array<EntityType> = edgeEntityGroupTypes.concat(EntityType.SCHEDULER_EVENT, EntityType.RULE_CHAIN);
+    const allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
+      this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
+      allowedGroupTypes.push(EntityType.SCHEDULER_EVENT);
+    }
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+      allowedGroupTypes.push(EntityType.RULE_CHAIN);
+    }
+    return isSysAdmin ? allEntityGroupTypes : allowedGroupTypes;
   }
 
   private createEdgeGroupsNode(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
@@ -206,10 +212,10 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
       id: (++this.nodeIdCounter)+'',
       icon: false,
       text: group.id.entityType === EntityType.ENTITY_GROUP ? entityGroupNodeText(group) : entityNodeText(group),
-      children: group.id.entityType === EntityType.ENTITY_GROUP,
+      children: group.id.entityType === EntityType.ENTITY_GROUP && this.userPermissionsService.isOwnedGroup(group),
       data: {
         type: 'groups',
-        group: group,
+        group,
         groupType
       } as EntityGroupsNodeData
     } as EdgeOverviewNode;
