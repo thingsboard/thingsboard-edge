@@ -40,6 +40,8 @@ import { generateSecret, guid, isDefinedAndNotNull } from '@core/utils';
 import { GroupEntityComponent } from '@home/components/group/group-entity.component';
 import { Edge } from '@shared/models/edge.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-edge',
@@ -54,6 +56,7 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
+              private userPermissionsService: UserPermissionsService,
               @Inject('entity') protected entityValue: Edge,
               @Inject('entitiesTableConfig') protected entitiesTableConfigValue: GroupEntityTableConfig<Edge>,
               public fb: FormBuilder) {
@@ -124,11 +127,10 @@ export class EdgeComponent extends GroupEntityComponent<Edge> {
     }
   }
 
-  hideTenantActionsAndFormFields() {
-    if (this.entitiesTableConfig && this.checkIsNewEdge()) {
-      const ownerType = this.entitiesTableConfig.entityGroup.ownerId.entityType;
-      const isTenantAdmins = ownerType === EntityType.TENANT;
-      return !isTenantAdmins;
+  hideFromCustomerUsers() {
+    if (this.entitiesTableConfig) {
+      let ownerId = this.userPermissionsService.getUserOwnerId();
+      return !this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && ownerId.entityType === EntityType.CUSTOMER;
     } else {
       return false;
     }

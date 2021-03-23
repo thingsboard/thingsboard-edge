@@ -53,12 +53,16 @@ import { Edge } from "@shared/models/edge.models";
 import { EdgeService } from "@core/http/edge.service";
 import { EdgeComponent } from "@home/pages/edge/edge.component";
 import { Router } from "@angular/router";
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Injectable()
 export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edge> {
 
   constructor(private groupConfigTableConfigService: GroupConfigTableConfigService<Edge>,
               private userPermissionsService: UserPermissionsService,
+              private store: Store<AppState>,
               private translate: TranslateService,
               private utils: UtilsService,
               private dialog: MatDialog,
@@ -70,7 +74,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Edge>): Observable<GroupEntityTableConfig<Edge>> {
     const config = new GroupEntityTableConfig<Edge>(entityGroup, params);
-    const manageRuleChainsEnabled = entityGroup.ownerId.entityType === EntityType.TENANT;
+    let ownerId = this.userPermissionsService.getUserOwnerId();
+    const manageRuleChainsEnabled = this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && ownerId.entityType !== EntityType.CUSTOMER;
 
     config.entityComponent = EdgeComponent;
 
