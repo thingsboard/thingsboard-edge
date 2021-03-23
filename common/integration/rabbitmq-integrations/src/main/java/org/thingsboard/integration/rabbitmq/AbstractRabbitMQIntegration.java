@@ -129,14 +129,14 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         if (channel != null) {
             try {
                 channel.close();
-            } catch (IOException | TimeoutException e) {
-                log.error("Failed to close Chanel.", e);
+            } catch (Exception e) {
+                log.error("Failed to close Channel.", e);
             }
         }
         if (connection != null) {
             try {
                 connection.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.error("Failed to close Connection.", e);
             }
         }
