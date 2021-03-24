@@ -169,14 +169,16 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   }
 
   private getAllowedEntityGroupTypes() {
-    const isSysAdmin: boolean = getCurrentAuthState(this.store).authUser.authority === Authority.SYS_ADMIN;
+    const currentUser = getCurrentAuthState(this.store).authUser;
+    const isSysAdmin: boolean = currentUser.authority === Authority.SYS_ADMIN;
+    const isTenantAdmin: boolean = currentUser.authority === Authority.TENANT_ADMIN;
     const allEntityGroupTypes: Array<EntityType> = edgeEntityGroupTypes.concat(EntityType.SCHEDULER_EVENT, EntityType.RULE_CHAIN);
-    const allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
+    var allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
       this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       allowedGroupTypes.push(EntityType.SCHEDULER_EVENT);
     }
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && isTenantAdmin) {
       allowedGroupTypes.push(EntityType.RULE_CHAIN);
     }
     return isSysAdmin ? allEntityGroupTypes : allowedGroupTypes;

@@ -136,8 +136,6 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
   private allowedEdgeGroupTypes = edgeEntityGroupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
-  private allowedScheduler = this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ);
-
   private edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   constructor(protected store: Store<AppState>,
@@ -502,12 +500,31 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap[groupsType] = node.id;
       this.registerNode(node, parentNodeId);
     });
-    if (this.allowedScheduler) {
+    if (this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.SCHEDULER_EVENT), Operation.READ)) {
       const groupsType = EntityType.SCHEDULER_EVENT;
       const node: CustomersHierarchyNode = {
         id: (++this.nodeIdCounter)+'',
         icon: false,
-        text: entitiesNodeText(this.translate, groupsType),
+        text: entitiesNodeText(this.translate, groupsType, 'entity.type-scheduler-events'),
+        children: false,
+        data: {
+          type: 'edgeGroups',
+          groupsType,
+          edge,
+          parentEntityGroupId,
+          internalId: edge.id.id + '_' + groupsType
+        } as EdgeEntityGroupsNodeData
+      };
+      nodes.push(node);
+      nodesMap[groupsType] = node.id;
+      this.registerNode(node, parentNodeId);
+    }
+    if (this.userPermissionsService.hasGenericPermission(resourceByEntityType.get(EntityType.EDGE), Operation.WRITE)) {
+      const groupsType = EntityType.RULE_CHAIN;
+      const node: CustomersHierarchyNode = {
+        id: (++this.nodeIdCounter)+'',
+        icon: false,
+        text: entitiesNodeText(this.translate, groupsType, 'entity.type-rulechains'),
         children: false,
         data: {
           type: 'edgeGroups',
