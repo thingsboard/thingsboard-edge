@@ -306,8 +306,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         ownerId: ownerId,
         childGroupType: this.params.childGroupType,
         edgeId: this.params.edgeId,
-        addEntityGroupsToEdgeTitle: 'edge.assign-to-edge',
-        confirmSelectTitle: 'action.add',
+        addEntityGroupsToEdgeTitle: 'edge.assign-to-edge-title',
+        confirmSelectTitle: 'action.assign',
         notFoundText: 'entity-group.no-entity-groups-matching',
         requiredText: 'entity-group.target-entity-group-required'
       }

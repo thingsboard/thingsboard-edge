@@ -1459,6 +1459,7 @@
         "widget-datasource-error": "This widget supports only EDGE entity datasource",
         "edges": "Edges",
         "assign-to-edge": "Assign to edge",
+        "assign-to-edge-title": "Assign Entity Group(s) to Edge",
         "manage-edge-user-groups": "Manage edge user groups",
         "manage-edge-asset-groups": "Manage edge asset groups",
         "manage-edge-device-groups": "Manage edge device groups",
