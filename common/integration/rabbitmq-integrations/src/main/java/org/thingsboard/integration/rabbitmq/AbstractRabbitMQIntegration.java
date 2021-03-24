@@ -206,7 +206,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         return send(context, msg);
     }
 
-    protected void initConsumer(RabbitMQConsumerConfiguration configuration) {
+    protected void initConsumer() {
         rabbitMQConsumer = new DefaultConsumer(channel);
         rabbitMQLock.lock();
         try {
@@ -258,7 +258,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
 
     public void createTopicIfNotExists(String topic, Map<String, Object> arguments) {
         try {
-            channel.queueDeclare(topic, false, false, false, arguments);
+            channel.queueDeclare(topic, rabbitMQConsumerConfiguration.getDurable(), rabbitMQConsumerConfiguration.getExclusive(), rabbitMQConsumerConfiguration.getAutoDelete(), arguments);
         } catch (IOException e) {
             log.error("Failed to bind queue: [{}]", topic, e);
         }

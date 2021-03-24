@@ -53,7 +53,7 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
             return;
         }
 
-        initConsumer(rabbitMQConsumerConfiguration);
+        initConsumer();
 
         loopExecutor.submit(() -> {
             while (!stopped) {
