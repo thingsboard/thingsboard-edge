@@ -58,24 +58,21 @@
         <input matInput formControlName="password" type="password" autocomplete="new-password">
       </mat-form-field>
     </div>
-    <div fxLayoutGap.gt-xs="8px" fxLayout="row">
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.queues</mat-label>
-        <input matInput formControlName="queues" required>
-      </mat-form-field>
+    <mat-form-field class="mat-block">
+      <mat-label translate>integration.queues</mat-label>
+      <input matInput formControlName="queues" required>
+    </mat-form-field>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-checkbox fxFlex="33" formControlName="durable">
+        {{ 'integration.durable' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex="33" formControlName="exclusive">
+        {{ 'integration.exclusive' | translate }}
+      </mat-checkbox>
+      <mat-checkbox fxFlex="33" formControlName="autoDelete">
+        {{ 'integration.autoDelete' | translate }}
+      </mat-checkbox>
     </div>
-    <mat-form-field class="mat-block">
-      <mat-label translate>integration.durable</mat-label>
-      <input matInput formControlName="durable" required>
-    </mat-form-field>
-    <mat-form-field class="mat-block">
-      <mat-label translate>integration.exclusive</mat-label>
-      <input matInput formControlName="exclusive" required>
-    </mat-form-field>
-    <mat-form-field class="mat-block">
-      <mat-label translate>integration.autoDelete</mat-label>
-      <input matInput formControlName="autoDelete" required>
-    </mat-form-field>
     <mat-form-field class="mat-block">
       <mat-label translate>integration.routing-keys</mat-label>
       <input matInput formControlName="routingKeys" required>

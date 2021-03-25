@@ -34,12 +34,14 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.GetResponse;
+import com.rabbitmq.client.ShutdownSignalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -126,14 +128,14 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
     @Override
     public void destroy() {
         stopped = true;
-        if (channel != null) {
+        if (channel != null && channel.isOpen()) {
             try {
                 channel.close();
             } catch (Exception e) {
                 log.error("Failed to close Channel.", e);
             }
         }
-        if (connection != null) {
+        if (connection != null && connection.isOpen()) {
             try {
                 connection.close();
             } catch (Exception e) {
@@ -146,11 +148,18 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         List<GetResponse> result = queues.stream()
                 .map(queue -> {
                     try {
-                        return channel.basicGet(queue, false);
-                    } catch (IOException e) {
-                        log.error("Failed to get messages from queue: [{}]", queue);
-                        return null;
+                        return channel.basicGet(queue, true);
+                    } catch (IOException | ShutdownSignalException exception) {
+                        log.error("Channel was closed with the error: {}", exception.getMessage());
+                        if (configuration.isDebugMode()) {
+                            try {
+                                persistDebug(context, "Uplink", getUplinkContentType(), "", "ERROR", exception);
+                            } catch (Exception e) {
+                                log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
+                            }
+                        }
                     }
+                    return null;
                 }).filter(Objects::nonNull).collect(Collectors.toList());
         if (result.size() > 0) {
             return result;
@@ -161,7 +170,9 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
 
     protected void doCommit() {
         try {
-            channel.basicAck(0, true);
+            if (channel.isOpen()) {
+                channel.basicAck(0, true);
+            }
         } catch (IOException e) {
             log.error("Failed to ack messages.", e);
         }
@@ -258,9 +269,14 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
 
     public void createTopicIfNotExists(String topic, Map<String, Object> arguments) {
         try {
-            channel.queueDeclare(topic, rabbitMQConsumerConfiguration.getDurable(), rabbitMQConsumerConfiguration.getExclusive(), rabbitMQConsumerConfiguration.getAutoDelete(), arguments);
-        } catch (IOException e) {
-            log.error("Failed to bind queue: [{}]", topic, e);
+            channel.queueDeclare(topic,
+                    rabbitMQConsumerConfiguration.getDurable(),
+                    rabbitMQConsumerConfiguration.getExclusive(),
+                    rabbitMQConsumerConfiguration.getAutoDelete(),
+                    arguments);
+        } catch (IOException | ShutdownSignalException e) {
+            log.error("Failed to bind queue: [{}]", topic);
+            throw new RuntimeException(String.format("Failed to bind queue: [%s]", topic), e);
         }
     }
 }
