@@ -61,6 +61,7 @@
     <mat-form-field class="mat-block">
       <mat-label translate>integration.queues</mat-label>
       <input matInput formControlName="queues" required>
+      <mat-error translate *ngIf="form.get('queues').hasError('required')">integration.queues-required
     </mat-form-field>
     <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
       <mat-checkbox fxFlex="33" formControlName="durable">
@@ -75,7 +76,7 @@
     </div>
     <mat-form-field class="mat-block">
       <mat-label translate>integration.routing-keys</mat-label>
-      <input matInput formControlName="routingKeys" required>
+      <input matInput formControlName="routingKeys">
     </mat-form-field>
     <mat-form-field class="mat-block">
       <mat-label translate>integration.downlink-topic</mat-label>
