@@ -146,6 +146,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                 log.error("Failed to close Connection.", e);
             }
         }
+        loopExecutor.shutdownNow();
     }
 
     @Override

@@ -66,11 +66,11 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
                     log.warn("[{}] Failed to obtain messages from queue.", this.configuration.getId(), e);
                 } finally {
                     rabbitMQLock.unlock();
-                }
-                try {
-                    Thread.sleep(rabbitMQConsumerConfiguration.getPollPeriod());
-                } catch (InterruptedException e2) {
-                    log.trace("Failed to wait until the server has capacity to handle new requests", e2);
+                    try {
+                        Thread.sleep(rabbitMQConsumerConfiguration.getPollPeriod());
+                    } catch (InterruptedException e2) {
+                        log.trace("Failed to wait until the server has capacity to handle new requests", e2);
+                    }
                 }
             }
         });
