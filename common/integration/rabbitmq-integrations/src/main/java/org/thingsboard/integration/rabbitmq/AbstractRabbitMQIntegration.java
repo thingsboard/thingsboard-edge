@@ -159,7 +159,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                 RabbitMQConsumerConfiguration.class);
             queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getQueues().trim().split(",")));
             createConnection();
-        } catch (RuntimeException | JsonProcessingException e) {
+        } catch (Exception e) {
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
@@ -181,11 +181,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                     }
                     return null;
                 }).filter(Objects::nonNull).collect(Collectors.toList());
-        if (result.size() > 0) {
-            return result;
-        } else {
-            return Collections.emptyList();
-        }
+        return result;
     }
 
     protected void doCommit() {
