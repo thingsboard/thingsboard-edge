@@ -30,6 +30,7 @@
  */
 package org.thingsboard.integration.rabbitmq;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
@@ -48,6 +49,9 @@ import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.io.IOException;
@@ -141,6 +145,21 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
             } catch (Exception e) {
                 log.error("Failed to close Connection.", e);
             }
+        }
+    }
+
+    @Override
+    protected void doCheckConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException {
+        context = ctx;
+        this.configuration = integration;
+        try {
+        rabbitMQConsumerConfiguration = mapper.readValue(
+                mapper.writeValueAsString(configuration.getConfiguration().get("clientConfiguration")),
+                RabbitMQConsumerConfiguration.class);
+            queues = new ArrayList<>(Arrays.asList(rabbitMQConsumerConfiguration.getQueues().trim().split(",")));
+            createConnection();
+        } catch (RuntimeException | JsonProcessingException e) {
+            throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
