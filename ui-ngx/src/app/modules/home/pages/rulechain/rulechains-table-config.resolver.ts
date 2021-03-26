@@ -323,7 +323,10 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    if (this.config.componentsData.ruleChainScope === 'edges' || this.config.componentsData.ruleChainScope === 'edge') {
+    if (this.config.componentsData.ruleChainScope === 'edge') {
+      const url = this.router.createUrlTree([ruleChain.id.id], {relativeTo: this.config.table.route});
+      this.router.navigateByUrl(url);
+    } else if (this.config.componentsData.ruleChainScope === 'edges') {
       this.router.navigateByUrl(`edges/ruleChains/${ruleChain.id.id}`);
     } else {
       this.router.navigateByUrl(`ruleChains/${ruleChain.id.id}`);
