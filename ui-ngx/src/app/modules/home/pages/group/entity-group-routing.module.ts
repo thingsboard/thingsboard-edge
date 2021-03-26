@@ -56,10 +56,11 @@ import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import {
-  importRuleChainBreadcumbLabelFunction,
   ResolvedRuleChainMetaDataResolver,
-  ruleChainBreadcumbLabelFunction, RuleChainImportGuard,
-  RuleChainResolver, RuleNodeComponentsResolver, TooltipsterResolver
+  ruleChainBreadcumbLabelFunction,
+  RuleChainResolver,
+  RuleNodeComponentsResolver,
+  TooltipsterResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 
@@ -328,6 +329,77 @@ const DASHBOARD_GROUPS_ROUTE: Route =   {
           }
         }
       ]
+    }
+  ]
+};
+
+const SCHEDULER_EVENTS_ROUTE: Route = {
+  path: ':edgeId/scheduler',
+  component: SchedulerEventsComponent,
+  data: {
+  childEdgeGroupType: EntityType.SCHEDULER_EVENT,
+    groupScope: 'edge',
+    groupType: EntityType.SCHEDULER_EVENT,
+    auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+    breadcrumb: {
+    labelFunction: (route, translate, component, data) => {
+      return data.entityGroup.edgeGroupsTitle;
+    },
+      icon: 'schedule'
+    }
+  },
+  resolve: {
+      entityGroup: EntityGroupResolver
+  }
+};
+
+const RULE_CHAINS_ROUTE: Route = {
+  path: ':edgeId/ruleChains',
+  data: {
+    childEdgeGroupType: EntityType.RULE_CHAIN,
+    groupScope: 'edge',
+    breadcrumb: {
+      labelFunction: (route, translate, component, data) => {
+        return data.entityGroup.edgeGroupsTitle;
+      },
+      icon: 'settings_ethernet'
+    }
+  },
+  children: [
+    {
+      path: '',
+      component: EntitiesTableComponent,
+      data: {
+        ruleChainsType: 'edge',
+        title: 'edge.rulechains',
+        auth: [Authority.TENANT_ADMIN]
+      },
+      resolve: {
+        entityGroup: EntityGroupResolver,
+        entitiesTableConfig: RuleChainsTableConfigResolver
+      }
+    },
+    {
+      path: ':ruleChainId',
+      component: RuleChainPageComponent,
+      canDeactivate: [ConfirmOnExitGuard],
+      data: {
+        breadcrumb: {
+          labelFunction: ruleChainBreadcumbLabelFunction,
+          icon: 'settings_ethernet'
+        } as BreadCrumbConfig<RuleChainPageComponent>,
+        auth: [Authority.TENANT_ADMIN],
+        title: 'rulechain.edge-rulechain',
+        import: false,
+        ruleChainType: RuleChainType.EDGE
+      },
+      resolve: {
+        entityGroup: EntityGroupResolver,
+        ruleChain: RuleChainResolver,
+        ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
+        ruleNodeComponents: RuleNodeComponentsResolver,
+        tooltipster: TooltipsterResolver
+      }
     }
   ]
 };
@@ -607,75 +679,8 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {
-                    path: ':edgeId/scheduler',
-                    component: SchedulerEventsComponent,
-                    data: {
-                      childEdgeGroupType: EntityType.SCHEDULER_EVENT,
-                      groupScope: 'edge',
-                      groupType: EntityType.SCHEDULER_EVENT,
-                      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-                      breadcrumb: {
-                        labelFunction: (route, translate, component, data) => {
-                          return data.entityGroup.edgeGroupsTitle;
-                        },
-                        icon: 'schedule'
-                      }
-                    },
-                    resolve: {
-                      entityGroup: EntityGroupResolver
-                    }
-                  },
-                  {
-                    path: ':edgeId/ruleChains',
-                    data: {
-                      childEdgeGroupType: EntityType.RULE_CHAIN,
-                      groupScope: 'edge',
-                      breadcrumb: {
-                        labelFunction: (route, translate, component, data) => {
-                          return data.entityGroup.edgeGroupsTitle;
-                        },
-                        icon: 'settings_ethernet'
-                      }
-                    },
-                    children: [
-                      {
-                        path: '',
-                        component: EntitiesTableComponent,
-                        data: {
-                          ruleChainsType: 'edge',
-                          title: 'edge.rulechains',
-                          auth: [Authority.TENANT_ADMIN]
-                        },
-                        resolve: {
-                          entityGroup: EntityGroupResolver,
-                          entitiesTableConfig: RuleChainsTableConfigResolver
-                        }
-                      },
-                      {
-                        path: ':ruleChainId',
-                        component: RuleChainPageComponent,
-                        canDeactivate: [ConfirmOnExitGuard],
-                        data: {
-                          breadcrumb: {
-                            labelFunction: ruleChainBreadcumbLabelFunction,
-                            icon: 'settings_ethernet'
-                          } as BreadCrumbConfig<RuleChainPageComponent>,
-                          auth: [Authority.TENANT_ADMIN],
-                          title: 'rulechain.edge-rulechain',
-                          import: false,
-                          ruleChainType: RuleChainType.EDGE
-                        },
-                        resolve: {
-                          entityGroup: EntityGroupResolver,
-                          ruleChain: RuleChainResolver,
-                          ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-                          ruleNodeComponents: RuleNodeComponentsResolver,
-                          tooltipster: TooltipsterResolver
-                        }
-                      }
-                    ]
-                  }
+                  {...SCHEDULER_EVENTS_ROUTE},
+                  {...RULE_CHAINS_ROUTE}
                 ]
               }
             ]
@@ -840,74 +845,8 @@ const routes: Routes = [
               }
             }
           },
-          {
-            path: ':edgeId/scheduler',
-            component: SchedulerEventsComponent,
-            data: {
-              groupType: EntityType.SCHEDULER_EVENT,
-              auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-              breadcrumb: {
-                labelFunction: (route, translate, component, data) => {
-                  return data.entityGroup.edgeGroupsTitle;
-                },
-                icon: 'schedule'
-              }
-            },
-            resolve: {
-              entityGroup: EntityGroupResolver
-            }
-          },
-          {
-            path: ':edgeId/ruleChains',
-            data: {
-              childEdgeGroupType: EntityType.RULE_CHAIN,
-              groupScope: 'edge',
-              breadcrumb: {
-                labelFunction: (route, translate, component, data) => {
-                  return data.entityGroup.edgeGroupsTitle;
-                },
-                icon: 'settings_ethernet'
-              }
-            },
-            children: [
-              {
-                path: '',
-                component: EntitiesTableComponent,
-                data: {
-                  ruleChainsType: 'edge',
-                  title: 'edge.rulechains',
-                  groupType: EntityType.RULE_CHAIN,
-                  auth: [Authority.TENANT_ADMIN]
-                },
-                resolve: {
-                  entityGroup: EntityGroupResolver,
-                  entitiesTableConfig: RuleChainsTableConfigResolver
-                }
-              },
-              {
-                path: ':ruleChainId',
-                component: RuleChainPageComponent,
-                canDeactivate: [ConfirmOnExitGuard],
-                data: {
-                  breadcrumb: {
-                    labelFunction: ruleChainBreadcumbLabelFunction,
-                    icon: 'settings_ethernet'
-                  } as BreadCrumbConfig<RuleChainPageComponent>,
-                  auth: [Authority.TENANT_ADMIN],
-                  title: 'rulechain.edge-rulechain',
-                  import: false,
-                  ruleChainType: RuleChainType.EDGE
-                },
-                resolve: {
-                  entityGroup: EntityGroupResolver,
-                  ruleChain: RuleChainResolver,
-                  ruleChainMetaData: ResolvedRuleChainMetaDataResolver,
-                  ruleNodeComponents: RuleNodeComponentsResolver,
-                  tooltipster: TooltipsterResolver
-                }
-              }
-            ]
-          }
+          {...SCHEDULER_EVENTS_ROUTE},
+          {...RULE_CHAINS_ROUTE}
         ]
       }
     ]
