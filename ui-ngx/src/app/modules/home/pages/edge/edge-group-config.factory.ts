@@ -53,7 +53,6 @@ import { Edge } from "@shared/models/edge.models";
 import { EdgeService } from "@core/http/edge.service";
 import { EdgeComponent } from "@home/pages/edge/edge.component";
 import { Router } from "@angular/router";
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
@@ -224,6 +223,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.USER);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/userGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/userGroups`);
     }
@@ -236,6 +237,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ASSET);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/assetGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/assetGroups`);
     }
@@ -248,6 +251,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DEVICE);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/deviceGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/deviceGroups`);
     }
@@ -260,6 +265,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.ENTITY_VIEW);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/entityViewGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/entityViewGroups`);
     }
@@ -272,6 +279,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.DASHBOARD);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/dashboardGroups`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/dashboardGroups`);
     }
@@ -284,6 +293,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.SCHEDULER_EVENT);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/scheduler`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/scheduler`);
     }
@@ -296,6 +307,8 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
     }
     if (params.hierarchyView) {
       params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.RULE_CHAIN);
+    } else if (config.entityGroup.ownerId.entityType === EntityType.CUSTOMER) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
     }
