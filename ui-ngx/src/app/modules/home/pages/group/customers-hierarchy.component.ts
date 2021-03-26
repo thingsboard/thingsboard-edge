@@ -130,6 +130,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   public nodeEditCallbacks: NavTreeEditCallbacks = {};
 
+  public customerId: string;
+
   private allowedGroupTypes = groupTypes.filter((groupType) =>
     this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
 
@@ -179,6 +181,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         }
       } else if (node.data.type === 'customer') {
         const customer = node.data.entity;
+        this.customerId = node.data.entity.id.id;
         const parentEntityGroupId = node.data.parentEntityGroupId;
         cb(this.loadNodesForCustomer(node.id, parentEntityGroupId, customer));
       } else if (node.data.type === 'edge') {
@@ -266,7 +269,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           entityGroupParams.groupType = node.data.groupsType;
         }
         entityGroupParams.edgeId = node.data.edge.id.id;
+        entityGroupParams.customerId = node.data.customerId;
         entityGroupParams.nodeId = node.id;
+        entityGroupParams.groupScope = node.data.groupScope;
         entityGroupParams.internalId = node.data.internalId;
         const groupsType = node.data.groupsType;
         switch (groupsType) {
@@ -490,6 +495,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         children: true,
         data: {
           type: 'edgeGroups',
+          customerId: this.customerId,
+          groupScope: 'edge',
           groupsType,
           edge,
           parentEntityGroupId,
