@@ -85,7 +85,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.customerId = params.customerId;
     this.edgeId = params.edgeId;
-    if ((this.customerId || this.edgeId) && params.childGroupType) {
+    if (params.childEdgeGroupType) {
+      this.groupType = params.childEdgeGroupType;
+    } else if ((this.customerId || this.edgeId) && params.childGroupType) {
       this.groupType = params.childGroupType;
     } else {
       this.groupType = params.groupType;
@@ -127,10 +129,10 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.entitiesFetchFunction = pageLink => {
       let fetchObservable: Observable<Array<EntityGroupInfo>>;
-      if (this.customerId) {
+      if (this.customerId && !this.entityGroupsHasEdgeScope()) {
         fetchObservable = this.entityGroupService.getEntityGroupsByOwnerId(EntityType.CUSTOMER, this.customerId, this.groupType);
       }
-      else if (this.entityGroupHasEdgeScope()) {
+      else if (this.entityGroupsHasEdgeScope()) {
         fetchObservable = this.entityGroupService.getEdgeEntityGroups(this.edgeId, this.groupType);
       }
       else {
@@ -169,7 +171,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
-    if (this.entityGroupHasEdgeScope()) {
+    if (this.entityGroupsHasEdgeScope()) {
       this.deleteEnabled = () => false;
       this.groupActionDescriptors.push(
         {
@@ -194,7 +196,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.CREATE, this.groupType)) {
       this.addEnabled = false;
     }
-    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.entityGroupHasEdgeScope()) {
+    if (!this.userPermissionsService.hasGenericEntityGroupTypePermission(Operation.DELETE, this.groupType) || this.entityGroupsHasEdgeScope()) {
       this.entitiesDeleteEnabled = false;
     }
     this.componentsData = {
@@ -206,7 +208,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       this.userPermissionsService.hasGenericPermission(Resource.GROUP_PERMISSION, Operation.CREATE)) {
         this.addEntity = () => this.entityGroupWizard();
     }
-    if (this.entityGroupHasEdgeScope() && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
+    if (this.entityGroupsHasEdgeScope() && this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
       this.assignEnabled = true;
       this.assignEntity = () => this.assignEntityGroupsToEdge();
       this.componentsData = {
@@ -225,7 +227,7 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         onAction: ($event, entity) => this.open($event, entity)
       }
     );
-    if (this.entityGroupHasEdgeScope()) {
+    if (this.entityGroupsHasEdgeScope()) {
       this.cellActionDescriptors.push(
         {
           name: this.translate.instant('edge.unassign-entity-group-from-edge'),
@@ -304,8 +306,9 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
         ownerId: ownerId,
-        childGroupType: this.params.childGroupType,
+        groupType: this.groupType,
         edgeId: this.params.edgeId,
+        customerId: this.params.customerId,
         addEntityGroupsToEdgeTitle: 'edge.assign-to-edge-title',
         confirmSelectTitle: 'action.assign',
         notFoundText: 'entity-group.no-entity-groups-matching',
@@ -436,8 +439,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     return false;
   }
 
-  private entityGroupHasEdgeScope() {
-    return this.params.groupType && this.params.groupType === EntityType.EDGE && this.params.childGroupType;
+  private entityGroupsHasEdgeScope() {
+    return this.params.groupScope === 'edge';
   }
 
 }

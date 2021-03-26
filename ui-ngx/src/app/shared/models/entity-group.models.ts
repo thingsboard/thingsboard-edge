@@ -502,6 +502,8 @@ export interface EntityGroupParams {
   hierarchyCallbacks?: HierarchyCallbacks;
   edgeId?: string;
   groupScope?: string;
+  childEdgeGroupType?: EntityType;
+  childEdgeEntityGroupId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -515,6 +517,10 @@ export interface ShareGroupRequest {
 export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupParams {
   let routeParams = {...route.params};
   let routeData = {...route.data};
+  var childEdgeEntityGroupId;
+  if (routeData.groupScope && routeData.groupScope === 'edge') {
+    childEdgeEntityGroupId = routeParams.entityGroupId;
+  }
   while (route.parent !== null) {
     route = route.parent;
     if (routeParams.entityGroupId && route.params.entityGroupId &&
@@ -534,6 +540,8 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,
-    groupScope: routeData.groupScope
+    groupScope: routeData.groupScope,
+    childEdgeGroupType: routeData.childEdgeGroupType,
+    childEdgeEntityGroupId: childEdgeEntityGroupId
   }
 }
