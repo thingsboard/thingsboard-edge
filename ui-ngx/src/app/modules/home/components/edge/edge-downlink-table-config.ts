@@ -182,7 +182,7 @@ export class EdgeDownlinkTableConfig extends EntityTableConfig<EdgeEvent, TimePa
   }
 
   prepareEdgeEventContent(entity: any): Observable<string> {
-    return this.entityService.getEdgeEventContentByEntityType(entity).pipe(
+    return this.entityService.getEdgeEventContent(entity).pipe(
       map((result) => JSON.stringify(result))
     );
   }

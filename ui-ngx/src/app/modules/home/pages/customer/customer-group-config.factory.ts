@@ -69,6 +69,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
   }
 
   createConfig(params: EntityGroupParams, entityGroup: EntityGroupStateInfo<Customer>): Observable<GroupEntityTableConfig<Customer>> {
+    const authState = getCurrentAuthState(this.store);
     const config = new GroupEntityTableConfig<Customer>(entityGroup, params);
 
     config.entityComponent = CustomerComponent;
@@ -154,7 +155,7 @@ export class CustomerGroupConfigFactory implements EntityGroupStateConfigFactory
       );
     }
 
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && getCurrentAuthState(this.store).edgesSupportEnabled) {
+    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE_GROUP, Operation.READ) && authState.edgesSupportEnabled) {
       config.cellActionDescriptors.push(
         {
           name: this.translate.instant('customer.manage-customer-edge-groups'),
