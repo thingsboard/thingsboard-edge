@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable } from '@angular/core';
+import { Injectable, Input, SimpleChanges } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
@@ -130,6 +130,40 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
       });
       this.config.entitiesDeleteEnabled = false;
     }
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    return this.config;
+  }
+
+  resolveRuleChainsTableConfig(params: any): EntityTableConfig<RuleChain> {
+    const edgeId = params?.edgeId;
+    var ruleChainScope = params.data?.ruleChainsType ? params.data?.ruleChainsType : 'tenant';
+    if (params.hierarchyView && params.groupType === EntityType.EDGE) {
+      ruleChainScope = 'edge';
+    }
+    this.config.componentsData = {
+      ruleChainScope,
+      edgeId
+    };
+    if (ruleChainScope === 'tenant' || ruleChainScope === 'edges') {
+      this.config.entitySelectionEnabled = ruleChain => ruleChain && !ruleChain.root &&
+        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
+      this.config.deleteEnabled = (ruleChain) => ruleChain && !ruleChain.root &&
+        this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.DELETE);
+      this.config.entitiesDeleteEnabled = true;
+      this.config.tableTitle = this.configureTableTitle(ruleChainScope, null);
+    } else if (ruleChainScope === 'edge') {
+      this.edgeService.getEdge(edgeId).subscribe(edge => {
+        this.config.componentsData.edge = edge;
+        this.config.tableTitle = this.configureTableTitle(ruleChainScope, edge);
+        this.config.entitySelectionEnabled = ruleChain => edge.rootRuleChainId.id !== ruleChain.id.id;
+      });
+      this.config.entitiesDeleteEnabled = false;
+    }
+    this.config.columns = this.configureEntityTableColumns(ruleChainScope);
+    this.config.entitiesFetchFunction = this.configureEntityFunctions(ruleChainScope, edgeId);
+    this.config.groupActionDescriptors = this.configureGroupActions(ruleChainScope);
+    this.config.addActionDescriptors = this.configureAddActions(ruleChainScope);
+    this.config.cellActionDescriptors = this.configureCellActions(ruleChainScope);
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
